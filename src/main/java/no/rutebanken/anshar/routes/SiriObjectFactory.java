@@ -210,7 +210,7 @@ public class SiriObjectFactory {
         return siri;
     }
 
-    private static RequestorRef createRequestorRef(String value) {
+    public static RequestorRef createRequestorRef(String value) {
         RequestorRef requestorRef = new RequestorRef();
         requestorRef.setValue(value);
         return requestorRef;

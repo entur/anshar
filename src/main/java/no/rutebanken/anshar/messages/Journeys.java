@@ -18,13 +18,13 @@ public class Journeys {
      */
     public static List<EstimatedTimetableDeliveryStructure> getAll() {
         timetableDeliveries.removeIf(s -> {
+
             boolean isStillValid = false;
             ZonedDateTime validUntil = s.getValidUntil();
             //Keep if at least one is valid
-            if (validUntil == null || validUntil.isAfter(ZonedDateTime.now())) {
+            if (validUntil == null) {
                 isStillValid = true;
-            } else {
-                //No validity - keep "forever"
+            } else if (validUntil.isAfter(ZonedDateTime.now())) {
                 isStillValid = true;
             }
             return !isStillValid;

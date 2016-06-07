@@ -20,11 +20,11 @@ public class Vehicles {
         vehicleActivities.removeIf(s -> {
             boolean isStillValid = false;
             ZonedDateTime validUntilTime = s.getValidUntilTime();
+
             //Keep if at least one is valid
-            if (validUntilTime == null || validUntilTime.isAfter(ZonedDateTime.now())) {
+            if (validUntilTime == null) {
                 isStillValid = true;
-            } else {
-                //No validity - keep "forever"
+            } else if (validUntilTime.isAfter(ZonedDateTime.now())) {
                 isStillValid = true;
             }
             return !isStillValid;
