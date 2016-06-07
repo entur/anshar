@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Siri version="2.0" xmlns="http://www.siri.org.uk/siri" xmlns:ns2="http://www.ifopt.org.uk/acsb" xmlns:ns4="http://datex2.eu/schema/2_0RC1/2_0" xmlns:ns3="http://www.ifopt.org.uk/ifopt">
+    <SubscriptionRequest>
+        <RequestTimestamp>2016-06-03T10:34:41.879+02:00</RequestTimestamp>
+        <Address>http://localhost/test1.4/ws/Consat/4973cc14-1c1c-44c6-8923-012c8dac7f9d</Address>
+        <RequestorRef>00c05246-bb2d-4c68-a27d-978bbcf092f8</RequestorRef>
+        <MessageIdentifier>e89f63c7-d427-4867-b191-0637201bf197</MessageIdentifier>
+        <ConsumerAddress>http://localhost/test1.4/ws/Consat/4973cc14-1c1c-44c6-8923-012c8dac7f9d</ConsumerAddress>
+        <SubscriptionContext>
+            <HeartbeatInterval>PT1M</HeartbeatInterval>
+        </SubscriptionContext>
+        <SituationExchangeSubscriptionRequest>
+            <SubscriberRef>00c05246-bb2d-4c68-a27d-978bbcf092f8</SubscriberRef>
+            <SubscriptionIdentifier>4973cc14-1c1c-44c6-8923-012c8dac7f9d</SubscriptionIdentifier>
+            <InitialTerminationTime>2016-06-04T10:34:41.889+02:00</InitialTerminationTime>
+            <SituationExchangeRequest version="2.0">
+                <RequestTimestamp>2016-06-03T10:34:41.889+02:00</RequestTimestamp>
+            </SituationExchangeRequest>
+        </SituationExchangeSubscriptionRequest>
+    </SubscriptionRequest>
+</Siri>

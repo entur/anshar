@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="iso-8859-15" standalone="yes"?>
+<Siri version="2.0" xmlns="http://www.siri.org.uk/siri">
+    <TerminateSubscriptionResponse>
+        <ResponseTimestamp>2016-05-30T10:52:55.9512235+02:00</ResponseTimestamp>
+        <ResponderRef>rutersx</ResponderRef>
+        <RequestMessageRef>34dfd892-2339-4b29-bb65-a74d93e0ddf2</RequestMessageRef>
+        <TerminationResponseStatus>
+            <ResponseTimestamp>2016-05-30T10:52:55.9512235+02:00</ResponseTimestamp>
+            <RequestMessageRef>34dfd892-2339-4b29-bb65-a74d93e0ddf2</RequestMessageRef>
+            <SubscriberRef>d5d2ba21-ecf5-46cc-bbf8-9a7d34bc58bb</SubscriberRef>
+            <SubscriptionRef>31d93581-21e8-4b14-a515-bea5094f75d7</SubscriptionRef>
+            <Status>true</Status>
+        </TerminationResponseStatus>
+    </TerminateSubscriptionResponse>
+</Siri>

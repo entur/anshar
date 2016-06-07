@@ -1,0 +1,6 @@
+
+<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">
+    <s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+        <q1:HeartbeatNotification xmlns:q1="http://www.siri.org.uk/siri"><q1:RequestTimestamp>2016-06-06T08:31:43.1237473+02:00</q1:RequestTimestamp><q1:ProducerRef>VehicleMonitoring</q1:ProducerRef><q1:MessageIdentifier>HeartbeatNotification_636007987031237473</q1:MessageIdentifier><q1:ValidUntil>2016-06-06T09:31:43.1237473+02:00</q1:ValidUntil><q1:ShortestPossibleCycle>PT1M</q1:ShortestPossibleCycle></q1:HeartbeatNotification>
+    </s:Body>
+</s:Envelope>

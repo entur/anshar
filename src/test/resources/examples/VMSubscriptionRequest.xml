@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<siri:Siri xmlns:siri="http://www.siri.org.uk/siri"
+    xmlns:ns2="http://www.ifopt.org.uk/acsb"
+    xmlns:ns4="http://datex2.eu/schema/2_0RC1/2_0"
+    xmlns:ns3="http://www.ifopt.org.uk/ifopt"
+    version="1.4">
+    <siri:SubscriptionRequest>
+        <siri:RequestTimestamp>2016-06-06T07:32:47.473+02:00</siri:RequestTimestamp>
+        <siri:Address>http://localhost/test/1.4/ws/Consat/a072d4a9-cd2a-4d4d-887b-ea5eb7f26d0a</siri:Address>
+        <siri:RequestorRef>af373d30-ede2-4cb5-a2cb-e29455c11e6c</siri:RequestorRef>
+        <siri:MessageIdentifier>29190ac7-4651-45e6-8f77-c61eadb9f901</siri:MessageIdentifier>
+        <siri:ConsumerAddress>http://localhost/test/1.4/ws/Consat/a072d4a9-cd2a-4d4d-887b-ea5eb7f26d0a</siri:ConsumerAddress>
+        <siri:SubscriptionContext>
+            <siri:HeartbeatInterval>PT1M</siri:HeartbeatInterval>
+        </siri:SubscriptionContext>
+        <siri:VehicleMonitoringSubscriptionRequest>
+            <siri:SubscriberRef>af373d30-ede2-4cb5-a2cb-e29455c11e6c</siri:SubscriberRef>
+            <siri:SubscriptionIdentifier>a072d4a9-cd2a-4d4d-887b-ea5eb7f26d0a</siri:SubscriptionIdentifier>
+            <siri:InitialTerminationTime>2016-06-07T07:32:47.483+02:00</siri:InitialTerminationTime>
+            <siri:VehicleMonitoringRequest version="1.4">
+                <siri:RequestTimestamp>2016-06-06T07:32:47.483+02:00</siri:RequestTimestamp>
+            </siri:VehicleMonitoringRequest>
+        </siri:VehicleMonitoringSubscriptionRequest>
+    </siri:SubscriptionRequest>
+</siri:Siri>

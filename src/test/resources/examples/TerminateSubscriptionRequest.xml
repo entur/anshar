@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Siri xmlns="http://www.siri.org.uk/siri" xmlns:ns2="http://www.ifopt.org.uk/acsb" xmlns:ns4="http://datex2.eu/schema/2_0RC1/2_0" xmlns:ns3="http://www.ifopt.org.uk/ifopt">
+    <TerminateSubscriptionRequest>
+        <RequestTimestamp>2016-05-26T07:52:56.441+02:00</RequestTimestamp>
+        <RequestorRef>761db2f4-b20f-410c-aee9-08f0dd2841d1</RequestorRef>
+        <SubscriptionRef>0a295eb1-50d9-4ce6-8819-9ddeac31d651</SubscriptionRef>
+    </TerminateSubscriptionRequest>
+</Siri>
