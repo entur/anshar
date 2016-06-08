@@ -3,7 +3,10 @@ package no.rutebanken.anshar.routes;
 import org.apache.camel.builder.RouteBuilder;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.org.siri.siri20.Siri;
+import uk.org.siri.siri20.TerminateSubscriptionResponseStructure;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -14,6 +17,8 @@ import java.io.StringWriter;
 import java.util.UUID;
 
 public abstract class SiriSubscriptionRouteBuilder extends RouteBuilder {
+
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private JAXBContext jaxbContext;
     Marshaller jaxbMarshaller;
@@ -58,9 +63,20 @@ public abstract class SiriSubscriptionRouteBuilder extends RouteBuilder {
 
     Siri handleSiriResponse(String xml) {
         try {
-            Siri siriResponse = (Siri) jaxbUnmarshaller.unmarshal(new StringReader(xml));
+            Siri siri = (Siri) jaxbUnmarshaller.unmarshal(new StringReader(xml));
 
-            return siriResponse;
+            if (siri.getTerminateSubscriptionResponse() != null) {
+                TerminateSubscriptionResponseStructure response = siri.getTerminateSubscriptionResponse();
+                response.getTerminationResponseStatuses().forEach(s -> {
+                    if (s.isStatus()) {
+                        boolean removed = SubscriptionManager.removeSubscription(s.getSubscriptionRef().getValue());
+                        logger.info("Subscription " + s.getSubscriptionRef().getValue() + " terminated: " + removed);
+                    } else {
+                        logger.warn("Subscription [{}] NOT terminated", s.getSubscriptionRef().getValue());
+                    }
+                });
+            }
+            return siri;
         } catch (JAXBException e) {
             e.printStackTrace();
         }

@@ -75,17 +75,7 @@ public class Siri20ToSiriRS14Subscription extends SiriSubscriptionRouteBuilder {
                 .to("log:received:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .process(p -> {
                     Siri siri = handleSiriResponse(p.getIn().getBody(String.class));
-                    if (siri != null && siri.getTerminateSubscriptionResponse() != null) {
-                        TerminateSubscriptionResponseStructure response = siri.getTerminateSubscriptionResponse();
-                        response.getTerminationResponseStatuses().forEach(s -> {
-                            if (s.isStatus()) {
-                                boolean removed = SubscriptionManager.removeSubscription(s.getSubscriptionRef().getValue());
-                                System.out.println("Subscription " + s.getSubscriptionRef().getValue() + " terminated: " + removed);
-                            } else {
-                                System.err.println("Subscription NOT terminated");
-                            }
-                        });
-                    }
+
                 })
         ;
 
