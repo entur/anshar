@@ -1,6 +1,8 @@
 package no.rutebanken.anshar.routes;
 
+import no.rutebanken.anshar.messages.Journeys;
 import no.rutebanken.anshar.messages.Situations;
+import no.rutebanken.anshar.messages.Vehicles;
 import no.rutebanken.anshar.routes.handlers.SiriHandler;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
@@ -45,7 +47,27 @@ public class SiriIncomingReceiver extends RouteBuilder {
                 .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
                 .process(p -> {
                     try {
-                        p.getOut().setBody(SiriObjectFactory.toXml(SiriObjectFactory.createSiriObject(Situations.getAll())));
+                        p.getOut().setBody(SiriObjectFactory.toXml(SiriObjectFactory.createSXSiriObject(Situations.getAll())));
+                    } catch (JAXBException e1) {
+                        e1.printStackTrace();
+                    }
+                })
+        ;
+        from("netty4-http:http://0.0.0.0:" + inboundPort + "/rest/vm")
+                .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
+                .process(p -> {
+                    try {
+                        p.getOut().setBody(SiriObjectFactory.toXml(SiriObjectFactory.createVMSiriObject(Vehicles.getAll())));
+                    } catch (JAXBException e1) {
+                        e1.printStackTrace();
+                    }
+                })
+        ;
+        from("netty4-http:http://0.0.0.0:" + inboundPort + "/rest/et")
+                .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
+                .process(p -> {
+                    try {
+                        p.getOut().setBody(SiriObjectFactory.toXml(SiriObjectFactory.createETSiriObject(Journeys.getAll())));
                     } catch (JAXBException e1) {
                         e1.printStackTrace();
                     }
