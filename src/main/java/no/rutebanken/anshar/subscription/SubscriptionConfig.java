@@ -280,12 +280,4 @@ public class SubscriptionConfig {
         return new Siri20ToSiri20RSSubscription(sub);
     }
 
-    @Bean
-    RouteBuilder createIncomingListenerRoute() {
-        return new SiriIncomingReceiver();
-    }
-    @Bean
-    RouteBuilder createLivenessReadinessRoute() {
-        return new LivenessReadinessRoute();
-    }
 }
