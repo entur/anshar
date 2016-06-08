@@ -249,7 +249,7 @@ public class SiriObjectFactory {
         return sw.toString();
     }
 
-    public static Siri createSiriObject(List<PtSituationElement> elements) {
+    public static Siri createSXSiriObject(List<PtSituationElement> elements) {
         Siri siri = new Siri();
         ServiceDelivery delivery = new ServiceDelivery();
         SituationExchangeDeliveryStructure deliveryStructure = new SituationExchangeDeliveryStructure();
@@ -257,6 +257,24 @@ public class SiriObjectFactory {
         situations.getPtSituationElements().addAll(elements);
         deliveryStructure.setSituations(situations);
         delivery.getSituationExchangeDeliveries().add(deliveryStructure);
+        siri.setServiceDelivery(delivery);
+        return siri;
+    }
+
+    public static Siri createVMSiriObject(List<VehicleActivityStructure> elements) {
+        Siri siri = new Siri();
+        ServiceDelivery delivery = new ServiceDelivery();
+        VehicleMonitoringDeliveryStructure deliveryStructure = new VehicleMonitoringDeliveryStructure();
+        deliveryStructure.getVehicleActivities().addAll(elements);
+        delivery.getVehicleMonitoringDeliveries().add(deliveryStructure);
+        siri.setServiceDelivery(delivery);
+        return siri;
+    }
+
+    public static Siri createETSiriObject(List<EstimatedTimetableDeliveryStructure> elements) {
+        Siri siri = new Siri();
+        ServiceDelivery delivery = new ServiceDelivery();
+        delivery.getEstimatedTimetableDeliveries().addAll(elements);
         siri.setServiceDelivery(delivery);
         return siri;
     }
