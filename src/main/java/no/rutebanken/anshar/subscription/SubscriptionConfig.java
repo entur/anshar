@@ -1,10 +1,7 @@
 package no.rutebanken.anshar.subscription;
 
+import no.rutebanken.anshar.routes.*;
 import org.apache.camel.builder.RouteBuilder;
-import no.rutebanken.anshar.routes.Siri20ToSiri20RSSubscription;
-import no.rutebanken.anshar.routes.Siri20ToSiriRS14Subscription;
-import no.rutebanken.anshar.routes.Siri20ToSiriWS14Subscription;
-import no.rutebanken.anshar.routes.SiriIncomingReceiver;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -297,5 +294,9 @@ public class SubscriptionConfig {
     @Bean
     RouteBuilder createIncomingListenerRoute() {
         return new SiriIncomingReceiver(inboundPort, incomingPathPattern, incomingLogDirectory);
+    }
+    @Bean
+    RouteBuilder createLivenessReadinessRoute() {
+        return new LivenessReadinessRoute(inboundPort);
     }
 }
