@@ -4,16 +4,16 @@ import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
 
+
+@Configuration
 public class LivenessReadinessRoute extends RouteBuilder {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
+    @Value("${anshar.incoming.port}")
     private String inboundPort;
-
-
-    public LivenessReadinessRoute(String inboundPort) {
-        this.inboundPort = inboundPort;
-    }
 
     @Override
     public void configure() throws Exception {

@@ -9,12 +9,17 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.builder.xml.Namespaces;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
 
 import javax.xml.bind.JAXBException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+@Component
+@Configuration
 public class SiriIncomingReceiver extends RouteBuilder {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -27,16 +32,16 @@ public class SiriIncomingReceiver extends RouteBuilder {
     private final String ESTIMATED_TIMETABLE_QUEUE = DEFAULT_PROCESSOR_QUEUE + ".et";
     private final String HEARTBEAT_QUEUE           = DEFAULT_PROCESSOR_QUEUE + ".heartbeat";
 
+    @Value("${anshar.incoming.port}")
     private String inboundPort;
-    private String incomingPathPattern;
-    private String incomingLogDirectory;
 
+    @Value("${anshar.inbound.pattern}")
+    private String incomingPathPattern = "/foo/bar/rest";
 
-    public SiriIncomingReceiver(String inboundPort, String incomingPathPattern, String incomingLogDirectory) {
-        this.inboundPort = inboundPort;
-        this.incomingPathPattern = incomingPathPattern;
-        this.incomingLogDirectory = incomingLogDirectory;
-    }
+    @Value("${anshar.incoming.logdirectory}")
+    private String incomingLogDirectory = "/tmp";
+
+    public SiriIncomingReceiver() {}
 
     @Override
     public void configure() throws Exception {

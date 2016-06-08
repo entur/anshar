@@ -15,16 +15,6 @@ import java.util.UUID;
 @Configuration
 public class SubscriptionConfig {
 
-
-    @Value("${anshar.incoming.port}")
-    private String inboundPort = "9000";
-
-    @Value("${anshar.inbound.pattern}")
-    private String incomingPathPattern = "/foo/bar/rest";
-
-    @Value("${anshar.incoming.logdirectory}")
-    private String incomingLogDirectory = "/tmp";
-
     @Value("${anshar.inbound.url}")
     private String inboundUrl = "http://localhost:8080";
 
@@ -45,7 +35,6 @@ public class SubscriptionConfig {
 
     @Value("${anshar.enabled.kolumbus.vm}")
     private boolean enableKolumbusVM;
-
 
     @Value("${anshar.enabled.atb.sx}")
     private boolean enableAtbSX;
@@ -293,10 +282,10 @@ public class SubscriptionConfig {
 
     @Bean
     RouteBuilder createIncomingListenerRoute() {
-        return new SiriIncomingReceiver(inboundPort, incomingPathPattern, incomingLogDirectory);
+        return new SiriIncomingReceiver();
     }
     @Bean
     RouteBuilder createLivenessReadinessRoute() {
-        return new LivenessReadinessRoute(inboundPort);
+        return new LivenessReadinessRoute();
     }
 }
