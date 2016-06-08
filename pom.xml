@@ -143,27 +143,6 @@
             <artifactId>commons-lang3</artifactId>
             <version>3.4</version>
         </dependency>
-        <dependency>
-            <groupId>org.onebusaway</groupId>
-            <artifactId>onebusaway-collections</artifactId>
-            <version>1.2.0</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.onebusaway</groupId>
-            <artifactId>onebusaway-siri-core</artifactId>
-            <version>1.0.7</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.onebusaway</groupId>
-                    <artifactId>onebusaway-siri-api-v10</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.onebusaway</groupId>
-                    <artifactId>onebusaway-siri-api-v13</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
 
         <!-- testing -->
         <dependency>
