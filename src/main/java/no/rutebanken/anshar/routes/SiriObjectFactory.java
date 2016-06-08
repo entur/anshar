@@ -12,6 +12,7 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import java.io.StringReader;
+import java.io.StringWriter;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -239,6 +240,13 @@ public class SiriObjectFactory {
 
     public static Siri parseXml(String xml) throws JAXBException {
        return (Siri) jaxbUnmarshaller.unmarshal(new StringReader(xml));
+    }
+
+    public static String toXml(Siri siri) throws JAXBException {
+        StringWriter sw = new StringWriter();
+        jaxbMarshaller.marshal(siri, sw);
+
+        return sw.toString();
     }
 
     public static Siri createSiriObject(List<PtSituationElement> elements) {
