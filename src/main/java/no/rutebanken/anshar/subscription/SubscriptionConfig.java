@@ -80,10 +80,11 @@ public class SubscriptionConfig {
                 "SwarcoMizar",
                 SubscriptionSetup.ServiceType.SOAP,
                 UUID.randomUUID().toString(),
-                Duration.ofHours(initialDuration)
+                Duration.ofHours(initialDuration),
+                enableKolumbusSX
         );
 
-        return new Siri20ToSiriWS14Subscription(sub, enableKolumbusSX);
+        return new Siri20ToSiriWS14Subscription(sub);
     }
 
 
@@ -105,10 +106,10 @@ public class SubscriptionConfig {
                 "SwarcoMizar",
                 SubscriptionSetup.ServiceType.SOAP,
                 UUID.randomUUID().toString(),
-                Duration.ofHours(initialDuration)
-        );
+                Duration.ofHours(initialDuration),
+                enableKolumbusVM);
 
-        return new Siri20ToSiriWS14Subscription(sub, enableKolumbusVM);
+        return new Siri20ToSiriWS14Subscription(sub);
     }
 
     @Bean
@@ -128,10 +129,10 @@ public class SubscriptionConfig {
                 "SwarcoMizar",
                 SubscriptionSetup.ServiceType.SOAP,
                 UUID.randomUUID().toString(),
-                Duration.ofHours(initialDuration)
-        );
+                Duration.ofHours(initialDuration),
+                enableAtbSX);
 
-        return new Siri20ToSiriWS14Subscription(sub, enableAtbSX);
+        return new Siri20ToSiriWS14Subscription(sub);
     }
 
     @Bean
@@ -150,10 +151,10 @@ public class SubscriptionConfig {
                 "SwarcoMizar",
                 SubscriptionSetup.ServiceType.SOAP,
                 UUID.randomUUID().toString(),
-                Duration.ofHours(initialDuration)
-        );
+                Duration.ofHours(initialDuration),
+                enableAtbVM);
 
-        return new Siri20ToSiriWS14Subscription(sub, enableAtbVM);
+        return new Siri20ToSiriWS14Subscription(sub);
     }
 
 /*
@@ -174,10 +175,11 @@ public class SubscriptionConfig {
                 "SwarcoMizar",
                 SubscriptionSetup.ServiceType.SOAP,
                 UUID.randomUUID().toString(),
-                Duration.ofMinutes(5)
+                Duration.ofMinutes(5),
+                enableAtbSX
         );
 
-        return new Siri20ToSiriWS14RequestResponse(sub, enableAtbSX);
+        return new Siri20ToSiriWS14RequestResponse(sub);
     }
 */
 
@@ -198,10 +200,10 @@ public class SubscriptionConfig {
                 "Consat",
                 SubscriptionSetup.ServiceType.SOAP,
                 UUID.randomUUID().toString(),
-                Duration.ofHours(initialDuration)
-        );
+                Duration.ofHours(initialDuration),
+                enableAktSX);
 
-        return new Siri20ToSiriRS14Subscription(sub, enableAktSX);
+        return new Siri20ToSiriRS14Subscription(sub);
     }
     @Bean
     RouteBuilder createAktSiriETSubscriptionRoute() {
@@ -220,10 +222,10 @@ public class SubscriptionConfig {
                 "Consat",
                 SubscriptionSetup.ServiceType.SOAP,
                 UUID.randomUUID().toString(),
-                Duration.ofHours(initialDuration)
-        );
+                Duration.ofHours(initialDuration),
+                enableAktET);
 
-        return new Siri20ToSiriRS14Subscription(sub, enableAktET);
+        return new Siri20ToSiriRS14Subscription(sub);
     }
 
     @Bean
@@ -242,10 +244,10 @@ public class SubscriptionConfig {
                 "ruter",
                 SubscriptionSetup.ServiceType.REST,
                 UUID.randomUUID().toString(),
-                Duration.ofHours(initialDuration)
-        );
+                Duration.ofHours(initialDuration),
+                enableRuterSX);
 
-        return new Siri20ToSiri20RSSubscription(sub, enableRuterSX);
+        return new Siri20ToSiri20RSSubscription(sub);
     }
 
     @Bean
@@ -264,10 +266,10 @@ public class SubscriptionConfig {
                 "ruter",
                 SubscriptionSetup.ServiceType.REST,
                 UUID.randomUUID().toString(),
-                Duration.ofHours(initialDuration)
-        );
+                Duration.ofHours(initialDuration),
+                enableRuterVM);
 
-        return new Siri20ToSiri20RSSubscription(sub, enableRuterVM);
+        return new Siri20ToSiri20RSSubscription(sub);
     }
 
     @Bean
@@ -286,10 +288,10 @@ public class SubscriptionConfig {
                 "ruter",
                 SubscriptionSetup.ServiceType.REST,
                 UUID.randomUUID().toString(),
-                Duration.ofHours(initialDuration)
-        );
+                Duration.ofHours(initialDuration),
+                enableRuterET);
 
-        return new Siri20ToSiri20RSSubscription(sub, enableRuterET);
+        return new Siri20ToSiri20RSSubscription(sub);
     }
 
     @Bean

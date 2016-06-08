@@ -26,8 +26,6 @@ public abstract class SiriSubscriptionRouteBuilder extends RouteBuilder {
     SubscriptionSetup subscriptionSetup;
     String uniqueRouteName = UUID.randomUUID().toString();
 
-    boolean enabled;
-
     SiriSubscriptionRouteBuilder() {
         try {
             jaxbContext = JAXBContext.newInstance(Siri.class);
@@ -91,9 +89,12 @@ public abstract class SiriSubscriptionRouteBuilder extends RouteBuilder {
         from("quartz2://healthcheck" + uniqueRouteName + "?fireNow=true&trigger.repeatInterval=" + healthCheckInterval)
                 .choice()
                 .when(hasNotBeenStarted -> !SubscriptionManager.isSubscriptionRegistered(subscriptionSetup.getSubscriptionId()))
-                    .log("Starting subscription " + subscriptionSetup.getSubscriptionId())
-                    .process(p -> SubscriptionManager.addPendingSubscription(subscriptionSetup.getSubscriptionId(), subscriptionSetup))
-                    .to("direct:start" + uniqueRouteName)
+                    .choice()
+                    .when(isActive -> subscriptionSetup.isActive())
+                        .log("Starting subscription " + subscriptionSetup.getSubscriptionId())
+                        .process(p -> SubscriptionManager.addPendingSubscription(subscriptionSetup.getSubscriptionId(), subscriptionSetup))
+                        .to("direct:start" + uniqueRouteName)
+                    .endChoice()
                 .endChoice()
                 .when(isHealthy -> SubscriptionManager.isSubscriptionHealthy(subscriptionSetup.getSubscriptionId()))
                     .log("Subscription is healthy " + subscriptionSetup.getSubscriptionId())
@@ -103,7 +104,9 @@ public abstract class SiriSubscriptionRouteBuilder extends RouteBuilder {
                     .to("direct:cancel" + uniqueRouteName)
                     .log("Auto-restarting subscription " + subscriptionSetup.getSubscriptionId())
                     .log("Auto-restart ignored")
+                    .process(p -> subscriptionSetup.setActive(false))
                     //.to("direct:start" + uniqueRouteName)
                 .end();
+
     }
 }

@@ -16,10 +16,10 @@ public class SubscriptionSetup {
     private ServiceType serviceType;
     private Duration durationOfSubscription;
     private String requestorRef;
+    private boolean active;
 
     /**
-     *
-     * @param subscriptionType SX, VM, ET
+     *  @param subscriptionType SX, VM, ET
      * @param address Base-URL for receiving incoming data
      * @param heartbeatInterval Requested heartbeatinterval for subscriptions, Request-interval for Request/Response "subscriptions"
      * @param operatorNamespace Namespace
@@ -29,10 +29,11 @@ public class SubscriptionSetup {
      * @param serviceType SOAP/REST
      * @param subscriptionId Sets the subscriptionId to use
      * @param durationOfSubscription Initial duration of subscription
+     * @param active Activates/deactivates subscription
      */
     public SubscriptionSetup(SubscriptionType subscriptionType, String address, Duration heartbeatInterval, String operatorNamespace, Map<String, String> urlMap,
                              String version, String vendor, ServiceType serviceType, String subscriptionId,
-                             Duration durationOfSubscription) {
+                             Duration durationOfSubscription, boolean active) {
         this.subscriptionType = subscriptionType;
         this.address = address;
         this.heartbeatInterval = heartbeatInterval;
@@ -43,6 +44,7 @@ public class SubscriptionSetup {
         this.serviceType = serviceType;
         this.subscriptionId = subscriptionId;
         this.durationOfSubscription = durationOfSubscription;
+        this.active = active;
     }
 
     public String buildUrl() {
@@ -128,6 +130,14 @@ public class SubscriptionSetup {
 
     public SubscriptionType getSubscriptionType() {
         return subscriptionType;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
     }
 
     public enum ServiceType {SOAP, REST}

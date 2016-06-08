@@ -114,7 +114,7 @@ public class SubscriptionManager {
     public static boolean isSubscriptionRegistered(String subscriptionId) {
 
         if (!activeSubscriptions.containsKey(subscriptionId) &&
-                !pendingSubscriptions.containsKey(subscriptionId)) {//a7db72cf-e6f4-41bc-99cf-5151972f9e8a
+                !pendingSubscriptions.containsKey(subscriptionId)) {
             //Subscription not registered - trigger start
             return false;
         }

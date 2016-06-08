@@ -17,10 +17,9 @@ import java.util.Map;
 public class Siri20ToSiriWS14Subscription extends SiriSubscriptionRouteBuilder {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    public Siri20ToSiriWS14Subscription(SubscriptionSetup subscriptionSetup, boolean enabled) {
+    public Siri20ToSiriWS14Subscription(SubscriptionSetup subscriptionSetup) {
 
         this.subscriptionSetup = subscriptionSetup;
-        this.enabled = enabled;
 
         try {
             jaxbMarshaller.setProperty("com.sun.xml.bind.namespacePrefixMapper", new NamespacePrefixMapper() {
@@ -39,10 +38,6 @@ public class Siri20ToSiriWS14Subscription extends SiriSubscriptionRouteBuilder {
 
     @Override
     public void configure() throws Exception {
-        if (!enabled) {
-            log.info("Route has been disabled");
-            return;
-        }
 
         Map<String, String> urlMap = subscriptionSetup.getUrlMap();
 

@@ -13,20 +13,13 @@ import uk.org.siri.siri20.TerminateSubscriptionResponseStructure;
 public class Siri20ToSiriRS14Subscription extends SiriSubscriptionRouteBuilder {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    public Siri20ToSiriRS14Subscription(SubscriptionSetup subscriptionSetup, boolean enabled) {
-
+    public Siri20ToSiriRS14Subscription(SubscriptionSetup subscriptionSetup) {
         this.subscriptionSetup = subscriptionSetup;
-        this.enabled = enabled;
-
     }
 
 
     @Override
     public void configure() throws Exception {
-        if (!enabled) {
-            log.info("Route has been disabled");
-            return;
-        }
 
         //Start subscription
         from("direct:start" + uniqueRouteName)

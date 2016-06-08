@@ -16,18 +16,13 @@ public class Siri20ToSiri20RSSubscription extends SiriSubscriptionRouteBuilder {
 
     private static Logger logger = LoggerFactory.getLogger(Siri20ToSiri20RSSubscription.class);
 
-    public Siri20ToSiri20RSSubscription(SubscriptionSetup subscriptionSetup, boolean enabled) {
+    public Siri20ToSiri20RSSubscription(SubscriptionSetup subscriptionSetup) {
 
         this.subscriptionSetup = subscriptionSetup;
-        this.enabled = enabled;
     }
 
     @Override
     public void configure() throws Exception {
-        if (!enabled) {
-            log.info("Route has been disabled");
-            return;
-        }
 
         Map<String, String> urlMap = subscriptionSetup.getUrlMap();
 
