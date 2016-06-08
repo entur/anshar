@@ -99,9 +99,9 @@ public abstract class SiriSubscriptionRouteBuilder extends RouteBuilder {
                     .log("Subscription has died - terminating subscription " + subscriptionSetup.getSubscriptionId())
                     .to("direct:cancel" + uniqueRouteName)
                     .log("Auto-restarting subscription " + subscriptionSetup.getSubscriptionId())
-                    .log("Auto-restart ignored")
-                    .process(p -> subscriptionSetup.setActive(false))
-                    //.to("direct:start" + uniqueRouteName)
+                    //.log("Auto-restart ignored")
+                    //.process(p -> subscriptionSetup.setActive(false))
+                    .to("direct:start" + uniqueRouteName)
                 .end();
 
     }
