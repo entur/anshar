@@ -83,6 +83,11 @@ public class SubscriptionManager {
 
     public static Boolean isSubscriptionHealthy(String subscriptionId) {
         Instant instant = lastActivity.get(subscriptionId);
+        if (instant == null) {
+            return false;
+        }
+
+        logger.trace("Subscription [{}], last activity {}.", subscriptionId, instant);
 
         SubscriptionSetup activeSubscription = activeSubscriptions.get(subscriptionId);
         if (activeSubscription != null) {
@@ -97,7 +102,7 @@ public class SubscriptionManager {
         if (pendingSubscription != null) {
             long tripleInterval = pendingSubscription.getHeartbeatInterval().toMillis() * 3;
             if (instant.isBefore(Instant.now().minusMillis(tripleInterval))) {
-                logger.warn("Subscription {} never activated.", subscriptionId);
+                logger.warn("Subscription [{}] never activated.", subscriptionId);
                 //Subscription created, but async response never received - reestablish subscription
                 return false;
             }
