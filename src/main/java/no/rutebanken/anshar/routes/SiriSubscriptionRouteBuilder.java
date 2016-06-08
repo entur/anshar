@@ -66,12 +66,8 @@ public abstract class SiriSubscriptionRouteBuilder extends RouteBuilder {
             if (siri.getTerminateSubscriptionResponse() != null) {
                 TerminateSubscriptionResponseStructure response = siri.getTerminateSubscriptionResponse();
                 response.getTerminationResponseStatuses().forEach(s -> {
-                    if (s.isStatus()) {
-                        boolean removed = SubscriptionManager.removeSubscription(s.getSubscriptionRef().getValue());
-                        logger.info("Subscription " + s.getSubscriptionRef().getValue() + " terminated: " + removed);
-                    } else {
-                        logger.warn("Subscription [{}] NOT terminated", s.getSubscriptionRef().getValue());
-                    }
+                    boolean removed = SubscriptionManager.removeSubscription(s.getSubscriptionRef().getValue());
+                    logger.info("Subscription " + s.getSubscriptionRef().getValue() + " terminated: " + removed);
                 });
             }
             return siri;
