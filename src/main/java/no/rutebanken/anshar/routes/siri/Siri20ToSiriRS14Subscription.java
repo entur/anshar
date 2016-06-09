@@ -1,4 +1,4 @@
-package no.rutebanken.anshar.routes;
+package no.rutebanken.anshar.routes.siri;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
@@ -8,7 +8,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.org.siri.siri20.Siri;
 import uk.org.siri.siri20.SubscriptionResponseStructure;
-import uk.org.siri.siri20.TerminateSubscriptionResponseStructure;
 
 public class Siri20ToSiriRS14Subscription extends SiriSubscriptionRouteBuilder {
     private Logger logger = LoggerFactory.getLogger(this.getClass());

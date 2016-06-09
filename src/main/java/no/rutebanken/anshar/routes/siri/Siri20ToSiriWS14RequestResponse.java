@@ -1,5 +1,6 @@
-package no.rutebanken.anshar.routes;
+package no.rutebanken.anshar.routes.siri;
 
+import no.rutebanken.anshar.routes.ServiceNotSupportedException;
 import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
 import org.apache.camel.builder.RouteBuilder;
@@ -15,8 +16,6 @@ import javax.xml.bind.Unmarshaller;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.Map;
-
-import static no.rutebanken.anshar.routes.SiriObjectFactory.createServiceRequest;
 
 public class Siri20ToSiriWS14RequestResponse extends RouteBuilder {
     private static JAXBContext jaxbContext;
@@ -40,7 +39,7 @@ public class Siri20ToSiriWS14RequestResponse extends RouteBuilder {
 
     public Siri20ToSiriWS14RequestResponse(SubscriptionSetup subscriptionSetup, boolean enabled) {
 
-        this.request = createServiceRequest(subscriptionSetup);
+        this.request = SiriObjectFactory.createServiceRequest(subscriptionSetup);
 
         this.subscriptionSetup = subscriptionSetup;
         this.enabled = enabled;

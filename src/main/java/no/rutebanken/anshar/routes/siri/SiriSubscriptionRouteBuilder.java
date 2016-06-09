@@ -1,4 +1,4 @@
-package no.rutebanken.anshar.routes;
+package no.rutebanken.anshar.routes.siri;
 
 import org.apache.camel.builder.RouteBuilder;
 import no.rutebanken.anshar.subscription.SubscriptionManager;

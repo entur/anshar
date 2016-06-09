@@ -1,9 +1,9 @@
-package no.rutebanken.anshar.routes;
+package no.rutebanken.anshar.routes.siri;
 
 import no.rutebanken.anshar.messages.Journeys;
 import no.rutebanken.anshar.messages.Situations;
 import no.rutebanken.anshar.messages.Vehicles;
-import no.rutebanken.anshar.routes.handlers.SiriHandler;
+import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.builder.xml.Namespaces;
@@ -118,6 +118,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                 .otherwise()
                     .to("activemq:queue:" + DEFAULT_PROCESSOR_QUEUE)
                 .end()
+                .routeId("anshar.activemq.route")
         ;
 
 

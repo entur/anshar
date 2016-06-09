@@ -1,4 +1,4 @@
-package no.rutebanken.anshar.routes;
+package no.rutebanken.anshar.routes.siri;
 
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.slf4j.Logger;

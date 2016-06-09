@@ -1,9 +1,9 @@
-package no.rutebanken.anshar.routes.handlers;
+package no.rutebanken.anshar.routes.siri.handlers;
 
 import no.rutebanken.anshar.messages.Journeys;
 import no.rutebanken.anshar.messages.Situations;
 import no.rutebanken.anshar.messages.Vehicles;
-import no.rutebanken.anshar.routes.SiriObjectFactory;
+import no.rutebanken.anshar.routes.siri.SiriObjectFactory;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.slf4j.Logger;
