@@ -1,6 +1,8 @@
 package no.rutebanken.anshar.subscription;
 
-import no.rutebanken.anshar.routes.*;
+import no.rutebanken.anshar.routes.siri.Siri20ToSiri20RSSubscription;
+import no.rutebanken.anshar.routes.siri.Siri20ToSiriRS14Subscription;
+import no.rutebanken.anshar.routes.siri.Siri20ToSiriWS14Subscription;
 import org.apache.camel.builder.RouteBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

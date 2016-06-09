@@ -1,7 +1,7 @@
 package no.rutebanken.anshar;
 
 import no.rutebanken.anshar.messages.Situations;
-import no.rutebanken.anshar.routes.SiriObjectFactory;
+import no.rutebanken.anshar.routes.siri.SiriObjectFactory;
 import org.junit.Test;
 import uk.org.siri.siri20.PtSituationElement;
 import uk.org.siri.siri20.SituationNumber;
