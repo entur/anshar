@@ -46,7 +46,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
 
 
         //Incoming notifications/deliveries
-        from("netty4-http:http://0.0.0.0:" + inboundPort + "/rest/sx")
+        from("netty4-http:http://0.0.0.0:" + inboundPort + "/anshar/rest/sx")
                 .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
                 .process(p -> {
                     try {
@@ -56,7 +56,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                     }
                 })
         ;
-        from("netty4-http:http://0.0.0.0:" + inboundPort + "/rest/vm")
+        from("netty4-http:http://0.0.0.0:" + inboundPort + "/anshar/rest/vm")
                 .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
                 .process(p -> {
                     try {
@@ -66,7 +66,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                     }
                 })
         ;
-        from("netty4-http:http://0.0.0.0:" + inboundPort + "/rest/et")
+        from("netty4-http:http://0.0.0.0:" + inboundPort + "/anshar/rest/et")
                 .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
                 .process(p -> {
                     try {
@@ -89,7 +89,6 @@ public class SiriIncomingReceiver extends RouteBuilder {
 
         from("activemq:queue:" + TRANSFORM_QUEUE + "?asyncConsumer=true")
                 .to("file:" + incomingLogDirectory)
-                .to("log:transformer:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .to("xslt:xsl/siri_soap_raw.xsl?saxon=true") // Extract SOAP version and convert to raw SIRI
                 .to("xslt:xsl/siri_14_20.xsl?saxon=true") // Convert from v1.4 to 2.0
                 .to("log:received transformed:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
@@ -101,7 +100,6 @@ public class SiriIncomingReceiver extends RouteBuilder {
                 .add("xsd", "http://www.w3.org/2001/XMLSchema");
 
         from("activemq:queue:" + ROUTER_QUEUE + "?asyncConsumer=true")
-                .to("log:router:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .choice()
                 .when().xpath("/siri:Siri/siri:HeartbeatNotification", ns)
                     .to("activemq:queue:" + HEARTBEAT_QUEUE)
@@ -133,7 +131,6 @@ public class SiriIncomingReceiver extends RouteBuilder {
                 });
 
         from("activemq:queue:" + HEARTBEAT_QUEUE + "?asyncConsumer=true")
-                .to("log:heartbeat:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .process(p -> {
                     String subscriptionId = getSubscriptionIdFromPath(p.getIn().getHeader("CamelHttpPath", String.class));
 
@@ -143,7 +140,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                 });
 
         from("activemq:queue:" + SITUATION_EXCHANGE_QUEUE + "?asyncConsumer=true")
-                .to("log:processor-SX:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
+                //.to("log:processor-SX:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .process(p -> {
                     String subscriptionId = getSubscriptionIdFromPath(p.getIn().getHeader("CamelHttpPath", String.class));
 
@@ -153,7 +150,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                 });
 
         from("activemq:queue:" + VEHICLE_MONITORING_QUEUE + "?asyncConsumer=true")
-                .to("log:processor-VM:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
+               // .to("log:processor-VM:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .process(p -> {
 
                     String subscriptionId = getSubscriptionIdFromPath(p.getIn().getHeader("CamelHttpPath", String.class));
@@ -164,7 +161,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                 });
 
         from("activemq:queue:" + ESTIMATED_TIMETABLE_QUEUE + "?asyncConsumer=true")
-                .to("log:processor-ET:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
+                //.to("log:processor-ET:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .process(p -> {
                     String subscriptionId = getSubscriptionIdFromPath(p.getIn().getHeader("CamelHttpPath", String.class));
 
