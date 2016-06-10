@@ -1,5 +1,8 @@
 package no.rutebanken.anshar.routes.siri;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.smile.SmileFactory;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,11 +25,12 @@ public class SiriObjectFactory {
 
     private static Logger logger = LoggerFactory.getLogger(SiriObjectFactory.class);
 
-    static JAXBContext jaxbContext;
-    static Unmarshaller jaxbUnmarshaller;
-    static Marshaller jaxbMarshaller;
+    JAXBContext jaxbContext;
+    Unmarshaller jaxbUnmarshaller;
+    Marshaller jaxbMarshaller;
 
-    static {
+    public  SiriObjectFactory() {
+
         try {
             jaxbContext = JAXBContext.newInstance(Siri.class);
             jaxbUnmarshaller = jaxbContext.createUnmarshaller();
@@ -34,7 +38,6 @@ public class SiriObjectFactory {
         } catch (JAXBException e) {
             e.printStackTrace();
         }
-
     }
 
     public static Siri createSubscriptionRequest(SubscriptionSetup subscriptionSetup) {
@@ -238,11 +241,11 @@ public class SiriObjectFactory {
     }
 
 
-    public static Siri parseXml(String xml) throws JAXBException {
+    public Siri parseXml(String xml) throws JAXBException {
        return (Siri) jaxbUnmarshaller.unmarshal(new StringReader(xml));
     }
 
-    public static String toXml(Siri siri) throws JAXBException {
+    public String toXml(Siri siri) throws JAXBException {
         StringWriter sw = new StringWriter();
         jaxbMarshaller.marshal(siri, sw);
 

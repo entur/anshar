@@ -17,14 +17,19 @@ import java.util.List;
 public class SiriHandler {
 
     private static Logger logger = LoggerFactory.getLogger(SiriHandler.class);
+    private final SiriObjectFactory factory;
+
+    public SiriHandler() {
+        factory = new SiriObjectFactory();
+    }
 
     private static boolean touchSubscription(String subscriptionId) {
         return SubscriptionManager.touchSubscription(subscriptionId);
     }
 
-    public static Siri handleIncomingSiri(String subscriptionId, String xml) {
+    public Siri handleIncomingSiri(String subscriptionId, String xml) {
         try {
-            Siri incoming = SiriObjectFactory.parseXml(xml);
+            Siri incoming = factory.parseXml(xml);
 
             if (incoming.getHeartbeatNotification() != null) {
                 touchSubscription(subscriptionId);

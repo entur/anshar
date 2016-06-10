@@ -39,7 +39,13 @@ public class SiriIncomingReceiver extends RouteBuilder {
     @Value("${anshar.incoming.logdirectory}")
     private String incomingLogDirectory = "/tmp";
 
-    public SiriIncomingReceiver() {}
+    private SiriObjectFactory factory;
+    private SiriHandler handler;
+
+    public SiriIncomingReceiver() {
+        factory = new SiriObjectFactory();
+        handler = new SiriHandler();
+    }
 
     @Override
     public void configure() throws Exception {
@@ -50,7 +56,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                 .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
                 .process(p -> {
                     try {
-                        p.getOut().setBody(SiriObjectFactory.toXml(SiriObjectFactory.createSXSiriObject(Situations.getAll())));
+                        p.getOut().setBody(factory.toXml(factory.createSXSiriObject(Situations.getAll())));
                     } catch (JAXBException e1) {
                         e1.printStackTrace();
                     }
@@ -60,7 +66,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                 .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
                 .process(p -> {
                     try {
-                        p.getOut().setBody(SiriObjectFactory.toXml(SiriObjectFactory.createVMSiriObject(Vehicles.getAll())));
+                        p.getOut().setBody(factory.toXml(factory.createVMSiriObject(Vehicles.getAll())));
                     } catch (JAXBException e1) {
                         e1.printStackTrace();
                     }
@@ -70,7 +76,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                 .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
                 .process(p -> {
                     try {
-                        p.getOut().setBody(SiriObjectFactory.toXml(SiriObjectFactory.createETSiriObject(Journeys.getAll())));
+                        p.getOut().setBody(factory.toXml(factory.createETSiriObject(Journeys.getAll())));
                     } catch (JAXBException e1) {
                         e1.printStackTrace();
                     }
@@ -126,7 +132,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                     String subscriptionId = getSubscriptionIdFromPath(p.getIn().getHeader("CamelHttpPath", String.class));
 
                     String xml = p.getIn().getBody(String.class);
-                    SiriHandler.handleIncomingSiri(subscriptionId, xml);
+                    handler.handleIncomingSiri(subscriptionId, xml);
 
                 });
 
@@ -135,7 +141,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                     String subscriptionId = getSubscriptionIdFromPath(p.getIn().getHeader("CamelHttpPath", String.class));
 
                     String xml = p.getIn().getBody(String.class);
-                    SiriHandler.handleIncomingSiri(subscriptionId, xml);
+                    handler.handleIncomingSiri(subscriptionId, xml);
 
                 });
 
@@ -145,7 +151,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                     String subscriptionId = getSubscriptionIdFromPath(p.getIn().getHeader("CamelHttpPath", String.class));
 
                     String xml = p.getIn().getBody(String.class);
-                    SiriHandler.handleIncomingSiri(subscriptionId, xml);
+                    handler.handleIncomingSiri(subscriptionId, xml);
 
                 });
 
@@ -156,7 +162,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                     String subscriptionId = getSubscriptionIdFromPath(p.getIn().getHeader("CamelHttpPath", String.class));
 
                     String xml = p.getIn().getBody(String.class);
-                    SiriHandler.handleIncomingSiri(subscriptionId, xml);
+                    handler.handleIncomingSiri(subscriptionId, xml);
 
                 });
 
@@ -166,7 +172,8 @@ public class SiriIncomingReceiver extends RouteBuilder {
                     String subscriptionId = getSubscriptionIdFromPath(p.getIn().getHeader("CamelHttpPath", String.class));
 
                     String xml = p.getIn().getBody(String.class);
-                    SiriHandler.handleIncomingSiri(subscriptionId, xml);
+
+                    handler.handleIncomingSiri(subscriptionId, xml);
 
                 });
     }
