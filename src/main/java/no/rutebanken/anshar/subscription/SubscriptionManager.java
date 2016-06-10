@@ -47,7 +47,7 @@ public class SubscriptionManager {
 
     private static void logStats() {
         String stats = "Active subscriptions: " + activeSubscriptions.size() + ", Pending subscriptions: " + pendingSubscriptions.size();
-        logger.info(stats);
+        logger.debug(stats);
     }
 
     public static SubscriptionSetup get(String subscriptionId) {
@@ -74,10 +74,10 @@ public class SubscriptionManager {
         if (isPendingSubscription(subscriptionId)) {
             SubscriptionSetup setup = pendingSubscriptions.remove(subscriptionId);
             addSubscription(subscriptionId, setup);
-            logger.warn("Pending subscription [{}] activated", subscriptionId);
+            logger.trace("Pending subscription [{}] activated", subscriptionId);
             return true;
         }
-        logger.warn("Pending subscription [{}] NOT activated", subscriptionId);
+        logger.debug("Pending subscription [{}] NOT activated", subscriptionId);
         return false;
     }
 
@@ -102,7 +102,7 @@ public class SubscriptionManager {
         if (pendingSubscription != null) {
             long tripleInterval = pendingSubscription.getHeartbeatInterval().toMillis() * 3;
             if (instant.isBefore(Instant.now().minusMillis(tripleInterval))) {
-                logger.warn("Subscription [{}] never activated.", subscriptionId);
+                logger.info("Subscription [{}] never activated.", subscriptionId);
                 //Subscription created, but async response never received - reestablish subscription
                 return false;
             }
