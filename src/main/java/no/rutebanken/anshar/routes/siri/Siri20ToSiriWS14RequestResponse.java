@@ -12,23 +12,17 @@ import uk.org.siri.siri20.Siri;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
-import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.Map;
 
 public class Siri20ToSiriWS14RequestResponse extends RouteBuilder {
     private static JAXBContext jaxbContext;
-    private static Marshaller jaxbMarshaller;
-    private static Unmarshaller jaxbUnmarshaller;
     private final Siri request;
     private final SubscriptionSetup subscriptionSetup;
 
     static {
         try {
             jaxbContext = JAXBContext.newInstance(Siri.class);
-            jaxbMarshaller = jaxbContext.createMarshaller();
-            jaxbUnmarshaller = jaxbContext.createUnmarshaller();
         } catch (JAXBException e) {
             e.printStackTrace();
         }
@@ -51,6 +45,7 @@ public class Siri20ToSiriWS14RequestResponse extends RouteBuilder {
             return;
         }
         StringWriter sw = new StringWriter();
+        Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
         jaxbMarshaller.marshal(request, sw);
 
         Map<String, String> urlMap = subscriptionSetup.getUrlMap();
@@ -87,14 +82,5 @@ public class Siri20ToSiriWS14RequestResponse extends RouteBuilder {
                 .setHeader("CamelHttpPath", constant("/appContext" + subscriptionSetup.buildUrl(false)))
                 .to("activemq:queue:anshar.siri.transform")
         ;
-    }
-
-    private void handleSiriResponse(String xml) {
-        try {
-            Siri siriResponse = (Siri) jaxbUnmarshaller.unmarshal(new StringReader(xml));
-            System.out.println("Got response");
-        } catch (JAXBException e) {
-            e.printStackTrace();
-        }
     }
 }

@@ -20,18 +20,12 @@ public class Siri20ToSiriWS14Subscription extends SiriSubscriptionRouteBuilder {
 
         this.subscriptionSetup = subscriptionSetup;
 
-        try {
-            jaxbMarshaller.setProperty("com.sun.xml.bind.namespacePrefixMapper", new NamespacePrefixMapper() {
-                @Override
-                public String getPreferredPrefix(String arg0, String arg1, boolean arg2) {
-                    return "siri";
-                }
-            });
-        } catch (PropertyException e) {
-            e.printStackTrace();
-        }
-
-
+        this.customNamespacePrefixMapper = new NamespacePrefixMapper() {
+            @Override
+            public String getPreferredPrefix(String arg0, String arg1, boolean arg2) {
+                return "siri";
+            }
+        };
     }
 
 

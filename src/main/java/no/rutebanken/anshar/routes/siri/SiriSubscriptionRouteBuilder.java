@@ -1,5 +1,6 @@
 package no.rutebanken.anshar.routes.siri;
 
+import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
 import org.apache.camel.builder.RouteBuilder;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
@@ -21,16 +22,13 @@ public abstract class SiriSubscriptionRouteBuilder extends RouteBuilder {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private JAXBContext jaxbContext;
-    Marshaller jaxbMarshaller;
-    Unmarshaller jaxbUnmarshaller;
+    NamespacePrefixMapper customNamespacePrefixMapper;
     SubscriptionSetup subscriptionSetup;
     String uniqueRouteName = UUID.randomUUID().toString();
 
     SiriSubscriptionRouteBuilder() {
         try {
             jaxbContext = JAXBContext.newInstance(Siri.class);
-            jaxbMarshaller = jaxbContext.createMarshaller();
-            jaxbUnmarshaller = jaxbContext.createUnmarshaller();
         } catch (JAXBException e) {
             e.printStackTrace();
         }
@@ -44,6 +42,10 @@ public abstract class SiriSubscriptionRouteBuilder extends RouteBuilder {
 
         Siri siri = SiriObjectFactory.createSubscriptionRequest(subscriptionSetup);
 
+        Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
+        if (customNamespacePrefixMapper != null) {
+            jaxbMarshaller.setProperty("com.sun.xml.bind.namespacePrefixMapper",customNamespacePrefixMapper);
+        }
         jaxbMarshaller.marshal(siri, sw);
         return sw.toString();
     }
@@ -53,6 +55,7 @@ public abstract class SiriSubscriptionRouteBuilder extends RouteBuilder {
 
         Siri siri = SiriObjectFactory.createTerminateSubscriptionRequest(subscriptionSetup);
 
+        Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
         jaxbMarshaller.marshal(siri, sw);
 
         return sw.toString();
@@ -61,6 +64,7 @@ public abstract class SiriSubscriptionRouteBuilder extends RouteBuilder {
 
     Siri handleSiriResponse(String xml) {
         try {
+            Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
             Siri siri = (Siri) jaxbUnmarshaller.unmarshal(new StringReader(xml));
 
             if (siri.getTerminateSubscriptionResponse() != null) {
@@ -94,12 +98,17 @@ public abstract class SiriSubscriptionRouteBuilder extends RouteBuilder {
                 .endChoice()
                 .when(isHealthy -> SubscriptionManager.isSubscriptionHealthy(subscriptionSetup.getSubscriptionId()))
                     .log("Subscription is healthy " + subscriptionSetup.getSubscriptionId())
+                    .choice()
+                        .when(isDeactivated -> !subscriptionSetup.isActive())
+                            .log("Subscription has been deactivated - cancelling")
+                            .to("direct:cancel" + uniqueRouteName)
+                        .endChoice()
                 .endChoice()
                 .otherwise()
                     .log("Subscription has died - terminating subscription " + subscriptionSetup.getSubscriptionId())
                     .to("direct:cancel" + uniqueRouteName)
                     .log("Auto-restarting subscription " + subscriptionSetup.getSubscriptionId())
-                    //.log("Auto-restart ignored")
+                        //.log("Auto-restart ignored")
                     //.process(p -> subscriptionSetup.setActive(false))
                     .to("direct:start" + uniqueRouteName)
                 .end();

@@ -23,15 +23,11 @@ public class SiriObjectFactory {
     private static Logger logger = LoggerFactory.getLogger(SiriObjectFactory.class);
 
     JAXBContext jaxbContext;
-    Unmarshaller jaxbUnmarshaller;
-    Marshaller jaxbMarshaller;
 
     public  SiriObjectFactory() {
 
         try {
             jaxbContext = JAXBContext.newInstance(Siri.class);
-            jaxbUnmarshaller = jaxbContext.createUnmarshaller();
-            jaxbMarshaller = jaxbContext.createMarshaller();
         } catch (JAXBException e) {
             e.printStackTrace();
         }
@@ -239,10 +235,14 @@ public class SiriObjectFactory {
 
 
     public Siri parseXml(String xml) throws JAXBException {
-       return (Siri) jaxbUnmarshaller.unmarshal(new StringReader(xml));
+        Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
+
+        return (Siri) jaxbUnmarshaller.unmarshal(new StringReader(xml));
     }
 
     public String toXml(Siri siri) throws JAXBException {
+        Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
+
         StringWriter sw = new StringWriter();
         jaxbMarshaller.marshal(siri, sw);
 
