@@ -16,6 +16,7 @@ public class SubscriptionManager {
     private static Map<String, SubscriptionSetup> pendingSubscriptions = new HashMap<>();
 
     private static Map<String, java.time.Instant> lastActivity = new HashMap<>();
+    private static Map<String, java.time.Instant> activatedTimestamp = new HashMap<>();
 
     public static void addSubscription(String subscriptionId, SubscriptionSetup setup) {
         if (pendingSubscriptions.containsKey(subscriptionId)) {
@@ -24,6 +25,7 @@ public class SubscriptionManager {
         activeSubscriptions.put(subscriptionId, setup);
         logger.trace("Added subscription [{}]", subscriptionId);
         lastActivity.put(subscriptionId, Instant.now());
+        activatedTimestamp.put(subscriptionId, Instant.now());
         logStats();
     }
 
@@ -31,7 +33,7 @@ public class SubscriptionManager {
         boolean success = (activeSubscriptions.remove(subscriptionId) != null);
         logger.trace("Removed subscription [{}], success:{}", subscriptionId, success);
         lastActivity.remove(subscriptionId);
-
+        activatedTimestamp.remove(subscriptionId);
         logStats();
         return success;
     }
@@ -96,6 +98,16 @@ public class SubscriptionManager {
                 //Subscription exists, but heartbeat has not been received recently
                 return false;
             }
+
+            //If active subscription has existed longer than "initial subscription duration" - restart
+            if (activatedTimestamp.get(subscriptionId)
+                    .plusSeconds(
+                            activeSubscription.getDurationOfSubscription().getSeconds()
+                    ).isBefore(Instant.now())) {
+                logger.trace("Subscription  [{}] has lasted longer than initial subscription duration - triggering restart", subscriptionId);
+                return false;
+            }
+
         }
 
         SubscriptionSetup pendingSubscription = pendingSubscriptions.get(subscriptionId);
