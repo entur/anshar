@@ -51,6 +51,11 @@
                                 <xsl:for-each select="*">
                                     <xsl:element name="siril:{local-name()}">      
                                         <xsl:apply-templates select="* | node()"/>
+                                        <xsl:for-each select="*">
+                                            <xsl:element name="siril:{local-name()}">      
+                                                <xsl:apply-templates select="* | node()"/>
+                                            </xsl:element>
+                                        </xsl:for-each>
                                     </xsl:element>
                                 </xsl:for-each>
                             </xsl:element>
