@@ -65,7 +65,7 @@ public class Siri20ToSiriWS14Subscription extends SiriSubscriptionRouteBuilder {
                             if (s.isStatus() != null && s.isStatus()) {
                                 SubscriptionManager.addSubscription(s.getSubscriptionRef().getValue(), subscriptionSetup);
                             } else if (s.getErrorCondition() != null) {
-                                logger.error("Error starting subscription:  {}", s.getErrorCondition().getDescription());
+                                logger.error("Error starting subscription:  {}", (s.getErrorCondition().getDescription() != null ? s.getErrorCondition().getDescription().getValue():""));
                             } else {
                                 SubscriptionManager.addSubscription(s.getSubscriptionRef().getValue(), subscriptionSetup);
                             }
