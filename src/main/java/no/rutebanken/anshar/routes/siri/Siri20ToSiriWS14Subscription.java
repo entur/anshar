@@ -36,7 +36,7 @@ public class Siri20ToSiriWS14Subscription extends SiriSubscriptionRouteBuilder {
 
         //Start subscription
         from("direct:start" + uniqueRouteName)
-                .setBody(simple(marshalSiriSubscriptionRequest()))
+                .bean(this, "marshalSiriSubscriptionRequest", false)
                 .setExchangePattern(ExchangePattern.InOut) // Make sure we wait for a response
                 .setHeader("SOAPAction", constant("Subscribe"))
                 .setHeader("operatorNamespace", constant(subscriptionSetup.getOperatorNamespace())) // Need to make SOAP request with endpoint specific element namespace
@@ -76,7 +76,7 @@ public class Siri20ToSiriWS14Subscription extends SiriSubscriptionRouteBuilder {
 
         //Cancel subscription
         from("direct:cancel" + uniqueRouteName)
-                .setBody(simple(marshalSiriTerminateSubscriptionRequest()))
+                .bean(this, "marshalSiriTerminateSubscriptionRequest", false)
                 .setExchangePattern(ExchangePattern.InOut) // Make sure we wait for a response
                 .setProperty(Exchange.LOG_DEBUG_BODY_STREAMS, constant("true"))
                 .setHeader("SOAPAction", constant("DeleteSubscription")) // set SOAPAction Header (Microsoft requirement)
