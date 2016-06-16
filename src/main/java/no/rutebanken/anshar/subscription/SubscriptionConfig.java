@@ -253,7 +253,8 @@ public class SubscriptionConfig {
                 "2.0",
                 "rutervm",
                 SubscriptionSetup.ServiceType.REST,
-                UUID.randomUUID().toString(),
+                "20c2e3a3-1659-41d3-b1a2-1411978b1d43",  //Hard-coded subscriptionId - since Init does not support dynamic address
+                //UUID.randomUUID().toString(),
                 Duration.ofHours(initialDuration),
                 enableRuterVM);
 
@@ -275,7 +276,8 @@ public class SubscriptionConfig {
                 "2.0",
                 "ruteret",
                 SubscriptionSetup.ServiceType.REST,
-                UUID.randomUUID().toString(),
+                "1f6a687e-58b8-4e46-a23c-98adadad78ed",  //Hard-coded subscriptionId - since Init does not support dynamic address
+                //UUID.randomUUID().toString(),
                 Duration.ofHours(initialDuration),
                 enableRuterET);
 
