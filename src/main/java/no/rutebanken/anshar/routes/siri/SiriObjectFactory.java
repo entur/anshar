@@ -261,6 +261,7 @@ public class SiriObjectFactory {
         situations.getPtSituationElements().addAll(elements);
         deliveryStructure.setSituations(situations);
         delivery.getSituationExchangeDeliveries().add(deliveryStructure);
+        delivery.setResponseTimestamp(ZonedDateTime.now());
         siri.setServiceDelivery(delivery);
         return siri;
     }
@@ -271,6 +272,7 @@ public class SiriObjectFactory {
         VehicleMonitoringDeliveryStructure deliveryStructure = new VehicleMonitoringDeliveryStructure();
         deliveryStructure.getVehicleActivities().addAll(elements);
         delivery.getVehicleMonitoringDeliveries().add(deliveryStructure);
+        delivery.setResponseTimestamp(ZonedDateTime.now());
         siri.setServiceDelivery(delivery);
         return siri;
     }
@@ -279,6 +281,7 @@ public class SiriObjectFactory {
         Siri siri = new Siri();
         ServiceDelivery delivery = new ServiceDelivery();
         delivery.getEstimatedTimetableDeliveries().addAll(elements);
+        delivery.setResponseTimestamp(ZonedDateTime.now());
         siri.setServiceDelivery(delivery);
         return siri;
     }
