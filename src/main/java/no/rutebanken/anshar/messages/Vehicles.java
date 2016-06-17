@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.org.siri.siri20.VehicleActivityStructure;
 
+import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,13 +14,15 @@ public class Vehicles {
 
     private static List<VehicleActivityStructure> vehicleActivities = new ArrayList<>();
 
+    private static Duration maximumAge = Duration.ofHours(6);
+
     /**
      * @return All vehicle activities that are still valid
      */
     public static List<VehicleActivityStructure> getAll() {
-        vehicleActivities.removeIf(s -> {
+        vehicleActivities.removeIf(a -> {
             boolean isStillValid = false;
-            ZonedDateTime validUntilTime = s.getValidUntilTime();
+            ZonedDateTime validUntilTime = a.getValidUntilTime();
 
             //Keep if at least one is valid
             if (validUntilTime == null) {
@@ -33,24 +36,27 @@ public class Vehicles {
         return vehicleActivities;
     }
 
-    public static void add(VehicleActivityStructure situation) {
+    public static void add(VehicleActivityStructure activity) {
 
         int indexToReplace = -1;
         for (int i = 0; i < vehicleActivities.size(); i++) {
             VehicleActivityStructure element = vehicleActivities.get(i);
             if (element.getMonitoredVehicleJourney().getVehicleRef().getValue().equals(
-                    situation.getMonitoredVehicleJourney().getVehicleRef().getValue())) {
+                    activity.getMonitoredVehicleJourney().getVehicleRef().getValue())) {
 
                 //Same Identifier already exists - replace existing
                 indexToReplace = i;
                 break; //Found item to replace - no need to continue
             }
         }
-        if (indexToReplace >= 0) {
-            vehicleActivities.remove(indexToReplace);
-            vehicleActivities.add(indexToReplace, situation);
-        } else {
-            vehicleActivities.add(situation);
+        //Ignore if activity recorded is too old
+        if (activity.getRecordedAtTime().plusSeconds(maximumAge.getSeconds()).isAfter(ZonedDateTime.now())) {
+            if (indexToReplace >= 0) {
+                vehicleActivities.remove(indexToReplace);
+                vehicleActivities.add(indexToReplace, activity);
+            } else {
+                vehicleActivities.add(activity);
+            }
         }
     }
 }
