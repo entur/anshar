@@ -50,7 +50,7 @@ public class Vehicles {
             }
         }
         //Ignore if activity recorded is too old
-        if (activity.getRecordedAtTime().plusSeconds(maximumAge.getSeconds()).isAfter(ZonedDateTime.now())) {
+        if (activity.getRecordedAtTime() == null || activity.getRecordedAtTime().plusSeconds(maximumAge.getSeconds()).isAfter(ZonedDateTime.now())) {
             if (indexToReplace >= 0) {
                 vehicleActivities.remove(indexToReplace);
                 vehicleActivities.add(indexToReplace, activity);
