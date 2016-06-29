@@ -1,33 +1,20 @@
 package no.rutebanken.anshar.routes.siri;
 
 import no.rutebanken.anshar.routes.ServiceNotSupportedException;
+import no.rutebanken.anshar.subscription.SubscriptionManager;
+import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.builder.xml.Namespaces;
-import no.rutebanken.anshar.subscription.SubscriptionManager;
-import no.rutebanken.anshar.subscription.SubscriptionSetup;
+import org.rutebanken.siri20.util.SiriXml;
 import uk.org.siri.siri20.Siri;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import java.io.StringWriter;
 import java.util.Map;
 
 public class Siri20ToSiriWS14RequestResponse extends RouteBuilder {
-    private static JAXBContext jaxbContext;
     private final Siri request;
     private final SubscriptionSetup subscriptionSetup;
-
-    static {
-        try {
-            jaxbContext = JAXBContext.newInstance(Siri.class);
-        } catch (JAXBException e) {
-            e.printStackTrace();
-        }
-
-    }
 
     private boolean enabled;
 
@@ -44,9 +31,7 @@ public class Siri20ToSiriWS14RequestResponse extends RouteBuilder {
         if (!enabled) {
             return;
         }
-        StringWriter sw = new StringWriter();
-        Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
-        jaxbMarshaller.marshal(request, sw);
+        String siriXml = SiriXml.toXml(request);
 
         Map<String, String> urlMap = subscriptionSetup.getUrlMap();
 
@@ -56,7 +41,7 @@ public class Siri20ToSiriWS14RequestResponse extends RouteBuilder {
         SubscriptionManager.addSubscription(subscriptionSetup.getSubscriptionId(), subscriptionSetup);
 
         from("quartz2://request_response_" + subscriptionSetup.getSubscriptionId() + "?fireNow=true&trigger.repeatInterval=" + (subscriptionSetup.getHeartbeatInterval().getSeconds()*1000) )
-                .setBody(simple(sw.toString()))
+                .setBody(simple(siriXml))
                 .setExchangePattern(ExchangePattern.InOut) // Make sure we wait for a response
                 .setHeader("SOAPAction", ns.xpath("concat('Get',substring-before(/siri:Siri/siri:ServiceRequest/*[@version]/local-name(),'Request'))", String.class)) // extract and compute SOAPAction (Microsoft requirement)
                 .setHeader("operatorNamespace", constant(subscriptionSetup.getOperatorNamespace())) // Need to make SOAP request with endpoint specific element namespace.to("xslt:xsl/siri_20_14.xsl") // Convert from SIRI 2.0 to SIRI 1.4

@@ -5,14 +5,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.org.siri.siri20.*;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
-import java.io.StringReader;
-import java.io.StringWriter;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -22,15 +16,7 @@ public class SiriObjectFactory {
 
     private static Logger logger = LoggerFactory.getLogger(SiriObjectFactory.class);
 
-    JAXBContext jaxbContext;
-
     public  SiriObjectFactory() {
-
-        try {
-            jaxbContext = JAXBContext.newInstance(Siri.class);
-        } catch (JAXBException e) {
-            e.printStackTrace();
-        }
     }
 
     public static Siri createSubscriptionRequest(SubscriptionSetup subscriptionSetup) {
@@ -237,22 +223,6 @@ public class SiriObjectFactory {
         return createMessageIdentifier(UUID.randomUUID().toString());
     }
 
-
-    public Siri parseXml(String xml) throws JAXBException {
-        Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
-
-        return (Siri) jaxbUnmarshaller.unmarshal(new StringReader(xml));
-    }
-
-    public String toXml(Siri siri) throws JAXBException {
-        Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
-
-        StringWriter sw = new StringWriter();
-        jaxbMarshaller.marshal(siri, sw);
-
-        return sw.toString();
-    }
-
     public static Siri createSXSiriObject(List<PtSituationElement> elements) {
         Siri siri = new Siri();
         ServiceDelivery delivery = new ServiceDelivery();
@@ -260,6 +230,7 @@ public class SiriObjectFactory {
         SituationExchangeDeliveryStructure.Situations situations = new SituationExchangeDeliveryStructure.Situations();
         situations.getPtSituationElements().addAll(elements);
         deliveryStructure.setSituations(situations);
+        deliveryStructure.setResponseTimestamp(ZonedDateTime.now());
         delivery.getSituationExchangeDeliveries().add(deliveryStructure);
         delivery.setResponseTimestamp(ZonedDateTime.now());
         siri.setServiceDelivery(delivery);
@@ -271,6 +242,7 @@ public class SiriObjectFactory {
         ServiceDelivery delivery = new ServiceDelivery();
         VehicleMonitoringDeliveryStructure deliveryStructure = new VehicleMonitoringDeliveryStructure();
         deliveryStructure.getVehicleActivities().addAll(elements);
+        deliveryStructure.setResponseTimestamp(ZonedDateTime.now());
         delivery.getVehicleMonitoringDeliveries().add(deliveryStructure);
         delivery.setResponseTimestamp(ZonedDateTime.now());
         siri.setServiceDelivery(delivery);

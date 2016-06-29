@@ -7,12 +7,12 @@ import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.builder.xml.Namespaces;
+import org.rutebanken.siri20.util.SiriXml;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
-import javax.xml.bind.JAXBException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -50,39 +50,57 @@ public class SiriIncomingReceiver extends RouteBuilder {
     @Override
     public void configure() throws Exception {
 
+        //To avoid large stacktraces in the log when fething data using browser
+        from("netty4-http:http://0.0.0.0:" + inboundPort + "/favicon.ico")
+                .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("404"))
+        ;
 
-        //Incoming notifications/deliveries
+        // Dataproviders
         from("netty4-http:http://0.0.0.0:" + inboundPort + "/anshar/rest/sx")
                 .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
                 .process(p -> {
-                    try {
-                        p.getOut().setBody(factory.toXml(factory.createSXSiriObject(Situations.getAll())));
-                    } catch (JAXBException e1) {
-                        e1.printStackTrace();
-                    }
+                    p.getOut().setBody(SiriXml.toXml(factory.createSXSiriObject(Situations.getAll())));
+                    p.getOut().setHeader("Accept-Encoding", p.getIn().getHeader("Accept-Encoding"));
                 })
+                .to("direct:processResponse")
         ;
         from("netty4-http:http://0.0.0.0:" + inboundPort + "/anshar/rest/vm")
-                .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
+                .to("log:VM-request:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .process(p -> {
-                    try {
-                        p.getOut().setBody(factory.toXml(factory.createVMSiriObject(Vehicles.getAll())));
-                    } catch (JAXBException e1) {
-                        e1.printStackTrace();
-                    }
+                    p.getOut().setBody(SiriXml.toXml(factory.createVMSiriObject(Vehicles.getAll())));
+                    p.getOut().setHeader("Accept-Encoding", p.getIn().getHeader("Accept-Encoding"));
                 })
+                .to("direct:processResponse")
         ;
+
         from("netty4-http:http://0.0.0.0:" + inboundPort + "/anshar/rest/et")
                 .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
                 .process(p -> {
-                    try {
-                        p.getOut().setBody(factory.toXml(factory.createETSiriObject(Journeys.getAll())));
-                    } catch (JAXBException e1) {
-                        e1.printStackTrace();
-                    }
+                    p.getOut().setBody(SiriXml.toXml(factory.createETSiriObject(Journeys.getAll())));
+                    p.getOut().setHeader("Accept-Encoding", p.getIn().getHeader("Accept-Encoding"));
                 })
+                .to("direct:processResponse")
         ;
 
+        from("direct:processResponse")
+                .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
+                .choice()
+                .when(header("Accept-Encoding").contains("gzip"))
+                .to("direct:zip")
+                .otherwise()
+                .to("direct:raw")
+                ;
+        from("direct:zip")
+                .to("log:zipping:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
+                .setHeader("Content-Encoding", constant("gzip"))
+                .marshal()
+                .gzip()
+        ;
+
+        from("direct:raw")
+                .to("log:zipping:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
+                .marshal()
+        ;
 
         //Incoming notifications/deliveries
         from("netty4-http:http://0.0.0.0:" + inboundPort + "?matchOnUriPrefix=true")

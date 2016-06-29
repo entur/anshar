@@ -1,19 +1,16 @@
 package no.rutebanken.anshar.routes.siri;
 
 import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
-import org.apache.camel.builder.RouteBuilder;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
+import org.apache.camel.builder.RouteBuilder;
+import org.rutebanken.siri20.util.SiriXml;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.org.siri.siri20.Siri;
 import uk.org.siri.siri20.TerminateSubscriptionResponseStructure;
 
-import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
-import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.UUID;
 
@@ -21,20 +18,9 @@ public abstract class SiriSubscriptionRouteBuilder extends RouteBuilder {
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    private JAXBContext jaxbContext;
     NamespacePrefixMapper customNamespacePrefixMapper;
     SubscriptionSetup subscriptionSetup;
     String uniqueRouteName = UUID.randomUUID().toString();
-
-    SiriSubscriptionRouteBuilder() {
-        try {
-            jaxbContext = JAXBContext.newInstance(Siri.class);
-        } catch (JAXBException e) {
-            e.printStackTrace();
-        }
-
-    }
-
 
 
     public String marshalSiriSubscriptionRequest() throws JAXBException {
@@ -42,12 +28,7 @@ public abstract class SiriSubscriptionRouteBuilder extends RouteBuilder {
 
         Siri siri = SiriObjectFactory.createSubscriptionRequest(subscriptionSetup);
 
-        Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
-        if (customNamespacePrefixMapper != null) {
-            jaxbMarshaller.setProperty("com.sun.xml.bind.namespacePrefixMapper",customNamespacePrefixMapper);
-        }
-        jaxbMarshaller.marshal(siri, sw);
-        return sw.toString();
+        return SiriXml.toXml(siri, customNamespacePrefixMapper);
     }
 
     public String marshalSiriTerminateSubscriptionRequest() throws JAXBException {
@@ -55,17 +36,13 @@ public abstract class SiriSubscriptionRouteBuilder extends RouteBuilder {
 
         Siri siri = SiriObjectFactory.createTerminateSubscriptionRequest(subscriptionSetup);
 
-        Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
-        jaxbMarshaller.marshal(siri, sw);
-
-        return sw.toString();
+        return SiriXml.toXml(siri, customNamespacePrefixMapper);
     }
 
 
     Siri handleSiriResponse(String xml) {
         try {
-            Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
-            Siri siri = (Siri) jaxbUnmarshaller.unmarshal(new StringReader(xml));
+            Siri siri = SiriXml.parseXml(xml);
 
             if (siri.getTerminateSubscriptionResponse() != null) {
                 TerminateSubscriptionResponseStructure response = siri.getTerminateSubscriptionResponse();

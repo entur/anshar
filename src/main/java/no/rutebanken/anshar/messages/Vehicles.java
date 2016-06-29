@@ -2,6 +2,7 @@ package no.rutebanken.anshar.messages;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.org.siri.siri20.LocationStructure;
 import uk.org.siri.siri20.VehicleActivityStructure;
 
 import java.time.Duration;
@@ -29,6 +30,16 @@ public class Vehicles {
                 isStillValid = true;
             } else if (validUntilTime.isAfter(ZonedDateTime.now())) {
                 isStillValid = true;
+            }
+
+            VehicleActivityStructure.MonitoredVehicleJourney monitoredVehicleJourney = a.getMonitoredVehicleJourney();
+            if (monitoredVehicleJourney != null) {
+                LocationStructure vehicleLocation = monitoredVehicleJourney.getVehicleLocation();
+                if (vehicleLocation != null) {
+                    if(vehicleLocation.getLongitude() == null & vehicleLocation.getCoordinates() == null) {
+                        isStillValid = false;
+                    }
+                }
             }
             return !isStillValid;
         });

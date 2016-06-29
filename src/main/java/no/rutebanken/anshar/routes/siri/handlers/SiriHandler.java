@@ -3,9 +3,9 @@ package no.rutebanken.anshar.routes.siri.handlers;
 import no.rutebanken.anshar.messages.Journeys;
 import no.rutebanken.anshar.messages.Situations;
 import no.rutebanken.anshar.messages.Vehicles;
-import no.rutebanken.anshar.routes.siri.SiriObjectFactory;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
+import org.rutebanken.siri20.util.SiriXml;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.org.siri.siri20.*;
@@ -17,11 +17,6 @@ import java.util.List;
 public class SiriHandler {
 
     private static Logger logger = LoggerFactory.getLogger(SiriHandler.class);
-    private final SiriObjectFactory factory;
-
-    public SiriHandler() {
-        factory = new SiriObjectFactory();
-    }
 
     private static boolean touchSubscription(String subscriptionId) {
         return SubscriptionManager.touchSubscription(subscriptionId);
@@ -29,7 +24,7 @@ public class SiriHandler {
 
     public Siri handleIncomingSiri(String subscriptionId, String xml) {
         try {
-            Siri incoming = factory.parseXml(xml);
+            Siri incoming = SiriXml.parseXml(xml);
 
             if (incoming.getHeartbeatNotification() != null) {
                 touchSubscription(subscriptionId);
