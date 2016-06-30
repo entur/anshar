@@ -32,6 +32,7 @@ public class Vehicles {
                 isStillValid = true;
             }
 
+            //For VehicleActivity/MonitoredVehicleJourney - VehicleLocation is required to be valid according to schema
             VehicleActivityStructure.MonitoredVehicleJourney monitoredVehicleJourney = a.getMonitoredVehicleJourney();
             if (monitoredVehicleJourney != null) {
                 LocationStructure vehicleLocation = monitoredVehicleJourney.getVehicleLocation();
