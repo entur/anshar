@@ -242,8 +242,8 @@ public class SubscriptionConfig {
     RouteBuilder createRuterSiriVMSubscriptionRoute() {
 
         Map<String, String> urlMap = new HashMap<>();
-        urlMap.put("Subscribe", "10.200.12.111:8888/RutebankenTEST/vm/subscribe.xml");
-        urlMap.put("DeleteSubscription", "10.200.12.111:8888/RutebankenTEST/vm/managesubscription.xml");
+        urlMap.put("Subscribe", "109.239.226.193:8080/RutebankenDEV/vm/subscribe.xml");
+        urlMap.put("DeleteSubscription", "109.239.226.193:8080/RutebankenDEV/vm/managesubscription.xml");
 
         SubscriptionSetup sub = new SubscriptionSetup(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING,
                 inboundUrl,
@@ -265,8 +265,8 @@ public class SubscriptionConfig {
     RouteBuilder createRuterSiriETSubscriptionRoute() {
 
         Map<String, String> urlMap = new HashMap<>();
-        urlMap.put("Subscribe", "10.200.12.111:8888/RutebankenTEST/et/subscribe.xml");
-        urlMap.put("DeleteSubscription", "10.200.12.111:8888/RutebankenTEST/et/managesubscription.xml");
+        urlMap.put("Subscribe", "109.239.226.193:8080/RutebankenTEST/et/subscribe.xml");
+        urlMap.put("DeleteSubscription", "109.239.226.193:8080/RutebankenTEST/et/managesubscription.xml");
 
         SubscriptionSetup sub = new SubscriptionSetup(SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE,
                 inboundUrl,
