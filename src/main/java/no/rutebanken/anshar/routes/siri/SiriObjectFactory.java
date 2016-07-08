@@ -27,19 +27,19 @@ public class SiriObjectFactory {
         SubscriptionRequest request = null;
 
         if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE)) {
-            request = createSituationExchangeSubscriptionRequest(subscriptionSetup.getSubscriptionId(),
+            request = createSituationExchangeSubscriptionRequest(subscriptionSetup.getRequestorRef(),subscriptionSetup.getSubscriptionId(),
                     subscriptionSetup.getHeartbeatInterval().toString(),
                     subscriptionSetup.buildUrl(),
                     subscriptionSetup.getDurationOfSubscription());
         }
         if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING)) {
-            request = createVehicleMonitoringSubscriptionRequest(subscriptionSetup.getSubscriptionId(),
+            request = createVehicleMonitoringSubscriptionRequest(subscriptionSetup.getRequestorRef(),subscriptionSetup.getSubscriptionId(),
                     subscriptionSetup.getHeartbeatInterval().toString(),
                     subscriptionSetup.buildUrl(),
                     subscriptionSetup.getDurationOfSubscription());
         }
         if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE)) {
-            request = createEstimatedTimetableSubscriptionRequest(subscriptionSetup.getSubscriptionId(),
+            request = createEstimatedTimetableSubscriptionRequest(subscriptionSetup.getRequestorRef(),subscriptionSetup.getSubscriptionId(),
                     subscriptionSetup.getHeartbeatInterval().toString(),
                     subscriptionSetup.buildUrl(),
                     subscriptionSetup.getDurationOfSubscription());
@@ -76,8 +76,8 @@ public class SiriObjectFactory {
         return siri;
     }
 
-    private static SubscriptionRequest createSituationExchangeSubscriptionRequest(String subscriptionId, String heartbeatInterval, String address, Duration subscriptionDuration) {
-        SubscriptionRequest request = createSubscriptionRequest(heartbeatInterval, address);
+    private static SubscriptionRequest createSituationExchangeSubscriptionRequest(String requestorRef, String subscriptionId, String heartbeatInterval, String address, Duration subscriptionDuration) {
+        SubscriptionRequest request = createSubscriptionRequest(requestorRef, heartbeatInterval, address);
 
         SituationExchangeRequestStructure sxRequest = createSituationExchangeRequestStructure();
 
@@ -116,18 +116,20 @@ public class SiriObjectFactory {
         return etRequest;
     }
 
-    private static SubscriptionRequest createVehicleMonitoringSubscriptionRequest(String subscriptionId, String heartbeatInterval, String address, Duration subscriptionDuration) {
-        SubscriptionRequest request = createSubscriptionRequest(heartbeatInterval, address);
+    private static SubscriptionRequest createVehicleMonitoringSubscriptionRequest(String requestorRef, String subscriptionId, String heartbeatInterval, String address, Duration subscriptionDuration) {
+        SubscriptionRequest request = createSubscriptionRequest(requestorRef,heartbeatInterval, address);
 
         VehicleMonitoringRequestStructure vmRequest = new VehicleMonitoringRequestStructure();
         vmRequest.setRequestTimestamp(ZonedDateTime.now());
         vmRequest.setVersion("2.0");
+        
 
         VehicleMonitoringSubscriptionStructure vmSubscriptionReq = new VehicleMonitoringSubscriptionStructure();
         vmSubscriptionReq.setVehicleMonitoringRequest(vmRequest);
         vmSubscriptionReq.setSubscriptionIdentifier(createSubscriptionIdentifier(subscriptionId));
         vmSubscriptionReq.setInitialTerminationTime(ZonedDateTime.now().plusSeconds(subscriptionDuration.getSeconds()));
         vmSubscriptionReq.setSubscriberRef(request.getRequestorRef());
+        
 
 
         request.getVehicleMonitoringSubscriptionRequests().add(vmSubscriptionReq);
@@ -136,8 +138,8 @@ public class SiriObjectFactory {
     }
 
 
-    private static SubscriptionRequest createEstimatedTimetableSubscriptionRequest(String subscriptionId, String heartbeatInterval, String address, Duration subscriptionDuration) {
-        SubscriptionRequest request = createSubscriptionRequest(heartbeatInterval, address);
+    private static SubscriptionRequest createEstimatedTimetableSubscriptionRequest(String requestorRef, String subscriptionId, String heartbeatInterval, String address, Duration subscriptionDuration) {
+        SubscriptionRequest request = createSubscriptionRequest(requestorRef, heartbeatInterval, address);
 
         EstimatedTimetableRequestStructure etRequest = new EstimatedTimetableRequestStructure();
         etRequest.setRequestTimestamp(ZonedDateTime.now());
@@ -154,9 +156,9 @@ public class SiriObjectFactory {
         return request;
     }
 
-    private static SubscriptionRequest createSubscriptionRequest(String heartbeatInterval, String address) {
+    private static SubscriptionRequest createSubscriptionRequest(String requestorRef, String heartbeatInterval, String address) {
         SubscriptionRequest request = new SubscriptionRequest();
-        request.setRequestorRef(createRequestorRef());
+        request.setRequestorRef(createRequestorRef(requestorRef));
         request.setMessageIdentifier(createMessageIdentifier(UUID.randomUUID().toString()));
         request.setAddress(address);
         request.setConsumerAddress(address);
