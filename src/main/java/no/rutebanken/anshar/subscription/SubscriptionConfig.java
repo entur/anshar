@@ -260,7 +260,7 @@ public class SubscriptionConfig {
                 Duration.ofHours(initialDuration),
                 enableRuterVM);
 
-        sub.setRequestorRef("RutebankenDEV");
+        sub.setRequestorRef(requestorRef);
        
         
         return new Siri20ToSiri20RSSubscription(sub);
@@ -289,6 +289,7 @@ public class SubscriptionConfig {
                 enableRuterET);
 
         sub.setRequestorRef(requestorRef);
+      
 
         return new Siri20ToSiri20RSSubscription(sub);
     }

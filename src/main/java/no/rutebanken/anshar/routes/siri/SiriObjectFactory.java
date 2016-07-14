@@ -200,7 +200,10 @@ public class SiriObjectFactory {
     }
 
     public static RequestorRef createRequestorRef(String value) {
-        RequestorRef requestorRef = new RequestorRef();
+        if(value == null) {
+        	value = UUID.randomUUID().toString();
+        }
+    	RequestorRef requestorRef = new RequestorRef();
         requestorRef.setValue(value);
         return requestorRef;
     }
