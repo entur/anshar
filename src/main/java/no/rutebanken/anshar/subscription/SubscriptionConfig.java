@@ -241,11 +241,9 @@ public class SubscriptionConfig {
     @Bean
     RouteBuilder createRuterSiriVMSubscriptionRoute() {
 
-    	String requestorRef = "RutebankenDEV";
-
-    	Map<String, String> urlMap = new HashMap<>();
-        urlMap.put("Subscribe", "109.239.226.193:8080/"+requestorRef+"/vm/subscribe.xml");
-        urlMap.put("DeleteSubscription", "109.239.226.193:8080/"+requestorRef+"/vm/managesubscription.xml");
+        Map<String, String> urlMap = new HashMap<>();
+        urlMap.put("Subscribe", "109.239.226.193:8080/RutebankenDEV/vm/subscribe.xml");
+        urlMap.put("DeleteSubscription", "109.239.226.193:8080/RutebankenDEV/vm/managesubscription.xml");
 
         SubscriptionSetup sub = new SubscriptionSetup(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING,
                 inboundUrl,
@@ -260,20 +258,17 @@ public class SubscriptionConfig {
                 Duration.ofHours(initialDuration),
                 enableRuterVM);
 
-        sub.setRequestorRef(requestorRef);
-       
-        
+        sub.setRequestorRef("RutebankenDEV");
+
         return new Siri20ToSiri20RSSubscription(sub);
     }
 
     @Bean
     RouteBuilder createRuterSiriETSubscriptionRoute() {
 
-    	String requestorRef = "RutebankenDEV";
-    	
         Map<String, String> urlMap = new HashMap<>();
-        urlMap.put("Subscribe", "109.239.226.193:8080/"+requestorRef+"/et/subscribe.xml");
-        urlMap.put("DeleteSubscription", "109.239.226.193:8080/"+requestorRef+"/et/managesubscription.xml");
+        urlMap.put("Subscribe", "109.239.226.193:8080/RutebankenDEV/et/subscribe.xml");
+        urlMap.put("DeleteSubscription", "109.239.226.193:8080/RutebankenDEV/et/managesubscription.xml");
 
         SubscriptionSetup sub = new SubscriptionSetup(SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE,
                 inboundUrl,
@@ -288,8 +283,8 @@ public class SubscriptionConfig {
                 Duration.ofHours(initialDuration),
                 enableRuterET);
 
-        sub.setRequestorRef(requestorRef);
-      
+        //Hardcoded RequestorRef
+        sub.setRequestorRef("RutebankenDEV");
 
         return new Siri20ToSiri20RSSubscription(sub);
     }
