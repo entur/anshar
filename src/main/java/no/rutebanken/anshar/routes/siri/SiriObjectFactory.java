@@ -44,6 +44,12 @@ public class SiriObjectFactory {
                     subscriptionSetup.buildUrl(),
                     subscriptionSetup.getDurationOfSubscription());
         }
+        if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.PRODUCITON_TIMETABLE)) {
+            request = createProductionTimetableSubscriptionRequest(subscriptionSetup.getRequestorRef(), subscriptionSetup.getSubscriptionId(),
+                    subscriptionSetup.getHeartbeatInterval().toString(),
+                    subscriptionSetup.buildUrl(),
+                    subscriptionSetup.getDurationOfSubscription());
+        }
         siri.setSubscriptionRequest(request);
         if (request != null) {
             // Generated RequestorRef is necessary when terminating subscription
@@ -69,6 +75,10 @@ public class SiriObjectFactory {
         }
         if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE)) {
             request.getEstimatedTimetableRequests().add(createEstimatedTimetableRequestStructure());
+        }
+
+        if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.PRODUCITON_TIMETABLE)) {
+            request.getProductionTimetableRequests().add(createProductionTimetableRequestStructure());
         }
 
         siri.setServiceRequest(request);
@@ -116,6 +126,14 @@ public class SiriObjectFactory {
         return etRequest;
     }
 
+    private static ProductionTimetableRequestStructure createProductionTimetableRequestStructure() {
+        ProductionTimetableRequestStructure ptRequest = new ProductionTimetableRequestStructure();
+        ptRequest.setRequestTimestamp(ZonedDateTime.now());
+        ptRequest.setVersion("2.0");
+        ptRequest.setMessageIdentifier(createMessageIdentifier());
+        return ptRequest;
+    }
+
     private static SubscriptionRequest createVehicleMonitoringSubscriptionRequest(String requestorRef, String subscriptionId, String heartbeatInterval, String address, Duration subscriptionDuration) {
         SubscriptionRequest request = createSubscriptionRequest(requestorRef,heartbeatInterval, address);
 
@@ -152,6 +170,25 @@ public class SiriObjectFactory {
         etSubscriptionReq.setSubscriberRef(request.getRequestorRef());
 
         request.getEstimatedTimetableSubscriptionRequests().add(etSubscriptionReq);
+
+        return request;
+    }
+
+
+    private static SubscriptionRequest createProductionTimetableSubscriptionRequest(String requestorRef, String subscriptionId, String heartbeatInterval, String address, Duration subscriptionDuration) {
+        SubscriptionRequest request = createSubscriptionRequest(requestorRef, heartbeatInterval, address);
+
+        ProductionTimetableRequestStructure etRequest = new ProductionTimetableRequestStructure();
+        etRequest.setRequestTimestamp(ZonedDateTime.now());
+        etRequest.setVersion("2.0");
+
+        ProductionTimetableSubscriptionRequest ptSubscriptionReq = new ProductionTimetableSubscriptionRequest();
+        ptSubscriptionReq.setProductionTimetableRequest(etRequest);
+        ptSubscriptionReq.setSubscriptionIdentifier(createSubscriptionIdentifier(subscriptionId));
+        ptSubscriptionReq.setInitialTerminationTime(ZonedDateTime.now().plusSeconds(subscriptionDuration.getSeconds()));
+        ptSubscriptionReq.setSubscriberRef(request.getRequestorRef());
+
+        request.getProductionTimetableSubscriptionRequests().add(ptSubscriptionReq);
 
         return request;
     }

@@ -141,5 +141,5 @@ public class SubscriptionSetup {
     }
 
     public enum ServiceType {SOAP, REST}
-    public enum SubscriptionType {SITUATION_EXCHANGE, VEHICLE_MONITORING, ESTIMATED_TIMETABLE}
+    public enum SubscriptionType {SITUATION_EXCHANGE, VEHICLE_MONITORING, PRODUCITON_TIMETABLE, ESTIMATED_TIMETABLE}
 }

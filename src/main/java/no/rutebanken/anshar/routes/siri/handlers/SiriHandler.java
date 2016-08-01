@@ -2,6 +2,7 @@ package no.rutebanken.anshar.routes.siri.handlers;
 
 import no.rutebanken.anshar.messages.Journeys;
 import no.rutebanken.anshar.messages.Situations;
+import no.rutebanken.anshar.messages.ProductionTimetables;
 import no.rutebanken.anshar.messages.Vehicles;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
@@ -76,7 +77,15 @@ public class SiriHandler {
                         List<EstimatedTimetableDeliveryStructure> estimatedTimetableDeliveries = incoming.getServiceDelivery().getEstimatedTimetableDeliveries();
                         logger.info("Subscription [{}]: Got ET-delivery", subscriptionId);
                         estimatedTimetableDeliveries.forEach(et ->
-                                        et.getEstimatedJourneyVersionFrames().forEach(activity -> Journeys.add(et))
+                                        Journeys.add(et)
+                        );
+                        logger.trace("Active ET-elements: {}", Journeys.getAll().size());
+                    }
+                    if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.PRODUCITON_TIMETABLE)) {
+                        List<ProductionTimetableDeliveryStructure> productionTimetableDeliveries = incoming.getServiceDelivery().getProductionTimetableDeliveries();
+                        logger.info("Subscription [{}]: Got ET-delivery", subscriptionId);
+                        productionTimetableDeliveries.forEach(pt ->
+                                        ProductionTimetables.add(pt)
                         );
                         logger.trace("Active ET-elements: {}", Journeys.getAll().size());
                     }
