@@ -225,14 +225,15 @@ public class SubscriptionConfig {
 
         SubscriptionSetup sub = new SubscriptionSetup(SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE,
                 inboundUrl,
-                Duration.ofMinutes(1),
+                Duration.ofDays(1),
                 "http://www.siri.org.uk/siri",
                 urlMap,
                 "2.0",
                 "rutersx",
                 SubscriptionSetup.ServiceType.REST,
                 UUID.randomUUID().toString(),
-                Duration.ofHours(initialDuration),
+                Duration.ofDays(7),
+                //Duration.ofHours(initialDuration),
                 enableRuterSX);
 
         return new Siri20ToSiri20RSSubscription(sub);
@@ -247,7 +248,7 @@ public class SubscriptionConfig {
 
         SubscriptionSetup sub = new SubscriptionSetup(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING,
                 inboundUrl,
-                Duration.ofMinutes(1),
+                Duration.ofDays(1),
                 "http://www.siri.org.uk/siri",
                 urlMap,
                 "2.0",
@@ -255,7 +256,8 @@ public class SubscriptionConfig {
                 SubscriptionSetup.ServiceType.REST,
                 "20c2e3a3-1659-41d3-b1a2-1411978b1d43",  //Hard-coded subscriptionId - since Init does not support dynamic address
                 //UUID.randomUUID().toString(),
-                Duration.ofHours(initialDuration),
+                Duration.ofDays(7),
+                //Duration.ofHours(initialDuration),
                 enableRuterVM);
 
         sub.setRequestorRef("RutebankenDEV");
@@ -272,7 +274,7 @@ public class SubscriptionConfig {
 
         SubscriptionSetup sub = new SubscriptionSetup(SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE,
                 inboundUrl,
-                Duration.ofMinutes(1),
+                Duration.ofDays(1),
                 "http://www.siri.org.uk/siri",
                 urlMap,
                 "2.0",
@@ -280,7 +282,8 @@ public class SubscriptionConfig {
                 SubscriptionSetup.ServiceType.REST,
                 "1f6a687e-58b8-4e46-a23c-98adadad78ed",  //Hard-coded subscriptionId - since Init does not support dynamic address
                 //UUID.randomUUID().toString(),
-                Duration.ofHours(initialDuration),
+                Duration.ofDays(7),
+                //Duration.ofHours(initialDuration),
                 enableRuterET);
 
         //Hardcoded RequestorRef
