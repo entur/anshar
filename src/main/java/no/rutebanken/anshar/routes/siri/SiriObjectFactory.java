@@ -168,6 +168,7 @@ public class SiriObjectFactory {
         etSubscriptionReq.setSubscriptionIdentifier(createSubscriptionIdentifier(subscriptionId));
         etSubscriptionReq.setInitialTerminationTime(ZonedDateTime.now().plusSeconds(subscriptionDuration.getSeconds()));
         etSubscriptionReq.setSubscriberRef(request.getRequestorRef());
+        etSubscriptionReq.setChangeBeforeUpdates(createDataTypeFactory().newDuration(heartbeatInterval));
 
         request.getEstimatedTimetableSubscriptionRequests().add(etSubscriptionReq);
 
@@ -203,11 +204,8 @@ public class SiriObjectFactory {
         logger.trace("Request timestamp set to {}.", request.getRequestTimestamp());
 
         SubscriptionContextStructure ctx = new SubscriptionContextStructure();
-        try {
-            ctx.setHeartbeatInterval(DatatypeFactory.newInstance().newDuration(heartbeatInterval));
-        } catch (DatatypeConfigurationException e) {
-            e.printStackTrace();
-        }
+        ctx.setHeartbeatInterval(createDataTypeFactory().newDuration(heartbeatInterval));
+
         request.setSubscriptionContext(ctx);
         return request;
     }
