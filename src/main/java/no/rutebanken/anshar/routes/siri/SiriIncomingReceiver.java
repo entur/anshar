@@ -144,18 +144,18 @@ public class SiriIncomingReceiver extends RouteBuilder {
         ;
 
         from("activemq:queue:" + PUSH_UPDATES_QUEUE + "?asyncConsumer=true")
-                .to("log:")
+                .to("log:update pushed:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .process(p -> {
                     p.getOut().setBody("Received");
                     p.getOut().setHeader("Accept-Encoding", p.getIn().getHeader("Accept-Encoding"));
                 })
-                .to("atmosphere-websocket:///siri?sendToAll=true")
-                ;
+                //.to("atmosphere-websocket:///siri?sendToAll=true")
+        ;
 
 
 // @WIP - Websockets are currently not working
+        /*
         from("atmosphere-websocket:///sirirec?sendToAll=true")
-                .to("log:update pushed:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .process(p -> {
                     p.getOut().setBody(SiriXml.toXml(p.getIn().getBody(Siri.class)));
                     p.getOut().setHeader("Accept-Encoding", p.getIn().getHeader("Accept-Encoding"));
@@ -163,7 +163,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                 .to("atmosphere-websocket:///siri?sendToAll=true")
                 ;
 
-
+*/
 
     }
 
