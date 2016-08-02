@@ -1,6 +1,7 @@
 package no.rutebanken.anshar.routes.siri;
 
 import no.rutebanken.anshar.messages.Journeys;
+import no.rutebanken.anshar.messages.ProductionTimetables;
 import no.rutebanken.anshar.messages.Situations;
 import no.rutebanken.anshar.messages.Vehicles;
 import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
@@ -63,6 +64,15 @@ public class SiriProvider extends RouteBuilder {
                 .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
                 .process(p -> {
                     p.getOut().setBody(SiriXml.toXml(factory.createETSiriObject(Journeys.getAll())));
+                    p.getOut().setHeader("Accept-Encoding", p.getIn().getHeader("Accept-Encoding"));
+                })
+                .to("direct:processResponse")
+        ;
+
+        from("netty4-http:http://0.0.0.0:" + inboundPort + "/anshar/rest/pt?httpMethodRestrict=GET")
+                .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
+                .process(p -> {
+                    p.getOut().setBody(SiriXml.toXml(factory.createPTSiriObject(ProductionTimetables.getAll())));
                     p.getOut().setHeader("Accept-Encoding", p.getIn().getHeader("Accept-Encoding"));
                 })
                 .to("direct:processResponse")
