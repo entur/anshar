@@ -62,8 +62,8 @@ public class Siri20ToSiriWS14RequestResponse extends RouteBuilder {
                 .otherwise().throwException(new ServiceNotSupportedException())
                 .end()
                 .to("log:sent to siri server::" + getClass().getSimpleName() + "?showAll=true&multiline=true")
-                .to("xslt:xsl/siri_soap_raw.xsl?saxon=true") // Extract SOAP version and convert to raw SIRI
-                .to("xslt:xsl/siri_14_20.xsl?saxon=true") // Convert from v1.4 to 2.0
+                .to("xslt:xsl/siri_soap_raw.xsl?saxon=true&allowStAX=false") // Extract SOAP version and convert to raw SIRI
+                .to("xslt:xsl/siri_14_20.xsl?saxon=true&allowStAX=false") // Convert from v1.4 to 2.0
                 .setHeader("CamelHttpPath", constant("/appContext" + subscriptionSetup.buildUrl(false)))
                 .to("activemq:queue:anshar.siri.transform")
         ;

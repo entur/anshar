@@ -61,7 +61,7 @@ public abstract class SiriSubscriptionRouteBuilder extends RouteBuilder {
     void initShedulerRoute() {
 
         //Verify health periodically
-        long healthCheckInterval = subscriptionSetup.getHeartbeatInterval().getSeconds() * 1000;
+        long healthCheckInterval = 30000;
 
         from("quartz2://healthcheck" + uniqueRouteName + "?fireNow=true&trigger.repeatInterval=" + healthCheckInterval)
                 .choice()

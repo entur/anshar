@@ -7,6 +7,7 @@ import no.rutebanken.anshar.messages.Vehicles;
 import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.component.websocket.WebsocketConstants;
 import org.rutebanken.siri20.util.SiriXml;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,21 +39,19 @@ public class SiriProvider extends RouteBuilder {
     public void configure() throws Exception {
 
         //To avoid large stacktraces in the log when fething data using browser
-        from("netty4-http:http://0.0.0.0:" + inboundPort + "/favicon.ico")
+        from("jetty:http://0.0.0.0:" + inboundPort + "/favicon.ico")
                 .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("404"))
         ;
 
         // Dataproviders
-        from("netty4-http:http://0.0.0.0:" + inboundPort + "/anshar/rest/sx?httpMethodRestrict=GET")
-                .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
+        from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/rest/sx?httpMethodRestrict=GET")
                 .process(p -> {
                     p.getOut().setBody(SiriXml.toXml(factory.createSXSiriObject(Situations.getAll())));
                     p.getOut().setHeader("Accept-Encoding", p.getIn().getHeader("Accept-Encoding"));
                 })
                 .to("direct:processResponse")
         ;
-        from("netty4-http:http://0.0.0.0:" + inboundPort + "/anshar/rest/vm?httpMethodRestrict=GET")
-                .to("log:VM-request:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
+        from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/rest/vm?httpMethodRestrict=GET")
                 .process(p -> {
                     p.getOut().setBody(SiriXml.toXml(factory.createVMSiriObject(Vehicles.getAll())));
                     p.getOut().setHeader("Accept-Encoding", p.getIn().getHeader("Accept-Encoding"));
@@ -60,8 +59,7 @@ public class SiriProvider extends RouteBuilder {
                 .to("direct:processResponse")
         ;
 
-        from("netty4-http:http://0.0.0.0:" + inboundPort + "/anshar/rest/et?httpMethodRestrict=GET")
-                .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
+        from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/rest/et?httpMethodRestrict=GET")
                 .process(p -> {
                     p.getOut().setBody(SiriXml.toXml(factory.createETSiriObject(Journeys.getAll())));
                     p.getOut().setHeader("Accept-Encoding", p.getIn().getHeader("Accept-Encoding"));
@@ -69,8 +67,7 @@ public class SiriProvider extends RouteBuilder {
                 .to("direct:processResponse")
         ;
 
-        from("netty4-http:http://0.0.0.0:" + inboundPort + "/anshar/rest/pt?httpMethodRestrict=GET")
-                .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
+        from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/rest/pt?httpMethodRestrict=GET")
                 .process(p -> {
                     p.getOut().setBody(SiriXml.toXml(factory.createPTSiriObject(ProductionTimetables.getAll())));
                     p.getOut().setHeader("Accept-Encoding", p.getIn().getHeader("Accept-Encoding"));
@@ -86,7 +83,7 @@ public class SiriProvider extends RouteBuilder {
                         .marshal().gzip()
                     .endChoice()
                 .otherwise()
-                    .marshal()
+                    .marshal().string()
         ;
     }
 }

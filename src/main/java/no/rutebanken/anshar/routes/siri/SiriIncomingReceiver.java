@@ -1,5 +1,9 @@
 package no.rutebanken.anshar.routes.siri;
 
+import no.rutebanken.anshar.messages.Journeys;
+import no.rutebanken.anshar.messages.ProductionTimetables;
+import no.rutebanken.anshar.messages.Situations;
+import no.rutebanken.anshar.messages.Vehicles;
 import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
@@ -9,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
-import uk.org.siri.siri20.Siri;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -53,7 +56,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                 .add("xsd", "http://www.w3.org/2001/XMLSchema");
 
         //Incoming notifications/deliveries
-        from("netty4-http:http://0.0.0.0:" + inboundPort + "?matchOnUriPrefix=true&httpMethodRestrict=POST")
+        from("jetty:http://0.0.0.0:" + inboundPort + "?matchOnUriPrefix=true&httpMethodRestrict=POST")
                 .setHeader("anshar.message.id", constant(UUID.randomUUID().toString()))
                 .to("log:received:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .to("activemq:queue:" + TRANSFORM_QUEUE + "?disableReplyTo=true")
@@ -63,9 +66,11 @@ public class SiriIncomingReceiver extends RouteBuilder {
 
         from("activemq:queue:" + TRANSFORM_QUEUE + "?asyncConsumer=true")
                 .to("file:" + incomingLogDirectory)
-                .to("xslt:xsl/siri_soap_raw.xsl?saxon=true") // Extract SOAP version and convert to raw SIRI
-                .to("xslt:xsl/siri_14_20.xsl?saxon=true") // Convert from v1.4 to 2.0
-                .to("log:received transformed:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
+                .to("xslt:xsl/siri_soap_raw.xsl?saxon=true&allowStAX=false") // Extract SOAP version and convert to raw SIRI
+                .to("log:r1:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
+                .to("xslt:xsl/siri_14_20.xsl?saxon=true&allowStAX=false") // Convert from v1.4 to 2.0
+                .to("file:" + incomingLogDirectory + "/tansformed")
+                .to("log:r2:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .to("activemq:queue:" + ROUTER_QUEUE)
         ;
 
@@ -96,17 +101,18 @@ public class SiriIncomingReceiver extends RouteBuilder {
                     String subscriptionId = getSubscriptionIdFromPath(p.getIn().getHeader("CamelHttpPath", String.class));
 
                     String xml = p.getIn().getBody(String.class);
-                    p.getOut().setBody(handler.handleIncomingSiri(subscriptionId, xml));
+                    handler.handleIncomingSiri(subscriptionId, xml);
 
-                }).to("activemq:queue:" + PUSH_UPDATES_QUEUE)
+                })
         ;
 
         from("activemq:queue:" + HEARTBEAT_QUEUE + "?asyncConsumer=true")
+                .log("Heartbeat-queue")
                 .process(p -> {
                     String subscriptionId = getSubscriptionIdFromPath(p.getIn().getHeader("CamelHttpPath", String.class));
 
                     String xml = p.getIn().getBody(String.class);
-                    p.getOut().setBody(handler.handleIncomingSiri(subscriptionId, xml));
+                    handler.handleIncomingSiri(subscriptionId, xml);
 
                 })
         ;
@@ -116,9 +122,10 @@ public class SiriIncomingReceiver extends RouteBuilder {
                     String subscriptionId = getSubscriptionIdFromPath(p.getIn().getHeader("CamelHttpPath", String.class));
 
                     String xml = p.getIn().getBody(String.class);
-                    p.getOut().setBody(handler.handleIncomingSiri(subscriptionId, xml));
+                    handler.handleIncomingSiri(subscriptionId, xml);
 
-                }).to("activemq:queue:" + PUSH_UPDATES_QUEUE)
+                })
+                .to("websocket://siri_sx?sendToAll=true")
         ;
 
         from("activemq:queue:" + VEHICLE_MONITORING_QUEUE + "?asyncConsumer=true")
@@ -127,9 +134,10 @@ public class SiriIncomingReceiver extends RouteBuilder {
                     String subscriptionId = getSubscriptionIdFromPath(p.getIn().getHeader("CamelHttpPath", String.class));
 
                     String xml = p.getIn().getBody(String.class);
-                    p.getOut().setBody(handler.handleIncomingSiri(subscriptionId, xml));
+                    handler.handleIncomingSiri(subscriptionId, xml);
 
-                }).to("activemq:queue:"+ PUSH_UPDATES_QUEUE)
+                })
+                .to("websocket://siri_vm?sendToAll=true")
         ;
 
         from("activemq:queue:" + ESTIMATED_TIMETABLE_QUEUE + "?asyncConsumer=true")
@@ -138,32 +146,17 @@ public class SiriIncomingReceiver extends RouteBuilder {
 
                     String xml = p.getIn().getBody(String.class);
 
-                    p.getOut().setBody(handler.handleIncomingSiri(subscriptionId, xml));
+                    handler.handleIncomingSiri(subscriptionId, xml);
 
-                }).to("activemq:queue:"+ PUSH_UPDATES_QUEUE)
+                })
+                .to("websocket://siri_et?sendToAll=true")
         ;
 
         from("activemq:queue:" + PUSH_UPDATES_QUEUE + "?asyncConsumer=true")
-                .to("log:update pushed:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
-                .process(p -> {
-                    p.getOut().setBody("Received");
-                    p.getOut().setHeader("Accept-Encoding", p.getIn().getHeader("Accept-Encoding"));
-                })
-                //.to("atmosphere-websocket:///siri?sendToAll=true")
+                .to("log:foo")
+                .setBody(simple("${body}"))
         ;
 
-
-// @WIP - Websockets are currently not working
-        /*
-        from("atmosphere-websocket:///sirirec?sendToAll=true")
-                .process(p -> {
-                    p.getOut().setBody(SiriXml.toXml(p.getIn().getBody(Siri.class)));
-                    p.getOut().setHeader("Accept-Encoding", p.getIn().getHeader("Accept-Encoding"));
-                })
-                .to("atmosphere-websocket:///siri?sendToAll=true")
-                ;
-
-*/
 
     }
 
