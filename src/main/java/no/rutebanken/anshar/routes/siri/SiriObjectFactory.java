@@ -86,6 +86,19 @@ public class SiriObjectFactory {
         return siri;
     }
 
+    public static Siri createStatusRequest(SubscriptionSetup subscriptionSetup) {
+        Siri siri = new Siri();
+        siri.setVersion("2.0");
+
+        CheckStatusRequestStructure statusRequest = new CheckStatusRequestStructure();
+        statusRequest.setRequestTimestamp(ZonedDateTime.now());
+        statusRequest.setMessageIdentifier(createMessageIdentifier());
+        statusRequest.setRequestorRef(createRequestorRef(subscriptionSetup.getRequestorRef()));
+        siri.setCheckStatusRequest(statusRequest);
+
+        return siri;
+    }
+
     private static SubscriptionRequest createSituationExchangeSubscriptionRequest(String requestorRef, String subscriptionId, String heartbeatInterval, String address, Duration subscriptionDuration) {
         SubscriptionRequest request = createSubscriptionRequest(requestorRef, heartbeatInterval, address);
 
