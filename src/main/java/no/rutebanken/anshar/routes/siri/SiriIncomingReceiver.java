@@ -107,7 +107,6 @@ public class SiriIncomingReceiver extends RouteBuilder {
         ;
 
         from("activemq:queue:" + HEARTBEAT_QUEUE + "?asyncConsumer=true")
-                .log("Heartbeat-queue")
                 .process(p -> {
                     String subscriptionId = getSubscriptionIdFromPath(p.getIn().getHeader("CamelHttpPath", String.class));
 
