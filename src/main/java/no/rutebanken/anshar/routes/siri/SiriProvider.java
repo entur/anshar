@@ -7,6 +7,7 @@ import no.rutebanken.anshar.messages.Vehicles;
 import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.http.entity.ContentType;
 import org.rutebanken.siri20.util.SiriXml;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,9 +77,10 @@ public class SiriProvider extends RouteBuilder {
 
         from("direct:processResponse")
                 .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
+                .setHeader(Exchange.CONTENT_TYPE, constant(ContentType.APPLICATION_XML.toString()))
                 .choice()
                     .when(header("Accept-Encoding").contains("gzip"))
-                        .setHeader("Content-Encoding", constant("gzip"))
+                        .setHeader(Exchange.CONTENT_ENCODING, constant("gzip"))
                         .marshal().gzip()
                     .endChoice()
                 .otherwise()
