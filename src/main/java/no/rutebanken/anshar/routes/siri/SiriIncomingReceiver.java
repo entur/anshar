@@ -125,7 +125,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                     handler.handleIncomingSiri(subscriptionId, xml);
 
                 })
-                .to("websocket://siri_sx?sendToAll=true")
+                //.to("websocket://siri_sx?sendToAll=true")
         ;
 
         from("activemq:queue:" + VEHICLE_MONITORING_QUEUE + "?asyncConsumer=true")
@@ -137,7 +137,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                     handler.handleIncomingSiri(subscriptionId, xml);
 
                 })
-                .to("websocket://siri_vm?sendToAll=true")
+                //.to("websocket://siri_vm?sendToAll=true")
         ;
 
         from("activemq:queue:" + ESTIMATED_TIMETABLE_QUEUE + "?asyncConsumer=true")
@@ -149,7 +149,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                     handler.handleIncomingSiri(subscriptionId, xml);
 
                 })
-                .to("websocket://siri_et?sendToAll=true")
+                //.to("websocket://siri_et?sendToAll=true")
         ;
 
         from("activemq:queue:" + PUSH_UPDATES_QUEUE + "?asyncConsumer=true")

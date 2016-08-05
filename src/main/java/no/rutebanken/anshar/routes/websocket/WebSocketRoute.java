@@ -1,13 +1,7 @@
 package no.rutebanken.anshar.routes.websocket;
 
-import no.rutebanken.anshar.messages.Journeys;
-import no.rutebanken.anshar.messages.ProductionTimetables;
-import no.rutebanken.anshar.messages.Situations;
-import no.rutebanken.anshar.messages.Vehicles;
 import no.rutebanken.anshar.routes.siri.SiriObjectFactory;
 import org.apache.camel.builder.RouteBuilder;
-import org.apache.camel.component.websocket.*;
-import org.rutebanken.siri20.util.SiriXml;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,7 +23,7 @@ public class WebSocketRoute extends RouteBuilder {
     @Override
     public void configure() throws Exception {
 
-
+/*
         from("websocket://siri")
                 .to("log:foo")
                 .setBody(simple("${body}"))
@@ -75,7 +69,7 @@ public class WebSocketRoute extends RouteBuilder {
                 })
                 .to("websocket://siri_pt")
         ;
-
+*/
     }
 
 }
