@@ -161,6 +161,17 @@ public class SiriIncomingReceiver extends RouteBuilder {
     }
 
     private String getSubscriptionIdFromPath(String path) {
+        if (incomingPathPattern.startsWith("/")) {
+            if (!path.startsWith("/")) {
+                path = "/"+path;
+            }
+        } else {
+            if (path.startsWith("/")) {
+                path = path.substring(1);
+            }
+        }
+
+
         logger.trace("Incoming path {}", path);
         Map<String, String> values = calculatePathVariableMap(path);
         logger.trace("Mapped values {}", values);
