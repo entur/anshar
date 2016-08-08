@@ -8,7 +8,7 @@ The name Anshar comes from the Sumerian primordial god.
 ``` 
 anshar.incoming.logdirectory=target/incoming
 anshar.incoming.port = 8012
-anshar.inbound.url = http://www.rutebanken.org/socat
+anshar.inbound.url = http://mottak.rutebanken.org/anshar
 ``` 
 
 # Liveness/readiness
