@@ -86,7 +86,7 @@ public class SiriObjectFactory {
         return siri;
     }
 
-    public static Siri createStatusRequest(SubscriptionSetup subscriptionSetup) {
+    public static Siri createCheckStatusRequest(SubscriptionSetup subscriptionSetup) {
         Siri siri = new Siri();
         siri.setVersion("2.0");
 

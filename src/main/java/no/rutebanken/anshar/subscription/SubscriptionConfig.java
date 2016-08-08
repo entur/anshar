@@ -55,8 +55,8 @@ public class SubscriptionConfig {
     RouteBuilder createKolumbusSiriSXSubscriptionRoute() throws DatatypeConfigurationException {
 
         Map<String, String> urlMap = new HashMap<String, String>();
-        urlMap.put("Subscribe", "sis.kolumbus.no:90/SXWS/SXService.svc");
-        urlMap.put("DeleteSubscription", "sis.kolumbus.no:90/SXWS/SXService.svc");
+        urlMap.put(RequestType.SUBSCRIBE, "sis.kolumbus.no:90/SXWS/SXService.svc");
+        urlMap.put(RequestType.DELETE_SUBSCRIPTION, "sis.kolumbus.no:90/SXWS/SXService.svc");
 
         SubscriptionSetup sub = new SubscriptionSetup(
                 SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE,
@@ -81,8 +81,8 @@ public class SubscriptionConfig {
 
         Map<String, String> urlMap = new HashMap<String, String>();
 
-        urlMap.put("Subscribe", "sis.kolumbus.no:90/VMWS/VMService.svc");
-        urlMap.put("DeleteSubscription", "sis.kolumbus.no:90/VMWS/VMService.svc");
+        urlMap.put(RequestType.SUBSCRIBE, "sis.kolumbus.no:90/VMWS/VMService.svc");
+        urlMap.put(RequestType.DELETE_SUBSCRIPTION, "sis.kolumbus.no:90/VMWS/VMService.svc");
 
         SubscriptionSetup sub = new SubscriptionSetup(
                 SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING,
@@ -104,8 +104,8 @@ public class SubscriptionConfig {
     RouteBuilder createAtBSiriSXSubscriptionRoute() {
 
         Map<String, String> urlMap = new HashMap<>();
-        urlMap.put("Subscribe", "st.atb.no/SXWS/SXService.svc");
-        urlMap.put("DeleteSubscription", "st.atb.no//SXWS/SXService.svc");
+        urlMap.put(RequestType.SUBSCRIBE, "st.atb.no/SXWS/SXService.svc");
+        urlMap.put(RequestType.DELETE_SUBSCRIPTION, "st.atb.no//SXWS/SXService.svc");
 
 
         SubscriptionSetup sub = new SubscriptionSetup(SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE,
@@ -127,8 +127,8 @@ public class SubscriptionConfig {
     RouteBuilder createAtBSiriVMSubscriptionRoute() {
 
         Map<String, String> urlMap = new HashMap<>();
-        urlMap.put("Subscribe", "st.atb.no/VMWS/VMService.svc?wsdl");
-        urlMap.put("DeleteSubscription", "st.atb.no/VMWS/VMService.svc?wsdl");
+        urlMap.put(RequestType.SUBSCRIBE, "st.atb.no/VMWS/VMService.svc?wsdl");
+        urlMap.put(RequestType.DELETE_SUBSCRIPTION, "st.atb.no/VMWS/VMService.svc?wsdl");
 
         SubscriptionSetup sub = new SubscriptionSetup(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING,
                 inboundUrl,
@@ -175,8 +175,8 @@ public class SubscriptionConfig {
     RouteBuilder createAktSiriSXSubscriptionRoute() {
 
         Map<String, String> urlMap = new HashMap<>();
-        urlMap.put("Subscribe", "83.145.60.18/siri/1.4/sx");
-        urlMap.put("DeleteSubscription", "83.145.60.18/siri/1.4/sx");
+        urlMap.put(RequestType.SUBSCRIBE, "83.145.60.18/siri/1.4/sx");
+        urlMap.put(RequestType.DELETE_SUBSCRIPTION, "83.145.60.18/siri/1.4/sx");
 
 
         SubscriptionSetup sub = new SubscriptionSetup(SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE,
@@ -197,8 +197,8 @@ public class SubscriptionConfig {
     RouteBuilder createAktSiriETSubscriptionRoute() {
 
         Map<String, String> urlMap = new HashMap<>();
-        urlMap.put("Subscribe", "83.145.60.18/siri/1.4/et");
-        urlMap.put("DeleteSubscription", "83.145.60.18/siri/1.4/et");
+        urlMap.put(RequestType.SUBSCRIBE, "83.145.60.18/siri/1.4/et");
+        urlMap.put(RequestType.DELETE_SUBSCRIPTION, "83.145.60.18/siri/1.4/et");
 
 
         SubscriptionSetup sub = new SubscriptionSetup(SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE,
@@ -220,12 +220,13 @@ public class SubscriptionConfig {
     RouteBuilder createRuterSiriSXSubscriptionRoute() {
 
         Map<String, String> urlMap = new HashMap<>();
-        urlMap.put("Subscribe", "sirisx.ruter.no/sx/subscribe.xml");
-        urlMap.put("DeleteSubscription", "sirisx.ruter.no/sx/managesubscription.xml");
+        urlMap.put(RequestType.SUBSCRIBE, "sirisx.ruter.no/sx/subscribe.xml");
+        urlMap.put(RequestType.DELETE_SUBSCRIPTION, "sirisx.ruter.no/sx/managesubscription.xml");
+        urlMap.put(RequestType.CHECK_STATUS, "109.239.226.193:8080/RutebankenDEV/vm/checkstatus.xml");
 
         SubscriptionSetup sub = new SubscriptionSetup(SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE,
                 inboundUrl,
-                Duration.ofDays(1),
+                Duration.ofMinutes(1),
                 "http://www.siri.org.uk/siri",
                 urlMap,
                 "2.0",
@@ -243,12 +244,13 @@ public class SubscriptionConfig {
     RouteBuilder createRuterSiriVMSubscriptionRoute() {
 
         Map<String, String> urlMap = new HashMap<>();
-        urlMap.put("Subscribe", "109.239.226.193:8080/RutebankenDEV/vm/subscribe.xml");
-        urlMap.put("DeleteSubscription", "109.239.226.193:8080/RutebankenDEV/vm/managesubscription.xml");
+        urlMap.put(RequestType.SUBSCRIBE, "109.239.226.193:8080/RutebankenDEV/vm/subscribe.xml");
+        urlMap.put(RequestType.DELETE_SUBSCRIPTION, "109.239.226.193:8080/RutebankenDEV/vm/managesubscription.xml");
+        urlMap.put(RequestType.CHECK_STATUS, "109.239.226.193:8080/RutebankenDEV/vm/checkstatus.xml");
 
         SubscriptionSetup sub = new SubscriptionSetup(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING,
                 inboundUrl,
-                Duration.ofDays(1),
+                Duration.ofMinutes(1),
                 "http://www.siri.org.uk/siri",
                 urlMap,
                 "2.0",
@@ -269,12 +271,13 @@ public class SubscriptionConfig {
     RouteBuilder createRuterSiriETSubscriptionRoute() {
 
         Map<String, String> urlMap = new HashMap<>();
-        urlMap.put("Subscribe", "109.239.226.193:8080/RutebankenDEV/et/subscribe.xml");
-        urlMap.put("DeleteSubscription", "109.239.226.193:8080/RutebankenDEV/et/managesubscription.xml");
+        urlMap.put(RequestType.SUBSCRIBE, "109.239.226.193:8080/RutebankenDEV/et/subscribe.xml");
+        urlMap.put(RequestType.DELETE_SUBSCRIPTION, "109.239.226.193:8080/RutebankenDEV/et/managesubscription.xml");
+        urlMap.put(RequestType.CHECK_STATUS, "109.239.226.193:8080/RutebankenDEV/vm/checkstatus.xml");
 
         SubscriptionSetup sub = new SubscriptionSetup(SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE,
                 inboundUrl,
-                Duration.ofDays(1),
+                Duration.ofMinutes(1),
                 "http://www.siri.org.uk/siri",
                 urlMap,
                 "2.0",

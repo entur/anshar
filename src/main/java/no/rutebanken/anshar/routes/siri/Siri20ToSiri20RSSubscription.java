@@ -1,5 +1,6 @@
 package no.rutebanken.anshar.routes.siri;
 
+import no.rutebanken.anshar.subscription.RequestType;
 import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
 import org.apache.camel.builder.xml.Namespaces;
@@ -38,7 +39,7 @@ public class Siri20ToSiri20RSSubscription extends SiriSubscriptionRouteBuilder {
                 .removeHeaders("CamelHttp*") // Remove any incoming HTTP headers as they interfere with the outgoing definition
                 .setHeader(Exchange.CONTENT_TYPE, constant("text/xml;charset=UTF-8")) // Necessary when talking to Microsoft web services
                 .setHeader(Exchange.HTTP_METHOD, constant(HttpMethods.POST))
-                .to("http4://" + urlMap.get("Subscribe"))
+                .to("http4://" + urlMap.get(RequestType.SUBSCRIBE))
                 .to("log:received response:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .process(p -> {
 
@@ -53,6 +54,28 @@ public class Siri20ToSiri20RSSubscription extends SiriSubscriptionRouteBuilder {
                 })
         ;
 
+        //Check status - when heartbeat is not supported
+        if (subscriptionSetup.isActive() & urlMap.get(RequestType.CHECK_STATUS) != null) {
+            from("quartz2://checkstatus" + uniqueRouteName + "?fireNow=true&trigger.repeatInterval=" + subscriptionSetup.getHeartbeatInterval().toMillis())
+                    .bean(this, "marshalSiriCheckStatusRequest", false)
+                    .removeHeaders("CamelHttp*") // Remove any incoming HTTP headers as they interfere with the outgoing definition
+                    .setHeader(Exchange.CONTENT_TYPE, constant("text/xml;charset=UTF-8")) // Necessary when talking to Microsoft web services
+                    .setHeader(Exchange.HTTP_METHOD, constant(HttpMethods.POST))
+                    .to("http4://" + urlMap.get(RequestType.CHECK_STATUS))
+                    .process(p -> {
+
+                        String responseCode = p.getIn().getHeader("CamelHttpResponseCode", String.class);
+                        if ("200".equals(responseCode)) {
+                            logger.trace("CheckStatus OK - updating heartbeat-timestamp");
+                            SubscriptionManager.touchSubscription(subscriptionSetup.getSubscriptionId());
+                        } else {
+                            logger.info("CheckStatus NOT OK for subscription {}.", subscriptionSetup.getSubscriptionId());
+                        }
+
+                    })
+            ;
+        }
+
         //Cancel subscription
         from("direct:cancel" + uniqueRouteName)
                 .bean(this, "marshalSiriTerminateSubscriptionRequest", false)
@@ -61,7 +84,7 @@ public class Siri20ToSiri20RSSubscription extends SiriSubscriptionRouteBuilder {
                 .removeHeaders("CamelHttp*") // Remove any incoming HTTP headers as they interfere with the outgoing definition
                 .setHeader(Exchange.CONTENT_TYPE, constant("text/xml;charset=UTF-8")) // Necessary when talking to Microsoft web services
                 .setHeader(Exchange.HTTP_METHOD, constant(HttpMethods.POST))
-                .to("http4://" + urlMap.get("DeleteSubscription"))
+                .to("http4://" + urlMap.get(RequestType.DELETE_SUBSCRIPTION))
                 .to("log:received response:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .process(p -> {
 

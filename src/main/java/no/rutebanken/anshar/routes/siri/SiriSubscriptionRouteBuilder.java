@@ -40,6 +40,15 @@ public abstract class SiriSubscriptionRouteBuilder extends RouteBuilder {
     }
 
 
+    public String marshalSiriCheckStatusRequest() throws JAXBException {
+        StringWriter sw = new StringWriter();
+
+        Siri siri = SiriObjectFactory.createCheckStatusRequest(subscriptionSetup);
+
+        return SiriXml.toXml(siri, customNamespacePrefixMapper);
+    }
+
+
     Siri handleSiriResponse(String xml) {
         try {
             Siri siri = SiriXml.parseXml(xml);
