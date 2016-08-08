@@ -222,7 +222,7 @@ public class SubscriptionConfig {
         Map<String, String> urlMap = new HashMap<>();
         urlMap.put(RequestType.SUBSCRIBE, "sirisx.ruter.no/sx/subscribe.xml");
         urlMap.put(RequestType.DELETE_SUBSCRIPTION, "sirisx.ruter.no/sx/managesubscription.xml");
-        urlMap.put(RequestType.CHECK_STATUS, "109.239.226.193:8080/RutebankenDEV/vm/checkstatus.xml");
+        urlMap.put(RequestType.CHECK_STATUS, "sirisx.ruter.no/sx/checkstatus.xml");
 
         SubscriptionSetup sub = new SubscriptionSetup(SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE,
                 inboundUrl,
@@ -273,7 +273,7 @@ public class SubscriptionConfig {
         Map<String, String> urlMap = new HashMap<>();
         urlMap.put(RequestType.SUBSCRIBE, "109.239.226.193:8080/RutebankenDEV/et/subscribe.xml");
         urlMap.put(RequestType.DELETE_SUBSCRIPTION, "109.239.226.193:8080/RutebankenDEV/et/managesubscription.xml");
-        urlMap.put(RequestType.CHECK_STATUS, "109.239.226.193:8080/RutebankenDEV/vm/checkstatus.xml");
+        urlMap.put(RequestType.CHECK_STATUS, "109.239.226.193:8080/RutebankenDEV/et/checkstatus.xml");
 
         SubscriptionSetup sub = new SubscriptionSetup(SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE,
                 inboundUrl,
