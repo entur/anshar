@@ -83,7 +83,7 @@ public class SiriHandler {
                     }
                     if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.PRODUCITON_TIMETABLE)) {
                         List<ProductionTimetableDeliveryStructure> productionTimetableDeliveries = incoming.getServiceDelivery().getProductionTimetableDeliveries();
-                        logger.info("Subscription [{}]: Got ET-delivery", subscriptionId);
+                        logger.info("Subscription [{}]: Got PT-delivery", subscriptionId);
                         productionTimetableDeliveries.forEach(pt ->
                                         ProductionTimetables.add(pt)
                         );
