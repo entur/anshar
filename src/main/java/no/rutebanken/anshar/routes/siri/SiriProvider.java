@@ -78,12 +78,12 @@ public class SiriProvider extends RouteBuilder {
         from("direct:processResponse")
                 .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
                 .setHeader(Exchange.CONTENT_TYPE, constant(ContentType.TEXT_XML.toString()))
-//                .choice()
-//                    .when(header("Accept-Encoding").contains("gzip"))
-//                        .setHeader(Exchange.CONTENT_ENCODING, simple("gzip"))
-//                        .marshal().gzip()
-//                    .endChoice()
-//                .otherwise()
+                .choice()
+                    .when(header("Accept-Encoding").contains("gzip"))
+                        .setHeader(Exchange.CONTENT_ENCODING, simple("gzip"))
+                        .marshal().gzip()
+                    .endChoice()
+                .otherwise()
                     .marshal().string()
         ;
     }
