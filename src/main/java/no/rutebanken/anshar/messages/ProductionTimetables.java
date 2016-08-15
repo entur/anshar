@@ -8,29 +8,45 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ProductionTimetables {
+public class ProductionTimetables extends DistributedCollection {
     private static Logger logger = LoggerFactory.getLogger(ProductionTimetables.class);
 
-    private static List<ProductionTimetableDeliveryStructure> timetableDeliveries = new ArrayList<>();
+    private static List<ProductionTimetableDeliveryStructure> timetableDeliveries = getProdutionTimetablesList();
 
     /**
      * @return All vehicle activities that are still valid
      */
     public static List<ProductionTimetableDeliveryStructure> getAll() {
-        timetableDeliveries.removeIf(s -> {
-
-            boolean isStillValid = false;
-            ZonedDateTime validUntil = s.getValidUntil();
-            //Keep if at least one is valid
-            if (validUntil == null) {
-                isStillValid = true;
-            } else if (validUntil.isAfter(ZonedDateTime.now())) {
-                isStillValid = true;
-            }
-            return !isStillValid;
-        });
+        removeExpiredElements();
 
         return timetableDeliveries;
+    }
+
+
+    private static void removeExpiredElements() {
+
+        List<ProductionTimetableDeliveryStructure> itemsToRemove = new ArrayList<>();
+
+        for (int i = 0; i < timetableDeliveries.size(); i++) {
+            ProductionTimetableDeliveryStructure current = timetableDeliveries.get(i);
+            if ( !isStillValid(current)) {
+                itemsToRemove.add(current);
+            }
+        }
+        timetableDeliveries.removeAll(itemsToRemove);
+    }
+
+    private static boolean isStillValid(ProductionTimetableDeliveryStructure s) {
+
+        boolean isStillValid = false;
+        ZonedDateTime validUntil = s.getValidUntil();
+        //Keep if at least one is valid
+        if (validUntil == null) {
+            isStillValid = true;
+        } else if (validUntil.isAfter(ZonedDateTime.now())) {
+            isStillValid = true;
+        }
+        return isStillValid;
     }
 
     public static void add(ProductionTimetableDeliveryStructure timetableDelivery) {

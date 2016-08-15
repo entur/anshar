@@ -10,38 +10,51 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Situations {
+public class Situations extends DistributedCollection {
     private static Logger logger = LoggerFactory.getLogger(Situations.class);
 
-    private static List<PtSituationElement> situations = new ArrayList<>();
+    private static List<PtSituationElement> situations = getSituationsList();
 
     /**
      * @return All situations that are still valid
      */
     public static List<PtSituationElement> getAll() {
-        situations.removeIf(s -> {
-            List<PtSituationElement.ValidityPeriod> validityPeriods = s.getValidityPeriods();
-            boolean isStillValid = false;
-
-            if (validityPeriods != null) {
-                for (PtSituationElement.ValidityPeriod validity : validityPeriods) {
-                    //Keep if at least one is valid
-                    if (validity.getEndTime() == null || validity.getEndTime().isAfter(ZonedDateTime.now())) {
-                        isStillValid = true;
-                    }
-                }
-            } else {
-                //No validity - keep "forever"
-                isStillValid = true;
-            }
-            return !isStillValid;
-        });
-
+       removeExpiredElements();
         return situations;
     }
 
-    public static void add(PtSituationElement situation) {
+    private static void removeExpiredElements() {
 
+        List<PtSituationElement> itemsToRemove = new ArrayList<>();
+
+        for (int i = 0; i < situations.size(); i++) {
+            PtSituationElement current = situations.get(i);
+            if ( !isStillValid(current)) {
+                itemsToRemove.add(current);
+            }
+        }
+        situations.removeAll(itemsToRemove);
+    }
+
+    private static boolean isStillValid(PtSituationElement situationElement) {
+        List<PtSituationElement.ValidityPeriod> validityPeriods = situationElement.getValidityPeriods();
+        boolean isStillValid = false;
+
+        if (validityPeriods != null) {
+            for (PtSituationElement.ValidityPeriod validity : validityPeriods) {
+                //Keep if at least one is valid
+                if (validity.getEndTime() == null || validity.getEndTime().isAfter(ZonedDateTime.now())) {
+                    isStillValid = true;
+                }
+            }
+        } else {
+            //No validity - keep "forever"
+            isStillValid = true;
+        }
+        return isStillValid;
+    }
+
+    public static void add(PtSituationElement situation) {
         int indexToReplace = -1;
         for (int i = 0; i < situations.size(); i++) {
             PtSituationElement element = situations.get(i);

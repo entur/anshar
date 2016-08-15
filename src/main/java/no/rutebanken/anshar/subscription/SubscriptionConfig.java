@@ -68,6 +68,7 @@ public class SubscriptionConfig {
                 "kolumbussx",
                 SubscriptionSetup.ServiceType.SOAP,
                 UUID.randomUUID().toString(),
+                "RutebankenDEV",
                 Duration.ofHours(initialDuration),
                 enableKolumbusSX
         );
@@ -94,6 +95,7 @@ public class SubscriptionConfig {
                 "kolumbusvm",
                 SubscriptionSetup.ServiceType.SOAP,
                 UUID.randomUUID().toString(),
+                "RutebankenDEV",
                 Duration.ofHours(initialDuration),
                 enableKolumbusVM);
 
@@ -117,6 +119,7 @@ public class SubscriptionConfig {
                 "atbsx",
                 SubscriptionSetup.ServiceType.SOAP,
                 UUID.randomUUID().toString(),
+                "RutebankenDEV",
                 Duration.ofHours(initialDuration),
                 enableAtbSX);
 
@@ -139,6 +142,7 @@ public class SubscriptionConfig {
                 "atbvm",
                 SubscriptionSetup.ServiceType.SOAP,
                 UUID.randomUUID().toString(),
+                "RutebankenDEV",
                 Duration.ofHours(initialDuration),
                 enableAtbVM);
 
@@ -188,6 +192,7 @@ public class SubscriptionConfig {
                 "aktsx",
                 SubscriptionSetup.ServiceType.SOAP,
                 UUID.randomUUID().toString(),
+                "RutebankenDEV",
                 Duration.ofHours(initialDuration),
                 enableAktSX);
 
@@ -210,6 +215,7 @@ public class SubscriptionConfig {
                 "aktet",
                 SubscriptionSetup.ServiceType.SOAP,
                 UUID.randomUUID().toString(),
+                "RutebankenDEV",
                 Duration.ofHours(initialDuration),
                 enableAktET);
 
@@ -233,6 +239,7 @@ public class SubscriptionConfig {
                 "rutersx",
                 SubscriptionSetup.ServiceType.REST,
                 UUID.randomUUID().toString(),
+                "RutebankenDEV",
                 Duration.ofDays(7),
                 //Duration.ofHours(initialDuration),
                 enableRuterSX);
@@ -257,12 +264,11 @@ public class SubscriptionConfig {
                 "rutervm",
                 SubscriptionSetup.ServiceType.REST,
                 "20c2e3a3-1659-41d3-b1a2-1411978b1d43",  //Hard-coded subscriptionId - since Init does not support dynamic address
+                "RutebankenDEV",
                 //UUID.randomUUID().toString(),
                 Duration.ofDays(7),
                 //Duration.ofHours(initialDuration),
                 enableRuterVM);
-
-        sub.setRequestorRef("RutebankenDEV");
 
         return new Siri20ToSiri20RSSubscription(sub);
     }
@@ -285,12 +291,11 @@ public class SubscriptionConfig {
                 SubscriptionSetup.ServiceType.REST,
                 "1f6a687e-58b8-4e46-a23c-98adadad78ed",  //Hard-coded subscriptionId - since Init does not support dynamic address
                 //UUID.randomUUID().toString(),
+                "RutebankenDEV",
                 Duration.ofDays(7),
                 //Duration.ofHours(initialDuration),
                 enableRuterET);
 
-        //Hardcoded RequestorRef
-        sub.setRequestorRef("RutebankenDEV");
 
         return new Siri20ToSiri20RSSubscription(sub);
     }

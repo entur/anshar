@@ -51,10 +51,7 @@ public class SiriObjectFactory {
                     subscriptionSetup.getDurationOfSubscription());
         }
         siri.setSubscriptionRequest(request);
-        if (request != null) {
-            // Generated RequestorRef is necessary when terminating subscription
-            subscriptionSetup.setRequestorRef(request.getRequestorRef().getValue());
-        }
+
         return siri;
     }
 

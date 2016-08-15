@@ -1,6 +1,7 @@
 package no.rutebanken.anshar.subscription;
 
 
+import no.rutebanken.anshar.messages.DistributedCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -8,15 +9,16 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
-public class SubscriptionManager {
+public class SubscriptionManager extends DistributedCollection {
 
     private static Logger logger = LoggerFactory.getLogger(SubscriptionManager.class);
 
-    private static Map<String, SubscriptionSetup> activeSubscriptions = new HashMap<>();
-    private static Map<String, SubscriptionSetup> pendingSubscriptions = new HashMap<>();
+    private static Map<String, SubscriptionSetup> activeSubscriptions = getActiveSubscriptionsMap();
 
-    private static Map<String, java.time.Instant> lastActivity = new HashMap<>();
-    private static Map<String, java.time.Instant> activatedTimestamp = new HashMap<>();
+    private static Map<String, SubscriptionSetup> pendingSubscriptions = getPendingSubscriptionsMap();
+
+    private static Map<String, java.time.Instant> lastActivity = getLastActivityMap();
+    private static Map<String, java.time.Instant> activatedTimestamp = getActivatedTimestampMap();
 
     public static void addSubscription(String subscriptionId, SubscriptionSetup setup) {
         if (pendingSubscriptions.containsKey(subscriptionId)) {

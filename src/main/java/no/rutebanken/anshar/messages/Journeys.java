@@ -8,29 +8,41 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Journeys {
+public class Journeys extends DistributedCollection {
     private static Logger logger = LoggerFactory.getLogger(Journeys.class);
 
-    private static List<EstimatedTimetableDeliveryStructure> timetableDeliveries = new ArrayList<>();
+    private static List<EstimatedTimetableDeliveryStructure> timetableDeliveries = getJourneysList();
 
     /**
      * @return All vehicle activities that are still valid
      */
     public static List<EstimatedTimetableDeliveryStructure> getAll() {
-        timetableDeliveries.removeIf(s -> {
-
-            boolean isStillValid = false;
-            ZonedDateTime validUntil = s.getValidUntil();
-            //Keep if at least one is valid
-            if (validUntil == null) {
-                isStillValid = true;
-            } else if (validUntil.isAfter(ZonedDateTime.now())) {
-                isStillValid = true;
-            }
-            return !isStillValid;
-        });
+        removeExpiredElements();
 
         return timetableDeliveries;
+    }
+
+    private static void removeExpiredElements() {
+        List<EstimatedTimetableDeliveryStructure> itemsToRemove = new ArrayList<>();
+        for (int i = 0; i < timetableDeliveries.size(); i++) {
+            EstimatedTimetableDeliveryStructure current = timetableDeliveries.get(i);
+            if ( !isStillValid(current)) {
+                itemsToRemove.add(current);
+            }
+        }
+        timetableDeliveries.removeAll(itemsToRemove);
+    }
+
+    private static boolean isStillValid(EstimatedTimetableDeliveryStructure s) {
+        boolean isStillValid = false;
+        ZonedDateTime validUntil = s.getValidUntil();
+        //Keep if at least one is valid
+        if (validUntil == null) {
+            isStillValid = true;
+        } else if (validUntil.isAfter(ZonedDateTime.now())) {
+            isStillValid = true;
+        }
+        return isStillValid;
     }
 
     public static void add(EstimatedTimetableDeliveryStructure timetableDelivery) {

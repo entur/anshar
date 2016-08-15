@@ -34,7 +34,7 @@ public class SubscriptionManagerTest {
                 "SwarcoMizar",
                 SubscriptionSetup.ServiceType.SOAP,
                 UUID.randomUUID().toString(),
-                Duration.ofSeconds(initialDuration),
+                "RutebankenDEV", Duration.ofSeconds(initialDuration),
                 true
         );
         return sub;

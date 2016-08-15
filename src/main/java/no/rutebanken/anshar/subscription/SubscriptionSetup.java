@@ -1,10 +1,11 @@
 package no.rutebanken.anshar.subscription;
 
+import java.io.Serializable;
 import java.text.MessageFormat;
 import java.time.Duration;
 import java.util.Map;
 
-public class SubscriptionSetup {
+public class SubscriptionSetup implements Serializable{
     private SubscriptionType subscriptionType;
     private String address;
     private Duration heartbeatInterval;
@@ -19,7 +20,7 @@ public class SubscriptionSetup {
     private boolean active;
 
     /**
-     *  @param subscriptionType SX, VM, ET
+     * @param subscriptionType SX, VM, ET
      * @param address Base-URL for receiving incoming data
      * @param heartbeatInterval Requested heartbeatinterval for subscriptions, Request-interval for Request/Response "subscriptions"
      * @param operatorNamespace Namespace
@@ -28,12 +29,13 @@ public class SubscriptionSetup {
      * @param vendor Vendorname - information only
      * @param serviceType SOAP/REST
      * @param subscriptionId Sets the subscriptionId to use
+     * @param requestorRef
      * @param durationOfSubscription Initial duration of subscription
      * @param active Activates/deactivates subscription
      */
     public SubscriptionSetup(SubscriptionType subscriptionType, String address, Duration heartbeatInterval, String operatorNamespace, Map<String, String> urlMap,
                              String version, String vendor, ServiceType serviceType, String subscriptionId,
-                             Duration durationOfSubscription, boolean active) {
+                             String requestorRef, Duration durationOfSubscription, boolean active) {
         this.subscriptionType = subscriptionType;
         this.address = address;
         this.heartbeatInterval = heartbeatInterval;
@@ -43,6 +45,7 @@ public class SubscriptionSetup {
         this.vendor = vendor;
         this.serviceType = serviceType;
         this.subscriptionId = subscriptionId;
+        this.requestorRef = requestorRef;
         this.durationOfSubscription = durationOfSubscription;
         this.active = active;
     }
@@ -120,7 +123,7 @@ public class SubscriptionSetup {
         this.durationOfSubscription = durationOfSubscription;
     }
 
-    public void setRequestorRef(String requestorRef) {
+    private void setRequestorRef(String requestorRef) {
         this.requestorRef = requestorRef;
     }
 
