@@ -34,12 +34,17 @@ public class SubscriptionManager {
         logger.trace("Removed subscription [{}], success:{}", subscriptionId, success);
         lastActivity.remove(subscriptionId);
         activatedTimestamp.remove(subscriptionId);
+        pendingSubscriptions.remove(subscriptionId);
         logStats();
         return success;
     }
 
     public static boolean touchSubscription(String subscriptionId) {
         boolean success = (activeSubscriptions.get(subscriptionId) != null);
+        if (!success) {
+            // Handling race conditions caused by async responses
+            success = activatePendingSubscription(subscriptionId);
+        }
         lastActivity.put(subscriptionId, Instant.now());
 
         logger.trace("Touched subscription [{}], success:{}", subscriptionId, success);
@@ -79,7 +84,7 @@ public class SubscriptionManager {
             logger.trace("Pending subscription [{}] activated", subscriptionId);
             return true;
         }
-        logger.debug("Pending subscription [{}] NOT activated", subscriptionId);
+        logger.debug("Pending subscription [{}] NOT found", subscriptionId);
         return false;
     }
 
