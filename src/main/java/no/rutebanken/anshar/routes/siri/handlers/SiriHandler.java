@@ -37,12 +37,10 @@ public class SiriHandler {
                 subscriptionResponse.getResponseStatuses().forEach(responseStatus ->
                                 SubscriptionManager.activatePendingSubscription(subscriptionId)
                 );
-                logger.info("Subscription [{}] added.", subscriptionId);
 
             } else if (incoming.getTerminateSubscriptionResponse() != null) {
                 TerminateSubscriptionResponseStructure terminateSubscriptionResponse = incoming.getTerminateSubscriptionResponse();
                 boolean removed = SubscriptionManager.removeSubscription(subscriptionId);
-                logger.info("Subscription [{}] removed: {}", subscriptionId, removed);
 
             } else if (incoming.getDataReadyNotification() != null ){
                 //Fetched delivery
@@ -59,7 +57,7 @@ public class SiriHandler {
                 if (subscriptionSetup != null) {
                     if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE)) {
                         List<SituationExchangeDeliveryStructure> situationExchangeDeliveries = incoming.getServiceDelivery().getSituationExchangeDeliveries();
-                        logger.info("Subscription [{}]: Got SX-delivery", subscriptionId);
+                        logger.info("Subscription [{}]: Got SX-delivery", subscriptionSetup);
                         situationExchangeDeliveries.forEach(sx ->
                                         sx.getSituations().getPtSituationElements().forEach(ptSx -> Situations.add(ptSx))
                         );
@@ -67,7 +65,7 @@ public class SiriHandler {
                     }
                     if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING)) {
                         List<VehicleMonitoringDeliveryStructure> vehicleMonitoringDeliveries = incoming.getServiceDelivery().getVehicleMonitoringDeliveries();
-                        logger.info("Subscription [{}]: Got VM-delivery", subscriptionId);
+                        logger.info("Subscription [{}]: Got VM-delivery", subscriptionSetup);
                         vehicleMonitoringDeliveries.forEach(vm ->
                                         vm.getVehicleActivities().forEach(activity -> Vehicles.add(activity))
                         );
@@ -75,7 +73,7 @@ public class SiriHandler {
                     }
                     if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE)) {
                         List<EstimatedTimetableDeliveryStructure> estimatedTimetableDeliveries = incoming.getServiceDelivery().getEstimatedTimetableDeliveries();
-                        logger.info("Subscription [{}]: Got ET-delivery", subscriptionId);
+                        logger.info("Subscription [{}]: Got ET-delivery", subscriptionSetup);
                         estimatedTimetableDeliveries.forEach(et ->
                                         Journeys.add(et)
                         );
@@ -83,7 +81,7 @@ public class SiriHandler {
                     }
                     if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.PRODUCITON_TIMETABLE)) {
                         List<ProductionTimetableDeliveryStructure> productionTimetableDeliveries = incoming.getServiceDelivery().getProductionTimetableDeliveries();
-                        logger.info("Subscription [{}]: Got PT-delivery", subscriptionId);
+                        logger.info("Subscription [{}]: Got PT-delivery", subscriptionSetup);
                         productionTimetableDeliveries.forEach(pt ->
                                         ProductionTimetables.add(pt)
                         );
