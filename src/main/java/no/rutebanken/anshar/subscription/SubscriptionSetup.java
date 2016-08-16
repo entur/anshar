@@ -143,6 +143,10 @@ public class SubscriptionSetup implements Serializable{
         this.active = active;
     }
 
+    public String toString() {
+        return MessageFormat.format("[vendor={0}, id={1}]", vendor, subscriptionId);
+    }
+
     public enum ServiceType {SOAP, REST}
     public enum SubscriptionType {SITUATION_EXCHANGE, VEHICLE_MONITORING, PRODUCITON_TIMETABLE, ESTIMATED_TIMETABLE}
 }

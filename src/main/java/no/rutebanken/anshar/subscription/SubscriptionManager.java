@@ -25,15 +25,18 @@ public class SubscriptionManager extends DistributedCollection {
             activatePendingSubscription(subscriptionId);
         }
         activeSubscriptions.put(subscriptionId, setup);
-        logger.trace("Added subscription [{}]", subscriptionId);
+        logger.trace("Added subscription {}", setup);
         lastActivity.put(subscriptionId, Instant.now());
         activatedTimestamp.put(subscriptionId, Instant.now());
         logStats();
     }
 
     public static boolean removeSubscription(String subscriptionId) {
-        boolean success = (activeSubscriptions.remove(subscriptionId) != null);
-        logger.trace("Removed subscription [{}], success:{}", subscriptionId, success);
+        SubscriptionSetup setup = activeSubscriptions.remove(subscriptionId);
+
+        boolean success = (setup != null);
+
+        logger.trace("Removed subscription {}, success:{}", setup, success);
         lastActivity.remove(subscriptionId);
         activatedTimestamp.remove(subscriptionId);
         pendingSubscriptions.remove(subscriptionId);
@@ -42,14 +45,20 @@ public class SubscriptionManager extends DistributedCollection {
     }
 
     public static boolean touchSubscription(String subscriptionId) {
-        boolean success = (activeSubscriptions.get(subscriptionId) != null);
+        SubscriptionSetup setup = activeSubscriptions.get(subscriptionId);
+
+        boolean success = (setup != null);
+
         if (!success) {
             // Handling race conditions caused by async responses
             success = activatePendingSubscription(subscriptionId);
         }
-        lastActivity.put(subscriptionId, Instant.now());
 
-        logger.trace("Touched subscription [{}], success:{}", subscriptionId, success);
+        logger.trace("Touched subscription {}, success:{}", setup, success);
+        if (success) {
+            lastActivity.put(subscriptionId, Instant.now());
+        }
+
         logStats();
         return success;
     }
@@ -72,7 +81,7 @@ public class SubscriptionManager extends DistributedCollection {
         pendingSubscriptions.put(subscriptionId, subscriptionSetup);
         lastActivity.put(subscriptionId, Instant.now());
 
-        logger.trace("Added pending subscription [{}]", subscriptionId);
+        logger.trace("Added pending subscription {}", subscriptionSetup.toString());
     }
 
     public static boolean isPendingSubscription(String subscriptionId) {
@@ -83,10 +92,10 @@ public class SubscriptionManager extends DistributedCollection {
         if (isPendingSubscription(subscriptionId)) {
             SubscriptionSetup setup = pendingSubscriptions.remove(subscriptionId);
             addSubscription(subscriptionId, setup);
-            logger.trace("Pending subscription [{}] activated", subscriptionId);
+            logger.trace("Pending subscription {} activated", setup.toString());
             return true;
         }
-        logger.debug("Pending subscription [{}] NOT found", subscriptionId);
+        logger.debug("Pending subscriptionId [{}] NOT found", subscriptionId);
         return false;
     }
 
@@ -96,7 +105,7 @@ public class SubscriptionManager extends DistributedCollection {
             return false;
         }
 
-        logger.trace("Subscription [{}], last activity {}.", subscriptionId, instant);
+        logger.trace("SubscriptionId [{}], last activity {}.", subscriptionId, instant);
 
         SubscriptionSetup activeSubscription = activeSubscriptions.get(subscriptionId);
         if (activeSubscription != null) {
@@ -111,7 +120,7 @@ public class SubscriptionManager extends DistributedCollection {
                     .plusSeconds(
                             activeSubscription.getDurationOfSubscription().getSeconds()
                     ).isBefore(Instant.now())) {
-                logger.trace("Subscription  [{}] has lasted longer than initial subscription duration - triggering restart", subscriptionId);
+                logger.trace("Subscription  [{}] has lasted longer than initial subscription duration - triggering restart", activeSubscription.toString());
                 return false;
             }
 
@@ -121,7 +130,7 @@ public class SubscriptionManager extends DistributedCollection {
         if (pendingSubscription != null) {
             long tripleInterval = pendingSubscription.getHeartbeatInterval().toMillis() * 3;
             if (instant.isBefore(Instant.now().minusMillis(tripleInterval))) {
-                logger.info("Subscription [{}] never activated.", subscriptionId);
+                logger.info("Subscription {} never activated.", pendingSubscription.toString());
                 //Subscription created, but async response never received - reestablish subscription
                 return false;
             }

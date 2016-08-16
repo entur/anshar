@@ -69,7 +69,7 @@ public class Siri20ToSiri20RSSubscription extends SiriSubscriptionRouteBuilder {
                             logger.trace("CheckStatus OK - updating heartbeat-timestamp");
                             SubscriptionManager.touchSubscription(subscriptionSetup.getSubscriptionId());
                         } else {
-                            logger.info("CheckStatus NOT OK for subscription {}.", subscriptionSetup.getSubscriptionId());
+                            logger.info("CheckStatus NOT OK for subscription {}.", subscriptionSetup.toString());
                         }
 
                     })
