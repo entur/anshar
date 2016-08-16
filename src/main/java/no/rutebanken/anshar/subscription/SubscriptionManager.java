@@ -156,6 +156,7 @@ public class SubscriptionManager extends DistributedCollection {
                 "<tr>" +
                 "<td>Vendor</td>" +
                 "<td>SubscriptionId</td>" +
+                "<td>Activated</td>" +
                 "<td>Time since last activity</td>" +
                 "<td>State</td>" +
                 "</tr>");
@@ -164,6 +165,7 @@ public class SubscriptionManager extends DistributedCollection {
             s.append("<tr>" +
                     "<td>"+setup.getVendor() +"</td>"+
                     "<td>"+setup.getSubscriptionId() +"</td>"+
+                    "<td>"+(Instant.now().minusSeconds(activatedTimestamp.get(setup.getSubscriptionId()).getEpochSecond())).getEpochSecond()+"</td>"+
                     "<td>"+(Instant.now().minusSeconds(lastActivity.get(setup.getSubscriptionId()).getEpochSecond())).getEpochSecond()+"</td>"+
                     "<td>active</td>"+
                     "</tr>");
@@ -173,6 +175,7 @@ public class SubscriptionManager extends DistributedCollection {
             s.append("<tr>" +
                     "<td>"+setup.getVendor() +"</td>"+
                     "<td>"+setup.getSubscriptionId() +"</td>"+
+                    "<td></td>"+
                     "<td>"+(Instant.now().minusSeconds(lastActivity.get(setup.getSubscriptionId()).getEpochSecond())).getEpochSecond()+"</td>"+
                     "<td>pending</td>"+
                     "</tr>");
