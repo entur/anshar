@@ -19,16 +19,12 @@ public class SiriHandler {
 
     private static Logger logger = LoggerFactory.getLogger(SiriHandler.class);
 
-    private static boolean touchSubscription(String subscriptionId) {
-        return SubscriptionManager.touchSubscription(subscriptionId);
-    }
-
     public Siri handleIncomingSiri(String subscriptionId, String xml) {
         try {
             Siri incoming = SiriXml.parseXml(xml);
 
             if (incoming.getHeartbeatNotification() != null) {
-                touchSubscription(subscriptionId);
+                SubscriptionManager.touchSubscription(subscriptionId);
 
             } else if (incoming.getSubscriptionRequest() != null) {
                 logger.info("Ignoring subscriptionrequest...");
@@ -55,6 +51,8 @@ public class SiriHandler {
             } else if (incoming.getServiceDelivery() != null) {
                 SubscriptionSetup subscriptionSetup = SubscriptionManager.get(subscriptionId);
                 if (subscriptionSetup != null) {
+                    SubscriptionManager.touchSubscription(subscriptionId);
+
                     if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE)) {
                         List<SituationExchangeDeliveryStructure> situationExchangeDeliveries = incoming.getServiceDelivery().getSituationExchangeDeliveries();
                         logger.info("Subscription [{}]: Got SX-delivery", subscriptionSetup);
