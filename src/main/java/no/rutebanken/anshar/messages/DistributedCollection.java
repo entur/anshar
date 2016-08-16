@@ -51,4 +51,8 @@ public class DistributedCollection {
     public static Map<String, Instant> getActivatedTimestampMap() {
         return hazelcastInstance.getMap("anshar.activity.activated");
     }
+
+    public static Map<String, Integer> getHitcountMap() {
+        return hazelcastInstance.getMap("anshar.activity.hitcount");
+    }
 }

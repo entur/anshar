@@ -22,6 +22,7 @@ public class SubscriptionManager extends DistributedCollection {
 
     private static Map<String, java.time.Instant> lastActivity = getLastActivityMap();
     private static Map<String, java.time.Instant> activatedTimestamp = getActivatedTimestampMap();
+    private static Map<String, Integer> hitcount = getHitcountMap();
 
     public static void addSubscription(String subscriptionId, SubscriptionSetup setup) {
         if (pendingSubscriptions.containsKey(subscriptionId)) {
@@ -49,6 +50,7 @@ public class SubscriptionManager extends DistributedCollection {
 
     public static boolean touchSubscription(String subscriptionId) {
         SubscriptionSetup setup = activeSubscriptions.get(subscriptionId);
+        hit(subscriptionId);
 
         boolean success = (setup != null);
 
@@ -73,11 +75,21 @@ public class SubscriptionManager extends DistributedCollection {
 
     public static SubscriptionSetup get(String subscriptionId) {
         SubscriptionSetup subscriptionSetup = activeSubscriptions.get(subscriptionId);
+        hit(subscriptionId);
+
         if (subscriptionSetup == null) {
             //Pending subscriptions are also "valid"
             subscriptionSetup = pendingSubscriptions.get(subscriptionId);
         }
         return subscriptionSetup;
+    }
+
+    private static void hit(String subscriptionId) {
+        int counter = 1;
+        if (hitcount.containsKey(subscriptionId)) {
+           counter = hitcount.get(subscriptionId)+1;
+        }
+        hitcount.put(subscriptionId, counter);
     }
 
     public static void addPendingSubscription(String subscriptionId, SubscriptionSetup subscriptionSetup) {
@@ -176,6 +188,7 @@ public class SubscriptionManager extends DistributedCollection {
             obj.put("lastActivity",""+lastActivity.get(setup.getSubscriptionId()).atZone(ZoneId.systemDefault()));
             obj.put("status","active");
             obj.put("healthy",isSubscriptionHealthy(setup.getSubscriptionId()));
+            obj.put("hitcount",hitcount.get(setup.getSubscriptionId()));
 
             stats.add(obj);
         }
@@ -187,6 +200,7 @@ public class SubscriptionManager extends DistributedCollection {
             obj.put("lastActivity",""+lastActivity.get(setup.getSubscriptionId()).atZone(ZoneId.systemDefault()));
             obj.put("status","pending");
             obj.put("healthy",isSubscriptionHealthy(setup.getSubscriptionId()));
+            obj.put("hitcount",hitcount.get(setup.getSubscriptionId()));
 
             stats.add(obj);
         }
