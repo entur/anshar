@@ -257,7 +257,7 @@ public class SubscriptionConfig {
 
         SubscriptionSetup sub = new SubscriptionSetup(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING,
                 inboundUrl,
-                Duration.ofMinutes(1),
+                Duration.ofDays(7),
                 "http://www.siri.org.uk/siri",
                 urlMap,
                 "2.0",
@@ -283,7 +283,7 @@ public class SubscriptionConfig {
 
         SubscriptionSetup sub = new SubscriptionSetup(SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE,
                 inboundUrl,
-                Duration.ofMinutes(1),
+                Duration.ofDays(7),
                 "http://www.siri.org.uk/siri",
                 urlMap,
                 "2.0",
