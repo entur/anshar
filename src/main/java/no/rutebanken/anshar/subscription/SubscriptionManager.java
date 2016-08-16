@@ -81,6 +81,8 @@ public class SubscriptionManager extends DistributedCollection {
     }
 
     public static void addPendingSubscription(String subscriptionId, SubscriptionSetup subscriptionSetup) {
+        activatedTimestamp.remove(subscriptionId);
+        activeSubscriptions.remove(subscriptionId);
         pendingSubscriptions.put(subscriptionId, subscriptionSetup);
         lastActivity.put(subscriptionId, Instant.now());
 
@@ -90,12 +92,19 @@ public class SubscriptionManager extends DistributedCollection {
     public static boolean isPendingSubscription(String subscriptionId) {
         return pendingSubscriptions.containsKey(subscriptionId);
     }
+    public static boolean isActiveSubscription(String subscriptionId) {
+        return activeSubscriptions.containsKey(subscriptionId);
+    }
 
     public static boolean activatePendingSubscription(String subscriptionId) {
         if (isPendingSubscription(subscriptionId)) {
             SubscriptionSetup setup = pendingSubscriptions.remove(subscriptionId);
             addSubscription(subscriptionId, setup);
             logger.trace("Pending subscription {} activated", setup.toString());
+            return true;
+        }
+        if (isActiveSubscription(subscriptionId)) {
+            logger.trace("Pending subscription {} already activated", activeSubscriptions.get(subscriptionId));
             return true;
         }
         logger.debug("Pending subscriptionId [{}] NOT found", subscriptionId);
@@ -166,6 +175,7 @@ public class SubscriptionManager extends DistributedCollection {
             obj.put("activated",""+activatedTimestamp.get(setup.getSubscriptionId()).atZone(ZoneId.systemDefault()));
             obj.put("lastActivity",""+lastActivity.get(setup.getSubscriptionId()).atZone(ZoneId.systemDefault()));
             obj.put("status","active");
+            obj.put("healthy",isSubscriptionHealthy(setup.getSubscriptionId()));
 
             stats.add(obj);
         }
@@ -176,6 +186,7 @@ public class SubscriptionManager extends DistributedCollection {
             obj.put("activated",null);
             obj.put("lastActivity",""+lastActivity.get(setup.getSubscriptionId()).atZone(ZoneId.systemDefault()));
             obj.put("status","pending");
+            obj.put("healthy",isSubscriptionHealthy(setup.getSubscriptionId()));
 
             stats.add(obj);
         }
