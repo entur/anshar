@@ -79,7 +79,7 @@ public class SiriHandler {
                         );
                         logger.trace("Active ET-elements: {}", Journeys.getAll().size());
                     }
-                    if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.PRODUCITON_TIMETABLE)) {
+                    if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.PRODUCTION_TIMETABLE)) {
                         List<ProductionTimetableDeliveryStructure> productionTimetableDeliveries = incoming.getServiceDelivery().getProductionTimetableDeliveries();
                         logger.info("Subscription [{}]: Got PT-delivery", subscriptionSetup);
                         productionTimetableDeliveries.forEach(pt ->

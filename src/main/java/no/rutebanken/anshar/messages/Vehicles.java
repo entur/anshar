@@ -54,6 +54,7 @@ public class Vehicles extends DistributedCollection {
             if (vehicleLocation != null) {
                 if(vehicleLocation.getLongitude() == null & vehicleLocation.getCoordinates() == null) {
                     isStillValid = false;
+                    logger.info("Invalid VehicleActivity - VehicleLocation is not set");
                 }
             }
         }
@@ -65,9 +66,14 @@ public class Vehicles extends DistributedCollection {
         for (int i = 0; i < vehicleActivities.size(); i++) {
             VehicleActivityStructure element = vehicleActivities.get(i);
             if (element.getMonitoredVehicleJourney().getVehicleRef().getValue().equals(
-                    activity.getMonitoredVehicleJourney().getVehicleRef().getValue())) {
+                    activity.getMonitoredVehicleJourney().getVehicleRef().getValue()) &&
+               element.getMonitoredVehicleJourney().getCourseOfJourneyRef().getValue().equals(
+                            activity.getMonitoredVehicleJourney().getCourseOfJourneyRef().getValue())) {
 
                 //Same Identifier already exists - replace existing
+                logger.info("Updating VehicleActivity for VehicleRef/CourseOfJourney [{}]/[{}]",
+                        activity.getMonitoredVehicleJourney().getVehicleRef().getValue(),
+                        activity.getMonitoredVehicleJourney().getCourseOfJourneyRef().getValue());
                 indexToReplace = i;
                 break; //Found item to replace - no need to continue
             }

@@ -44,7 +44,7 @@ public class SiriObjectFactory {
                     subscriptionSetup.buildUrl(),
                     subscriptionSetup.getDurationOfSubscription());
         }
-        if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.PRODUCITON_TIMETABLE)) {
+        if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.PRODUCTION_TIMETABLE)) {
             request = createProductionTimetableSubscriptionRequest(subscriptionSetup.getRequestorRef(), subscriptionSetup.getSubscriptionId(),
                     subscriptionSetup.getHeartbeatInterval().toString(),
                     subscriptionSetup.buildUrl(),
@@ -74,7 +74,7 @@ public class SiriObjectFactory {
             request.getEstimatedTimetableRequests().add(createEstimatedTimetableRequestStructure());
         }
 
-        if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.PRODUCITON_TIMETABLE)) {
+        if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.PRODUCTION_TIMETABLE)) {
             request.getProductionTimetableRequests().add(createProductionTimetableRequestStructure());
         }
 

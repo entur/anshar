@@ -46,7 +46,7 @@ public class SiriProvider extends RouteBuilder {
 
         from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/stats")
                 .process(p-> {
-                    p.getOut().setBody(SubscriptionManager.printHtmlStats());
+                    p.getOut().setBody(SubscriptionManager.buildStats());
                 })
         ;
 

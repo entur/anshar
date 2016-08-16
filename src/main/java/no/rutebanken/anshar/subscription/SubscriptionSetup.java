@@ -1,5 +1,7 @@
 package no.rutebanken.anshar.subscription;
 
+import org.json.simple.JSONObject;
+
 import java.io.Serializable;
 import java.text.MessageFormat;
 import java.time.Duration;
@@ -146,7 +148,18 @@ public class SubscriptionSetup implements Serializable{
     public String toString() {
         return MessageFormat.format("[vendor={0}, id={1}]", vendor, subscriptionId);
     }
+    public JSONObject toJSON() {
+        JSONObject obj = new JSONObject();
+        obj.put("vendor", getVendor());
+        obj.put("subscriptionId", getSubscriptionId());
+        obj.put("serviceType", getServiceType().toString());
+        obj.put("subscriptionType", getSubscriptionType().toString());
+        obj.put("heartbeatInterval", getHeartbeatInterval().toString());
+        obj.put("durationOfSubscription", getDurationOfSubscription().toString());
+
+        return obj;
+    }
 
     public enum ServiceType {SOAP, REST}
-    public enum SubscriptionType {SITUATION_EXCHANGE, VEHICLE_MONITORING, PRODUCITON_TIMETABLE, ESTIMATED_TIMETABLE}
+    public enum SubscriptionType {SITUATION_EXCHANGE, VEHICLE_MONITORING, PRODUCTION_TIMETABLE, ESTIMATED_TIMETABLE}
 }

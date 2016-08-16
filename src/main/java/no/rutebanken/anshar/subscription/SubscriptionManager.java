@@ -2,6 +2,8 @@ package no.rutebanken.anshar.subscription;
 
 
 import no.rutebanken.anshar.messages.DistributedCollection;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -150,39 +152,34 @@ public class SubscriptionManager extends DistributedCollection {
         return true;
     }
 
-    public static String printHtmlStats() {
-        StringBuffer s = new StringBuffer();
-        s.append("<table border=\"1\">" +
-                "<tr>" +
-                "<td>Vendor</td>" +
-                "<td>SubscriptionId</td>" +
-                "<td>Activated</td>" +
-                "<td>Time since last activity</td>" +
-                "<td>State</td>" +
-                "</tr>");
+    public static String buildStats() {
+
+
+        JSONArray stats = new JSONArray();
+
+
         for (String key : activeSubscriptions.keySet()) {
+
             SubscriptionSetup setup = activeSubscriptions.get(key);
-            s.append("<tr>" +
-                    "<td>"+setup.getVendor() +"</td>"+
-                    "<td>"+setup.getSubscriptionId() +"</td>"+
-                    "<td>"+(Instant.now().minusSeconds(activatedTimestamp.get(setup.getSubscriptionId()).getEpochSecond())).getEpochSecond()+"</td>"+
-                    "<td>"+(Instant.now().minusSeconds(lastActivity.get(setup.getSubscriptionId()).getEpochSecond())).getEpochSecond()+"</td>"+
-                    "<td>active</td>"+
-                    "</tr>");
+
+            JSONObject obj = setup.toJSON();
+            obj.put("activated",""+activatedTimestamp.get(setup.getSubscriptionId()).atZone(ZoneId.systemDefault()));
+            obj.put("lastActivity",""+lastActivity.get(setup.getSubscriptionId()).atZone(ZoneId.systemDefault()));
+            obj.put("status","active");
+
+            stats.add(obj);
         }
         for (String key : pendingSubscriptions.keySet()) {
             SubscriptionSetup setup = pendingSubscriptions.get(key);
-            s.append("<tr>" +
-                    "<td>"+setup.getVendor() +"</td>"+
-                    "<td>"+setup.getSubscriptionId() +"</td>"+
-                    "<td></td>"+
-                    "<td>"+(Instant.now().minusSeconds(lastActivity.get(setup.getSubscriptionId()).getEpochSecond())).getEpochSecond()+"</td>"+
-                    "<td>pending</td>"+
-                    "</tr>");
+
+            JSONObject obj = setup.toJSON();
+            obj.put("activated",null);
+            obj.put("lastActivity",""+lastActivity.get(setup.getSubscriptionId()).atZone(ZoneId.systemDefault()));
+            obj.put("status","pending");
+
+            stats.add(obj);
         }
-        s.append("</table>");
 
-
-        return s.toString();
+        return stats.toJSONString();
     }
 }
