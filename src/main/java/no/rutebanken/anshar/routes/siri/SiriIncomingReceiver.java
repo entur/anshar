@@ -152,12 +152,6 @@ public class SiriIncomingReceiver extends RouteBuilder {
                 //.to("websocket://siri_et?sendToAll=true")
         ;
 
-        from("activemq:queue:" + PUSH_UPDATES_QUEUE + "?asyncConsumer=true")
-                .to("log:foo")
-                .setBody(simple("${body}"))
-        ;
-
-
     }
 
     private String getSubscriptionIdFromPath(String path) {
