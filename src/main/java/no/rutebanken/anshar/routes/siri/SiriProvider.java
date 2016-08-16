@@ -5,6 +5,7 @@ import no.rutebanken.anshar.messages.ProductionTimetables;
 import no.rutebanken.anshar.messages.Situations;
 import no.rutebanken.anshar.messages.Vehicles;
 import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
+import no.rutebanken.anshar.subscription.SubscriptionManager;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.http.entity.ContentType;
@@ -41,6 +42,12 @@ public class SiriProvider extends RouteBuilder {
         //To avoid large stacktraces in the log when fething data using browser
         from("jetty:http://0.0.0.0:" + inboundPort + "/favicon.ico")
                 .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("404"))
+        ;
+
+        from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/stats")
+                .process(p-> {
+                    p.getOut().setBody(SubscriptionManager.printHtmlStats());
+                })
         ;
 
         // Dataproviders

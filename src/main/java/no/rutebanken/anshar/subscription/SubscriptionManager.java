@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
+import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -147,5 +148,38 @@ public class SubscriptionManager extends DistributedCollection {
             return false;
         }
         return true;
+    }
+
+    public static String printHtmlStats() {
+        StringBuffer s = new StringBuffer();
+        s.append("<table border=\"1\">" +
+                "<tr>" +
+                "<td>Vendor</td>" +
+                "<td>SubscriptionId</td>" +
+                "<td>Time since last activity</td>" +
+                "<td>State</td>" +
+                "</tr>");
+        for (String key : activeSubscriptions.keySet()) {
+            SubscriptionSetup setup = activeSubscriptions.get(key);
+            s.append("<tr>" +
+                    "<td>"+setup.getVendor() +"</td>"+
+                    "<td>"+setup.getSubscriptionId() +"</td>"+
+                    "<td>"+(Instant.now().minusSeconds(lastActivity.get(setup.getSubscriptionId()).getEpochSecond())).getEpochSecond()+"</td>"+
+                    "<td>active</td>"+
+                    "</tr>");
+        }
+        for (String key : pendingSubscriptions.keySet()) {
+            SubscriptionSetup setup = pendingSubscriptions.get(key);
+            s.append("<tr>" +
+                    "<td>"+setup.getVendor() +"</td>"+
+                    "<td>"+setup.getSubscriptionId() +"</td>"+
+                    "<td>"+(Instant.now().minusSeconds(lastActivity.get(setup.getSubscriptionId()).getEpochSecond())).getEpochSecond()+"</td>"+
+                    "<td>pending</td>"+
+                    "</tr>");
+        }
+        s.append("</table>");
+
+
+        return s.toString();
     }
 }
