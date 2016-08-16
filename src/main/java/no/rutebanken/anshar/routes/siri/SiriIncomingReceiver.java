@@ -65,9 +65,12 @@ public class SiriIncomingReceiver extends RouteBuilder {
         ;
 
         from("activemq:queue:" + TRANSFORM_QUEUE + "?asyncConsumer=true")
-                .to("file:" + incomingLogDirectory)
+                .choice()
+                    .when(p -> (logger.isTraceEnabled()))
+                        .to("file:" + incomingLogDirectory)
+                    .endChoice()
+                .end()
                 .to("xslt:xsl/siri_soap_raw.xsl?saxon=true&allowStAX=false") // Extract SOAP version and convert to raw SIRI
-                .to("log:r1:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .to("xslt:xsl/siri_14_20.xsl?saxon=true&allowStAX=false") // Convert from v1.4 to 2.0
                 .to("activemq:queue:" + ROUTER_QUEUE)
         ;
