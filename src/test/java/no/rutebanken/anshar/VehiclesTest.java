@@ -2,6 +2,7 @@ package no.rutebanken.anshar;
 
 import no.rutebanken.anshar.messages.Vehicles;
 import org.junit.Test;
+import uk.org.siri.siri20.CourseOfJourneyRefStructure;
 import uk.org.siri.siri20.VehicleActivityStructure;
 import uk.org.siri.siri20.VehicleRef;
 
@@ -71,6 +72,11 @@ public class VehiclesTest {
         VehicleRef vRef = new VehicleRef();
         vRef.setValue(vehicleReference);
         vehicleJourney.setVehicleRef(vRef);
+
+        CourseOfJourneyRefStructure journeyRefStructure = new CourseOfJourneyRefStructure();
+        journeyRefStructure.setValue("yadayada");
+        vehicleJourney.setCourseOfJourneyRef(journeyRefStructure);
+
         element.setMonitoredVehicleJourney(vehicleJourney);
         return element;
     }
