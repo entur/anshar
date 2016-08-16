@@ -54,7 +54,7 @@ public class Siri20ToSiri20RSSubscription extends SiriSubscriptionRouteBuilder {
                 })
         ;
 
-        //Check status - when heartbeat is not supported
+        //Check status-request checks the server status - NOT the subscription
         if (subscriptionSetup.isActive() & urlMap.get(RequestType.CHECK_STATUS) != null) {
             from("quartz2://checkstatus" + uniqueRouteName + "?fireNow=true&trigger.repeatInterval=" + subscriptionSetup.getHeartbeatInterval().toMillis())
                     .bean(this, "marshalSiriCheckStatusRequest", false)
@@ -66,10 +66,9 @@ public class Siri20ToSiri20RSSubscription extends SiriSubscriptionRouteBuilder {
 
                         String responseCode = p.getIn().getHeader("CamelHttpResponseCode", String.class);
                         if ("200".equals(responseCode)) {
-                            logger.trace("CheckStatus OK - updating heartbeat-timestamp");
-                            SubscriptionManager.touchSubscription(subscriptionSetup.getSubscriptionId());
+                            logger.trace("CheckStatus OK - Remote service is up [{}]", subscriptionSetup.buildUrl());
                         } else {
-                            logger.info("CheckStatus NOT OK for subscription {}.", subscriptionSetup.toString());
+                            logger.info("CheckStatus NOT OK - Remote service is down [{}]", subscriptionSetup.buildUrl());
                         }
 
                     })
