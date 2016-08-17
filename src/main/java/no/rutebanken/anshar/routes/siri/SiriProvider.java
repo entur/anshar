@@ -15,6 +15,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
+import java.nio.charset.Charset;
+
 @Configuration
 public class SiriProvider extends RouteBuilder {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -84,7 +86,7 @@ public class SiriProvider extends RouteBuilder {
 
         from("direct:processResponse")
                 .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
-                .setHeader(Exchange.CONTENT_TYPE, constant(ContentType.TEXT_XML.toString()))
+                .setHeader(Exchange.CONTENT_TYPE, constant(ContentType.create("text/xml", Charset.forName("UTF-8"))))
 //                .choice()
 //                    .when(header("Accept-Encoding").contains("gzip"))
 //                        .setHeader(Exchange.CONTENT_ENCODING, simple("gzip"))
