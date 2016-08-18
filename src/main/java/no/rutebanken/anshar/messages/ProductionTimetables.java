@@ -6,12 +6,14 @@ import uk.org.siri.siri20.ProductionTimetableDeliveryStructure;
 
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ProductionTimetables extends DistributedCollection {
     private static Logger logger = LoggerFactory.getLogger(ProductionTimetables.class);
 
-    private static List<ProductionTimetableDeliveryStructure> timetableDeliveries = getProdutionTimetablesList();
+    private static Map<String, ProductionTimetableDeliveryStructure> timetableDeliveries = getProductionTimetablesMap();
 
     /**
      * @return All vehicle activities that are still valid
@@ -19,21 +21,40 @@ public class ProductionTimetables extends DistributedCollection {
     public static List<ProductionTimetableDeliveryStructure> getAll() {
         removeExpiredElements();
 
-        return timetableDeliveries;
+        return new ArrayList<>(timetableDeliveries.values());
     }
 
+    /**
+     * @return All vehicle activities that are still valid
+     */
+    public static List<ProductionTimetableDeliveryStructure> getAll(String vendor) {
+        removeExpiredElements();
+
+        Map<String, ProductionTimetableDeliveryStructure> vendorSpecific = new HashMap<>();
+        timetableDeliveries.keySet().stream().filter(key -> key.startsWith(vendor + ":")).forEach(key -> {
+            ProductionTimetableDeliveryStructure element = timetableDeliveries.get(key);
+            if (element != null) {
+                vendorSpecific.put(key, element);
+            }
+        });
+
+        return new ArrayList<>(vendorSpecific.values());
+    }
 
     private static void removeExpiredElements() {
 
-        List<ProductionTimetableDeliveryStructure> itemsToRemove = new ArrayList<>();
+        List<String> itemsToRemove = new ArrayList<>();
 
-        for (int i = 0; i < timetableDeliveries.size(); i++) {
-            ProductionTimetableDeliveryStructure current = timetableDeliveries.get(i);
+        for (String key : timetableDeliveries.keySet()) {
+            ProductionTimetableDeliveryStructure current = timetableDeliveries.get(key);
             if ( !isStillValid(current)) {
-                itemsToRemove.add(current);
+                itemsToRemove.add(key);
             }
         }
-        timetableDeliveries.removeAll(itemsToRemove);
+
+        for (String rm : itemsToRemove) {
+            timetableDeliveries.remove(rm);
+        }
     }
 
     private static boolean isStillValid(ProductionTimetableDeliveryStructure s) {
@@ -41,31 +62,20 @@ public class ProductionTimetables extends DistributedCollection {
         boolean isStillValid = false;
         ZonedDateTime validUntil = s.getValidUntil();
         //Keep if at least one is valid
-        if (validUntil == null) {
-            isStillValid = true;
-        } else if (validUntil.isAfter(ZonedDateTime.now())) {
+        if (validUntil == null || validUntil.isAfter(ZonedDateTime.now())) {
             isStillValid = true;
         }
         return isStillValid;
     }
 
-    public static void add(ProductionTimetableDeliveryStructure timetableDelivery) {
+    public static void add(ProductionTimetableDeliveryStructure timetableDelivery, String vendor) {
+        timetableDeliveries.put(createKey(vendor, timetableDelivery), timetableDelivery);
+    }
+    private static String createKey(String vendor, ProductionTimetableDeliveryStructure element) {
+        StringBuffer key = new StringBuffer();
 
-        int indexToReplace = -1;
-        for (int i = 0; i < timetableDeliveries.size(); i++) {
-            ProductionTimetableDeliveryStructure element = timetableDeliveries.get(i);
-            if (element.getVersion().equals(timetableDelivery.getVersion())) {
-
-                //replace existing
-                indexToReplace = i;
-                break; //Found item to replace - no need to continue
-            }
-        }
-        if (indexToReplace >= 0) {
-            timetableDeliveries.remove(indexToReplace);
-            timetableDeliveries.add(indexToReplace, timetableDelivery);
-        } else {
-            timetableDeliveries.add(timetableDelivery);
-        }
+        key.append(vendor).append(":")
+                .append(element.getVersion());
+        return key.toString();
     }
 }

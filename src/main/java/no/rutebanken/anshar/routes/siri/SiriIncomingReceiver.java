@@ -1,14 +1,9 @@
 package no.rutebanken.anshar.routes.siri;
 
-import no.rutebanken.anshar.messages.Journeys;
-import no.rutebanken.anshar.messages.ProductionTimetables;
-import no.rutebanken.anshar.messages.Situations;
-import no.rutebanken.anshar.messages.Vehicles;
 import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.builder.xml.Namespaces;
-import org.rutebanken.siri20.util.SiriXml;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,15 +17,15 @@ import java.util.UUID;
 public class SiriIncomingReceiver extends RouteBuilder {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    private final String QUEUE_PREFIX              = "anshar.siri";
-    private final String TRANSFORM_QUEUE           = QUEUE_PREFIX + ".transform";
-    private final String ROUTER_QUEUE              = QUEUE_PREFIX + ".router";
-    private final String DEFAULT_PROCESSOR_QUEUE   = QUEUE_PREFIX + ".process";
-    private final String PUSH_UPDATES_QUEUE = QUEUE_PREFIX + ".push";
-    private final String SITUATION_EXCHANGE_QUEUE  = DEFAULT_PROCESSOR_QUEUE + ".sx";
-    private final String VEHICLE_MONITORING_QUEUE  = DEFAULT_PROCESSOR_QUEUE + ".vm";
-    private final String ESTIMATED_TIMETABLE_QUEUE = DEFAULT_PROCESSOR_QUEUE + ".et";
-    private final String HEARTBEAT_QUEUE           = DEFAULT_PROCESSOR_QUEUE + ".heartbeat";
+    static final String QUEUE_PREFIX              = "anshar.siri";
+    static final String TRANSFORM_QUEUE           = QUEUE_PREFIX + ".transform";
+    static final String ROUTER_QUEUE              = QUEUE_PREFIX + ".router";
+    static final String DEFAULT_PROCESSOR_QUEUE   = QUEUE_PREFIX + ".process";
+    static final String PUSH_UPDATES_QUEUE        = QUEUE_PREFIX + ".push";
+    static final String SITUATION_EXCHANGE_QUEUE  = DEFAULT_PROCESSOR_QUEUE + ".sx";
+    static final String VEHICLE_MONITORING_QUEUE  = DEFAULT_PROCESSOR_QUEUE + ".vm";
+    static final String ESTIMATED_TIMETABLE_QUEUE = DEFAULT_PROCESSOR_QUEUE + ".et";
+    static final String HEARTBEAT_QUEUE           = DEFAULT_PROCESSOR_QUEUE + ".heartbeat";
 
     @Value("${anshar.incoming.port}")
     private String inboundPort;

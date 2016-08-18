@@ -16,7 +16,7 @@ public class JourneysTest {
         int previousSize = Journeys.getAll().size();
         EstimatedTimetableDeliveryStructure element = createEstimatedTimetableDeliveryStructure(UUID.randomUUID().toString(), ZonedDateTime.now().plusMinutes(1));
 
-        Journeys.add(element);
+        Journeys.add(element, "test");
 
         assertTrue(Journeys.getAll().size() == previousSize+1);
     }
@@ -27,6 +27,7 @@ public class JourneysTest {
 
         Journeys.add(
                 createEstimatedTimetableDeliveryStructure(UUID.randomUUID().toString(), ZonedDateTime.now().minusMinutes(1))
+                , "test"
         );
 
         assertTrue(Journeys.getAll().size() == previousSize);
@@ -37,16 +38,22 @@ public class JourneysTest {
         int previousSize = Journeys.getAll().size();
         String version = UUID.randomUUID().toString();
 
-        Journeys.add(createEstimatedTimetableDeliveryStructure(version, ZonedDateTime.now().plusMinutes(1)));
+        Journeys.add(createEstimatedTimetableDeliveryStructure(version, ZonedDateTime.now().plusMinutes(1)), "test");
         int expectedSize = previousSize +1;
         assertTrue("Adding Journey did not add element.", Journeys.getAll().size() == expectedSize);
 
-        Journeys.add(createEstimatedTimetableDeliveryStructure(version, ZonedDateTime.now().plusMinutes(1)));
+        Journeys.add(createEstimatedTimetableDeliveryStructure(version, ZonedDateTime.now().plusMinutes(1)), "test");
         assertTrue("Updating Journey added element.", Journeys.getAll().size() == expectedSize);
 
-        Journeys.add(createEstimatedTimetableDeliveryStructure(UUID.randomUUID().toString(), ZonedDateTime.now().plusMinutes(1)));
+        Journeys.add(createEstimatedTimetableDeliveryStructure(UUID.randomUUID().toString(), ZonedDateTime.now().plusMinutes(1)), "test");
         expectedSize++;
         assertTrue("Adding Journey did not add element.", Journeys.getAll().size() == expectedSize);
+
+        Journeys.add(createEstimatedTimetableDeliveryStructure(UUID.randomUUID().toString(), ZonedDateTime.now().plusMinutes(1)), "test2");
+        expectedSize++;
+        assertTrue("Adding Journey for other vendor did not add element.", Journeys.getAll().size() == expectedSize);
+        assertTrue("Getting Journey for vendor did not return correct element-count.", Journeys.getAll("test2").size() == previousSize+1);
+        assertTrue("Getting Journey for vendor did not return correct element-count.", Journeys.getAll("test").size() == expectedSize-1);
 
     }
 

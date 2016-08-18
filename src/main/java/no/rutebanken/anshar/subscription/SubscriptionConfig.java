@@ -2,6 +2,7 @@ package no.rutebanken.anshar.subscription;
 
 import no.rutebanken.anshar.routes.siri.Siri20ToSiri20RSSubscription;
 import no.rutebanken.anshar.routes.siri.Siri20ToSiriRS14Subscription;
+import no.rutebanken.anshar.routes.siri.Siri20ToSiriWS14RequestResponse;
 import no.rutebanken.anshar.routes.siri.Siri20ToSiriWS14Subscription;
 import org.apache.camel.builder.RouteBuilder;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,6 +23,9 @@ public class SubscriptionConfig {
 
     @Value("${anshar.subscription.initial.duration.hours}")
     private Integer initialDuration = 1;
+
+    @Value("${anshar.enabled.subscriptionRequests}")
+    private boolean enableSubscriptionRequests;
 
     @Value("${anshar.enabled.ruter.sx}")
     private boolean enableRuterSX;
@@ -84,6 +88,7 @@ public class SubscriptionConfig {
 
         urlMap.put(RequestType.SUBSCRIBE, "sis.kolumbus.no:90/VMWS/VMService.svc");
         urlMap.put(RequestType.DELETE_SUBSCRIPTION, "sis.kolumbus.no:90/VMWS/VMService.svc");
+        urlMap.put(RequestType.GET_VEHICLE_MONITORING, "sis.kolumbus.no:90/VMWS/VMService.svc");
 
         SubscriptionSetup sub = new SubscriptionSetup(
                 SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING,
@@ -97,9 +102,14 @@ public class SubscriptionConfig {
                 UUID.randomUUID().toString(),
                 "RutebankenDEV",
                 Duration.ofHours(initialDuration),
-                enableKolumbusVM);
+                enableKolumbusVM
+        );
 
-        return new Siri20ToSiriWS14Subscription(sub);
+        if (enableSubscriptionRequests) {
+            return new Siri20ToSiriWS14Subscription(sub);
+        } else {
+            return new Siri20ToSiriWS14RequestResponse(sub);
+        }
     }
 
     @Bean
@@ -107,7 +117,7 @@ public class SubscriptionConfig {
 
         Map<String, String> urlMap = new HashMap<>();
         urlMap.put(RequestType.SUBSCRIBE, "st.atb.no/SXWS/SXService.svc");
-        urlMap.put(RequestType.DELETE_SUBSCRIPTION, "st.atb.no//SXWS/SXService.svc");
+        urlMap.put(RequestType.DELETE_SUBSCRIPTION, "st.atb.no/SXWS/SXService.svc");
 
 
         SubscriptionSetup sub = new SubscriptionSetup(SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE,
@@ -132,6 +142,7 @@ public class SubscriptionConfig {
         Map<String, String> urlMap = new HashMap<>();
         urlMap.put(RequestType.SUBSCRIBE, "st.atb.no/VMWS/VMService.svc?wsdl");
         urlMap.put(RequestType.DELETE_SUBSCRIPTION, "st.atb.no/VMWS/VMService.svc?wsdl");
+        urlMap.put(RequestType.GET_VEHICLE_MONITORING, "st.atb.no/VMWS/VMService.svc?wsdl");
 
         SubscriptionSetup sub = new SubscriptionSetup(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING,
                 inboundUrl,
@@ -146,7 +157,11 @@ public class SubscriptionConfig {
                 Duration.ofHours(initialDuration),
                 enableAtbVM);
 
-        return new Siri20ToSiriWS14Subscription(sub);
+        if (enableSubscriptionRequests) {
+            return new Siri20ToSiriWS14Subscription(sub);
+        } else {
+            return new Siri20ToSiriWS14RequestResponse(sub);
+        }
     }
 
 /*

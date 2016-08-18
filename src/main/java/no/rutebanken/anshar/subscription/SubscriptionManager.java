@@ -75,7 +75,6 @@ public class SubscriptionManager extends DistributedCollection {
 
     public static SubscriptionSetup get(String subscriptionId) {
         SubscriptionSetup subscriptionSetup = activeSubscriptions.get(subscriptionId);
-        hit(subscriptionId);
 
         if (subscriptionSetup == null) {
             //Pending subscriptions are also "valid"

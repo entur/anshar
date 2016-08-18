@@ -7,12 +7,14 @@ import uk.org.siri.siri20.VehicleActivityStructure;
 
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Vehicles extends DistributedCollection {
     private static Logger logger = LoggerFactory.getLogger(Vehicles.class);
 
-    private static List<VehicleActivityStructure> vehicleActivities = getVehiclesList();
+    private static Map<String, VehicleActivityStructure> vehicleActivities = getVehiclesMap();
 
     /**
      * @return All vehicle activities that are still valid
@@ -20,69 +22,83 @@ public class Vehicles extends DistributedCollection {
     public static List<VehicleActivityStructure> getAll() {
         removeExpiredElements();
 
-        return vehicleActivities;
+        return new ArrayList<>(vehicleActivities.values());
     }
 
-    private static void removeExpiredElements() {
+    /**
+     * @return All vehicle activities that are still valid
+     */
+    public static List<VehicleActivityStructure> getAll(String vendor) {
+        removeExpiredElements();
 
-        List<VehicleActivityStructure> itemsToRemove = new ArrayList<>();
+        Map<String, VehicleActivityStructure> vendorSpecific = new HashMap<>();
+        vehicleActivities.keySet().stream().filter(key -> key.startsWith(vendor + ":")).forEach(key -> {
+            VehicleActivityStructure structure = vehicleActivities.get(key);
+            if (structure != null) {
+                vendorSpecific.put(key, structure);
+            }
+        });
 
-        for (int i = 0; i < vehicleActivities.size(); i++) {
-            VehicleActivityStructure current = vehicleActivities.get(i);
-            if ( !isStillValid(current)) {
-                itemsToRemove.add(current);
+        return new ArrayList<>(vendorSpecific.values());
+    }
+
+    private static synchronized void removeExpiredElements() {
+
+        List<String> itemsToRemove = new ArrayList<>();
+        for (String key : vehicleActivities.keySet()) {
+            VehicleActivityStructure current = vehicleActivities.get(key);
+            if (!isStillValid(current)) {
+                itemsToRemove.add(key);
             }
         }
-        vehicleActivities.removeAll(itemsToRemove);
+
+        for (String rm : itemsToRemove) {
+            vehicleActivities.remove(rm);
+        }
+
     }
 
     private static boolean isStillValid(VehicleActivityStructure a) {
-        boolean isStillValid = false;
+        if (a == null) {
+            //Other parallel thread may have removed object
+            return false;
+        }
         ZonedDateTime validUntilTime = a.getValidUntilTime();
 
-        //Keep if at least one is valid
-        if (validUntilTime == null) {
-            isStillValid = true;
-        } else if (validUntilTime.isAfter(ZonedDateTime.now())) {
-            isStillValid = true;
+        if (validUntilTime == null || validUntilTime.isAfter(ZonedDateTime.now())) {
+            return true;
         }
 
+        return false;
+    }
+
+    public static void add(VehicleActivityStructure activity, String vendor) {
+        boolean isLocationSet = true;
         //For VehicleActivity/MonitoredVehicleJourney - VehicleLocation is required to be valid according to schema
-        VehicleActivityStructure.MonitoredVehicleJourney monitoredVehicleJourney = a.getMonitoredVehicleJourney();
+        VehicleActivityStructure.MonitoredVehicleJourney monitoredVehicleJourney = activity.getMonitoredVehicleJourney();
         if (monitoredVehicleJourney != null) {
             LocationStructure vehicleLocation = monitoredVehicleJourney.getVehicleLocation();
             if (vehicleLocation != null) {
                 if(vehicleLocation.getLongitude() == null & vehicleLocation.getCoordinates() == null) {
-                    isStillValid = false;
-                    logger.info("Invalid VehicleActivity - VehicleLocation is not set");
+                    isLocationSet = false;
+                    logger.trace("Skipping invalid VehicleActivity - VehicleLocation is required, but is not set.");
                 }
             }
         }
-        return isStillValid;
+        if (isLocationSet) {
+            VehicleActivityStructure previous = vehicleActivities.put(createKey(vendor, activity), activity);
+        }
     }
 
-    public static void add(VehicleActivityStructure activity) {
-        int indexToReplace = -1;
-        for (int i = 0; i < vehicleActivities.size(); i++) {
-            VehicleActivityStructure element = vehicleActivities.get(i);
-            if (element.getMonitoredVehicleJourney().getVehicleRef().getValue().equals(
-                    activity.getMonitoredVehicleJourney().getVehicleRef().getValue()) &&
-               element.getMonitoredVehicleJourney().getCourseOfJourneyRef().getValue().equals(
-                            activity.getMonitoredVehicleJourney().getCourseOfJourneyRef().getValue())) {
+    private static String createKey(String vendor, VehicleActivityStructure activity) {
+        StringBuffer key = new StringBuffer();
 
-                //Same Identifier already exists - replace existing
-                logger.info("Updating VehicleActivity for VehicleRef/CourseOfJourney [{}]/[{}]",
-                        activity.getMonitoredVehicleJourney().getVehicleRef().getValue(),
-                        activity.getMonitoredVehicleJourney().getCourseOfJourneyRef().getValue());
-                indexToReplace = i;
-                break; //Found item to replace - no need to continue
-            }
-        }
-        if (indexToReplace >= 0) {
-            vehicleActivities.remove(indexToReplace);
-            vehicleActivities.add(indexToReplace, activity);
-        } else {
-            vehicleActivities.add(activity);
-        }
+        key.append(vendor).append(":")
+                .append((activity.getMonitoredVehicleJourney().getLineRef() != null ? activity.getMonitoredVehicleJourney().getLineRef().getValue() : "null"))
+                .append(":")
+                .append((activity.getMonitoredVehicleJourney().getVehicleRef() != null ? activity.getMonitoredVehicleJourney().getVehicleRef().getValue() :"null"))
+                .append(":")
+                .append((activity.getMonitoredVehicleJourney().getDirectionRef() != null ? activity.getMonitoredVehicleJourney().getDirectionRef().getValue() :"null"));
+        return key.toString();
     }
 }

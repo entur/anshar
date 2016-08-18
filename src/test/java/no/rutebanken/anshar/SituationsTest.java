@@ -17,7 +17,7 @@ public class SituationsTest {
         int previousSize = Situations.getAll().size();
         PtSituationElement element = createPtSituationElement("atb", "1234", ZonedDateTime.now().minusDays(1), ZonedDateTime.now().plusHours(4));
 
-        Situations.add(element);
+        Situations.add(element, "test");
 
         assertTrue(Situations.getAll().size() == previousSize+1);
     }
@@ -27,7 +27,7 @@ public class SituationsTest {
         int previousSize = Situations.getAll().size();
         PtSituationElement element = createPtSituationElement("kolumbus", "1234", ZonedDateTime.now().minusDays(1), ZonedDateTime.now().minusHours(1));
 
-        Situations.add(element);
+        Situations.add(element, "test");
 
         assertTrue(Situations.getAll().size() == previousSize); //No change
     }
@@ -41,23 +41,33 @@ public class SituationsTest {
     public void testUpdatedSituation() {
         int previousSize = Situations.getAll().size();
         PtSituationElement element = createPtSituationElement("ruter", "1234", ZonedDateTime.now().minusDays(1), ZonedDateTime.now().plusHours(1));
-        Situations.add(element);
+        Situations.add(element, "test");
         int expectedSize = previousSize+1;
         assertTrue(Situations.getAll().size() == expectedSize);
 
         PtSituationElement element2 = createPtSituationElement("ruter", "1234", ZonedDateTime.now().minusDays(1), ZonedDateTime.now().plusHours(1));
-        Situations.add(element2);
+        Situations.add(element2, "test");
         assertTrue(Situations.getAll().size() == expectedSize);
 
         PtSituationElement element3 = createPtSituationElement("kolumbus", "1234", ZonedDateTime.now().minusDays(1), ZonedDateTime.now().plusHours(1));
-        Situations.add(element3);
+        Situations.add(element3, "test");
         expectedSize++;
         assertTrue(Situations.getAll().size() == expectedSize);
 
         PtSituationElement element4 = createPtSituationElement("ruter", "1235", ZonedDateTime.now().minusDays(1), ZonedDateTime.now().plusHours(1));
-        Situations.add(element4);
+        Situations.add(element4, "test");
+
         expectedSize++;
         assertTrue(Situations.getAll().size() == expectedSize);
+
+        PtSituationElement element5 = createPtSituationElement("ruter", "1235", ZonedDateTime.now().minusDays(1), ZonedDateTime.now().plusHours(1));
+        Situations.add(element4, "test2");
+
+        expectedSize++;
+        assertTrue(Situations.getAll().size() == expectedSize);
+
+        assertTrue(Situations.getAll("test2").size() == previousSize+1);
+        assertTrue(Situations.getAll("test").size() == expectedSize-1);
     }
 
 

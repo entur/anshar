@@ -10,7 +10,6 @@ import uk.org.siri.siri20.PtSituationElement;
 import uk.org.siri.siri20.VehicleActivityStructure;
 
 import java.time.Instant;
-import java.util.List;
 import java.util.Map;
 
 public class DistributedCollection {
@@ -23,17 +22,17 @@ public class DistributedCollection {
         hazelcastInstance = Hazelcast.newHazelcastInstance(config);
     }
 
-    public static List<PtSituationElement> getSituationsList(){
-        return hazelcastInstance.getList("anshar.situations");
+    public static Map<String,PtSituationElement> getSituationsMap(){
+        return hazelcastInstance.getMap("anshar.situations");
     }
-    public static List<EstimatedTimetableDeliveryStructure> getJourneysList(){
-        return hazelcastInstance.getList("anshar.journeys");
+    public static Map<String, EstimatedTimetableDeliveryStructure> getJourneysMap(){
+        return hazelcastInstance.getMap("anshar.journeys");
     }
-    public static List<VehicleActivityStructure> getVehiclesList(){
-        return hazelcastInstance.getList("anshar.vehicles");
+    public static Map<String,VehicleActivityStructure> getVehiclesMap(){
+        return hazelcastInstance.getMap("anshar.vehicles");
     }
-    public static List<ProductionTimetableDeliveryStructure> getProdutionTimetablesList(){
-        return hazelcastInstance.getList("anshar.productionTimetables");
+    public static Map<String, ProductionTimetableDeliveryStructure> getProductionTimetablesMap(){
+        return hazelcastInstance.getMap("anshar.productionTimetables");
     }
 
     public static Map<String,SubscriptionSetup> getActiveSubscriptionsMap() {

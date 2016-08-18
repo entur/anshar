@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
+import javax.servlet.http.HttpServletRequest;
 import java.nio.charset.Charset;
 
 @Configuration
@@ -55,14 +56,26 @@ public class SiriProvider extends RouteBuilder {
         // Dataproviders
         from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/rest/sx?httpMethodRestrict=GET")
                 .process(p -> {
-                    p.getOut().setBody(SiriXml.toXml(factory.createSXSiriObject(Situations.getAll())));
+                    HttpServletRequest request = p.getIn().getBody(HttpServletRequest.class);
+                    String vendor = request.getParameter("vendor");
+                    if (vendor != null && !vendor.isEmpty()) {
+                        p.getOut().setBody(SiriXml.toXml(factory.createSXSiriObject(Situations.getAll(vendor))));
+                    } else {
+                        p.getOut().setBody(SiriXml.toXml(factory.createSXSiriObject(Situations.getAll())));
+                    }
                     p.getOut().setHeader("Accept-Encoding", p.getIn().getHeader("Accept-Encoding"));
                 })
                 .to("direct:processResponse")
         ;
         from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/rest/vm?httpMethodRestrict=GET")
                 .process(p -> {
-                    p.getOut().setBody(SiriXml.toXml(factory.createVMSiriObject(Vehicles.getAll())));
+                    HttpServletRequest request = p.getIn().getBody(HttpServletRequest.class);
+                    String vendor = request.getParameter("vendor");
+                    if (vendor != null && !vendor.isEmpty()) {
+                        p.getOut().setBody(SiriXml.toXml(factory.createVMSiriObject(Vehicles.getAll(vendor))));
+                    } else {
+                        p.getOut().setBody(SiriXml.toXml(factory.createVMSiriObject(Vehicles.getAll())));
+                    }
                     p.getOut().setHeader("Accept-Encoding", p.getIn().getHeader("Accept-Encoding"));
                 })
                 .to("direct:processResponse")
