@@ -140,9 +140,9 @@ public class SubscriptionConfig {
     RouteBuilder createAtBSiriVMSubscriptionRoute() {
 
         Map<String, String> urlMap = new HashMap<>();
-        urlMap.put(RequestType.SUBSCRIBE, "st.atb.no/VMWS/VMService.svc?wsdl");
-        urlMap.put(RequestType.DELETE_SUBSCRIPTION, "st.atb.no/VMWS/VMService.svc?wsdl");
-        urlMap.put(RequestType.GET_VEHICLE_MONITORING, "st.atb.no/VMWS/VMService.svc?wsdl");
+        urlMap.put(RequestType.SUBSCRIBE, "st.atb.no/VMWS/VMService.svc");
+        urlMap.put(RequestType.DELETE_SUBSCRIPTION, "st.atb.no/VMWS/VMService.svc");
+        urlMap.put(RequestType.GET_VEHICLE_MONITORING, "st.atb.no/VMWS/VMService.svc");
 
         SubscriptionSetup sub = new SubscriptionSetup(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING,
                 inboundUrl,
