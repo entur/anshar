@@ -55,7 +55,7 @@ public class SiriProvider extends RouteBuilder {
 
         // Dataproviders
         from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/rest/sx?httpMethodRestrict=GET")
-                .log("[${in.header.breadcrumbId}] Incoming request (SX)")
+                .log("RequestTracer [${in.header.breadcrumbId}] Incoming request (SX)")
                 .process(p -> {
                     p.getOut().setHeaders(p.getIn().getHeaders());
 
@@ -71,7 +71,7 @@ public class SiriProvider extends RouteBuilder {
                 .to("direct:processResponse")
         ;
         from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/rest/vm?httpMethodRestrict=GET")
-                .log("[${in.header.breadcrumbId}] Incoming request (VM)")
+                .log("RequestTracer [${in.header.breadcrumbId}] Incoming request (VM)")
                 .process(p -> {
                     p.getOut().setHeaders(p.getIn().getHeaders());
 
@@ -88,7 +88,7 @@ public class SiriProvider extends RouteBuilder {
         ;
 
         from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/rest/et?httpMethodRestrict=GET")
-                .log("[${in.header.breadcrumbId}] Incoming request (ET)")
+                .log("RequestTracer [${in.header.breadcrumbId}] Incoming request (ET)")
                 .process(p -> {
                     p.getOut().setHeaders(p.getIn().getHeaders());
 
@@ -106,7 +106,7 @@ public class SiriProvider extends RouteBuilder {
         ;
 
         from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/rest/pt?httpMethodRestrict=GET")
-                .log("[${in.header.breadcrumbId}] Incoming request (PT)")
+                .log("RequestTracer [${in.header.breadcrumbId}] Incoming request (PT)")
                 .process(p -> {
                     p.getOut().setHeaders(p.getIn().getHeaders());
 
@@ -133,7 +133,7 @@ public class SiriProvider extends RouteBuilder {
                 .otherwise()
                     .marshal().string()
                 .end()
-                .log("[${in.header.breadcrumbId}] Outgoing response")
+                .log("RequestTracer [${in.header.breadcrumbId}] Outgoing response")
         ;
     }
 }
