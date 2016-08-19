@@ -88,7 +88,6 @@ public class SiriHandler {
                 } else {
                     logger.info("ServiceDelivery for invalid subscriptionId [{}] ignored.", subscriptionId);
                 }
-                logger.trace("Current valid situations: {}", Situations.getAll().size());
             }
 
             return incoming;

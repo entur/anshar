@@ -55,7 +55,10 @@ public class SiriProvider extends RouteBuilder {
 
         // Dataproviders
         from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/rest/sx?httpMethodRestrict=GET")
+                .log("[${in.header.breadcrumbId}] Incoming request (SX)")
                 .process(p -> {
+                    p.getOut().setHeaders(p.getIn().getHeaders());
+
                     HttpServletRequest request = p.getIn().getBody(HttpServletRequest.class);
                     String vendor = request.getParameter("vendor");
                     if (vendor != null && !vendor.isEmpty()) {
@@ -68,7 +71,10 @@ public class SiriProvider extends RouteBuilder {
                 .to("direct:processResponse")
         ;
         from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/rest/vm?httpMethodRestrict=GET")
+                .log("[${in.header.breadcrumbId}] Incoming request (VM)")
                 .process(p -> {
+                    p.getOut().setHeaders(p.getIn().getHeaders());
+
                     HttpServletRequest request = p.getIn().getBody(HttpServletRequest.class);
                     String vendor = request.getParameter("vendor");
                     if (vendor != null && !vendor.isEmpty()) {
@@ -82,16 +88,35 @@ public class SiriProvider extends RouteBuilder {
         ;
 
         from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/rest/et?httpMethodRestrict=GET")
+                .log("[${in.header.breadcrumbId}] Incoming request (ET)")
                 .process(p -> {
-                    p.getOut().setBody(SiriXml.toXml(factory.createETSiriObject(Journeys.getAll())));
+                    p.getOut().setHeaders(p.getIn().getHeaders());
+
+                    HttpServletRequest request = p.getIn().getBody(HttpServletRequest.class);
+                    String vendor = request.getParameter("vendor");
+                    if (vendor != null && !vendor.isEmpty()) {
+                        p.getOut().setBody(SiriXml.toXml(factory.createETSiriObject(Journeys.getAll(vendor))));
+                    } else {
+                        p.getOut().setBody(SiriXml.toXml(factory.createETSiriObject(Journeys.getAll())));
+                    }
+
                     p.getOut().setHeader("Accept-Encoding", p.getIn().getHeader("Accept-Encoding"));
                 })
                 .to("direct:processResponse")
         ;
 
         from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/rest/pt?httpMethodRestrict=GET")
+                .log("[${in.header.breadcrumbId}] Incoming request (PT)")
                 .process(p -> {
-                    p.getOut().setBody(SiriXml.toXml(factory.createPTSiriObject(ProductionTimetables.getAll())));
+                    p.getOut().setHeaders(p.getIn().getHeaders());
+
+                    HttpServletRequest request = p.getIn().getBody(HttpServletRequest.class);
+                    String vendor = request.getParameter("vendor");
+                    if (vendor != null && !vendor.isEmpty()) {
+                        p.getOut().setBody(SiriXml.toXml(factory.createPTSiriObject(ProductionTimetables.getAll(vendor))));
+                    } else {
+                        p.getOut().setBody(SiriXml.toXml(factory.createPTSiriObject(ProductionTimetables.getAll())));
+                    }
                     p.getOut().setHeader("Accept-Encoding", p.getIn().getHeader("Accept-Encoding"));
                 })
                 .to("direct:processResponse")
@@ -100,13 +125,15 @@ public class SiriProvider extends RouteBuilder {
         from("direct:processResponse")
                 .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
                 .setHeader(Exchange.CONTENT_TYPE, constant(ContentType.create("text/xml", Charset.forName("UTF-8"))))
-//                .choice()
-//                    .when(header("Accept-Encoding").contains("gzip"))
-//                        .setHeader(Exchange.CONTENT_ENCODING, simple("gzip"))
-//                        .marshal().gzip()
-//                    .endChoice()
-//                .otherwise()
+                .choice()
+                    .when(header("Accept-Encoding").contains("gzip"))
+                        .setHeader(Exchange.CONTENT_ENCODING, simple("gzip"))
+                        .marshal().gzip()
+                    .endChoice()
+                .otherwise()
                     .marshal().string()
+                .end()
+                .log("[${in.header.breadcrumbId}] Outgoing response")
         ;
     }
 }
