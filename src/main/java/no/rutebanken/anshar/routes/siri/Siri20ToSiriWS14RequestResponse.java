@@ -67,11 +67,11 @@ public class Siri20ToSiriWS14RequestResponse extends RouteBuilder {
                 .to("xslt:xsl/siri_soap_raw.xsl?saxon=true&allowStAX=false") // Extract SOAP version and convert to raw SIRI
                 .to("xslt:xsl/siri_14_20.xsl?saxon=true&allowStAX=false") // Convert from v1.4 to 2.0
                 .setHeader("CamelHttpPath", constant("/appContext" + subscriptionSetup.buildUrl(false)))
-                //.to("activemq:queue:" + SiriIncomingReceiver.TRANSFORM_QUEUE)
-                .process(p -> {
-                    String xml = p.getIn().getBody(String.class);
-                    handler.handleIncomingSiri(subscriptionSetup.getSubscriptionId(), xml);
-                })
+                .to("activemq:queue:" + SiriIncomingReceiver.TRANSFORM_QUEUE)
+//                .process(p -> {
+//                    String xml = p.getIn().getBody(String.class);
+//                    handler.handleIncomingSiri(subscriptionSetup.getSubscriptionId(), xml);
+//                })
         ;
     }
 }
