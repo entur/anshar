@@ -25,6 +25,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
     static final String SITUATION_EXCHANGE_QUEUE  = DEFAULT_PROCESSOR_QUEUE + ".sx";
     static final String VEHICLE_MONITORING_QUEUE  = DEFAULT_PROCESSOR_QUEUE + ".vm";
     static final String ESTIMATED_TIMETABLE_QUEUE = DEFAULT_PROCESSOR_QUEUE + ".et";
+    static final String PRODUCTION_TIMETABLE_QUEUE = DEFAULT_PROCESSOR_QUEUE + ".pt";
     static final String HEARTBEAT_QUEUE           = DEFAULT_PROCESSOR_QUEUE + ".heartbeat";
 
     @Value("${anshar.incoming.port}")
@@ -53,7 +54,6 @@ public class SiriIncomingReceiver extends RouteBuilder {
         //Incoming notifications/deliveries
         from("jetty:http://0.0.0.0:" + inboundPort + "?matchOnUriPrefix=true&httpMethodRestrict=POST")
                 .setHeader("anshar.message.id", constant(UUID.randomUUID().toString()))
-                .to("log:received:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .to("activemq:queue:" + TRANSFORM_QUEUE + "?disableReplyTo=true")
                 .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("202"))
                 .setBody(constant(null))
@@ -76,13 +76,20 @@ public class SiriIncomingReceiver extends RouteBuilder {
                     .to("activemq:queue:" + HEARTBEAT_QUEUE)
                 .endChoice()
                 .when().xpath("/siri:Siri/siri:ServiceDelivery/siri:SituationExchangeDelivery", ns)
+                    .to("log:received:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                     .to("activemq:queue:" + SITUATION_EXCHANGE_QUEUE)
-                 .endChoice()
+                .endChoice()
                 .when().xpath("/siri:Siri/siri:ServiceDelivery/siri:VehicleMonitoringDelivery", ns)
+                    .to("log:received:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                     .to("activemq:queue:" + VEHICLE_MONITORING_QUEUE)
                 .endChoice()
                 .when().xpath("/siri:Siri/siri:ServiceDelivery/siri:EstimatedTimetableDelivery", ns)
+                    .to("log:received:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                     .to("activemq:queue:" + ESTIMATED_TIMETABLE_QUEUE)
+                .endChoice()
+                .when().xpath("/siri:Siri/siri:ServiceDelivery/siri:ProductionTimetableDelivery", ns)
+                    .to("log:received:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
+                    .to("activemq:queue:" + PRODUCTION_TIMETABLE_QUEUE)
                 .endChoice()
                 .otherwise()
                     .to("activemq:queue:" + DEFAULT_PROCESSOR_QUEUE)
@@ -145,6 +152,19 @@ public class SiriIncomingReceiver extends RouteBuilder {
 
                 })
                 //.to("websocket://siri_et?sendToAll=true")
+        ;
+
+
+        from("activemq:queue:" + PRODUCTION_TIMETABLE_QUEUE + "?asyncConsumer=true")
+                .process(p -> {
+                    String subscriptionId = getSubscriptionIdFromPath(p.getIn().getHeader("CamelHttpPath", String.class));
+
+                    String xml = p.getIn().getBody(String.class);
+
+                    handler.handleIncomingSiri(subscriptionId, xml);
+
+                })
+                //.to("websocket://siri_pt?sendToAll=true")
         ;
 
     }
