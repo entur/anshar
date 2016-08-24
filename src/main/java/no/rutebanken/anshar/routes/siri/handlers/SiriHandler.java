@@ -57,7 +57,7 @@ public class SiriHandler {
                         List<SituationExchangeDeliveryStructure> situationExchangeDeliveries = incoming.getServiceDelivery().getSituationExchangeDeliveries();
                         logger.debug("Got SX-delivery: Subscription [{}]", subscriptionSetup);
                         situationExchangeDeliveries.forEach(sx ->
-                                        sx.getSituations().getPtSituationElements().forEach(ptSx -> Situations.add(ptSx, subscriptionSetup.getVendor()))
+                                        sx.getSituations().getPtSituationElements().forEach(ptSx -> Situations.add(ptSx, subscriptionSetup.getDatasetId()))
                         );
                         logger.debug("Active SX-elements: {}", Situations.getAll().size());
                     }
@@ -65,7 +65,7 @@ public class SiriHandler {
                         List<VehicleMonitoringDeliveryStructure> vehicleMonitoringDeliveries = incoming.getServiceDelivery().getVehicleMonitoringDeliveries();
                         logger.debug("Got VM-delivery: Subscription [{}]", subscriptionSetup);
                         vehicleMonitoringDeliveries.forEach(vm ->
-                                        vm.getVehicleActivities().forEach(activity -> Vehicles.add(activity, subscriptionSetup.getVendor()))
+                                        vm.getVehicleActivities().forEach(activity -> Vehicles.add(activity, subscriptionSetup.getDatasetId()))
                         );
                         logger.debug("Active VM-elements: {}", Vehicles.getAll().size());
                     }
@@ -73,7 +73,7 @@ public class SiriHandler {
                         List<EstimatedTimetableDeliveryStructure> estimatedTimetableDeliveries = incoming.getServiceDelivery().getEstimatedTimetableDeliveries();
                         logger.debug("Got ET-delivery: Subscription [{}]", subscriptionSetup);
                         estimatedTimetableDeliveries.forEach(et ->
-                                        Journeys.add(et, subscriptionSetup.getVendor())
+                                        Journeys.add(et, subscriptionSetup.getDatasetId())
                         );
                         logger.debug("Active ET-elements: {}", Journeys.getAll().size());
                     }
@@ -81,7 +81,7 @@ public class SiriHandler {
                         List<ProductionTimetableDeliveryStructure> productionTimetableDeliveries = incoming.getServiceDelivery().getProductionTimetableDeliveries();
                         logger.debug("Got PT-delivery: Subscription [{}]", subscriptionSetup);
                         productionTimetableDeliveries.forEach(pt ->
-                                        ProductionTimetables.add(pt, subscriptionSetup.getVendor())
+                                        ProductionTimetables.add(pt, subscriptionSetup.getDatasetId())
                         );
                         logger.debug("Active ET-elements: {}", Journeys.getAll().size());
                     }

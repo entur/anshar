@@ -72,7 +72,7 @@ public class Vehicles extends DistributedCollection {
         return false;
     }
 
-    public static void add(VehicleActivityStructure activity, String vendor) {
+    public static void add(VehicleActivityStructure activity, String datasetId) {
         boolean isLocationSet = true;
         //For VehicleActivity/MonitoredVehicleJourney - VehicleLocation is required to be valid according to schema
         VehicleActivityStructure.MonitoredVehicleJourney monitoredVehicleJourney = activity.getMonitoredVehicleJourney();
@@ -86,14 +86,14 @@ public class Vehicles extends DistributedCollection {
             }
         }
         if (isLocationSet) {
-            VehicleActivityStructure previous = vehicleActivities.put(createKey(vendor, activity), activity);
+            VehicleActivityStructure previous = vehicleActivities.put(createKey(datasetId, activity), activity);
         }
     }
 
-    private static String createKey(String vendor, VehicleActivityStructure activity) {
+    private static String createKey(String datasetId, VehicleActivityStructure activity) {
         StringBuffer key = new StringBuffer();
 
-        key.append(vendor).append(":")
+        key.append(datasetId).append(":")
                 .append((activity.getMonitoredVehicleJourney().getLineRef() != null ? activity.getMonitoredVehicleJourney().getLineRef().getValue() : "null"))
                 .append(":")
                 .append((activity.getMonitoredVehicleJourney().getVehicleRef() != null ? activity.getMonitoredVehicleJourney().getVehicleRef().getValue() :"null"))

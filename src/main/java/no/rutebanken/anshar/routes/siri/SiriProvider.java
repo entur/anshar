@@ -60,9 +60,9 @@ public class SiriProvider extends RouteBuilder {
                     p.getOut().setHeaders(p.getIn().getHeaders());
 
                     HttpServletRequest request = p.getIn().getBody(HttpServletRequest.class);
-                    String vendor = request.getParameter("vendor");
-                    if (vendor != null && !vendor.isEmpty()) {
-                        p.getOut().setBody(SiriXml.toXml(factory.createSXSiriObject(Situations.getAll(vendor))));
+                    String datasetId = request.getParameter("datasetId");
+                    if (datasetId != null && !datasetId.isEmpty()) {
+                        p.getOut().setBody(SiriXml.toXml(factory.createSXSiriObject(Situations.getAll(datasetId))));
                     } else {
                         p.getOut().setBody(SiriXml.toXml(factory.createSXSiriObject(Situations.getAll())));
                     }
@@ -76,9 +76,9 @@ public class SiriProvider extends RouteBuilder {
                     p.getOut().setHeaders(p.getIn().getHeaders());
 
                     HttpServletRequest request = p.getIn().getBody(HttpServletRequest.class);
-                    String vendor = request.getParameter("vendor");
-                    if (vendor != null && !vendor.isEmpty()) {
-                        p.getOut().setBody(SiriXml.toXml(factory.createVMSiriObject(Vehicles.getAll(vendor))));
+                    String datasetId = request.getParameter("datasetId");
+                    if (datasetId != null && !datasetId.isEmpty()) {
+                        p.getOut().setBody(SiriXml.toXml(factory.createVMSiriObject(Vehicles.getAll(datasetId))));
                     } else {
                         p.getOut().setBody(SiriXml.toXml(factory.createVMSiriObject(Vehicles.getAll())));
                     }
@@ -93,9 +93,9 @@ public class SiriProvider extends RouteBuilder {
                     p.getOut().setHeaders(p.getIn().getHeaders());
 
                     HttpServletRequest request = p.getIn().getBody(HttpServletRequest.class);
-                    String vendor = request.getParameter("vendor");
-                    if (vendor != null && !vendor.isEmpty()) {
-                        p.getOut().setBody(SiriXml.toXml(factory.createETSiriObject(Journeys.getAll(vendor))));
+                    String datasetId = request.getParameter("datasetId");
+                    if (datasetId != null && !datasetId.isEmpty()) {
+                        p.getOut().setBody(SiriXml.toXml(factory.createETSiriObject(Journeys.getAll(datasetId))));
                     } else {
                         p.getOut().setBody(SiriXml.toXml(factory.createETSiriObject(Journeys.getAll())));
                     }
@@ -111,9 +111,9 @@ public class SiriProvider extends RouteBuilder {
                     p.getOut().setHeaders(p.getIn().getHeaders());
 
                     HttpServletRequest request = p.getIn().getBody(HttpServletRequest.class);
-                    String vendor = request.getParameter("vendor");
-                    if (vendor != null && !vendor.isEmpty()) {
-                        p.getOut().setBody(SiriXml.toXml(factory.createPTSiriObject(ProductionTimetables.getAll(vendor))));
+                    String datasetId = request.getParameter("datasetId");
+                    if (datasetId != null && !datasetId.isEmpty()) {
+                        p.getOut().setBody(SiriXml.toXml(factory.createPTSiriObject(ProductionTimetables.getAll(datasetId))));
                     } else {
                         p.getOut().setBody(SiriXml.toXml(factory.createPTSiriObject(ProductionTimetables.getAll())));
                     }

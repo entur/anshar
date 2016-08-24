@@ -26,18 +26,18 @@ public class Situations extends DistributedCollection {
     /**
      * @return All vehicle activities that are still valid
      */
-    public static List<PtSituationElement> getAll(String vendor) {
+    public static List<PtSituationElement> getAll(String datasetId) {
         removeExpiredElements();
 
-        Map<String, PtSituationElement> vendorSpecific = new HashMap<>();
-        situations.keySet().stream().filter(key -> key.startsWith(vendor + ":")).forEach(key -> {
+        Map<String, PtSituationElement> datasetIdSpecific = new HashMap<>();
+        situations.keySet().stream().filter(key -> key.startsWith(datasetId + ":")).forEach(key -> {
             PtSituationElement element = situations.get(key);
             if (element != null) {
-                vendorSpecific.put(key, element);
+                datasetIdSpecific.put(key, element);
             }
         });
 
-        return new ArrayList<>(vendorSpecific.values());
+        return new ArrayList<>(datasetIdSpecific.values());
     }
 
     private static void removeExpiredElements() {
@@ -73,14 +73,14 @@ public class Situations extends DistributedCollection {
         return false;
     }
 
-    public static void add(PtSituationElement situation, String vendor) {
-        situations.put(createKey(vendor, situation), situation);
+    public static void add(PtSituationElement situation, String datasetId) {
+        situations.put(createKey(datasetId, situation), situation);
     }
 
-    private static String createKey(String vendor, PtSituationElement element) {
+    private static String createKey(String datasetId, PtSituationElement element) {
         StringBuffer key = new StringBuffer();
 
-        key.append(vendor).append(":")
+        key.append(datasetId).append(":")
                 .append((element.getSituationNumber() != null ? element.getSituationNumber().getValue() : "null"))
                 .append(":")
                 .append((element.getParticipantRef() != null ? element.getParticipantRef().getValue() :"null"));

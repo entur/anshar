@@ -16,6 +16,7 @@ public class SubscriptionSetup implements Serializable{
     private String subscriptionId;
     private String version;
     private String vendor;
+    private String datasetId;
     private ServiceType serviceType;
     private Duration durationOfSubscription;
     private String requestorRef;
@@ -36,7 +37,7 @@ public class SubscriptionSetup implements Serializable{
      * @param active Activates/deactivates subscription
      */
     public SubscriptionSetup(SubscriptionType subscriptionType, String address, Duration heartbeatInterval, String operatorNamespace, Map<String, String> urlMap,
-                             String version, String vendor, ServiceType serviceType, String subscriptionId,
+                             String version, String vendor, String datasetId, ServiceType serviceType, String subscriptionId,
                              String requestorRef, Duration durationOfSubscription, boolean active) {
         this.subscriptionType = subscriptionType;
         this.address = address;
@@ -45,6 +46,7 @@ public class SubscriptionSetup implements Serializable{
         this.urlMap = urlMap;
         this.version = version;
         this.vendor = vendor;
+        this.datasetId = datasetId;
         this.serviceType = serviceType;
         this.subscriptionId = subscriptionId;
         this.requestorRef = requestorRef;
@@ -109,6 +111,14 @@ public class SubscriptionSetup implements Serializable{
         this.vendor = vendor;
     }
 
+    public String getDatasetId() {
+        return datasetId;
+    }
+
+    public void setDatasetId(String datasetId) {
+        this.datasetId = datasetId;
+    }
+
     public ServiceType getServiceType() {
         return serviceType;
     }
@@ -151,6 +161,7 @@ public class SubscriptionSetup implements Serializable{
     public JSONObject toJSON() {
         JSONObject obj = new JSONObject();
         obj.put("vendor", getVendor());
+        obj.put("datasetId", getDatasetId());
         obj.put("subscriptionId", getSubscriptionId());
         obj.put("serviceType", getServiceType().toString());
         obj.put("subscriptionType", getSubscriptionType().toString());

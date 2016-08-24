@@ -27,18 +27,18 @@ public class Journeys extends DistributedCollection {
     /**
      * @return All vehicle activities that are still valid
      */
-    public static List<EstimatedTimetableDeliveryStructure> getAll(String vendor) {
+    public static List<EstimatedTimetableDeliveryStructure> getAll(String datasetId) {
         removeExpiredElements();
 
-        Map<String, EstimatedTimetableDeliveryStructure> vendorSpecific = new HashMap<>();
-        timetableDeliveries.keySet().stream().filter(key -> key.startsWith(vendor + ":")).forEach(key -> {
+        Map<String, EstimatedTimetableDeliveryStructure> datasetIdSpecific = new HashMap<>();
+        timetableDeliveries.keySet().stream().filter(key -> key.startsWith(datasetId + ":")).forEach(key -> {
             EstimatedTimetableDeliveryStructure element = timetableDeliveries.get(key);
             if (element != null) {
-                vendorSpecific.put(key, element);
+                datasetIdSpecific.put(key, element);
             }
         });
 
-        return new ArrayList<>(vendorSpecific.values());
+        return new ArrayList<>(datasetIdSpecific.values());
     }
 
     private static void removeExpiredElements() {
@@ -66,14 +66,14 @@ public class Journeys extends DistributedCollection {
     }
 
 
-    public static void add(EstimatedTimetableDeliveryStructure timetableDelivery, String vendor) {
-        timetableDeliveries.put(createKey(vendor, timetableDelivery), timetableDelivery);
+    public static void add(EstimatedTimetableDeliveryStructure timetableDelivery, String datasetId) {
+        timetableDeliveries.put(createKey(datasetId, timetableDelivery), timetableDelivery);
     }
 
-    private static String createKey(String vendor, EstimatedTimetableDeliveryStructure element) {
+    private static String createKey(String datasetId, EstimatedTimetableDeliveryStructure element) {
         StringBuffer key = new StringBuffer();
 
-        key.append(vendor).append(":")
+        key.append(datasetId).append(":")
                 .append(element.getVersion());
         return key.toString();
     }

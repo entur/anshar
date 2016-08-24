@@ -27,18 +27,18 @@ public class ProductionTimetables extends DistributedCollection {
     /**
      * @return All vehicle activities that are still valid
      */
-    public static List<ProductionTimetableDeliveryStructure> getAll(String vendor) {
+    public static List<ProductionTimetableDeliveryStructure> getAll(String datasetId) {
         removeExpiredElements();
 
-        Map<String, ProductionTimetableDeliveryStructure> vendorSpecific = new HashMap<>();
-        timetableDeliveries.keySet().stream().filter(key -> key.startsWith(vendor + ":")).forEach(key -> {
+        Map<String, ProductionTimetableDeliveryStructure> datasetIdSpecific = new HashMap<>();
+        timetableDeliveries.keySet().stream().filter(key -> key.startsWith(datasetId + ":")).forEach(key -> {
             ProductionTimetableDeliveryStructure element = timetableDeliveries.get(key);
             if (element != null) {
-                vendorSpecific.put(key, element);
+                datasetIdSpecific.put(key, element);
             }
         });
 
-        return new ArrayList<>(vendorSpecific.values());
+        return new ArrayList<>(datasetIdSpecific.values());
     }
 
     private static void removeExpiredElements() {
@@ -68,13 +68,13 @@ public class ProductionTimetables extends DistributedCollection {
         return isStillValid;
     }
 
-    public static void add(ProductionTimetableDeliveryStructure timetableDelivery, String vendor) {
-        timetableDeliveries.put(createKey(vendor, timetableDelivery), timetableDelivery);
+    public static void add(ProductionTimetableDeliveryStructure timetableDelivery, String datasetId) {
+        timetableDeliveries.put(createKey(datasetId, timetableDelivery), timetableDelivery);
     }
-    private static String createKey(String vendor, ProductionTimetableDeliveryStructure element) {
+    private static String createKey(String datasetId, ProductionTimetableDeliveryStructure element) {
         StringBuffer key = new StringBuffer();
 
-        key.append(vendor).append(":")
+        key.append(datasetId).append(":")
                 .append(element.getVersion());
         return key.toString();
     }
