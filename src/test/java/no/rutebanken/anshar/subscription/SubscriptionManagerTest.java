@@ -32,6 +32,7 @@ public class SubscriptionManagerTest {
                 new HashMap<>(),
                 "1.4",
                 "SwarcoMizar",
+                "tst",
                 SubscriptionSetup.ServiceType.SOAP,
                 UUID.randomUUID().toString(),
                 "RutebankenDEV", Duration.ofSeconds(initialDuration),
