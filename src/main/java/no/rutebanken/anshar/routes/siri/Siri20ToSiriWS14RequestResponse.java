@@ -45,7 +45,15 @@ public class Siri20ToSiriWS14RequestResponse extends RouteBuilder {
 
         SubscriptionManager.addSubscription(subscriptionSetup.getSubscriptionId(), subscriptionSetup);
 
+        errorHandler(
+                deadLetterChannel("activemq:queue:error")
+        );
+
+        from("activemq:queue:error")
+                .log("Request failed " + subscriptionSetup.toString());
+
         from("quartz2://request_response_" + subscriptionSetup.getSubscriptionId() + "?fireNow=true&trigger.repeatInterval=" + (subscriptionSetup.getHeartbeatInterval().getSeconds()*1000) )
+                .log("Retrieving data " + subscriptionSetup.toString())
                 .setBody(simple(siriXml))
                 .setExchangePattern(ExchangePattern.InOut) // Make sure we wait for a response
                 .setHeader("SOAPAction", ns.xpath("concat('Get',substring-before(/siri:Siri/siri:ServiceRequest/*[@version]/local-name(),'Request'))", String.class)) // extract and compute SOAPAction (Microsoft requirement)
@@ -67,6 +75,7 @@ public class Siri20ToSiriWS14RequestResponse extends RouteBuilder {
                 .to("xslt:xsl/siri_soap_raw.xsl?saxon=true&allowStAX=false") // Extract SOAP version and convert to raw SIRI
                 .to("xslt:xsl/siri_14_20.xsl?saxon=true&allowStAX=false") // Convert from v1.4 to 2.0
                 .setHeader("CamelHttpPath", constant("/appContext" + subscriptionSetup.buildUrl(false)))
+                .log("Got response " + subscriptionSetup.toString())
                 .to("activemq:queue:" + SiriIncomingReceiver.TRANSFORM_QUEUE)
 //                .process(p -> {
 //                    String xml = p.getIn().getBody(String.class);
