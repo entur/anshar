@@ -89,7 +89,6 @@ public class Siri20ToSiri20RSSubscription extends SiriSubscriptionRouteBuilder {
                     String responseCode = p.getIn().getHeader("CamelHttpResponseCode", String.class);
                     if ("200".equals(responseCode)) {
                         logger.info("TerminateSubscriptionRequest OK - Async response performs actual termination");
-                        logger.trace(p.getIn().getBody(String.class));
                     }
                 });
 

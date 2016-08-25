@@ -177,9 +177,8 @@ public class SiriIncomingReceiver extends RouteBuilder {
         }
 
 
-        logger.trace("Incoming path {}", path);
         Map<String, String> values = calculatePathVariableMap(path);
-        logger.trace("Mapped values {}", values);
+        logger.trace("Incoming delivery {}", values);
 
         return values.get("subscriptionId");
     }

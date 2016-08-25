@@ -20,7 +20,6 @@ public class SiriObjectFactory {
     }
 
     public static Siri createSubscriptionRequest(SubscriptionSetup subscriptionSetup) {
-        logger.trace("Creating subscription-request ");
         Siri siri = new Siri();
         siri.setVersion("2.0");
 
@@ -211,7 +210,6 @@ public class SiriObjectFactory {
         request.setAddress(address);
         request.setConsumerAddress(address);
         request.setRequestTimestamp(ZonedDateTime.now());
-        logger.trace("Request timestamp set to {}.", request.getRequestTimestamp());
 
         SubscriptionContextStructure ctx = new SubscriptionContextStructure();
         ctx.setHeartbeatInterval(createDataTypeFactory().newDuration(heartbeatInterval));

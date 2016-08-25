@@ -55,44 +55,44 @@ public class SiriHandler {
 
                     if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE)) {
                         List<SituationExchangeDeliveryStructure> situationExchangeDeliveries = incoming.getServiceDelivery().getSituationExchangeDeliveries();
-                        logger.debug("Got SX-delivery: Subscription [{}]", subscriptionSetup);
+                        logger.trace("Got SX-delivery: Subscription [{}]", subscriptionSetup);
                         situationExchangeDeliveries.forEach(sx ->
                                         sx.getSituations().getPtSituationElements().forEach(ptSx -> Situations.add(ptSx, subscriptionSetup.getDatasetId()))
                         );
-                        logger.debug("Active SX-elements: {}", Situations.getAll().size());
+                        logger.trace("Active SX-elements: {}", Situations.getAll().size());
                     }
                     if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING)) {
                         List<VehicleMonitoringDeliveryStructure> vehicleMonitoringDeliveries = incoming.getServiceDelivery().getVehicleMonitoringDeliveries();
-                        logger.debug("Got VM-delivery: Subscription [{}]", subscriptionSetup);
+                        logger.trace("Got VM-delivery: Subscription [{}]", subscriptionSetup);
                         vehicleMonitoringDeliveries.forEach(vm ->
                                         vm.getVehicleActivities().forEach(activity -> Vehicles.add(activity, subscriptionSetup.getDatasetId()))
                         );
-                        logger.debug("Active VM-elements: {}", Vehicles.getAll().size());
+                        logger.trace("Active VM-elements: {}", Vehicles.getAll().size());
                     }
                     if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE)) {
                         List<EstimatedTimetableDeliveryStructure> estimatedTimetableDeliveries = incoming.getServiceDelivery().getEstimatedTimetableDeliveries();
-                        logger.debug("Got ET-delivery: Subscription [{}]", subscriptionSetup);
+                        logger.trace("Got ET-delivery: Subscription [{}]", subscriptionSetup);
                         estimatedTimetableDeliveries.forEach(et ->
                                         Journeys.add(et, subscriptionSetup.getDatasetId())
                         );
-                        logger.debug("Active ET-elements: {}", Journeys.getAll().size());
+                        logger.trace("Active ET-elements: {}", Journeys.getAll().size());
                     }
                     if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.PRODUCTION_TIMETABLE)) {
                         List<ProductionTimetableDeliveryStructure> productionTimetableDeliveries = incoming.getServiceDelivery().getProductionTimetableDeliveries();
-                        logger.debug("Got PT-delivery: Subscription [{}]", subscriptionSetup);
+                        logger.trace("Got PT-delivery: Subscription [{}]", subscriptionSetup);
                         productionTimetableDeliveries.forEach(pt ->
                                         ProductionTimetables.add(pt, subscriptionSetup.getDatasetId())
                         );
-                        logger.debug("Active ET-elements: {}", Journeys.getAll().size());
+                        logger.trace("Active ET-elements: {}", Journeys.getAll().size());
                     }
                 } else {
-                    logger.info("ServiceDelivery for invalid subscriptionId [{}] ignored.", subscriptionId);
+                    logger.debug("ServiceDelivery for invalid subscriptionId [{}] ignored.", subscriptionId);
                 }
             }
 
             return incoming;
         } catch (JAXBException e) {
-            e.printStackTrace();
+            logger.warn("Caught exception when parsing incoming XML", e);
         }
         return null;
     }

@@ -40,7 +40,6 @@ public class SubscriptionManager extends DistributedCollection {
 
         boolean success = (setup != null);
 
-        logger.trace("Removed subscription {}, success:{}", setup, success);
         lastActivity.remove(subscriptionId);
         activatedTimestamp.remove(subscriptionId);
         pendingSubscriptions.remove(subscriptionId);
@@ -153,7 +152,7 @@ public class SubscriptionManager extends DistributedCollection {
         if (pendingSubscription != null) {
             long tripleInterval = pendingSubscription.getHeartbeatInterval().toMillis() * 3;
             if (instant.isBefore(Instant.now().minusMillis(tripleInterval))) {
-                logger.info("Subscription {} never activated.", pendingSubscription.toString());
+                logger.debug("Subscription {} never activated.", pendingSubscription.toString());
                 //Subscription created, but async response never received - reestablish subscription
                 return false;
             }
