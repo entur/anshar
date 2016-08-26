@@ -18,6 +18,8 @@ import java.util.UUID;
 public abstract class SiriSubscriptionRouteBuilder extends RouteBuilder {
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
+    static final String SUBCRIPTION = "Subscription";
+    static final String REQUEST_RESPONSE = "Request/Response";
 
     NamespacePrefixMapper customNamespacePrefixMapper;
     SubscriptionSetup subscriptionSetup;

@@ -7,14 +7,11 @@ import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
-import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.builder.xml.Namespaces;
-import org.apache.camel.http.common.HttpOperationFailedException;
 import org.rutebanken.siri20.util.SiriXml;
 import uk.org.siri.siri20.Siri;
 
-import java.io.IOException;
 import java.util.Map;
 
 public class Siri20ToSiriWS14RequestResponse extends RouteBuilder {
@@ -67,11 +64,11 @@ public class Siri20ToSiriWS14RequestResponse extends RouteBuilder {
                         // Header routing
                 .choice()
                 .when(header("SOAPAction").isEqualTo(RequestType.GET_VEHICLE_MONITORING))
-                    .to("http4://" + urlMap.get(RequestType.GET_VEHICLE_MONITORING))
+                .to("http4://" + urlMap.get(RequestType.GET_VEHICLE_MONITORING))
                 .when(header("SOAPAction").isEqualTo(RequestType.GET_SITUATION_EXCHANGE))
-                    .to("http4://" + urlMap.get(RequestType.GET_SITUATION_EXCHANGE))
-                    .otherwise()
-                    .throwException(new ServiceNotSupportedException())
+                .to("http4://" + urlMap.get(RequestType.GET_SITUATION_EXCHANGE))
+                .otherwise()
+                .throwException(new ServiceNotSupportedException())
                 .end()
                 .to("xslt:xsl/siri_soap_raw.xsl?saxon=true&allowStAX=false") // Extract SOAP version and convert to raw SIRI
                 .to("xslt:xsl/siri_14_20.xsl?saxon=true&allowStAX=false") // Convert from v1.4 to 2.0

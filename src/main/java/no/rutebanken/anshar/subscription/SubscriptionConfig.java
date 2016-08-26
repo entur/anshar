@@ -24,9 +24,6 @@ public class SubscriptionConfig {
     @Value("${anshar.subscription.initial.duration.hours}")
     private Integer initialDuration = 1;
 
-    @Value("${anshar.enabled.subscriptionRequests}")
-    private boolean enableSubscriptionRequests;
-
     @Value("${anshar.enabled.ruter.sx}")
     private boolean enableRuterSX;
 
@@ -64,6 +61,7 @@ public class SubscriptionConfig {
 
         SubscriptionSetup sub = new SubscriptionSetup(
                 SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE,
+                SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
                 inboundUrl,
                 Duration.ofMinutes(1),
                 "http://www.kolumbus.no/siri",
@@ -78,7 +76,11 @@ public class SubscriptionConfig {
                 enableKolumbusSX
         );
 
-        return new Siri20ToSiriWS14Subscription(sub);
+        if (sub.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.SUBSCRIBE) {
+            return new Siri20ToSiriWS14Subscription(sub);
+        } else {
+            return new Siri20ToSiriWS14RequestResponse(sub);
+        }
     }
 
 
@@ -93,6 +95,7 @@ public class SubscriptionConfig {
 
         SubscriptionSetup sub = new SubscriptionSetup(
                 SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING,
+                SubscriptionSetup.SubscriptionMode.REQUEST_RESPONSE,
                 inboundUrl,
                 Duration.ofMinutes(1),
                 "http://www.kolumbus.no/siri",
@@ -107,7 +110,7 @@ public class SubscriptionConfig {
                 enableKolumbusVM
         );
 
-        if (enableSubscriptionRequests) {
+        if (sub.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.SUBSCRIBE) {
             return new Siri20ToSiriWS14Subscription(sub);
         } else {
             return new Siri20ToSiriWS14RequestResponse(sub);
@@ -123,6 +126,7 @@ public class SubscriptionConfig {
 
 
         SubscriptionSetup sub = new SubscriptionSetup(SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE,
+                SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
                 inboundUrl,
                 Duration.ofMinutes(1),
                 "http://www.siri.org.uk/siri",
@@ -136,7 +140,12 @@ public class SubscriptionConfig {
                 Duration.ofHours(initialDuration),
                 enableAtbSX);
 
-        return new Siri20ToSiriWS14Subscription(sub);
+
+        if (sub.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.SUBSCRIBE) {
+            return new Siri20ToSiriWS14Subscription(sub);
+        } else {
+            return new Siri20ToSiriWS14RequestResponse(sub);
+        }
     }
 
     @Bean
@@ -148,6 +157,7 @@ public class SubscriptionConfig {
         urlMap.put(RequestType.GET_VEHICLE_MONITORING, "st.atb.no/VMWS/VMService.svc");
 
         SubscriptionSetup sub = new SubscriptionSetup(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING,
+                SubscriptionSetup.SubscriptionMode.REQUEST_RESPONSE,
                 inboundUrl,
                 Duration.ofMinutes(1),
                 "http://www.siri.org.uk/siri",
@@ -161,7 +171,7 @@ public class SubscriptionConfig {
                 Duration.ofHours(initialDuration),
                 enableAtbVM);
 
-        if (enableSubscriptionRequests) {
+        if (sub.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.SUBSCRIBE) {
             return new Siri20ToSiriWS14Subscription(sub);
         } else {
             return new Siri20ToSiriWS14RequestResponse(sub);
@@ -203,6 +213,7 @@ public class SubscriptionConfig {
 
 
         SubscriptionSetup sub = new SubscriptionSetup(SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE,
+                SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
                 inboundUrl,
                 Duration.ofMinutes(1),
                 "http://www.siri.org.uk/siri",
@@ -216,6 +227,7 @@ public class SubscriptionConfig {
                 Duration.ofHours(initialDuration),
                 enableAktSX);
 
+        //Currently only SUBSCRIBE is supported
         return new Siri20ToSiriRS14Subscription(sub);
     }
     @Bean
@@ -227,6 +239,7 @@ public class SubscriptionConfig {
 
 
         SubscriptionSetup sub = new SubscriptionSetup(SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE,
+                SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
                 inboundUrl,
                 Duration.ofMinutes(1),
                 "http://www.siri.org.uk/siri",
@@ -240,6 +253,7 @@ public class SubscriptionConfig {
                 Duration.ofHours(initialDuration),
                 enableAktET);
 
+        //Currently only SUBSCRIBE is supported
         return new Siri20ToSiriRS14Subscription(sub);
     }
 
@@ -252,6 +266,7 @@ public class SubscriptionConfig {
         urlMap.put(RequestType.CHECK_STATUS, "sirisx.ruter.no/sx/checkstatus.xml");
 
         SubscriptionSetup sub = new SubscriptionSetup(SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE,
+                SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
                 inboundUrl,
                 Duration.ofDays(7),
                 "http://www.siri.org.uk/siri",
@@ -266,6 +281,7 @@ public class SubscriptionConfig {
                 //Duration.ofHours(initialDuration),
                 enableRuterSX);
 
+        //Currently only SUBSCRIBE is supported
         return new Siri20ToSiri20RSSubscription(sub);
     }
 
@@ -278,6 +294,7 @@ public class SubscriptionConfig {
         urlMap.put(RequestType.CHECK_STATUS, "109.239.226.193:8080/RutebankenDEV/vm/checkstatus.xml");
 
         SubscriptionSetup sub = new SubscriptionSetup(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING,
+                SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
                 inboundUrl,
                 Duration.ofDays(7),
                 "http://www.siri.org.uk/siri",
@@ -293,6 +310,7 @@ public class SubscriptionConfig {
                 //Duration.ofHours(initialDuration),
                 enableRuterVM);
 
+        //Currently only SUBSCRIBE is supported
         return new Siri20ToSiri20RSSubscription(sub);
     }
 
@@ -305,6 +323,7 @@ public class SubscriptionConfig {
         urlMap.put(RequestType.CHECK_STATUS, "109.239.226.193:8080/RutebankenDEV/et/checkstatus.xml");
 
         SubscriptionSetup sub = new SubscriptionSetup(SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE,
+                SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
                 inboundUrl,
                 Duration.ofDays(7),
                 "http://www.siri.org.uk/siri",
@@ -320,7 +339,7 @@ public class SubscriptionConfig {
                 //Duration.ofHours(initialDuration),
                 enableRuterET);
 
-
+        //Currently only SUBSCRIBE is supported
         return new Siri20ToSiri20RSSubscription(sub);
     }
 

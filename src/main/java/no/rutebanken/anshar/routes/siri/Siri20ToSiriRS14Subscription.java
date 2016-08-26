@@ -7,7 +7,6 @@ import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.org.siri.siri20.ResponseStatus;
 import uk.org.siri.siri20.Siri;
 import uk.org.siri.siri20.SubscriptionResponseStructure;
 

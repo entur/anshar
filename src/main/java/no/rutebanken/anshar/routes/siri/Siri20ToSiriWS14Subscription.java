@@ -12,14 +12,12 @@ import org.slf4j.LoggerFactory;
 import uk.org.siri.siri20.Siri;
 import uk.org.siri.siri20.SubscriptionResponseStructure;
 
-import javax.xml.bind.PropertyException;
 import java.util.Map;
 
 public class Siri20ToSiriWS14Subscription extends SiriSubscriptionRouteBuilder {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     public Siri20ToSiriWS14Subscription(SubscriptionSetup subscriptionSetup) {
-
         this.subscriptionSetup = subscriptionSetup;
 
         this.customNamespacePrefixMapper = new NamespacePrefixMapper() {

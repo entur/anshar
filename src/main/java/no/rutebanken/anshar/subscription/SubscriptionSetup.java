@@ -21,6 +21,7 @@ public class SubscriptionSetup implements Serializable{
     private Duration durationOfSubscription;
     private String requestorRef;
     private boolean active;
+    private SubscriptionMode subscriptionMode;
 
     /**
      * @param subscriptionType SX, VM, ET
@@ -36,10 +37,11 @@ public class SubscriptionSetup implements Serializable{
      * @param durationOfSubscription Initial duration of subscription
      * @param active Activates/deactivates subscription
      */
-    public SubscriptionSetup(SubscriptionType subscriptionType, String address, Duration heartbeatInterval, String operatorNamespace, Map<String, String> urlMap,
+    public SubscriptionSetup(SubscriptionType subscriptionType, SubscriptionMode subscriptionMode, String address, Duration heartbeatInterval, String operatorNamespace, Map<String, String> urlMap,
                              String version, String vendor, String datasetId, ServiceType serviceType, String subscriptionId,
                              String requestorRef, Duration durationOfSubscription, boolean active) {
         this.subscriptionType = subscriptionType;
+        this.subscriptionMode = subscriptionMode;
         this.address = address;
         this.heartbeatInterval = heartbeatInterval;
         this.operatorNamespace = operatorNamespace;
@@ -165,12 +167,22 @@ public class SubscriptionSetup implements Serializable{
         obj.put("subscriptionId", getSubscriptionId());
         obj.put("serviceType", getServiceType().toString());
         obj.put("subscriptionType", getSubscriptionType().toString());
+        obj.put("subscriptionMode", getSubscriptionMode().toString());
         obj.put("heartbeatInterval", getHeartbeatInterval().toString());
         obj.put("durationOfSubscription", getDurationOfSubscription().toString());
 
         return obj;
     }
 
+    public void setSubscriptionMode(SubscriptionMode subscriptionMode) {
+        this.subscriptionMode = subscriptionMode;
+    }
+
+    public SubscriptionMode getSubscriptionMode() {
+        return subscriptionMode;
+    }
+
     public enum ServiceType {SOAP, REST}
     public enum SubscriptionType {SITUATION_EXCHANGE, VEHICLE_MONITORING, PRODUCTION_TIMETABLE, ESTIMATED_TIMETABLE}
+    public enum SubscriptionMode {SUBSCRIBE, REQUEST_RESPONSE}
 }

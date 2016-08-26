@@ -13,7 +13,8 @@ public class SubscriptionManagerTest {
 
     @Test
     public void activeSubscriptionIsHealthy() throws InterruptedException {
-        SubscriptionSetup subscriptionSoonToExpire = createSubscription(1);
+        long subscriptionDurationSec = 1;
+        SubscriptionSetup subscriptionSoonToExpire = createSubscription(subscriptionDurationSec);
         SubscriptionManager.addSubscription("1234", subscriptionSoonToExpire);
 
         assertTrue(SubscriptionManager.isSubscriptionHealthy("1234"));
@@ -26,6 +27,7 @@ public class SubscriptionManagerTest {
     private SubscriptionSetup createSubscription(long initialDuration) {
         SubscriptionSetup sub = new SubscriptionSetup(
                 SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE,
+                SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
                 "http://localhost",
                 Duration.ofMinutes(1),
                 "http://www.kolumbus.no/siri",
