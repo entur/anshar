@@ -8,6 +8,7 @@ import org.rutebanken.siri20.util.SiriXml;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.org.siri.siri20.Siri;
+import uk.org.siri.siri20.SubscriptionResponseStructure;
 import uk.org.siri.siri20.TerminateSubscriptionResponseStructure;
 
 import javax.xml.bind.JAXBException;
@@ -67,6 +68,25 @@ public abstract class SiriSubscriptionRouteBuilder extends RouteBuilder {
         return null;
     }
 
+    void handleSubscriptionResponse(SubscriptionResponseStructure response, String responseCode) {
+        if (response.getResponseStatuses().isEmpty()) {
+            if ("200".equals(responseCode)) {
+                SubscriptionManager.addSubscription(subscriptionSetup.getSubscriptionId(), subscriptionSetup);
+            }
+        } else {
+            response.getResponseStatuses().forEach(s -> {
+                if (s.isStatus() != null && s.isStatus()) {
+                    SubscriptionManager.addSubscription(s.getSubscriptionRef().getValue(), subscriptionSetup);
+                } else if (s.getErrorCondition() != null) {
+                    logger.error("Error starting subscription:  {}", (s.getErrorCondition().getDescription() != null ? s.getErrorCondition().getDescription().getValue():""));
+                    //Removing - will trigger new attempt
+                    SubscriptionManager.removeSubscription(s.getSubscriptionRef().getValue());
+                } else {
+                    SubscriptionManager.addSubscription(s.getSubscriptionRef().getValue(), subscriptionSetup);
+                }
+            });
+        }
+    }
     void initShedulerRoute() {
 
         //Verify health periodically
@@ -88,15 +108,12 @@ public abstract class SiriSubscriptionRouteBuilder extends RouteBuilder {
                         .when(isDeactivated -> !subscriptionSetup.isActive())
                             .log("Subscription has been deactivated - cancelling")
                             .to("direct:cancel" + uniqueRouteName)
+                            .process(p -> SubscriptionManager.removeSubscription(subscriptionSetup.getSubscriptionId()))
                         .endChoice()
                 .endChoice()
                 .otherwise()
                     .log("Subscription has died - terminating subscription " + subscriptionSetup.toString())
                     .to("direct:cancel" + uniqueRouteName)
-                    .log("Auto-restarting subscription " + subscriptionSetup.toString())
-                            //.log("Auto-restart ignored")
-                    //.process(p -> subscriptionSetup.setActive(false))
-                    .to("direct:start" + uniqueRouteName)
                 .end();
 
     }

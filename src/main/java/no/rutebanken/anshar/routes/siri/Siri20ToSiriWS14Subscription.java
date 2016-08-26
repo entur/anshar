@@ -57,22 +57,8 @@ public class Siri20ToSiriWS14Subscription extends SiriSubscriptionRouteBuilder {
                     Siri siri = handleSiriResponse(p.getIn().getBody(String.class));
                     SubscriptionResponseStructure response = siri.getSubscriptionResponse();
 
-                    if (response.getResponseStatuses().isEmpty()) {
-                        String responseCode = p.getIn().getHeader("CamelHttpResponseCode", String.class);
-                        if ("200".equals(responseCode)) {
-                            SubscriptionManager.addSubscription(subscriptionSetup.getSubscriptionId(), subscriptionSetup);
-                        }
-                    } else {
-                        response.getResponseStatuses().forEach(s -> {
-                            if (s.isStatus() != null && s.isStatus()) {
-                                SubscriptionManager.addSubscription(s.getSubscriptionRef().getValue(), subscriptionSetup);
-                            } else if (s.getErrorCondition() != null) {
-                                logger.error("Error starting subscription:  {}", (s.getErrorCondition().getDescription() != null ? s.getErrorCondition().getDescription().getValue():""));
-                            } else {
-                                SubscriptionManager.addSubscription(s.getSubscriptionRef().getValue(), subscriptionSetup);
-                            }
-                        });
-                    }
+                    handleSubscriptionResponse(response, p.getIn().getHeader("CamelHttpResponseCode", String.class));
+
                 })
         ;
 
@@ -94,7 +80,8 @@ public class Siri20ToSiriWS14Subscription extends SiriSubscriptionRouteBuilder {
                 .to("xslt:xsl/siri_14_20.xsl?saxon=true&allowStAX=false") // Convert from v1.4 to 2.0
                 .to("log:received:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .process(p -> {
-                    Siri siri = handleSiriResponse(p.getIn().getBody(String.class));
+                    handleSiriResponse(p.getIn().getBody(String.class));
+                    SubscriptionManager.removeSubscription(subscriptionSetup.getSubscriptionId());
                 })
         ;
 

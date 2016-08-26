@@ -7,6 +7,7 @@ import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.org.siri.siri20.ResponseStatus;
 import uk.org.siri.siri20.Siri;
 import uk.org.siri.siri20.SubscriptionResponseStructure;
 
@@ -39,15 +40,7 @@ public class Siri20ToSiriRS14Subscription extends SiriSubscriptionRouteBuilder {
                     Siri siri = handleSiriResponse(p.getIn().getBody(String.class));
                     SubscriptionResponseStructure response = siri.getSubscriptionResponse();
 
-                    response.getResponseStatuses().forEach(s -> {
-                        if (s.isStatus() != null && s.isStatus()) {
-                            SubscriptionManager.addSubscription(s.getSubscriptionRef().getValue(), subscriptionSetup);
-                        } else if (s.getErrorCondition() != null) {
-                            logger.error("Error starting subscription:  {}", s.getErrorCondition().getDescription());
-                        } else {
-                            SubscriptionManager.addSubscription(s.getSubscriptionRef().getValue(), subscriptionSetup);
-                        }
-                    });
+                    handleSubscriptionResponse(response, p.getIn().getHeader("CamelHttpResponseCode", String.class));
                 })
         ;
 
@@ -67,11 +60,12 @@ public class Siri20ToSiriRS14Subscription extends SiriSubscriptionRouteBuilder {
                 .to("xslt:xsl/siri_14_20.xsl?saxon=true&allowStAX=false") // Convert from v1.4 to 2.0
                 .to("log:received:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .process(p -> {
-                    Siri siri = handleSiriResponse(p.getIn().getBody(String.class));
-
+                    handleSiriResponse(p.getIn().getBody(String.class));
+                    SubscriptionManager.removeSubscription(subscriptionSetup.getSubscriptionId());
                 })
         ;
 
         initShedulerRoute();
     }
+
 }
