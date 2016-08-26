@@ -28,6 +28,9 @@ public class SiriHandler {
 
             } else if (incoming.getSubscriptionRequest() != null) {
                 logger.info("Ignoring subscriptionrequest...");
+            } else if (incoming.getCheckStatusResponse() != null) {
+                logger.info("Incoming CheckStatusResponse [{}]", subscriptionId);
+                SubscriptionManager.touchSubscription(subscriptionId, incoming.getCheckStatusResponse().getServiceStartedTime());
             } else if (incoming.getSubscriptionResponse() != null) {
                 SubscriptionResponseStructure subscriptionResponse = incoming.getSubscriptionResponse();
                 subscriptionResponse.getResponseStatuses().forEach(responseStatus ->
@@ -38,7 +41,7 @@ public class SiriHandler {
                 TerminateSubscriptionResponseStructure terminateSubscriptionResponse = incoming.getTerminateSubscriptionResponse();
                 boolean terminated = SubscriptionManager.removeSubscription(subscriptionId);
 
-                logger.info("Subscription " + subscriptionId + " terminated: " + terminated);
+                logger.info("Subscription [{}]  terminated: {}", subscriptionId, terminated);
 
             } else if (incoming.getDataReadyNotification() != null ){
                 //Fetched delivery

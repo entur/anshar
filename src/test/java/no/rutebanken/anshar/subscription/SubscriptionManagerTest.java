@@ -3,6 +3,7 @@ package no.rutebanken.anshar.subscription;
 import org.junit.Test;
 
 import java.time.Duration;
+import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -23,6 +24,22 @@ public class SubscriptionManagerTest {
 
         assertFalse(SubscriptionManager.isSubscriptionHealthy("1234"));
     }
+
+    @Test
+    public void testCheckStatusResponseOK() throws InterruptedException {
+        long subscriptionDurationSec = 180;
+        SubscriptionSetup subscription = createSubscription(subscriptionDurationSec);
+        SubscriptionManager.addSubscription(subscription.getSubscriptionId(), subscription);
+
+        boolean touched = SubscriptionManager.touchSubscription(subscription.getSubscriptionId(), ZonedDateTime.now().minusMinutes(1));
+        assertTrue(touched);
+        assertTrue(SubscriptionManager.isSubscriptionHealthy(subscription.getSubscriptionId()));
+
+        touched = SubscriptionManager.touchSubscription(subscription.getSubscriptionId(), ZonedDateTime.now().plusMinutes(1));
+        assertFalse(touched);
+        assertFalse(SubscriptionManager.isSubscriptionHealthy(subscription.getSubscriptionId()));
+    }
+
 
     private SubscriptionSetup createSubscription(long initialDuration) {
         SubscriptionSetup sub = new SubscriptionSetup(

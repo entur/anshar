@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -65,6 +66,26 @@ public class SubscriptionManager extends DistributedCollection {
 
         logStats();
         return success;
+    }
+
+    /**
+     * Touches subscription if reported serviceStartedTime is BEFORE last activity.
+     * If not, subscription is removed to trigger reestablishing subscription
+     * @param subscriptionId
+     * @param serviceStartedTime
+     * @return
+     */
+    public static boolean touchSubscription(String subscriptionId, ZonedDateTime serviceStartedTime) {
+        SubscriptionSetup setup = activeSubscriptions.get(subscriptionId);
+        if (setup != null && serviceStartedTime != null) {
+            if (lastActivity.get(subscriptionId).isAfter(serviceStartedTime.toInstant())) {
+                return touchSubscription(subscriptionId);
+            } else {
+                logger.info("Remote service has been restarted, reestablishing subscription [{}]", subscriptionId);
+                removeSubscription(subscriptionId);
+            }
+        }
+        return false;
     }
 
     private static void logStats() {
