@@ -77,10 +77,11 @@ public class SiriIncomingReceiver extends RouteBuilder {
                 .to("xslt:xsl/siri_14_20.xsl?saxon=true&allowStAX=false") // Convert from v1.4 to 2.0
                 .choice()
                     .when(exchange -> validationEnabled((String) exchange.getIn().getHeader("CamelHttpQuery")))
+                        .to("file:" + incomingLogDirectory + "/validator/")
                         .process(p -> {
                             SiriXml.VERSION version = SiriXml.VERSION.VERSION_2_0;
 
-                            File targetFile = new File(incomingLogDirectory + "/validator/" + p.getIn().getMessageId());
+                            File targetFile = new File(p.getIn().getHeader("CamelFileNameProduced") + "_report");
 
                             File parent = targetFile.getParentFile();
                             if (!parent.exists() && !parent.mkdirs()) {
