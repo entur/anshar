@@ -4,11 +4,15 @@ import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.builder.xml.Namespaces;
+import org.rutebanken.siri20.util.SiriXml;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -67,6 +71,22 @@ public class SiriIncomingReceiver extends RouteBuilder {
                 .end()
                 .to("xslt:xsl/siri_soap_raw.xsl?saxon=true&allowStAX=false") // Extract SOAP version and convert to raw SIRI
                 .to("xslt:xsl/siri_14_20.xsl?saxon=true&allowStAX=false") // Convert from v1.4 to 2.0
+                .choice()
+                    .when(header("CamelHttpQuery").contains("validate=true"))
+                        .process(p -> {
+                            SiriXml.VERSION version = SiriXml.VERSION.VERSION_2_0;
+
+                            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                            PrintStream ps = new PrintStream(baos);
+                            String xml = p.getIn().getBody(String.class);
+                            SiriXml.validate(xml, version, ps);
+
+                            String validationResults = new String(baos.toByteArray(), StandardCharsets.UTF_8);
+
+                            logger.info("Validationreport: {}", validationResults);
+                        })
+                    .endChoice()
+                .end()
                 .to("activemq:queue:" + ROUTER_QUEUE)
         ;
 
