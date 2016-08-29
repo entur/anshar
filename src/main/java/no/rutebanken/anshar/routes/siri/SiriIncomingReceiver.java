@@ -10,9 +10,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
-import java.io.ByteArrayOutputStream;
-import java.io.PrintStream;
-import java.nio.charset.StandardCharsets;
+import java.io.*;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -40,6 +39,11 @@ public class SiriIncomingReceiver extends RouteBuilder {
 
     @Value("${anshar.incoming.logdirectory}")
     private String incomingLogDirectory = "/tmp";
+
+    @Value("${anshar.validation.duration}")
+    private Integer validationDuration = 300;
+
+    private static Instant validationEnabledSince = null;
 
     private SiriObjectFactory factory;
     private SiriHandler handler;
@@ -72,18 +76,27 @@ public class SiriIncomingReceiver extends RouteBuilder {
                 .to("xslt:xsl/siri_soap_raw.xsl?saxon=true&allowStAX=false") // Extract SOAP version and convert to raw SIRI
                 .to("xslt:xsl/siri_14_20.xsl?saxon=true&allowStAX=false") // Convert from v1.4 to 2.0
                 .choice()
-                    .when(header("CamelHttpQuery").contains("validate=true"))
+                    .when(exchange -> validationEnabled((String) exchange.getIn().getHeader("CamelHttpQuery")))
                         .process(p -> {
                             SiriXml.VERSION version = SiriXml.VERSION.VERSION_2_0;
 
-                            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                            PrintStream ps = new PrintStream(baos);
+                            File targetFile = new File(incomingLogDirectory + "/validator/" + p.getIn().getMessageId());
+
+                            File parent = targetFile.getParentFile();
+                            if (!parent.exists() && !parent.mkdirs()) {
+                                throw new IllegalStateException("Couldn't create dir: " + parent);
+                            }
+
+                            FileOutputStream fos = new FileOutputStream(targetFile);
+                            PrintStream ps = new PrintStream(fos);
+
+                            ps.println(p.getIn().getHeader("CamelHttpPath", String.class));
+
                             String xml = p.getIn().getBody(String.class);
                             SiriXml.validate(xml, version, ps);
 
-                            String validationResults = new String(baos.toByteArray(), StandardCharsets.UTF_8);
+                            fos.close();
 
-                            logger.info("Validationreport: {}", validationResults);
                         })
                     .endChoice()
                 .end()
@@ -186,6 +199,22 @@ public class SiriIncomingReceiver extends RouteBuilder {
                 //.to("websocket://siri_pt?sendToAll=true")
         ;
 
+    }
+
+    private boolean validationEnabled(String camelHttpHeader) {
+        boolean enabled = false;
+        if (validationEnabledSince != null) {
+            enabled = validationEnabledSince.isAfter(Instant.now().minusSeconds(validationDuration));
+            logger.info("Validation is enabled for {} seconds", validationDuration);
+        }
+        if (camelHttpHeader != null && camelHttpHeader.indexOf("validate=true") >= 0) {
+            enabled = true;
+            validationEnabledSince = Instant.now();
+        } else if (camelHttpHeader != null && camelHttpHeader.indexOf("validate=false") >= 0) {
+            enabled = false;
+            validationEnabledSince = null;
+        }
+        return enabled;
     }
 
     private String getSubscriptionIdFromPath(String path) {
