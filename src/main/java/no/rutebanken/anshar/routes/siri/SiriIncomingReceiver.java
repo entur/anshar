@@ -205,15 +205,11 @@ public class SiriIncomingReceiver extends RouteBuilder {
         boolean enabled = false;
         if (validationEnabledSince != null) {
             enabled = validationEnabledSince.isAfter(Instant.now().minusSeconds(validationDuration));
-            if (enabled) {
-                logger.info("Validation is enabled for {} seconds", validationDuration);
-            } else {
-                validationEnabledSince = null;
-            }
         }
         if (camelHttpHeader != null && camelHttpHeader.indexOf("validate=true") >= 0) {
             enabled = true;
             validationEnabledSince = Instant.now();
+            logger.info("Validation is enabled for {} seconds", validationDuration);
         } else if (camelHttpHeader != null && camelHttpHeader.indexOf("validate=false") >= 0) {
             enabled = false;
             validationEnabledSince = null;
