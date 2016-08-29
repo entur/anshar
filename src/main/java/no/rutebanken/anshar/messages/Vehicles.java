@@ -73,21 +73,32 @@ public class Vehicles extends DistributedCollection {
     }
 
     public static void add(VehicleActivityStructure activity, String datasetId) {
-        boolean isLocationSet = true;
-        //For VehicleActivity/MonitoredVehicleJourney - VehicleLocation is required to be valid according to schema
+        boolean keep = isLocationValid(activity);
+
+        if (keep) {
+            vehicleActivities.put(createKey(datasetId, activity), activity);
+        }
+    }
+
+    /*
+     * For VehicleActivity/MonitoredVehicleJourney - VehicleLocation is required to be valid according to schema
+     * Only valid objects should be kept
+     */
+    private static boolean isLocationValid(VehicleActivityStructure activity) {
+        boolean keep = true;
         VehicleActivityStructure.MonitoredVehicleJourney monitoredVehicleJourney = activity.getMonitoredVehicleJourney();
         if (monitoredVehicleJourney != null) {
             LocationStructure vehicleLocation = monitoredVehicleJourney.getVehicleLocation();
             if (vehicleLocation != null) {
                 if(vehicleLocation.getLongitude() == null & vehicleLocation.getCoordinates() == null) {
-                    isLocationSet = false;
+                    keep = false;
                     logger.trace("Skipping invalid VehicleActivity - VehicleLocation is required, but is not set.");
                 }
             }
+        } else {
+            keep = false;
         }
-        if (isLocationSet) {
-            VehicleActivityStructure previous = vehicleActivities.put(createKey(datasetId, activity), activity);
-        }
+        return keep;
     }
 
     private static String createKey(String datasetId, VehicleActivityStructure activity) {
