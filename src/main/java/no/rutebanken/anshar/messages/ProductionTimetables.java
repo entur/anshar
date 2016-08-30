@@ -69,6 +69,7 @@ public class ProductionTimetables extends DistributedCollection {
     }
 
     public static void add(ProductionTimetableDeliveryStructure timetableDelivery, String datasetId) {
+        if (timetableDelivery == null) {return;}
         timetableDeliveries.put(createKey(datasetId, timetableDelivery), timetableDelivery);
     }
     private static String createKey(String datasetId, ProductionTimetableDeliveryStructure element) {

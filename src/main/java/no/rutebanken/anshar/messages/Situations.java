@@ -74,6 +74,7 @@ public class Situations extends DistributedCollection {
     }
 
     public static void add(PtSituationElement situation, String datasetId) {
+        if (situation == null) {return;}
         situations.put(createKey(datasetId, situation), situation);
     }
 

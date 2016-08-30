@@ -73,6 +73,7 @@ public class Vehicles extends DistributedCollection {
     }
 
     public static void add(VehicleActivityStructure activity, String datasetId) {
+        if (activity == null) {return;}
         boolean keep = isLocationValid(activity);
 
         if (keep) {

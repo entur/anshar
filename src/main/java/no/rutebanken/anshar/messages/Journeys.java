@@ -67,6 +67,7 @@ public class Journeys extends DistributedCollection {
 
 
     public static void add(EstimatedTimetableDeliveryStructure timetableDelivery, String datasetId) {
+        if (timetableDelivery == null) {return;}
         timetableDeliveries.put(createKey(datasetId, timetableDelivery), timetableDelivery);
     }
 
