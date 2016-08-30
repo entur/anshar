@@ -1,4 +1,4 @@
-package no.rutebanken.anshar;
+package no.rutebanken.anshar.messages;
 
 import no.rutebanken.anshar.messages.Situations;
 import no.rutebanken.anshar.routes.siri.SiriObjectFactory;
@@ -21,6 +21,13 @@ public class SituationsTest {
 
         assertTrue(Situations.getAll().size() == previousSize+1);
     }
+    @Test
+    public void testAddNullSituation() {
+        int previousSize = Situations.getAll().size();
+        Situations.add(null, "test");
+
+        assertTrue(Situations.getAll().size() == previousSize);
+    }
 
     @Test
     public void testExpiredSituation() {
@@ -32,11 +39,6 @@ public class SituationsTest {
         assertTrue(Situations.getAll().size() == previousSize); //No change
     }
 
-
-    /*
-    element.getSituationNumber().getValue().equals(situation.getSituationNumber().getValue()) &&
-                    element.getParticipantRef().getValue().equals(situation.getParticipantRef().getValue())
-     */
     @Test
     public void testUpdatedSituation() {
         int previousSize = Situations.getAll().size();

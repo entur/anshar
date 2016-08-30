@@ -1,4 +1,4 @@
-package no.rutebanken.anshar;
+package no.rutebanken.anshar.messages;
 
 import no.rutebanken.anshar.messages.Journeys;
 import org.junit.Test;
@@ -10,6 +10,16 @@ import java.util.UUID;
 import static org.junit.Assert.assertTrue;
 
 public class JourneysTest {
+
+
+    @Test
+    public void testAddNull() {
+        int previousSize = Journeys.getAll().size();
+
+        Journeys.add(null, "test");
+
+        assertTrue(Journeys.getAll().size() == previousSize);
+    }
 
     @Test
     public void testAddJourney() {

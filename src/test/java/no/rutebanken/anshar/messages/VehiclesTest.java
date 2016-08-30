@@ -1,8 +1,8 @@
-package no.rutebanken.anshar;
+package no.rutebanken.anshar.messages;
 
-import no.rutebanken.anshar.messages.Vehicles;
 import org.junit.Test;
 import uk.org.siri.siri20.CourseOfJourneyRefStructure;
+import uk.org.siri.siri20.LocationStructure;
 import uk.org.siri.siri20.VehicleActivityStructure;
 import uk.org.siri.siri20.VehicleRef;
 
@@ -31,6 +31,27 @@ public class VehiclesTest {
                                                     ZonedDateTime.now().minusMinutes(1), UUID.randomUUID().toString());
 
         Vehicles.add(element, "test");
+        assertTrue(Vehicles.getAll().size() == previousSize);
+    }
+
+    @Test
+    public void testEmptyLocation() {
+        int previousSize = Vehicles.getAll().size();
+
+        VehicleActivityStructure element = createVehicleActivityStructure(
+                                                    ZonedDateTime.now().plusMinutes(1), UUID.randomUUID().toString());
+
+        element.getMonitoredVehicleJourney().setVehicleLocation(new LocationStructure());
+
+        Vehicles.add(element, "test");
+        assertTrue(Vehicles.getAll().size() == previousSize);
+    }
+
+    @Test
+    public void testNullVehicle() {
+        int previousSize = Vehicles.getAll().size();
+
+        Vehicles.add(null, "test");
         assertTrue(Vehicles.getAll().size() == previousSize);
     }
 
@@ -79,7 +100,12 @@ public class VehiclesTest {
         VehicleRef vRef = new VehicleRef();
         vRef.setValue(vehicleReference);
         vehicleJourney.setVehicleRef(vRef);
-
+        /*
+        LocationStructure location = new LocationStructure();
+        location.setLatitude(BigDecimal.valueOf(10.63));
+        location.setLongitude(BigDecimal.valueOf(63.10));
+        vehicleJourney.setVehicleLocation(location);
+*/
         CourseOfJourneyRefStructure journeyRefStructure = new CourseOfJourneyRefStructure();
         journeyRefStructure.setValue("yadayada");
         vehicleJourney.setCourseOfJourneyRef(journeyRefStructure);
