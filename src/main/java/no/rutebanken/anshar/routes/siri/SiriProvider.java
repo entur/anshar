@@ -3,7 +3,7 @@ package no.rutebanken.anshar.routes.siri;
 import no.rutebanken.anshar.messages.EstimatedTimetables;
 import no.rutebanken.anshar.messages.ProductionTimetables;
 import no.rutebanken.anshar.messages.Situations;
-import no.rutebanken.anshar.messages.Vehicles;
+import no.rutebanken.anshar.messages.VehicleActivities;
 import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import org.apache.camel.Exchange;
@@ -78,9 +78,9 @@ public class SiriProvider extends RouteBuilder {
                     HttpServletRequest request = p.getIn().getBody(HttpServletRequest.class);
                     String datasetId = request.getParameter("datasetId");
                     if (datasetId != null && !datasetId.isEmpty()) {
-                        p.getOut().setBody(SiriXml.toXml(factory.createVMSiriObject(Vehicles.getAll(datasetId))));
+                        p.getOut().setBody(SiriXml.toXml(factory.createVMSiriObject(VehicleActivities.getAll(datasetId))));
                     } else {
-                        p.getOut().setBody(SiriXml.toXml(factory.createVMSiriObject(Vehicles.getAll())));
+                        p.getOut().setBody(SiriXml.toXml(factory.createVMSiriObject(VehicleActivities.getAll())));
                     }
                     p.getOut().setHeader("Accept-Encoding", p.getIn().getHeader("Accept-Encoding"));
                 })

@@ -11,8 +11,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class Vehicles extends DistributedCollection {
-    private static Logger logger = LoggerFactory.getLogger(Vehicles.class);
+public class VehicleActivities extends DistributedCollection {
+    private static Logger logger = LoggerFactory.getLogger(VehicleActivities.class);
 
     private static Map<String, VehicleActivityStructure> vehicleActivities = getVehiclesMap();
 

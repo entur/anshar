@@ -3,7 +3,7 @@ package no.rutebanken.anshar.routes.siri.handlers;
 import no.rutebanken.anshar.messages.EstimatedTimetables;
 import no.rutebanken.anshar.messages.Situations;
 import no.rutebanken.anshar.messages.ProductionTimetables;
-import no.rutebanken.anshar.messages.Vehicles;
+import no.rutebanken.anshar.messages.VehicleActivities;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.rutebanken.siri20.util.SiriXml;
@@ -70,9 +70,9 @@ public class SiriHandler {
                         List<VehicleMonitoringDeliveryStructure> vehicleMonitoringDeliveries = incoming.getServiceDelivery().getVehicleMonitoringDeliveries();
                         logger.info("Got VM-delivery: Subscription [{}]", subscriptionSetup);
                         vehicleMonitoringDeliveries.forEach(vm ->
-                                        vm.getVehicleActivities().forEach(activity -> Vehicles.add(activity, subscriptionSetup.getDatasetId()))
+                                        vm.getVehicleActivities().forEach(activity -> VehicleActivities.add(activity, subscriptionSetup.getDatasetId()))
                         );
-                        logger.info("Active VM-elements: {}", Vehicles.getAll().size());
+                        logger.info("Active VM-elements: {}", VehicleActivities.getAll().size());
                     }
                     if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE)) {
                         List<EstimatedTimetableDeliveryStructure> estimatedTimetableDeliveries = incoming.getServiceDelivery().getEstimatedTimetableDeliveries();

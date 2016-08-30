@@ -11,85 +11,85 @@ import java.util.UUID;
 
 import static org.junit.Assert.assertTrue;
 
-public class VehiclesTest {
+public class VehicleActivitiesTest {
 
     @Test
     public void testAddVehicle() {
-        int previousSize = Vehicles.getAll().size();
+        int previousSize = VehicleActivities.getAll().size();
         VehicleActivityStructure element = createVehicleActivityStructure(
                                                     ZonedDateTime.now().plusMinutes(1), UUID.randomUUID().toString());
 
-        Vehicles.add(element, "test");
-        assertTrue(Vehicles.getAll().size() == previousSize+1);
+        VehicleActivities.add(element, "test");
+        assertTrue(VehicleActivities.getAll().size() == previousSize+1);
     }
 
     @Test
     public void testExpiredVehicle() {
-        int previousSize = Vehicles.getAll().size();
+        int previousSize = VehicleActivities.getAll().size();
 
         VehicleActivityStructure element = createVehicleActivityStructure(
                                                     ZonedDateTime.now().minusMinutes(1), UUID.randomUUID().toString());
 
-        Vehicles.add(element, "test");
-        assertTrue(Vehicles.getAll().size() == previousSize);
+        VehicleActivities.add(element, "test");
+        assertTrue(VehicleActivities.getAll().size() == previousSize);
     }
 
     @Test
     public void testEmptyLocation() {
-        int previousSize = Vehicles.getAll().size();
+        int previousSize = VehicleActivities.getAll().size();
 
         VehicleActivityStructure element = createVehicleActivityStructure(
                                                     ZonedDateTime.now().plusMinutes(1), UUID.randomUUID().toString());
 
         element.getMonitoredVehicleJourney().setVehicleLocation(new LocationStructure());
 
-        Vehicles.add(element, "test");
-        assertTrue(Vehicles.getAll().size() == previousSize);
+        VehicleActivities.add(element, "test");
+        assertTrue(VehicleActivities.getAll().size() == previousSize);
     }
 
     @Test
     public void testNullVehicle() {
-        int previousSize = Vehicles.getAll().size();
+        int previousSize = VehicleActivities.getAll().size();
 
-        Vehicles.add(null, "test");
-        assertTrue(Vehicles.getAll().size() == previousSize);
+        VehicleActivities.add(null, "test");
+        assertTrue(VehicleActivities.getAll().size() == previousSize);
     }
 
     @Test
     public void testUpdatedVehicle() {
-        int previousSize = Vehicles.getAll().size();
+        int previousSize = VehicleActivities.getAll().size();
 
         //Add element
         String vehicleReference = UUID.randomUUID().toString();
         VehicleActivityStructure element = createVehicleActivityStructure(
                                                     ZonedDateTime.now().plusMinutes(1), vehicleReference);
 
-        Vehicles.add(element, "test");
+        VehicleActivities.add(element, "test");
         //Verify that element is added
-        assertTrue(Vehicles.getAll().size() == previousSize+1);
+        assertTrue(VehicleActivities.getAll().size() == previousSize+1);
 
         //Update element
         VehicleActivityStructure element2 = createVehicleActivityStructure(
                                                     ZonedDateTime.now().plusMinutes(1), vehicleReference);
 
-        Vehicles.add(element2, "test");
+        VehicleActivities.add(element2, "test");
         //Verify that existing element is updated
-        assertTrue(Vehicles.getAll().size() == previousSize+1);
+        assertTrue(VehicleActivities.getAll().size() == previousSize+1);
 
         //Add brand new element
         VehicleActivityStructure element3 = createVehicleActivityStructure(
                 ZonedDateTime.now().plusMinutes(1), UUID.randomUUID().toString());
 
-        Vehicles.add(element3, "test");
+        VehicleActivities.add(element3, "test");
         //Verify that new element is added
-        assertTrue(Vehicles.getAll().size() == previousSize+2);
+        assertTrue(VehicleActivities.getAll().size() == previousSize+2);
 
-        Vehicles.add(element3, "test2");
+        VehicleActivities.add(element3, "test2");
         //Verify that new element is added
-        assertTrue(Vehicles.getAll().size() == previousSize+3);
+        assertTrue(VehicleActivities.getAll().size() == previousSize+3);
 
         //Verify that element added is vendor-specific
-        assertTrue(Vehicles.getAll("test").size() == previousSize+2);
+        assertTrue(VehicleActivities.getAll("test").size() == previousSize+2);
     }
 
     private VehicleActivityStructure createVehicleActivityStructure(ZonedDateTime validUntilTime, String vehicleReference) {
