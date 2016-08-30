@@ -184,12 +184,12 @@ public class SubscriptionManager extends DistributedCollection {
 
     public static boolean isSubscriptionRegistered(String subscriptionId) {
 
-        if (!activeSubscriptions.containsKey(subscriptionId) &&
-                !pendingSubscriptions.containsKey(subscriptionId)) {
-            //Subscription not registered - trigger start
-            return false;
+        if (activeSubscriptions.containsKey(subscriptionId) |
+                pendingSubscriptions.containsKey(subscriptionId)) {
+            return true;
         }
-        return true;
+        //Subscription not registered - trigger start
+        return false;
     }
 
     public static String buildStats() {
