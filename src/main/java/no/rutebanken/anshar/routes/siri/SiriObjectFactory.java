@@ -306,7 +306,7 @@ public class SiriObjectFactory {
         return siri;
     }
 
-    public Siri createPTSiriObject(List<ProductionTimetableDeliveryStructure> elements) {
+    public static Siri createPTSiriObject(List<ProductionTimetableDeliveryStructure> elements) {
         Siri siri = new Siri();
         ServiceDelivery delivery = new ServiceDelivery();
         delivery.getProductionTimetableDeliveries().addAll(elements);
@@ -315,21 +315,11 @@ public class SiriObjectFactory {
         return siri;
     }
 
-    public static MessageQualifierStructure randomMessageId() {
-        return createMessageIdentifier(UUID.randomUUID().toString());
-    }
-
     public static DatatypeFactory createDataTypeFactory() {
         try {
             return DatatypeFactory.newInstance();
         } catch (DatatypeConfigurationException e) {
             throw new IllegalStateException(e);
         }
-    }
-
-    public static SubscriptionQualifierStructure randomSubscriptionId() {
-        SubscriptionQualifierStructure subscriptionId = new SubscriptionQualifierStructure();
-        subscriptionId.setValue(UUID.randomUUID().toString());
-        return subscriptionId;
     }
 }
