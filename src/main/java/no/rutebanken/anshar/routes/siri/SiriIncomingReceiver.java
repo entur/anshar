@@ -41,7 +41,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
     private String incomingLogDirectory = "/tmp";
 
     @Value("${anshar.validation.duration}")
-    private Integer validationDuration = 300;
+    private Integer validationDuration = 30;
 
     private static Instant validationEnabledSince = null;
 
@@ -202,16 +202,16 @@ public class SiriIncomingReceiver extends RouteBuilder {
 
     }
 
-    private boolean validationEnabled(String camelHttpHeader) {
+    private boolean validationEnabled(String queryString) {
         boolean enabled = false;
         if (validationEnabledSince != null) {
             enabled = validationEnabledSince.isAfter(Instant.now().minusSeconds(validationDuration));
         }
-        if (camelHttpHeader != null && camelHttpHeader.indexOf("validate=true") >= 0) {
+        if (queryString != null && queryString.indexOf("validate=true") >= 0) {
             enabled = true;
             validationEnabledSince = Instant.now();
             logger.info("Validation is enabled for {} seconds", validationDuration);
-        } else if (camelHttpHeader != null && camelHttpHeader.indexOf("validate=false") >= 0) {
+        } else if (queryString != null && queryString.indexOf("validate=false") >= 0) {
             enabled = false;
             validationEnabledSince = null;
         }
