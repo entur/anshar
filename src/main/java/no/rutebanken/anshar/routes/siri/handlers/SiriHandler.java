@@ -1,6 +1,6 @@
 package no.rutebanken.anshar.routes.siri.handlers;
 
-import no.rutebanken.anshar.messages.Journeys;
+import no.rutebanken.anshar.messages.EstimatedTimetables;
 import no.rutebanken.anshar.messages.Situations;
 import no.rutebanken.anshar.messages.ProductionTimetables;
 import no.rutebanken.anshar.messages.Vehicles;
@@ -78,9 +78,9 @@ public class SiriHandler {
                         List<EstimatedTimetableDeliveryStructure> estimatedTimetableDeliveries = incoming.getServiceDelivery().getEstimatedTimetableDeliveries();
                         logger.info("Got ET-delivery: Subscription [{}]", subscriptionSetup);
                         estimatedTimetableDeliveries.forEach(et ->
-                                        Journeys.add(et, subscriptionSetup.getDatasetId())
+                                        EstimatedTimetables.add(et, subscriptionSetup.getDatasetId())
                         );
-                        logger.info("Active ET-elements: {}", Journeys.getAll().size());
+                        logger.info("Active ET-elements: {}", EstimatedTimetables.getAll().size());
                     }
                     if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.PRODUCTION_TIMETABLE)) {
                         List<ProductionTimetableDeliveryStructure> productionTimetableDeliveries = incoming.getServiceDelivery().getProductionTimetableDeliveries();
@@ -88,7 +88,7 @@ public class SiriHandler {
                         productionTimetableDeliveries.forEach(pt ->
                                         ProductionTimetables.add(pt, subscriptionSetup.getDatasetId())
                         );
-                        logger.info("Active ET-elements: {}", Journeys.getAll().size());
+                        logger.info("Active ET-elements: {}", EstimatedTimetables.getAll().size());
                     }
                 } else {
                     logger.debug("ServiceDelivery for invalid subscriptionId [{}] ignored.", subscriptionId);

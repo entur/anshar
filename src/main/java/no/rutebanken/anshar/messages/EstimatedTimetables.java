@@ -10,8 +10,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class Journeys extends DistributedCollection {
-    private static Logger logger = LoggerFactory.getLogger(Journeys.class);
+public class EstimatedTimetables extends DistributedCollection {
+    private static Logger logger = LoggerFactory.getLogger(EstimatedTimetables.class);
 
     private static Map<String, EstimatedTimetableDeliveryStructure> timetableDeliveries = getJourneysMap();
 

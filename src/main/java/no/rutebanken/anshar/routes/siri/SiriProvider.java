@@ -1,6 +1,6 @@
 package no.rutebanken.anshar.routes.siri;
 
-import no.rutebanken.anshar.messages.Journeys;
+import no.rutebanken.anshar.messages.EstimatedTimetables;
 import no.rutebanken.anshar.messages.ProductionTimetables;
 import no.rutebanken.anshar.messages.Situations;
 import no.rutebanken.anshar.messages.Vehicles;
@@ -95,9 +95,9 @@ public class SiriProvider extends RouteBuilder {
                     HttpServletRequest request = p.getIn().getBody(HttpServletRequest.class);
                     String datasetId = request.getParameter("datasetId");
                     if (datasetId != null && !datasetId.isEmpty()) {
-                        p.getOut().setBody(SiriXml.toXml(factory.createETSiriObject(Journeys.getAll(datasetId))));
+                        p.getOut().setBody(SiriXml.toXml(factory.createETSiriObject(EstimatedTimetables.getAll(datasetId))));
                     } else {
-                        p.getOut().setBody(SiriXml.toXml(factory.createETSiriObject(Journeys.getAll())));
+                        p.getOut().setBody(SiriXml.toXml(factory.createETSiriObject(EstimatedTimetables.getAll())));
                     }
 
                     p.getOut().setHeader("Accept-Encoding", p.getIn().getHeader("Accept-Encoding"));
