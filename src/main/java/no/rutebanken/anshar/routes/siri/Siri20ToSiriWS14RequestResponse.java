@@ -54,7 +54,7 @@ public class Siri20ToSiriWS14RequestResponse extends RouteBuilder {
                 .setBody(simple(siriXml))
                 .setExchangePattern(ExchangePattern.InOut) // Make sure we wait for a response
                 .setHeader("SOAPAction", ns.xpath("concat('Get',substring-before(/siri:Siri/siri:ServiceRequest/*[@version]/local-name(),'Request'))", String.class)) // extract and compute SOAPAction (Microsoft requirement)
-                .setHeader("operatorNamespace", constant(subscriptionSetup.getOperatorNamespace())) // Need to make SOAP request with endpoint specific element namespace.to("xslt:xsl/siri_20_14.xsl") // Convert from SIRI 2.0 to SIRI 1.4
+                .setHeader("operatorNamespace", constant(subscriptionSetup.getOperatorNamespace())) // Need to make SOAP request with endpoint specific element namespace
                 .to("xslt:xsl/siri_20_14.xsl") // Convert SIRI raw request to SOAP version
                 .to("xslt:xsl/siri_raw_soap.xsl") // Convert SIRI raw request to SOAP version
                 .removeHeaders("CamelHttp*") // Remove any incoming HTTP headers as they interfere with the outgoing definition

@@ -34,7 +34,7 @@ public class Siri20ToSiri20RSSubscription extends SiriSubscriptionRouteBuilder {
         from("direct:start" + uniqueRouteName)
                 .bean(this, "marshalSiriSubscriptionRequest", false)
                 .setExchangePattern(ExchangePattern.InOut) // Make sure we wait for a response
-                .setHeader("operatorNamespace", constant(subscriptionSetup.getOperatorNamespace())) // Need to make SOAP request with endpoint specific element namespace.to("xslt:xsl/siri_20_14.xsl") // Convert from SIRI 2.0 to SIRI 1.4
+                .setHeader("operatorNamespace", constant(subscriptionSetup.getOperatorNamespace())) // Need to make SOAP request with endpoint specific element namespace
                 .to("log:sent request:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .removeHeaders("CamelHttp*") // Remove any incoming HTTP headers as they interfere with the outgoing definition
                 .setHeader(Exchange.CONTENT_TYPE, constant("text/xml;charset=UTF-8")) // Necessary when talking to Microsoft web services
