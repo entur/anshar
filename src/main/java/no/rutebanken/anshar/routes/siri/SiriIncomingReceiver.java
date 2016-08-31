@@ -131,6 +131,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                         logger.info("XML-validator - valid: " + validXml);
 
                         p.getOut().setBody(outputStream.toString("UTF-8"));
+                        ps.close();
                     }
                 })
         ;
