@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.*;
 import java.time.Instant;
 import java.util.HashMap;
@@ -79,7 +80,10 @@ public class SiriIncomingReceiver extends RouteBuilder {
                     .when(exchange -> validationEnabled((String) exchange.getIn().getHeader("CamelHttpQuery")))
                         .to("file:" + incomingLogDirectory + "/validator/")
                         .process(p -> {
-                            SiriXml.VERSION version = SiriXml.VERSION.VERSION_2_0;
+                            HttpServletRequest request = p.getIn().getBody(HttpServletRequest.class);
+                            String version = request.getParameter("version");
+
+                            SiriXml.VERSION siriVersion = resolveSiriVersionFromString(version);
 
                             File targetFile = new File(p.getIn().getHeader("CamelFileNameProduced") + "_report");
 
@@ -92,9 +96,10 @@ public class SiriIncomingReceiver extends RouteBuilder {
                             PrintStream ps = new PrintStream(fos);
 
                             ps.println(p.getIn().getHeader("CamelHttpPath", String.class));
+                            ps.println("Validating XML as " + siriVersion);
 
                             String xml = p.getIn().getBody(String.class);
-                            SiriXml.validate(xml, version, ps);
+                            SiriXml.validate(xml, siriVersion, ps);
 
                             fos.close();
 
@@ -102,6 +107,32 @@ public class SiriIncomingReceiver extends RouteBuilder {
                     .endChoice()
                 .end()
                 .to("activemq:queue:" + ROUTER_QUEUE)
+        ;
+
+
+        // Validate XML against schema only
+        from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/rest/sirivalidator?httpMethodRestrict=POST")
+                .process(p -> {
+                    String xml = p.getIn().getBody(String.class);
+                    if (xml != null) {
+                        logger.info("XML-validator started");
+
+                        HttpServletRequest request = p.getIn().getBody(HttpServletRequest.class);
+                        String version = request.getParameter("version");
+
+                        SiriXml.VERSION siriVersion = resolveSiriVersionFromString(version);
+
+                        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+                        PrintStream ps = new PrintStream(outputStream);
+                        ps.println("Validating XML as " + siriVersion);
+
+                        boolean validXml = SiriXml.validate(xml, siriVersion, ps);
+
+                        logger.info("XML-validator - valid: " + validXml);
+
+                        p.getOut().setBody(outputStream.toString("UTF-8"));
+                    }
+                })
         ;
 
         from("activemq:queue:" + ROUTER_QUEUE + "?asyncConsumer=true")
@@ -200,6 +231,22 @@ public class SiriIncomingReceiver extends RouteBuilder {
                 //.to("websocket://siri_pt?sendToAll=true")
         ;
 
+    }
+
+    private SiriXml.VERSION resolveSiriVersionFromString(String version) {
+        if (version != null) {
+            switch (version) {
+                case "1.0":
+                    return SiriXml.VERSION.VERSION_1_0;
+                case "1.3":
+                    return SiriXml.VERSION.VERSION_1_3;
+                case "1.4":
+                    return SiriXml.VERSION.VERSION_1_4;
+                case "2.0":
+                    return SiriXml.VERSION.VERSION_2_0;
+            }
+        }
+        return SiriXml.VERSION.VERSION_2_0;
     }
 
     private boolean validationEnabled(String queryString) {
