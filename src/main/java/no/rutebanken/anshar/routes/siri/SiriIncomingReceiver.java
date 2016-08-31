@@ -254,11 +254,15 @@ public class SiriIncomingReceiver extends RouteBuilder {
         if (validationEnabledSince != null) {
             enabled = validationEnabledSince.isAfter(Instant.now().minusSeconds(validationDuration));
         }
-        if (queryString != null && queryString.indexOf("validate=true") >= 0) {
+        if (queryString == null) {
+            return enabled;
+        }
+
+        if (queryString.contains("validate=true")) {
             enabled = true;
             validationEnabledSince = Instant.now();
             logger.info("Validation is enabled for {} seconds", validationDuration);
-        } else if (queryString != null && queryString.indexOf("validate=false") >= 0) {
+        } else if (queryString.contains("validate=false")) {
             enabled = false;
             validationEnabledSince = null;
         }
