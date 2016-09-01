@@ -4,7 +4,7 @@ import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.builder.xml.Namespaces;
-import org.rutebanken.siri20.util.SiriXml;
+import org.rutebanken.validator.SiriValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -83,7 +83,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                             HttpServletRequest request = p.getIn().getBody(HttpServletRequest.class);
                             String version = request.getParameter("version");
 
-                            SiriXml.VERSION siriVersion = resolveSiriVersionFromString(version);
+                            SiriValidator.Version siriVersion = resolveSiriVersionFromString(version);
 
                             File targetFile = new File(p.getIn().getHeader("CamelFileNameProduced") + "_report");
 
@@ -99,7 +99,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                             ps.println("Validating XML as " + siriVersion);
 
                             String xml = p.getIn().getBody(String.class);
-                            SiriXml.validate(xml, siriVersion, ps);
+                            SiriValidator.validate(xml, siriVersion, ps);
 
                             fos.close();
 
@@ -120,13 +120,13 @@ public class SiriIncomingReceiver extends RouteBuilder {
                         HttpServletRequest request = p.getIn().getBody(HttpServletRequest.class);
                         String version = request.getParameter("version");
 
-                        SiriXml.VERSION siriVersion = resolveSiriVersionFromString(version);
+                        SiriValidator.Version siriVersion = resolveSiriVersionFromString(version);
 
                         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
                         PrintStream ps = new PrintStream(outputStream);
                         ps.println("Validating XML as " + siriVersion);
 
-                        boolean validXml = SiriXml.validate(xml, siriVersion, ps);
+                        boolean validXml = SiriValidator.validate(xml, siriVersion, ps);
 
                         logger.info("XML-validator - valid: " + validXml);
 
@@ -234,20 +234,20 @@ public class SiriIncomingReceiver extends RouteBuilder {
 
     }
 
-    private SiriXml.VERSION resolveSiriVersionFromString(String version) {
+    private SiriValidator.Version resolveSiriVersionFromString(String version) {
         if (version != null) {
             switch (version) {
                 case "1.0":
-                    return SiriXml.VERSION.VERSION_1_0;
+                    return SiriValidator.Version.VERSION_1_0;
                 case "1.3":
-                    return SiriXml.VERSION.VERSION_1_3;
+                    return SiriValidator.Version.VERSION_1_3;
                 case "1.4":
-                    return SiriXml.VERSION.VERSION_1_4;
+                    return SiriValidator.Version.VERSION_1_4;
                 case "2.0":
-                    return SiriXml.VERSION.VERSION_2_0;
+                    return SiriValidator.Version.VERSION_2_0;
             }
         }
-        return SiriXml.VERSION.VERSION_2_0;
+        return SiriValidator.Version.VERSION_2_0;
     }
 
     private boolean validationEnabled(String queryString) {
