@@ -1,5 +1,6 @@
 package no.rutebanken.anshar.routes.health;
 
+import no.rutebanken.anshar.subscription.SubscriptionManager;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.slf4j.Logger;
@@ -18,7 +19,12 @@ public class LivenessReadinessRoute extends RouteBuilder {
     @Override
     public void configure() throws Exception {
 
-        //Incoming notifications/deliveries
+        //To avoid large stacktraces in the log when fetching data using browser
+        from("jetty:http://0.0.0.0:" + inboundPort + "/favicon.ico")
+                .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("404"))
+        ;
+
+        // Alive and ready
         from("jetty:http://0.0.0.0:" + inboundPort + "/ready")
                 .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
                 .setBody(constant("OK"))
@@ -27,6 +33,14 @@ public class LivenessReadinessRoute extends RouteBuilder {
                 .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
                 .setBody(constant("OK"))
         ;
+
+        //Return subscription status
+        from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/stats")
+                .process(p-> {
+                    p.getOut().setBody(SubscriptionManager.buildStats());
+                })
+        ;
+
     }
 
 }

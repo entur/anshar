@@ -42,17 +42,6 @@ public class SiriProvider extends RouteBuilder {
     @Override
     public void configure() throws Exception {
 
-        //To avoid large stacktraces in the log when fething data using browser
-        from("jetty:http://0.0.0.0:" + inboundPort + "/favicon.ico")
-                .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("404"))
-        ;
-
-        from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/stats")
-                .process(p-> {
-                    p.getOut().setBody(SubscriptionManager.buildStats());
-                })
-        ;
-
         // Dataproviders
         from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/rest/sx?httpMethodRestrict=GET")
                 .log("RequestTracer [${in.header.breadcrumbId}] Incoming request (SX)")
@@ -125,13 +114,7 @@ public class SiriProvider extends RouteBuilder {
         from("direct:processResponse")
                 .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
                 .setHeader(Exchange.CONTENT_TYPE, constant(ContentType.create("text/xml", Charset.forName("UTF-8"))))
-//                .choice()
-//                    .when(header("Accept-Encoding").contains("gzip"))
-//                        .setHeader(Exchange.CONTENT_ENCODING, simple("gzip"))
-//                        .marshal().gzip()
-//                    .endChoice()
-//                .otherwise()
-                    .marshal().string()
+                .marshal().string()
                 .end()
                 .log("RequestTracer [${in.header.breadcrumbId}] Outgoing response")
         ;
