@@ -41,8 +41,8 @@ public class SiriIncomingReceiver extends RouteBuilder {
     @Value("${anshar.incoming.logdirectory}")
     private String incomingLogDirectory = "/tmp";
 
-    @Value("${anshar.validation.duration}")
-    private Integer validationDuration = 30;
+    @Value("${anshar.validation.enabled}")
+    private boolean validationEnabled = false;
 
     private static Instant validationEnabledSince = null;
 
@@ -77,7 +77,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                 .to("xslt:xsl/siri_soap_raw.xsl?saxon=true&allowStAX=false") // Extract SOAP version and convert to raw SIRI
                 .to("xslt:xsl/siri_14_20.xsl?saxon=true&allowStAX=false") // Convert from v1.4 to 2.0
                 .choice()
-                    .when(exchange -> validationEnabled((String) exchange.getIn().getHeader("CamelHttpQuery")))
+                    .when(exchange -> validationEnabled)
                         .to("file:" + incomingLogDirectory + "/validator/")
                         .process(p -> {
                             HttpServletRequest request = p.getIn().getBody(HttpServletRequest.class);
@@ -248,26 +248,6 @@ public class SiriIncomingReceiver extends RouteBuilder {
             }
         }
         return SiriValidator.Version.VERSION_2_0;
-    }
-
-    private boolean validationEnabled(String queryString) {
-        boolean enabled = false;
-        if (validationEnabledSince != null) {
-            enabled = validationEnabledSince.isAfter(Instant.now().minusSeconds(validationDuration));
-        }
-        if (queryString == null) {
-            return enabled;
-        }
-
-        if (queryString.contains("validate=true")) {
-            enabled = true;
-            validationEnabledSince = Instant.now();
-            logger.info("Validation is enabled for {} seconds", validationDuration);
-        } else if (queryString.contains("validate=false")) {
-            enabled = false;
-            validationEnabledSince = null;
-        }
-        return enabled;
     }
 
     private String getSubscriptionIdFromPath(String path) {
