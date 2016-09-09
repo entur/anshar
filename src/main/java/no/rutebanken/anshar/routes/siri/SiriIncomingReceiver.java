@@ -80,10 +80,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                     .when(exchange -> validationEnabled)
                         .to("file:" + incomingLogDirectory + "/validator/")
                         .process(p -> {
-                            HttpServletRequest request = p.getIn().getBody(HttpServletRequest.class);
-                            String version = request.getParameter("version");
-
-                            SiriValidator.Version siriVersion = resolveSiriVersionFromString(version);
+                            SiriValidator.Version siriVersion = SiriValidator.Version.VERSION_2_0;
 
                             File targetFile = new File(p.getIn().getHeader("CamelFileNameProduced") + "_report");
 
