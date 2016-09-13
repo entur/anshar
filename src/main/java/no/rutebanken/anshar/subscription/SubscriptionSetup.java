@@ -1,13 +1,18 @@
 package no.rutebanken.anshar.subscription;
 
+import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import org.json.simple.JSONObject;
 
 import java.io.Serializable;
 import java.text.MessageFormat;
 import java.time.Duration;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 public class SubscriptionSetup implements Serializable{
+
+    private List<ValueAdapter> mappingAdapters;
     private SubscriptionType subscriptionType;
     private String address;
     private Duration heartbeatInterval;
@@ -32,13 +37,14 @@ public class SubscriptionSetup implements Serializable{
      * @param version SIRI-version to use
      * @param vendor Vendorname - information only
      * @param serviceType SOAP/REST
+     * @param mappingAdapters
      * @param subscriptionId Sets the subscriptionId to use
      * @param requestorRef
      * @param durationOfSubscription Initial duration of subscription
      * @param active Activates/deactivates subscription
      */
     public SubscriptionSetup(SubscriptionType subscriptionType, SubscriptionMode subscriptionMode, String address, Duration heartbeatInterval, String operatorNamespace, Map<String, String> urlMap,
-                             String version, String vendor, String datasetId, ServiceType serviceType, String subscriptionId,
+                             String version, String vendor, String datasetId, ServiceType serviceType, List<ValueAdapter> mappingAdapters, String subscriptionId,
                              String requestorRef, Duration durationOfSubscription, boolean active) {
         this.subscriptionType = subscriptionType;
         this.subscriptionMode = subscriptionMode;
@@ -50,6 +56,7 @@ public class SubscriptionSetup implements Serializable{
         this.vendor = vendor;
         this.datasetId = datasetId;
         this.serviceType = serviceType;
+        this.mappingAdapters = mappingAdapters;
         this.subscriptionId = subscriptionId;
         this.requestorRef = requestorRef;
         this.durationOfSubscription = durationOfSubscription;
@@ -64,29 +71,12 @@ public class SubscriptionSetup implements Serializable{
         return (includeServerAddress ? address:"") + MessageFormat.format("/{0}/{1}/{2}/{3}", version, serviceType == ServiceType.REST ? "rs" : "ws", vendor, subscriptionId);
     }
 
-    private void setAddress(String address) {
-        this.address = address;
-    }
-
     public Duration getHeartbeatInterval() {
         return heartbeatInterval;
     }
 
-    private void setHeartbeatInterval(Duration heartbeatInterval) {
-        this.heartbeatInterval = heartbeatInterval;
-    }
-
-
-    private void setOperatorNamespace(String operatorNamespace) {
-        this.operatorNamespace = operatorNamespace;
-    }
-
     public String getOperatorNamespace() {
         return operatorNamespace;
-    }
-
-    private void setUrlMap(Map<String, String> urlMap) {
-        this.urlMap = urlMap;
     }
 
     public Map<String, String> getUrlMap() {
@@ -101,44 +91,24 @@ public class SubscriptionSetup implements Serializable{
         return version;
     }
 
-    private void setVersion(String version) {
-        this.version = version;
-    }
-
     public String getVendor() {
         return vendor;
-    }
-
-    private void setVendor(String vendor) {
-        this.vendor = vendor;
     }
 
     public String getDatasetId() {
         return datasetId;
     }
 
-    public void setDatasetId(String datasetId) {
-        this.datasetId = datasetId;
-    }
-
     public ServiceType getServiceType() {
         return serviceType;
     }
 
-    private void setServiceType(ServiceType serviceType) {
-        this.serviceType = serviceType;
+    public List<ValueAdapter> getMappingAdapters() {
+        return mappingAdapters;
     }
 
     public Duration getDurationOfSubscription() {
         return durationOfSubscription;
-    }
-
-    private void setDurationOfSubscription(Duration durationOfSubscription) {
-        this.durationOfSubscription = durationOfSubscription;
-    }
-
-    private void setRequestorRef(String requestorRef) {
-        this.requestorRef = requestorRef;
     }
 
     public String getRequestorRef() {

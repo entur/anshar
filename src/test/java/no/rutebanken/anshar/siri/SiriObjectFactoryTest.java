@@ -6,9 +6,7 @@ import org.junit.Test;
 import uk.org.siri.siri20.*;
 
 import java.time.Duration;
-import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import static org.junit.Assert.*;
 
@@ -224,8 +222,9 @@ public class SiriObjectFactoryTest {
             "dummyvm",
             "dum",
             SubscriptionSetup.ServiceType.SOAP,
+            new ArrayList<>(),
             subscriptionId,
-                "RutebankenDEV",
+            "RutebankenDEV",
             Duration.ofHours(1),
             true
             );
@@ -243,8 +242,9 @@ public class SiriObjectFactoryTest {
             "dummyvm",
             "dum",
             SubscriptionSetup.ServiceType.SOAP,
+            new ArrayList<>(),
             subscriptionId,
-                requestorRef,
+            requestorRef,
             Duration.ofHours(1),
             true
             );

@@ -4,9 +4,9 @@ import no.rutebanken.anshar.messages.EstimatedTimetables;
 import no.rutebanken.anshar.messages.Situations;
 import no.rutebanken.anshar.messages.ProductionTimetables;
 import no.rutebanken.anshar.messages.VehicleActivities;
+import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
-import org.rutebanken.siri20.util.SiriXml;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.org.siri.siri20.*;
@@ -21,41 +21,43 @@ public class SiriHandler {
 
     public Siri handleIncomingSiri(String subscriptionId, String xml) {
         try {
-            Siri incoming = SiriXml.parseXml(xml);
+            SubscriptionSetup subscriptionSetup = SubscriptionManager.get(subscriptionId);
 
-            if (incoming.getHeartbeatNotification() != null) {
-                SubscriptionManager.touchSubscription(subscriptionId);
+            if (subscriptionSetup != null) {
+                Siri incoming = SiriValueTransformer.parseXml(xml, subscriptionSetup.getMappingAdapters());
 
-            } else if (incoming.getSubscriptionRequest() != null) {
-                logger.info("Ignoring subscriptionrequest...");
-            } else if (incoming.getCheckStatusResponse() != null) {
-                logger.info("Incoming CheckStatusResponse [{}]", subscriptionId);
-                SubscriptionManager.touchSubscription(subscriptionId, incoming.getCheckStatusResponse().getServiceStartedTime());
-            } else if (incoming.getSubscriptionResponse() != null) {
-                SubscriptionResponseStructure subscriptionResponse = incoming.getSubscriptionResponse();
-                subscriptionResponse.getResponseStatuses().forEach(responseStatus ->
-                                SubscriptionManager.activatePendingSubscription(subscriptionId)
-                );
+                if (incoming.getHeartbeatNotification() != null) {
+                    SubscriptionManager.touchSubscription(subscriptionId);
 
-            } else if (incoming.getTerminateSubscriptionResponse() != null) {
-                TerminateSubscriptionResponseStructure terminateSubscriptionResponse = incoming.getTerminateSubscriptionResponse();
-                boolean terminated = SubscriptionManager.removeSubscription(subscriptionId);
+                } else if (incoming.getSubscriptionRequest() != null) {
+                    logger.info("Ignoring subscriptionrequest...");
 
-                logger.info("Subscription [{}]  terminated: {}", subscriptionId, terminated);
+                } else if (incoming.getCheckStatusResponse() != null) {
+                    logger.info("Incoming CheckStatusResponse [{}]", subscriptionId);
+                    SubscriptionManager.touchSubscription(subscriptionId, incoming.getCheckStatusResponse().getServiceStartedTime());
+                } else if (incoming.getSubscriptionResponse() != null) {
+                    SubscriptionResponseStructure subscriptionResponse = incoming.getSubscriptionResponse();
+                    subscriptionResponse.getResponseStatuses().forEach(responseStatus ->
+                                    SubscriptionManager.activatePendingSubscription(subscriptionId)
+                    );
 
-            } else if (incoming.getDataReadyNotification() != null ){
-                //Fetched delivery
-                DataReadyRequestStructure dataReadyNotification = incoming.getDataReadyNotification();
-                //TODO: Implement this?
+                } else if (incoming.getTerminateSubscriptionResponse() != null) {
+                    TerminateSubscriptionResponseStructure terminateSubscriptionResponse = incoming.getTerminateSubscriptionResponse();
+                    boolean terminated = SubscriptionManager.removeSubscription(subscriptionId);
 
-                //
-                DataReadyResponseStructure dataReadyAcknowledgement = new DataReadyResponseStructure();
-                dataReadyAcknowledgement.setResponseTimestamp(ZonedDateTime.now());
-                dataReadyAcknowledgement.setConsumerRef(dataReadyNotification.getProducerRef());
+                    logger.info("Subscription [{}]  terminated: {}", subscriptionId, terminated);
 
-            } else if (incoming.getServiceDelivery() != null) {
-                SubscriptionSetup subscriptionSetup = SubscriptionManager.get(subscriptionId);
-                if (subscriptionSetup != null) {
+                } else if (incoming.getDataReadyNotification() != null) {
+                    //Fetched delivery
+                    DataReadyRequestStructure dataReadyNotification = incoming.getDataReadyNotification();
+                    //TODO: Implement this?
+
+                    //
+                    DataReadyResponseStructure dataReadyAcknowledgement = new DataReadyResponseStructure();
+                    dataReadyAcknowledgement.setResponseTimestamp(ZonedDateTime.now());
+                    dataReadyAcknowledgement.setConsumerRef(dataReadyNotification.getProducerRef());
+
+                } else if (incoming.getServiceDelivery() != null) {
                     SubscriptionManager.touchSubscription(subscriptionId);
 
                     if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE)) {
@@ -93,9 +95,9 @@ public class SiriHandler {
                 } else {
                     logger.debug("ServiceDelivery for invalid subscriptionId [{}] ignored.", subscriptionId);
                 }
-            }
 
-            return incoming;
+                return incoming;
+            }
         } catch (JAXBException e) {
             logger.warn("Caught exception when parsing incoming XML", e);
         }

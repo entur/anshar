@@ -4,6 +4,7 @@ import org.junit.Test;
 
 import java.time.Duration;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -164,6 +165,7 @@ public class SubscriptionManagerTest {
                 "SwarcoMizar",
                 "tst",
                 SubscriptionSetup.ServiceType.SOAP,
+                new ArrayList<>(),
                 UUID.randomUUID().toString(),
                 "RutebankenDEV", Duration.ofSeconds(initialDuration),
                 true
@@ -183,6 +185,7 @@ public class SubscriptionManagerTest {
                 "SwarcoMizar",
                 "tst",
                 SubscriptionSetup.ServiceType.SOAP,
+                new ArrayList<>(),
                 UUID.randomUUID().toString(),
                 "RutebankenDEV", Duration.ofSeconds(initialDuration),
                 true
