@@ -345,4 +345,14 @@ public class SiriObjectFactory {
         siri.setCheckStatusResponse(response);
         return siri;
     }
+
+    public static Siri createSubscriptionResponse(String requestorRef) {
+        Siri siri = new Siri();
+        SubscriptionResponseStructure response = new SubscriptionResponseStructure();
+        response.setServiceStartedTime(serverStartTime);
+        response.setResponderRef(createRequestorRef(requestorRef));
+        response.setResponseTimestamp(ZonedDateTime.now());
+        siri.setSubscriptionResponse(response);
+        return siri;
+    }
 }
