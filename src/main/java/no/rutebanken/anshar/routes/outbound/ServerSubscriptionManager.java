@@ -58,13 +58,20 @@ public class ServerSubscriptionManager extends CamelRouteManager {
 
         //Send initial ServiceDelivery
         Siri delivery = null;
-        if (subscriptionRequest.getSituationExchangeSubscriptionRequests() != null) {
+        if (subscriptionRequest.getSituationExchangeSubscriptionRequests() != null &&
+                !subscriptionRequest.getSituationExchangeSubscriptionRequests().isEmpty()) {
+
             delivery = SiriObjectFactory.createSXSiriObject(Situations.getAll());
-        } else if (subscriptionRequest.getVehicleMonitoringSubscriptionRequests() != null) {
+        } else if (subscriptionRequest.getVehicleMonitoringSubscriptionRequests() != null &&
+                !subscriptionRequest.getVehicleMonitoringSubscriptionRequests().isEmpty()) {
+
             delivery = SiriObjectFactory.createVMSiriObject(VehicleActivities.getAll());
-        } else if (subscriptionRequest.getEstimatedTimetableSubscriptionRequests() != null) {
+        } else if (subscriptionRequest.getEstimatedTimetableSubscriptionRequests() != null &&
+                !subscriptionRequest.getEstimatedTimetableSubscriptionRequests().isEmpty()) {
+
             delivery = SiriObjectFactory.createETSiriObject(EstimatedTimetables.getAll());
         }
+
         if (delivery != null) {
             System.out.println("Sending initial delivery to " + consumerAddress);
             pushSiriData(delivery, consumerAddress);
@@ -89,7 +96,6 @@ public class ServerSubscriptionManager extends CamelRouteManager {
 
         Siri checkStatusResponse = SiriObjectFactory.createCheckStatusResponse();
         pushSiriData(checkStatusResponse, consumerAddress);
-        System.out.println("Sending CheckStatusResponse to " + consumerAddress);
     }
 
     private void pushSiriData(Siri payload, String consumerAddress) {
