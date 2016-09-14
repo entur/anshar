@@ -26,6 +26,10 @@ public class SiriValueTransformer {
         return transform(SiriXml.parseXml(xml), adapters);
     }
 
+    public static Siri parseXml(String xml) throws JAXBException {
+        return SiriXml.parseXml(xml);
+    }
+
     public static Siri transform(Siri siri, List<ValueAdapter> adapters) {
 
         if (siri != null && adapters != null) {

@@ -16,6 +16,8 @@ public class SiriObjectFactory {
 
     private static Logger logger = LoggerFactory.getLogger(SiriObjectFactory.class);
 
+    private static final ZonedDateTime serverStartTime = ZonedDateTime.now();
+
     public  SiriObjectFactory() {
     }
 
@@ -321,5 +323,26 @@ public class SiriObjectFactory {
         } catch (DatatypeConfigurationException e) {
             throw new IllegalStateException(e);
         }
+    }
+
+    public static Siri createHeartbeatNotification(String requestorRef) {
+        Siri siri = new Siri();
+        HeartbeatNotificationStructure heartbeat = new HeartbeatNotificationStructure();
+        heartbeat.setStatus(true);
+        heartbeat.setServiceStartedTime(serverStartTime);
+        heartbeat.setRequestTimestamp(ZonedDateTime.now());
+        heartbeat.setProducerRef(createRequestorRef(requestorRef));
+        siri.setHeartbeatNotification(heartbeat);
+        return siri;
+    }
+
+    public static Siri createCheckStatusResponse() {
+        Siri siri = new Siri();
+        CheckStatusResponseStructure response = new CheckStatusResponseStructure();
+        response.setStatus(true);
+        response.setServiceStartedTime(serverStartTime);
+        response.setShortestPossibleCycle(createDataTypeFactory().newDuration(60000));
+        siri.setCheckStatusResponse(response);
+        return siri;
     }
 }

@@ -61,7 +61,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                 .add("xsd", "http://www.w3.org/2001/XMLSchema");
 
         //Incoming notifications/deliveries
-        from("jetty:http://0.0.0.0:" + inboundPort + "?matchOnUriPrefix=true&httpMethodRestrict=POST")
+        from("jetty:http://0.0.0.0:" + inboundPort + "/anshar?matchOnUriPrefix=true&httpMethodRestrict=POST")
                 .setHeader("anshar.message.id", constant(UUID.randomUUID().toString()))
                 .to("activemq:queue:" + TRANSFORM_QUEUE + "?disableReplyTo=true")
                 .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
@@ -69,11 +69,6 @@ public class SiriIncomingReceiver extends RouteBuilder {
         ;
 
         from("activemq:queue:" + TRANSFORM_QUEUE + "?asyncConsumer=true")
-                .choice()
-                    .when(p -> (logger.isTraceEnabled()))
-                        .to("file:" + incomingLogDirectory)
-                    .endChoice()
-                .end()
                 .to("xslt:xsl/siri_soap_raw.xsl?saxon=true&allowStAX=false") // Extract SOAP version and convert to raw SIRI
                 .to("xslt:xsl/siri_14_20.xsl?saxon=true&allowStAX=false") // Convert from v1.4 to 2.0
                 .choice()
