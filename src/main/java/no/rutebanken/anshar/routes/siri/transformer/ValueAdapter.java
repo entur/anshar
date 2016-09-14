@@ -1,6 +1,8 @@
 package no.rutebanken.anshar.routes.siri.transformer;
 
-public abstract class ValueAdapter {
+import java.io.Serializable;
+
+public abstract class ValueAdapter implements Serializable {
 
     private Class clazz;
 
