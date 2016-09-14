@@ -22,8 +22,7 @@ public class SiriObjectFactory {
     }
 
     public static Siri createSubscriptionRequest(SubscriptionSetup subscriptionSetup) {
-        Siri siri = new Siri();
-        siri.setVersion("2.0");
+        Siri siri = createSiriObject();
 
         SubscriptionRequest request = null;
 
@@ -58,8 +57,7 @@ public class SiriObjectFactory {
 
 
     public static Siri createServiceRequest(SubscriptionSetup subscriptionSetup) {
-        Siri siri = new Siri();
-        siri.setVersion("2.0");
+        Siri siri = createSiriObject();
 
         ServiceRequest request = new ServiceRequest();
         request.setRequestorRef(createRequestorRef());
@@ -85,8 +83,7 @@ public class SiriObjectFactory {
     }
 
     public static Siri createCheckStatusRequest(SubscriptionSetup subscriptionSetup) {
-        Siri siri = new Siri();
-        siri.setVersion("2.0");
+        Siri siri = createSiriObject();
 
         CheckStatusRequestStructure statusRequest = new CheckStatusRequestStructure();
         statusRequest.setRequestTimestamp(ZonedDateTime.now());
@@ -239,7 +236,7 @@ public class SiriObjectFactory {
         terminationReq.setRequestorRef(requestorRef);
         terminationReq.setMessageIdentifier(createMessageIdentifier(UUID.randomUUID().toString()));
 
-        Siri siri = new Siri();
+        Siri siri = createSiriObject();
         siri.setTerminateSubscriptionRequest(terminationReq);
         return siri;
     }
@@ -274,7 +271,7 @@ public class SiriObjectFactory {
     }
 
     public static Siri createSXSiriObject(List<PtSituationElement> elements) {
-        Siri siri = new Siri();
+        Siri siri = createSiriObject();
         ServiceDelivery delivery = new ServiceDelivery();
         SituationExchangeDeliveryStructure deliveryStructure = new SituationExchangeDeliveryStructure();
         SituationExchangeDeliveryStructure.Situations situations = new SituationExchangeDeliveryStructure.Situations();
@@ -288,7 +285,7 @@ public class SiriObjectFactory {
     }
 
     public static Siri createVMSiriObject(List<VehicleActivityStructure> elements) {
-        Siri siri = new Siri();
+        Siri siri = createSiriObject();
         ServiceDelivery delivery = new ServiceDelivery();
         VehicleMonitoringDeliveryStructure deliveryStructure = new VehicleMonitoringDeliveryStructure();
         deliveryStructure.getVehicleActivities().addAll(elements);
@@ -300,7 +297,7 @@ public class SiriObjectFactory {
     }
 
     public static Siri createETSiriObject(List<EstimatedTimetableDeliveryStructure> elements) {
-        Siri siri = new Siri();
+        Siri siri = createSiriObject();
         ServiceDelivery delivery = new ServiceDelivery();
         delivery.getEstimatedTimetableDeliveries().addAll(elements);
         delivery.setResponseTimestamp(ZonedDateTime.now());
@@ -309,7 +306,7 @@ public class SiriObjectFactory {
     }
 
     public static Siri createPTSiriObject(List<ProductionTimetableDeliveryStructure> elements) {
-        Siri siri = new Siri();
+        Siri siri = createSiriObject();
         ServiceDelivery delivery = new ServiceDelivery();
         delivery.getProductionTimetableDeliveries().addAll(elements);
         delivery.setResponseTimestamp(ZonedDateTime.now());
@@ -326,7 +323,7 @@ public class SiriObjectFactory {
     }
 
     public static Siri createHeartbeatNotification(String requestorRef) {
-        Siri siri = new Siri();
+        Siri siri = createSiriObject();
         HeartbeatNotificationStructure heartbeat = new HeartbeatNotificationStructure();
         heartbeat.setStatus(true);
         heartbeat.setServiceStartedTime(serverStartTime);
@@ -337,7 +334,7 @@ public class SiriObjectFactory {
     }
 
     public static Siri createCheckStatusResponse() {
-        Siri siri = new Siri();
+        Siri siri = createSiriObject();
         CheckStatusResponseStructure response = new CheckStatusResponseStructure();
         response.setStatus(true);
         response.setServiceStartedTime(serverStartTime);
@@ -346,10 +343,17 @@ public class SiriObjectFactory {
         return siri;
     }
 
-    public static Siri createSubscriptionResponse(String requestorRef) {
+    private static Siri createSiriObject() {
         Siri siri = new Siri();
+        siri.setVersion("2.0");
+        return siri;
+    }
+
+    public static Siri createSubscriptionResponse(String requestorRef) {
+        Siri siri = createSiriObject();
         SubscriptionResponseStructure response = new SubscriptionResponseStructure();
         response.setServiceStartedTime(serverStartTime);
+        response.setRequestMessageRef(createMessageIdentifier());
         response.setResponderRef(createRequestorRef(requestorRef));
         response.setResponseTimestamp(ZonedDateTime.now());
         siri.setSubscriptionResponse(response);
