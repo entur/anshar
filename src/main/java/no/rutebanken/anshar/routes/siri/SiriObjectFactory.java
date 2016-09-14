@@ -356,6 +356,15 @@ public class SiriObjectFactory {
         response.setRequestMessageRef(createMessageIdentifier());
         response.setResponderRef(createRequestorRef(requestorRef));
         response.setResponseTimestamp(ZonedDateTime.now());
+
+
+        ResponseStatus responseStatus = new ResponseStatus();
+        responseStatus.setResponseTimestamp(ZonedDateTime.now());
+        responseStatus.setRequestMessageRef(createMessageIdentifier());
+        responseStatus.setSubscriptionRef(createSubscriptionIdentifier(requestorRef));
+        responseStatus.setStatus(Boolean.TRUE);
+        response.getResponseStatuses().add(responseStatus);
+
         siri.setSubscriptionResponse(response);
         return siri;
     }
