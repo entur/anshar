@@ -30,10 +30,12 @@ public class SiriPushRouteBuilder extends RouteBuilder {
             definition = from(routeName)
                     .to("xslt:xsl/siri_raw_soap.xsl") // Convert SIRI raw request to SOAP version
                     .setHeader("CamelHttpMethod", constant("POST"))
+                    .marshal().string("UTF-8")
                     .to("http4://" + remoteEndPoint);
         } else {
             definition = from(routeName)
                     .setHeader("CamelHttpMethod", constant("POST"))
+                    .marshal().string("UTF-8")
                     .to("http4://" + remoteEndPoint);
         }
 
