@@ -50,28 +50,28 @@ public class ServerSubscriptionManager extends CamelRouteManager {
         if (consumerAddress == null) {
             hasError = true;
             errorText = errorConsumerAddressMissing;
-        } else if (initialTerminationTime.isBefore(ZonedDateTime.now())) {
+        } else if (initialTerminationTime == null || initialTerminationTime.isBefore(ZonedDateTime.now())) {
             //Subscription has already expired
             hasError = true;
             errorText = initialTerminationTimePassed;
         }
         if (hasError) {
             Siri subscriptionResponse = SiriObjectFactory.createSubscriptionResponse(subscriptionRef, false, errorText);
-            pushSiriData(subscriptionResponse, consumerAddress);
+            pushSiriData(subscriptionResponse, consumerAddress, false);
         } else {
             if (subscriptionRequest.getSubscriptionContext() != null) {
                 startHeartbeatNotifier(subscriptionRef, consumerAddress, initialTerminationTime, subscriptionRequest.getSubscriptionContext().getHeartbeatInterval());
             }
 
             Siri subscriptionResponse = SiriObjectFactory.createSubscriptionResponse(subscriptionRef, true, null);
-            pushSiriData(subscriptionResponse, consumerAddress);
+            pushSiriData(subscriptionResponse, consumerAddress, false);
 
             //Send initial ServiceDelivery
             Siri delivery = findInitialDeliveryData(subscriptionRequest);
 
             if (delivery != null) {
                 logger.info("Sending initial delivery to " + consumerAddress);
-                pushSiriData(delivery, consumerAddress);
+                pushSiriData(delivery, consumerAddress, false);
             }
         }
     }
@@ -119,7 +119,7 @@ public class ServerSubscriptionManager extends CamelRouteManager {
                                        terminateSubscription(subscriptionRef);
                                    } else {
                                        Siri heartbeatNotification = SiriObjectFactory.createHeartbeatNotification(subscriptionRef);
-                                       pushSiriData(heartbeatNotification, consumerAddress);
+                                       pushSiriData(heartbeatNotification, consumerAddress, false);
                                    }
                                }
                            },
@@ -203,7 +203,8 @@ public class ServerSubscriptionManager extends CamelRouteManager {
         }
 
         Siri terminateSubscriptionResponse = SiriObjectFactory.createTerminateSubscriptionResponse(subscriptionRef);
-        pushSiriData(terminateSubscriptionResponse, subscriptionRequest.getConsumerAddress());
+
+        pushSiriData(terminateSubscriptionResponse, subscriptionRequest.getConsumerAddress(), false);
     }
 
     public Siri handleCheckStatusRequest(CheckStatusRequestStructure checkStatusRequest) {
@@ -217,21 +218,8 @@ public class ServerSubscriptionManager extends CamelRouteManager {
         String consumerAddress = request.getConsumerAddress();
 
         Siri checkStatusResponse = SiriObjectFactory.createCheckStatusResponse();
-        pushSiriData(checkStatusResponse, consumerAddress);
+        pushSiriData(checkStatusResponse, consumerAddress, false);
         return null;
-    }
-
-    private void pushSiriData(Siri payload, String consumerAddress) {
-        try {
-
-            SiriPushRouteBuilder siriPushRouteBuilder = new SiriPushRouteBuilder(consumerAddress, false);
-            String routeId = addSiriPushRoute(siriPushRouteBuilder);
-
-            executeSiriPushRoute(payload, siriPushRouteBuilder.getRouteName());
-            stopAndRemoveSiriPushRoute(routeId);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     public void pushUpdated(List<VehicleActivityStructure> addedOrUpdated) {
@@ -239,10 +227,11 @@ public class ServerSubscriptionManager extends CamelRouteManager {
         Siri delivery = SiriObjectFactory.createVMServiceDelivery(addedOrUpdated);
 
         subscriptions.values().stream().filter(subscriptionRequest ->
-                (subscriptionRequest.getVehicleMonitoringSubscriptionRequests() != null &&
-                        !subscriptionRequest.getVehicleMonitoringSubscriptionRequests().isEmpty())
+                        (subscriptionRequest.getVehicleMonitoringSubscriptionRequests() != null &&
+                                !subscriptionRequest.getVehicleMonitoringSubscriptionRequests().isEmpty())
+
         ).forEach(subscription ->
-                        pushSiriData(delivery, subscription.getConsumerAddress())
+                        pushSiriData(delivery, subscription.getConsumerAddress(), false)
         );
 
     }
