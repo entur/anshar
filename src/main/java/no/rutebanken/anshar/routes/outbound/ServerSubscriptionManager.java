@@ -222,13 +222,53 @@ public class ServerSubscriptionManager extends CamelRouteManager {
         return null;
     }
 
-    public void pushUpdated(List<VehicleActivityStructure> addedOrUpdated) {
+    public void pushUpdatedVehicleActivities(List<VehicleActivityStructure> addedOrUpdated) {
 
         Siri delivery = SiriObjectFactory.createVMServiceDelivery(addedOrUpdated);
 
         subscriptions.values().stream().filter(subscriptionRequest ->
                         (subscriptionRequest.getVehicleMonitoringSubscriptionRequests() != null &&
                                 !subscriptionRequest.getVehicleMonitoringSubscriptionRequests().isEmpty())
+
+        ).forEach(subscription ->
+                        pushSiriData(delivery, subscription.getConsumerAddress(), false)
+        );
+
+    }
+
+    public void pushUpdatedSituations(List<PtSituationElement> addedOrUpdated) {
+
+        Siri delivery = SiriObjectFactory.createSXServiceDelivery(addedOrUpdated);
+
+        subscriptions.values().stream().filter(subscriptionRequest ->
+                        (subscriptionRequest.getSituationExchangeSubscriptionRequests() != null &&
+                                !subscriptionRequest.getSituationExchangeSubscriptionRequests().isEmpty())
+
+        ).forEach(subscription ->
+                        pushSiriData(delivery, subscription.getConsumerAddress(), false)
+        );
+    }
+
+    public void pushUpdatedProductionTimetables(List<ProductionTimetableDeliveryStructure> addedOrUpdated) {
+
+        Siri delivery = SiriObjectFactory.createPTServiceDelivery(addedOrUpdated);
+
+        subscriptions.values().stream().filter(subscriptionRequest ->
+                        (subscriptionRequest.getProductionTimetableSubscriptionRequests() != null &&
+                                !subscriptionRequest.getProductionTimetableSubscriptionRequests().isEmpty())
+
+        ).forEach(subscription ->
+                        pushSiriData(delivery, subscription.getConsumerAddress(), false)
+        );
+    }
+
+    public void pushUpdatedEstimatedTimetables(List<EstimatedTimetableDeliveryStructure> addedOrUpdated) {
+
+        Siri delivery = SiriObjectFactory.createETServiceDelivery(addedOrUpdated);
+
+        subscriptions.values().stream().filter(subscriptionRequest ->
+                        (subscriptionRequest.getEstimatedTimetableSubscriptionRequests() != null &&
+                                !subscriptionRequest.getEstimatedTimetableSubscriptionRequests().isEmpty())
 
         ).forEach(subscription ->
                         pushSiriData(delivery, subscription.getConsumerAddress(), false)

@@ -73,9 +73,24 @@ public class Situations extends DistributedCollection {
         return false;
     }
 
-    public static void add(PtSituationElement situation, String datasetId) {
-        if (situation == null) {return;}
-        situations.put(createKey(datasetId, situation), situation);
+    public static PtSituationElement add(PtSituationElement situation, String datasetId) {
+        if (situation == null) {
+            return situation;
+        }
+        PtSituationElement previousElement = situations.put(createKey(datasetId, situation), situation);
+        if (previousElement != null) {
+            //Situation existed, and may have been updated
+            /*
+             * TODO: How to determine updated situation?
+             */
+            if (situation.getCreationTime().isAfter(previousElement.getCreationTime())) {
+                return situation;
+            }
+        } else {
+            return situation;
+        }
+
+        return null;
     }
 
     private static String createKey(String datasetId, PtSituationElement element) {

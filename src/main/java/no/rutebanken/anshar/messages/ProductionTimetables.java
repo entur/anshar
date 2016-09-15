@@ -68,9 +68,20 @@ public class ProductionTimetables extends DistributedCollection {
         return isStillValid;
     }
 
-    public static void add(ProductionTimetableDeliveryStructure timetableDelivery, String datasetId) {
-        if (timetableDelivery == null) {return;}
-        timetableDeliveries.put(createKey(datasetId, timetableDelivery), timetableDelivery);
+    public static ProductionTimetableDeliveryStructure add(ProductionTimetableDeliveryStructure timetableDelivery, String datasetId) {
+        if (timetableDelivery == null) {
+            return null;
+        }
+        ProductionTimetableDeliveryStructure previous = timetableDeliveries.put(createKey(datasetId, timetableDelivery), timetableDelivery);
+        if (previous != null) {
+            /*
+             * TODO: How to determine if ET-element has been updated?
+             */
+            if (!timetableDelivery.equals(previous)) {
+                return timetableDelivery;
+            }
+        }
+        return null;
     }
     private static String createKey(String datasetId, ProductionTimetableDeliveryStructure element) {
         StringBuffer key = new StringBuffer();
