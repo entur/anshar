@@ -349,23 +349,42 @@ public class SiriObjectFactory {
         return siri;
     }
 
-    public static Siri createSubscriptionResponse(String requestorRef) {
+    public static Siri createSubscriptionResponse(String subscriptionRef, boolean status, String errorText) {
         Siri siri = createSiriObject();
         SubscriptionResponseStructure response = new SubscriptionResponseStructure();
         response.setServiceStartedTime(serverStartTime);
         response.setRequestMessageRef(createMessageIdentifier());
-        response.setResponderRef(createRequestorRef(requestorRef));
+        response.setResponderRef(createRequestorRef(subscriptionRef));
         response.setResponseTimestamp(ZonedDateTime.now());
 
 
         ResponseStatus responseStatus = new ResponseStatus();
         responseStatus.setResponseTimestamp(ZonedDateTime.now());
         responseStatus.setRequestMessageRef(createMessageIdentifier());
-        responseStatus.setSubscriptionRef(createSubscriptionIdentifier(requestorRef));
-        responseStatus.setStatus(Boolean.TRUE);
+        responseStatus.setSubscriptionRef(createSubscriptionIdentifier(subscriptionRef));
+        responseStatus.setStatus(status);
+
+        if (errorText != null) {
+            ServiceDeliveryErrorConditionElement error = new ServiceDeliveryErrorConditionElement();
+            OtherErrorStructure otherError = new OtherErrorStructure();
+            otherError.setErrorText(errorText);
+            error.setOtherError(otherError);
+            responseStatus.setErrorCondition(error);
+        }
+
         response.getResponseStatuses().add(responseStatus);
 
         siri.setSubscriptionResponse(response);
+        return siri;
+    }
+
+    public static Siri createTerminateSubscriptionResponse(String subscriptionRef) {
+        Siri siri = createSiriObject();
+        TerminateSubscriptionResponseStructure response = new TerminateSubscriptionResponseStructure();
+        TerminationResponseStatusStructure status = new TerminationResponseStatusStructure();
+        status.setSubscriptionRef(createSubscriptionIdentifier(subscriptionRef));
+        response.getTerminationResponseStatuses().add(status);
+        siri.setTerminateSubscriptionResponse(response);
         return siri;
     }
 }
