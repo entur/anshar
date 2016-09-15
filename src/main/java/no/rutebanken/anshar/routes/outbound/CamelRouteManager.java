@@ -38,16 +38,22 @@ public class CamelRouteManager implements CamelContextAware {
      * @param soapRequest
      */
     public void pushSiriData(Siri payload, String consumerAddress, boolean soapRequest) {
-        try {
+        Thread r = new Thread() {
+            @Override
+            public void run() {
+                try {
 
-            SiriPushRouteBuilder siriPushRouteBuilder = new SiriPushRouteBuilder(consumerAddress, soapRequest);
-            String routeId = addSiriPushRoute(siriPushRouteBuilder);
-            executeSiriPushRoute(payload, siriPushRouteBuilder.getRouteName());
-            stopAndRemoveSiriPushRoute(routeId);
+                    SiriPushRouteBuilder siriPushRouteBuilder = new SiriPushRouteBuilder(consumerAddress, soapRequest);
+                    String routeId = addSiriPushRoute(siriPushRouteBuilder);
+                    executeSiriPushRoute(payload, siriPushRouteBuilder.getRouteName());
+                    stopAndRemoveSiriPushRoute(routeId);
 
-        } catch (Exception e) {
-            logger.warn("Exception caught when pushing SIRI-data", e);
-        }
+                } catch (Exception e) {
+                    logger.warn("Exception caught when pushing SIRI-data", e);
+                }
+            }
+        };
+        r.start();
     }
 
     private String addSiriPushRoute(SiriPushRouteBuilder route) throws Exception {
