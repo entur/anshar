@@ -147,7 +147,7 @@ public class SiriHandler {
 
                     serverSubscriptionManager.pushUpdated(addedOrUpdated);
 
-                    logger.info("Active VM-elements: {}", VehicleActivities.getAll().size());
+                    logger.info("Active VM-elements: {}, new/updated {}", VehicleActivities.getAll().size(), addedOrUpdated.size());
                 }
                 if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE)) {
                     List<EstimatedTimetableDeliveryStructure> estimatedTimetableDeliveries = incoming.getServiceDelivery().getEstimatedTimetableDeliveries();
