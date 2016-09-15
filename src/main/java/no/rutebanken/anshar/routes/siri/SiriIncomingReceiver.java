@@ -61,7 +61,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                 .add("xsd", "http://www.w3.org/2001/XMLSchema");
 
         //Incoming notifications/deliveries
-        from("jetty:http://0.0.0.0:" + inboundPort + "/anshar?matchOnUriPrefix=true&httpMethodRestrict=POST")
+        from("jetty:http://0.0.0.0:" + inboundPort + "?matchOnUriPrefix=true&httpMethodRestrict=POST")
                 .setHeader("anshar.message.id", constant(UUID.randomUUID().toString()))
                 .to("activemq:queue:" + TRANSFORM_QUEUE + "?disableReplyTo=true")
                 .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
