@@ -72,13 +72,26 @@ public class VehicleActivities extends DistributedCollection {
         return false;
     }
 
-    public static void add(VehicleActivityStructure activity, String datasetId) {
-        if (activity == null) {return;}
+    public static VehicleActivityStructure add(VehicleActivityStructure activity, String datasetId) {
+        if (activity == null) {
+            return activity;
+        }
         boolean keep = isLocationValid(activity);
 
         if (keep) {
-            vehicleActivities.put(createKey(datasetId, activity), activity);
+            VehicleActivityStructure previousValue = vehicleActivities.put(createKey(datasetId, activity), activity);
+
+            if (previousValue != null) {
+                //Activity has been updated
+                if (activity.getRecordedAtTime().isAfter(previousValue.getRecordedAtTime())) {
+                    return activity;
+                }
+            } else {
+                //New activity
+                return activity;
+            }
         }
+        return null;
     }
 
     /*

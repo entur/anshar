@@ -50,9 +50,9 @@ public class SiriProvider extends RouteBuilder {
                     HttpServletRequest request = p.getIn().getBody(HttpServletRequest.class);
                     String datasetId = request.getParameter("datasetId");
                     if (datasetId != null && !datasetId.isEmpty()) {
-                        p.getOut().setBody(SiriXml.toXml(factory.createSXSiriObject(Situations.getAll(datasetId))));
+                        p.getOut().setBody(SiriXml.toXml(factory.createSXServiceDelivery(Situations.getAll(datasetId))));
                     } else {
-                        p.getOut().setBody(SiriXml.toXml(factory.createSXSiriObject(Situations.getAll())));
+                        p.getOut().setBody(SiriXml.toXml(factory.createSXServiceDelivery(Situations.getAll())));
                     }
                     p.getOut().setHeader("Accept-Encoding", p.getIn().getHeader("Accept-Encoding"));
                 })
@@ -66,9 +66,9 @@ public class SiriProvider extends RouteBuilder {
                     HttpServletRequest request = p.getIn().getBody(HttpServletRequest.class);
                     String datasetId = request.getParameter("datasetId");
                     if (datasetId != null && !datasetId.isEmpty()) {
-                        p.getOut().setBody(SiriXml.toXml(factory.createVMSiriObject(VehicleActivities.getAll(datasetId))));
+                        p.getOut().setBody(SiriXml.toXml(factory.createVMServiceDelivery(VehicleActivities.getAll(datasetId))));
                     } else {
-                        p.getOut().setBody(SiriXml.toXml(factory.createVMSiriObject(VehicleActivities.getAll())));
+                        p.getOut().setBody(SiriXml.toXml(factory.createVMServiceDelivery(VehicleActivities.getAll())));
                     }
                     p.getOut().setHeader("Accept-Encoding", p.getIn().getHeader("Accept-Encoding"));
                 })
@@ -83,9 +83,9 @@ public class SiriProvider extends RouteBuilder {
                     HttpServletRequest request = p.getIn().getBody(HttpServletRequest.class);
                     String datasetId = request.getParameter("datasetId");
                     if (datasetId != null && !datasetId.isEmpty()) {
-                        p.getOut().setBody(SiriXml.toXml(factory.createETSiriObject(EstimatedTimetables.getAll(datasetId))));
+                        p.getOut().setBody(SiriXml.toXml(factory.createETServiceDelivery(EstimatedTimetables.getAll(datasetId))));
                     } else {
-                        p.getOut().setBody(SiriXml.toXml(factory.createETSiriObject(EstimatedTimetables.getAll())));
+                        p.getOut().setBody(SiriXml.toXml(factory.createETServiceDelivery(EstimatedTimetables.getAll())));
                     }
 
                     p.getOut().setHeader("Accept-Encoding", p.getIn().getHeader("Accept-Encoding"));
@@ -101,9 +101,9 @@ public class SiriProvider extends RouteBuilder {
                     HttpServletRequest request = p.getIn().getBody(HttpServletRequest.class);
                     String datasetId = request.getParameter("datasetId");
                     if (datasetId != null && !datasetId.isEmpty()) {
-                        p.getOut().setBody(SiriXml.toXml(factory.createPTSiriObject(ProductionTimetables.getAll(datasetId))));
+                        p.getOut().setBody(SiriXml.toXml(factory.createPTServiceDelivery(ProductionTimetables.getAll(datasetId))));
                     } else {
-                        p.getOut().setBody(SiriXml.toXml(factory.createPTSiriObject(ProductionTimetables.getAll())));
+                        p.getOut().setBody(SiriXml.toXml(factory.createPTServiceDelivery(ProductionTimetables.getAll())));
                     }
                     p.getOut().setHeader("Accept-Encoding", p.getIn().getHeader("Accept-Encoding"));
                 })

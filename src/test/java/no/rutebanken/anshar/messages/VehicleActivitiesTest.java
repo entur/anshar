@@ -9,6 +9,8 @@ import uk.org.siri.siri20.VehicleRef;
 import java.time.ZonedDateTime;
 import java.util.UUID;
 
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 public class VehicleActivitiesTest {
@@ -28,7 +30,7 @@ public class VehicleActivitiesTest {
         int previousSize = VehicleActivities.getAll().size();
 
         VehicleActivityStructure element = createVehicleActivityStructure(
-                                                    ZonedDateTime.now().minusMinutes(1), UUID.randomUUID().toString());
+                                                    ZonedDateTime.now().minusMinutes(11), UUID.randomUUID().toString());
 
         VehicleActivities.add(element, "test");
         assertTrue(VehicleActivities.getAll().size() == previousSize);
@@ -72,15 +74,21 @@ public class VehicleActivitiesTest {
         VehicleActivityStructure element2 = createVehicleActivityStructure(
                                                     ZonedDateTime.now().plusMinutes(1), vehicleReference);
 
-        VehicleActivities.add(element2, "test");
+        VehicleActivityStructure updatedVehicle = VehicleActivities.add(element2, "test");
+
+        //Verify that activity is found as updated
+        assertNotNull(updatedVehicle);
         //Verify that existing element is updated
-        assertTrue(VehicleActivities.getAll().size() == previousSize+1);
+        assertTrue(VehicleActivities.getAll().size() == previousSize + 1);
 
         //Add brand new element
         VehicleActivityStructure element3 = createVehicleActivityStructure(
                 ZonedDateTime.now().plusMinutes(1), UUID.randomUUID().toString());
 
-        VehicleActivities.add(element3, "test");
+        updatedVehicle = VehicleActivities.add(element3, "test");
+
+        //Verify that activity is found as new
+        assertNotNull(updatedVehicle);
         //Verify that new element is added
         assertTrue(VehicleActivities.getAll().size() == previousSize+2);
 
@@ -92,9 +100,10 @@ public class VehicleActivitiesTest {
         assertTrue(VehicleActivities.getAll("test").size() == previousSize+2);
     }
 
-    private VehicleActivityStructure createVehicleActivityStructure(ZonedDateTime validUntilTime, String vehicleReference) {
+    private VehicleActivityStructure createVehicleActivityStructure(ZonedDateTime recordedAtTime, String vehicleReference) {
         VehicleActivityStructure element = new VehicleActivityStructure();
-        element.setValidUntilTime(validUntilTime);
+        element.setRecordedAtTime(recordedAtTime);
+        element.setValidUntilTime(recordedAtTime.plusMinutes(10));
 
         VehicleActivityStructure.MonitoredVehicleJourney vehicleJourney = new VehicleActivityStructure.MonitoredVehicleJourney();
         VehicleRef vRef = new VehicleRef();

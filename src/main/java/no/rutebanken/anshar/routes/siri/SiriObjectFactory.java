@@ -270,7 +270,7 @@ public class SiriObjectFactory {
         return createMessageIdentifier(UUID.randomUUID().toString());
     }
 
-    public static Siri createSXSiriObject(List<PtSituationElement> elements) {
+    public static Siri createSXServiceDelivery(List<PtSituationElement> elements) {
         Siri siri = createSiriObject();
         ServiceDelivery delivery = new ServiceDelivery();
         SituationExchangeDeliveryStructure deliveryStructure = new SituationExchangeDeliveryStructure();
@@ -284,7 +284,7 @@ public class SiriObjectFactory {
         return siri;
     }
 
-    public static Siri createVMSiriObject(List<VehicleActivityStructure> elements) {
+    public static Siri createVMServiceDelivery(List<VehicleActivityStructure> elements) {
         Siri siri = createSiriObject();
         ServiceDelivery delivery = new ServiceDelivery();
         VehicleMonitoringDeliveryStructure deliveryStructure = new VehicleMonitoringDeliveryStructure();
@@ -296,7 +296,7 @@ public class SiriObjectFactory {
         return siri;
     }
 
-    public static Siri createETSiriObject(List<EstimatedTimetableDeliveryStructure> elements) {
+    public static Siri createETServiceDelivery(List<EstimatedTimetableDeliveryStructure> elements) {
         Siri siri = createSiriObject();
         ServiceDelivery delivery = new ServiceDelivery();
         delivery.getEstimatedTimetableDeliveries().addAll(elements);
@@ -305,7 +305,7 @@ public class SiriObjectFactory {
         return siri;
     }
 
-    public static Siri createPTSiriObject(List<ProductionTimetableDeliveryStructure> elements) {
+    public static Siri createPTServiceDelivery(List<ProductionTimetableDeliveryStructure> elements) {
         Siri siri = createSiriObject();
         ServiceDelivery delivery = new ServiceDelivery();
         delivery.getProductionTimetableDeliveries().addAll(elements);

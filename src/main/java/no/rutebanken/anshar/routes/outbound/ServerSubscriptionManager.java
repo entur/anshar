@@ -82,17 +82,17 @@ public class ServerSubscriptionManager extends CamelRouteManager {
                 !subscriptionRequest.getSituationExchangeSubscriptionRequests().isEmpty()) {
 
             logger.info("SX-subscription - {} elements returned", Situations.getAll().size());
-            delivery = SiriObjectFactory.createSXSiriObject(Situations.getAll());
+            delivery = SiriObjectFactory.createSXServiceDelivery(Situations.getAll());
         } else if (subscriptionRequest.getVehicleMonitoringSubscriptionRequests() != null &&
                 !subscriptionRequest.getVehicleMonitoringSubscriptionRequests().isEmpty()) {
 
             logger.info("VM-subscription - {} elements returned", VehicleActivities.getAll().size());
-            delivery = SiriObjectFactory.createVMSiriObject(VehicleActivities.getAll());
+            delivery = SiriObjectFactory.createVMServiceDelivery(VehicleActivities.getAll());
         } else if (subscriptionRequest.getEstimatedTimetableSubscriptionRequests() != null &&
                 !subscriptionRequest.getEstimatedTimetableSubscriptionRequests().isEmpty()) {
 
             logger.info("ET-subscription - {} elements returned", EstimatedTimetables.getAll().size());
-            delivery = SiriObjectFactory.createETSiriObject(EstimatedTimetables.getAll());
+            delivery = SiriObjectFactory.createETServiceDelivery(EstimatedTimetables.getAll());
         }
         return delivery;
     }
@@ -232,5 +232,18 @@ public class ServerSubscriptionManager extends CamelRouteManager {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public void pushUpdated(List<VehicleActivityStructure> addedOrUpdated) {
+
+        Siri delivery = SiriObjectFactory.createVMServiceDelivery(addedOrUpdated);
+
+        subscriptions.values().stream().filter(subscriptionRequest ->
+                (subscriptionRequest.getVehicleMonitoringSubscriptionRequests() != null &&
+                        !subscriptionRequest.getVehicleMonitoringSubscriptionRequests().isEmpty())
+        ).forEach(subscription ->
+                        pushSiriData(delivery, subscription.getConsumerAddress())
+        );
+
     }
 }

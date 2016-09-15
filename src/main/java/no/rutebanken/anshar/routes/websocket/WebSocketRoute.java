@@ -33,7 +33,7 @@ public class WebSocketRoute extends RouteBuilder {
         from("websocket://siri_vm")
                 .to("log:foo")
                 .process(p -> {
-                    p.getOut().setBody(SiriXml.toXml(factory.createVMSiriObject(Vehicles.getAll())));
+                    p.getOut().setBody(SiriXml.toXml(factory.createVMServiceDelivery(Vehicles.getAll())));
                     p.getOut().setHeader("Accept-Encoding", p.getIn().getHeader("Accept-Encoding"));
                     p.getOut().setHeader(WebsocketConstants.CONNECTION_KEY, p.getIn().getHeader(WebsocketConstants.CONNECTION_KEY));
                 })
@@ -43,7 +43,7 @@ public class WebSocketRoute extends RouteBuilder {
         from("websocket://siri_sx")
                 .to("log:foo")
                 .process(p -> {
-                    p.getOut().setBody(SiriXml.toXml(factory.createSXSiriObject(Situations.getAll())));
+                    p.getOut().setBody(SiriXml.toXml(factory.createSXServiceDelivery(Situations.getAll())));
                     p.getOut().setHeader("Accept-Encoding", p.getIn().getHeader("Accept-Encoding"));
                     p.getOut().setHeader(WebsocketConstants.CONNECTION_KEY, p.getIn().getHeader(WebsocketConstants.CONNECTION_KEY));
                 })
@@ -53,7 +53,7 @@ public class WebSocketRoute extends RouteBuilder {
         from("websocket://siri_et")
                 .to("log:foo")
                 .process(p -> {
-                    p.getOut().setBody(SiriXml.toXml(factory.createETSiriObject(Journeys.getAll())));
+                    p.getOut().setBody(SiriXml.toXml(factory.createETServiceDelivery(Journeys.getAll())));
                     p.getOut().setHeader("Accept-Encoding", p.getIn().getHeader("Accept-Encoding"));
                     p.getOut().setHeader(WebsocketConstants.CONNECTION_KEY, p.getIn().getHeader(WebsocketConstants.CONNECTION_KEY));
                 })
@@ -63,7 +63,7 @@ public class WebSocketRoute extends RouteBuilder {
         from("websocket://siri_pt")
                 .to("log:foo")
                 .process(p -> {
-                    p.getOut().setBody(SiriXml.toXml(factory.createPTSiriObject(ProductionTimetables.getAll())));
+                    p.getOut().setBody(SiriXml.toXml(factory.createPTServiceDelivery(ProductionTimetables.getAll())));
                     p.getOut().setHeader("Accept-Encoding", p.getIn().getHeader("Accept-Encoding"));
                     p.getOut().setHeader(WebsocketConstants.CONNECTION_KEY, p.getIn().getHeader(WebsocketConstants.CONNECTION_KEY));
                 })

@@ -15,6 +15,7 @@ import uk.org.siri.siri20.*;
 
 import javax.xml.bind.JAXBException;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 public class SiriHandler {
@@ -65,11 +66,11 @@ public class SiriHandler {
             ServiceRequest serviceRequest = incoming.getServiceRequest();
 
             if (serviceRequest.getSituationExchangeRequests() != null) {
-                return SiriObjectFactory.createSXSiriObject(Situations.getAll());
+                return SiriObjectFactory.createSXServiceDelivery(Situations.getAll());
             } else if (serviceRequest.getVehicleMonitoringRequests() != null) {
-                return SiriObjectFactory.createVMSiriObject(VehicleActivities.getAll());
+                return SiriObjectFactory.createVMServiceDelivery(VehicleActivities.getAll());
             } else if (serviceRequest.getEstimatedTimetableRequests() != null) {
-                return SiriObjectFactory.createETSiriObject(EstimatedTimetables.getAll());
+                return SiriObjectFactory.createETServiceDelivery(EstimatedTimetables.getAll());
             }
         }
 
@@ -132,9 +133,20 @@ public class SiriHandler {
                 if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING)) {
                     List<VehicleMonitoringDeliveryStructure> vehicleMonitoringDeliveries = incoming.getServiceDelivery().getVehicleMonitoringDeliveries();
                     logger.info("Got VM-delivery: Subscription [{}]", subscriptionSetup);
+
+                    List<VehicleActivityStructure> addedOrUpdated = new ArrayList<>();
                     vehicleMonitoringDeliveries.forEach(vm ->
-                                    vm.getVehicleActivities().forEach(activity -> VehicleActivities.add(activity, subscriptionSetup.getDatasetId()))
+                                    vm.getVehicleActivities().forEach(activity -> {
+                                                VehicleActivityStructure addedOrUpdatedActivity = VehicleActivities.add(activity, subscriptionSetup.getDatasetId());
+                                                if (addedOrUpdatedActivity != null) {
+                                                    addedOrUpdated.add(addedOrUpdatedActivity);
+                                                }
+                                            }
+                                    )
                     );
+
+                    serverSubscriptionManager.pushUpdated(addedOrUpdated);
+
                     logger.info("Active VM-elements: {}", VehicleActivities.getAll().size());
                 }
                 if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE)) {
