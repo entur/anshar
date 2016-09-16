@@ -115,7 +115,7 @@ public class ServerSubscriptionManager extends CamelRouteManager {
                                @Override
                                public void run() {
                                    if (ZonedDateTime.now().isAfter(initialTerminationTime)) {
-                                       //Subscription has expired, and will be terminated
+                                       logger.info("Subscription [{}] has expired, and will be terminated", subscriptionRef);
                                        terminateSubscription(subscriptionRef);
                                    } else {
                                        Siri heartbeatNotification = SiriObjectFactory.createHeartbeatNotification(subscriptionRef);
@@ -201,10 +201,14 @@ public class ServerSubscriptionManager extends CamelRouteManager {
         if (timer != null) {
             timer.cancel();
         }
+        if (subscriptionRequest != null) {
+            Siri terminateSubscriptionResponse = SiriObjectFactory.createTerminateSubscriptionResponse(subscriptionRef);
+            logger.info("Sending TerminateSubscriptionResponse to {}", subscriptionRequest.getConsumerAddress());
 
-        Siri terminateSubscriptionResponse = SiriObjectFactory.createTerminateSubscriptionResponse(subscriptionRef);
-
-        pushSiriData(terminateSubscriptionResponse, subscriptionRequest.getConsumerAddress(), false);
+            pushSiriData(terminateSubscriptionResponse, subscriptionRequest.getConsumerAddress(), false);
+        } else {
+            logger.trace("Got TerminateSubscriptionRequest for non-existing subscription");
+        }
     }
 
     public Siri handleCheckStatusRequest(CheckStatusRequestStructure checkStatusRequest) {

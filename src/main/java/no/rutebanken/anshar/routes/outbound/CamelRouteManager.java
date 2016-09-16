@@ -39,6 +39,11 @@ public class CamelRouteManager implements CamelContextAware {
      * @param soapRequest
      */
     public void pushSiriData(Siri payload, String consumerAddress, boolean soapRequest) {
+        if (consumerAddress == null) {
+            logger.info("ConsumerAddress is null - ignoring data.");
+            return;
+        }
+
         Thread r = new Thread() {
             @Override
             public void run() {

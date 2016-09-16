@@ -75,7 +75,7 @@ public class ProductionTimetables extends DistributedCollection {
         ProductionTimetableDeliveryStructure previous = timetableDeliveries.put(createKey(datasetId, timetableDelivery), timetableDelivery);
         if (previous != null) {
             /*
-             * TODO: How to determine if ET-element has been updated?
+             * TODO: How to determine if PT-element has been updated?
              */
             if (!timetableDelivery.equals(previous)) {
                 return timetableDelivery;

@@ -59,7 +59,7 @@ public class SiriHandler {
             serverSubscriptionManager.terminateSubscription(incoming.getTerminateSubscriptionRequest());
 
         } else if (incoming.getCheckStatusRequest() != null) {
-            logger.info("Handling terminateSubscriptionrequest...");
+            logger.info("Handling checkStatusRequest...");
             serverSubscriptionManager.handleCheckStatusRequest(incoming.getCheckStatusRequest());
         } else if (incoming.getServiceRequest() != null) {
             logger.info("Handling serviceRequest...");
