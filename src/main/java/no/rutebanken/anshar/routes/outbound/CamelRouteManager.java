@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import uk.org.siri.siri20.Siri;
 
 import javax.xml.bind.JAXBException;
+import java.net.SocketException;
 import java.util.UUID;
 
 @Service
@@ -49,7 +50,11 @@ public class CamelRouteManager implements CamelContextAware {
                     stopAndRemoveSiriPushRoute(routeId);
 
                 } catch (Exception e) {
-                    logger.warn("Exception caught when pushing SIRI-data", e);
+                    if (e.getCause() instanceof SocketException) {
+                        logger.info("Recipient is unreachable - ignoring");
+                    } else {
+                        logger.warn("Exception caught when pushing SIRI-data", e);
+                    }
                 }
             }
         };
@@ -89,10 +94,18 @@ public class CamelRouteManager implements CamelContextAware {
         public void configure() throws Exception {
 
             if (remoteEndPoint.startsWith("http://")) {
+                //Translating URL to camel-format
                 remoteEndPoint = remoteEndPoint.substring("http://".length());
             }
 
             routeName = String.format("direct:%s", UUID.randomUUID().toString());
+
+            errorHandler(
+                    deadLetterChannel("activemq:queue:error")
+            );
+
+            from("activemq:queue:error")
+                    .log("Request to endpoint failed: " + remoteEndPoint);
 
             if (soapRequest) {
                 definition = from(routeName)
