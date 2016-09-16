@@ -75,6 +75,7 @@ public class SituationsTest {
 
     private PtSituationElement createPtSituationElement(String participantRef, String situationNumber, ZonedDateTime startTime, ZonedDateTime endTime) {
         PtSituationElement element = new PtSituationElement();
+        element.setCreationTime(ZonedDateTime.now());
         PtSituationElement.ValidityPeriod period = new PtSituationElement.ValidityPeriod();
         period.setStartTime(startTime);
 
@@ -83,7 +84,6 @@ public class SituationsTest {
         SituationNumber sn = new SituationNumber();
         sn.setValue(situationNumber);
         element.setSituationNumber(sn);
-
 
         //ValidityPeriod has already expired
         period.setEndTime(endTime);
