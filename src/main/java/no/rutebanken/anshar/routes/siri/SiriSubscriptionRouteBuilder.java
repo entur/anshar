@@ -110,7 +110,7 @@ public abstract class SiriSubscriptionRouteBuilder extends RouteBuilder {
                     .endChoice()
                 .endChoice()
                 .when(isHealthy -> SubscriptionManager.isSubscriptionHealthy(subscriptionSetup.getSubscriptionId()))
-                    .log("Subscription is healthy " + subscriptionSetup.toString())
+                    //.log("Subscription is healthy " + subscriptionSetup.toString())
                     .choice()
                         .when(isDeactivated -> !subscriptionSetup.isActive())
                             .log("Subscription has been deactivated - cancelling")
