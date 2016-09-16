@@ -2,8 +2,7 @@ package no.rutebanken.anshar.messages;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.org.siri.siri20.LocationStructure;
-import uk.org.siri.siri20.VehicleActivityStructure;
+import uk.org.siri.siri20.*;
 
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -76,7 +75,7 @@ public class VehicleActivities extends DistributedCollection {
         if (activity == null) {
             return activity;
         }
-        boolean keep = isLocationValid(activity);
+        boolean keep = isLocationValid(activity) && isActivityMeaningful(activity);
 
         if (keep) {
             VehicleActivityStructure previousValue = vehicleActivities.put(createKey(datasetId, activity), activity);
@@ -109,6 +108,30 @@ public class VehicleActivities extends DistributedCollection {
                     logger.trace("Skipping invalid VehicleActivity - VehicleLocation is required, but is not set.");
                 }
             }
+        } else {
+            keep = false;
+        }
+        return keep;
+    }
+
+    /*
+     * A lot of the VM-data received adds no actual value, and does not provide enough data to identify a journey
+     * This method identifies these activities, and flags them as trash.
+     */
+    private static boolean isActivityMeaningful(VehicleActivityStructure activity) {
+        boolean keep = true;
+
+        VehicleActivityStructure.MonitoredVehicleJourney monitoredVehicleJourney = activity.getMonitoredVehicleJourney();
+        if (monitoredVehicleJourney != null) {
+            LineRef lineRef = monitoredVehicleJourney.getLineRef();
+            //VehicleRef vehicleRef = monitoredVehicleJourney.getVehicleRef();
+            CourseOfJourneyRefStructure courseOfJourneyRef = monitoredVehicleJourney.getCourseOfJourneyRef();
+            DirectionRefStructure directionRef = monitoredVehicleJourney.getDirectionRef();
+            if (lineRef == null && courseOfJourneyRef == null && directionRef == null) {
+                keep = false;
+                logger.trace("Assumed meaningless VehicleActivity skipped - LineRef, CourseOfJourney and DirectionRef is null.");
+            }
+
         } else {
             keep = false;
         }
