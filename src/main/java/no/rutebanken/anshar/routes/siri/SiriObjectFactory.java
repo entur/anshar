@@ -206,7 +206,7 @@ public class SiriObjectFactory {
         SubscriptionRequest request = new SubscriptionRequest();
         request.setRequestorRef(createRequestorRef(requestorRef));
         request.setMessageIdentifier(createMessageIdentifier(UUID.randomUUID().toString()));
-        request.setAddress(address);
+        //request.setAddress(address);
         request.setConsumerAddress(address);
         request.setRequestTimestamp(ZonedDateTime.now());
 
