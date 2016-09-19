@@ -1,17 +1,15 @@
 package no.rutebanken.anshar.subscription;
 
-import no.rutebanken.anshar.routes.siri.Siri20ToSiri20RSSubscription;
+import no.rutebanken.anshar.routes.siri.Siri20ToSiriRS20Subscription;
 import no.rutebanken.anshar.routes.siri.Siri20ToSiriRS14Subscription;
 import no.rutebanken.anshar.routes.siri.Siri20ToSiriWS14RequestResponse;
 import no.rutebanken.anshar.routes.siri.Siri20ToSiriWS14Subscription;
 import no.rutebanken.anshar.routes.siri.transformer.impl.LeftPaddingAdapter;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
-import no.rutebanken.anshar.routes.siri.transformer.impl.RuterSubstringAdapter;
 import org.apache.camel.builder.RouteBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import uk.org.siri.siri20.JourneyPlaceRefStructure;
 import uk.org.siri.siri20.LineRef;
 
 import javax.xml.datatype.DatatypeConfigurationException;
@@ -304,7 +302,7 @@ public class SubscriptionConfig {
                 enableRuterSX);
 
         //Currently only SUBSCRIBE is supported
-        return new Siri20ToSiri20RSSubscription(sub);
+        return new Siri20ToSiriRS20Subscription(sub);
     }
 
     @Bean
@@ -337,7 +335,7 @@ public class SubscriptionConfig {
                 enableRuterVM);
 
         //Currently only SUBSCRIBE is supported
-        return new Siri20ToSiri20RSSubscription(sub);
+        return new Siri20ToSiriRS20Subscription(sub);
     }
 
     @Bean
@@ -371,7 +369,7 @@ public class SubscriptionConfig {
                 enableRuterET);
 
         //Currently only SUBSCRIBE is supported
-        return new Siri20ToSiri20RSSubscription(sub);
+        return new Siri20ToSiriRS20Subscription(sub);
     }
 
 }
