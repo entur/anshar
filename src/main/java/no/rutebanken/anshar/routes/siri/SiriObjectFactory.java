@@ -170,7 +170,7 @@ public class SiriObjectFactory {
         EstimatedTimetableRequestStructure etRequest = new EstimatedTimetableRequestStructure();
         etRequest.setRequestTimestamp(ZonedDateTime.now());
         etRequest.setVersion("2.0");
-        etRequest.setPreviewInterval(createDataTypeFactory().newDuration("P24H"));
+        etRequest.setPreviewInterval(createDataTypeFactory().newDuration("P1D"));
 
         EstimatedTimetableSubscriptionStructure etSubscriptionReq = new EstimatedTimetableSubscriptionStructure();
         etSubscriptionReq.setEstimatedTimetableRequest(etRequest);
