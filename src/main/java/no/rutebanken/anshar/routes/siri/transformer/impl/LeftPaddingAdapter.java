@@ -17,7 +17,7 @@ public class LeftPaddingAdapter extends ValueAdapter {
     }
 
     public String apply(String text) {
-        if (text != null && text.isEmpty()) {
+        if (text == null || text.isEmpty()) {
             return text;
         }
         return StringUtils.leftPad(text, paddingLength, paddingChar);

@@ -4,12 +4,15 @@ import no.rutebanken.anshar.routes.siri.Siri20ToSiriRS20Subscription;
 import no.rutebanken.anshar.routes.siri.Siri20ToSiriRS14Subscription;
 import no.rutebanken.anshar.routes.siri.Siri20ToSiriWS14RequestResponse;
 import no.rutebanken.anshar.routes.siri.Siri20ToSiriWS14Subscription;
+import no.rutebanken.anshar.routes.siri.transformer.impl.AtbRightPaddingStopPlaceAdapter;
 import no.rutebanken.anshar.routes.siri.transformer.impl.LeftPaddingAdapter;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import org.apache.camel.builder.RouteBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import uk.org.siri.siri20.DestinationRef;
+import uk.org.siri.siri20.JourneyPlaceRefStructure;
 import uk.org.siri.siri20.LineRef;
 
 import javax.xml.datatype.DatatypeConfigurationException;
@@ -155,6 +158,36 @@ public class SubscriptionConfig {
         }
     }
 
+  /*  @Bean
+    RouteBuilder createAnsharCarbonSubscriptionRoute() {
+
+        Map<String, String> urlMap = new HashMap<>();
+        urlMap.put(RequestType.SUBSCRIBE, "mottak-test.rutebanken.org/anshar/subscribe");
+        urlMap.put(RequestType.DELETE_SUBSCRIPTION, "mottak-test.rutebanken.org/anshar/subscribe");
+
+        List<ValueAdapter> mappingAdapters = new ArrayList<>();
+
+        SubscriptionSetup sub = new SubscriptionSetup(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING,
+                SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
+                inboundUrl,
+                Duration.ofMinutes(1),
+                "http://www.siri.org.uk/siri",
+                urlMap,
+                "2.0",
+                "ansvm",
+                "ans",
+                SubscriptionSetup.ServiceType.REST,
+                mappingAdapters,
+                UUID.randomUUID().toString(),
+                "RutebankenDEV",
+                Duration.ofSeconds(65),
+                true);
+
+
+            return new Siri20ToSiriRS20Subscription(sub);
+
+    }
+*/
     @Bean
     RouteBuilder createAtBSiriVMSubscriptionRoute() {
 
@@ -164,6 +197,8 @@ public class SubscriptionConfig {
         urlMap.put(RequestType.GET_VEHICLE_MONITORING, "st.atb.no/VMWS/VMService.svc");
 
         List<ValueAdapter> mappingAdapters = new ArrayList<>();
+        mappingAdapters.add(new AtbRightPaddingStopPlaceAdapter(JourneyPlaceRefStructure.class, 8, "01"));
+        mappingAdapters.add(new AtbRightPaddingStopPlaceAdapter(DestinationRef.class, 8, "01"));
 
         SubscriptionSetup sub = new SubscriptionSetup(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING,
                 SubscriptionSetup.SubscriptionMode.REQUEST_RESPONSE,
