@@ -94,22 +94,6 @@ public class SiriObjectFactory {
         return siri;
     }
 
-    private static SubscriptionRequest createSituationExchangeSubscriptionRequest(String requestorRef, String subscriptionId, String heartbeatInterval, String address, Duration subscriptionDuration) {
-        SubscriptionRequest request = createSubscriptionRequest(requestorRef, heartbeatInterval, address);
-
-        SituationExchangeRequestStructure sxRequest = createSituationExchangeRequestStructure();
-
-        SituationExchangeSubscriptionStructure sxSubscriptionReq = new SituationExchangeSubscriptionStructure();
-        sxSubscriptionReq.setSituationExchangeRequest(sxRequest);
-        sxSubscriptionReq.setSubscriptionIdentifier(createSubscriptionIdentifier(subscriptionId));
-        sxSubscriptionReq.setInitialTerminationTime(ZonedDateTime.now().plusSeconds(subscriptionDuration.getSeconds()));
-        sxSubscriptionReq.setSubscriberRef(request.getRequestorRef());
-
-        request.getSituationExchangeSubscriptionRequests().add(sxSubscriptionReq);
-
-        return request;
-    }
-
     private static SituationExchangeRequestStructure createSituationExchangeRequestStructure() {
         SituationExchangeRequestStructure sxRequest = new SituationExchangeRequestStructure();
         sxRequest.setRequestTimestamp(ZonedDateTime.now());
@@ -142,13 +126,29 @@ public class SiriObjectFactory {
         return ptRequest;
     }
 
+    private static SubscriptionRequest createSituationExchangeSubscriptionRequest(String requestorRef, String subscriptionId, String heartbeatInterval, String address, Duration subscriptionDuration) {
+        SubscriptionRequest request = createSubscriptionRequest(requestorRef, heartbeatInterval, address);
+
+        SituationExchangeRequestStructure sxRequest = createSituationExchangeRequestStructure();
+        sxRequest.setPreviewInterval(createDataTypeFactory().newDuration(heartbeatInterval));
+
+        SituationExchangeSubscriptionStructure sxSubscriptionReq = new SituationExchangeSubscriptionStructure();
+        sxSubscriptionReq.setSituationExchangeRequest(sxRequest);
+        sxSubscriptionReq.setSubscriptionIdentifier(createSubscriptionIdentifier(subscriptionId));
+        sxSubscriptionReq.setInitialTerminationTime(ZonedDateTime.now().plusSeconds(subscriptionDuration.getSeconds()));
+        sxSubscriptionReq.setSubscriberRef(request.getRequestorRef());
+
+        request.getSituationExchangeSubscriptionRequests().add(sxSubscriptionReq);
+
+        return request;
+    }
+
     private static SubscriptionRequest createVehicleMonitoringSubscriptionRequest(String requestorRef, String subscriptionId, String heartbeatInterval, String address, Duration subscriptionDuration) {
         SubscriptionRequest request = createSubscriptionRequest(requestorRef,heartbeatInterval, address);
 
         VehicleMonitoringRequestStructure vmRequest = new VehicleMonitoringRequestStructure();
         vmRequest.setRequestTimestamp(ZonedDateTime.now());
         vmRequest.setVersion("2.0");
-        
 
         VehicleMonitoringSubscriptionStructure vmSubscriptionReq = new VehicleMonitoringSubscriptionStructure();
         vmSubscriptionReq.setVehicleMonitoringRequest(vmRequest);
