@@ -14,6 +14,7 @@ import org.springframework.context.annotation.Configuration;
 import uk.org.siri.siri20.DestinationRef;
 import uk.org.siri.siri20.JourneyPlaceRefStructure;
 import uk.org.siri.siri20.LineRef;
+import uk.org.siri.siri20.StopPointRef;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import java.time.Duration;
@@ -199,6 +200,7 @@ public class SubscriptionConfig {
         List<ValueAdapter> mappingAdapters = new ArrayList<>();
         mappingAdapters.add(new AtbRightPaddingStopPlaceAdapter(JourneyPlaceRefStructure.class, 8, "01"));
         mappingAdapters.add(new AtbRightPaddingStopPlaceAdapter(DestinationRef.class, 8, "01"));
+        mappingAdapters.add(new AtbRightPaddingStopPlaceAdapter(StopPointRef.class, 8, "01"));
 
         SubscriptionSetup sub = new SubscriptionSetup(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING,
                 SubscriptionSetup.SubscriptionMode.REQUEST_RESPONSE,
