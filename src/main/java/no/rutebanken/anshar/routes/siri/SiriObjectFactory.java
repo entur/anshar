@@ -130,7 +130,7 @@ public class SiriObjectFactory {
         SubscriptionRequest request = createSubscriptionRequest(requestorRef, heartbeatInterval, address);
 
         SituationExchangeRequestStructure sxRequest = createSituationExchangeRequestStructure();
-        sxRequest.setPreviewInterval(createDataTypeFactory().newDuration(heartbeatInterval));
+        sxRequest.setPreviewInterval(createDataTypeFactory().newDuration("P1Y"));
 
         SituationExchangeSubscriptionStructure sxSubscriptionReq = new SituationExchangeSubscriptionStructure();
         sxSubscriptionReq.setSituationExchangeRequest(sxRequest);
@@ -170,6 +170,7 @@ public class SiriObjectFactory {
         EstimatedTimetableRequestStructure etRequest = new EstimatedTimetableRequestStructure();
         etRequest.setRequestTimestamp(ZonedDateTime.now());
         etRequest.setVersion("2.0");
+        etRequest.setPreviewInterval(createDataTypeFactory().newDuration("P24H"));
 
         EstimatedTimetableSubscriptionStructure etSubscriptionReq = new EstimatedTimetableSubscriptionStructure();
         etSubscriptionReq.setEstimatedTimetableRequest(etRequest);
@@ -206,7 +207,6 @@ public class SiriObjectFactory {
         SubscriptionRequest request = new SubscriptionRequest();
         request.setRequestorRef(createRequestorRef(requestorRef));
         request.setMessageIdentifier(createMessageIdentifier(UUID.randomUUID().toString()));
-        //request.setAddress(address);
         request.setConsumerAddress(address);
         request.setRequestTimestamp(ZonedDateTime.now());
 

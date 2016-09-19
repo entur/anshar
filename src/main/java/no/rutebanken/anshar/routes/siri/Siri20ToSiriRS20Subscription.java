@@ -13,11 +13,11 @@ import org.slf4j.LoggerFactory;
 import java.util.Map;
 
 
-public class Siri20ToSiri20RSSubscription extends SiriSubscriptionRouteBuilder {
+public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
 
-    private static Logger logger = LoggerFactory.getLogger(Siri20ToSiri20RSSubscription.class);
+    private static Logger logger = LoggerFactory.getLogger(Siri20ToSiriRS20Subscription.class);
 
-    public Siri20ToSiri20RSSubscription(SubscriptionSetup subscriptionSetup) {
+    public Siri20ToSiriRS20Subscription(SubscriptionSetup subscriptionSetup) {
 
         this.subscriptionSetup = subscriptionSetup;
     }
