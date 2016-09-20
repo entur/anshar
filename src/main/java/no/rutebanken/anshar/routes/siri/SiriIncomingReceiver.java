@@ -63,9 +63,21 @@ public class SiriIncomingReceiver extends RouteBuilder {
 
         //Incoming notifications/deliveries
         from("jetty:http://0.0.0.0:" + inboundPort + "?matchOnUriPrefix=true&httpMethodRestrict=POST")
-                .to("activemq:queue:" + TRANSFORM_QUEUE + "?disableReplyTo=true")
-                .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
-                .setBody(constant(null))
+                .choice()
+                    .when(header("CamelHttpPath").endsWith("/services"))
+                    .process(p -> {
+                        Siri response = handler.handleIncomingSiri(null, p.getIn().getBody(String.class));
+                        if (response != null) {
+                            p.getOut().setBody(SiriXml.toXml(response));
+                        } else {
+                            p.getOut().setBody(simple(null));
+                        }
+                    })
+                .endChoice()
+                .otherwise()
+                    .to("activemq:queue:" + TRANSFORM_QUEUE + "?disableReplyTo=true")
+                    .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
+                    .setBody(constant(null))
         ;
 
         from("activemq:queue:" + TRANSFORM_QUEUE + "?asyncConsumer=true")
@@ -124,19 +136,6 @@ public class SiriIncomingReceiver extends RouteBuilder {
 
                         p.getOut().setBody(outputStream.toString("UTF-8"));
                         ps.close();
-                    }
-                })
-        ;
-
-
-        // Request/response
-        from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/service?httpMethodRestrict=POST")
-                .process(p -> {
-                    Siri response = handler.handleIncomingSiri(null, p.getIn().getBody(String.class));
-                    if (response != null) {
-                        p.getOut().setBody(SiriXml.toXml(response));
-                    } else {
-                        p.getOut().setBody(simple(null));
                     }
                 })
         ;

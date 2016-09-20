@@ -60,7 +60,9 @@ public class SiriObjectFactory {
         Siri siri = createSiriObject();
 
         ServiceRequest request = new ServiceRequest();
+        request.setRequestTimestamp(ZonedDateTime.now());
         request.setRequestorRef(createRequestorRef());
+
 
         if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE)) {
             request.getSituationExchangeRequests().add(createSituationExchangeRequestStructure());

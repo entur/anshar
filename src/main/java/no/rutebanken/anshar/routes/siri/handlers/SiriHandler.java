@@ -65,16 +65,20 @@ public class SiriHandler {
             logger.info("Handling serviceRequest...");
             ServiceRequest serviceRequest = incoming.getServiceRequest();
 
-            if (serviceRequest.getSituationExchangeRequests() != null) {
+            if (hasValues(serviceRequest.getSituationExchangeRequests())) {
                 return SiriObjectFactory.createSXServiceDelivery(Situations.getAll());
-            } else if (serviceRequest.getVehicleMonitoringRequests() != null) {
+            } else if (hasValues(serviceRequest.getVehicleMonitoringRequests())) {
                 return SiriObjectFactory.createVMServiceDelivery(VehicleActivities.getAll());
-            } else if (serviceRequest.getEstimatedTimetableRequests() != null) {
+            } else if (hasValues(serviceRequest.getEstimatedTimetableRequests())) {
                 return SiriObjectFactory.createETServiceDelivery(EstimatedTimetables.getAll());
             }
         }
 
         return null;
+    }
+
+    private boolean hasValues(List list) {
+        return (list != null && !list.isEmpty());
     }
 
     /**
