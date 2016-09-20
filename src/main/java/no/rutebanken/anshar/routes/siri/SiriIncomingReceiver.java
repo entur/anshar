@@ -4,18 +4,19 @@ import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.builder.xml.Namespaces;
+import org.rutebanken.siri20.util.SiriXml;
 import org.rutebanken.validator.SiriValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import uk.org.siri.siri20.Siri;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.*;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 @Configuration
 public class SiriIncomingReceiver extends RouteBuilder {
@@ -123,6 +124,19 @@ public class SiriIncomingReceiver extends RouteBuilder {
 
                         p.getOut().setBody(outputStream.toString("UTF-8"));
                         ps.close();
+                    }
+                })
+        ;
+
+
+        // Request/response
+        from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/service?httpMethodRestrict=POST")
+                .process(p -> {
+                    Siri response = handler.handleIncomingSiri(null, p.getIn().getBody(String.class));
+                    if (response != null) {
+                        p.getOut().setBody(SiriXml.toXml(response));
+                    } else {
+                        p.getOut().setBody(simple(null));
                     }
                 })
         ;

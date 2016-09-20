@@ -163,7 +163,7 @@ public class SubscriptionManager extends DistributedCollection {
                     .plusSeconds(
                             activeSubscription.getDurationOfSubscription().getSeconds()
                     ).isBefore(Instant.now())) {
-                logger.trace("Subscription  [{}] has lasted longer than initial subscription duration - triggering restart", activeSubscription.toString());
+                logger.info("Subscription  [{}] has lasted longer than initial subscription duration - triggering restart", activeSubscription.toString());
                 return false;
             }
 
@@ -173,7 +173,7 @@ public class SubscriptionManager extends DistributedCollection {
         if (pendingSubscription != null) {
             long tripleInterval = pendingSubscription.getHeartbeatInterval().toMillis() * 3;
             if (instant.isBefore(Instant.now().minusMillis(tripleInterval))) {
-                logger.debug("Subscription {} never activated.", pendingSubscription.toString());
+                logger.info("Subscription {} never activated.", pendingSubscription.toString());
                 //Subscription created, but async response never received - reestablish subscription
                 return false;
             }

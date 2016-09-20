@@ -60,7 +60,7 @@ public class SiriHandler {
 
         } else if (incoming.getCheckStatusRequest() != null) {
             logger.info("Handling checkStatusRequest...");
-            serverSubscriptionManager.handleCheckStatusRequest(incoming.getCheckStatusRequest());
+            return serverSubscriptionManager.handleCheckStatusRequest(incoming.getCheckStatusRequest());
         } else if (incoming.getServiceRequest() != null) {
             logger.info("Handling serviceRequest...");
             ServiceRequest serviceRequest = incoming.getServiceRequest();
