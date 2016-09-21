@@ -3,13 +3,13 @@ package no.rutebanken.anshar.routes.siri.transformer.impl;
 
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 
-public class AtbRightPaddingStopPlaceAdapter extends ValueAdapter {
+public class RightPaddingStopPlaceAdapter extends ValueAdapter {
 
     private int length;
     private String paddingValue;
 
 
-    public AtbRightPaddingStopPlaceAdapter(Class clazz, int length, String paddingValue) {
+    public RightPaddingStopPlaceAdapter(Class clazz, int length, String paddingValue) {
         super(clazz);
         this.length = length;
         this.paddingValue = paddingValue;

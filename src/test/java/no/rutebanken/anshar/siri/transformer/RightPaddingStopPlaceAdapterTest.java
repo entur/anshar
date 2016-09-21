@@ -1,6 +1,6 @@
 package no.rutebanken.anshar.siri.transformer;
 
-import no.rutebanken.anshar.routes.siri.transformer.impl.AtbRightPaddingStopPlaceAdapter;
+import no.rutebanken.anshar.routes.siri.transformer.impl.RightPaddingStopPlaceAdapter;
 import org.junit.Before;
 import org.junit.Test;
 import uk.org.siri.siri20.JourneyPlaceRefStructure;
@@ -8,13 +8,13 @@ import uk.org.siri.siri20.JourneyPlaceRefStructure;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
-public class AtbRightPaddingStopPlaceAdapterTest {
+public class RightPaddingStopPlaceAdapterTest {
 
-    private AtbRightPaddingStopPlaceAdapter adapter;
+    private RightPaddingStopPlaceAdapter adapter;
 
     @Before
     public void setUp() throws Exception {
-        adapter = new AtbRightPaddingStopPlaceAdapter(JourneyPlaceRefStructure.class, 8, "01");
+        adapter = new RightPaddingStopPlaceAdapter(JourneyPlaceRefStructure.class, 8, "01");
     }
 
     @Test

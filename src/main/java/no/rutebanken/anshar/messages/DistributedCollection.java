@@ -4,7 +4,7 @@ import com.hazelcast.config.Config;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
-import uk.org.siri.siri20.EstimatedTimetableDeliveryStructure;
+import uk.org.siri.siri20.EstimatedVehicleJourney;
 import uk.org.siri.siri20.ProductionTimetableDeliveryStructure;
 import uk.org.siri.siri20.PtSituationElement;
 import uk.org.siri.siri20.VehicleActivityStructure;
@@ -25,7 +25,7 @@ public class DistributedCollection {
     public static Map<String,PtSituationElement> getSituationsMap(){
         return hazelcastInstance.getMap("anshar.situations");
     }
-    public static Map<String, EstimatedTimetableDeliveryStructure> getJourneysMap(){
+    public static Map<String, EstimatedVehicleJourney> getJourneysMap(){
         return hazelcastInstance.getMap("anshar.journeys");
     }
     public static Map<String,VehicleActivityStructure> getVehiclesMap(){

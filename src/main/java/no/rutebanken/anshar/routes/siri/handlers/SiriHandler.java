@@ -1,8 +1,8 @@
 package no.rutebanken.anshar.routes.siri.handlers;
 
 import no.rutebanken.anshar.messages.EstimatedTimetables;
-import no.rutebanken.anshar.messages.Situations;
 import no.rutebanken.anshar.messages.ProductionTimetables;
+import no.rutebanken.anshar.messages.Situations;
 import no.rutebanken.anshar.messages.VehicleActivities;
 import no.rutebanken.anshar.routes.outbound.ServerSubscriptionManager;
 import no.rutebanken.anshar.routes.siri.SiriObjectFactory;
@@ -167,12 +167,16 @@ public class SiriHandler {
                     List<EstimatedTimetableDeliveryStructure> estimatedTimetableDeliveries = incoming.getServiceDelivery().getEstimatedTimetableDeliveries();
                     logger.info("Got ET-delivery: Subscription [{}]", subscriptionSetup);
 
-                    List<EstimatedTimetableDeliveryStructure> addedOrUpdated = new ArrayList<>();
+                    List<EstimatedVehicleJourney> addedOrUpdated = new ArrayList<>();
                     estimatedTimetableDeliveries.forEach(et -> {
-                                EstimatedTimetableDeliveryStructure element = EstimatedTimetables.add(et, subscriptionSetup.getDatasetId());
-                                if (element != null) {
-                                    addedOrUpdated.add(element);
-                                }
+                                et.getEstimatedJourneyVersionFrames().forEach(versionFrame -> {
+                                    versionFrame.getEstimatedVehicleJourneies().forEach(journey -> {
+                                        EstimatedVehicleJourney element = EstimatedTimetables.add(journey, subscriptionSetup.getDatasetId());
+                                        if (element != null) {
+                                            addedOrUpdated.add(journey);
+                                        }
+                                    });
+                                });
                             }
                     );
                     serverSubscriptionManager.pushUpdatedEstimatedTimetables(addedOrUpdated);

@@ -1,12 +1,12 @@
 package no.rutebanken.anshar.subscription;
 
-import no.rutebanken.anshar.routes.siri.Siri20ToSiriRS20Subscription;
 import no.rutebanken.anshar.routes.siri.Siri20ToSiriRS14Subscription;
+import no.rutebanken.anshar.routes.siri.Siri20ToSiriRS20Subscription;
 import no.rutebanken.anshar.routes.siri.Siri20ToSiriWS14RequestResponse;
 import no.rutebanken.anshar.routes.siri.Siri20ToSiriWS14Subscription;
-import no.rutebanken.anshar.routes.siri.transformer.impl.AtbRightPaddingStopPlaceAdapter;
-import no.rutebanken.anshar.routes.siri.transformer.impl.LeftPaddingAdapter;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
+import no.rutebanken.anshar.routes.siri.transformer.impl.LeftPaddingAdapter;
+import no.rutebanken.anshar.routes.siri.transformer.impl.RightPaddingStopPlaceAdapter;
 import org.apache.camel.builder.RouteBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -167,21 +167,22 @@ public class SubscriptionConfig {
         urlMap.put(RequestType.DELETE_SUBSCRIPTION, "mottak-test.rutebanken.org/anshar/subscribe");
 
         List<ValueAdapter> mappingAdapters = new ArrayList<>();
+        mappingAdapters.add(new RightPaddingStopPlaceAdapter(StopPointRef.class, 8, "01"));
 
-        SubscriptionSetup sub = new SubscriptionSetup(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING,
+        SubscriptionSetup sub = new SubscriptionSetup(SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE,
                 SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
                 inboundUrl,
                 Duration.ofMinutes(1),
                 "http://www.siri.org.uk/siri",
                 urlMap,
                 "2.0",
-                "ansvm",
+                "anset",
                 "ans",
                 SubscriptionSetup.ServiceType.REST,
                 mappingAdapters,
-                UUID.randomUUID().toString(),
+                "1234-1234-1234-ET",
                 "RutebankenDEV",
-                Duration.ofSeconds(65),
+                Duration.ofHours(2),
                 true);
 
 
@@ -198,9 +199,9 @@ public class SubscriptionConfig {
         urlMap.put(RequestType.GET_VEHICLE_MONITORING, "st.atb.no/VMWS/VMService.svc");
 
         List<ValueAdapter> mappingAdapters = new ArrayList<>();
-        mappingAdapters.add(new AtbRightPaddingStopPlaceAdapter(JourneyPlaceRefStructure.class, 8, "01"));
-        mappingAdapters.add(new AtbRightPaddingStopPlaceAdapter(DestinationRef.class, 8, "01"));
-        mappingAdapters.add(new AtbRightPaddingStopPlaceAdapter(StopPointRef.class, 8, "01"));
+        mappingAdapters.add(new RightPaddingStopPlaceAdapter(JourneyPlaceRefStructure.class, 8, "01"));
+        mappingAdapters.add(new RightPaddingStopPlaceAdapter(DestinationRef.class, 8, "01"));
+        mappingAdapters.add(new RightPaddingStopPlaceAdapter(StopPointRef.class, 8, "01"));
 
         SubscriptionSetup sub = new SubscriptionSetup(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING,
                 SubscriptionSetup.SubscriptionMode.REQUEST_RESPONSE,
@@ -289,6 +290,7 @@ public class SubscriptionConfig {
 
 
         List<ValueAdapter> mappingAdapters = new ArrayList<>();
+        mappingAdapters.add(new RightPaddingStopPlaceAdapter(StopPointRef.class, 8, "01"));
 
         SubscriptionSetup sub = new SubscriptionSetup(SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE,
                 SubscriptionSetup.SubscriptionMode.SUBSCRIBE,

@@ -1,10 +1,9 @@
 package no.rutebanken.anshar.messages;
 
 import org.junit.Test;
-import uk.org.siri.siri20.EstimatedTimetableDeliveryStructure;
-
-import java.time.ZonedDateTime;
-import java.util.UUID;
+import uk.org.siri.siri20.EstimatedVehicleJourney;
+import uk.org.siri.siri20.LineRef;
+import uk.org.siri.siri20.VehicleRef;
 
 import static org.junit.Assert.assertTrue;
 
@@ -23,7 +22,7 @@ public class EstimatedTimetablesTest {
     @Test
     public void testAddJourney() {
         int previousSize = EstimatedTimetables.getAll().size();
-        EstimatedTimetableDeliveryStructure element = createEstimatedTimetableDeliveryStructure(UUID.randomUUID().toString(), ZonedDateTime.now().plusMinutes(1));
+        EstimatedVehicleJourney element = createEstimatedVehicleJourney("1234", "4321");
 
         EstimatedTimetables.add(element, "test");
 
@@ -35,7 +34,7 @@ public class EstimatedTimetablesTest {
         int previousSize = EstimatedTimetables.getAll().size();
 
         EstimatedTimetables.add(
-                createEstimatedTimetableDeliveryStructure(UUID.randomUUID().toString(), ZonedDateTime.now().minusMinutes(1))
+                createEstimatedVehicleJourney("1234", "4321")
                 , "test"
         );
 
@@ -45,20 +44,19 @@ public class EstimatedTimetablesTest {
     @Test
     public void testUpdatedJourney() {
         int previousSize = EstimatedTimetables.getAll().size();
-        String version = UUID.randomUUID().toString();
 
-        EstimatedTimetables.add(createEstimatedTimetableDeliveryStructure(version, ZonedDateTime.now().plusMinutes(1)), "test");
+        EstimatedTimetables.add(createEstimatedVehicleJourney("12345", "4321"), "test");
         int expectedSize = previousSize +1;
         assertTrue("Adding Journey did not add element.", EstimatedTimetables.getAll().size() == expectedSize);
 
-        EstimatedTimetables.add(createEstimatedTimetableDeliveryStructure(version, ZonedDateTime.now().plusMinutes(1)), "test");
+        EstimatedTimetables.add(createEstimatedVehicleJourney("12345", "4321"), "test");
         assertTrue("Updating Journey added element.", EstimatedTimetables.getAll().size() == expectedSize);
 
-        EstimatedTimetables.add(createEstimatedTimetableDeliveryStructure(UUID.randomUUID().toString(), ZonedDateTime.now().plusMinutes(1)), "test");
+        EstimatedTimetables.add(createEstimatedVehicleJourney("54321", "4321"), "test");
         expectedSize++;
         assertTrue("Adding Journey did not add element.", EstimatedTimetables.getAll().size() == expectedSize);
 
-        EstimatedTimetables.add(createEstimatedTimetableDeliveryStructure(UUID.randomUUID().toString(), ZonedDateTime.now().plusMinutes(1)), "test2");
+        EstimatedTimetables.add(createEstimatedVehicleJourney("12345", "4321"), "test2");
         expectedSize++;
         assertTrue("Adding Journey for other vendor did not add element.", EstimatedTimetables.getAll().size() == expectedSize);
         assertTrue("Getting Journey for vendor did not return correct element-count.", EstimatedTimetables.getAll("test2").size() == previousSize+1);
@@ -66,10 +64,15 @@ public class EstimatedTimetablesTest {
 
     }
 
-    private EstimatedTimetableDeliveryStructure createEstimatedTimetableDeliveryStructure(String version, ZonedDateTime validUntil) {
-        EstimatedTimetableDeliveryStructure element = new EstimatedTimetableDeliveryStructure();
-        element.setValidUntil(validUntil);
-        element.setVersion(version);
+    private EstimatedVehicleJourney createEstimatedVehicleJourney(String lineRefValue, String vehicleRefValue) {
+        EstimatedVehicleJourney element = new EstimatedVehicleJourney();
+        LineRef lineRef = new LineRef();
+        lineRef.setValue(lineRefValue);
+        element.setLineRef(lineRef);
+        VehicleRef vehicleRef = new VehicleRef();
+        vehicleRef.setValue(vehicleRefValue);
+        element.setVehicleRef(vehicleRef);
+
         return element;
     }
 }

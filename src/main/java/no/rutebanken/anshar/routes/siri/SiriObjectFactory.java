@@ -290,6 +290,7 @@ public class SiriObjectFactory {
         Siri siri = createSiriObject();
         ServiceDelivery delivery = new ServiceDelivery();
         VehicleMonitoringDeliveryStructure deliveryStructure = new VehicleMonitoringDeliveryStructure();
+        deliveryStructure.setVersion("2.0");
         deliveryStructure.getVehicleActivities().addAll(elements);
         deliveryStructure.setResponseTimestamp(ZonedDateTime.now());
         delivery.getVehicleMonitoringDeliveries().add(deliveryStructure);
@@ -298,11 +299,16 @@ public class SiriObjectFactory {
         return siri;
     }
 
-    public static Siri createETServiceDelivery(List<EstimatedTimetableDeliveryStructure> elements) {
+    public static Siri createETServiceDelivery(List<EstimatedVehicleJourney> elements) {
         Siri siri = createSiriObject();
         ServiceDelivery delivery = new ServiceDelivery();
-        delivery.getEstimatedTimetableDeliveries().addAll(elements);
+        EstimatedTimetableDeliveryStructure deliveryStructure = new EstimatedTimetableDeliveryStructure();
+        deliveryStructure.setVersion("2.0");
+        EstimatedVersionFrameStructure estimatedVersionFrameStructure = new EstimatedVersionFrameStructure();
+        estimatedVersionFrameStructure.getEstimatedVehicleJourneies().addAll(elements);
+        deliveryStructure.getEstimatedJourneyVersionFrames().add(estimatedVersionFrameStructure);
         delivery.setResponseTimestamp(ZonedDateTime.now());
+        delivery.getEstimatedTimetableDeliveries().add(deliveryStructure);
         siri.setServiceDelivery(delivery);
         return siri;
     }

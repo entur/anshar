@@ -13,8 +13,10 @@ import org.springframework.context.annotation.Configuration;
 import uk.org.siri.siri20.Siri;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.*;
-import java.time.Instant;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -45,13 +47,9 @@ public class SiriIncomingReceiver extends RouteBuilder {
     @Value("${anshar.validation.enabled}")
     private boolean validationEnabled = false;
 
-    private static Instant validationEnabledSince = null;
-
-    private SiriObjectFactory factory;
     private SiriHandler handler;
 
     public SiriIncomingReceiver() {
-        factory = new SiriObjectFactory();
         handler = new SiriHandler();
     }
 
@@ -64,7 +62,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
         //Incoming notifications/deliveries
         from("jetty:http://0.0.0.0:" + inboundPort + "?matchOnUriPrefix=true&httpMethodRestrict=POST")
                 .choice()
-                    .when(header("CamelHttpPath").endsWith("/services"))
+                    .when(header("CamelHttpPath").endsWith("/services")) //Handle synchronous response
                     .process(p -> {
                         Siri response = handler.handleIncomingSiri(null, p.getIn().getBody(String.class));
                         if (response != null) {
@@ -74,10 +72,11 @@ public class SiriIncomingReceiver extends RouteBuilder {
                         }
                     })
                 .endChoice()
-                .otherwise()
+                .otherwise()  //Handle asynchronous response
                     .to("activemq:queue:" + TRANSFORM_QUEUE + "?disableReplyTo=true")
                     .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
                     .setBody(constant(null))
+                .end()
         ;
 
         from("activemq:queue:" + TRANSFORM_QUEUE + "?asyncConsumer=true")

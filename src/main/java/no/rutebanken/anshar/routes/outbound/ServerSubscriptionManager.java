@@ -256,7 +256,7 @@ public class ServerSubscriptionManager extends CamelRouteManager {
         );
     }
 
-    public void pushUpdatedEstimatedTimetables(List<EstimatedTimetableDeliveryStructure> addedOrUpdated) {
+    public void pushUpdatedEstimatedTimetables(List<EstimatedVehicleJourney> addedOrUpdated) {
 
         Siri delivery = SiriObjectFactory.createETServiceDelivery(addedOrUpdated);
 

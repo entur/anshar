@@ -6,4 +6,5 @@ public class RequestType {
     public static final String CHECK_STATUS = "CheckStatus";
     public static final String GET_VEHICLE_MONITORING = "GetVehicleMonitoring";
     public static final String GET_SITUATION_EXCHANGE = "GetSituationExchange";
+    public static final String GET_ESTIMATED_TIMETABLE = "GetEstimatedTimetable";
 }
