@@ -29,6 +29,9 @@ public class SubscriptionConfig {
     @Value("${anshar.subscription.initial.duration.hours}")
     private Integer initialDuration = 1;
 
+    @Value("${anshar.subscription.heartbeat.interval.seconds}")
+    private Integer heartbeatInterval = 60;
+
     @Value("${anshar.enabled.ruter.sx}")
     private boolean enableRuterSX;
 
@@ -70,7 +73,7 @@ public class SubscriptionConfig {
                 SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE,
                 SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
                 inboundUrl,
-                Duration.ofMinutes(1),
+                Duration.ofSeconds(heartbeatInterval),
                 "http://www.kolumbus.no/siri",
                 urlMap,
                 "1.4",
@@ -106,7 +109,7 @@ public class SubscriptionConfig {
                 SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING,
                 SubscriptionSetup.SubscriptionMode.REQUEST_RESPONSE,
                 inboundUrl,
-                Duration.ofMinutes(1),
+                Duration.ofSeconds(heartbeatInterval),
                 "http://www.kolumbus.no/siri",
                 urlMap,
                 "1.4",
@@ -138,7 +141,7 @@ public class SubscriptionConfig {
         SubscriptionSetup sub = new SubscriptionSetup(SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE,
                 SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
                 inboundUrl,
-                Duration.ofMinutes(1),
+                Duration.ofSeconds(heartbeatInterval),
                 "http://www.siri.org.uk/siri",
                 urlMap,
                 "1.4",
@@ -159,7 +162,7 @@ public class SubscriptionConfig {
         }
     }
 
-  /*  @Bean
+    /*@Bean
     RouteBuilder createAnsharCarbonSubscriptionRoute() {
 
         Map<String, String> urlMap = new HashMap<>();
@@ -167,6 +170,7 @@ public class SubscriptionConfig {
         urlMap.put(RequestType.DELETE_SUBSCRIPTION, "mottak-test.rutebanken.org/anshar/subscribe");
 
         List<ValueAdapter> mappingAdapters = new ArrayList<>();
+        mappingAdapters.add(new LeftPaddingAdapter(StopPointRef.class, 8, '0'));
         mappingAdapters.add(new RightPaddingStopPlaceAdapter(StopPointRef.class, 8, "01"));
 
         SubscriptionSetup sub = new SubscriptionSetup(SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE,
@@ -206,7 +210,7 @@ public class SubscriptionConfig {
         SubscriptionSetup sub = new SubscriptionSetup(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING,
                 SubscriptionSetup.SubscriptionMode.REQUEST_RESPONSE,
                 inboundUrl,
-                Duration.ofMinutes(1),
+                Duration.ofSeconds(heartbeatInterval),
                 "http://www.siri.org.uk/siri",
                 urlMap,
                 "1.4",
@@ -264,7 +268,7 @@ public class SubscriptionConfig {
         SubscriptionSetup sub = new SubscriptionSetup(SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE,
                 SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
                 inboundUrl,
-                Duration.ofMinutes(1),
+                Duration.ofSeconds(heartbeatInterval),
                 "http://www.siri.org.uk/siri",
                 urlMap,
                 "1.4",
@@ -290,12 +294,13 @@ public class SubscriptionConfig {
 
 
         List<ValueAdapter> mappingAdapters = new ArrayList<>();
+        mappingAdapters.add(new LeftPaddingAdapter(StopPointRef.class, 8, '0'));
         mappingAdapters.add(new RightPaddingStopPlaceAdapter(StopPointRef.class, 8, "01"));
 
         SubscriptionSetup sub = new SubscriptionSetup(SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE,
                 SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
                 inboundUrl,
-                Duration.ofMinutes(1),
+                Duration.ofSeconds(heartbeatInterval),
                 "http://www.siri.org.uk/siri",
                 urlMap,
                 "1.4",
@@ -336,8 +341,7 @@ public class SubscriptionConfig {
                 mappingAdapters,
                 UUID.randomUUID().toString(),
                 "RutebankenDEV",
-                Duration.ofDays(7),
-                //Duration.ofHours(initialDuration),
+                Duration.ofHours(initialDuration),
                 enableRuterSX);
 
         //Currently only SUBSCRIBE is supported
@@ -358,7 +362,7 @@ public class SubscriptionConfig {
         SubscriptionSetup sub = new SubscriptionSetup(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING,
                 SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
                 inboundUrl,
-                Duration.ofMinutes(1),
+                Duration.ofSeconds(heartbeatInterval),
                 "http://www.siri.org.uk/siri",
                 urlMap,
                 "2.0",
@@ -369,8 +373,7 @@ public class SubscriptionConfig {
                 "20c2e3a3-1659-41d3-b1a2-1411978b1d43",  //Hard-coded subscriptionId - since Init does not support dynamic address
                 "RutebankenDEV",
                 //UUID.randomUUID().toString(),
-                Duration.ofDays(7),
-                //Duration.ofHours(initialDuration),
+                Duration.ofHours(initialDuration),
                 enableRuterVM);
 
         //Currently only SUBSCRIBE is supported
@@ -392,7 +395,7 @@ public class SubscriptionConfig {
         SubscriptionSetup sub = new SubscriptionSetup(SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE,
                 SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
                 inboundUrl,
-                Duration.ofMinutes(1),
+                Duration.ofSeconds(heartbeatInterval),
                 "http://www.siri.org.uk/siri",
                 urlMap,
                 "2.0",
@@ -403,8 +406,7 @@ public class SubscriptionConfig {
                 "1f6a687e-58b8-4e46-a23c-98adadad78ed",  //Hard-coded subscriptionId - since Init does not support dynamic address
                 //UUID.randomUUID().toString(),
                 "RutebankenDEV",
-                Duration.ofDays(7),
-                //Duration.ofHours(initialDuration),
+                Duration.ofHours(initialDuration),
                 enableRuterET);
 
         //Currently only SUBSCRIBE is supported
