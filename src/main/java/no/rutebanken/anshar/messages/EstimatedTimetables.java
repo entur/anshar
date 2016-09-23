@@ -55,10 +55,23 @@ public class EstimatedTimetables extends DistributedCollection {
 
     private static boolean isStillValid(EstimatedVehicleJourney vehicleJourney) {
         boolean isStillValid = false;
-        ZonedDateTime validUntil = null;
-        //Keep if at least one is valid
-        if (validUntil == null || validUntil.isAfter(ZonedDateTime.now())) {
-            isStillValid = true;
+        if (vehicleJourney != null) {
+            if (vehicleJourney.getEstimatedCalls() != null) {
+                List<EstimatedCall> estimatedCalls = vehicleJourney.getEstimatedCalls().getEstimatedCalls();
+                EstimatedCall lastEstimatedCall = estimatedCalls.get(estimatedCalls.size() - 1);
+
+                ZonedDateTime aimedArrivalTime = lastEstimatedCall.getAimedArrivalTime();
+                ZonedDateTime expectedArrivalTime = lastEstimatedCall.getExpectedArrivalTime();
+
+                //If vehicle arrived at its last stop more than a day ago - remove
+                if (expectedArrivalTime != null) {
+                    return expectedArrivalTime.isAfter(ZonedDateTime.now().minusDays(1));
+                }
+                if (aimedArrivalTime != null) {
+                    return aimedArrivalTime.isAfter(ZonedDateTime.now().minusDays(1));
+                }
+
+            }
         }
         return isStillValid;
     }
