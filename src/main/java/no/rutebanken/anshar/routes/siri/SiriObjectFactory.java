@@ -305,6 +305,7 @@ public class SiriObjectFactory {
         EstimatedTimetableDeliveryStructure deliveryStructure = new EstimatedTimetableDeliveryStructure();
         deliveryStructure.setVersion("2.0");
         EstimatedVersionFrameStructure estimatedVersionFrameStructure = new EstimatedVersionFrameStructure();
+        estimatedVersionFrameStructure.setRecordedAtTime(ZonedDateTime.now());
         estimatedVersionFrameStructure.getEstimatedVehicleJourneies().addAll(elements);
         deliveryStructure.getEstimatedJourneyVersionFrames().add(estimatedVersionFrameStructure);
         delivery.setResponseTimestamp(ZonedDateTime.now());

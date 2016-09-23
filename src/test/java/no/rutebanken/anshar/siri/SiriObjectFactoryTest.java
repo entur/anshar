@@ -6,11 +6,14 @@ import org.junit.Test;
 import uk.org.siri.siri20.*;
 
 import java.time.Duration;
+import java.time.ZonedDateTime;
 import java.util.*;
 
 import static org.junit.Assert.*;
 
 public class SiriObjectFactoryTest {
+
+    private int hoursUntilInitialTermination = 1;
 
     @Test
     public void testCreateVMSubscription(){
@@ -30,6 +33,11 @@ public class SiriObjectFactoryTest {
         assertNotNull(subscription.getSubscriptionIdentifier());
         assertNotNull(subscription.getSubscriptionIdentifier().getValue());
         assertEquals(subscriptionSetup.getSubscriptionId(), subscription.getSubscriptionIdentifier().getValue());
+
+        ZonedDateTime initialTerminationTime = subscription.getInitialTerminationTime();
+
+        assertTrue("Initial terminationtime has not been calculated correctly", ZonedDateTime.now().plusHours(hoursUntilInitialTermination).minusMinutes(1).isBefore(initialTerminationTime));
+        assertTrue("Initial terminationtime has not been calculated correctly", ZonedDateTime.now().plusHours(hoursUntilInitialTermination).plusMinutes(1).isAfter(initialTerminationTime));
 
     }
 
@@ -74,6 +82,12 @@ public class SiriObjectFactoryTest {
         assertNotNull(subscription.getSubscriptionIdentifier().getValue());
         assertEquals(subscriptionSetup.getSubscriptionId(), subscription.getSubscriptionIdentifier().getValue());
 
+        ZonedDateTime initialTerminationTime = subscription.getInitialTerminationTime();
+
+        assertTrue("Initial terminationtime has not been calculated correctly", ZonedDateTime.now().plusHours(hoursUntilInitialTermination).minusMinutes(1).isBefore(initialTerminationTime));
+        assertTrue("Initial terminationtime has not been calculated correctly", ZonedDateTime.now().plusHours(hoursUntilInitialTermination).plusMinutes(1).isAfter(initialTerminationTime));
+
+
 
     }
 
@@ -117,6 +131,12 @@ public class SiriObjectFactoryTest {
         assertNotNull(subscription.getSubscriptionIdentifier());
         assertNotNull(subscription.getSubscriptionIdentifier().getValue());
         assertEquals(subscriptionSetup.getSubscriptionId(), subscription.getSubscriptionIdentifier().getValue());
+
+        ZonedDateTime initialTerminationTime = subscription.getInitialTerminationTime();
+
+        assertTrue("Initial terminationtime has not been calculated correctly", ZonedDateTime.now().plusHours(hoursUntilInitialTermination).minusMinutes(1).isBefore(initialTerminationTime));
+        assertTrue("Initial terminationtime has not been calculated correctly", ZonedDateTime.now().plusHours(hoursUntilInitialTermination).plusMinutes(1).isAfter(initialTerminationTime));
+
 
     }
 
@@ -203,7 +223,7 @@ public class SiriObjectFactoryTest {
 
         SubscriptionSetup subscriptionSetup = createSubscriptionSetup(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING,
                 SubscriptionSetup.SubscriptionMode.REQUEST_RESPONSE,
-                UUID.randomUUID().toString(), null);
+                UUID.randomUUID().toString());
 
         request = SiriObjectFactory.createTerminateSubscriptionRequest(subscriptionSetup);
         assertNotNull(request);
@@ -211,23 +231,7 @@ public class SiriObjectFactoryTest {
     }
 
     private SubscriptionSetup createSubscriptionSetup(SubscriptionSetup.SubscriptionType type, SubscriptionSetup.SubscriptionMode mode, String subscriptionId) {
-        return new SubscriptionSetup(
-                type,
-                mode,
-            "http://localhost",
-            Duration.ofMinutes(1),
-            "http://www.kolumbus.no/siri",
-            new HashMap<>(),
-            "1.4",
-            "dummyvm",
-            "dum",
-            SubscriptionSetup.ServiceType.SOAP,
-            new ArrayList<>(),
-            subscriptionId,
-            "RutebankenDEV",
-            Duration.ofHours(1),
-            true
-            );
+        return createSubscriptionSetup(type, mode, subscriptionId, "RutebankenDev");
     }
 
     private SubscriptionSetup createSubscriptionSetup(SubscriptionSetup.SubscriptionType type, SubscriptionSetup.SubscriptionMode mode, String subscriptionId, String requestorRef) {
@@ -245,7 +249,7 @@ public class SiriObjectFactoryTest {
             new ArrayList<>(),
             subscriptionId,
             requestorRef,
-            Duration.ofHours(1),
+            Duration.ofHours(hoursUntilInitialTermination),
             true
             );
     }
