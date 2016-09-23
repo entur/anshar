@@ -62,6 +62,7 @@ public class Siri20ToSiriRS14Subscription extends SiriSubscriptionRouteBuilder {
                 .process(p -> {
                     String body = p.getIn().getBody(String.class);
                     if (body != null) {
+                        logger.info("Response body {}", body);
                         handleSiriResponse(body);
                     } else {
                         logger.info("Emtpy body - removing subscription");
