@@ -1,5 +1,6 @@
 package no.rutebanken.anshar.routes.health;
 
+import no.rutebanken.anshar.routes.outbound.ServerSubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
@@ -38,6 +39,13 @@ public class LivenessReadinessRoute extends RouteBuilder {
         from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/stats")
                 .process(p-> {
                     p.getOut().setBody(SubscriptionManager.buildStats());
+                })
+        ;
+
+        //Return subscription status
+        from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/subscriptions")
+                .process(p -> {
+                    p.getOut().setBody(new ServerSubscriptionManager().getSubscriptionsAsJson());
                 })
         ;
 

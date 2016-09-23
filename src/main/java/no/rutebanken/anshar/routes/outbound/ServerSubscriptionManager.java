@@ -4,6 +4,8 @@ import no.rutebanken.anshar.messages.EstimatedTimetables;
 import no.rutebanken.anshar.messages.Situations;
 import no.rutebanken.anshar.messages.VehicleActivities;
 import no.rutebanken.anshar.routes.siri.SiriObjectFactory;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,8 +21,8 @@ public class ServerSubscriptionManager extends CamelRouteManager {
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    private Map<String, SubscriptionRequest> subscriptions = new HashMap<>();
-    private Map<String, Timer> heartbeatTimerMap = new HashMap<>();
+    private static Map<String, SubscriptionRequest> subscriptions = new HashMap<>();
+    private static Map<String, Timer> heartbeatTimerMap = new HashMap<>();
 
 
     @Value("${anshar.outbound.heartbeatinterval.minimum}")
@@ -34,6 +36,27 @@ public class ServerSubscriptionManager extends CamelRouteManager {
 
     public ServerSubscriptionManager() {
 
+    }
+
+    public String getSubscriptionsAsJson() {
+
+        JSONArray stats = new JSONArray();
+
+
+        for (String key : subscriptions.keySet()) {
+
+            SubscriptionRequest subscriptionRequest = subscriptions.get(key);
+
+            JSONObject obj = new JSONObject();
+            obj.put("subscriptionRef",""+key);
+            obj.put("address",subscriptionRequest.getConsumerAddress());
+            obj.put("requestReceived",subscriptionRequest.getRequestTimestamp());
+            obj.put("initialTerminationTime",findInitialTerminationTime(subscriptionRequest));
+
+            stats.add(obj);
+        }
+
+        return stats.toJSONString();
     }
 
     public void handleSubscriptionRequest(SubscriptionRequest subscriptionRequest) {
