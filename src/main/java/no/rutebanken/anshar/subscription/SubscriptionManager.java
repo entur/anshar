@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.HashMap;
 import java.util.Map;
 
 public class SubscriptionManager extends DistributedCollection {

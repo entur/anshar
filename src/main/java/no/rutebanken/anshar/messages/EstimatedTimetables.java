@@ -2,13 +2,11 @@ package no.rutebanken.anshar.messages;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.org.siri.siri20.EstimatedCall;
 import uk.org.siri.siri20.EstimatedVehicleJourney;
 
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class EstimatedTimetables extends DistributedCollection {
     private static Logger logger = LoggerFactory.getLogger(EstimatedTimetables.class);
@@ -55,7 +53,7 @@ public class EstimatedTimetables extends DistributedCollection {
         }
     }
 
-    private static boolean isStillValid(EstimatedVehicleJourney s) {
+    private static boolean isStillValid(EstimatedVehicleJourney vehicleJourney) {
         boolean isStillValid = false;
         ZonedDateTime validUntil = null;
         //Keep if at least one is valid
@@ -85,7 +83,9 @@ public class EstimatedTimetables extends DistributedCollection {
                 .append(":")
                 .append((element.getVehicleRef() != null ? element.getVehicleRef().getValue() : "null"))
                 .append(":")
-                .append((element.getDirectionRef() != null ? element.getDirectionRef().getValue() :"null"));
+                .append((element.getDirectionRef() != null ? element.getDirectionRef().getValue() :"null"))
+                .append(":")
+                .append((element.getDatedVehicleJourneyRef() != null ? element.getDatedVehicleJourneyRef().getValue() :"null"));
 
         return key.toString();
     }
