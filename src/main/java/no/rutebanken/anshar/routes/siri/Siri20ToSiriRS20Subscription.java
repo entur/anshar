@@ -84,9 +84,12 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
                 .to("http4://" + urlMap.get(RequestType.DELETE_SUBSCRIPTION))
                 .to("log:received response:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .process(p -> {
+                    String body = p.getIn().getBody(String.class);
+                    logger.info("Response body [{}]", body);
+                    if (body != null && !body.isEmpty()) {
+                        handleSiriResponse(body);
+                    }
 
-                    String responseCode = p.getIn().getHeader("CamelHttpResponseCode", String.class);
-                    logger.info("TerminateSubscriptionResponse {}", responseCode);
                     SubscriptionManager.removeSubscription(subscriptionSetup.getSubscriptionId());
 
                 });

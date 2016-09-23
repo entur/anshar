@@ -78,7 +78,11 @@ public class Siri20ToSiriWS14Subscription extends SiriSubscriptionRouteBuilder {
                 .to("xslt:xsl/siri_14_20.xsl?saxon=true&allowStAX=false") // Convert from v1.4 to 2.0
                 .to("log:received:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .process(p -> {
-                    handleSiriResponse(p.getIn().getBody(String.class));
+                    String body = p.getIn().getBody(String.class);
+                    logger.info("Response body [{}]", body);
+                    if (body != null && !body.isEmpty()) {
+                        handleSiriResponse(body);
+                    }
                     SubscriptionManager.removeSubscription(subscriptionSetup.getSubscriptionId());
                 })
         ;

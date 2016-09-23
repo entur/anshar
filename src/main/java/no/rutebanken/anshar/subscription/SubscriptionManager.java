@@ -45,6 +45,8 @@ public class SubscriptionManager extends DistributedCollection {
         activatedTimestamp.remove(subscriptionId);
         pendingSubscriptions.remove(subscriptionId);
         logStats();
+
+        logger.info("Removing subscription {}, success: {}", setup, success);
         return success;
     }
 
