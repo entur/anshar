@@ -68,7 +68,8 @@ public class EstimatedTimetables extends DistributedCollection {
         if (timetableDelivery == null) {return null;}
         EstimatedVehicleJourney previous = timetableDeliveries.put(createKey(datasetId, timetableDelivery), timetableDelivery);
         if (previous != null) {
-            //TODO: Determine if data is updated?
+            // TODO: Determine if data is updated?
+            // Currently assumes that unique key is enough to replace/update data
         }
         return previous;
     }
