@@ -1,9 +1,12 @@
 package no.rutebanken.anshar.messages;
 
 import org.junit.Test;
+import uk.org.siri.siri20.EstimatedCall;
 import uk.org.siri.siri20.EstimatedVehicleJourney;
 import uk.org.siri.siri20.LineRef;
 import uk.org.siri.siri20.VehicleRef;
+
+import java.time.ZonedDateTime;
 
 import static org.junit.Assert.assertTrue;
 
@@ -72,6 +75,15 @@ public class EstimatedTimetablesTest {
         VehicleRef vehicleRef = new VehicleRef();
         vehicleRef.setValue(vehicleRefValue);
         element.setVehicleRef(vehicleRef);
+
+        EstimatedVehicleJourney.EstimatedCalls estimatedCalls = new EstimatedVehicleJourney.EstimatedCalls();
+        EstimatedCall call = new EstimatedCall();
+        call.setAimedArrivalTime(ZonedDateTime.now());
+        call.setExpectedArrivalTime(ZonedDateTime.now());
+        call.setAimedDepartureTime(ZonedDateTime.now());
+        call.setExpectedDepartureTime(ZonedDateTime.now());
+        estimatedCalls.getEstimatedCalls().add(call);
+        element.setEstimatedCalls(estimatedCalls);
 
         return element;
     }
