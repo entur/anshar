@@ -49,9 +49,9 @@ public class ServerSubscriptionManager extends CamelRouteManager {
 
             JSONObject obj = new JSONObject();
             obj.put("subscriptionRef",""+key);
-            obj.put("address",subscriptionRequest.getConsumerAddress());
-            obj.put("requestReceived",subscriptionRequest.getRequestTimestamp());
-            obj.put("initialTerminationTime",findInitialTerminationTime(subscriptionRequest));
+            obj.put("address",""+subscriptionRequest.getConsumerAddress());
+            obj.put("requestReceived",""+subscriptionRequest.getRequestTimestamp());
+            obj.put("initialTerminationTime",""+findInitialTerminationTime(subscriptionRequest));
 
             stats.add(obj);
         }
