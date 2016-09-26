@@ -162,7 +162,7 @@ public class SubscriptionConfig {
         }
     }
 
-    /*@Bean
+    @Bean
     RouteBuilder createAnsharCarbonSubscriptionRoute() {
 
         Map<String, String> urlMap = new HashMap<>();
@@ -187,13 +187,13 @@ public class SubscriptionConfig {
                 "1234-1234-1234-ET",
                 "RutebankenDEV",
                 Duration.ofHours(2),
-                true);
+                false);
 
 
             return new Siri20ToSiriRS20Subscription(sub);
 
     }
-*/
+
     @Bean
     RouteBuilder createAtBSiriVMSubscriptionRoute() {
 
@@ -362,7 +362,8 @@ public class SubscriptionConfig {
         SubscriptionSetup sub = new SubscriptionSetup(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING,
                 SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
                 inboundUrl,
-                Duration.ofSeconds(heartbeatInterval),
+//                Duration.ofSeconds(heartbeatInterval),
+                Duration.ofDays(7),
                 "http://www.siri.org.uk/siri",
                 urlMap,
                 "2.0",
@@ -395,7 +396,8 @@ public class SubscriptionConfig {
         SubscriptionSetup sub = new SubscriptionSetup(SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE,
                 SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
                 inboundUrl,
-                Duration.ofSeconds(heartbeatInterval),
+//                Duration.ofSeconds(heartbeatInterval),
+                Duration.ofDays(7),
                 "http://www.siri.org.uk/siri",
                 urlMap,
                 "2.0",
