@@ -244,6 +244,9 @@ public class ServerSubscriptionManager extends CamelRouteManager {
 
     public void pushUpdatedVehicleActivities(List<VehicleActivityStructure> addedOrUpdated) {
 
+        if (addedOrUpdated == null || addedOrUpdated.isEmpty()) {
+            return;
+        }
         Siri delivery = SiriObjectFactory.createVMServiceDelivery(addedOrUpdated);
 
         subscriptions.values().stream().filter(subscriptionRequest ->
@@ -257,6 +260,9 @@ public class ServerSubscriptionManager extends CamelRouteManager {
 
     public void pushUpdatedSituations(List<PtSituationElement> addedOrUpdated) {
 
+        if (addedOrUpdated == null || addedOrUpdated.isEmpty()) {
+            return;
+        }
         Siri delivery = SiriObjectFactory.createSXServiceDelivery(addedOrUpdated);
 
         subscriptions.values().stream().filter(subscriptionRequest ->
@@ -269,6 +275,10 @@ public class ServerSubscriptionManager extends CamelRouteManager {
 
     public void pushUpdatedProductionTimetables(List<ProductionTimetableDeliveryStructure> addedOrUpdated) {
 
+        if (addedOrUpdated == null || addedOrUpdated.isEmpty()) {
+            return;
+        }
+
         Siri delivery = SiriObjectFactory.createPTServiceDelivery(addedOrUpdated);
 
         subscriptions.values().stream().filter(subscriptionRequest ->
@@ -280,6 +290,10 @@ public class ServerSubscriptionManager extends CamelRouteManager {
     }
 
     public void pushUpdatedEstimatedTimetables(List<EstimatedVehicleJourney> addedOrUpdated) {
+
+        if (addedOrUpdated == null || addedOrUpdated.isEmpty()) {
+            return;
+        }
 
         Siri delivery = SiriObjectFactory.createETServiceDelivery(addedOrUpdated);
 

@@ -83,11 +83,11 @@ public class EstimatedTimetables extends DistributedCollection {
         if (previous != null) {
             // TODO: Determine if data is updated?
             // Currently assumes that unique key is enough to replace/update data
+            return previous;
         } else {
             // new element
             return timetableDelivery;
         }
-        return null;
     }
 
     private static String createKey(String datasetId, EstimatedVehicleJourney element) {
