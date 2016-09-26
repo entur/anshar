@@ -7,12 +7,14 @@ import no.rutebanken.anshar.messages.VehicleActivities;
 import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.converter.jaxb.JaxbDataFormat;
 import org.apache.http.entity.ContentType;
 import org.rutebanken.siri20.util.SiriXml;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import uk.org.siri.siri20.Siri;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -42,6 +44,8 @@ public class SiriProvider extends RouteBuilder {
     @Override
     public void configure() throws Exception {
 
+        JaxbDataFormat jaxb = new JaxbDataFormat(Siri.class.getPackage().getName());
+
         // Dataproviders
         from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/rest/sx?httpMethodRestrict=GET")
                 .log("RequestTracer [${in.header.breadcrumbId}] Incoming request (SX)")
@@ -50,17 +54,15 @@ public class SiriProvider extends RouteBuilder {
 
                     HttpServletRequest request = p.getIn().getBody(HttpServletRequest.class);
                     String datasetId = request.getParameter("datasetId");
-                    HttpServletResponse response = p.getOut().getBody(HttpServletResponse.class);
+                    Siri response;
                     if (datasetId != null && !datasetId.isEmpty()) {
-                        SiriXml.toXml(factory.createSXServiceDelivery(Situations.getAll(datasetId)), null, response.getOutputStream());
+                        response = factory.createSXServiceDelivery(Situations.getAll(datasetId));
                     } else {
-                        SiriXml.toXml(factory.createSXServiceDelivery(Situations.getAll()), null, response.getOutputStream());
+                        response = factory.createSXServiceDelivery(Situations.getAll());
                     }
-                    p.getOut().setHeader("Accept-Encoding", p.getIn().getHeader("Accept-Encoding"));
-                    p.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"));
-                    p.getOut().setHeader(Exchange.CONTENT_TYPE, constant(ContentType.create("text/xml", Charset.forName("UTF-8"))));
+                    p.getOut().setBody(response);
                 })
-                .log("RequestTracer [${in.header.breadcrumbId}] Outgoing response (SX)")
+                .to("direct:processResponse")
         ;
 
         from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/rest/vm?httpMethodRestrict=GET")
@@ -70,18 +72,18 @@ public class SiriProvider extends RouteBuilder {
 
                     HttpServletRequest request = p.getIn().getBody(HttpServletRequest.class);
                     String datasetId = request.getParameter("datasetId");
-                    HttpServletResponse response = p.getOut().getBody(HttpServletResponse.class);
+
+                    Siri response;
                     if (datasetId != null && !datasetId.isEmpty()) {
-                        SiriXml.toXml(factory.createVMServiceDelivery(VehicleActivities.getAll(datasetId)), null, response.getOutputStream());
+                        response = factory.createVMServiceDelivery(VehicleActivities.getAll(datasetId));
                     } else {
-                        SiriXml.toXml(factory.createVMServiceDelivery(VehicleActivities.getAll()), null, response.getOutputStream());
+                        response = factory.createVMServiceDelivery(VehicleActivities.getAll());
                     }
-                    p.getOut().setHeader("Accept-Encoding", p.getIn().getHeader("Accept-Encoding"));
-                    p.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"));
-                    p.getOut().setHeader(Exchange.CONTENT_TYPE, constant(ContentType.create("text/xml", Charset.forName("UTF-8"))));
+                    p.getOut().setBody(response);
                 })
-                .log("RequestTracer [${in.header.breadcrumbId}] Outgoing response (VM)")
+                .to("direct:processResponse")
         ;
+
 
         from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/rest/et?httpMethodRestrict=GET")
                 .log("RequestTracer [${in.header.breadcrumbId}] Incoming request (ET)")
@@ -90,18 +92,16 @@ public class SiriProvider extends RouteBuilder {
 
                     HttpServletRequest request = p.getIn().getBody(HttpServletRequest.class);
                     String datasetId = request.getParameter("datasetId");
-                    HttpServletResponse response = p.getOut().getBody(HttpServletResponse.class);
-                    if (datasetId != null && !datasetId.isEmpty()) {
-                        SiriXml.toXml(factory.createETServiceDelivery(EstimatedTimetables.getAll(datasetId)), null, response.getOutputStream());
-                    } else {
-                        SiriXml.toXml(factory.createETServiceDelivery(EstimatedTimetables.getAll()), null, response.getOutputStream());
-                    }
 
-                    p.getOut().setHeader("Accept-Encoding", p.getIn().getHeader("Accept-Encoding"));
-                    p.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"));
-                    p.getOut().setHeader(Exchange.CONTENT_TYPE, constant(ContentType.create("text/xml", Charset.forName("UTF-8"))));
+                    Siri response;
+                    if (datasetId != null && !datasetId.isEmpty()) {
+                        response = factory.createETServiceDelivery(EstimatedTimetables.getAll(datasetId));
+                    } else {
+                        response = factory.createETServiceDelivery(EstimatedTimetables.getAll());
+                    }
+                    p.getOut().setBody(response);
                 })
-                .log("RequestTracer [${in.header.breadcrumbId}] Outgoing response (ET)")
+                .to("direct:processResponse")
         ;
 
 
@@ -112,18 +112,22 @@ public class SiriProvider extends RouteBuilder {
 
                     HttpServletRequest request = p.getIn().getBody(HttpServletRequest.class);
                     String datasetId = request.getParameter("datasetId");
-                    HttpServletResponse response = p.getOut().getBody(HttpServletResponse.class);
+                    Siri response;
                     if (datasetId != null && !datasetId.isEmpty()) {
-                        SiriXml.toXml(factory.createPTServiceDelivery(ProductionTimetables.getAll(datasetId)), null, response.getOutputStream());
+                        response = factory.createPTServiceDelivery(ProductionTimetables.getAll(datasetId));
                     } else {
-                        SiriXml.toXml(factory.createPTServiceDelivery(ProductionTimetables.getAll()), null, response.getOutputStream());
+                        response = factory.createPTServiceDelivery(ProductionTimetables.getAll());
                     }
-                    p.getOut().setHeader("Accept-Encoding", p.getIn().getHeader("Accept-Encoding"));
-                    p.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"));
-                    p.getOut().setHeader(Exchange.CONTENT_TYPE, constant(ContentType.create("text/xml", Charset.forName("UTF-8"))));
+                    p.getOut().setBody(response);
                 })
-                .log("RequestTracer [${in.header.breadcrumbId}] Outgoing response (PT)")
+                .to("direct:processResponse")
         ;
 
+        from("direct:processResponse")
+                .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
+                .setHeader(Exchange.CONTENT_TYPE, constant(ContentType.create("text/xml", Charset.forName("UTF-8"))))
+                .marshal(jaxb)
+                .log("RequestTracer [${in.header.breadcrumbId}] Outgoing response")
+        ;
     }
 }
