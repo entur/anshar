@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.nio.charset.Charset;
 
 @Configuration
@@ -49,15 +50,18 @@ public class SiriProvider extends RouteBuilder {
 
                     HttpServletRequest request = p.getIn().getBody(HttpServletRequest.class);
                     String datasetId = request.getParameter("datasetId");
+                    HttpServletResponse response = p.getOut().getBody(HttpServletResponse.class);
                     if (datasetId != null && !datasetId.isEmpty()) {
-                        p.getOut().setBody(SiriXml.toXml(factory.createSXServiceDelivery(Situations.getAll(datasetId))));
+                        SiriXml.toXml(factory.createSXServiceDelivery(Situations.getAll(datasetId)), null, response.getOutputStream());
                     } else {
-                        p.getOut().setBody(SiriXml.toXml(factory.createSXServiceDelivery(Situations.getAll())));
+                        SiriXml.toXml(factory.createSXServiceDelivery(Situations.getAll()), null, response.getOutputStream());
                     }
                     p.getOut().setHeader("Accept-Encoding", p.getIn().getHeader("Accept-Encoding"));
+                    p.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"));
+                    p.getOut().setHeader(Exchange.CONTENT_TYPE, constant(ContentType.create("text/xml", Charset.forName("UTF-8"))));
                 })
-                .to("direct:processResponse")
         ;
+
         from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/rest/vm?httpMethodRestrict=GET")
                 .log("RequestTracer [${in.header.breadcrumbId}] Incoming request (VM)")
                 .process(p -> {
@@ -65,14 +69,16 @@ public class SiriProvider extends RouteBuilder {
 
                     HttpServletRequest request = p.getIn().getBody(HttpServletRequest.class);
                     String datasetId = request.getParameter("datasetId");
+                    HttpServletResponse response = p.getOut().getBody(HttpServletResponse.class);
                     if (datasetId != null && !datasetId.isEmpty()) {
-                        p.getOut().setBody(SiriXml.toXml(factory.createVMServiceDelivery(VehicleActivities.getAll(datasetId))));
+                        SiriXml.toXml(factory.createVMServiceDelivery(VehicleActivities.getAll(datasetId)), null, response.getOutputStream());
                     } else {
-                        p.getOut().setBody(SiriXml.toXml(factory.createVMServiceDelivery(VehicleActivities.getAll())));
+                        SiriXml.toXml(factory.createVMServiceDelivery(VehicleActivities.getAll()), null, response.getOutputStream());
                     }
                     p.getOut().setHeader("Accept-Encoding", p.getIn().getHeader("Accept-Encoding"));
+                    p.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"));
+                    p.getOut().setHeader(Exchange.CONTENT_TYPE, constant(ContentType.create("text/xml", Charset.forName("UTF-8"))));
                 })
-                .to("direct:processResponse")
         ;
 
         from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/rest/et?httpMethodRestrict=GET")
@@ -82,16 +88,20 @@ public class SiriProvider extends RouteBuilder {
 
                     HttpServletRequest request = p.getIn().getBody(HttpServletRequest.class);
                     String datasetId = request.getParameter("datasetId");
+                    HttpServletResponse response = p.getOut().getBody(HttpServletResponse.class);
                     if (datasetId != null && !datasetId.isEmpty()) {
-                        p.getOut().setBody(SiriXml.toXml(factory.createETServiceDelivery(EstimatedTimetables.getAll(datasetId))));
+                        SiriXml.toXml(factory.createETServiceDelivery(EstimatedTimetables.getAll(datasetId)), null, response.getOutputStream());
                     } else {
-                        p.getOut().setBody(SiriXml.toXml(factory.createETServiceDelivery(EstimatedTimetables.getAll())));
+                        SiriXml.toXml(factory.createETServiceDelivery(EstimatedTimetables.getAll()), null, response.getOutputStream());
                     }
 
                     p.getOut().setHeader("Accept-Encoding", p.getIn().getHeader("Accept-Encoding"));
+                    p.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"));
+                    p.getOut().setHeader(Exchange.CONTENT_TYPE, constant(ContentType.create("text/xml", Charset.forName("UTF-8"))));
                 })
-                .to("direct:processResponse")
+                .log("RequestTracer [${in.header.breadcrumbId}] Outgoing response (ET)")
         ;
+
 
         from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/rest/pt?httpMethodRestrict=GET")
                 .log("RequestTracer [${in.header.breadcrumbId}] Incoming request (PT)")
@@ -100,22 +110,17 @@ public class SiriProvider extends RouteBuilder {
 
                     HttpServletRequest request = p.getIn().getBody(HttpServletRequest.class);
                     String datasetId = request.getParameter("datasetId");
+                    HttpServletResponse response = p.getOut().getBody(HttpServletResponse.class);
                     if (datasetId != null && !datasetId.isEmpty()) {
-                        p.getOut().setBody(SiriXml.toXml(factory.createPTServiceDelivery(ProductionTimetables.getAll(datasetId))));
+                        SiriXml.toXml(factory.createPTServiceDelivery(ProductionTimetables.getAll(datasetId)), null, response.getOutputStream());
                     } else {
-                        p.getOut().setBody(SiriXml.toXml(factory.createPTServiceDelivery(ProductionTimetables.getAll())));
+                        SiriXml.toXml(factory.createPTServiceDelivery(ProductionTimetables.getAll()), null, response.getOutputStream());
                     }
                     p.getOut().setHeader("Accept-Encoding", p.getIn().getHeader("Accept-Encoding"));
+                    p.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"));
+                    p.getOut().setHeader(Exchange.CONTENT_TYPE, constant(ContentType.create("text/xml", Charset.forName("UTF-8"))));
                 })
-                .to("direct:processResponse")
         ;
 
-        from("direct:processResponse")
-                .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
-                .setHeader(Exchange.CONTENT_TYPE, constant(ContentType.create("text/xml", Charset.forName("UTF-8"))))
-                .marshal().string()
-                .end()
-                .log("RequestTracer [${in.header.breadcrumbId}] Outgoing response")
-        ;
     }
 }
