@@ -60,6 +60,7 @@ public class SiriProvider extends RouteBuilder {
                     p.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"));
                     p.getOut().setHeader(Exchange.CONTENT_TYPE, constant(ContentType.create("text/xml", Charset.forName("UTF-8"))));
                 })
+                .log("RequestTracer [${in.header.breadcrumbId}] Outgoing response (SX)")
         ;
 
         from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/rest/vm?httpMethodRestrict=GET")
@@ -79,6 +80,7 @@ public class SiriProvider extends RouteBuilder {
                     p.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"));
                     p.getOut().setHeader(Exchange.CONTENT_TYPE, constant(ContentType.create("text/xml", Charset.forName("UTF-8"))));
                 })
+                .log("RequestTracer [${in.header.breadcrumbId}] Outgoing response (VM)")
         ;
 
         from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/rest/et?httpMethodRestrict=GET")
@@ -120,6 +122,7 @@ public class SiriProvider extends RouteBuilder {
                     p.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"));
                     p.getOut().setHeader(Exchange.CONTENT_TYPE, constant(ContentType.create("text/xml", Charset.forName("UTF-8"))));
                 })
+                .log("RequestTracer [${in.header.breadcrumbId}] Outgoing response (PT)")
         ;
 
     }
