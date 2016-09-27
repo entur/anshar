@@ -10,10 +10,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import uk.org.siri.siri20.Siri;
+import uk.org.siri.siri20.SubscriptionRequest;
 
 import javax.xml.bind.JAXBException;
 import java.net.SocketException;
 import java.util.UUID;
+
+import static no.rutebanken.anshar.routes.outbound.SiriHelper.getFilter;
 
 @Service
 public class CamelRouteManager implements CamelContextAware {
@@ -35,14 +38,17 @@ public class CamelRouteManager implements CamelContextAware {
     /**
      * Creates a new ad-hoc route that sends the SIRI payload to supplied address, executes it, and finally terminates and removes it.
      * @param payload
-     * @param consumerAddress
+     * @param subscriptionRequest
      * @param soapRequest
      */
-    public void pushSiriData(Siri payload, String consumerAddress, boolean soapRequest) {
+    public void pushSiriData(Siri payload, SubscriptionRequest subscriptionRequest, boolean soapRequest) {
+        String consumerAddress = subscriptionRequest.getConsumerAddress();
         if (consumerAddress == null) {
             logger.info("ConsumerAddress is null - ignoring data.");
             return;
         }
+
+        Siri filteredPayload = SiriHelper.filterSiriPayload(payload, getFilter(subscriptionRequest));
 
         Thread r = new Thread() {
             @Override
@@ -51,7 +57,7 @@ public class CamelRouteManager implements CamelContextAware {
 
                     SiriPushRouteBuilder siriPushRouteBuilder = new SiriPushRouteBuilder(consumerAddress, soapRequest);
                     String routeId = addSiriPushRoute(siriPushRouteBuilder);
-                    executeSiriPushRoute(payload, siriPushRouteBuilder.getRouteName());
+                    executeSiriPushRoute(filteredPayload, siriPushRouteBuilder.getRouteName());
                     stopAndRemoveSiriPushRoute(routeId);
 
                 } catch (Exception e) {
@@ -67,13 +73,16 @@ public class CamelRouteManager implements CamelContextAware {
     }
 
     private String addSiriPushRoute(SiriPushRouteBuilder route) throws Exception {
-        this.camelContext.addRoutes(route);
+        camelContext.addRoutes(route);
+        logger.info("Route added - CamelContext now has {} routes", this.camelContext.getRoutes().size());
         return route.getDefinition().getId();
     }
 
     private boolean stopAndRemoveSiriPushRoute(String routeId) throws Exception {
-        this.getCamelContext().stopRoute(routeId);
-        return this.camelContext.removeRoute(routeId);
+        camelContext.stopRoute(routeId);
+        boolean result = camelContext.removeRoute(routeId);
+        logger.info("Route removed [{}] - CamelContext now has {} routes", result, this.camelContext.getRoutes().size());
+        return result;
     }
 
 
