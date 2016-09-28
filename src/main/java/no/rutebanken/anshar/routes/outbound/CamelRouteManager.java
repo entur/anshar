@@ -3,6 +3,7 @@ package no.rutebanken.anshar.routes.outbound;
 import org.apache.camel.CamelContext;
 import org.apache.camel.CamelContextAware;
 import org.apache.camel.ProducerTemplate;
+import org.apache.camel.Route;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.RouteDefinition;
 import org.rutebanken.siri20.util.SiriXml;
@@ -74,14 +75,24 @@ public class CamelRouteManager implements CamelContextAware {
 
     private String addSiriPushRoute(SiriPushRouteBuilder route) throws Exception {
         camelContext.addRoutes(route);
-        logger.info("Route added - CamelContext now has {} routes", this.camelContext.getRoutes().size());
+        logger.info("Route added - CamelContext now has {} routes", camelContext.getRoutes().size());
         return route.getDefinition().getId();
     }
 
     private boolean stopAndRemoveSiriPushRoute(String routeId) throws Exception {
         camelContext.stopRoute(routeId);
         boolean result = camelContext.removeRoute(routeId);
-        logger.info("Route removed [{}] - CamelContext now has {} routes", result, this.camelContext.getRoutes().size());
+        int idxToRemove = -1;
+        for (int i = camelContext.getRoutes().size()-1; i > 0; i--) { //Looping backwards since new routes are added to the end of the list
+            Route route = camelContext.getRoutes().get(i);
+            if (route.getId().equals(routeId)) {
+                idxToRemove = i;
+            }
+        }
+        if (idxToRemove >= 0) {
+            camelContext.getRoutes().remove(idxToRemove);
+            logger.info("Route removed [{}] - CamelContext now has {} routes", result, camelContext.getRoutes().size());
+        }
         return result;
     }
 
