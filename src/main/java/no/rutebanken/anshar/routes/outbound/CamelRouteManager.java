@@ -1,9 +1,6 @@
 package no.rutebanken.anshar.routes.outbound;
 
-import org.apache.camel.CamelContext;
-import org.apache.camel.CamelContextAware;
-import org.apache.camel.ProducerTemplate;
-import org.apache.camel.Route;
+import org.apache.camel.*;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.RouteDefinition;
 import org.rutebanken.siri20.util.SiriXml;
@@ -57,9 +54,9 @@ public class CamelRouteManager implements CamelContextAware {
                 try {
 
                     SiriPushRouteBuilder siriPushRouteBuilder = new SiriPushRouteBuilder(consumerAddress, soapRequest);
-                    addSiriPushRoute(siriPushRouteBuilder);
+                    String routeId = addSiriPushRoute(siriPushRouteBuilder);
                     executeSiriPushRoute(filteredPayload, siriPushRouteBuilder.getRouteName());
-                    stopAndRemoveSiriPushRoute(siriPushRouteBuilder);
+                    stopAndRemoveSiriPushRoute(routeId);
                 } catch (Exception e) {
                     if (e.getCause() instanceof SocketException) {
                         logger.info("Recipient is unreachable - ignoring");
@@ -72,14 +69,16 @@ public class CamelRouteManager implements CamelContextAware {
         r.start();
     }
 
-    private void addSiriPushRoute(SiriPushRouteBuilder route) throws Exception {
-        camelContext.addRouteDefinition(route.getDefinition());
-        logger.info("Route added - CamelContext now has {} routes, {} definitions", camelContext.getRoutes().size(), camelContext.getRouteDefinitions().size());
+    private String addSiriPushRoute(SiriPushRouteBuilder route) throws Exception {
+        camelContext.addRoutes(route);
+        logger.info("Route added - CamelContext now has {} routes", camelContext.getRoutes().size());
+        return route.getDefinition().getId();
     }
 
-    private void stopAndRemoveSiriPushRoute(SiriPushRouteBuilder route) throws Exception {
-        camelContext.removeRouteDefinition(route.getDefinition());
-        logger.info("Route removed - CamelContext now has {} routes, {} definitions", camelContext.getRoutes().size(), camelContext.getRouteDefinitions().size());
+    private boolean stopAndRemoveSiriPushRoute(String routeId) throws Exception {
+        camelContext.removeRoute(routeId);
+        logger.info("Route removed [{}] - CamelContext now has {} routes", camelContext.getRoutes().size());
+        return true;
     }
 
 
@@ -120,14 +119,14 @@ public class CamelRouteManager implements CamelContextAware {
 
             if (soapRequest) {
                 definition = from(routeName)
-                        .routeId(remoteEndPoint)
+                        .log(LoggingLevel.INFO, "POST data (SOAP) to " + remoteEndPoint)
                         .to("xslt:xsl/siri_raw_soap.xsl") // Convert SIRI raw request to SOAP version
                         .setHeader("CamelHttpMethod", constant("POST"))
                         .marshal().string("UTF-8")
                         .to("http4://" + remoteEndPoint);
             } else {
                 definition = from(routeName)
-                        .routeId(remoteEndPoint)
+                        .log(LoggingLevel.INFO, "POST data to " + remoteEndPoint)
                         .setHeader("CamelHttpMethod", constant("POST"))
                         .marshal().string("UTF-8")
                         .to("http4://" + remoteEndPoint);
