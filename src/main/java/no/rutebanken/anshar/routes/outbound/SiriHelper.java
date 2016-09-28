@@ -103,9 +103,16 @@ public class SiriHelper {
     }
 
     private static Siri applyVmFilter(Siri siri, Map<Class, Set<String>> filter) {
-        Set<String> linerefValues = filter.get(LineRef.class);
+
+        filterLineRef(siri, filter.get(LineRef.class));
+        filterVehicleRef(siri, filter.get(VehicleRef.class));
+
+        return siri;
+    }
+
+    private static void filterLineRef(Siri siri, Set<String> linerefValues) {
         if (linerefValues == null || linerefValues.isEmpty()) {
-            return siri;
+            return;
         }
         List<VehicleMonitoringDeliveryStructure> vehicleMonitoringDeliveries = siri.getServiceDelivery().getVehicleMonitoringDeliveries();
         for (VehicleMonitoringDeliveryStructure delivery : vehicleMonitoringDeliveries) {
@@ -125,9 +132,32 @@ public class SiriHelper {
             delivery.getVehicleActivities().clear();
             delivery.getVehicleActivities().addAll(filteredActivities);
         }
-
-        return siri;
     }
+
+    private static void filterVehicleRef(Siri siri, Set<String> vehiclerefValues) {
+        if (vehiclerefValues == null || vehiclerefValues.isEmpty()) {
+            return;
+        }
+        List<VehicleMonitoringDeliveryStructure> vehicleMonitoringDeliveries = siri.getServiceDelivery().getVehicleMonitoringDeliveries();
+        for (VehicleMonitoringDeliveryStructure delivery : vehicleMonitoringDeliveries) {
+            List<VehicleActivityStructure> vehicleActivities = delivery.getVehicleActivities();
+            List<VehicleActivityStructure> filteredActivities = new ArrayList<>();
+
+            for (VehicleActivityStructure vehicleActivity : vehicleActivities) {
+                VehicleActivityStructure.MonitoredVehicleJourney monitoredVehicleJourney = vehicleActivity.getMonitoredVehicleJourney();
+                if (monitoredVehicleJourney != null) {
+                    if (monitoredVehicleJourney.getVehicleRef() != null) {
+                        if (vehiclerefValues.contains(monitoredVehicleJourney.getVehicleRef().getValue())) {
+                            filteredActivities.add(vehicleActivity);
+                        }
+                    }
+                }
+            }
+            delivery.getVehicleActivities().clear();
+            delivery.getVehicleActivities().addAll(filteredActivities);
+        }
+    }
+
     private static Siri applySxFilter(Siri siri, Map<Class, Set<String>> filter) {
 
         Set<String> linerefValues = filter.get(LineRef.class);
