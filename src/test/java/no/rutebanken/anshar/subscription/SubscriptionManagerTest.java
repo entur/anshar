@@ -166,7 +166,7 @@ public class SubscriptionManagerTest {
                 "tst",
                 SubscriptionSetup.ServiceType.SOAP,
                 new ArrayList<>(),
-                UUID.randomUUID().toString(),
+                new HashMap<>(), UUID.randomUUID().toString(),
                 "RutebankenDEV", Duration.ofSeconds(initialDuration),
                 true
         );
@@ -186,7 +186,7 @@ public class SubscriptionManagerTest {
                 "tst",
                 SubscriptionSetup.ServiceType.SOAP,
                 new ArrayList<>(),
-                UUID.randomUUID().toString(),
+                new HashMap<>(), UUID.randomUUID().toString(),
                 "RutebankenDEV", Duration.ofSeconds(initialDuration),
                 true
         );

@@ -247,7 +247,7 @@ public class SiriObjectFactoryTest {
             "dum",
             SubscriptionSetup.ServiceType.SOAP,
             new ArrayList<>(),
-            subscriptionId,
+                new HashMap<>(), subscriptionId,
             requestorRef,
             Duration.ofHours(hoursUntilInitialTermination),
             true

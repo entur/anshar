@@ -9,6 +9,7 @@ import java.time.Duration;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class SubscriptionSetup implements Serializable{
 
@@ -27,6 +28,7 @@ public class SubscriptionSetup implements Serializable{
     private String requestorRef;
     private boolean active;
     private SubscriptionMode subscriptionMode;
+    private Map<Class, Set<String>> filterMap;
 
     /**
      * @param subscriptionType SX, VM, ET
@@ -38,13 +40,14 @@ public class SubscriptionSetup implements Serializable{
      * @param vendor Vendorname - information only
      * @param serviceType SOAP/REST
      * @param mappingAdapters
+     * @param filterMap
      * @param subscriptionId Sets the subscriptionId to use
      * @param requestorRef
      * @param durationOfSubscription Initial duration of subscription
      * @param active Activates/deactivates subscription
      */
     public SubscriptionSetup(SubscriptionType subscriptionType, SubscriptionMode subscriptionMode, String address, Duration heartbeatInterval, String operatorNamespace, Map<String, String> urlMap,
-                             String version, String vendor, String datasetId, ServiceType serviceType, List<ValueAdapter> mappingAdapters, String subscriptionId,
+                             String version, String vendor, String datasetId, ServiceType serviceType, List<ValueAdapter> mappingAdapters, Map<Class, Set<String>> filterMap, String subscriptionId,
                              String requestorRef, Duration durationOfSubscription, boolean active) {
         this.subscriptionType = subscriptionType;
         this.subscriptionMode = subscriptionMode;
@@ -57,6 +60,7 @@ public class SubscriptionSetup implements Serializable{
         this.datasetId = datasetId;
         this.serviceType = serviceType;
         this.mappingAdapters = mappingAdapters;
+        this.filterMap = filterMap;
         this.subscriptionId = subscriptionId;
         this.requestorRef = requestorRef;
         this.durationOfSubscription = durationOfSubscription;
@@ -150,6 +154,14 @@ public class SubscriptionSetup implements Serializable{
 
     public SubscriptionMode getSubscriptionMode() {
         return subscriptionMode;
+    }
+
+    public void setFilterMap(Map<Class, Set<String>> filterMap) {
+        this.filterMap = filterMap;
+    }
+
+    public Map<Class, Set<String>> getFilterMap() {
+        return filterMap;
     }
 
     public enum ServiceType {SOAP, REST}

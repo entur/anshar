@@ -10,6 +10,8 @@ import javax.xml.datatype.DatatypeFactory;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 public class SiriObjectFactory {
@@ -30,25 +32,30 @@ public class SiriObjectFactory {
             request = createSituationExchangeSubscriptionRequest(subscriptionSetup.getRequestorRef(),subscriptionSetup.getSubscriptionId(),
                     subscriptionSetup.getHeartbeatInterval().toString(),
                     subscriptionSetup.buildUrl(),
-                    subscriptionSetup.getDurationOfSubscription());
+                    subscriptionSetup.getDurationOfSubscription(),
+                    subscriptionSetup.getFilterMap());
         }
         if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING)) {
-            request = createVehicleMonitoringSubscriptionRequest(subscriptionSetup.getRequestorRef(),subscriptionSetup.getSubscriptionId(),
+            request = createVehicleMonitoringSubscriptionRequest(subscriptionSetup.getRequestorRef(),
+                    subscriptionSetup.getSubscriptionId(),
                     subscriptionSetup.getHeartbeatInterval().toString(),
                     subscriptionSetup.buildUrl(),
-                    subscriptionSetup.getDurationOfSubscription());
+                    subscriptionSetup.getDurationOfSubscription(),
+                    subscriptionSetup.getFilterMap());
         }
         if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE)) {
             request = createEstimatedTimetableSubscriptionRequest(subscriptionSetup.getRequestorRef(),subscriptionSetup.getSubscriptionId(),
                     subscriptionSetup.getHeartbeatInterval().toString(),
                     subscriptionSetup.buildUrl(),
-                    subscriptionSetup.getDurationOfSubscription());
+                    subscriptionSetup.getDurationOfSubscription(),
+                    subscriptionSetup.getFilterMap());
         }
         if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.PRODUCTION_TIMETABLE)) {
             request = createProductionTimetableSubscriptionRequest(subscriptionSetup.getRequestorRef(), subscriptionSetup.getSubscriptionId(),
                     subscriptionSetup.getHeartbeatInterval().toString(),
                     subscriptionSetup.buildUrl(),
-                    subscriptionSetup.getDurationOfSubscription());
+                    subscriptionSetup.getDurationOfSubscription(),
+                    subscriptionSetup.getFilterMap());
         }
         siri.setSubscriptionRequest(request);
 
@@ -128,11 +135,20 @@ public class SiriObjectFactory {
         return ptRequest;
     }
 
-    private static SubscriptionRequest createSituationExchangeSubscriptionRequest(String requestorRef, String subscriptionId, String heartbeatInterval, String address, Duration subscriptionDuration) {
+    private static SubscriptionRequest createSituationExchangeSubscriptionRequest(String requestorRef, String subscriptionId, String heartbeatInterval, String address, Duration subscriptionDuration, Map<Class, Set<String>> filterMap) {
         SubscriptionRequest request = createSubscriptionRequest(requestorRef, heartbeatInterval, address);
 
         SituationExchangeRequestStructure sxRequest = createSituationExchangeRequestStructure();
         sxRequest.setPreviewInterval(createDataTypeFactory().newDuration("P1Y"));
+
+        if (filterMap != null) {
+            Set<String> vehicleRefs = filterMap.get(VehicleRef.class);
+            if (vehicleRefs != null && vehicleRefs.size() > 0) {
+                VehicleRef vehicleRef = new VehicleRef();
+                vehicleRef.setValue(vehicleRefs.iterator().next());
+                sxRequest.setVehicleRef(vehicleRef);
+            }
+        }
 
         SituationExchangeSubscriptionStructure sxSubscriptionReq = new SituationExchangeSubscriptionStructure();
         sxSubscriptionReq.setSituationExchangeRequest(sxRequest);
@@ -145,12 +161,27 @@ public class SiriObjectFactory {
         return request;
     }
 
-    private static SubscriptionRequest createVehicleMonitoringSubscriptionRequest(String requestorRef, String subscriptionId, String heartbeatInterval, String address, Duration subscriptionDuration) {
+    private static SubscriptionRequest createVehicleMonitoringSubscriptionRequest(String requestorRef, String subscriptionId, String heartbeatInterval, String address, Duration subscriptionDuration, Map<Class, Set<String>> filterMap) {
         SubscriptionRequest request = createSubscriptionRequest(requestorRef,heartbeatInterval, address);
 
         VehicleMonitoringRequestStructure vmRequest = new VehicleMonitoringRequestStructure();
         vmRequest.setRequestTimestamp(ZonedDateTime.now());
         vmRequest.setVersion("2.0");
+
+        if (filterMap != null) {
+            Set<String> lineRefs = filterMap.get(LineRef.class);
+            if (lineRefs != null && lineRefs.size() > 0) {
+                LineRef lineRef = new LineRef();
+                lineRef.setValue(lineRefs.iterator().next());
+                vmRequest.setLineRef(lineRef);
+            }
+            Set<String> vehicleRefs = filterMap.get(VehicleRef.class);
+            if (vehicleRefs != null && vehicleRefs.size() > 0) {
+                VehicleRef vehicleRef = new VehicleRef();
+                vehicleRef.setValue(vehicleRefs.iterator().next());
+                vmRequest.setVehicleRef(vehicleRef);
+            }
+        }
 
         VehicleMonitoringSubscriptionStructure vmSubscriptionReq = new VehicleMonitoringSubscriptionStructure();
         vmSubscriptionReq.setVehicleMonitoringRequest(vmRequest);
@@ -159,20 +190,25 @@ public class SiriObjectFactory {
         vmSubscriptionReq.setSubscriberRef(request.getRequestorRef());
         
 
-
         request.getVehicleMonitoringSubscriptionRequests().add(vmSubscriptionReq);
 
         return request;
     }
 
 
-    private static SubscriptionRequest createEstimatedTimetableSubscriptionRequest(String requestorRef, String subscriptionId, String heartbeatInterval, String address, Duration subscriptionDuration) {
+    private static SubscriptionRequest createEstimatedTimetableSubscriptionRequest(String requestorRef, String subscriptionId, String heartbeatInterval, String address, Duration subscriptionDuration, Map<Class, Set<String>> filterMap) {
         SubscriptionRequest request = createSubscriptionRequest(requestorRef, heartbeatInterval, address);
 
         EstimatedTimetableRequestStructure etRequest = new EstimatedTimetableRequestStructure();
         etRequest.setRequestTimestamp(ZonedDateTime.now());
         etRequest.setVersion("2.0");
         etRequest.setPreviewInterval(createDataTypeFactory().newDuration("P1D"));
+
+        if (filterMap != null) {
+            if (filterMap.size() > 0) {
+                logger.info("TODO: Implement filtering");
+            }
+        }
 
         EstimatedTimetableSubscriptionStructure etSubscriptionReq = new EstimatedTimetableSubscriptionStructure();
         etSubscriptionReq.setEstimatedTimetableRequest(etRequest);
@@ -187,15 +223,21 @@ public class SiriObjectFactory {
     }
 
 
-    private static SubscriptionRequest createProductionTimetableSubscriptionRequest(String requestorRef, String subscriptionId, String heartbeatInterval, String address, Duration subscriptionDuration) {
+    private static SubscriptionRequest createProductionTimetableSubscriptionRequest(String requestorRef, String subscriptionId, String heartbeatInterval, String address, Duration subscriptionDuration, Map<Class, Set<String>> filterMap) {
         SubscriptionRequest request = createSubscriptionRequest(requestorRef, heartbeatInterval, address);
 
-        ProductionTimetableRequestStructure etRequest = new ProductionTimetableRequestStructure();
-        etRequest.setRequestTimestamp(ZonedDateTime.now());
-        etRequest.setVersion("2.0");
+        ProductionTimetableRequestStructure ptRequest = new ProductionTimetableRequestStructure();
+        ptRequest.setRequestTimestamp(ZonedDateTime.now());
+        ptRequest.setVersion("2.0");
+
+        if (filterMap != null) {
+            if (filterMap.size() > 0) {
+                logger.info("TODO: Implement filtering");
+            }
+        }
 
         ProductionTimetableSubscriptionRequest ptSubscriptionReq = new ProductionTimetableSubscriptionRequest();
-        ptSubscriptionReq.setProductionTimetableRequest(etRequest);
+        ptSubscriptionReq.setProductionTimetableRequest(ptRequest);
         ptSubscriptionReq.setSubscriptionIdentifier(createSubscriptionIdentifier(subscriptionId));
         ptSubscriptionReq.setInitialTerminationTime(ZonedDateTime.now().plusSeconds(subscriptionDuration.getSeconds()));
         ptSubscriptionReq.setSubscriberRef(request.getRequestorRef());
