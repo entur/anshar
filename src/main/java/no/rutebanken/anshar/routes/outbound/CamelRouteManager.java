@@ -76,7 +76,8 @@ public class CamelRouteManager implements CamelContextAware {
     }
 
     private boolean stopAndRemoveSiriPushRoute(String routeId) throws Exception {
-        camelContext.removeRoute(routeId);
+        RouteDefinition routeDefinition = camelContext.getRouteDefinition(routeId);
+        camelContext.removeRouteDefinition(routeDefinition);
         logger.info("Route removed - CamelContext now has {} routes", camelContext.getRoutes().size());
         return true;
     }
