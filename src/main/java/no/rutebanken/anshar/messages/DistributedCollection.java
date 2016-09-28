@@ -4,6 +4,8 @@ import com.hazelcast.config.Config;
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import uk.org.siri.siri20.EstimatedVehicleJourney;
@@ -21,6 +23,7 @@ import org.mapdb.*;
 @Configuration
 public class DistributedCollection {
 
+    private static Logger logger = LoggerFactory.getLogger(DistributedCollection.class);
     private static HazelcastInstance hazelcastInstance;
 
     @Value("${anshar.hazelcast.enable}")
@@ -37,6 +40,10 @@ public class DistributedCollection {
                     .tempFileDB()
                     .fileMmapEnable()
                     .make();
+
+            db.getStore().getAllFiles().forEach(s ->
+                logger.info("Creating MapDB tmp-file at " + s )
+            );
         }
     }
 
