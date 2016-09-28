@@ -11,10 +11,7 @@ import org.apache.camel.builder.RouteBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import uk.org.siri.siri20.DestinationRef;
-import uk.org.siri.siri20.JourneyPlaceRefStructure;
-import uk.org.siri.siri20.LineRef;
-import uk.org.siri.siri20.StopPointRef;
+import uk.org.siri.siri20.*;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import java.time.Duration;
@@ -80,7 +77,7 @@ public class SubscriptionConfig {
                 "kolumbussx",
                 "kol",
                 SubscriptionSetup.ServiceType.SOAP,
-                mappingAdapters, UUID.randomUUID().toString(),
+                mappingAdapters, new HashMap<>(), UUID.randomUUID().toString(),
                 "RutebankenDEV",
                 Duration.ofHours(initialDuration),
                 enableKolumbusSX
@@ -116,7 +113,7 @@ public class SubscriptionConfig {
                 "kolumbusvm",
                 "kol",
                 SubscriptionSetup.ServiceType.SOAP,
-                mappingAdapters, UUID.randomUUID().toString(),
+                mappingAdapters, new HashMap<>(), UUID.randomUUID().toString(),
                 "RutebankenDEV",
                 Duration.ofHours(initialDuration),
                 enableKolumbusVM
@@ -149,7 +146,7 @@ public class SubscriptionConfig {
                 "atb",
                 SubscriptionSetup.ServiceType.SOAP,
                 mappingAdapters,
-                UUID.randomUUID().toString(),
+                new HashMap<>(), UUID.randomUUID().toString(),
                 "RutebankenDEV",
                 Duration.ofHours(initialDuration),
                 enableAtbSX);
@@ -163,7 +160,113 @@ public class SubscriptionConfig {
     }
 
     @Bean
-    RouteBuilder createAnsharCarbonSubscriptionRoute() {
+    RouteBuilder createAnsharCarbonSXSubscriptionRoute() {
+
+        Map<String, String> urlMap = new HashMap<>();
+        urlMap.put(RequestType.SUBSCRIBE, "mottak-test.rutebanken.org/anshar/subscribe");
+        urlMap.put(RequestType.DELETE_SUBSCRIPTION, "mottak-test.rutebanken.org/anshar/subscribe");
+
+        List<ValueAdapter> mappingAdapters = new ArrayList<>();
+        mappingAdapters.add(new LeftPaddingAdapter(StopPointRef.class, 8, '0'));
+        mappingAdapters.add(new RightPaddingStopPlaceAdapter(StopPointRef.class, 8, "01"));
+
+        SubscriptionSetup sub = new SubscriptionSetup(SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE,
+                SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
+                inboundUrl,
+                Duration.ofMinutes(1),
+                "http://www.siri.org.uk/siri",
+                urlMap,
+                "2.0",
+                "anssx",
+                "ans",
+                SubscriptionSetup.ServiceType.REST,
+                mappingAdapters,
+                new HashMap<>(), "1234-1234-1234-SX",
+                "RutebankenDEV",
+                Duration.ofHours(2),
+                false);
+
+
+            return new Siri20ToSiriRS20Subscription(sub);
+
+    }
+
+
+    @Bean
+    RouteBuilder createAnsharCarbonVMSubscriptionRoute() {
+
+        Map<String, String> urlMap = new HashMap<>();
+        urlMap.put(RequestType.SUBSCRIBE, "mottak-test.rutebanken.org/anshar/subscribe");
+        urlMap.put(RequestType.DELETE_SUBSCRIPTION, "mottak-test.rutebanken.org/anshar/subscribe");
+
+        List<ValueAdapter> mappingAdapters = new ArrayList<>();
+        mappingAdapters.add(new LeftPaddingAdapter(StopPointRef.class, 8, '0'));
+        mappingAdapters.add(new RightPaddingStopPlaceAdapter(StopPointRef.class, 8, "01"));
+
+        Map<Class, Set<String>> filterMap = new HashMap<>();
+        filterMap.put(LineRef.class, new HashSet<>(Arrays.asList("1004")));
+
+
+        SubscriptionSetup sub = new SubscriptionSetup(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING,
+                SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
+                inboundUrl,
+                Duration.ofMinutes(1),
+                "http://www.siri.org.uk/siri",
+                urlMap,
+                "2.0",
+                "ansvm",
+                "ans",
+                SubscriptionSetup.ServiceType.REST,
+                mappingAdapters,
+                filterMap,
+                "1004-2231-VM",
+                "RutebankenDEV",
+                Duration.ofHours(2),
+                false);
+
+
+            return new Siri20ToSiriRS20Subscription(sub);
+
+    }
+
+    @Bean
+    RouteBuilder createAnsharCarbonVM2SubscriptionRoute() {
+
+        Map<String, String> urlMap = new HashMap<>();
+        urlMap.put(RequestType.SUBSCRIBE, "mottak-test.rutebanken.org/anshar/subscribe");
+        urlMap.put(RequestType.DELETE_SUBSCRIPTION, "mottak-test.rutebanken.org/anshar/subscribe");
+
+        List<ValueAdapter> mappingAdapters = new ArrayList<>();
+        mappingAdapters.add(new LeftPaddingAdapter(StopPointRef.class, 8, '0'));
+        mappingAdapters.add(new RightPaddingStopPlaceAdapter(StopPointRef.class, 8, "01"));
+
+        Map<Class, Set<String>> filterMap = new HashMap<>();
+
+
+        SubscriptionSetup sub = new SubscriptionSetup(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING,
+                SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
+                inboundUrl,
+                Duration.ofMinutes(1),
+                "http://www.siri.org.uk/siri",
+                urlMap,
+                "2.0",
+                "ansvm2",
+                "ans2",
+                SubscriptionSetup.ServiceType.REST,
+                mappingAdapters,
+                filterMap,
+                "1004-VM",
+                "RutebankenDEV",
+                Duration.ofHours(2),
+                false);
+
+
+            return new Siri20ToSiriRS20Subscription(sub);
+
+    }
+
+    @Bean
+    RouteBuilder createAnsharCarbonETSubscriptionRoute() {
 
         Map<String, String> urlMap = new HashMap<>();
         urlMap.put(RequestType.SUBSCRIBE, "mottak-test.rutebanken.org/anshar/subscribe");
@@ -184,13 +287,14 @@ public class SubscriptionConfig {
                 "ans",
                 SubscriptionSetup.ServiceType.REST,
                 mappingAdapters,
+                new HashMap<>(),
                 "1234-1234-1234-ET",
                 "RutebankenDEV",
                 Duration.ofHours(2),
                 false);
 
 
-            return new Siri20ToSiriRS20Subscription(sub);
+        return new Siri20ToSiriRS20Subscription(sub);
 
     }
 
@@ -218,7 +322,7 @@ public class SubscriptionConfig {
                 "atb",
                 SubscriptionSetup.ServiceType.SOAP,
                 mappingAdapters,
-                UUID.randomUUID().toString(),
+                new HashMap<>(), UUID.randomUUID().toString(),
                 "RutebankenDEV",
                 Duration.ofHours(initialDuration),
                 enableAtbVM);
@@ -276,7 +380,7 @@ public class SubscriptionConfig {
                 "akt",
                 SubscriptionSetup.ServiceType.SOAP,
                 mappingAdapters,
-                UUID.randomUUID().toString(),
+                new HashMap<>(), UUID.randomUUID().toString(),
                 "RutebankenDEV",
                 Duration.ofHours(initialDuration),
                 enableAktSX);
@@ -308,7 +412,7 @@ public class SubscriptionConfig {
                 "akt",
                 SubscriptionSetup.ServiceType.SOAP,
                 mappingAdapters,
-                UUID.randomUUID().toString(),
+                new HashMap<>(), UUID.randomUUID().toString(),
                 "RutebankenDEV",
                 Duration.ofHours(initialDuration),
                 enableAktET);
@@ -339,7 +443,7 @@ public class SubscriptionConfig {
                 "rut",
                 SubscriptionSetup.ServiceType.REST,
                 mappingAdapters,
-                UUID.randomUUID().toString(),
+                new HashMap<>(), UUID.randomUUID().toString(),
                 "RutebankenDEV",
                 Duration.ofHours(initialDuration),
                 enableRuterSX);
@@ -371,7 +475,7 @@ public class SubscriptionConfig {
                 "rut",
                 SubscriptionSetup.ServiceType.REST,
                 mappingAdapters,
-                "20c2e3a3-1659-41d3-b1a2-1411978b1d43",  //Hard-coded subscriptionId - since Init does not support dynamic address
+                new HashMap<>(), "20c2e3a3-1659-41d3-b1a2-1411978b1d43",  //Hard-coded subscriptionId - since Init does not support dynamic address
                 "RutebankenDEV",
                 //UUID.randomUUID().toString(),
                 Duration.ofHours(initialDuration),
@@ -405,7 +509,7 @@ public class SubscriptionConfig {
                 "rut",
                 SubscriptionSetup.ServiceType.REST,
                 mappingAdapters,
-                "1f6a687e-58b8-4e46-a23c-98adadad78ed",  //Hard-coded subscriptionId - since Init does not support dynamic address
+                new HashMap<>(), "1f6a687e-58b8-4e46-a23c-98adadad78ed",  //Hard-coded subscriptionId - since Init does not support dynamic address
                 //UUID.randomUUID().toString(),
                 "RutebankenDEV",
                 Duration.ofHours(initialDuration),
