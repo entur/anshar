@@ -77,7 +77,7 @@ public class CamelRouteManager implements CamelContextAware {
 
     private boolean stopAndRemoveSiriPushRoute(String routeId) throws Exception {
         camelContext.removeRoute(routeId);
-        logger.info("Route removed [{}] - CamelContext now has {} routes", camelContext.getRoutes().size());
+        logger.info("Route removed - CamelContext now has {} routes", camelContext.getRoutes().size());
         return true;
     }
 
@@ -115,6 +115,7 @@ public class CamelRouteManager implements CamelContextAware {
             );
 
             from("activemq:queue:error")
+                    .routeId("errorhandler:"+remoteEndPoint) //One errorhandler per subscription/endpoint
                     .log("Request to endpoint failed: " + remoteEndPoint);
 
             if (soapRequest) {
