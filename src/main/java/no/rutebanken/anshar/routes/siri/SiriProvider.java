@@ -44,7 +44,6 @@ public class SiriProvider extends RouteBuilder {
     @Override
     public void configure() throws Exception {
 
-        JaxbDataFormat jaxb = new JaxbDataFormat(Siri.class.getPackage().getName());
 
         // Dataproviders
         from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/rest/sx?httpMethodRestrict=GET")
@@ -60,9 +59,11 @@ public class SiriProvider extends RouteBuilder {
                     } else {
                         response = factory.createSXServiceDelivery(Situations.getAll());
                     }
-                    p.getOut().setBody(response);
+                    HttpServletResponse out = p.getOut().getBody(HttpServletResponse.class);
+
+                    SiriXml.toXml(response, null, out.getOutputStream());
                 })
-                .to("direct:processResponse")
+                .log("RequestTracer [${in.header.breadcrumbId}] Request done (SX)")
         ;
 
         from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/rest/vm?httpMethodRestrict=GET")
@@ -79,9 +80,11 @@ public class SiriProvider extends RouteBuilder {
                     } else {
                         response = factory.createVMServiceDelivery(VehicleActivities.getAll());
                     }
-                    p.getOut().setBody(response);
+                    HttpServletResponse out = p.getOut().getBody(HttpServletResponse.class);
+
+                    SiriXml.toXml(response, null, out.getOutputStream());
                 })
-                .to("direct:processResponse")
+                .log("RequestTracer [${in.header.breadcrumbId}] Request done (VM)")
         ;
 
 
@@ -99,9 +102,11 @@ public class SiriProvider extends RouteBuilder {
                     } else {
                         response = factory.createETServiceDelivery(EstimatedTimetables.getAll());
                     }
-                    p.getOut().setBody(response);
+                    HttpServletResponse out = p.getOut().getBody(HttpServletResponse.class);
+
+                    SiriXml.toXml(response, null, out.getOutputStream());
                 })
-                .to("direct:processResponse")
+                .log("RequestTracer [${in.header.breadcrumbId}] Request done (ET)")
         ;
 
 
@@ -118,16 +123,11 @@ public class SiriProvider extends RouteBuilder {
                     } else {
                         response = factory.createPTServiceDelivery(ProductionTimetables.getAll());
                     }
-                    p.getOut().setBody(response);
-                })
-                .to("direct:processResponse")
-        ;
+                    HttpServletResponse out = p.getOut().getBody(HttpServletResponse.class);
 
-        from("direct:processResponse")
-                .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
-                .setHeader(Exchange.CONTENT_TYPE, constant(ContentType.create("text/xml", Charset.forName("UTF-8"))))
-                .marshal(jaxb)
-                .log("RequestTracer [${in.header.breadcrumbId}] Outgoing response")
+                    SiriXml.toXml(response, null, out.getOutputStream());
+                })
+                .log("RequestTracer [${in.header.breadcrumbId}] Request done (PT)")
         ;
     }
 }
