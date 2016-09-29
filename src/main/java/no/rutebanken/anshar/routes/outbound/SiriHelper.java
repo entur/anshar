@@ -93,7 +93,6 @@ public class SiriHelper {
         if (siri.getServiceDelivery() != null) {
             if (containsValues(siri.getServiceDelivery().getVehicleMonitoringDeliveries()) |
                     containsValues(siri.getServiceDelivery().getEstimatedTimetableDeliveries())) {
-
                 return applySingleMatchFilter(siri, filter);
             } else if (containsValues(siri.getServiceDelivery().getSituationExchangeDeliveries())) {
                 return applyMultipleMatchFilter(siri, filter);
@@ -102,7 +101,7 @@ public class SiriHelper {
 
 
 
-        return null;
+        return siri;
     }
 
     /*
