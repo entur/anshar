@@ -84,11 +84,11 @@ public class SiriValueTransformerTest {
 
         assertEquals(lineRefValue, getLineRefFromSiriObj(siri));
         assertEquals(blockRefValue, getBlockRefFromSiriObj(siri));
-        String paddedLineRef = "0123";
+        String paddedLineRef = "012304";
 
         List<ValueAdapter> mappingAdapters = new ArrayList<>();
-        mappingAdapters.add(new RuterSubstringAdapter(LineRef.class, ':'));
-        mappingAdapters.add(new LeftPaddingAdapter(LineRef.class, 4, '0'));
+        mappingAdapters.add(new RuterSubstringAdapter(LineRef.class, ':', '0'));
+        mappingAdapters.add(new LeftPaddingAdapter(LineRef.class, 6, '0'));
 
         siri = transformer.transform(siri, mappingAdapters);
 
@@ -106,10 +106,10 @@ public class SiriValueTransformerTest {
         Siri siri = createSiriObject(lineRefValue, null);
 
         assertEquals(lineRefValue, getLineRefFromSiriObj(siri));
-        String trimmedLineRef = "9999";
+        String trimmedLineRef = "99990123";
 
         List<ValueAdapter> mappingAdapters = new ArrayList<>();
-        mappingAdapters.add(new RuterSubstringAdapter(LineRef.class, ':'));
+        mappingAdapters.add(new RuterSubstringAdapter(LineRef.class, ':', '0'));
 
         siri = transformer.transform(siri, mappingAdapters);
 

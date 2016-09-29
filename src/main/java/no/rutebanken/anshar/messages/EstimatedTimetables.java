@@ -93,6 +93,12 @@ public class EstimatedTimetables extends DistributedCollection {
     private static String createKey(String datasetId, EstimatedVehicleJourney element) {
         StringBuffer key = new StringBuffer();
 
+        String timestamp = "";
+        List<EstimatedCall> estimatedCalls = element.getEstimatedCalls().getEstimatedCalls();
+        if (estimatedCalls.size() > 0) {
+            timestamp = estimatedCalls.get(0).getAimedDepartureTime().toString();
+        }
+
         key.append(datasetId).append(":")
                 .append((element.getOperatorRef() != null ? element.getOperatorRef().getValue() : "null"))
                 .append(":")
@@ -102,7 +108,9 @@ public class EstimatedTimetables extends DistributedCollection {
                 .append(":")
                 .append((element.getDirectionRef() != null ? element.getDirectionRef().getValue() :"null"))
                 .append(":")
-                .append((element.getDatedVehicleJourneyRef() != null ? element.getDatedVehicleJourneyRef().getValue() :"null"));
+                .append((element.getDatedVehicleJourneyRef() != null ? element.getDatedVehicleJourneyRef().getValue() :"null"))
+                .append(":")
+                .append(timestamp);
 
         return key.toString();
     }
