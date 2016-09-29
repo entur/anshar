@@ -117,7 +117,7 @@ public class CamelRouteManager implements CamelContextAware {
 
             from("activemq:queue:error")
                     .routeId("errorhandler:"+remoteEndPoint) //One errorhandler per subscription/endpoint
-                    .log("Request to endpoint failed: " + remoteEndPoint);
+                    .log("Error sending data to url " + remoteEndPoint);
 
             if (soapRequest) {
                 definition = from(routeName)
