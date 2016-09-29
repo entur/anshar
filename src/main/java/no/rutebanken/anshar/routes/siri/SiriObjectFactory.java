@@ -208,7 +208,19 @@ public class SiriObjectFactory {
 
         if (filterMap != null) {
             if (filterMap.size() > 0) {
-                logger.info("TODO: Implement filtering");
+                EstimatedTimetableRequestStructure.Lines lines = new EstimatedTimetableRequestStructure.Lines();
+
+                Set<String> lineRefs = filterMap.get(LineRef.class);
+                for (String lineRefValue : lineRefs) {
+                    LineDirectionStructure lineDir = new LineDirectionStructure();
+                    LineRef lineRef = new LineRef();
+                    lineRef.setValue(lineRefValue);
+                    lineDir.setLineRef(lineRef);
+
+                    lines.getLineDirections().add(lineDir);
+                }
+
+                etRequest.setLines(lines);
             }
         }
 

@@ -96,7 +96,7 @@ public class EstimatedTimetables extends DistributedCollection {
         String timestamp = "";
         List<EstimatedCall> estimatedCalls = element.getEstimatedCalls().getEstimatedCalls();
         if (estimatedCalls.size() > 0) {
-            timestamp = estimatedCalls.get(0).getAimedDepartureTime().toString();
+            timestamp = estimatedCalls.get(0).getAimedDepartureTime().toLocalDateTime().toString();
         }
 
         key.append(datasetId).append(":")

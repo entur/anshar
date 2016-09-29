@@ -21,6 +21,8 @@ public class SiriHelper {
             return getFilter(subscriptionRequest.getSituationExchangeSubscriptionRequests().get(0));
         } else if (containsValues(subscriptionRequest.getVehicleMonitoringSubscriptionRequests())) {
             return getFilter(subscriptionRequest.getVehicleMonitoringSubscriptionRequests().get(0));
+        } else if (containsValues(subscriptionRequest.getEstimatedTimetableSubscriptionRequests())) {
+            return getFilter(subscriptionRequest.getEstimatedTimetableSubscriptionRequests().get(0));
         }
 
         return new HashMap<>();
@@ -55,6 +57,31 @@ public class SiriHelper {
             Set<String> linerefValues = new HashSet<>();
             linerefValues.add(lineRef.getValue());
 
+            filterMap.put(LineRef.class, linerefValues);
+        }
+        return filterMap;
+    }
+
+    private static Map<Class, Set<String>> getFilter(EstimatedTimetableSubscriptionStructure subscriptionStructure) {
+        EstimatedTimetableRequestStructure request = subscriptionStructure.getEstimatedTimetableRequest();
+
+        Map<Class, Set<String>> filterMap = new HashMap<>();
+        Set<String> linerefValues = new HashSet<>();
+
+        EstimatedTimetableRequestStructure.Lines lines = request.getLines();
+        if (lines != null) {
+            List<LineDirectionStructure> lineDirections = lines.getLineDirections();
+            if (lineDirections != null) {
+                for (LineDirectionStructure lineDirection : lineDirections) {
+                    if (lineDirection.getLineRef() != null) {
+                        linerefValues.add(lineDirection.getLineRef().getValue());
+                    }
+                }
+            }
+
+        }
+
+        if (!linerefValues.isEmpty()) {
             filterMap.put(LineRef.class, linerefValues);
         }
         return filterMap;
