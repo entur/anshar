@@ -29,7 +29,6 @@ public class SiriHelperTest {
 
         Siri serviceDelivery = SiriObjectFactory.createVMServiceDelivery(vmElements);
 
-
         assertNotNull(serviceDelivery);
         assertNotNull(serviceDelivery.getServiceDelivery());
         assertNotNull(serviceDelivery.getServiceDelivery().getVehicleMonitoringDeliveries());
@@ -52,9 +51,10 @@ public class SiriHelperTest {
         assertTrue(filtered.getServiceDelivery().getVehicleMonitoringDeliveries().size() == 1);
         assertNotNull(filtered.getServiceDelivery().getVehicleMonitoringDeliveries().get(0).getVehicleActivities());
 
-        assertTrue("Non-matching element has not been removed",serviceDelivery.getServiceDelivery().getVehicleMonitoringDeliveries().get(0).getVehicleActivities().size() == 3);
+        assertEquals("Non-matching element has not been removed", 3, filtered.getServiceDelivery().getVehicleMonitoringDeliveries().get(0).getVehicleActivities().size());
+        assertEquals("Original object has been altered", 6, serviceDelivery.getServiceDelivery().getVehicleMonitoringDeliveries().get(0).getVehicleActivities().size());
 
-        for (VehicleActivityStructure activityStructure : serviceDelivery.getServiceDelivery().getVehicleMonitoringDeliveries().get(0).getVehicleActivities()) {
+        for (VehicleActivityStructure activityStructure : filtered.getServiceDelivery().getVehicleMonitoringDeliveries().get(0).getVehicleActivities()) {
             assertNotNull(activityStructure.getMonitoredVehicleJourney());
             assertNotNull(activityStructure.getMonitoredVehicleJourney().getLineRef());
 
@@ -75,9 +75,10 @@ public class SiriHelperTest {
         assertTrue(doubleFiltered.getServiceDelivery().getVehicleMonitoringDeliveries().size() == 1);
         assertNotNull(doubleFiltered.getServiceDelivery().getVehicleMonitoringDeliveries().get(0).getVehicleActivities());
 
-        assertTrue("Non-matching element has not been removed",serviceDelivery.getServiceDelivery().getVehicleMonitoringDeliveries().get(0).getVehicleActivities().size() == 1);
+        assertEquals("Non-matching element has not been removed", 1, doubleFiltered.getServiceDelivery().getVehicleMonitoringDeliveries().get(0).getVehicleActivities().size());
+        assertEquals("Original object has been altered", 6, serviceDelivery.getServiceDelivery().getVehicleMonitoringDeliveries().get(0).getVehicleActivities().size());
 
-        for (VehicleActivityStructure activityStructure : serviceDelivery.getServiceDelivery().getVehicleMonitoringDeliveries().get(0).getVehicleActivities()) {
+        for (VehicleActivityStructure activityStructure : doubleFiltered.getServiceDelivery().getVehicleMonitoringDeliveries().get(0).getVehicleActivities()) {
             assertNotNull(activityStructure.getMonitoredVehicleJourney());
             assertNotNull(activityStructure.getMonitoredVehicleJourney().getLineRef());
             assertNotNull(activityStructure.getMonitoredVehicleJourney().getVehicleRef());

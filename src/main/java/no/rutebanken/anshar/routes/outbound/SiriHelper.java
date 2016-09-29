@@ -91,10 +91,12 @@ public class SiriHelper {
         }
 
         if (siri.getServiceDelivery() != null) {
-            if (containsValues(siri.getServiceDelivery().getVehicleMonitoringDeliveries())) {
-                return applyVmFilter(siri, filter);
+            if (containsValues(siri.getServiceDelivery().getVehicleMonitoringDeliveries()) |
+                    containsValues(siri.getServiceDelivery().getEstimatedTimetableDeliveries())) {
+
+                return applySingleMatchFilter(siri, filter);
             } else if (containsValues(siri.getServiceDelivery().getSituationExchangeDeliveries())) {
-                return applySxFilter(siri, filter);
+                return applyMultipleMatchFilter(siri, filter);
             }
         }
 
@@ -103,7 +105,10 @@ public class SiriHelper {
         return null;
     }
 
-    private static Siri applyVmFilter(Siri siri, Map<Class, Set<String>> filter) {
+    /*
+     * Filters elements with 1 - one - possible match per element
+     */
+    private static Siri applySingleMatchFilter(Siri siri, Map<Class, Set<String>> filter) {
 
         Siri filtered;
         try {
@@ -208,7 +213,11 @@ public class SiriHelper {
         }
     }
 
-    private static Siri applySxFilter(Siri siri, Map<Class, Set<String>> filter) {
+
+    /*
+     * Filters elements with multiple possible matches per element
+     */
+    private static Siri applyMultipleMatchFilter(Siri siri, Map<Class, Set<String>> filter) {
 
         Set<String> linerefValues = filter.get(LineRef.class);
         if (linerefValues == null || linerefValues.isEmpty()) {
