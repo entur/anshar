@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.org.siri.siri20.*;
 
+import javax.xml.bind.JAXBException;
 import java.util.*;
 
 public class SiriHelper {
@@ -104,10 +105,17 @@ public class SiriHelper {
 
     private static Siri applyVmFilter(Siri siri, Map<Class, Set<String>> filter) {
 
-        filterLineRef(siri, filter.get(LineRef.class));
-        filterVehicleRef(siri, filter.get(VehicleRef.class));
+        Siri filtered;
+        try {
+            filtered = SiriObjectFactory.deepCopy(siri);
+        } catch (JAXBException e) {
+            return siri;
+        }
 
-        return siri;
+        filterLineRef(filtered, filter.get(LineRef.class));
+        filterVehicleRef(filtered, filter.get(VehicleRef.class));
+
+        return filtered;
     }
 
     private static void filterLineRef(Siri siri, Set<String> linerefValues) {

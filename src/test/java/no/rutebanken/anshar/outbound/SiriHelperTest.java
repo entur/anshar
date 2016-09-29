@@ -89,6 +89,50 @@ public class SiriHelperTest {
         }
     }
 
+    @Test
+    public void testImmutability() {
+        List<VehicleActivityStructure> vmElements = new ArrayList<>();
+        String filterMatchingLineRef_1 = "1234";
+        String filterMatchingLineRef_2 = "2345";
+
+        vmElements.add(createVehicleActivity(filterMatchingLineRef_1, "3333"));
+        vmElements.add(createVehicleActivity(filterMatchingLineRef_2, "3333"));
+        vmElements.add(createVehicleActivity("342435", "33"));
+
+        Siri siri = SiriObjectFactory.createVMServiceDelivery(vmElements);
+        int sizeBefore = siri.getServiceDelivery().getVehicleMonitoringDeliveries().get(0).getVehicleActivities().size();
+
+        Map<Class, Set<String>> filter = new HashMap<>();
+        Set<String> matchingValues = new HashSet<>();
+        matchingValues.add(filterMatchingLineRef_1);
+        filter.put(LineRef.class, matchingValues);
+
+        Siri filtered = SiriHelper.filterSiriPayload(siri, filter);
+
+        int sizeAfter = siri.getServiceDelivery().getVehicleMonitoringDeliveries().get(0).getVehicleActivities().size();
+        int filteredSizeAfter = filtered.getServiceDelivery().getVehicleMonitoringDeliveries().get(0).getVehicleActivities().size();
+
+        assertEquals("Original object has been modified", sizeBefore, sizeAfter);
+
+        assertTrue("VM-elements have not been filtered", sizeAfter > filteredSizeAfter);
+
+        Map<Class, Set<String>> filter2 = new HashMap<>();
+        Set<String> matchingValues2 = new HashSet<>();
+        matchingValues2.add(filterMatchingLineRef_2);
+        filter2.put(LineRef.class, matchingValues2);
+
+        // Filtering original SIRI-data with different filter
+        Siri filtered2 = SiriHelper.filterSiriPayload(siri, filter2);
+
+        int sizeAfter2 = siri.getServiceDelivery().getVehicleMonitoringDeliveries().get(0).getVehicleActivities().size();
+        int filteredSizeAfter2 = filtered.getServiceDelivery().getVehicleMonitoringDeliveries().get(0).getVehicleActivities().size();
+
+        assertFalse("", filtered.getServiceDelivery().getVehicleMonitoringDeliveries().get(0).getVehicleActivities().get(0).getMonitoredVehicleJourney().getLineRef().getValue()
+                .equals(filtered2.getServiceDelivery().getVehicleMonitoringDeliveries().get(0).getVehicleActivities().get(0).getMonitoredVehicleJourney().getLineRef().getValue()));
+        assertEquals("Original size does not match", sizeAfter, sizeAfter2);
+        assertEquals("Filtered size does not match", filteredSizeAfter, filteredSizeAfter2);
+    }
+
     private VehicleActivityStructure createVehicleActivity(String lineRefValue, String vehicleRefValue) {
         VehicleActivityStructure v = new VehicleActivityStructure();
         VehicleActivityStructure.MonitoredVehicleJourney mvj = new VehicleActivityStructure.MonitoredVehicleJourney();

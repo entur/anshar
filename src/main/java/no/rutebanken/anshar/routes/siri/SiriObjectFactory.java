@@ -1,10 +1,12 @@
 package no.rutebanken.anshar.routes.siri;
 
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
+import org.rutebanken.siri20.util.SiriXml;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.org.siri.siri20.*;
 
+import javax.xml.bind.JAXBException;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import java.time.Duration;
@@ -439,5 +441,15 @@ public class SiriObjectFactory {
         response.getTerminationResponseStatuses().add(status);
         siri.setTerminateSubscriptionResponse(response);
         return siri;
+    }
+
+    /**
+     * Creates a deep copy of provided object
+     * @param siri
+     * @return
+     * @throws JAXBException
+     */
+    public static Siri deepCopy(Siri siri) throws JAXBException {
+        return SiriXml.parseXml(SiriXml.toXml(siri));
     }
 }
