@@ -122,6 +122,8 @@ public class SiriHelper {
         if (linerefValues == null || linerefValues.isEmpty()) {
             return;
         }
+
+        //VM-deliveries
         List<VehicleMonitoringDeliveryStructure> vehicleMonitoringDeliveries = siri.getServiceDelivery().getVehicleMonitoringDeliveries();
         for (VehicleMonitoringDeliveryStructure delivery : vehicleMonitoringDeliveries) {
             List<VehicleActivityStructure> vehicleActivities = delivery.getVehicleActivities();
@@ -139,6 +141,26 @@ public class SiriHelper {
             }
             delivery.getVehicleActivities().clear();
             delivery.getVehicleActivities().addAll(filteredActivities);
+        }
+
+        //ET-deliveries
+        List<EstimatedTimetableDeliveryStructure> etDeliveries = siri.getServiceDelivery().getEstimatedTimetableDeliveries();
+        for (EstimatedTimetableDeliveryStructure delivery : etDeliveries) {
+            List<EstimatedVersionFrameStructure> etVersionFrames = delivery.getEstimatedJourneyVersionFrames();
+
+            for (EstimatedVersionFrameStructure version : etVersionFrames) {
+                List<EstimatedVehicleJourney> matches = new ArrayList<>();
+                List<EstimatedVehicleJourney> estimatedVehicleJourneies = version.getEstimatedVehicleJourneies();
+                for (EstimatedVehicleJourney estimatedVehicleJourney : estimatedVehicleJourneies) {
+                    if (estimatedVehicleJourney.getLineRef() != null) {
+                        if (linerefValues.contains(estimatedVehicleJourney.getLineRef().getValue())) {
+                            matches.add(estimatedVehicleJourney);
+                        }
+                    }
+                }
+                version.getEstimatedVehicleJourneies().clear();
+                version.getEstimatedVehicleJourneies().addAll(matches);
+            }
         }
     }
 
@@ -163,6 +185,26 @@ public class SiriHelper {
             }
             delivery.getVehicleActivities().clear();
             delivery.getVehicleActivities().addAll(filteredActivities);
+        }
+
+        //ET-deliveries
+        List<EstimatedTimetableDeliveryStructure> etDeliveries = siri.getServiceDelivery().getEstimatedTimetableDeliveries();
+        for (EstimatedTimetableDeliveryStructure delivery : etDeliveries) {
+            List<EstimatedVersionFrameStructure> etVersionFrames = delivery.getEstimatedJourneyVersionFrames();
+
+            for (EstimatedVersionFrameStructure version : etVersionFrames) {
+                List<EstimatedVehicleJourney> matches = new ArrayList<>();
+                List<EstimatedVehicleJourney> estimatedVehicleJourneies = version.getEstimatedVehicleJourneies();
+                for (EstimatedVehicleJourney estimatedVehicleJourney : estimatedVehicleJourneies) {
+                    if (estimatedVehicleJourney.getVehicleRef() != null) {
+                        if (vehiclerefValues.contains(estimatedVehicleJourney.getVehicleRef().getValue())) {
+                            matches.add(estimatedVehicleJourney);
+                        }
+                    }
+                }
+                version.getEstimatedVehicleJourneies().clear();
+                version.getEstimatedVehicleJourneies().addAll(matches);
+            }
         }
     }
 
