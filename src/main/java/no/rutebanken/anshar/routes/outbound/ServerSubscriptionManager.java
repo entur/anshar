@@ -122,6 +122,7 @@ public class ServerSubscriptionManager extends CamelRouteManager {
                                        terminateSubscription(subscriptionRef);
                                    } else {
                                        Siri heartbeatNotification = SiriObjectFactory.createHeartbeatNotification(subscriptionRef);
+                                       logger.info("Sending heartbeat to {}", subscriptionRef);
                                        pushSiriData(heartbeatNotification, subscriptionRequest, false);
                                    }
                                }
