@@ -141,12 +141,20 @@ public class VehicleActivities extends DistributedCollection {
     private static String createKey(String datasetId, VehicleActivityStructure activity) {
         StringBuffer key = new StringBuffer();
 
+        if (activity.getItemIdentifier() != null) {
+            // Identifier already exists
+            return key.append(datasetId).append(activity.getItemIdentifier()).toString();
+        }
+
+        //Create identifier based on other information
         key.append(datasetId).append(":")
                 .append((activity.getMonitoredVehicleJourney().getLineRef() != null ? activity.getMonitoredVehicleJourney().getLineRef().getValue() : "null"))
                 .append(":")
                 .append((activity.getMonitoredVehicleJourney().getVehicleRef() != null ? activity.getMonitoredVehicleJourney().getVehicleRef().getValue() :"null"))
                 .append(":")
-                .append((activity.getMonitoredVehicleJourney().getDirectionRef() != null ? activity.getMonitoredVehicleJourney().getDirectionRef().getValue() :"null"));
+                .append((activity.getMonitoredVehicleJourney().getDirectionRef() != null ? activity.getMonitoredVehicleJourney().getDirectionRef().getValue() :"null"))
+                .append(":")
+                .append((activity.getMonitoredVehicleJourney().getOriginAimedDepartureTime() != null ? activity.getMonitoredVehicleJourney().getOriginAimedDepartureTime().toLocalDateTime().toString() :"null"));
         return key.toString();
     }
 }
