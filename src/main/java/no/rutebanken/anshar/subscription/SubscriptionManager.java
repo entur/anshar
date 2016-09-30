@@ -145,8 +145,9 @@ public class SubscriptionManager extends DistributedCollection {
 
     public static Boolean isSubscriptionHealthy(String subscriptionId) {
         Instant instant = lastActivity.get(subscriptionId);
+        boolean healthy = true;
         if (instant == null) {
-            return false;
+            healthy = false;
         }
 
         logger.trace("SubscriptionId [{}], last activity {}.", subscriptionId, instant);
@@ -156,7 +157,7 @@ public class SubscriptionManager extends DistributedCollection {
             long tripleInterval = activeSubscription.getHeartbeatInterval().toMillis() * 3;
             if (instant.isBefore(Instant.now().minusMillis(tripleInterval))) {
                 //Subscription exists, but heartbeat has not been received recently
-                return false;
+                healthy = false;
             }
 
             //If active subscription has existed longer than "initial subscription duration" - restart
@@ -165,7 +166,7 @@ public class SubscriptionManager extends DistributedCollection {
                             activeSubscription.getDurationOfSubscription().getSeconds()
                     ).isBefore(Instant.now())) {
                 logger.info("Subscription  [{}] has lasted longer than initial subscription duration - triggering restart", activeSubscription.toString());
-                return false;
+                healthy = false;
             }
 
         }
@@ -176,11 +177,15 @@ public class SubscriptionManager extends DistributedCollection {
             if (instant.isBefore(Instant.now().minusMillis(tripleInterval))) {
                 logger.info("Subscription {} never activated.", pendingSubscription.toString());
                 //Subscription created, but async response never received - reestablish subscription
-                return false;
+                healthy = false;
             }
         }
 
-        return true;
+        if (!healthy) {
+            removeSubscription(subscriptionId);
+        }
+
+        return healthy;
     }
 
     public static boolean isSubscriptionRegistered(String subscriptionId) {
