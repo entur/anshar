@@ -38,15 +38,15 @@ public class SubscriptionManager extends DistributedCollection {
     public static boolean removeSubscription(String subscriptionId) {
         SubscriptionSetup setup = activeSubscriptions.remove(subscriptionId);
 
-        boolean success = (setup != null);
+        boolean found = (setup != null);
 
         lastActivity.remove(subscriptionId);
         activatedTimestamp.remove(subscriptionId);
         pendingSubscriptions.remove(subscriptionId);
         logStats();
 
-        logger.info("Removing subscription {}, success: {}", setup, success);
-        return success;
+        logger.info("Removed subscription {}, found: {}", subscriptionId, found);
+        return found;
     }
 
     public static boolean touchSubscription(String subscriptionId) {
