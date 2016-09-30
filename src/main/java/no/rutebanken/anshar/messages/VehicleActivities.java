@@ -140,15 +140,15 @@ public class VehicleActivities extends DistributedCollection {
 
     private static String createKey(String datasetId, VehicleActivityStructure activity) {
         StringBuffer key = new StringBuffer();
+        key.append(datasetId).append(":");
 
         if (activity.getItemIdentifier() != null) {
             // Identifier already exists
-            return key.append(datasetId).append(activity.getItemIdentifier()).toString();
+            return key.append(activity.getItemIdentifier()).toString();
         }
 
         //Create identifier based on other information
-        key.append(datasetId).append(":")
-                .append((activity.getMonitoredVehicleJourney().getLineRef() != null ? activity.getMonitoredVehicleJourney().getLineRef().getValue() : "null"))
+        key.append((activity.getMonitoredVehicleJourney().getLineRef() != null ? activity.getMonitoredVehicleJourney().getLineRef().getValue() : "null"))
                 .append(":")
                 .append((activity.getMonitoredVehicleJourney().getVehicleRef() != null ? activity.getMonitoredVehicleJourney().getVehicleRef().getValue() :"null"))
                 .append(":")
