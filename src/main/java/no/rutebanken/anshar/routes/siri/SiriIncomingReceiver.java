@@ -73,17 +73,23 @@ public class SiriIncomingReceiver extends RouteBuilder {
                             p.getOut().setBody(simple(null));
                         }
                     })
-                .endChoice()
-                .otherwise()  //Handle asynchronous response
-                    .choice()
-                        .when(p -> {
-                            String subscriptionId = getSubscriptionIdFromPath(p.getIn().getHeader("CamelHttpPath", String.class));
-                            return SubscriptionManager.isSubscriptionRegistered(subscriptionId);
-                        })
-                                //Valid subscription
-                            .to("activemq:queue:" + TRANSFORM_QUEUE + "?disableReplyTo=true")
-                            .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
-                            .setBody(constant(null))
+                    .endChoice()
+                    .when(header("CamelHttpPath").endsWith("/subscribe")) //Handle synchronous response
+                        .to("activemq:queue:" + TRANSFORM_QUEUE + "?disableReplyTo=true")
+                        .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
+                        .setBody(constant(null))
+                    .endChoice()
+                    .otherwise()  //Handle asynchronous response
+                        .choice()
+                            .when(p -> {
+                                String subscriptionId = getSubscriptionIdFromPath(p.getIn().getHeader("CamelHttpPath", String.class));
+                                return SubscriptionManager.isSubscriptionRegistered(subscriptionId);
+                            })
+                                    //Valid subscription
+                                .to("activemq:queue:" + TRANSFORM_QUEUE + "?disableReplyTo=true")
+                                .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
+                                .setBody(constant(null))
+                            .endChoice()
                         .otherwise()
                                 // Invalid subscription
                             .log("Ignoring incoming delivery for invalid subscription")
