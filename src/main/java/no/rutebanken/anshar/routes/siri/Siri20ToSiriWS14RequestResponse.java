@@ -39,10 +39,10 @@ public class Siri20ToSiriWS14RequestResponse extends RouteBuilder {
         SubscriptionManager.addSubscription(subscriptionSetup.getSubscriptionId(), subscriptionSetup);
 
         errorHandler(
-                deadLetterChannel("activemq:queue:error")
+                deadLetterChannel("activemq:queue:error:"+subscriptionSetup.getSubscriptionId())
         );
 
-        from("activemq:queue:error")
+        from("activemq:queue:error:"+subscriptionSetup.getSubscriptionId())
                 .log("Request failed " + subscriptionSetup.toString());
 
         long heartbeatIntervalMillis = subscriptionSetup.getHeartbeatInterval().toMillis();
@@ -60,8 +60,6 @@ public class Siri20ToSiriWS14RequestResponse extends RouteBuilder {
                 .removeHeaders("CamelHttp*") // Remove any incoming HTTP headers as they interfere with the outgoing definition
                 .setHeader(Exchange.CONTENT_TYPE, constant("text/xml;charset=UTF-8")) // Necessary when talking to Microsoft web services
                 .setHeader(Exchange.HTTP_METHOD, constant(org.apache.camel.component.http4.HttpMethods.POST))
-                .to("log:sent:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
-
                         // Header routing
                 .choice()
                 .when(header("SOAPAction").isEqualTo(RequestType.GET_VEHICLE_MONITORING))
