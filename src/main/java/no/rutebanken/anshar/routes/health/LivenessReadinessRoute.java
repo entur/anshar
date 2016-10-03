@@ -25,13 +25,17 @@ public class LivenessReadinessRoute extends RouteBuilder {
                 .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("404"))
         ;
 
-        // Alive and ready
+        // Application is ready to accept traffic
         from("jetty:http://0.0.0.0:" + inboundPort + "/ready")
                 .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
                 .setBody(constant("OK"))
         ;
+
+        // Application is (still) alive and well
         from("jetty:http://0.0.0.0:" + inboundPort + "/up")
                 .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
+                // On error - POST to hubot
+                // Ex: wget --post-data='{"source":"otp", "message":"Downloaded file is empty or not present. This makes OTP fail! Please check logs"}' http://hubot/hubot/say/
                 .setBody(constant("OK"))
         ;
 
