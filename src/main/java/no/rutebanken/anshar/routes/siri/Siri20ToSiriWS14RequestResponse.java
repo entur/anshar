@@ -1,7 +1,6 @@
 package no.rutebanken.anshar.routes.siri;
 
 import no.rutebanken.anshar.routes.ServiceNotSupportedException;
-import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
 import no.rutebanken.anshar.subscription.RequestType;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
@@ -18,14 +17,11 @@ public class Siri20ToSiriWS14RequestResponse extends RouteBuilder {
     private final Siri request;
     private final SubscriptionSetup subscriptionSetup;
 
-    private SiriHandler handler;
-
     public Siri20ToSiriWS14RequestResponse(SubscriptionSetup subscriptionSetup) {
 
         this.request = SiriObjectFactory.createServiceRequest(subscriptionSetup);
 
         this.subscriptionSetup = subscriptionSetup;
-        handler = new SiriHandler();
     }
 
     @Override
@@ -49,7 +45,11 @@ public class Siri20ToSiriWS14RequestResponse extends RouteBuilder {
         from("activemq:queue:error")
                 .log("Request failed " + subscriptionSetup.toString());
 
-        from("quartz2://request_response_" + subscriptionSetup.getSubscriptionId() + "?fireNow=true&trigger.repeatInterval=" + (subscriptionSetup.getHeartbeatInterval().getSeconds()*1000) )
+        long heartbeatIntervalMillis = subscriptionSetup.getHeartbeatInterval().toMillis();
+
+        String httpOptions = "?httpClient.socketTimeout=" + heartbeatIntervalMillis/2;
+
+        from("quartz2://request_response_" + subscriptionSetup.getSubscriptionId() + "?trigger.repeatInterval=" + heartbeatIntervalMillis )
                 .log("Retrieving data " + subscriptionSetup.toString())
                 .setBody(simple(siriXml))
                 .setExchangePattern(ExchangePattern.InOut) // Make sure we wait for a response
@@ -60,13 +60,14 @@ public class Siri20ToSiriWS14RequestResponse extends RouteBuilder {
                 .removeHeaders("CamelHttp*") // Remove any incoming HTTP headers as they interfere with the outgoing definition
                 .setHeader(Exchange.CONTENT_TYPE, constant("text/xml;charset=UTF-8")) // Necessary when talking to Microsoft web services
                 .setHeader(Exchange.HTTP_METHOD, constant(org.apache.camel.component.http4.HttpMethods.POST))
+                .to("log:sent:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
 
                         // Header routing
                 .choice()
                 .when(header("SOAPAction").isEqualTo(RequestType.GET_VEHICLE_MONITORING))
-                .to("http4://" + urlMap.get(RequestType.GET_VEHICLE_MONITORING))
+                .to("http4://" + urlMap.get(RequestType.GET_VEHICLE_MONITORING) + httpOptions)
                 .when(header("SOAPAction").isEqualTo(RequestType.GET_SITUATION_EXCHANGE))
-                .to("http4://" + urlMap.get(RequestType.GET_SITUATION_EXCHANGE))
+                .to("http4://" + urlMap.get(RequestType.GET_SITUATION_EXCHANGE) + httpOptions)
                 .otherwise()
                 .throwException(new ServiceNotSupportedException())
                 .end()
