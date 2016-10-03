@@ -181,10 +181,6 @@ public class SubscriptionManager extends DistributedCollection {
             }
         }
 
-        if (!healthy) {
-            removeSubscription(subscriptionId);
-        }
-
         return healthy;
     }
 
