@@ -121,6 +121,7 @@ public abstract class SiriSubscriptionRouteBuilder extends RouteBuilder {
                         .endChoice()
                 .endChoice()
                 .otherwise()
+                    .process(p -> SubscriptionManager.removeSubscription(subscriptionSetup.getSubscriptionId()))
                     .log("Subscription has died - terminating subscription " + subscriptionSetup.toString())
                     .to("direct:cancel" + uniqueRouteName)
                 .end();
