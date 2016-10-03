@@ -65,10 +65,10 @@ public class EstimatedTimetables extends DistributedCollection {
 
                 //If vehicle arrived at its last stop more than a day ago - remove
                 if (expectedArrivalTime != null) {
-                    return expectedArrivalTime.isBefore(ZonedDateTime.now().minusDays(1));
+                    return expectedArrivalTime.isAfter(ZonedDateTime.now().minusDays(1));
                 }
                 if (aimedArrivalTime != null) {
-                    return aimedArrivalTime.isBefore(ZonedDateTime.now().minusDays(1));
+                    return aimedArrivalTime.isAfter(ZonedDateTime.now().minusDays(1));
                 }
 
             }

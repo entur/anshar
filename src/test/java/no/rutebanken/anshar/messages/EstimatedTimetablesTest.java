@@ -37,11 +37,18 @@ public class EstimatedTimetablesTest {
         int previousSize = EstimatedTimetables.getAll().size();
 
         EstimatedTimetables.add(
-                createEstimatedVehicleJourney("1234", "4321", 30, ZonedDateTime.now().minusDays(2))
+                createEstimatedVehicleJourney("1111", "4321", 30, ZonedDateTime.now().minusDays(2))
                 , "test"
         );
 
         assertTrue(EstimatedTimetables.getAll().size() == previousSize);
+
+        EstimatedTimetables.add(
+                createEstimatedVehicleJourney("2222", "4321", 30, ZonedDateTime.now().plusDays(2))
+                , "test"
+        );
+
+        assertTrue(EstimatedTimetables.getAll().size() == previousSize+1);
     }
 
     @Test
