@@ -1,6 +1,7 @@
 package no.rutebanken.anshar.routes.siri;
 
 import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
+import no.rutebanken.anshar.subscription.SubscriptionManager;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.builder.xml.Namespaces;
@@ -74,9 +75,21 @@ public class SiriIncomingReceiver extends RouteBuilder {
                     })
                 .endChoice()
                 .otherwise()  //Handle asynchronous response
-                    .to("activemq:queue:" + TRANSFORM_QUEUE + "?disableReplyTo=true")
-                    .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
-                    .setBody(constant(null))
+                    .choice()
+                        .when(p -> {
+                            String subscriptionId = getSubscriptionIdFromPath(p.getIn().getHeader("CamelHttpPath", String.class));
+                            return SubscriptionManager.isSubscriptionRegistered(subscriptionId);
+                        })
+                                //Valid subscription
+                            .to("activemq:queue:" + TRANSFORM_QUEUE + "?disableReplyTo=true")
+                            .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
+                            .setBody(constant(null))
+                        .otherwise()
+                                // Invalid subscription
+                            .log("Ignoring incoming delivery for invalid subscription")
+                            .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("403"))
+                            .setBody(constant("Subscription is not valid"))
+                        .endChoice()
                 .end()
         ;
 
