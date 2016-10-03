@@ -47,7 +47,7 @@ public class SiriProvider extends RouteBuilder {
 
         // Dataproviders
         from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/rest/sx?httpMethodRestrict=GET")
-                .log("RequestTracer [${in.header.breadcrumbId}] Incoming request (SX)")
+                .log("RequestTracer - Incoming request (SX)")
                 .process(p -> {
                     p.getOut().setHeaders(p.getIn().getHeaders());
 
@@ -63,11 +63,11 @@ public class SiriProvider extends RouteBuilder {
 
                     SiriXml.toXml(response, null, out.getOutputStream());
                 })
-                .log("RequestTracer [${in.header.breadcrumbId}] Request done (SX)")
+                .log("RequestTracer - Request done (SX)")
         ;
 
         from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/rest/vm?httpMethodRestrict=GET")
-                .log("RequestTracer [${in.header.breadcrumbId}] Incoming request (VM)")
+                .log("RequestTracer - Incoming request (VM)")
                 .process(p -> {
                     p.getOut().setHeaders(p.getIn().getHeaders());
 
@@ -84,12 +84,12 @@ public class SiriProvider extends RouteBuilder {
 
                     SiriXml.toXml(response, null, out.getOutputStream());
                 })
-                .log("RequestTracer [${in.header.breadcrumbId}] Request done (VM)")
+                .log("RequestTracer - Request done (VM)")
         ;
 
 
         from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/rest/et?httpMethodRestrict=GET")
-                .log("RequestTracer [${in.header.breadcrumbId}] Incoming request (ET)")
+                .log("RequestTracer - Incoming request (ET)")
                 .process(p -> {
                     p.getOut().setHeaders(p.getIn().getHeaders());
 
@@ -106,12 +106,12 @@ public class SiriProvider extends RouteBuilder {
 
                     SiriXml.toXml(response, null, out.getOutputStream());
                 })
-                .log("RequestTracer [${in.header.breadcrumbId}] Request done (ET)")
+                .log("RequestTracer - Request done (ET)")
         ;
 
 
         from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/rest/pt?httpMethodRestrict=GET")
-                .log("RequestTracer [${in.header.breadcrumbId}] Incoming request (PT)")
+                .log("RequestTracer - Incoming request (PT)")
                 .process(p -> {
                     p.getOut().setHeaders(p.getIn().getHeaders());
 
@@ -127,7 +127,7 @@ public class SiriProvider extends RouteBuilder {
 
                     SiriXml.toXml(response, null, out.getOutputStream());
                 })
-                .log("RequestTracer [${in.header.breadcrumbId}] Request done (PT)")
+                .log("RequestTracer - Request done (PT)")
         ;
     }
 }
