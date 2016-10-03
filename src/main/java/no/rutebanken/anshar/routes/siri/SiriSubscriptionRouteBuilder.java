@@ -96,6 +96,8 @@ public abstract class SiriSubscriptionRouteBuilder extends RouteBuilder {
     }
     void initShedulerRoute() {
 
+        getContext().setUseMDCLogging(true);
+
         //Verify health periodically
         long healthCheckInterval = 30000;
 
