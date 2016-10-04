@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import uk.org.siri.siri20.Siri;
 import uk.org.siri.siri20.SubscriptionRequest;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.JAXBException;
 import java.net.SocketException;
 import java.util.UUID;
@@ -84,10 +85,9 @@ public class CamelRouteManager implements CamelContextAware {
 
 
     private void executeSiriPushRoute(Siri payload, String routeName) throws JAXBException {
-        String xml = SiriXml.toXml(payload);
 
         ProducerTemplate template = camelContext.createProducerTemplate();
-        template.sendBody(routeName, xml);
+        template.sendBody(routeName, payload);
     }
     private class SiriPushRouteBuilder extends RouteBuilder {
 
@@ -124,12 +124,26 @@ public class CamelRouteManager implements CamelContextAware {
                         .log(LoggingLevel.INFO, "POST data (SOAP) to " + remoteEndPoint)
                         .to("xslt:xsl/siri_raw_soap.xsl") // Convert SIRI raw request to SOAP version
                         .setHeader("CamelHttpMethod", constant("POST"))
+                        .process(p -> {
+                            Siri payload = p.getIn().getBody(Siri.class);
+
+                            HttpServletResponse out = p.getOut().getBody(HttpServletResponse.class);
+
+                            SiriXml.toXml(payload, null, out.getOutputStream());
+                        })
                         .marshal().string("UTF-8")
                         .to("http4://" + remoteEndPoint);
             } else {
                 definition = from(routeName)
                         .log(LoggingLevel.INFO, "POST data to " + remoteEndPoint)
                         .setHeader("CamelHttpMethod", constant("POST"))
+                        .process(p -> {
+                            Siri payload = p.getIn().getBody(Siri.class);
+
+                            HttpServletResponse out = p.getOut().getBody(HttpServletResponse.class);
+
+                            SiriXml.toXml(payload, null, out.getOutputStream());
+                        })
                         .marshal().string("UTF-8")
                         .to("http4://" + remoteEndPoint);
             }
