@@ -87,9 +87,10 @@ public class CamelRouteManager implements CamelContextAware {
 
 
     private void executeSiriPushRoute(Siri payload, String routeName) throws JAXBException {
+        String xml = SiriXml.toXml(payload);
 
         ProducerTemplate template = camelContext.createProducerTemplate();
-        template.sendBody(routeName, payload);
+        template.sendBody(routeName, xml);
     }
     private class SiriPushRouteBuilder extends RouteBuilder {
 
@@ -119,13 +120,6 @@ public class CamelRouteManager implements CamelContextAware {
                         .doTry()
                                 .to("xslt:xsl/siri_raw_soap.xsl") // Convert SIRI raw request to SOAP version
                                 .setHeader("CamelHttpMethod", constant("POST"))
-                                .process(p -> {
-                                    Siri payload = p.getIn().getBody(Siri.class);
-
-                                    HttpServletResponse out = p.getOut().getBody(HttpServletResponse.class);
-
-                                    SiriXml.toXml(payload, null, out.getOutputStream());
-                                })
                                 .marshal().string("UTF-8")
                                 .to("http4://" + remoteEndPoint)
                         .doCatch(IOException.class)
@@ -137,13 +131,6 @@ public class CamelRouteManager implements CamelContextAware {
                         .log(LoggingLevel.INFO, "POST data to " + remoteEndPoint)
                         .doTry()
                             .setHeader("CamelHttpMethod", constant("POST"))
-                            .process(p -> {
-                                Siri payload = p.getIn().getBody(Siri.class);
-
-                                HttpServletResponse out = p.getOut().getBody(HttpServletResponse.class);
-
-                                SiriXml.toXml(payload, null, out.getOutputStream());
-                            })
                             .marshal().string("UTF-8")
                             .to("http4://" + remoteEndPoint)
                         .doCatch(IOException.class)
