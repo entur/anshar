@@ -3,6 +3,7 @@ package no.rutebanken.anshar.routes.outbound;
 import org.apache.camel.*;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.RouteDefinition;
+import org.apache.camel.model.TryDefinition;
 import org.rutebanken.siri20.util.SiriXml;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +13,7 @@ import uk.org.siri.siri20.SubscriptionRequest;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.JAXBException;
+import java.io.IOException;
 import java.net.SocketException;
 import java.util.UUID;
 
@@ -93,7 +95,7 @@ public class CamelRouteManager implements CamelContextAware {
 
         private final boolean soapRequest;
         private String remoteEndPoint;
-        private RouteDefinition definition;
+        private TryDefinition definition;
         private String routeName;
 
         public SiriPushRouteBuilder(String remoteEndPoint, boolean soapRequest) {
@@ -111,46 +113,48 @@ public class CamelRouteManager implements CamelContextAware {
 
             routeName = String.format("direct:%s", UUID.randomUUID().toString());
 
-            errorHandler(
-                    deadLetterChannel("activemq:queue:error")
-            );
-
-            from("activemq:queue:error")
-                    .routeId("errorhandler:"+remoteEndPoint) //One errorhandler per subscription/endpoint
-                    .log("Error sending data to url " + remoteEndPoint);
-
             if (soapRequest) {
                 definition = from(routeName)
                         .log(LoggingLevel.INFO, "POST data (SOAP) to " + remoteEndPoint)
-                        .to("xslt:xsl/siri_raw_soap.xsl") // Convert SIRI raw request to SOAP version
-                        .setHeader("CamelHttpMethod", constant("POST"))
-                        .process(p -> {
-                            Siri payload = p.getIn().getBody(Siri.class);
+                        .doTry()
+                                .to("xslt:xsl/siri_raw_soap.xsl") // Convert SIRI raw request to SOAP version
+                                .setHeader("CamelHttpMethod", constant("POST"))
+                                .process(p -> {
+                                    Siri payload = p.getIn().getBody(Siri.class);
 
-                            HttpServletResponse out = p.getOut().getBody(HttpServletResponse.class);
+                                    HttpServletResponse out = p.getOut().getBody(HttpServletResponse.class);
 
-                            SiriXml.toXml(payload, null, out.getOutputStream());
-                        })
-                        .marshal().string("UTF-8")
-                        .to("http4://" + remoteEndPoint);
+                                    SiriXml.toXml(payload, null, out.getOutputStream());
+                                })
+                                .marshal().string("UTF-8")
+                                .to("http4://" + remoteEndPoint)
+                        .doCatch(IOException.class)
+                                .log("Error sending data to url " + remoteEndPoint)
+                        .endDoTry()
+                        ;
             } else {
                 definition = from(routeName)
                         .log(LoggingLevel.INFO, "POST data to " + remoteEndPoint)
-                        .setHeader("CamelHttpMethod", constant("POST"))
-                        .process(p -> {
-                            Siri payload = p.getIn().getBody(Siri.class);
+                        .doTry()
+                            .setHeader("CamelHttpMethod", constant("POST"))
+                            .process(p -> {
+                                Siri payload = p.getIn().getBody(Siri.class);
 
-                            HttpServletResponse out = p.getOut().getBody(HttpServletResponse.class);
+                                HttpServletResponse out = p.getOut().getBody(HttpServletResponse.class);
 
-                            SiriXml.toXml(payload, null, out.getOutputStream());
-                        })
-                        .marshal().string("UTF-8")
-                        .to("http4://" + remoteEndPoint);
+                                SiriXml.toXml(payload, null, out.getOutputStream());
+                            })
+                            .marshal().string("UTF-8")
+                            .to("http4://" + remoteEndPoint)
+                        .doCatch(IOException.class)
+                            .log("Error sending data to url " + remoteEndPoint)
+                        .endDoTry()
+                ;
             }
 
         }
 
-        public RouteDefinition getDefinition() {
+        public TryDefinition getDefinition() {
             return definition;
         }
 
