@@ -112,10 +112,10 @@ public class CamelRouteManager implements CamelContextAware {
             routeName = String.format("direct:%s", UUID.randomUUID().toString());
 
             errorHandler(
-                    deadLetterChannel("direct:error")
+                    deadLetterChannel("activemq:queue:error")
             );
 
-            from("direct:error")
+            from("activemq:queue:error")
                     .routeId("errorhandler:"+remoteEndPoint) //One errorhandler per subscription/endpoint
                     .log("Error sending data to url " + remoteEndPoint);
 
