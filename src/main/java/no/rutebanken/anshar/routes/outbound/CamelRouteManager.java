@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import uk.org.siri.siri20.Siri;
 import uk.org.siri.siri20.SubscriptionRequest;
 
-import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.JAXBException;
 import java.net.SocketException;
 import java.util.UUID;
@@ -38,9 +37,9 @@ public class CamelRouteManager implements CamelContextAware {
      * Creates a new ad-hoc route that sends the SIRI payload to supplied address, executes it, and finally terminates and removes it.
      * @param payload
      * @param subscriptionRequest
-     * @param soapRequest
+     * @param isSoapRequest
      */
-    public void pushSiriData(Siri payload, SubscriptionRequest subscriptionRequest, boolean soapRequest) {
+    public void pushSiriData(Siri payload, SubscriptionRequest subscriptionRequest, boolean isSoapRequest) {
         String consumerAddress = subscriptionRequest.getConsumerAddress();
         if (consumerAddress == null) {
             logger.info("ConsumerAddress is null - ignoring data.");
@@ -54,7 +53,7 @@ public class CamelRouteManager implements CamelContextAware {
             public void run() {
                 try {
 
-                    SiriPushRouteBuilder siriPushRouteBuilder = new SiriPushRouteBuilder(consumerAddress, soapRequest);
+                    SiriPushRouteBuilder siriPushRouteBuilder = new SiriPushRouteBuilder(consumerAddress, isSoapRequest);
                     String routeId = addSiriPushRoute(siriPushRouteBuilder);
                     executeSiriPushRoute(filteredPayload, siriPushRouteBuilder.getRouteName());
                     stopAndRemoveSiriPushRoute(routeId);
