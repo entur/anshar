@@ -145,9 +145,9 @@ public class SubscriptionManager extends DistributedCollection {
 
     public static Boolean isSubscriptionHealthy(String subscriptionId) {
         Instant instant = lastActivity.get(subscriptionId);
-        boolean healthy = true;
+
         if (instant == null) {
-            healthy = false;
+            return false;
         }
 
         logger.trace("SubscriptionId [{}], last activity {}.", subscriptionId, instant);
@@ -156,17 +156,21 @@ public class SubscriptionManager extends DistributedCollection {
         if (activeSubscription != null) {
             long tripleInterval = activeSubscription.getHeartbeatInterval().toMillis() * 3;
             if (instant.isBefore(Instant.now().minusMillis(tripleInterval))) {
-                //Subscription exists, but heartbeat has not been received recently
-                healthy = false;
+                //Subscription exists, but there has not been any activity recently
+                return false;
             }
 
-            //If active subscription has existed longer than "initial subscription duration" - restart
-            if (activatedTimestamp.get(subscriptionId)
-                    .plusSeconds(
-                            activeSubscription.getDurationOfSubscription().getSeconds()
-                    ).isBefore(Instant.now())) {
-                logger.info("Subscription  [{}] has lasted longer than initial subscription duration - triggering restart", activeSubscription.toString());
-                healthy = false;
+            if (activeSubscription.getSubscriptionMode().equals(SubscriptionSetup.SubscriptionMode.SUBSCRIBE)) {
+                //Only actual subscriptions have an expiration - NOT request/response-"subscriptions"
+
+                //If active subscription has existed longer than "initial subscription duration" - restart
+                if (activatedTimestamp.get(subscriptionId)
+                        .plusSeconds(
+                                activeSubscription.getDurationOfSubscription().getSeconds()
+                        ).isBefore(Instant.now())) {
+                    logger.info("Subscription  [{}] has lasted longer than initial subscription duration ", activeSubscription.toString());
+                    return false;
+                }
             }
 
         }
@@ -177,11 +181,11 @@ public class SubscriptionManager extends DistributedCollection {
             if (instant.isBefore(Instant.now().minusMillis(tripleInterval))) {
                 logger.info("Subscription {} never activated.", pendingSubscription.toString());
                 //Subscription created, but async response never received - reestablish subscription
-                healthy = false;
+                return false;
             }
         }
 
-        return healthy;
+        return true;
     }
 
     public static boolean isSubscriptionRegistered(String subscriptionId) {
