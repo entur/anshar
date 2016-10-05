@@ -82,9 +82,9 @@ public class SiriIncomingReceiver extends RouteBuilder {
                     .otherwise()  //Handle asynchronous response
                         .choice()
                             .when(p -> {
-                                String subscriptionId = getSubscriptionIdFromPath(p.getIn().getHeader("CamelHttpPath", String.class));
-                                return SubscriptionManager.isSubscriptionRegistered(subscriptionId);
-                            })
+                                    String subscriptionId = getSubscriptionIdFromPath(p.getIn().getHeader("CamelHttpPath", String.class));
+                                    return SubscriptionManager.isSubscriptionRegistered(subscriptionId);
+                                })
                                     //Valid subscription
                                 .to("activemq:queue:" + TRANSFORM_QUEUE + "?disableReplyTo=true")
                                 .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
@@ -93,7 +93,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                         .otherwise()
                                 // Invalid subscription
                             .log("Ignoring incoming delivery for invalid subscription")
-                            .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("403"))
+                            .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("403")) //403 Forbidden
                             .setBody(constant("Subscription is not valid"))
                         .endChoice()
                 .end()

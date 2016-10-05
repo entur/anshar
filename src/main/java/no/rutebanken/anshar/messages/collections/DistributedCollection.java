@@ -1,4 +1,4 @@
-package no.rutebanken.anshar.messages;
+package no.rutebanken.anshar.messages.collections;
 
 import com.hazelcast.config.Config;
 import com.hazelcast.core.Hazelcast;
@@ -15,7 +15,6 @@ import uk.org.siri.siri20.VehicleActivityStructure;
 
 import java.time.Instant;
 import java.util.Map;
-import java.util.concurrent.ConcurrentMap;
 
 import org.mapdb.*;
 
@@ -28,6 +27,9 @@ public class DistributedCollection {
 
     @Value("${anshar.hazelcast.enable}")
     private static boolean useHazelCast = false;
+
+    @Value("${anshar.expiry.period.seconds}")
+    private static int expiryPeriodSeconds = 30;
 
     private static DB db;
 
@@ -47,29 +49,29 @@ public class DistributedCollection {
         }
     }
 
-    public static ConcurrentMap<String,PtSituationElement> getSituationsMap(){
+    public static ExpiringConcurrentMap<String,PtSituationElement> getSituationsMap(){
         if (!useHazelCast) {
-            return db.hashMap("anshar.situations", Serializer.STRING, Serializer.JAVA).createOrOpen();
+            return new ExpiringConcurrentMap<>(db.hashMap("anshar.situations", Serializer.STRING, Serializer.JAVA).createOrOpen(), expiryPeriodSeconds);
         }
-        return hazelcastInstance.getMap("anshar.situations");
+        return  new ExpiringConcurrentMap<>(hazelcastInstance.getMap("anshar.situations"), expiryPeriodSeconds);
     }
-    public static Map<String, EstimatedVehicleJourney> getJourneysMap(){
+    public static ExpiringConcurrentMap<String, EstimatedVehicleJourney> getJourneysMap(){
         if (!useHazelCast) {
-            return db.hashMap("anshar.journeys", Serializer.STRING, Serializer.JAVA).createOrOpen();
+            return new ExpiringConcurrentMap<>(db.hashMap("anshar.journeys", Serializer.STRING, Serializer.JAVA).createOrOpen(), expiryPeriodSeconds);
         }
-        return hazelcastInstance.getMap("anshar.journeys");
+        return new ExpiringConcurrentMap<>(hazelcastInstance.getMap("anshar.journeys"), expiryPeriodSeconds);
     }
-    public static Map<String,VehicleActivityStructure> getVehiclesMap(){
+    public static ExpiringConcurrentMap<String,VehicleActivityStructure> getVehiclesMap(){
         if (!useHazelCast) {
-            return db.hashMap("anshar.vehicles", Serializer.STRING, Serializer.JAVA).createOrOpen();
+            return new ExpiringConcurrentMap<>(db.hashMap("anshar.vehicles", Serializer.STRING, Serializer.JAVA).createOrOpen(), expiryPeriodSeconds);
         }
-        return hazelcastInstance.getMap("anshar.vehicles");
+        return new ExpiringConcurrentMap<>(hazelcastInstance.getMap("anshar.vehicles"), expiryPeriodSeconds);
     }
-    public static Map<String, ProductionTimetableDeliveryStructure> getProductionTimetablesMap(){
+    public static ExpiringConcurrentMap<String, ProductionTimetableDeliveryStructure> getProductionTimetablesMap(){
         if (!useHazelCast) {
-            return db.hashMap("anshar.productionTimetables", Serializer.STRING, Serializer.JAVA).createOrOpen();
+            return new ExpiringConcurrentMap<>(db.hashMap("anshar.productionTimetables", Serializer.STRING, Serializer.JAVA).createOrOpen(), expiryPeriodSeconds);
         }
-        return hazelcastInstance.getMap("anshar.productionTimetables");
+        return new ExpiringConcurrentMap<>(hazelcastInstance.getMap("anshar.productionTimetables"), expiryPeriodSeconds);
     }
 
     public static Map<String,SubscriptionSetup> getActiveSubscriptionsMap() {

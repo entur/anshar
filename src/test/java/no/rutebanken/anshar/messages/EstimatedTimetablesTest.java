@@ -41,6 +41,7 @@ public class EstimatedTimetablesTest {
                 , "test"
         );
 
+        EstimatedTimetables.timetableDeliveries.removeExpiredElements();
         assertTrue(EstimatedTimetables.getAll().size() == previousSize);
 
         EstimatedTimetables.add(
@@ -48,7 +49,9 @@ public class EstimatedTimetablesTest {
                 , "test"
         );
 
-        assertTrue(EstimatedTimetables.getAll().size() == previousSize+1);
+        EstimatedTimetables.timetableDeliveries.removeExpiredElements();
+
+        assertTrue(EstimatedTimetables.getAll().size() == previousSize + 1);
     }
 
     @Test

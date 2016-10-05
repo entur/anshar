@@ -1,5 +1,7 @@
 package no.rutebanken.anshar.messages;
 
+import no.rutebanken.anshar.messages.collections.DistributedCollection;
+import no.rutebanken.anshar.messages.collections.ExpiringConcurrentMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.org.siri.siri20.*;
@@ -10,17 +12,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class VehicleActivities extends DistributedCollection {
+import static no.rutebanken.anshar.messages.collections.DistributedCollection.getVehiclesMap;
+
+public class VehicleActivities {
     private static Logger logger = LoggerFactory.getLogger(VehicleActivities.class);
 
-    private static Map<String, VehicleActivityStructure> vehicleActivities = getVehiclesMap();
+    static ExpiringConcurrentMap<String, VehicleActivityStructure> vehicleActivities = getVehiclesMap();
 
     /**
      * @return All vehicle activities that are still valid
      */
     public static List<VehicleActivityStructure> getAll() {
-        removeExpiredElements();
-
         return new ArrayList<>(vehicleActivities.values());
     }
 
@@ -28,8 +30,6 @@ public class VehicleActivities extends DistributedCollection {
      * @return All vehicle activities that are still valid
      */
     public static List<VehicleActivityStructure> getAll(String vendor) {
-        removeExpiredElements();
-
         Map<String, VehicleActivityStructure> vendorSpecific = new HashMap<>();
         vehicleActivities.keySet().stream().filter(key -> key.startsWith(vendor + ":")).forEach(key -> {
             VehicleActivityStructure structure = vehicleActivities.get(key);
@@ -41,34 +41,9 @@ public class VehicleActivities extends DistributedCollection {
         return new ArrayList<>(vendorSpecific.values());
     }
 
-    private static synchronized void removeExpiredElements() {
 
-        List<String> itemsToRemove = new ArrayList<>();
-        for (String key : vehicleActivities.keySet()) {
-            VehicleActivityStructure current = vehicleActivities.get(key);
-            if (!isStillValid(current)) {
-                itemsToRemove.add(key);
-            }
-        }
-
-        for (String rm : itemsToRemove) {
-            vehicleActivities.remove(rm);
-        }
-
-    }
-
-    private static boolean isStillValid(VehicleActivityStructure a) {
-        if (a == null) {
-            //Other parallel thread may have removed object
-            return false;
-        }
-        ZonedDateTime validUntilTime = a.getValidUntilTime();
-
-        if (validUntilTime == null || validUntilTime.isAfter(ZonedDateTime.now())) {
-            return true;
-        }
-
-        return false;
+    private static ZonedDateTime getExpiration(VehicleActivityStructure a) {
+        return a.getValidUntilTime();
     }
 
     public static VehicleActivityStructure add(VehicleActivityStructure activity, String datasetId) {
@@ -78,7 +53,7 @@ public class VehicleActivities extends DistributedCollection {
         boolean keep = isLocationValid(activity) && isActivityMeaningful(activity);
 
         if (keep) {
-            VehicleActivityStructure previousValue = vehicleActivities.put(createKey(datasetId, activity), activity);
+            VehicleActivityStructure previousValue = vehicleActivities.put(createKey(datasetId, activity), activity, getExpiration(activity));
 
             if (previousValue != null) {
                 //Activity has been updated

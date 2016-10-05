@@ -42,6 +42,7 @@ public class ProductionTimetablesTest {
                 , "test"
         );
 
+        ProductionTimetables.timetableDeliveries.removeExpiredElements();
         assertTrue(ProductionTimetables.getAll().size() == previousSize);
     }
 

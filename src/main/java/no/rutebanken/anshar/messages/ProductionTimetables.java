@@ -1,5 +1,6 @@
 package no.rutebanken.anshar.messages;
 
+import no.rutebanken.anshar.messages.collections.ExpiringConcurrentMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.org.siri.siri20.ProductionTimetableDeliveryStructure;
@@ -10,17 +11,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ProductionTimetables extends DistributedCollection {
+import static no.rutebanken.anshar.messages.collections.DistributedCollection.getProductionTimetablesMap;
+
+public class ProductionTimetables {
     private static Logger logger = LoggerFactory.getLogger(ProductionTimetables.class);
 
-    private static Map<String, ProductionTimetableDeliveryStructure> timetableDeliveries = getProductionTimetablesMap();
+    static ExpiringConcurrentMap<String, ProductionTimetableDeliveryStructure> timetableDeliveries = getProductionTimetablesMap();
 
     /**
      * @return All vehicle activities that are still valid
      */
     public static List<ProductionTimetableDeliveryStructure> getAll() {
-        removeExpiredElements();
-
         return new ArrayList<>(timetableDeliveries.values());
     }
 
@@ -28,8 +29,6 @@ public class ProductionTimetables extends DistributedCollection {
      * @return All vehicle activities that are still valid
      */
     public static List<ProductionTimetableDeliveryStructure> getAll(String datasetId) {
-        removeExpiredElements();
-
         Map<String, ProductionTimetableDeliveryStructure> datasetIdSpecific = new HashMap<>();
         timetableDeliveries.keySet().stream().filter(key -> key.startsWith(datasetId + ":")).forEach(key -> {
             ProductionTimetableDeliveryStructure element = timetableDeliveries.get(key);
@@ -41,38 +40,16 @@ public class ProductionTimetables extends DistributedCollection {
         return new ArrayList<>(datasetIdSpecific.values());
     }
 
-    private static void removeExpiredElements() {
+    private static ZonedDateTime getExpiration(ProductionTimetableDeliveryStructure s) {
 
-        List<String> itemsToRemove = new ArrayList<>();
-
-        for (String key : timetableDeliveries.keySet()) {
-            ProductionTimetableDeliveryStructure current = timetableDeliveries.get(key);
-            if ( !isStillValid(current)) {
-                itemsToRemove.add(key);
-            }
-        }
-
-        for (String rm : itemsToRemove) {
-            timetableDeliveries.remove(rm);
-        }
-    }
-
-    private static boolean isStillValid(ProductionTimetableDeliveryStructure s) {
-
-        boolean isStillValid = false;
-        ZonedDateTime validUntil = s.getValidUntil();
-        //Keep if at least one is valid
-        if (validUntil == null || validUntil.isAfter(ZonedDateTime.now())) {
-            isStillValid = true;
-        }
-        return isStillValid;
+        return s.getValidUntil();
     }
 
     public static ProductionTimetableDeliveryStructure add(ProductionTimetableDeliveryStructure timetableDelivery, String datasetId) {
         if (timetableDelivery == null) {
             return null;
         }
-        ProductionTimetableDeliveryStructure previous = timetableDeliveries.put(createKey(datasetId, timetableDelivery), timetableDelivery);
+        ProductionTimetableDeliveryStructure previous = timetableDeliveries.put(createKey(datasetId, timetableDelivery), timetableDelivery, getExpiration(timetableDelivery));
         if (previous != null) {
             /*
              * TODO: How to determine if PT-element has been updated?

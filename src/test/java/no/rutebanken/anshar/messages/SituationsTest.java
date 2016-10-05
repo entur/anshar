@@ -36,6 +36,7 @@ public class SituationsTest {
 
         Situations.add(element, "test");
 
+        Situations.situations.removeExpiredElements();
         assertTrue(Situations.getAll().size() == previousSize); //No change
     }
 

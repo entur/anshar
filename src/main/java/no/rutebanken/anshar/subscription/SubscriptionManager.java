@@ -1,7 +1,7 @@
 package no.rutebanken.anshar.subscription;
 
 
-import no.rutebanken.anshar.messages.DistributedCollection;
+import no.rutebanken.anshar.messages.collections.DistributedCollection;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;

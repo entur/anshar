@@ -33,6 +33,8 @@ public class VehicleActivitiesTest {
                                                     ZonedDateTime.now().minusMinutes(11), UUID.randomUUID().toString());
 
         VehicleActivities.add(element, "test");
+
+        VehicleActivities.vehicleActivities.removeExpiredElements();
         assertTrue(VehicleActivities.getAll().size() == previousSize);
     }
 

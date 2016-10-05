@@ -1,5 +1,7 @@
 package no.rutebanken.anshar.messages;
 
+import no.rutebanken.anshar.messages.collections.DistributedCollection;
+import no.rutebanken.anshar.messages.collections.ExpiringConcurrentMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.org.siri.siri20.PtSituationElement;
@@ -10,16 +12,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class Situations extends DistributedCollection {
+import static no.rutebanken.anshar.messages.collections.DistributedCollection.getSituationsMap;
+
+public class Situations {
     private static Logger logger = LoggerFactory.getLogger(Situations.class);
 
-    private static Map<String,PtSituationElement> situations = getSituationsMap();
+    static ExpiringConcurrentMap<String,PtSituationElement> situations = getSituationsMap();
 
     /**
      * @return All situations that are still valid
      */
     public static List<PtSituationElement> getAll() {
-       removeExpiredElements();
         return new ArrayList<>(situations.values());
     }
 
@@ -27,7 +30,6 @@ public class Situations extends DistributedCollection {
      * @return All vehicle activities that are still valid
      */
     public static List<PtSituationElement> getAll(String datasetId) {
-        removeExpiredElements();
 
         Map<String, PtSituationElement> datasetIdSpecific = new HashMap<>();
         situations.keySet().stream().filter(key -> key.startsWith(datasetId + ":")).forEach(key -> {
@@ -40,44 +42,30 @@ public class Situations extends DistributedCollection {
         return new ArrayList<>(datasetIdSpecific.values());
     }
 
-    private static void removeExpiredElements() {
-
-        List<String> itemsToRemove = new ArrayList<>();
-
-        for (String key : situations.keySet()) {
-            PtSituationElement current = situations.get(key);
-            if ( !isStillValid(current)) {
-                itemsToRemove.add(key);
-            }
-        }
-
-        for (String rm : itemsToRemove) {
-            situations.remove(rm);
-        }
-    }
-
-    private static boolean isStillValid(PtSituationElement situationElement) {
+    private static ZonedDateTime getExpiration(PtSituationElement situationElement) {
         List<PtSituationElement.ValidityPeriod> validityPeriods = situationElement.getValidityPeriods();
+
+        ZonedDateTime expiry = null;
 
         if (validityPeriods != null) {
             for (PtSituationElement.ValidityPeriod validity : validityPeriods) {
-                //Keep if at least one is valid
-                if (validity.getEndTime() == null || validity.getEndTime().isAfter(ZonedDateTime.now())) {
-                    return true;
+
+                //Find latest validity
+                if (expiry == null) {
+                    expiry = validity.getEndTime();
+                } else if (validity != null && validity.getEndTime().isAfter(expiry)) {
+                    expiry = validity.getEndTime();
                 }
             }
-        } else {
-            //No validity - keep "forever"
-            return true;
         }
-        return false;
+        return expiry;
     }
 
     public static PtSituationElement add(PtSituationElement situation, String datasetId) {
         if (situation == null) {
             return situation;
         }
-        PtSituationElement previousElement = situations.put(createKey(datasetId, situation), situation);
+        PtSituationElement previousElement = situations.put(createKey(datasetId, situation), situation, getExpiration(situation));
         if (previousElement != null) {
             //Situation existed, and may have been updated
             /*

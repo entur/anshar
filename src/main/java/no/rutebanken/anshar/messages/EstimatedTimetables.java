@@ -1,5 +1,8 @@
 package no.rutebanken.anshar.messages;
 
+import no.rutebanken.anshar.messages.collections.DistributedCollection;
+import no.rutebanken.anshar.messages.collections.ExpiringConcurrentMap;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.org.siri.siri20.EstimatedCall;
@@ -8,17 +11,17 @@ import uk.org.siri.siri20.EstimatedVehicleJourney;
 import java.time.ZonedDateTime;
 import java.util.*;
 
-public class EstimatedTimetables extends DistributedCollection {
+import static no.rutebanken.anshar.messages.collections.DistributedCollection.getJourneysMap;
+
+public class EstimatedTimetables {
     private static Logger logger = LoggerFactory.getLogger(EstimatedTimetables.class);
 
-    private static Map<String, EstimatedVehicleJourney> timetableDeliveries = getJourneysMap();
+    static ExpiringConcurrentMap<String, EstimatedVehicleJourney> timetableDeliveries = getJourneysMap();
 
     /**
      * @return All vehicle activities that are still valid
      */
     public static List<EstimatedVehicleJourney> getAll() {
-        removeExpiredElements();
-
         return new ArrayList<>(timetableDeliveries.values());
     }
 
@@ -26,7 +29,6 @@ public class EstimatedTimetables extends DistributedCollection {
      * @return All vehicle activities that are still valid
      */
     public static List<EstimatedVehicleJourney> getAll(String datasetId) {
-        removeExpiredElements();
 
         Map<String, EstimatedVehicleJourney> datasetIdSpecific = new HashMap<>();
         timetableDeliveries.keySet().stream().filter(key -> key.startsWith(datasetId + ":")).forEach(key -> {
@@ -39,22 +41,10 @@ public class EstimatedTimetables extends DistributedCollection {
         return new ArrayList<>(datasetIdSpecific.values());
     }
 
-    private static void removeExpiredElements() {
-        List<String> itemsToRemove = new ArrayList<>();
-        for (String key : timetableDeliveries.keySet()) {
-            EstimatedVehicleJourney current = timetableDeliveries.get(key);
-            if ( !isStillValid(current)) {
-                itemsToRemove.add(key);
-            }
-        }
 
-        for (String rm : itemsToRemove) {
-            timetableDeliveries.remove(rm);
-        }
-    }
-
-    private static boolean isStillValid(EstimatedVehicleJourney vehicleJourney) {
-        boolean isStillValid = false;
+    @Nullable
+    private static ZonedDateTime getExpiration(EstimatedVehicleJourney vehicleJourney) {
+        ZonedDateTime expiryTimestamp = null;
         if (vehicleJourney != null) {
             if (vehicleJourney.getEstimatedCalls() != null) {
                 List<EstimatedCall> estimatedCalls = vehicleJourney.getEstimatedCalls().getEstimatedCalls();
@@ -65,21 +55,32 @@ public class EstimatedTimetables extends DistributedCollection {
 
                 //If vehicle arrived at its last stop more than a day ago - remove
                 if (expectedArrivalTime != null) {
-                    return expectedArrivalTime.isAfter(ZonedDateTime.now().minusDays(1));
+                    expiryTimestamp = expectedArrivalTime;
                 }
                 if (aimedArrivalTime != null) {
-                    return aimedArrivalTime.isAfter(ZonedDateTime.now().minusDays(1));
+                    expiryTimestamp = aimedArrivalTime;
                 }
 
             }
         }
-        return isStillValid;
+
+        if (expiryTimestamp != null) {
+            //Calculating expiry - keeping for 12h after last stoppoint
+            expiryTimestamp = expiryTimestamp.plusHours(12);
+        }
+        return expiryTimestamp;
     }
 
 
     public static EstimatedVehicleJourney add(EstimatedVehicleJourney timetableDelivery, String datasetId) {
         if (timetableDelivery == null) {return null;}
-        EstimatedVehicleJourney previous = timetableDeliveries.put(createKey(datasetId, timetableDelivery), timetableDelivery);
+
+        String key = createKey(datasetId, timetableDelivery);
+
+        // Keep ET-data for 12H after they have happened
+
+        EstimatedVehicleJourney previous = timetableDeliveries.put(key, timetableDelivery, getExpiration(timetableDelivery));
+
         if (previous != null) {
             // TODO: Determine if data is updated?
             // Currently assumes that unique key is enough to replace/update data
