@@ -160,6 +160,19 @@ public class SiriHelperTest {
     }
 
 
+    @Test
+    public void testNotSplitNonDelivery(){
+
+
+        Siri siri = SiriObjectFactory.createHeartbeatNotification("ref");
+
+        List<Siri> splitDeliveries = SiriHelper.splitDeliveries(siri, 500);
+        assertEquals(1, splitDeliveries.size());
+
+        assertNotNull(splitDeliveries.get(0));
+        assertEquals(siri, splitDeliveries.get(0));
+    }
+
     private VehicleActivityStructure createVehicleActivity(String lineRefValue, String vehicleRefValue) {
         VehicleActivityStructure v = new VehicleActivityStructure();
         VehicleActivityStructure.MonitoredVehicleJourney mvj = new VehicleActivityStructure.MonitoredVehicleJourney();

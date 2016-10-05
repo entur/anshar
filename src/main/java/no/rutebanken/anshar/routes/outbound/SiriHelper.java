@@ -112,6 +112,12 @@ public class SiriHelper {
     public static List<Siri> splitDeliveries(Siri payload, int maximumSizePerDelivery) {
 
         List<Siri> siriList = new ArrayList<>();
+
+        if (payload.getServiceDelivery() == null) {
+            siriList.add(payload);
+            return siriList;
+        }
+
         if (containsValues(payload.getServiceDelivery().getSituationExchangeDeliveries())) {
 
             List<PtSituationElement> situationElementList = payload.getServiceDelivery()
