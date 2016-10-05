@@ -64,7 +64,7 @@ public class ExpiringConcurrentMap<String,T>  extends ConcurrentHashMap<String,T
         List<String> expiredKeys = expiryMap.keySet()
                 .stream()
                 .filter(key ->
-                                (expiryMap.get(key) == null ||
+                                (expiryMap.get(key) != null &&
                                         expiryMap.get(key).isBefore(ZonedDateTime.now()))
                 ).collect(Collectors.toList());
 

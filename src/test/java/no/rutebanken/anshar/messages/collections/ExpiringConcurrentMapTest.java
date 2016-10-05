@@ -20,7 +20,7 @@ public class ExpiringConcurrentMapTest {
     }
 
     @Test
-    public void testExpiration() {
+    public void testNoExpiration() {
         assertNull(map.lastRun);
 
         map.put("test", 1234);
@@ -28,6 +28,11 @@ public class ExpiringConcurrentMapTest {
 
         map.put("test2", 1234);
         assertTrue(map.containsKey("test2"));
+
+    }
+
+    @Test
+    public void testExpiration() {
 
         ZonedDateTime expiry = ZonedDateTime.now().plusSeconds(1);
 
@@ -48,6 +53,16 @@ public class ExpiringConcurrentMapTest {
 
         assertFalse("Expired element has not been removed.", map.containsKey("test3"));
 
+    }
+
+    @Test
+    public void testNullExpiry(){
+
+        map.put("test4", 1234, null);
+
+        map.removeExpiredElements();
+
+        assertTrue("Element with no expiry has been removed.", map.containsKey("test4"));
 
     }
 }
