@@ -134,6 +134,32 @@ public class SiriHelperTest {
         assertEquals("Filtered size does not match", filteredSizeAfter, filteredSizeAfter2);
     }
 
+    @Test
+    public void testSplitDelivery(){
+
+        List<VehicleActivityStructure> vmElements = new ArrayList<>();
+        int elementCount = 1010;
+        for (int i = 0; i < elementCount; i++) {
+
+            vmElements.add(createVehicleActivity("" + i, "3333"));
+        }
+
+        Siri siri = SiriObjectFactory.createVMServiceDelivery(vmElements);
+
+        assertEquals(elementCount, siri.getServiceDelivery().getVehicleMonitoringDeliveries().get(0).getVehicleActivities().size());
+
+        List<Siri> splitDeliveries = SiriHelper.splitDeliveries(siri, 500);
+        assertEquals(3, splitDeliveries.size());
+
+        int splitElementCount = 0;
+        for (Siri splitDelivery : splitDeliveries) {
+            splitElementCount += splitDelivery.getServiceDelivery().getVehicleMonitoringDeliveries().get(0).getVehicleActivities().size();
+        }
+
+        assertEquals(elementCount, splitElementCount);
+    }
+
+
     private VehicleActivityStructure createVehicleActivity(String lineRefValue, String vehicleRefValue) {
         VehicleActivityStructure v = new VehicleActivityStructure();
         VehicleActivityStructure.MonitoredVehicleJourney mvj = new VehicleActivityStructure.MonitoredVehicleJourney();

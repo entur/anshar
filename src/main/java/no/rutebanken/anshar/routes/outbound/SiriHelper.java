@@ -4,6 +4,7 @@ import no.rutebanken.anshar.messages.EstimatedTimetables;
 import no.rutebanken.anshar.messages.Situations;
 import no.rutebanken.anshar.messages.VehicleActivities;
 import no.rutebanken.anshar.routes.siri.SiriObjectFactory;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.org.siri.siri20.*;
@@ -106,6 +107,70 @@ public class SiriHelper {
             delivery = SiriObjectFactory.createETServiceDelivery(timetables);
         }
         return delivery;
+    }
+
+    public static List<Siri> splitDeliveries(Siri payload, int maximumSizePerDelivery) {
+
+        List<Siri> siriList = new ArrayList<>();
+        if (containsValues(payload.getServiceDelivery().getSituationExchangeDeliveries())) {
+
+            List<PtSituationElement> situationElementList = payload.getServiceDelivery()
+                    .getSituationExchangeDeliveries().get(0)
+                    .getSituations()
+                    .getPtSituationElements();
+
+            List<List> sxList = splitList(situationElementList, maximumSizePerDelivery);
+
+            for (List<PtSituationElement> list : sxList) {
+                siriList.add(SiriObjectFactory.createSXServiceDelivery(list));
+            }
+
+        } else if (containsValues(payload.getServiceDelivery().getVehicleMonitoringDeliveries())) {
+
+            List<VehicleActivityStructure> vehicleActivities = payload.getServiceDelivery()
+                    .getVehicleMonitoringDeliveries().get(0)
+                    .getVehicleActivities();
+
+            List<List> vmList = splitList(vehicleActivities, maximumSizePerDelivery);
+
+            for (List<VehicleActivityStructure> list : vmList) {
+                siriList.add(SiriObjectFactory.createVMServiceDelivery(list));
+            }
+
+        } else if (containsValues(payload.getServiceDelivery().getEstimatedTimetableDeliveries())) {
+
+            List<EstimatedVehicleJourney> timetables = payload.getServiceDelivery()
+                    .getEstimatedTimetableDeliveries().get(0)
+                    .getEstimatedJourneyVersionFrames().get(0)
+                    .getEstimatedVehicleJourneies();
+
+            List<List> etList = splitList(timetables, maximumSizePerDelivery);
+
+            for (List<EstimatedVehicleJourney> list : etList) {
+                siriList.add(SiriObjectFactory.createETServiceDelivery(list));
+            }
+        }
+
+        return siriList;
+    }
+
+    @NotNull
+    private static List<List> splitList(List situationElementList, int maximumSizePerDelivery) {
+        int startIndex = 0;
+        int endIndex = Math.min(startIndex+maximumSizePerDelivery, situationElementList.size());
+
+        List<List> sxList = new ArrayList<>();
+        boolean hasMoreElements = true;
+        while(hasMoreElements) {
+
+            sxList.add(situationElementList.subList(startIndex, endIndex));
+            if (endIndex >= situationElementList.size()) {
+                hasMoreElements = false;
+            }
+            startIndex += maximumSizePerDelivery;
+            endIndex = Math.min(startIndex+maximumSizePerDelivery, situationElementList.size());
+        }
+        return sxList;
     }
 
     static boolean containsValues(List list) {

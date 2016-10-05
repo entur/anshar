@@ -12,9 +12,11 @@ import uk.org.siri.siri20.SubscriptionRequest;
 
 import javax.xml.bind.JAXBException;
 import java.net.SocketException;
+import java.util.List;
 import java.util.UUID;
 
 import static no.rutebanken.anshar.routes.outbound.SiriHelper.getFilter;
+import static no.rutebanken.anshar.routes.outbound.SiriHelper.splitDeliveries;
 
 @Service
 public class CamelRouteManager implements CamelContextAware {
@@ -48,25 +50,29 @@ public class CamelRouteManager implements CamelContextAware {
 
         Siri filteredPayload = SiriHelper.filterSiriPayload(payload, getFilter(subscriptionRequest));
 
-        Thread r = new Thread() {
-            @Override
-            public void run() {
-                try {
+        List<Siri> splitSiri = splitDeliveries(filteredPayload, 1000);
 
-                    SiriPushRouteBuilder siriPushRouteBuilder = new SiriPushRouteBuilder(consumerAddress, isSoapRequest);
-                    String routeId = addSiriPushRoute(siriPushRouteBuilder);
-                    executeSiriPushRoute(filteredPayload, siriPushRouteBuilder.getRouteName());
-                    stopAndRemoveSiriPushRoute(routeId);
-                } catch (Exception e) {
-                    if (e.getCause() instanceof SocketException) {
-                        logger.info("Recipient is unreachable - ignoring");
-                    } else {
-                        logger.warn("Exception caught when pushing SIRI-data", e);
+        for (Siri siri : splitSiri) {
+            Thread r = new Thread() {
+                @Override
+                public void run() {
+                    try {
+
+                        SiriPushRouteBuilder siriPushRouteBuilder = new SiriPushRouteBuilder(consumerAddress, isSoapRequest);
+                        String routeId = addSiriPushRoute(siriPushRouteBuilder);
+                        executeSiriPushRoute(siri, siriPushRouteBuilder.getRouteName());
+                        stopAndRemoveSiriPushRoute(routeId);
+                    } catch (Exception e) {
+                        if (e.getCause() instanceof SocketException) {
+                            logger.info("Recipient is unreachable - ignoring");
+                        } else {
+                            logger.warn("Exception caught when pushing SIRI-data", e);
+                        }
                     }
                 }
-            }
-        };
-        r.start();
+            };
+            r.start();
+        }
     }
 
     private String addSiriPushRoute(SiriPushRouteBuilder route) throws Exception {
