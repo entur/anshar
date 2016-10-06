@@ -52,7 +52,6 @@ public class EstimatedTimetables {
                 ZonedDateTime aimedArrivalTime = lastEstimatedCall.getAimedArrivalTime();
                 ZonedDateTime expectedArrivalTime = lastEstimatedCall.getExpectedArrivalTime();
 
-                //If vehicle arrived at its last stop more than a day ago - remove
                 if (expectedArrivalTime != null) {
                     expiryTimestamp = expectedArrivalTime;
                 }
