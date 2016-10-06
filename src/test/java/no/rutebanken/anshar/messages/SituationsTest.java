@@ -2,6 +2,7 @@ package no.rutebanken.anshar.messages;
 
 import no.rutebanken.anshar.messages.Situations;
 import no.rutebanken.anshar.routes.siri.SiriObjectFactory;
+import org.junit.Before;
 import org.junit.Test;
 import uk.org.siri.siri20.PtSituationElement;
 import uk.org.siri.siri20.SituationNumber;
@@ -11,6 +12,13 @@ import java.time.ZonedDateTime;
 import static org.junit.Assert.assertTrue;
 
 public class SituationsTest {
+
+
+    @Before
+    public void setup() {
+        Situations.situations.clear();
+    }
+
 
     @Test
     public void testAddSituation() {

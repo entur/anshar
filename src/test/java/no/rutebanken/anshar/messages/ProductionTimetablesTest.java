@@ -2,6 +2,7 @@ package no.rutebanken.anshar.messages;
 
 import no.rutebanken.anshar.messages.ProductionTimetables;
 import no.rutebanken.anshar.messages.ProductionTimetables;
+import org.junit.Before;
 import org.junit.Test;
 import uk.org.siri.siri20.EstimatedTimetableDeliveryStructure;
 import uk.org.siri.siri20.ProductionTimetableDeliveryStructure;
@@ -12,6 +13,11 @@ import java.util.UUID;
 import static org.junit.Assert.assertTrue;
 
 public class ProductionTimetablesTest {
+
+    @Before
+    public void setup() {
+        ProductionTimetables.timetableDeliveries.clear();
+    }
 
 
     @Test

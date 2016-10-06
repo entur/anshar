@@ -1,5 +1,6 @@
 package no.rutebanken.anshar.messages;
 
+import org.junit.Before;
 import org.junit.Test;
 import uk.org.siri.siri20.CourseOfJourneyRefStructure;
 import uk.org.siri.siri20.LocationStructure;
@@ -14,6 +15,12 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 public class VehicleActivitiesTest {
+
+
+    @Before
+    public void setup() {
+        VehicleActivities.vehicleActivities.clear();
+    }
 
     @Test
     public void testAddVehicle() {

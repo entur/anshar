@@ -34,7 +34,7 @@ public class ExpiringConcurrentMapTest {
     @Test
     public void testExpiration() {
 
-        ZonedDateTime expiry = ZonedDateTime.now().plusSeconds(1);
+        ZonedDateTime expiry = ZonedDateTime.now().plusSeconds(2);
 
         map.put("test3", 1234, expiry);
         assertTrue(map.containsKey("test3"));
@@ -45,7 +45,7 @@ public class ExpiringConcurrentMapTest {
         //Wait for expiration-job to run
         while (map.lastRun == null || map.lastRun.isBefore(expiry)) {
             try {
-                Thread.sleep(200);
+                Thread.sleep(300);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

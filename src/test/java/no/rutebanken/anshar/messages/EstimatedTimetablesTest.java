@@ -1,5 +1,6 @@
 package no.rutebanken.anshar.messages;
 
+import org.junit.Before;
 import org.junit.Test;
 import uk.org.siri.siri20.EstimatedCall;
 import uk.org.siri.siri20.EstimatedVehicleJourney;
@@ -8,10 +9,16 @@ import uk.org.siri.siri20.VehicleRef;
 
 import java.time.ZonedDateTime;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class EstimatedTimetablesTest {
 
+
+    @Before
+    public void setup() {
+        EstimatedTimetables.timetableDeliveries.clear();
+    }
 
     @Test
     public void testAddNull() {
@@ -42,7 +49,8 @@ public class EstimatedTimetablesTest {
         );
 
         EstimatedTimetables.timetableDeliveries.removeExpiredElements();
-        assertTrue(EstimatedTimetables.getAll().size() == previousSize);
+
+        assertEquals(previousSize, EstimatedTimetables.getAll().size());
 
         EstimatedTimetables.add(
                 createEstimatedVehicleJourney("2222", "4321", 30, ZonedDateTime.now().plusDays(2))
@@ -51,7 +59,7 @@ public class EstimatedTimetablesTest {
 
         EstimatedTimetables.timetableDeliveries.removeExpiredElements();
 
-        assertTrue(EstimatedTimetables.getAll().size() == previousSize + 1);
+        assertEquals(previousSize + 1, EstimatedTimetables.getAll().size());
     }
 
     @Test
