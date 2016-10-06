@@ -101,6 +101,9 @@ public class SubscriptionConfig {
         urlMap.put(RequestType.GET_VEHICLE_MONITORING, "sis.kolumbus.no:90/VMWS/VMService.svc");
 
         List<ValueAdapter> mappingAdapters = new ArrayList<>();
+        mappingAdapters.add(new RightPaddingStopPlaceAdapter(JourneyPlaceRefStructure.class, 8, "01"));
+        mappingAdapters.add(new RightPaddingStopPlaceAdapter(DestinationRef.class, 8, "01"));
+        mappingAdapters.add(new RightPaddingStopPlaceAdapter(StopPointRef.class, 8, "01"));
 
         SubscriptionSetup sub = new SubscriptionSetup(
                 SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING,
