@@ -1,6 +1,5 @@
 package no.rutebanken.anshar.messages;
 
-import no.rutebanken.anshar.messages.collections.DistributedCollection;
 import no.rutebanken.anshar.messages.collections.ExpiringConcurrentMap;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -64,10 +63,6 @@ public class EstimatedTimetables {
             }
         }
 
-        if (expiryTimestamp != null) {
-            //Calculating expiry - keeping for 12h after last stoppoint
-            expiryTimestamp = expiryTimestamp.plusHours(12);
-        }
         return expiryTimestamp;
     }
 
@@ -76,8 +71,6 @@ public class EstimatedTimetables {
         if (timetableDelivery == null) {return null;}
 
         String key = createKey(datasetId, timetableDelivery);
-
-        // Keep ET-data for 12H after they have happened
 
         EstimatedVehicleJourney previous = timetableDeliveries.put(key, timetableDelivery, getExpiration(timetableDelivery));
 
