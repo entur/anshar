@@ -7,14 +7,14 @@ import org.rutebanken.siri20.util.SiriXml;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import uk.org.siri.siri20.Siri;
-import uk.org.siri.siri20.SubscriptionRequest;
+import uk.org.siri.siri20.*;
 
 import javax.xml.bind.JAXBException;
 import java.net.SocketException;
 import java.util.List;
 import java.util.UUID;
 
+import static no.rutebanken.anshar.routes.outbound.SiriHelper.containsValues;
 import static no.rutebanken.anshar.routes.outbound.SiriHelper.getFilter;
 import static no.rutebanken.anshar.routes.outbound.SiriHelper.splitDeliveries;
 
@@ -90,11 +90,40 @@ public class CamelRouteManager implements CamelContextAware {
 
 
     private void executeSiriPushRoute(Siri payload, String routeName) throws JAXBException {
+        if (!serviceDeliveryContainsData(payload)) {
+            return;
+        }
         String xml = SiriXml.toXml(payload);
 
         ProducerTemplate template = camelContext.createProducerTemplate();
         template.sendBody(routeName, xml);
     }
+
+    private boolean serviceDeliveryContainsData(Siri payload) {
+        if (payload.getServiceDelivery() != null) {
+            ServiceDelivery serviceDelivery = payload.getServiceDelivery();
+            if (containsValues(serviceDelivery.getSituationExchangeDeliveries())) {
+                //SX-delivery - verify that there are situations in payload
+                SituationExchangeDeliveryStructure deliveryStructure = serviceDelivery.getSituationExchangeDeliveries().get(0);
+                return (deliveryStructure.getSituations() != null &&
+                        containsValues(deliveryStructure.getSituations().getPtSituationElements()));
+            }
+            if (containsValues(serviceDelivery.getVehicleMonitoringDeliveries())) {
+                //SX-delivery - verify that there are situations in payload
+                VehicleMonitoringDeliveryStructure deliveryStructure = serviceDelivery.getVehicleMonitoringDeliveries().get(0);
+                return (deliveryStructure.getVehicleActivities() != null &&
+                        containsValues(deliveryStructure.getVehicleActivities()));
+            }
+            if (containsValues(serviceDelivery.getSituationExchangeDeliveries())) {
+                //SX-delivery - verify that there are situations in payload
+                SituationExchangeDeliveryStructure deliveryStructure = serviceDelivery.getSituationExchangeDeliveries().get(0);
+                return (deliveryStructure.getSituations() != null &&
+                        containsValues(deliveryStructure.getSituations().getPtSituationElements()));
+            }
+        }
+        return true;
+    }
+
     private class SiriPushRouteBuilder extends RouteBuilder {
 
         private final boolean soapRequest;
