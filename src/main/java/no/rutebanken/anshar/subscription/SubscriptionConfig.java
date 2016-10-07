@@ -7,6 +7,7 @@ import no.rutebanken.anshar.routes.siri.Siri20ToSiriWS14Subscription;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.routes.siri.transformer.impl.LeftPaddingAdapter;
 import no.rutebanken.anshar.routes.siri.transformer.impl.RightPaddingStopPlaceAdapter;
+import no.rutebanken.anshar.routes.siri.transformer.impl.RuterSubstringAdapter;
 import org.apache.camel.builder.RouteBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -55,7 +56,23 @@ public class SubscriptionConfig {
 
     @Value("${anshar.enabled.akt.et}")
     private boolean enableAktET;
+    private List<ValueAdapter> ruterMappingAdapters;
+    private List<ValueAdapter> atb_kolumbus_mappingAdapters;
 
+
+    public SubscriptionConfig() {
+
+        ruterMappingAdapters = new ArrayList<>();
+        ruterMappingAdapters.add(new LeftPaddingAdapter(LineRef.class, 4, '0'));
+        ruterMappingAdapters.add(new RuterSubstringAdapter(StopPointRef.class, ':', '0'));
+        ruterMappingAdapters.add(new LeftPaddingAdapter(StopPointRef.class, 10, '0'));
+
+
+        atb_kolumbus_mappingAdapters = new ArrayList<>();
+        atb_kolumbus_mappingAdapters.add(new LeftPaddingAdapter(StopPointRef.class, 8, '0'));
+        atb_kolumbus_mappingAdapters.add(new RightPaddingStopPlaceAdapter(StopPointRef.class, 8, "01"));
+
+    }
 
     @Bean
     RouteBuilder createKolumbusSiriSXSubscriptionRoute() throws DatatypeConfigurationException {
@@ -64,7 +81,6 @@ public class SubscriptionConfig {
         urlMap.put(RequestType.SUBSCRIBE, "sis.kolumbus.no:90/SXWS/SXService.svc");
         urlMap.put(RequestType.DELETE_SUBSCRIPTION, "sis.kolumbus.no:90/SXWS/SXService.svc");
 
-        List<ValueAdapter> mappingAdapters = new ArrayList<>();
 
         SubscriptionSetup sub = new SubscriptionSetup(
                 SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE,
@@ -77,7 +93,8 @@ public class SubscriptionConfig {
                 "kolumbussx",
                 "kol",
                 SubscriptionSetup.ServiceType.SOAP,
-                mappingAdapters, new HashMap<>(), UUID.randomUUID().toString(),
+                atb_kolumbus_mappingAdapters,
+                new HashMap<>(), UUID.randomUUID().toString(),
                 "RutebankenDEV",
                 Duration.ofHours(initialDuration),
                 enableKolumbusSX
@@ -100,10 +117,6 @@ public class SubscriptionConfig {
         urlMap.put(RequestType.DELETE_SUBSCRIPTION, "sis.kolumbus.no:90/VMWS/VMService.svc");
         urlMap.put(RequestType.GET_VEHICLE_MONITORING, "sis.kolumbus.no:90/VMWS/VMService.svc");
 
-        List<ValueAdapter> mappingAdapters = new ArrayList<>();
-        mappingAdapters.add(new RightPaddingStopPlaceAdapter(JourneyPlaceRefStructure.class, 8, "01"));
-        mappingAdapters.add(new RightPaddingStopPlaceAdapter(DestinationRef.class, 8, "01"));
-        mappingAdapters.add(new RightPaddingStopPlaceAdapter(StopPointRef.class, 8, "01"));
 
         SubscriptionSetup sub = new SubscriptionSetup(
                 SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING,
@@ -116,7 +129,8 @@ public class SubscriptionConfig {
                 "kolumbusvm",
                 "kol",
                 SubscriptionSetup.ServiceType.SOAP,
-                mappingAdapters, new HashMap<>(), UUID.randomUUID().toString(),
+                atb_kolumbus_mappingAdapters,
+                new HashMap<>(), UUID.randomUUID().toString(),
                 "RutebankenDEV",
                 Duration.ofHours(initialDuration),
                 enableKolumbusVM
@@ -136,8 +150,6 @@ public class SubscriptionConfig {
         urlMap.put(RequestType.SUBSCRIBE, "st.atb.no/SXWS/SXService.svc");
         urlMap.put(RequestType.DELETE_SUBSCRIPTION, "st.atb.no/SXWS/SXService.svc");
 
-        List<ValueAdapter> mappingAdapters = new ArrayList<>();
-
         SubscriptionSetup sub = new SubscriptionSetup(SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE,
                 SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
                 inboundUrl,
@@ -148,7 +160,7 @@ public class SubscriptionConfig {
                 "atbsx",
                 "atb",
                 SubscriptionSetup.ServiceType.SOAP,
-                mappingAdapters,
+                atb_kolumbus_mappingAdapters,
                 new HashMap<>(), UUID.randomUUID().toString(),
                 "RutebankenDEV",
                 Duration.ofHours(initialDuration),
@@ -170,10 +182,6 @@ public class SubscriptionConfig {
         urlMap.put(RequestType.DELETE_SUBSCRIPTION, "st.atb.no/VMWS/VMService.svc");
         urlMap.put(RequestType.GET_VEHICLE_MONITORING, "st.atb.no/VMWS/VMService.svc");
 
-        List<ValueAdapter> mappingAdapters = new ArrayList<>();
-        mappingAdapters.add(new RightPaddingStopPlaceAdapter(JourneyPlaceRefStructure.class, 8, "01"));
-        mappingAdapters.add(new RightPaddingStopPlaceAdapter(DestinationRef.class, 8, "01"));
-        mappingAdapters.add(new RightPaddingStopPlaceAdapter(StopPointRef.class, 8, "01"));
 
         SubscriptionSetup sub = new SubscriptionSetup(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING,
                 SubscriptionSetup.SubscriptionMode.REQUEST_RESPONSE,
@@ -185,8 +193,9 @@ public class SubscriptionConfig {
                 "atbvm",
                 "atb",
                 SubscriptionSetup.ServiceType.SOAP,
-                mappingAdapters,
-                new HashMap<>(), UUID.randomUUID().toString(),
+                atb_kolumbus_mappingAdapters,
+                new HashMap<>(),
+                UUID.randomUUID().toString(),
                 "RutebankenDEV",
                 Duration.ofHours(initialDuration),
                 enableAtbVM);
@@ -261,10 +270,6 @@ public class SubscriptionConfig {
         urlMap.put(RequestType.DELETE_SUBSCRIPTION, "83.145.60.18/siri/1.4/et");
 
 
-        List<ValueAdapter> mappingAdapters = new ArrayList<>();
-        mappingAdapters.add(new LeftPaddingAdapter(StopPointRef.class, 8, '0'));
-        mappingAdapters.add(new RightPaddingStopPlaceAdapter(StopPointRef.class, 8, "01"));
-
         SubscriptionSetup sub = new SubscriptionSetup(SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE,
                 SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
                 inboundUrl,
@@ -275,7 +280,7 @@ public class SubscriptionConfig {
                 "aktet",
                 "akt",
                 SubscriptionSetup.ServiceType.SOAP,
-                mappingAdapters,
+                atb_kolumbus_mappingAdapters,
                 new HashMap<>(), UUID.randomUUID().toString(),
                 "RutebankenDEV",
                 Duration.ofHours(initialDuration),
@@ -293,9 +298,6 @@ public class SubscriptionConfig {
         urlMap.put(RequestType.DELETE_SUBSCRIPTION, "sirisx.ruter.no/sx/managesubscription.xml");
         urlMap.put(RequestType.CHECK_STATUS, "sirisx.ruter.no/sx/checkstatus.xml");
 
-        List<ValueAdapter> mappingAdapters = new ArrayList<>();
-        mappingAdapters.add(new LeftPaddingAdapter(LineRef.class, 4, '0'));
-
         SubscriptionSetup sub = new SubscriptionSetup(SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE,
                 SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
                 inboundUrl,
@@ -306,8 +308,9 @@ public class SubscriptionConfig {
                 "rutersx",
                 "rut",
                 SubscriptionSetup.ServiceType.REST,
-                mappingAdapters,
-                new HashMap<>(), UUID.randomUUID().toString(),
+                ruterMappingAdapters,
+                new HashMap<>(),
+                UUID.randomUUID().toString(),
                 "RutebankenDEV",
                 Duration.ofHours(initialDuration),
                 enableRuterSX);
@@ -324,8 +327,6 @@ public class SubscriptionConfig {
         urlMap.put(RequestType.DELETE_SUBSCRIPTION, "109.239.226.193:8080/RutebankenDEV/vm/managesubscription.xml");
         urlMap.put(RequestType.CHECK_STATUS, "109.239.226.193:8080/RutebankenDEV/vm/checkstatus.xml");
 
-        List<ValueAdapter> mappingAdapters = new ArrayList<>();
-        mappingAdapters.add(new LeftPaddingAdapter(LineRef.class, 4, '0'));
 
         SubscriptionSetup sub = new SubscriptionSetup(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING,
                 SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
@@ -338,7 +339,7 @@ public class SubscriptionConfig {
                 "rutervm",
                 "rut",
                 SubscriptionSetup.ServiceType.REST,
-                mappingAdapters,
+                ruterMappingAdapters,
                 new HashMap<>(), "20c2e3a3-1659-41d3-b1a2-1411978b1d43",  //Hard-coded subscriptionId - since Init does not support dynamic address
                 "RutebankenDEV",
                 //UUID.randomUUID().toString(),
@@ -358,21 +359,18 @@ public class SubscriptionConfig {
         urlMap.put(RequestType.CHECK_STATUS, "109.239.226.193:8080/RutebankenDEV/et/checkstatus.xml");
 
 
-        List<ValueAdapter> mappingAdapters = new ArrayList<>();
-        mappingAdapters.add(new LeftPaddingAdapter(LineRef.class, 4, '0'));
 
         SubscriptionSetup sub = new SubscriptionSetup(SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE,
                 SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
                 inboundUrl,
-//                Duration.ofSeconds(heartbeatInterval),
-                Duration.ofDays(7),
+                Duration.ofSeconds(heartbeatInterval),
                 "http://www.siri.org.uk/siri",
                 urlMap,
                 "2.0",
                 "ruteret",
                 "rut",
                 SubscriptionSetup.ServiceType.REST,
-                mappingAdapters,
+                ruterMappingAdapters,
                 new HashMap<>(), "1f6a687e-58b8-4e46-a23c-98adadad78ed",  //Hard-coded subscriptionId - since Init does not support dynamic address
                 //UUID.randomUUID().toString(),
                 "RutebankenDEV",
