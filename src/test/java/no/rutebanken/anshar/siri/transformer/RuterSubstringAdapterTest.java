@@ -13,7 +13,7 @@ public class RuterSubstringAdapterTest {
 
     @Before
     public void setUp() throws Exception {
-        adapter = new RuterSubstringAdapter(LineRef.class, ':', '0');
+        adapter = new RuterSubstringAdapter(LineRef.class, ':', '0', 2);
     }
 
     @Test
@@ -37,7 +37,7 @@ public class RuterSubstringAdapterTest {
     }
 
     @Test
-    public void testLeftPadMultipleMatchesString() throws Exception {
-        assertEquals("123412340123", adapter.apply("12341234:123:12:1"));
+    public void testDoubleDigitAfterSeparator() throws Exception {
+        assertEquals("301061930", adapter.apply("3010619:30"));
     }
 }

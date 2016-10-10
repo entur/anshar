@@ -11,7 +11,6 @@ import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 
 import static junit.framework.Assert.assertNull;
@@ -87,7 +86,7 @@ public class SiriValueTransformerTest {
         String paddedLineRef = "012304";
 
         List<ValueAdapter> mappingAdapters = new ArrayList<>();
-        mappingAdapters.add(new RuterSubstringAdapter(LineRef.class, ':', '0'));
+        mappingAdapters.add(new RuterSubstringAdapter(LineRef.class, ':', '0', 2));
         mappingAdapters.add(new LeftPaddingAdapter(LineRef.class, 6, '0'));
 
         siri = transformer.transform(siri, mappingAdapters);
@@ -98,7 +97,7 @@ public class SiriValueTransformerTest {
     }
 
     @Test
-    public void testLineRefRuterSubstring() throws JAXBException {
+    public void testLongLineRefRuterSubstring() throws JAXBException {
         SiriValueTransformer transformer = new SiriValueTransformer();
 
         String lineRefValue = "9999:123";
@@ -106,10 +105,30 @@ public class SiriValueTransformerTest {
         Siri siri = createSiriObject(lineRefValue, null);
 
         assertEquals(lineRefValue, getLineRefFromSiriObj(siri));
-        String trimmedLineRef = "99990123";
+        String trimmedLineRef = "9999123";
 
         List<ValueAdapter> mappingAdapters = new ArrayList<>();
-        mappingAdapters.add(new RuterSubstringAdapter(LineRef.class, ':', '0'));
+        mappingAdapters.add(new RuterSubstringAdapter(LineRef.class, ':', '0', 2));
+
+        siri = transformer.transform(siri, mappingAdapters);
+
+        assertEquals("LineRef has not been trimmed as expected", trimmedLineRef, getLineRefFromSiriObj(siri));
+
+    }
+
+    @Test
+    public void testShortLineRefRuterSubstring() throws JAXBException {
+        SiriValueTransformer transformer = new SiriValueTransformer();
+
+        String lineRefValue = "9999:3";
+
+        Siri siri = createSiriObject(lineRefValue, null);
+
+        assertEquals(lineRefValue, getLineRefFromSiriObj(siri));
+        String trimmedLineRef = "999903";
+
+        List<ValueAdapter> mappingAdapters = new ArrayList<>();
+        mappingAdapters.add(new RuterSubstringAdapter(LineRef.class, ':', '0', 2));
 
         siri = transformer.transform(siri, mappingAdapters);
 
