@@ -125,7 +125,7 @@ public class CamelRouteManager implements CamelContextAware {
                 EstimatedTimetableDeliveryStructure deliveryStructure = serviceDelivery.getEstimatedTimetableDeliveries().get(0);
                 boolean containsETdata = (deliveryStructure.getEstimatedJourneyVersionFrames() != null &&
                         containsValues(deliveryStructure.getEstimatedJourneyVersionFrames()) &&
-                        containsValues(deliveryStructure.getEstimatedJourneyVersionFrames().get(0).getEstimatedServiceJourneyInterchanges()));
+                        containsValues(deliveryStructure.getEstimatedJourneyVersionFrames().get(0).getEstimatedVehicleJourneies()));
                 logger.info("Contains ET-data: [{}]", containsETdata);
                 return containsETdata;
             }
