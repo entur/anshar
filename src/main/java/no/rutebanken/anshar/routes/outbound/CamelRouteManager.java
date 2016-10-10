@@ -102,23 +102,24 @@ public class CamelRouteManager implements CamelContextAware {
     private boolean serviceDeliveryContainsData(Siri payload) {
         if (payload.getServiceDelivery() != null) {
             ServiceDelivery serviceDelivery = payload.getServiceDelivery();
+
             if (containsValues(serviceDelivery.getSituationExchangeDeliveries())) {
-                //SX-delivery - verify that there are situations in payload
                 SituationExchangeDeliveryStructure deliveryStructure = serviceDelivery.getSituationExchangeDeliveries().get(0);
                 return (deliveryStructure.getSituations() != null &&
                         containsValues(deliveryStructure.getSituations().getPtSituationElements()));
             }
+
             if (containsValues(serviceDelivery.getVehicleMonitoringDeliveries())) {
-                //SX-delivery - verify that there are situations in payload
                 VehicleMonitoringDeliveryStructure deliveryStructure = serviceDelivery.getVehicleMonitoringDeliveries().get(0);
                 return (deliveryStructure.getVehicleActivities() != null &&
                         containsValues(deliveryStructure.getVehicleActivities()));
             }
-            if (containsValues(serviceDelivery.getSituationExchangeDeliveries())) {
-                //SX-delivery - verify that there are situations in payload
-                SituationExchangeDeliveryStructure deliveryStructure = serviceDelivery.getSituationExchangeDeliveries().get(0);
-                return (deliveryStructure.getSituations() != null &&
-                        containsValues(deliveryStructure.getSituations().getPtSituationElements()));
+
+            if (containsValues(serviceDelivery.getEstimatedTimetableDeliveries())) {
+                EstimatedTimetableDeliveryStructure deliveryStructure = serviceDelivery.getEstimatedTimetableDeliveries().get(0);
+                return (deliveryStructure.getEstimatedJourneyVersionFrames() != null &&
+                        containsValues(deliveryStructure.getEstimatedJourneyVersionFrames()) &&
+                        containsValues(deliveryStructure.getEstimatedJourneyVersionFrames().get(0).getEstimatedServiceJourneyInterchanges()));
             }
         }
         return true;
