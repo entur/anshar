@@ -107,21 +107,27 @@ public class CamelRouteManager implements CamelContextAware {
 
             if (containsValues(serviceDelivery.getSituationExchangeDeliveries())) {
                 SituationExchangeDeliveryStructure deliveryStructure = serviceDelivery.getSituationExchangeDeliveries().get(0);
-                return (deliveryStructure.getSituations() != null &&
-                        containsValues(deliveryStructure.getSituations().getPtSituationElements()));
+                boolean containsSXdata = deliveryStructure.getSituations() != null &&
+                        containsValues(deliveryStructure.getSituations().getPtSituationElements());
+                logger.info("Contains SX-data: [{}]", containsSXdata);
+                return containsSXdata;
             }
 
             if (containsValues(serviceDelivery.getVehicleMonitoringDeliveries())) {
                 VehicleMonitoringDeliveryStructure deliveryStructure = serviceDelivery.getVehicleMonitoringDeliveries().get(0);
-                return (deliveryStructure.getVehicleActivities() != null &&
-                        containsValues(deliveryStructure.getVehicleActivities()));
+                boolean containsVMdata = deliveryStructure.getVehicleActivities() != null &&
+                        containsValues(deliveryStructure.getVehicleActivities());
+                logger.info("Contains VM-data: [{}]", containsVMdata);
+                return containsVMdata;
             }
 
             if (containsValues(serviceDelivery.getEstimatedTimetableDeliveries())) {
                 EstimatedTimetableDeliveryStructure deliveryStructure = serviceDelivery.getEstimatedTimetableDeliveries().get(0);
-                return (deliveryStructure.getEstimatedJourneyVersionFrames() != null &&
+                boolean containsETdata = (deliveryStructure.getEstimatedJourneyVersionFrames() != null &&
                         containsValues(deliveryStructure.getEstimatedJourneyVersionFrames()) &&
                         containsValues(deliveryStructure.getEstimatedJourneyVersionFrames().get(0).getEstimatedServiceJourneyInterchanges()));
+                logger.info("Contains ET-data: [{}]", containsETdata);
+                return containsETdata;
             }
         }
         return true;
