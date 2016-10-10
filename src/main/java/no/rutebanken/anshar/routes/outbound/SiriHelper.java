@@ -161,22 +161,22 @@ public class SiriHelper {
     }
 
     @NotNull
-    private static List<List> splitList(List situationElementList, int maximumSizePerDelivery) {
+    private static List<List> splitList(List fullList, int maximumSizePerDelivery) {
         int startIndex = 0;
-        int endIndex = Math.min(startIndex+maximumSizePerDelivery, situationElementList.size());
+        int endIndex = Math.min(startIndex + maximumSizePerDelivery, fullList.size());
 
-        List<List> sxList = new ArrayList<>();
+        List<List> list = new ArrayList<>();
         boolean hasMoreElements = true;
         while(hasMoreElements) {
 
-            sxList.add(situationElementList.subList(startIndex, endIndex));
-            if (endIndex >= situationElementList.size()) {
+            list.add(fullList.subList(startIndex, endIndex));
+            if (endIndex >= fullList.size()) {
                 hasMoreElements = false;
             }
             startIndex += maximumSizePerDelivery;
-            endIndex = Math.min(startIndex+maximumSizePerDelivery, situationElementList.size());
+            endIndex = Math.min(startIndex + maximumSizePerDelivery, fullList.size());
         }
-        return sxList;
+        return list;
     }
 
     static boolean containsValues(List list) {
@@ -185,6 +185,7 @@ public class SiriHelper {
 
     public static Siri filterSiriPayload(Siri siri, Map<Class, Set<String>> filter) {
         if (filter == null || filter.isEmpty()) {
+            logger.info("No filter to apply");
             return siri;
         }
 

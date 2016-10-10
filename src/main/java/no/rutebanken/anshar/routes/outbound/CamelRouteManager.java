@@ -52,6 +52,8 @@ public class CamelRouteManager implements CamelContextAware {
 
         List<Siri> splitSiri = splitDeliveries(filteredPayload, 1000);
 
+        logger.info("Object split into {} deliveries.", splitSiri.size());
+
         for (Siri siri : splitSiri) {
             Thread r = new Thread() {
                 @Override
@@ -77,14 +79,14 @@ public class CamelRouteManager implements CamelContextAware {
 
     private String addSiriPushRoute(SiriPushRouteBuilder route) throws Exception {
         camelContext.addRoutes(route);
-        logger.info("Route added - CamelContext now has {} routes", camelContext.getRoutes().size());
+        logger.trace("Route added - CamelContext now has {} routes", camelContext.getRoutes().size());
         return route.getDefinition().getId();
     }
 
     private boolean stopAndRemoveSiriPushRoute(String routeId) throws Exception {
         RouteDefinition routeDefinition = camelContext.getRouteDefinition(routeId);
         camelContext.removeRouteDefinition(routeDefinition);
-        logger.info("Route removed - CamelContext now has {} routes", camelContext.getRoutes().size());
+        logger.trace("Route removed - CamelContext now has {} routes", camelContext.getRoutes().size());
         return true;
     }
 
