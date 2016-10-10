@@ -69,8 +69,17 @@ public class SubscriptionConfig {
 
 
         atb_kolumbus_mappingAdapters = new ArrayList<>();
+        //StopPointRef
         atb_kolumbus_mappingAdapters.add(new LeftPaddingAdapter(StopPointRef.class, 8, '0'));
         atb_kolumbus_mappingAdapters.add(new RightPaddingStopPlaceAdapter(StopPointRef.class, 8, "01"));
+
+        //OriginRef
+        atb_kolumbus_mappingAdapters.add(new LeftPaddingAdapter(JourneyPlaceRefStructure.class, 8, '0'));
+        atb_kolumbus_mappingAdapters.add(new RightPaddingStopPlaceAdapter(JourneyPlaceRefStructure.class, 8, "01"));
+
+        //DestinationRef
+        atb_kolumbus_mappingAdapters.add(new LeftPaddingAdapter(DestinationRef.class, 8, '0'));
+        atb_kolumbus_mappingAdapters.add(new RightPaddingStopPlaceAdapter(DestinationRef.class, 8, "01"));
 
     }
 
