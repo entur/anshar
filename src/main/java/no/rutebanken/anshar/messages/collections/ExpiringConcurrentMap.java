@@ -52,7 +52,7 @@ public class ExpiringConcurrentMap<String,T>  extends ConcurrentHashMap<String,T
     }
 
     public T put(String key, T value) {
-        if (defaultExpirationSeconds > 0) {
+        if (defaultExpirationSeconds > 0 && !expiryMap.containsKey(key)) {
             expiryMap.put(key, ZonedDateTime.now().plusSeconds(defaultExpirationSeconds));
         }
         return super.put(key, value);

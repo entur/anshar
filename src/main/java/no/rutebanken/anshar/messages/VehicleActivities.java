@@ -46,7 +46,7 @@ public class VehicleActivities {
     public static List<VehicleActivityStructure> getAllUpdates(String requestorId) {
         if (requestorId != null) {
 
-            Set<String> idSet = changesMap.get(requestorId);
+            Set<String> idSet = changesMap.remove(requestorId);
             changesMap.put(requestorId, new HashSet<>());
             if (idSet != null) {
                 List<VehicleActivityStructure> changes = new ArrayList<>();
