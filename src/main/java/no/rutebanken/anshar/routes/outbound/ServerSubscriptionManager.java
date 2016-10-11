@@ -1,6 +1,7 @@
 package no.rutebanken.anshar.routes.outbound;
 
 import no.rutebanken.anshar.routes.siri.SiriObjectFactory;
+import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -13,12 +14,14 @@ import javax.xml.datatype.Duration;
 import java.time.ZonedDateTime;
 import java.util.*;
 
+import static no.rutebanken.anshar.routes.outbound.SiriHelper.getFilter;
+
 @Configuration
 public class ServerSubscriptionManager extends CamelRouteManager {
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    private static Map<String, SubscriptionRequest> subscriptions = new HashMap<>();
+    private static Map<String, OutboundSubscriptionSetup> subscriptions = new HashMap<>();
     private static Map<String, Timer> heartbeatTimerMap = new HashMap<>();
 
 
@@ -42,13 +45,13 @@ public class ServerSubscriptionManager extends CamelRouteManager {
 
         for (String key : subscriptions.keySet()) {
 
-            SubscriptionRequest subscriptionRequest = subscriptions.get(key);
+            OutboundSubscriptionSetup subscription = subscriptions.get(key);
 
             JSONObject obj = new JSONObject();
             obj.put("subscriptionRef",""+key);
-            obj.put("address",""+subscriptionRequest.getConsumerAddress());
-            obj.put("requestReceived",""+subscriptionRequest.getRequestTimestamp());
-            obj.put("initialTerminationTime",""+findInitialTerminationTime(subscriptionRequest));
+            obj.put("address",""+subscription.getAddress());
+            obj.put("requestReceived",""+subscription.getRequestTimestamp());
+            obj.put("initialTerminationTime",""+subscription.getInitialTerminationTime());
 
             stats.add(obj);
         }
@@ -58,79 +61,110 @@ public class ServerSubscriptionManager extends CamelRouteManager {
 
     public void handleSubscriptionRequest(SubscriptionRequest subscriptionRequest) {
 
-        String subscriptionRef = findSubscriptionIdentifier(subscriptionRequest);
+        OutboundSubscriptionSetup subscription = createSubscription(subscriptionRequest);
 
-        subscriptions.put(subscriptionRef, subscriptionRequest);
-
-        final ZonedDateTime initialTerminationTime = findInitialTerminationTime(subscriptionRequest);
         boolean hasError = false;
         String errorText = null;
 
-        String consumerAddress = subscriptionRequest.getConsumerAddress();
-        if (consumerAddress == null) {
-            subscriptionRequest.setConsumerAddress(subscriptionRequest.getAddress());
-        }
-
-        if (subscriptionRequest.getConsumerAddress() == null) {
+        if (subscription.getAddress() == null) {
             hasError = true;
             errorText = errorConsumerAddressMissing;
-        } else if (initialTerminationTime == null || initialTerminationTime.isBefore(ZonedDateTime.now())) {
+        } else if (subscription.getInitialTerminationTime() == null || subscription.getInitialTerminationTime().isBefore(ZonedDateTime.now())) {
             //Subscription has already expired
             hasError = true;
             errorText = initialTerminationTimePassed;
         }
+
         if (hasError) {
-            Siri subscriptionResponse = SiriObjectFactory.createSubscriptionResponse(subscriptionRef, false, errorText);
-            pushSiriData(subscriptionResponse, subscriptionRequest, false);
+            Siri subscriptionResponse = SiriObjectFactory.createSubscriptionResponse(subscription.getSubscriptionId(), false, errorText);
+            pushSiriData(subscriptionResponse, subscription);
         } else {
+            subscriptions.put(subscription.getSubscriptionId(), subscription);
+
             if (subscriptionRequest.getSubscriptionContext() != null) {
-                startHeartbeatNotifier(subscriptionRef, subscriptionRequest, initialTerminationTime);
+                startHeartbeatNotifier(subscription);
             }
 
-            Siri subscriptionResponse = SiriObjectFactory.createSubscriptionResponse(subscriptionRef, true, null);
-            pushSiriData(subscriptionResponse, subscriptionRequest, false);
+            Siri subscriptionResponse = SiriObjectFactory.createSubscriptionResponse(subscription.getSubscriptionId(), true, null);
+            pushSiriData(subscriptionResponse, subscription);
 
             //Send initial ServiceDelivery
-            Siri delivery = SiriHelper.findInitialDeliveryData(subscriptionRequest);
+            Siri delivery = SiriHelper.findInitialDeliveryData(subscription);
 
             if (delivery != null) {
-                logger.info("Sending initial delivery to " + subscriptionRequest.getConsumerAddress());
-                pushSiriData(delivery, subscriptionRequest, false);
+                logger.info("Sending initial delivery to " + subscription.getAddress());
+                pushSiriData(delivery, subscription);
             }
         }
     }
 
-    private void startHeartbeatNotifier(final String subscriptionRef,
-                                        final SubscriptionRequest subscriptionRequest,
-                                        final ZonedDateTime initialTerminationTime) {
+    private OutboundSubscriptionSetup createSubscription(SubscriptionRequest subscriptionRequest) {
 
-        Duration heartbeatIntervalDuration = subscriptionRequest.getSubscriptionContext().getHeartbeatInterval();
-        long heartbeatInterval = heartbeatIntervalDuration.getTimeInMillis(new Date());
+        OutboundSubscriptionSetup setup = new OutboundSubscriptionSetup(
+                subscriptionRequest.getRequestTimestamp(),
+                getSubscriptionType(subscriptionRequest),
+                SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
+                subscriptionRequest.getConsumerAddress() != null ? subscriptionRequest.getConsumerAddress():subscriptionRequest.getAddress(),
+                getHeartbeatInterval(subscriptionRequest),
+                SubscriptionSetup.ServiceType.REST,
+                getFilter(subscriptionRequest),
+                findSubscriptionIdentifier(subscriptionRequest),
+                subscriptionRequest.getRequestorRef().getValue(),
+                findInitialTerminationTime(subscriptionRequest),
+                true
+                );
+        return setup;
+    }
+
+    private long getHeartbeatInterval(SubscriptionRequest subscriptionRequest) {
+        long heartbeatInterval = 0;
+        if (subscriptionRequest.getSubscriptionContext() != null &&
+                subscriptionRequest.getSubscriptionContext().getHeartbeatInterval() != null) {
+            Duration interval = subscriptionRequest.getSubscriptionContext().getHeartbeatInterval();
+            heartbeatInterval = interval.getTimeInMillis(new Date(0));
+        }
+        return Math.max(heartbeatInterval, minimumHeartbeatInterval);
+    }
+
+    private SubscriptionSetup.SubscriptionType getSubscriptionType(SubscriptionRequest subscriptionRequest) {
+        if (SiriHelper.containsValues(subscriptionRequest.getSituationExchangeSubscriptionRequests())) {
+            return SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE;
+        } else if (SiriHelper.containsValues(subscriptionRequest.getVehicleMonitoringSubscriptionRequests())) {
+            return SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING;
+        } else if (SiriHelper.containsValues(subscriptionRequest.getEstimatedTimetableSubscriptionRequests())) {
+            return SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE;
+        }
+        return null;
+    }
+
+    private void startHeartbeatNotifier(final OutboundSubscriptionSetup subscription) {
+
+        long heartbeatInterval = subscription.getHeartbeatInterval();
 
         if (heartbeatInterval < minimumHeartbeatInterval) {
             heartbeatInterval = minimumHeartbeatInterval;
         }
 
         if (heartbeatInterval > 0) {
-            Timer timer = new Timer("HeartbeatNotifier"+subscriptionRef);
+            Timer timer = new Timer("HeartbeatNotifier"+subscription.getSubscriptionId());
 
             timer.schedule(new TimerTask() {
                                @Override
                                public void run() {
-                                   if (ZonedDateTime.now().isAfter(initialTerminationTime)) {
-                                       logger.info("Subscription [{}] has expired, and will be terminated", subscriptionRef);
-                                       terminateSubscription(subscriptionRef);
+                                   if (ZonedDateTime.now().isAfter(subscription.getInitialTerminationTime())) {
+                                       logger.info("Subscription [{}] has expired, and will be terminated", subscription.getSubscriptionId());
+                                       terminateSubscription(subscription.getSubscriptionId());
                                    } else {
-                                       Siri heartbeatNotification = SiriObjectFactory.createHeartbeatNotification(subscriptionRef);
-                                       logger.info("Sending heartbeat to {}", subscriptionRef);
-                                       pushSiriData(heartbeatNotification, subscriptionRequest, false);
+                                       Siri heartbeatNotification = SiriObjectFactory.createHeartbeatNotification(subscription.getSubscriptionId());
+                                       logger.info("Sending heartbeat to {}", subscription.getSubscriptionId());
+                                       pushSiriData(heartbeatNotification, subscription);
                                    }
                                }
                            },
                     heartbeatInterval,
                     heartbeatInterval);
 
-            Timer previousTimer = heartbeatTimerMap.put(subscriptionRef, timer);
+            Timer previousTimer = heartbeatTimerMap.put(subscription.getSubscriptionId(), timer);
             if (previousTimer != null) {
                 previousTimer.cancel();
             }
@@ -191,7 +225,7 @@ public class ServerSubscriptionManager extends CamelRouteManager {
     }
 
     private void terminateSubscription(String subscriptionRef) {
-        SubscriptionRequest subscriptionRequest = subscriptions.remove(subscriptionRef);
+        OutboundSubscriptionSetup subscriptionRequest = subscriptions.remove(subscriptionRef);
 
         Timer timer = heartbeatTimerMap.remove(subscriptionRef);
         if (timer != null) {
@@ -199,9 +233,9 @@ public class ServerSubscriptionManager extends CamelRouteManager {
         }
         if (subscriptionRequest != null) {
             Siri terminateSubscriptionResponse = SiriObjectFactory.createTerminateSubscriptionResponse(subscriptionRef);
-            logger.info("Sending TerminateSubscriptionResponse to {}", subscriptionRequest.getConsumerAddress());
+            logger.info("Sending TerminateSubscriptionResponse to {}", subscriptionRequest.getAddress());
 
-            pushSiriData(terminateSubscriptionResponse, subscriptionRequest, false);
+            pushSiriData(terminateSubscriptionResponse, subscriptionRequest);
         } else {
             logger.trace("Got TerminateSubscriptionRequest for non-existing subscription");
         }
@@ -210,14 +244,14 @@ public class ServerSubscriptionManager extends CamelRouteManager {
     public Siri handleCheckStatusRequest(CheckStatusRequestStructure checkStatusRequest) {
         String requestorRef = checkStatusRequest.getRequestorRef().getValue();
 
-        SubscriptionRequest request = subscriptions.get(requestorRef);
+        OutboundSubscriptionSetup request = subscriptions.get(requestorRef);
         if (request == null) {
 
             return SiriObjectFactory.createCheckStatusResponse();
         }
 
         Siri checkStatusResponse = SiriObjectFactory.createCheckStatusResponse();
-        pushSiriData(checkStatusResponse, request, false);
+        pushSiriData(checkStatusResponse, request);
         return null;
     }
 
@@ -229,11 +263,12 @@ public class ServerSubscriptionManager extends CamelRouteManager {
         Siri delivery = SiriObjectFactory.createVMServiceDelivery(addedOrUpdated);
 
         subscriptions.values().stream().filter(subscriptionRequest ->
-                        (SiriHelper.containsValues(subscriptionRequest.getVehicleMonitoringSubscriptionRequests()))
+                        (subscriptionRequest.getSubscriptionMode().equals(SubscriptionSetup.SubscriptionMode.SUBSCRIBE) &
+                                subscriptionRequest.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING))
 
         ).forEach(subscription ->
 
-            pushSiriData(delivery, subscription, false)
+                        pushSiriData(delivery, subscription)
         );
 
     }
@@ -247,11 +282,12 @@ public class ServerSubscriptionManager extends CamelRouteManager {
         Siri delivery = SiriObjectFactory.createSXServiceDelivery(addedOrUpdated);
 
         subscriptions.values().stream().filter(subscriptionRequest ->
-                        (SiriHelper.containsValues(subscriptionRequest.getSituationExchangeSubscriptionRequests()))
+                        (subscriptionRequest.getSubscriptionMode().equals(SubscriptionSetup.SubscriptionMode.SUBSCRIBE) &
+                                subscriptionRequest.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE))
 
         ).forEach(subscription ->
 
-            pushSiriData(delivery, subscription, false)
+                        pushSiriData(delivery, subscription)
         );
     }
     public void pushUpdatedProductionTimetables(List<ProductionTimetableDeliveryStructure> addedOrUpdated) {
@@ -263,10 +299,11 @@ public class ServerSubscriptionManager extends CamelRouteManager {
         Siri delivery = SiriObjectFactory.createPTServiceDelivery(addedOrUpdated);
 
         subscriptions.values().stream().filter(subscriptionRequest ->
-                        (SiriHelper.containsValues(subscriptionRequest.getProductionTimetableSubscriptionRequests()))
+                        (subscriptionRequest.getSubscriptionMode().equals(SubscriptionSetup.SubscriptionMode.SUBSCRIBE) &
+                                subscriptionRequest.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.PRODUCTION_TIMETABLE))
 
         ).forEach(subscription ->
-            pushSiriData(delivery, subscription, false)
+            pushSiriData(delivery, subscription)
         );
     }
 
@@ -279,10 +316,19 @@ public class ServerSubscriptionManager extends CamelRouteManager {
         Siri delivery = SiriObjectFactory.createETServiceDelivery(addedOrUpdated);
 
         subscriptions.values().stream().filter(subscriptionRequest ->
-                        (SiriHelper.containsValues(subscriptionRequest.getEstimatedTimetableSubscriptionRequests()))
+                        (subscriptionRequest.getSubscriptionMode().equals(SubscriptionSetup.SubscriptionMode.SUBSCRIBE) &
+                                subscriptionRequest.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE))
 
         ).forEach(subscription ->
-            pushSiriData(delivery, subscription, false)
+                        pushSiriData(delivery, subscription)
+        );
+
+        subscriptions.values().stream().filter(subscriptionRequest ->
+                        (subscriptionRequest.getSubscriptionMode().equals(SubscriptionSetup.SubscriptionMode.REQUEST_RESPONSE) &
+                                subscriptionRequest.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE))
+
+        ).forEach(subscription ->
+                        subscription.getSubscriptionId()
         );
 
     }

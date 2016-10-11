@@ -88,23 +88,29 @@ public class SiriHelper {
         return filterMap;
     }
 
-    static Siri findInitialDeliveryData(SubscriptionRequest subscriptionRequest) {
+    static Siri findInitialDeliveryData(OutboundSubscriptionSetup subscriptionRequest) {
         Siri delivery = null;
-        if (containsValues(subscriptionRequest.getSituationExchangeSubscriptionRequests())) {
 
-            List<PtSituationElement> situationElementList = Situations.getAll();
-            logger.info("Initial PT-delivery: {} elements", situationElementList.size());
-            delivery = SiriObjectFactory.createSXServiceDelivery(situationElementList);
-        } else if (containsValues(subscriptionRequest.getVehicleMonitoringSubscriptionRequests())) {
+        switch (subscriptionRequest.getSubscriptionType()) {
+            case SITUATION_EXCHANGE:
 
-            List<VehicleActivityStructure> vehicleActivities = VehicleActivities.getAll();
-            logger.info("Initial VM-delivery: {} elements", vehicleActivities.size());
-            delivery = SiriObjectFactory.createVMServiceDelivery(vehicleActivities);
-        } else if (containsValues(subscriptionRequest.getEstimatedTimetableSubscriptionRequests())) {
+                List<PtSituationElement> situationElementList = Situations.getAll();
+                logger.info("Initial PT-delivery: {} elements", situationElementList.size());
+                delivery = SiriObjectFactory.createSXServiceDelivery(situationElementList);
+                break;
+            case VEHICLE_MONITORING:
 
-            List<EstimatedVehicleJourney> timetables = EstimatedTimetables.getAll();
-            logger.info("Initial ET-delivery: {} elements", timetables.size());
-            delivery = SiriObjectFactory.createETServiceDelivery(timetables);
+                List<VehicleActivityStructure> vehicleActivities = VehicleActivities.getAll();
+                logger.info("Initial VM-delivery: {} elements", vehicleActivities.size());
+                delivery = SiriObjectFactory.createVMServiceDelivery(vehicleActivities);
+                break;
+            case ESTIMATED_TIMETABLE:
+
+
+                List<EstimatedVehicleJourney> timetables = EstimatedTimetables.getAll();
+                logger.info("Initial ET-delivery: {} elements", timetables.size());
+                delivery = SiriObjectFactory.createETServiceDelivery(timetables);
+                break;
         }
         return delivery;
     }
@@ -197,8 +203,6 @@ public class SiriHelper {
                 return applyMultipleMatchFilter(siri, filter);
             }
         }
-
-
 
         return siri;
     }

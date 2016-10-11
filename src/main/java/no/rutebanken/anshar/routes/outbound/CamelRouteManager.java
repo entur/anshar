@@ -39,16 +39,15 @@ public class CamelRouteManager implements CamelContextAware {
      * Creates a new ad-hoc route that sends the SIRI payload to supplied address, executes it, and finally terminates and removes it.
      * @param payload
      * @param subscriptionRequest
-     * @param isSoapRequest
      */
-    public void pushSiriData(Siri payload, SubscriptionRequest subscriptionRequest, boolean isSoapRequest) {
-        String consumerAddress = subscriptionRequest.getConsumerAddress();
+    public void pushSiriData(Siri payload, OutboundSubscriptionSetup subscriptionRequest) {
+        String consumerAddress = subscriptionRequest.getAddress();
         if (consumerAddress == null) {
             logger.info("ConsumerAddress is null - ignoring data.");
             return;
         }
 
-        Siri filteredPayload = SiriHelper.filterSiriPayload(payload, getFilter(subscriptionRequest));
+        Siri filteredPayload = SiriHelper.filterSiriPayload(payload, subscriptionRequest.getFilterMap());
 
         List<Siri> splitSiri = splitDeliveries(filteredPayload, 1000);
 
@@ -60,7 +59,7 @@ public class CamelRouteManager implements CamelContextAware {
                 public void run() {
                     try {
 
-                        SiriPushRouteBuilder siriPushRouteBuilder = new SiriPushRouteBuilder(consumerAddress, isSoapRequest);
+                        SiriPushRouteBuilder siriPushRouteBuilder = new SiriPushRouteBuilder(consumerAddress);
                         String routeId = addSiriPushRoute(siriPushRouteBuilder);
                         executeSiriPushRoute(siri, siriPushRouteBuilder.getRouteName());
                         stopAndRemoveSiriPushRoute(routeId);
@@ -135,14 +134,12 @@ public class CamelRouteManager implements CamelContextAware {
 
     private class SiriPushRouteBuilder extends RouteBuilder {
 
-        private final boolean soapRequest;
         private String remoteEndPoint;
         private RouteDefinition definition;
         private String routeName;
 
-        public SiriPushRouteBuilder(String remoteEndPoint, boolean soapRequest) {
+        public SiriPushRouteBuilder(String remoteEndPoint) {
             this.remoteEndPoint=remoteEndPoint;
-            this.soapRequest = soapRequest;
         }
 
         @Override
@@ -163,21 +160,11 @@ public class CamelRouteManager implements CamelContextAware {
                     .routeId("errorhandler:"+remoteEndPoint) //One errorhandler per subscription/endpoint
                     .log("Error sending data to url " + remoteEndPoint);
 
-
-            if (soapRequest) {
-                definition = from(routeName)
-                        .log(LoggingLevel.INFO, "POST data (SOAP) to " + remoteEndPoint)
-                        .to("xslt:xsl/siri_raw_soap.xsl") // Convert SIRI raw request to SOAP version
-                        .setHeader("CamelHttpMethod", constant("POST"))
-                        .marshal().string("UTF-8")
-                        .to("http4://" + remoteEndPoint);
-            } else {
-                definition = from(routeName)
-                        .log(LoggingLevel.INFO, "POST data to " + remoteEndPoint)
-                        .setHeader("CamelHttpMethod", constant("POST"))
-                        .marshal().string("UTF-8")
-                        .to("http4://" + remoteEndPoint);
-            }
+            definition = from(routeName)
+                    .log(LoggingLevel.INFO, "POST data to " + remoteEndPoint)
+                    .setHeader("CamelHttpMethod", constant("POST"))
+                    .marshal().string("UTF-8")
+                    .to("http4://" + remoteEndPoint);
 
         }
 
