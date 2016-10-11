@@ -9,6 +9,7 @@ import uk.org.siri.siri20.SituationNumber;
 
 import java.time.ZonedDateTime;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class SituationsTest {
@@ -72,13 +73,37 @@ public class SituationsTest {
         assertTrue(Situations.getAll().size() == expectedSize);
 
         PtSituationElement element5 = createPtSituationElement("ruter", "1235", ZonedDateTime.now().minusDays(1), ZonedDateTime.now().plusHours(1));
-        Situations.add(element4, "test2");
+        Situations.add(element5, "test2");
 
         expectedSize++;
         assertTrue(Situations.getAll().size() == expectedSize);
 
         assertTrue(Situations.getAll("test2").size() == previousSize+1);
         assertTrue(Situations.getAll("test").size() == expectedSize-1);
+    }
+
+    @Test
+    public void testGetUpdatesOnly() {
+
+        assertEquals(0, Situations.getAll().size());
+
+        Situations.add(createPtSituationElement("ruter", "1234", ZonedDateTime.now().minusDays(1), ZonedDateTime.now().plusHours(1)), "test");
+        Situations.add(createPtSituationElement("ruter", "2345", ZonedDateTime.now().minusDays(1), ZonedDateTime.now().plusHours(1)), "test");
+        Situations.add(createPtSituationElement("ruter", "3456", ZonedDateTime.now().minusDays(1), ZonedDateTime.now().plusHours(1)), "test");
+        // Added 3
+        assertEquals(3, Situations.getAllUpdates("1234-1234").size());
+
+        Situations.add(createPtSituationElement("ruter", "4567", ZonedDateTime.now().minusDays(1), ZonedDateTime.now().plusHours(1)), "test");
+
+        //Added one
+        assertEquals(1, Situations.getAllUpdates("1234-1234").size());
+
+
+        //None added
+        assertEquals(0, Situations.getAllUpdates("1234-1234").size());
+
+        //Verify that all elements still exist
+        assertEquals(4, Situations.getAll().size());
     }
 
 

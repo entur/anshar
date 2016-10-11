@@ -10,6 +10,7 @@ import uk.org.siri.siri20.ProductionTimetableDeliveryStructure;
 import java.time.ZonedDateTime;
 import java.util.UUID;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class ProductionTimetablesTest {
@@ -50,6 +51,41 @@ public class ProductionTimetablesTest {
 
         ProductionTimetables.timetableDeliveries.removeExpiredElements();
         assertTrue(ProductionTimetables.getAll().size() == previousSize);
+    }
+
+    @Test
+    public void testGetUpdatesOnly() {
+
+        assertEquals(0, ProductionTimetables.getAll().size());
+
+        ProductionTimetables.add(
+                createProductionTimetableDeliveryStructure(UUID.randomUUID().toString(), ZonedDateTime.now().minusMinutes(1))
+                , "test"
+        );
+        ProductionTimetables.add(
+                createProductionTimetableDeliveryStructure(UUID.randomUUID().toString(), ZonedDateTime.now().minusMinutes(1))
+                , "test"
+        );
+        ProductionTimetables.add(
+                createProductionTimetableDeliveryStructure(UUID.randomUUID().toString(), ZonedDateTime.now().minusMinutes(1))
+                , "test"
+        );
+        // Added 3
+        assertEquals(3, ProductionTimetables.getAllUpdates("1234-1234").size());
+
+        ProductionTimetables.add(
+                createProductionTimetableDeliveryStructure(UUID.randomUUID().toString(), ZonedDateTime.now().minusMinutes(1))
+                , "test"
+        );
+        //Added one
+        assertEquals(1, ProductionTimetables.getAllUpdates("1234-1234").size());
+
+
+        //None added
+        assertEquals(0, ProductionTimetables.getAllUpdates("1234-1234").size());
+
+        //Verify that all elements still exist
+        assertEquals(4, ProductionTimetables.getAll().size());
     }
 
     @Test

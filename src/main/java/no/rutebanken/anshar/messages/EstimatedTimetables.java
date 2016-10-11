@@ -9,6 +9,7 @@ import uk.org.siri.siri20.EstimatedVehicleJourney;
 
 import java.time.ZonedDateTime;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static no.rutebanken.anshar.messages.collections.DistributedCollection.getJourneysMap;
 
@@ -17,11 +18,37 @@ public class EstimatedTimetables {
 
     static ExpiringConcurrentMap<String, EstimatedVehicleJourney> timetableDeliveries = getJourneysMap();
 
+    static ExpiringConcurrentMap<String, Set<String>> changesMap = new ExpiringConcurrentMap<>(new ConcurrentHashMap<>(), 30, 300);
+
     /**
      * @return All vehicle activities that are still valid
      */
     public static List<EstimatedVehicleJourney> getAll() {
         return new ArrayList<>(timetableDeliveries.values());
+    }
+
+    /**
+     * @return All vehicle activities that are still valid
+     */
+    public static List<EstimatedVehicleJourney> getAllUpdates(String requestorId) {
+        if (requestorId != null) {
+
+            Set<String> idSet = changesMap.get(requestorId);
+            changesMap.put(requestorId, new HashSet<>());
+            if (idSet != null) {
+                List<EstimatedVehicleJourney> changes = new ArrayList<>();
+
+                idSet.stream().forEach(key -> {
+                    EstimatedVehicleJourney element = timetableDeliveries.get(key);
+                    if (element != null) {
+                        changes.add(element);
+                    }
+                });
+                return changes;
+            }
+        }
+
+        return getAll();
     }
 
     /**
@@ -70,6 +97,12 @@ public class EstimatedTimetables {
         if (timetableDelivery == null) {return null;}
 
         String key = createKey(datasetId, timetableDelivery);
+
+        changesMap.keySet().forEach(requestor -> {
+            Set<String> ids = changesMap.get(requestor);
+            ids.add(key);
+            changesMap.put(requestor, ids);
+        });
 
         EstimatedVehicleJourney previous = timetableDeliveries.put(key, timetableDelivery, getExpiration(timetableDelivery));
 

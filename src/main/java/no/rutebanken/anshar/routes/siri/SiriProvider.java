@@ -5,10 +5,7 @@ import no.rutebanken.anshar.messages.ProductionTimetables;
 import no.rutebanken.anshar.messages.Situations;
 import no.rutebanken.anshar.messages.VehicleActivities;
 import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
-import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
-import org.apache.camel.converter.jaxb.JaxbDataFormat;
-import org.apache.http.entity.ContentType;
 import org.rutebanken.siri20.util.SiriXml;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +15,6 @@ import uk.org.siri.siri20.Siri;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.nio.charset.Charset;
 
 @Configuration
 public class SiriProvider extends RouteBuilder {
@@ -53,9 +49,13 @@ public class SiriProvider extends RouteBuilder {
 
                     HttpServletRequest request = p.getIn().getBody(HttpServletRequest.class);
                     String datasetId = request.getParameter("datasetId");
+                    String requestorId = request.getParameter("requestorId");
+
                     Siri response;
                     if (datasetId != null && !datasetId.isEmpty()) {
                         response = factory.createSXServiceDelivery(Situations.getAll(datasetId));
+                    }  else if (requestorId != null && !requestorId.isEmpty()) {
+                        response = factory.createSXServiceDelivery(Situations.getAllUpdates(requestorId));
                     } else {
                         response = factory.createSXServiceDelivery(Situations.getAll());
                     }
@@ -73,10 +73,13 @@ public class SiriProvider extends RouteBuilder {
 
                     HttpServletRequest request = p.getIn().getBody(HttpServletRequest.class);
                     String datasetId = request.getParameter("datasetId");
+                    String requestorId = request.getParameter("requestorId");
 
                     Siri response;
                     if (datasetId != null && !datasetId.isEmpty()) {
                         response = factory.createVMServiceDelivery(VehicleActivities.getAll(datasetId));
+                    }  else if (requestorId != null && !requestorId.isEmpty()) {
+                        response = factory.createVMServiceDelivery(VehicleActivities.getAllUpdates(requestorId));
                     } else {
                         response = factory.createVMServiceDelivery(VehicleActivities.getAll());
                     }
@@ -95,10 +98,13 @@ public class SiriProvider extends RouteBuilder {
 
                     HttpServletRequest request = p.getIn().getBody(HttpServletRequest.class);
                     String datasetId = request.getParameter("datasetId");
+                    String requestorId = request.getParameter("requestorId");
 
                     Siri response;
                     if (datasetId != null && !datasetId.isEmpty()) {
                         response = factory.createETServiceDelivery(EstimatedTimetables.getAll(datasetId));
+                    } else if (requestorId != null && !requestorId.isEmpty()) {
+                        response = factory.createETServiceDelivery(EstimatedTimetables.getAllUpdates(requestorId));
                     } else {
                         response = factory.createETServiceDelivery(EstimatedTimetables.getAll());
                     }
@@ -117,9 +123,12 @@ public class SiriProvider extends RouteBuilder {
 
                     HttpServletRequest request = p.getIn().getBody(HttpServletRequest.class);
                     String datasetId = request.getParameter("datasetId");
+                    String requestorId = request.getParameter("requestorId");
                     Siri response;
                     if (datasetId != null && !datasetId.isEmpty()) {
                         response = factory.createPTServiceDelivery(ProductionTimetables.getAll(datasetId));
+                    }  else if (requestorId != null && !requestorId.isEmpty()) {
+                        response = factory.createPTServiceDelivery(ProductionTimetables.getAllUpdates(requestorId));
                     } else {
                         response = factory.createPTServiceDelivery(ProductionTimetables.getAll());
                     }

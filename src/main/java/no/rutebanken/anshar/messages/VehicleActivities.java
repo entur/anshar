@@ -1,16 +1,13 @@
 package no.rutebanken.anshar.messages;
 
-import no.rutebanken.anshar.messages.collections.DistributedCollection;
 import no.rutebanken.anshar.messages.collections.ExpiringConcurrentMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.org.siri.siri20.*;
 
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static no.rutebanken.anshar.messages.collections.DistributedCollection.getVehiclesMap;
 
@@ -18,6 +15,7 @@ public class VehicleActivities {
     private static Logger logger = LoggerFactory.getLogger(VehicleActivities.class);
 
     static ExpiringConcurrentMap<String, VehicleActivityStructure> vehicleActivities = getVehiclesMap();
+    static ExpiringConcurrentMap<String, Set<String>> changesMap = new ExpiringConcurrentMap<>(new ConcurrentHashMap<>(), 30, 300);
 
     /**
      * @return All vehicle activities that are still valid
@@ -42,6 +40,30 @@ public class VehicleActivities {
     }
 
 
+    /**
+     * @return All vehicle activities that have been updated since last request from requestor
+     */
+    public static List<VehicleActivityStructure> getAllUpdates(String requestorId) {
+        if (requestorId != null) {
+
+            Set<String> idSet = changesMap.get(requestorId);
+            changesMap.put(requestorId, new HashSet<>());
+            if (idSet != null) {
+                List<VehicleActivityStructure> changes = new ArrayList<>();
+
+                idSet.stream().forEach(key -> {
+                    VehicleActivityStructure element = vehicleActivities.get(key);
+                    if (element != null) {
+                        changes.add(element);
+                    }
+                });
+                return changes;
+            }
+        }
+
+        return getAll();
+    }
+
     private static ZonedDateTime getExpiration(VehicleActivityStructure a) {
         return a.getValidUntilTime();
     }
@@ -53,7 +75,15 @@ public class VehicleActivities {
         boolean keep = isLocationValid(activity) && isActivityMeaningful(activity);
 
         if (keep) {
-            VehicleActivityStructure previousValue = vehicleActivities.put(createKey(datasetId, activity), activity, getExpiration(activity));
+            String key = createKey(datasetId, activity);
+
+            changesMap.keySet().forEach(requestor -> {
+                Set<String> ids = changesMap.get(requestor);
+                ids.add(key);
+                changesMap.put(requestor, ids);
+            });
+
+            VehicleActivityStructure previousValue = vehicleActivities.put(key, activity, getExpiration(activity));
 
             if (previousValue != null) {
                 //Activity has been updated

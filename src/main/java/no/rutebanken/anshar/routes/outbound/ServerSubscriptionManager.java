@@ -322,14 +322,5 @@ public class ServerSubscriptionManager extends CamelRouteManager {
         ).forEach(subscription ->
                         pushSiriData(delivery, subscription)
         );
-
-        subscriptions.values().stream().filter(subscriptionRequest ->
-                        (subscriptionRequest.getSubscriptionMode().equals(SubscriptionSetup.SubscriptionMode.REQUEST_RESPONSE) &
-                                subscriptionRequest.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE))
-
-        ).forEach(subscription ->
-                        subscription.getSubscriptionId()
-        );
-
     }
 }

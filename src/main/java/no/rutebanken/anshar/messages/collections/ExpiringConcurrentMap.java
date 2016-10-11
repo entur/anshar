@@ -20,9 +20,21 @@ public class ExpiringConcurrentMap<String,T>  extends ConcurrentHashMap<String,T
 
     final ConcurrentMap map;
     final Map<String, ZonedDateTime> expiryMap = new HashMap<>();
+    private int defaultExpirationSeconds;
     int expiryPeriodSeconds = 30;
     ZonedDateTime lastRun;
 
+    /**
+     *
+     * @param map Wrapped map to store actual data
+     * @param expiryPeriodSeconds Period between each execution og expiration-check
+     */
+    public ExpiringConcurrentMap(ConcurrentMap map, int expiryPeriodSeconds, int defaultExpirationSeconds) {
+        this.map = map;
+        this.expiryPeriodSeconds = expiryPeriodSeconds;
+        this.defaultExpirationSeconds = defaultExpirationSeconds;
+        initExpiryManagerThread();
+    }
     /**
      *
      * @param map Wrapped map to store actual data
@@ -36,6 +48,13 @@ public class ExpiringConcurrentMap<String,T>  extends ConcurrentHashMap<String,T
 
     public T put(String key, T value, ZonedDateTime expiry) {
         expiryMap.put(key, expiry);
+        return super.put(key, value);
+    }
+
+    public T put(String key, T value) {
+        if (defaultExpirationSeconds > 0) {
+            expiryMap.put(key, ZonedDateTime.now().plusSeconds(defaultExpirationSeconds));
+        }
         return super.put(key, value);
     }
 

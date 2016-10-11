@@ -1,16 +1,13 @@
 package no.rutebanken.anshar.messages;
 
-import no.rutebanken.anshar.messages.collections.DistributedCollection;
 import no.rutebanken.anshar.messages.collections.ExpiringConcurrentMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.org.siri.siri20.PtSituationElement;
 
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static no.rutebanken.anshar.messages.collections.DistributedCollection.getSituationsMap;
 
@@ -18,6 +15,7 @@ public class Situations {
     private static Logger logger = LoggerFactory.getLogger(Situations.class);
 
     static ExpiringConcurrentMap<String,PtSituationElement> situations = getSituationsMap();
+    static ExpiringConcurrentMap<String, Set<String>> changesMap = new ExpiringConcurrentMap<>(new ConcurrentHashMap<>(), 30, 300);
 
     /**
      * @return All situations that are still valid
@@ -40,6 +38,31 @@ public class Situations {
         });
 
         return new ArrayList<>(datasetIdSpecific.values());
+    }
+
+
+    /**
+     * @return All vehicle activities that have been updated since last request from requestor
+     */
+    public static List<PtSituationElement> getAllUpdates(String requestorId) {
+        if (requestorId != null) {
+
+            Set<String> idSet = changesMap.get(requestorId);
+            changesMap.put(requestorId, new HashSet<>());
+            if (idSet != null) {
+                List<PtSituationElement> changes = new ArrayList<>();
+
+                idSet.stream().forEach(key -> {
+                    PtSituationElement element = situations.get(key);
+                    if (element != null) {
+                        changes.add(element);
+                    }
+                });
+                return changes;
+            }
+        }
+
+        return getAll();
     }
 
     private static ZonedDateTime getExpiration(PtSituationElement situationElement) {
@@ -65,7 +88,15 @@ public class Situations {
         if (situation == null) {
             return situation;
         }
-        PtSituationElement previousElement = situations.put(createKey(datasetId, situation), situation, getExpiration(situation));
+        String key = createKey(datasetId, situation);
+
+        changesMap.keySet().forEach(requestor -> {
+            Set<String> ids = changesMap.get(requestor);
+            ids.add(key);
+            changesMap.put(requestor, ids);
+        });
+
+        PtSituationElement previousElement = situations.put(key, situation, getExpiration(situation));
         if (previousElement != null) {
             //Situation existed, and may have been updated
             /*

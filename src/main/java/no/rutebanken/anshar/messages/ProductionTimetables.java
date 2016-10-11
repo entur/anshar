@@ -3,13 +3,12 @@ package no.rutebanken.anshar.messages;
 import no.rutebanken.anshar.messages.collections.ExpiringConcurrentMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.org.siri.siri20.EstimatedVehicleJourney;
 import uk.org.siri.siri20.ProductionTimetableDeliveryStructure;
 
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static no.rutebanken.anshar.messages.collections.DistributedCollection.getProductionTimetablesMap;
 
@@ -17,6 +16,7 @@ public class ProductionTimetables {
     private static Logger logger = LoggerFactory.getLogger(ProductionTimetables.class);
 
     static ExpiringConcurrentMap<String, ProductionTimetableDeliveryStructure> timetableDeliveries = getProductionTimetablesMap();
+    static ExpiringConcurrentMap<String, Set<String>> changesMap = new ExpiringConcurrentMap<>(new ConcurrentHashMap<>(), 30, 300);
 
     /**
      * @return All vehicle activities that are still valid
@@ -40,6 +40,31 @@ public class ProductionTimetables {
         return new ArrayList<>(datasetIdSpecific.values());
     }
 
+
+    /**
+     * @return All vehicle activities that are still valid
+     */
+    public static List<ProductionTimetableDeliveryStructure> getAllUpdates(String requestorId) {
+        if (requestorId != null) {
+
+            Set<String> idSet = changesMap.get(requestorId);
+            changesMap.put(requestorId, new HashSet<>());
+            if (idSet != null) {
+                List<ProductionTimetableDeliveryStructure> changes = new ArrayList<>();
+
+                idSet.stream().forEach(key -> {
+                    ProductionTimetableDeliveryStructure element = timetableDeliveries.get(key);
+                    if (element != null) {
+                        changes.add(element);
+                    }
+                });
+                return changes;
+            }
+        }
+
+        return getAll();
+    }
+
     private static ZonedDateTime getExpiration(ProductionTimetableDeliveryStructure s) {
 
         return s.getValidUntil();
@@ -49,7 +74,15 @@ public class ProductionTimetables {
         if (timetableDelivery == null) {
             return null;
         }
-        ProductionTimetableDeliveryStructure previous = timetableDeliveries.put(createKey(datasetId, timetableDelivery), timetableDelivery, getExpiration(timetableDelivery));
+        String key = createKey(datasetId, timetableDelivery);
+
+        changesMap.keySet().forEach(requestor -> {
+            Set<String> ids = changesMap.get(requestor);
+            ids.add(key);
+            changesMap.put(requestor, ids);
+        });
+
+        ProductionTimetableDeliveryStructure previous = timetableDeliveries.put(key, timetableDelivery, getExpiration(timetableDelivery));
         if (previous != null) {
             /*
              * TODO: How to determine if PT-element has been updated?

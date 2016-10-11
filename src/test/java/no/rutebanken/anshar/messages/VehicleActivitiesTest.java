@@ -10,9 +10,8 @@ import uk.org.siri.siri20.VehicleRef;
 import java.time.ZonedDateTime;
 import java.util.UUID;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class VehicleActivitiesTest {
 
@@ -107,6 +106,30 @@ public class VehicleActivitiesTest {
 
         //Verify that element added is vendor-specific
         assertTrue(VehicleActivities.getAll("test").size() == previousSize+2);
+    }
+
+    @Test
+    public void testGetUpdatesOnly() {
+
+        assertEquals(0, VehicleActivities.getAll().size());
+
+        VehicleActivities.add(createVehicleActivityStructure(ZonedDateTime.now(), "1234"), "test");
+        VehicleActivities.add(createVehicleActivityStructure(ZonedDateTime.now(), "2345"), "test");
+        VehicleActivities.add(createVehicleActivityStructure(ZonedDateTime.now(), "3456"), "test");
+        // Added 3
+        assertEquals(3, VehicleActivities.getAllUpdates("1234-1234").size());
+
+        VehicleActivities.add(createVehicleActivityStructure(ZonedDateTime.now(), "4567"), "test");
+
+        //Added one
+        assertEquals(1, VehicleActivities.getAllUpdates("1234-1234").size());
+
+
+        //None added
+        assertEquals(0, VehicleActivities.getAllUpdates("1234-1234").size());
+
+        //Verify that all elements still exist
+        assertEquals(4, VehicleActivities.getAll().size());
     }
 
     private VehicleActivityStructure createVehicleActivityStructure(ZonedDateTime recordedAtTime, String vehicleReference) {

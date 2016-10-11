@@ -40,6 +40,30 @@ public class EstimatedTimetablesTest {
     }
 
     @Test
+    public void testGetUpdatesOnly() {
+
+        assertEquals(0, EstimatedTimetables.getAll().size());
+
+        EstimatedTimetables.add(createEstimatedVehicleJourney("1234", "4321", 30, ZonedDateTime.now()), "test");
+        EstimatedTimetables.add(createEstimatedVehicleJourney("2345", "4321", 30, ZonedDateTime.now()), "test");
+        EstimatedTimetables.add(createEstimatedVehicleJourney("3456", "4321", 30, ZonedDateTime.now()), "test");
+        // Added 3
+        assertEquals(3, EstimatedTimetables.getAllUpdates("1234-1234").size());
+
+        EstimatedTimetables.add(createEstimatedVehicleJourney("4567", "4321", 30, ZonedDateTime.now()), "test");
+
+        //Added one
+        assertEquals(1, EstimatedTimetables.getAllUpdates("1234-1234").size());
+
+
+        //None added
+        assertEquals(0, EstimatedTimetables.getAllUpdates("1234-1234").size());
+
+        //Verify that all elements still exist
+        assertEquals(4, EstimatedTimetables.getAll().size());
+    }
+
+    @Test
     public void testExpiredJourney() {
         int previousSize = EstimatedTimetables.getAll().size();
 
