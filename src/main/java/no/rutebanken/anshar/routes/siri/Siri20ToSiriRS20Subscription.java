@@ -31,7 +31,7 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
                 .add("xsd", "http://www.w3.org/2001/XMLSchema");
 
         //Start subscription
-        from("direct:start" + uniqueRouteName)
+        from("activemq:start" + uniqueRouteName + "?asyncConsumer=true")
                 .bean(this, "marshalSiriSubscriptionRequest", false)
                 .setExchangePattern(ExchangePattern.InOut) // Make sure we wait for a response
                 .setHeader("operatorNamespace", constant(subscriptionSetup.getOperatorNamespace())) // Need to make SOAP request with endpoint specific element namespace
@@ -74,7 +74,7 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
         }
 
         //Cancel subscription
-        from("direct:cancel" + uniqueRouteName)
+        from("activemq:cancel" + uniqueRouteName + "?asyncConsumer=true")
                 .bean(this, "marshalSiriTerminateSubscriptionRequest", false)
                 .setExchangePattern(ExchangePattern.InOut) // Make sure we wait for a response
                 .setProperty(Exchange.LOG_DEBUG_BODY_STREAMS, constant("true"))

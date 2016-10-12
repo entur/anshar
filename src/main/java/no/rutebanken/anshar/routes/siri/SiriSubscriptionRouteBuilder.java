@@ -108,7 +108,7 @@ public abstract class SiriSubscriptionRouteBuilder extends RouteBuilder {
                     .when(isActive -> subscriptionSetup.isActive())
                         .log("Starting subscription " + subscriptionSetup.toString())
                         .process(p -> SubscriptionManager.addPendingSubscription(subscriptionSetup.getSubscriptionId(), subscriptionSetup))
-                        .to("direct:start" + uniqueRouteName)
+                        .to("activemq:start" + uniqueRouteName)
                     .endChoice()
                 .endChoice()
                 .when(isHealthy -> SubscriptionManager.isSubscriptionHealthy(subscriptionSetup.getSubscriptionId()))
@@ -116,14 +116,14 @@ public abstract class SiriSubscriptionRouteBuilder extends RouteBuilder {
                     .choice()
                         .when(isDeactivated -> !subscriptionSetup.isActive())
                             .log("Subscription has been deactivated - cancelling")
-                            .to("direct:cancel" + uniqueRouteName)
+                            .to("activemq:cancel" + uniqueRouteName)
                             .process(p -> SubscriptionManager.removeSubscription(subscriptionSetup.getSubscriptionId()))
                         .endChoice()
                 .endChoice()
                 .otherwise()
                     .process(p -> SubscriptionManager.removeSubscription(subscriptionSetup.getSubscriptionId()))
                     .log("Subscription has died - terminating subscription " + subscriptionSetup.toString())
-                    .to("direct:cancel" + uniqueRouteName)
+                    .to("activemq:cancel" + uniqueRouteName)
                 .end();
 
     }
