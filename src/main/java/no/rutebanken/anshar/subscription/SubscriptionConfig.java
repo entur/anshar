@@ -65,9 +65,12 @@ public class SubscriptionConfig {
 
         ruterMappingAdapters = new ArrayList<>();
         ruterMappingAdapters.add(new LeftPaddingAdapter(LineRef.class, 4, '0'));
+
         ruterMappingAdapters.add(new RuterSubstringAdapter(StopPointRef.class, ':', '0', 2));
         ruterMappingAdapters.add(new LeftPaddingAdapter(StopPointRef.class, 10, '0'));
-        ruterMappingAdapters.add(new LeftPaddingAdapter(StopPlaceRef.class, 10, '0'));
+
+        ruterMappingAdapters.add(new LeftPaddingAdapter(StopPlaceRef.class, 8, '0'));
+        ruterMappingAdapters.add(new RightPaddingStopPlaceAdapter(StopPlaceRef.class, 8, "01"));
 
 
         atb_kolumbus_mappingAdapters = new ArrayList<>();
