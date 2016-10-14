@@ -12,6 +12,7 @@ import org.apache.camel.builder.RouteBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import uk.org.ifopt.siri20.StopPlaceRef;
 import uk.org.siri.siri20.*;
 
 import javax.xml.datatype.DatatypeConfigurationException;
@@ -66,6 +67,7 @@ public class SubscriptionConfig {
         ruterMappingAdapters.add(new LeftPaddingAdapter(LineRef.class, 4, '0'));
         ruterMappingAdapters.add(new RuterSubstringAdapter(StopPointRef.class, ':', '0', 2));
         ruterMappingAdapters.add(new LeftPaddingAdapter(StopPointRef.class, 10, '0'));
+        ruterMappingAdapters.add(new LeftPaddingAdapter(StopPlaceRef.class, 10, '0'));
 
 
         atb_kolumbus_mappingAdapters = new ArrayList<>();
