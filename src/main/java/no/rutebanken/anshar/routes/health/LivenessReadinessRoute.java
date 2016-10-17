@@ -21,7 +21,7 @@ public class LivenessReadinessRoute extends RouteBuilder {
     private String inboundPort;
 
     @Value("${anshar.healthcheck.failure.count}")
-    private int unhealthyCounter = 20;
+    private int unhealthyCounter = 100;
 
     private Map<String, Integer> healthMap = new HashMap<>();
 
