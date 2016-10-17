@@ -1,7 +1,6 @@
 package no.rutebanken.anshar.subscription;
 
 
-import no.rutebanken.anshar.messages.collections.DistributedCollection;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -12,7 +11,9 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Map;
 
-public class SubscriptionManager extends DistributedCollection {
+import static no.rutebanken.anshar.messages.collections.DistributedCollection.*;
+
+public class SubscriptionManager {
 
     private static Logger logger = LoggerFactory.getLogger(SubscriptionManager.class);
 
@@ -231,5 +232,13 @@ public class SubscriptionManager extends DistributedCollection {
         }
 
         return stats.toJSONString();
+    }
+
+    public static Map<String, SubscriptionSetup> getActiveSubscriptions() {
+        return activeSubscriptions;
+    }
+
+    public static Map<String, SubscriptionSetup> getPendingSubscriptions() {
+        return pendingSubscriptions;
     }
 }
