@@ -49,7 +49,7 @@ public class Siri20ToSiriWS14RequestResponse extends RouteBuilder {
 
         String httpOptions = "?httpClient.socketTimeout=" + ((int)heartbeatIntervalMillis/2);
 
-        from("quartz2://request_response_" + subscriptionSetup.getSubscriptionId() + "?trigger.repeatInterval=" + heartbeatIntervalMillis )
+        from("quartz2://request_response_" + subscriptionSetup.getSubscriptionId() + "?deleteJob=false&durableJob=true&recoverableJob=true&trigger.repeatInterval=" + heartbeatIntervalMillis )
                 .log("Retrieving data " + subscriptionSetup.toString())
                 .setBody(simple(siriXml))
                 .setExchangePattern(ExchangePattern.InOut) // Make sure we wait for a response
