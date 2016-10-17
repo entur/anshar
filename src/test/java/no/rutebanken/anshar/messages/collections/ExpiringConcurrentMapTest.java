@@ -45,7 +45,7 @@ public class ExpiringConcurrentMapTest {
         //Wait for expiration-job to run
         while (map.lastRun == null || map.lastRun.isBefore(expiry)) {
             try {
-                Thread.sleep(300);
+                Thread.sleep(map.expiryPeriodSeconds*1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
