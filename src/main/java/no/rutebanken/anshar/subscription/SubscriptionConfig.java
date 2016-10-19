@@ -100,7 +100,8 @@ public class SubscriptionConfig {
                 SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE,
                 SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
                 inboundUrl,
-                Duration.ofSeconds(heartbeatInterval),
+                //Duration.ofSeconds(heartbeatInterval),
+                Duration.ofHours(heartbeatInterval), //Unstable service
                 "http://www.kolumbus.no/siri",
                 urlMap,
                 "1.4",
