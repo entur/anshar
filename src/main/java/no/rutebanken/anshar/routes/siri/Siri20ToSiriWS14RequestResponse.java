@@ -47,7 +47,11 @@ public class Siri20ToSiriWS14RequestResponse extends RouteBuilder {
 
         long heartbeatIntervalMillis = subscriptionSetup.getHeartbeatInterval().toMillis();
 
-        String httpOptions = "?httpClient.socketTimeout=" + ((int)heartbeatIntervalMillis/2);
+        int timeout = (int) heartbeatIntervalMillis / 2;
+        String httpOptions = new StringBuilder()
+                .append("?httpClient.socketTimeout=").append(timeout) //Timeout reading from socket
+                .append("&httpClient.connectTimeout=").append(timeout) //Timeout establishing connection
+                .toString();
 
         from("quartz2://request_response_" + subscriptionSetup.getSubscriptionId() + "?deleteJob=false&durableJob=true&recoverableJob=true&trigger.repeatInterval=" + heartbeatIntervalMillis )
                 .log("Retrieving data " + subscriptionSetup.toString())
