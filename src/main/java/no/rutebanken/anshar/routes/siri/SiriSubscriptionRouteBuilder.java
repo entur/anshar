@@ -94,6 +94,14 @@ public abstract class SiriSubscriptionRouteBuilder extends RouteBuilder {
             });
         }
     }
+
+    String getTimeout() {
+        long heartbeatIntervalMillis = subscriptionSetup.getHeartbeatInterval().toMillis();
+        int timeout = (int) heartbeatIntervalMillis / 2;
+
+        return "?httpClient.socketTimeout=" + timeout + "&httpClient.connectTimeout=" + timeout;
+    }
+
     void initShedulerRoute() {
 
         getContext().setUseMDCLogging(true);

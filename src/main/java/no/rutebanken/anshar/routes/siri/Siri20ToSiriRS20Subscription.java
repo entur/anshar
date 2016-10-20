@@ -39,7 +39,7 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
                 .removeHeaders("CamelHttp*") // Remove any incoming HTTP headers as they interfere with the outgoing definition
                 .setHeader(Exchange.CONTENT_TYPE, constant("text/xml;charset=UTF-8")) // Necessary when talking to Microsoft web services
                 .setHeader(Exchange.HTTP_METHOD, constant(HttpMethods.POST))
-                .to("http4://" + urlMap.get(RequestType.SUBSCRIBE))
+                .to("http4://" + urlMap.get(RequestType.SUBSCRIBE)+getTimeout())
                 .to("log:received response:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .process(p -> {
 
@@ -59,7 +59,7 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
                     .removeHeaders("CamelHttp*") // Remove any incoming HTTP headers as they interfere with the outgoing definition
                     .setHeader(Exchange.CONTENT_TYPE, constant("text/xml;charset=UTF-8")) // Necessary when talking to Microsoft web services
                     .setHeader(Exchange.HTTP_METHOD, constant(HttpMethods.POST))
-                    .to("http4://" + urlMap.get(RequestType.CHECK_STATUS))
+                    .to("http4://" + urlMap.get(RequestType.CHECK_STATUS)+getTimeout())
                     .process(p -> {
 
                         String responseCode = p.getIn().getHeader("CamelHttpResponseCode", String.class);
@@ -81,7 +81,7 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
                 .removeHeaders("CamelHttp*") // Remove any incoming HTTP headers as they interfere with the outgoing definition
                 .setHeader(Exchange.CONTENT_TYPE, constant("text/xml;charset=UTF-8")) // Necessary when talking to Microsoft web services
                 .setHeader(Exchange.HTTP_METHOD, constant(HttpMethods.POST))
-                .to("http4://" + urlMap.get(RequestType.DELETE_SUBSCRIPTION))
+                .to("http4://" + urlMap.get(RequestType.DELETE_SUBSCRIPTION)+getTimeout())
                 .to("log:received response:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .process(p -> {
                     String body = p.getIn().getBody(String.class);
