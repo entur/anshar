@@ -2,6 +2,9 @@
            xmlns="http://www.hazelcast.com/schema/config"
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
+    <properties>
+        <property name="hazelcast.phone.home.enabled">false</property>
+    </properties>
 
     <map name="anshar.*">
         <time-to-live-seconds>86400</time-to-live-seconds>
