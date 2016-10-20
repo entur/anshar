@@ -71,6 +71,8 @@ public class LivenessReadinessRoute extends RouteBuilder {
     }
 
     private boolean isApplicationHealthy() {
+        return true;
+        /*
         healthMap.keySet().forEach(key -> {
             if (SubscriptionManager.isSubscriptionHealthy(key)) {
                 resetCounter(key);
@@ -101,6 +103,7 @@ public class LivenessReadinessRoute extends RouteBuilder {
             }
         }
         return true;
+        */
     }
 
     private void resetCounter(String key) {
