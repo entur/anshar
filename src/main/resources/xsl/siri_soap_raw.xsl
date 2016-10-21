@@ -171,6 +171,7 @@
                            <xsl:copy-of select="ServiceDeliveryInfo/siril:ResponseTimestamp" copy-namespaces="no"/>
                            <xsl:copy-of select="ServiceDeliveryInfo/siril:ProducerRef" copy-namespaces="no"/>
                            <xsl:copy-of select="ServiceDeliveryInfo/siril:Address" copy-namespaces="no"/>
+                           <xsl:copy-of select="ServiceDeliveryInfo/siril:ConsumerAddress" copy-namespaces="no"/>
                            <xsl:copy-of select="ServiceDeliveryInfo/siril:ResponseMessageIdentifier" copy-namespaces="no"/>
                            <xsl:copy-of select="ServiceDeliveryInfo/siril:RequestMessageRef" copy-namespaces="no"/>
                            <xsl:copy-of select="Answer/*"/>

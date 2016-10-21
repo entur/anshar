@@ -31,6 +31,7 @@
                                 <xsl:copy-of select="siri:SubscriptionContext" copy-namespaces="no"/>
                                 <xsl:copy-of select="siri:RequestTimestamp" copy-namespaces="no"/>
                                 <xsl:copy-of select="siri:Address" copy-namespaces="no"/>
+                                <xsl:copy-of select="siri:ConsumerAddress" copy-namespaces="no"/>
                                 <xsl:copy-of select="siri:RequestorRef" copy-namespaces="no"/>
                                 <xsl:copy-of select="siri:MessageIdentifier" copy-namespaces="no"/>
                             </xsl:element>
@@ -91,6 +92,7 @@
                             <xsl:element name="DeleteSubscriptionInfo">
                                 <xsl:copy-of select="siri:RequestTimestamp" copy-namespaces="no"/>
                                 <xsl:copy-of select="siri:Address" copy-namespaces="no"/>
+                                <xsl:copy-of select="siri:ConsumerAddress" copy-namespaces="no"/>
                                 <xsl:copy-of select="siri:RequestorRef" copy-namespaces="no"/>
                                 <xsl:copy-of select="siri:MessageIdentifier" copy-namespaces="no"/>
                             </xsl:element>
@@ -108,6 +110,7 @@
                                 <xsl:copy-of select="../siri:ServiceRequestContext" copy-namespaces="no"/>
                                 <xsl:copy-of select="../siri:RequestTimestamp" copy-namespaces="no"/>
                                 <xsl:copy-of select="../siri:Address" copy-namespaces="no"/>
+                                <xsl:copy-of select="../siri:ConsumerAddress" copy-namespaces="no"/>
                                 <xsl:copy-of select="../siri:RequestorRef" copy-namespaces="no"/>
                                 <xsl:copy-of select="../siri:MessageIdentifier" copy-namespaces="no"/>
                             </xsl:element>
