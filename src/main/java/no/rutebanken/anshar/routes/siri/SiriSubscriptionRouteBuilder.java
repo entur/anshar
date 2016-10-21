@@ -86,8 +86,6 @@ public abstract class SiriSubscriptionRouteBuilder extends RouteBuilder {
                     SubscriptionManager.addSubscription(s.getSubscriptionRef().getValue(), subscriptionSetup);
                 } else if (s.getErrorCondition() != null) {
                     logger.error("Error starting subscription:  {}", (s.getErrorCondition().getDescription() != null ? s.getErrorCondition().getDescription().getValue():""));
-                    //Removing - will trigger new attempt
-                    SubscriptionManager.removeSubscription(s.getSubscriptionRef().getValue());
                 } else {
                     SubscriptionManager.addSubscription(s.getSubscriptionRef().getValue(), subscriptionSetup);
                 }
