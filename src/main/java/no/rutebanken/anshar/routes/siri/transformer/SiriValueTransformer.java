@@ -45,6 +45,17 @@ public class SiriValueTransformer {
         return siri;
     }
 
+    /**
+     * Recursively applies ValueAdapter to all fields of the specified type within SIRI-packages.
+     *
+     * Uses getValue()/setValue(...) apply adapters
+     *
+     * @param obj
+     * @param adapter
+     * @throws NoSuchMethodException
+     * @throws InvocationTargetException
+     * @throws IllegalAccessException
+     */
     private static void applyAdapter(Object obj, ValueAdapter adapter) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
 
         if (obj.getClass().getName().startsWith("uk.org.siri")) {
