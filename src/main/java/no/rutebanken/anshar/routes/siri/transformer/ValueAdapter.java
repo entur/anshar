@@ -15,4 +15,8 @@ public abstract class ValueAdapter implements Serializable {
     }
 
     protected abstract String apply(String value);
+
+    public String toString() {
+        return this.getClass().getSimpleName() + "[" + (clazz != null ? clazz.getSimpleName():"null") + "]";
+    }
 }

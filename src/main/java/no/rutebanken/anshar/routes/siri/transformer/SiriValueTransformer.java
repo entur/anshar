@@ -33,6 +33,7 @@ public class SiriValueTransformer {
     public static Siri transform(Siri siri, List<ValueAdapter> adapters) {
 
         if (siri != null && adapters != null) {
+            logger.info("Applying valueadapters {}.", adapters);
             adapters.forEach(a -> {
                 try {
                     applyAdapter(siri, a);
