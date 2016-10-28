@@ -11,11 +11,11 @@
                     <pattern>
                         {
                         "serviceContext": {
-                            "service": "nergal"
+                            "service": "anshar"
                         },
                         "message": "%message\n%ex{full}",
                         "severity": "%level",
-                        "breadcrumb": "%-60.60X{camel.breadcrumbId}",
+                        "breadcrumb": "%{camel.breadcrumbId}",
                         "reportLocation": {
                             "filePath": "%logger",
                             "lineNumber": "%line",
