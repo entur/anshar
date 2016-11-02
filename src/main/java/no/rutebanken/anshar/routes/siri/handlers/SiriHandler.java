@@ -75,6 +75,8 @@ public class SiriHandler {
                 return SiriObjectFactory.createVMServiceDelivery(VehicleActivities.getAll(datasetId));
             } else if (hasValues(serviceRequest.getEstimatedTimetableRequests())) {
                 return SiriObjectFactory.createETServiceDelivery(EstimatedTimetables.getAll(datasetId));
+            } else if (hasValues(serviceRequest.getProductionTimetableRequests())) {
+                return SiriObjectFactory.createPTServiceDelivery(ProductionTimetables.getAll(datasetId));
             }
         }
 
@@ -199,7 +201,7 @@ public class SiriHandler {
                             }
                     );
                     serverSubscriptionManager.pushUpdatedProductionTimetables(addedOrUpdated, subscriptionSetup.getDatasetId());
-                    logger.info("Active ET-elements: {}, new/updated: {}", EstimatedTimetables.getAll().size(), addedOrUpdated.size());
+                    logger.info("Active PT-elements: {}, new/updated: {}", ProductionTimetables.getAll().size(), addedOrUpdated.size());
                 }
             } else {
                 return incoming;

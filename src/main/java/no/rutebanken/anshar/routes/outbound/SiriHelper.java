@@ -1,6 +1,7 @@
 package no.rutebanken.anshar.routes.outbound;
 
 import no.rutebanken.anshar.messages.EstimatedTimetables;
+import no.rutebanken.anshar.messages.ProductionTimetables;
 import no.rutebanken.anshar.messages.Situations;
 import no.rutebanken.anshar.messages.VehicleActivities;
 import no.rutebanken.anshar.routes.siri.SiriObjectFactory;
@@ -110,6 +111,12 @@ public class SiriHelper {
                 List<EstimatedVehicleJourney> timetables = EstimatedTimetables.getAll(subscriptionRequest.getDatasetId());
                 logger.info("Initial ET-delivery: {} elements", timetables.size());
                 delivery = SiriObjectFactory.createETServiceDelivery(timetables);
+                break;
+            case PRODUCTION_TIMETABLE:
+
+                List<ProductionTimetableDeliveryStructure> ptTimetables = ProductionTimetables.getAll(subscriptionRequest.getDatasetId());
+                logger.info("Initial EPT-delivery: {} elements", ptTimetables.size());
+                delivery = SiriObjectFactory.createPTServiceDelivery(ptTimetables);
                 break;
         }
         return delivery;
