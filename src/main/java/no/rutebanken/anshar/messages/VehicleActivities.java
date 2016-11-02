@@ -27,9 +27,12 @@ public class VehicleActivities {
     /**
      * @return All vehicle activities that are still valid
      */
-    public static List<VehicleActivityStructure> getAll(String vendor) {
+    public static List<VehicleActivityStructure> getAll(String datasetId) {
+        if (datasetId == null) {
+            return getAll();
+        }
         Map<String, VehicleActivityStructure> vendorSpecific = new HashMap<>();
-        vehicleActivities.keySet().stream().filter(key -> key.startsWith(vendor + ":")).forEach(key -> {
+        vehicleActivities.keySet().stream().filter(key -> key.startsWith(datasetId + ":")).forEach(key -> {
             VehicleActivityStructure structure = vehicleActivities.get(key);
             if (structure != null) {
                 vendorSpecific.put(key, structure);

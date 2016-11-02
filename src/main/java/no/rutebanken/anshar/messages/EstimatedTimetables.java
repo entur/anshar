@@ -55,7 +55,9 @@ public class EstimatedTimetables {
      * @return All vehicle activities that are still valid
      */
     public static List<EstimatedVehicleJourney> getAll(String datasetId) {
-
+        if (datasetId == null) {
+            return getAll();
+        }
         Map<String, EstimatedVehicleJourney> datasetIdSpecific = new HashMap<>();
         timetableDeliveries.keySet().stream().filter(key -> key.startsWith(datasetId + ":")).forEach(key -> {
             EstimatedVehicleJourney element = timetableDeliveries.get(key);

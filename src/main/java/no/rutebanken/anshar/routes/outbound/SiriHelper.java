@@ -94,20 +94,20 @@ public class SiriHelper {
         switch (subscriptionRequest.getSubscriptionType()) {
             case SITUATION_EXCHANGE:
 
-                List<PtSituationElement> situationElementList = Situations.getAll();
-                logger.info("Initial PT-delivery: {} elements", situationElementList.size());
+                List<PtSituationElement> situationElementList = Situations.getAll(subscriptionRequest.getDatasetId());
+                logger.info("Initial SX-delivery: {} elements", situationElementList.size());
                 delivery = SiriObjectFactory.createSXServiceDelivery(situationElementList);
                 break;
             case VEHICLE_MONITORING:
 
-                List<VehicleActivityStructure> vehicleActivities = VehicleActivities.getAll();
+                List<VehicleActivityStructure> vehicleActivities = VehicleActivities.getAll(subscriptionRequest.getDatasetId());
                 logger.info("Initial VM-delivery: {} elements", vehicleActivities.size());
                 delivery = SiriObjectFactory.createVMServiceDelivery(vehicleActivities);
                 break;
             case ESTIMATED_TIMETABLE:
 
 
-                List<EstimatedVehicleJourney> timetables = EstimatedTimetables.getAll();
+                List<EstimatedVehicleJourney> timetables = EstimatedTimetables.getAll(subscriptionRequest.getDatasetId());
                 logger.info("Initial ET-delivery: {} elements", timetables.size());
                 delivery = SiriObjectFactory.createETServiceDelivery(timetables);
                 break;

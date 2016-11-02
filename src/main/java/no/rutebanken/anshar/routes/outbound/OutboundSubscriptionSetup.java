@@ -19,9 +19,10 @@ public class OutboundSubscriptionSetup {
     private final String requestorRef;
     private final ZonedDateTime initialTerminationTime;
     private final boolean active;
+    private final String datasetId;
 
     public OutboundSubscriptionSetup(ZonedDateTime requestTimestamp, SubscriptionSetup.SubscriptionType subscriptionType, SubscriptionSetup.SubscriptionMode subscriptionMode, String address, long heartbeatInterval, SubscriptionSetup.ServiceType serviceType,
-                                     Map<Class, Set<String>> filterMap, String subscriptionId, String requestorRef, ZonedDateTime initialTerminationTime, boolean active) {
+                                     Map<Class, Set<String>> filterMap, String subscriptionId, String requestorRef, ZonedDateTime initialTerminationTime, String datasetId, boolean active) {
         this.requestTimestamp = requestTimestamp;
         this.subscriptionType = subscriptionType;
         this.subscriptionMode = subscriptionMode;
@@ -32,6 +33,7 @@ public class OutboundSubscriptionSetup {
         this.subscriptionId = subscriptionId;
         this.requestorRef = requestorRef;
         this.initialTerminationTime = initialTerminationTime;
+        this.datasetId = datasetId;
         this.active = active;
     }
 
@@ -73,6 +75,10 @@ public class OutboundSubscriptionSetup {
 
     public ZonedDateTime getInitialTerminationTime() {
         return initialTerminationTime;
+    }
+
+    public String getDatasetId() {
+        return datasetId;
     }
 
     public boolean isActive() {

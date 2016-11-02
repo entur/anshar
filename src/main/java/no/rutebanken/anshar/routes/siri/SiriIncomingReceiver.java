@@ -64,9 +64,19 @@ public class SiriIncomingReceiver extends RouteBuilder {
         from("jetty:http://0.0.0.0:" + inboundPort + "?matchOnUriPrefix=true&httpMethodRestrict=POST")
                 .to("log:received:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .choice()
-                    .when(header("CamelHttpPath").endsWith("/services")) //Handle synchronous response
+                    .when(header("CamelHttpPath").contains("/services")) //Handle synchronous response
                     .process(p -> {
-                        Siri response = handler.handleIncomingSiri(null, p.getIn().getBody(String.class));
+
+                        String path = (String) p.getIn().getHeader("CamelHttpPath");
+                        String datasetId = null;
+
+                        String pathPattern = "/services/";
+                        if (path.indexOf(pathPattern) >= 0) {
+                                        //e.g. "/anshar/services/akt" resolves "akt"
+                            datasetId = path.substring(path.indexOf(pathPattern) + pathPattern.length());
+                        }
+
+                        Siri response = handler.handleIncomingSiri(null, p.getIn().getBody(String.class), datasetId);
                         if (response != null) {
                             p.getOut().setBody(SiriXml.toXml(response));
                         } else {
@@ -74,7 +84,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                         }
                     })
                     .endChoice()
-                    .when(header("CamelHttpPath").endsWith("/subscribe")) //Handle synchronous response
+                    .when(header("CamelHttpPath").contains("/subscribe")) //Handle synchronous response
                         .to("activemq:queue:" + TRANSFORM_QUEUE + "?disableReplyTo=true")
                         .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
                         .setBody(constant(null))
@@ -190,10 +200,19 @@ public class SiriIncomingReceiver extends RouteBuilder {
         from("activemq:queue:" + DEFAULT_PROCESSOR_QUEUE + "?asyncConsumer=true")
                 .to("log:processor:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .process(p -> {
-                    String subscriptionId = getSubscriptionIdFromPath(p.getIn().getHeader("CamelHttpPath", String.class));
+                    String path = p.getIn().getHeader("CamelHttpPath", String.class);
+
+                    String subscriptionId = getSubscriptionIdFromPath(path);
+                    String datasetId = null;
+
+                    String pathPattern = "/subscribe/";
+                    if (path.indexOf(pathPattern) >= 0) {
+                                    //e.g. "/anshar/subscribe/akt" resolves "akt"
+                        datasetId = path.substring(path.indexOf(pathPattern) + pathPattern.length());
+                    }
 
                     String xml = p.getIn().getBody(String.class);
-                    handler.handleIncomingSiri(subscriptionId, xml);
+                    handler.handleIncomingSiri(subscriptionId, xml, datasetId);
 
                 })
         ;

@@ -28,6 +28,9 @@ public class Situations {
      * @return All vehicle activities that are still valid
      */
     public static List<PtSituationElement> getAll(String datasetId) {
+        if (datasetId == null) {
+            return getAll();
+        }
 
         Map<String, PtSituationElement> datasetIdSpecific = new HashMap<>();
         situations.keySet().stream().filter(key -> key.startsWith(datasetId + ":")).forEach(key -> {

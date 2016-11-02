@@ -29,6 +29,9 @@ public class ProductionTimetables {
      * @return All vehicle activities that are still valid
      */
     public static List<ProductionTimetableDeliveryStructure> getAll(String datasetId) {
+        if (datasetId == null) {
+            return getAll();
+        }        
         Map<String, ProductionTimetableDeliveryStructure> datasetIdSpecific = new HashMap<>();
         timetableDeliveries.keySet().stream().filter(key -> key.startsWith(datasetId + ":")).forEach(key -> {
             ProductionTimetableDeliveryStructure element = timetableDeliveries.get(key);

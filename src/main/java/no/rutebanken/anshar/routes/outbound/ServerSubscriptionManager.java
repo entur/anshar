@@ -59,9 +59,9 @@ public class ServerSubscriptionManager extends CamelRouteManager {
         return stats.toJSONString();
     }
 
-    public void handleSubscriptionRequest(SubscriptionRequest subscriptionRequest) {
+    public void handleSubscriptionRequest(SubscriptionRequest subscriptionRequest, String datasetId) {
 
-        OutboundSubscriptionSetup subscription = createSubscription(subscriptionRequest);
+        OutboundSubscriptionSetup subscription = createSubscription(subscriptionRequest, datasetId);
 
         boolean hasError = false;
         String errorText = null;
@@ -98,7 +98,7 @@ public class ServerSubscriptionManager extends CamelRouteManager {
         }
     }
 
-    private OutboundSubscriptionSetup createSubscription(SubscriptionRequest subscriptionRequest) {
+    private OutboundSubscriptionSetup createSubscription(SubscriptionRequest subscriptionRequest, String datasetId) {
 
         OutboundSubscriptionSetup setup = new OutboundSubscriptionSetup(
                 subscriptionRequest.getRequestTimestamp(),
@@ -111,6 +111,7 @@ public class ServerSubscriptionManager extends CamelRouteManager {
                 findSubscriptionIdentifier(subscriptionRequest),
                 subscriptionRequest.getRequestorRef().getValue(),
                 findInitialTerminationTime(subscriptionRequest),
+                datasetId,
                 true
                 );
         return setup;
@@ -255,7 +256,7 @@ public class ServerSubscriptionManager extends CamelRouteManager {
         return null;
     }
 
-    public void pushUpdatedVehicleActivities(List<VehicleActivityStructure> addedOrUpdated) {
+    public void pushUpdatedVehicleActivities(List<VehicleActivityStructure> addedOrUpdated, String datasetId) {
 
         if (addedOrUpdated == null || addedOrUpdated.isEmpty()) {
             return;
@@ -264,7 +265,8 @@ public class ServerSubscriptionManager extends CamelRouteManager {
 
         subscriptions.values().stream().filter(subscriptionRequest ->
                         (subscriptionRequest.getSubscriptionMode().equals(SubscriptionSetup.SubscriptionMode.SUBSCRIBE) &
-                                subscriptionRequest.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING))
+                                subscriptionRequest.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING) &
+                                (subscriptionRequest.getDatasetId() == null || (subscriptionRequest.getDatasetId().equals(datasetId))))
 
         ).forEach(subscription ->
 
@@ -274,7 +276,7 @@ public class ServerSubscriptionManager extends CamelRouteManager {
     }
 
 
-    public void pushUpdatedSituations(List<PtSituationElement> addedOrUpdated) {
+    public void pushUpdatedSituations(List<PtSituationElement> addedOrUpdated, String datasetId) {
 
         if (addedOrUpdated == null || addedOrUpdated.isEmpty()) {
             return;
@@ -283,14 +285,15 @@ public class ServerSubscriptionManager extends CamelRouteManager {
 
         subscriptions.values().stream().filter(subscriptionRequest ->
                         (subscriptionRequest.getSubscriptionMode().equals(SubscriptionSetup.SubscriptionMode.SUBSCRIBE) &
-                                subscriptionRequest.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE))
+                                subscriptionRequest.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE) &
+                                (subscriptionRequest.getDatasetId() == null || (subscriptionRequest.getDatasetId().equals(datasetId))))
 
         ).forEach(subscription ->
 
                         pushSiriData(delivery, subscription)
         );
     }
-    public void pushUpdatedProductionTimetables(List<ProductionTimetableDeliveryStructure> addedOrUpdated) {
+    public void pushUpdatedProductionTimetables(List<ProductionTimetableDeliveryStructure> addedOrUpdated, String datasetId) {
 
         if (addedOrUpdated == null || addedOrUpdated.isEmpty()) {
             return;
@@ -300,14 +303,15 @@ public class ServerSubscriptionManager extends CamelRouteManager {
 
         subscriptions.values().stream().filter(subscriptionRequest ->
                         (subscriptionRequest.getSubscriptionMode().equals(SubscriptionSetup.SubscriptionMode.SUBSCRIBE) &
-                                subscriptionRequest.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.PRODUCTION_TIMETABLE))
+                                subscriptionRequest.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.PRODUCTION_TIMETABLE) &
+                                (subscriptionRequest.getDatasetId() == null || (subscriptionRequest.getDatasetId().equals(datasetId))))
 
         ).forEach(subscription ->
             pushSiriData(delivery, subscription)
         );
     }
 
-    public void pushUpdatedEstimatedTimetables(List<EstimatedVehicleJourney> addedOrUpdated) {
+    public void pushUpdatedEstimatedTimetables(List<EstimatedVehicleJourney> addedOrUpdated, String datasetId) {
 
         if (addedOrUpdated == null || addedOrUpdated.isEmpty()) {
             return;
@@ -317,7 +321,8 @@ public class ServerSubscriptionManager extends CamelRouteManager {
 
         subscriptions.values().stream().filter(subscriptionRequest ->
                         (subscriptionRequest.getSubscriptionMode().equals(SubscriptionSetup.SubscriptionMode.SUBSCRIBE) &
-                                subscriptionRequest.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE))
+                                subscriptionRequest.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE) &
+                                (subscriptionRequest.getDatasetId() == null || (subscriptionRequest.getDatasetId().equals(datasetId))))
 
         ).forEach(subscription ->
                         pushSiriData(delivery, subscription)
