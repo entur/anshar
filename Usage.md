@@ -1,12 +1,16 @@
 # Usage
 
 # SIRI Subscription
+- Supports SIRI 2.0 SubscriptionRequest
 - HTTP POST http://mottak-test.rutebanken.org/anshar/subscribe
-
+- Vendor-specific subscriptions can be obtained by specifying datasetId in url (e.g. http://mottak-test.rutebanken.org/anshar/subscribe/rut)
+- possible datasetIds are [atb, akt, kol, rut]
  
 # SIRI GetServiceRequest
+- Supports SIRI 2.0 ServiceRequests
 - HTTP POST http://mottak-test.rutebanken.org/anshar/services
-
+- Vendor-specific data can be obtained by specifying datasetId in url (e.g. http://mottak-test.rutebanken.org/anshar/services/rut)
+- possible datasetIds are [atb, akt, kol, rut]
 
 # REST API
 
