@@ -25,7 +25,7 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
     @Override
     public void configure() throws Exception {
 
-        Map<String, String> urlMap = subscriptionSetup.getUrlMap();
+        Map<RequestType, String> urlMap = subscriptionSetup.getUrlMap();
 
         Namespaces ns = new Namespaces("siri", "http://www.siri.org.uk/siri")
                 .add("xsd", "http://www.w3.org/2001/XMLSchema");

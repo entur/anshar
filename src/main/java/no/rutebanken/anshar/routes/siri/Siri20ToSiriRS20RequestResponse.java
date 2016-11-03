@@ -31,7 +31,7 @@ public class Siri20ToSiriRS20RequestResponse extends RouteBuilder {
         }
         String siriXml = SiriXml.toXml(request);
 
-        Map<String, String> urlMap = subscriptionSetup.getUrlMap();
+        Map<RequestType, String> urlMap = subscriptionSetup.getUrlMap();
 
         Namespaces ns = new Namespaces("siri", "http://www.siri.org.uk/siri")
                 .add("xsd", "http://www.w3.org/2001/XMLSchema");
@@ -62,9 +62,9 @@ public class Siri20ToSiriRS20RequestResponse extends RouteBuilder {
                 .setHeader(Exchange.HTTP_METHOD, constant(org.apache.camel.component.http4.HttpMethods.POST))
                         // Header routing
                 .choice()
-                .when(header("SOAPAction").isEqualTo(RequestType.GET_VEHICLE_MONITORING))
+                .when(header("SOAPAction").isEqualTo("GetVehicleMonitoring"))
                 .to("http4://" + urlMap.get(RequestType.GET_VEHICLE_MONITORING) + httpOptions)
-                .when(header("SOAPAction").isEqualTo(RequestType.GET_SITUATION_EXCHANGE))
+                .when(header("SOAPAction").isEqualTo("GetSituationExchange"))
                 .to("http4://" + urlMap.get(RequestType.GET_SITUATION_EXCHANGE) + httpOptions)
                 .otherwise()
                 .throwException(new ServiceNotSupportedException())

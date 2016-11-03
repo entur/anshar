@@ -32,7 +32,7 @@ public class Siri20ToSiriWS14Subscription extends SiriSubscriptionRouteBuilder {
     @Override
     public void configure() throws Exception {
 
-        Map<String, String> urlMap = subscriptionSetup.getUrlMap();
+        Map<RequestType, String> urlMap = subscriptionSetup.getUrlMap();
 
         //Start subscription
         from("activemq:start" + uniqueRouteName + "?asyncConsumer=true")

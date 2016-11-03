@@ -6,10 +6,7 @@ import org.json.simple.JSONObject;
 import java.io.Serializable;
 import java.text.MessageFormat;
 import java.time.Duration;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class SubscriptionSetup implements Serializable{
 
@@ -18,7 +15,7 @@ public class SubscriptionSetup implements Serializable{
     private String address;
     private Duration heartbeatInterval;
     private String operatorNamespace;
-    private Map<String, String> urlMap;
+    private Map<RequestType, String> urlMap;
     private String subscriptionId;
     private String version;
     private String vendor;
@@ -29,6 +26,9 @@ public class SubscriptionSetup implements Serializable{
     private boolean active;
     private SubscriptionMode subscriptionMode;
     private Map<Class, Set<String>> filterMap;
+
+    public SubscriptionSetup() {
+    }
 
     /**
      * @param subscriptionType SX, VM, ET
@@ -46,7 +46,7 @@ public class SubscriptionSetup implements Serializable{
      * @param durationOfSubscription Initial duration of subscription
      * @param active Activates/deactivates subscription
      */
-    public SubscriptionSetup(SubscriptionType subscriptionType, SubscriptionMode subscriptionMode, String address, Duration heartbeatInterval, String operatorNamespace, Map<String, String> urlMap,
+    SubscriptionSetup(SubscriptionType subscriptionType, SubscriptionMode subscriptionMode, String address, Duration heartbeatInterval, String operatorNamespace, Map<RequestType, String> urlMap,
                              String version, String vendor, String datasetId, ServiceType serviceType, List<ValueAdapter> mappingAdapters, Map<Class, Set<String>> filterMap, String subscriptionId,
                              String requestorRef, Duration durationOfSubscription, boolean active) {
         this.subscriptionType = subscriptionType;
@@ -83,7 +83,7 @@ public class SubscriptionSetup implements Serializable{
         return operatorNamespace;
     }
 
-    public Map<String, String> getUrlMap() {
+    public Map<RequestType, String> getUrlMap() {
         return urlMap;
     }
 
@@ -167,4 +167,64 @@ public class SubscriptionSetup implements Serializable{
     public enum ServiceType {SOAP, REST}
     public enum SubscriptionType {SITUATION_EXCHANGE, VEHICLE_MONITORING, PRODUCTION_TIMETABLE, ESTIMATED_TIMETABLE}
     public enum SubscriptionMode {SUBSCRIBE, REQUEST_RESPONSE}
+
+    public void setMappingAdapterPreset(MappingAdapterPresets.Preset preset) {
+        setMappingAdapters(MappingAdapterPresets.adapterPresets.get(preset));
+    }
+
+    private void setMappingAdapters(List<ValueAdapter> mappingAdapters) {
+        this.mappingAdapters = mappingAdapters;
+    }
+
+    public void setSubscriptionType(SubscriptionType subscriptionType) {
+        this.subscriptionType = subscriptionType;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public void setHeartbeatIntervalSeconds(int seconds) {
+        setHeartbeatInterval(Duration.ofSeconds(seconds));
+    }
+
+    private void setHeartbeatInterval(Duration heartbeatInterval) {
+        this.heartbeatInterval = heartbeatInterval;
+    }
+
+    public void setOperatorNamespace(String operatorNamespace) {
+        this.operatorNamespace = operatorNamespace;
+    }
+
+    public void setUrlMap(Map<RequestType, String> urlMap) {
+        this.urlMap = urlMap;
+    }
+
+    public void setSubscriptionId(String subscriptionId) {
+        this.subscriptionId = subscriptionId;
+    }
+
+    public void setVersion(String version) {
+        this.version = version;
+    }
+
+    public void setVendor(String vendor) {
+        this.vendor = vendor;
+    }
+
+    public void setDatasetId(String datasetId) {
+        this.datasetId = datasetId;
+    }
+
+    public void setServiceType(ServiceType serviceType) {
+        this.serviceType = serviceType;
+    }
+
+    public void setDurationOfSubscriptionHours(int hours) {
+        this.durationOfSubscription = Duration.ofHours(hours);
+    }
+
+    public void setRequestorRef(String requestorRef) {
+        this.requestorRef = requestorRef;
+    }
 }

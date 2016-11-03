@@ -235,22 +235,21 @@ public class SiriObjectFactoryTest {
     }
 
     private SubscriptionSetup createSubscriptionSetup(SubscriptionSetup.SubscriptionType type, SubscriptionSetup.SubscriptionMode mode, String subscriptionId, String requestorRef) {
-        return new SubscriptionSetup(
-                type,
-                mode,
-            "http://localhost",
-            Duration.ofMinutes(1),
-            "http://www.kolumbus.no/siri",
-            new HashMap<>(),
-            "1.4",
-            "dummyvm",
-            "dum",
-            SubscriptionSetup.ServiceType.SOAP,
-            new ArrayList<>(),
-                new HashMap<>(), subscriptionId,
-            requestorRef,
-            Duration.ofHours(hoursUntilInitialTermination),
-            true
-            );
+        SubscriptionSetup subscriptionSetup = new SubscriptionSetup();
+        subscriptionSetup.setSubscriptionType(type);
+        subscriptionSetup.setSubscriptionMode(mode);
+        subscriptionSetup.setAddress("http://localhost");
+        subscriptionSetup.setHeartbeatIntervalSeconds(30);
+        subscriptionSetup.setOperatorNamespace("http://www.kolumbus.no/siri");
+        subscriptionSetup.setUrlMap(new HashMap<>());
+        subscriptionSetup.setVersion("1.4");
+        subscriptionSetup.setVendor("dumvm");
+        subscriptionSetup.setDatasetId("dum");
+        subscriptionSetup.setServiceType(SubscriptionSetup.ServiceType.SOAP);
+        subscriptionSetup.setSubscriptionId(subscriptionId);
+        subscriptionSetup.setRequestorRef(requestorRef);
+        subscriptionSetup.setDurationOfSubscriptionHours(hoursUntilInitialTermination);
+        subscriptionSetup.setActive(true);
+        return subscriptionSetup;
     }
 }
