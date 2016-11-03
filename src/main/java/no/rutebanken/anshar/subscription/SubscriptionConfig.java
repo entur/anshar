@@ -36,37 +36,40 @@ public class SubscriptionConfig implements CamelContextAware {
     @Bean
     List<RouteBuilder> createSubscriptions() {
         List<RouteBuilder> builders = new ArrayList<>();
-        List<SubscriptionSetup> subscriptionSetups = config.getSubscriptions();
-        for (SubscriptionSetup subscriptionSetup : subscriptionSetups) {
-            subscriptionSetup.setAddress(inboundUrl);
+        if (config != null) {
+            List<SubscriptionSetup> subscriptionSetups = config.getSubscriptions();
+            for (SubscriptionSetup subscriptionSetup : subscriptionSetups) {
+                subscriptionSetup.setAddress(inboundUrl);
 
-            if (subscriptionSetup.getVersion().equals("1.4")) {
-                if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.SUBSCRIBE){
-                    if (subscriptionSetup.getServiceType() == SubscriptionSetup.ServiceType.SOAP) {
-                        builders.add(new Siri20ToSiriWS14Subscription(subscriptionSetup));
+                if (subscriptionSetup.getVersion().equals("1.4")) {
+                    if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.SUBSCRIBE) {
+                        if (subscriptionSetup.getServiceType() == SubscriptionSetup.ServiceType.SOAP) {
+                            builders.add(new Siri20ToSiriWS14Subscription(subscriptionSetup));
+                        } else {
+                            builders.add(new Siri20ToSiriRS14Subscription(subscriptionSetup));
+                        }
                     } else {
-                        builders.add(new Siri20ToSiriRS14Subscription(subscriptionSetup));
+                        builders.add(new Siri20ToSiriWS14RequestResponse(subscriptionSetup));
                     }
                 } else {
-                    builders.add(new Siri20ToSiriWS14RequestResponse(subscriptionSetup));
-                }
-            } else {
-                if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.SUBSCRIBE){
-                    builders.add(new Siri20ToSiriRS20Subscription(subscriptionSetup));
-                } else {
-                    builders.add(new Siri20ToSiriRS20RequestResponse(subscriptionSetup));
+                    if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.SUBSCRIBE) {
+                        builders.add(new Siri20ToSiriRS20Subscription(subscriptionSetup));
+                    } else {
+                        builders.add(new Siri20ToSiriRS20RequestResponse(subscriptionSetup));
+                    }
                 }
             }
-        }
 
-        for (RouteBuilder builder : builders) {
-            try {
-                camelContext.addRoutes(builder);
-            } catch (Exception e) {
-                e.printStackTrace();
+            for (RouteBuilder builder : builders) {
+                try {
+                    camelContext.addRoutes(builder);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
-        }
+        } else {
 
+        }
         return builders;
     }
 
