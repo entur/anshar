@@ -5,7 +5,7 @@ anshar:
       datasetId: kol
       serviceType: SOAP
       subscriptionType: SITUATION_EXCHANGE
-      subscriptionMode: SUBSCRIBE
+      subscriptionMode: REQUEST_RESPONSE
       heartbeatIntervalSeconds: 60
       operatorNamespace: http://www.kolumbus.no/siri
       urlMap:
@@ -38,7 +38,7 @@ anshar:
       datasetId: atb
       serviceType: SOAP
       subscriptionType: SITUATION_EXCHANGE
-      subscriptionMode: SUBSCRIBE
+      subscriptionMode: REQUEST_RESPONSE
       heartbeatIntervalSeconds: 60
       operatorNamespace: http://www.siri.org.uk/siri
       urlMap:
