@@ -26,24 +26,27 @@ public class DistributedCollection {
     private static HazelcastInstance hazelcastInstance;
 
     @Value("${anshar.expiry.period.seconds}")
-    private static int expiryPeriodSeconds = 30;
+    private int expiryPeriodSeconds = 30;
+
+    private static DistributedCollection INSTANCE;
 
     static {
-            Config config = new Config();
-            hazelcastInstance = Hazelcast.newHazelcastInstance(config);
+        INSTANCE = new DistributedCollection();
+        Config config = new Config();
+        hazelcastInstance = Hazelcast.newHazelcastInstance(config);
     }
 
     public static ExpiringConcurrentMap<String,PtSituationElement> getSituationsMap(){
-        return new ExpiringConcurrentMap<>(hazelcastInstance.getMap("anshar.situations"), expiryPeriodSeconds);
+        return new ExpiringConcurrentMap<>(hazelcastInstance.getMap("anshar.situations"), INSTANCE.expiryPeriodSeconds);
     }
     public static ExpiringConcurrentMap<String, EstimatedVehicleJourney> getJourneysMap(){
-        return new ExpiringConcurrentMap<>(hazelcastInstance.getMap("anshar.journeys"), expiryPeriodSeconds);
+        return new ExpiringConcurrentMap<>(hazelcastInstance.getMap("anshar.journeys"), INSTANCE.expiryPeriodSeconds);
     }
     public static ExpiringConcurrentMap<String,VehicleActivityStructure> getVehiclesMap(){
-        return new ExpiringConcurrentMap<>(hazelcastInstance.getMap("anshar.vehicles"), expiryPeriodSeconds);
+        return new ExpiringConcurrentMap<>(hazelcastInstance.getMap("anshar.vehicles"), INSTANCE.expiryPeriodSeconds);
     }
     public static ExpiringConcurrentMap<String, ProductionTimetableDeliveryStructure> getProductionTimetablesMap(){
-        return new ExpiringConcurrentMap<>(hazelcastInstance.getMap("anshar.productionTimetables"), expiryPeriodSeconds);
+        return new ExpiringConcurrentMap<>(hazelcastInstance.getMap("anshar.productionTimetables"), INSTANCE.expiryPeriodSeconds);
     }
 
     public static Map<String,SubscriptionSetup> getActiveSubscriptionsMap() {
