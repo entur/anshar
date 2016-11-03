@@ -20,6 +20,12 @@ public class SubscriptionConfig implements CamelContextAware {
     @Value("${anshar.inbound.url}")
     private String inboundUrl = "http://localhost:8080";
 
+    /*
+     * To be used in development - overrides yml-configuration of subscriptions
+     */
+    @Value("${anshar.ignore.subscription.config}")
+    private boolean override = false;
+
     @Autowired
     private Config config;
 
@@ -38,7 +44,7 @@ public class SubscriptionConfig implements CamelContextAware {
     @Bean
     List<RouteBuilder> createSubscriptions() {
         List<RouteBuilder> builders = new ArrayList<>();
-        if (config != null) {
+        if (config != null && !override) {
             List<SubscriptionSetup> subscriptionSetups = config.getSubscriptions();
             logger.info("Initializing {} subscriptions", subscriptionSetups.size());
             for (SubscriptionSetup subscriptionSetup : subscriptionSetups) {
