@@ -4,6 +4,8 @@ import no.rutebanken.anshar.routes.siri.*;
 import org.apache.camel.CamelContext;
 import org.apache.camel.CamelContextAware;
 import org.apache.camel.builder.RouteBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -13,7 +15,7 @@ import java.util.*;
 
 @Configuration
 public class SubscriptionConfig implements CamelContextAware {
-
+    private static Logger logger = LoggerFactory.getLogger(SubscriptionConfig.class);
 
     @Value("${anshar.inbound.url}")
     private String inboundUrl = "http://localhost:8080";
@@ -38,6 +40,7 @@ public class SubscriptionConfig implements CamelContextAware {
         List<RouteBuilder> builders = new ArrayList<>();
         if (config != null) {
             List<SubscriptionSetup> subscriptionSetups = config.getSubscriptions();
+            logger.info("Initializing {} subscriptions", subscriptionSetups.size());
             for (SubscriptionSetup subscriptionSetup : subscriptionSetups) {
                 subscriptionSetup.setAddress(inboundUrl);
 
@@ -60,6 +63,7 @@ public class SubscriptionConfig implements CamelContextAware {
                 }
             }
 
+            logger.info("Starting {} subscriptions", builders.size());
             for (RouteBuilder builder : builders) {
                 try {
                     camelContext.addRoutes(builder);
@@ -68,7 +72,7 @@ public class SubscriptionConfig implements CamelContextAware {
                 }
             }
         } else {
-
+            logger.error("Subscriptions not configured correctly - no subscriptions will be started");
         }
         return builders;
     }
