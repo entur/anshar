@@ -20,9 +20,6 @@ public class LivenessReadinessRoute extends RouteBuilder {
     @Value("${anshar.incoming.port}")
     private String inboundPort;
 
-    @Value("${anshar.healthcheck.failure.count}")
-    private int unhealthyCounter = 100;
-
     private Map<String, Integer> healthMap = new HashMap<>();
 
     @Override
@@ -43,15 +40,8 @@ public class LivenessReadinessRoute extends RouteBuilder {
         from("jetty:http://0.0.0.0:" + inboundPort + "/up")
                 //TODO: On error - POST to hubot
                 // Ex: wget --post-data='{"source":"otp", "message":"Downloaded file is empty or not present. This makes OTP fail! Please check logs"}' http://hubot/hubot/say/
-                .choice()
-                    .when(p -> isApplicationHealthy())
-                        .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
-                        .setBody(constant("OK"))
-                    .endChoice()
-                    .otherwise()
-                        .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("500"))
-                        .setBody(simple("Not OK"))
-                    .end()
+                .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
+                .setBody(constant("OK"))
         ;
 
         //Return subscription status
@@ -69,50 +59,4 @@ public class LivenessReadinessRoute extends RouteBuilder {
         ;
 
     }
-
-    private boolean isApplicationHealthy() {
-        return true;
-        /*
-        healthMap.keySet().forEach(key -> {
-            if (SubscriptionManager.isSubscriptionHealthy(key)) {
-                resetCounter(key);
-            } else {
-                incrementCounter(key);
-            }
-        });
-        SubscriptionManager.getActiveSubscriptions().keySet().forEach(key -> {
-            if (SubscriptionManager.isSubscriptionHealthy(key)) {
-                resetCounter(key);
-            } else {
-                incrementCounter(key);
-            }
-        });
-        SubscriptionManager.getPendingSubscriptions().keySet().forEach(key -> {
-            if (SubscriptionManager.isSubscriptionHealthy(key)) {
-                resetCounter(key);
-            } else {
-                incrementCounter(key);
-            }
-        });
-
-        for (String subscriptionId : healthMap.keySet()) {
-            int counter = healthMap.get(subscriptionId);
-            if (counter > unhealthyCounter) {
-                logger.warn("Subscription with id {} has been reported as unhealthy {} times - reporting server error.", subscriptionId, counter);
-                return false;
-            }
-        }
-        return true;
-        */
-    }
-
-    private void resetCounter(String key) {
-        healthMap.put(key, 0);
-    }
-
-    private void incrementCounter(String key) {
-        int count = healthMap.containsKey(key) ? healthMap.get(key) : 0;
-        healthMap.put(key, count + 1);
-    }
-
 }
