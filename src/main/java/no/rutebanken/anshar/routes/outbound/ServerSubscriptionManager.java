@@ -26,7 +26,7 @@ public class ServerSubscriptionManager extends CamelRouteManager {
 
 
     @Value("${anshar.outbound.heartbeatinterval.minimum}")
-    private static final long minimumHeartbeatInterval = 60000;
+    private long minimumHeartbeatInterval = 60000;
 
     @Value("${anshar.outbound.error.consumeraddress}")
     private String errorConsumerAddressMissing = "Error";
