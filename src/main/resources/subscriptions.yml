@@ -11,6 +11,7 @@ anshar:
       urlMap:
         SUBSCRIBE: sis.kolumbus.no:90/SXWS/SXService.svc
         DELETE_SUBSCRIPTION: sis.kolumbus.no:90/SXWS/SXService.svc
+        GET_SITUATION_EXCHANGE: sis.kolumbus.no:90/SXWS/SXService.svc
       version: 1.4
       subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV
@@ -44,6 +45,7 @@ anshar:
       urlMap:
         SUBSCRIBE: st.atb.no/SXWS/SXService.svc
         DELETE_SUBSCRIPTION: st.atb.no/SXWS/SXService.svc
+        GET_SITUATION_EXCHANGE: st.atb.no/SXWS/SXService.svc
       version: 1.4
       subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV
