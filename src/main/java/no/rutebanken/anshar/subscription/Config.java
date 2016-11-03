@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
 
-@ConfigurationProperties(locations = "classpath:subscriptions-dev.yml", prefix = "anshar", ignoreInvalidFields=false)
+@ConfigurationProperties(locations = "classpath:subscriptions.yml", prefix = "anshar", ignoreInvalidFields=false)
 @Configuration
 public class Config {
 
