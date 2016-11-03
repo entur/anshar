@@ -92,8 +92,8 @@ anshar:
       heartbeatIntervalSeconds: 60
       operatorNamespace: http://www.siri.org.uk/siri
       urlMap:
-        SUBSCRIBE: 83.145.60.18/siri/1.4/sx
-        DELETE_SUBSCRIPTION: 83.145.60.18/siri/1.4/sx
+        SUBSCRIBE: 83.145.60.18/siri/1.4/et
+        DELETE_SUBSCRIPTION: 83.145.60.18/siri/1.4/et
       version: 1.4
       subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV
@@ -145,9 +145,9 @@ anshar:
       heartbeatIntervalSeconds: 60
       operatorNamespace: http://www.siri.org.uk/siri
       urlMap:
-        SUBSCRIBE: 109.239.226.193:8080/RutebankenDEV/vm/subscribe.xml
-        DELETE_SUBSCRIPTION: 109.239.226.193:8080/RutebankenDEV/vm/managesubscription.xml
-        CHECK_STATUS: 109.239.226.193:8080/RutebankenDEV/vm/checkstatus.xml
+        SUBSCRIBE: 109.239.226.193:8080/RutebankenDEV/et/subscribe.xml
+        DELETE_SUBSCRIPTION: 109.239.226.193:8080/RutebankenDEV/et/managesubscription.xml
+        CHECK_STATUS: 109.239.226.193:8080/RutebankenDEV/et/checkstatus.xml
       version: 2.0
       subscriptionId: 1f6a687e-58b8-4e46-a23c-98adadad78ed
       requestorRef: RutebankenDEV
