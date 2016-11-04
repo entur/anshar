@@ -10,6 +10,8 @@ import org.slf4j.LoggerFactory;
 import uk.org.siri.siri20.Siri;
 import uk.org.siri.siri20.SubscriptionResponseStructure;
 
+import java.util.Map;
+
 public class Siri20ToSiriRS14Subscription extends SiriSubscriptionRouteBuilder {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -20,6 +22,8 @@ public class Siri20ToSiriRS14Subscription extends SiriSubscriptionRouteBuilder {
 
     @Override
     public void configure() throws Exception {
+
+        Map<RequestType, String> urlMap = subscriptionSetup.getUrlMap();
 
         //Start subscription
         from("activemq:start" + uniqueRouteName + "?asyncConsumer=true")
@@ -32,7 +36,7 @@ public class Siri20ToSiriRS14Subscription extends SiriSubscriptionRouteBuilder {
                 .removeHeaders("CamelHttp*") // Remove any incoming HTTP headers as they interfere with the outgoing definition
                 .setHeader(Exchange.CONTENT_TYPE, constant("text/xml;charset=UTF-8")) // Necessary when talking to Microsoft web services
                 .setHeader(Exchange.HTTP_METHOD, constant(org.apache.camel.component.http4.HttpMethods.POST))
-                .to("http4://" + subscriptionSetup.getUrlMap().get(RequestType.SUBSCRIBE) + getTimeout())
+                .to("http4://" + urlMap.get(RequestType.SUBSCRIBE) + getTimeout())
                 .to("xslt:xsl/siri_14_20.xsl?saxon=true&allowStAX=false") // Convert from v1.4 to 2.0
                 .to("log:received:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .process(p -> {
@@ -55,7 +59,7 @@ public class Siri20ToSiriRS14Subscription extends SiriSubscriptionRouteBuilder {
                 .removeHeaders("CamelHttp*") // Remove any incoming HTTP headers as they interfere with the outgoing definition
                 .setHeader(Exchange.CONTENT_TYPE, constant("text/xml;charset=UTF-8")) // Necessary when talking to Microsoft web services
                 .setHeader(Exchange.HTTP_METHOD, constant(org.apache.camel.component.http4.HttpMethods.POST))
-                .to("http4://" + subscriptionSetup.getUrlMap().get(RequestType.DELETE_SUBSCRIPTION)+getTimeout())
+                .to("http4://" + urlMap.get(RequestType.DELETE_SUBSCRIPTION)+getTimeout())
                 .to("xslt:xsl/siri_14_20.xsl?saxon=true&allowStAX=false") // Convert from v1.4 to 2.0
                 .to("log:received:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .process(p -> {
