@@ -21,7 +21,7 @@ public class MappingAdapterPresets {
 
     static {
         List<ValueAdapter> ruter;
-        List<ValueAdapter> atb_kol;
+        List<ValueAdapter> atb_kol_akt;
 
         ruter = new ArrayList<>();
         ruter.add(new LeftPaddingAdapter(LineRef.class, 4, '0'));
@@ -33,25 +33,26 @@ public class MappingAdapterPresets {
         ruter.add(new RightPaddingStopPlaceAdapter(StopPlaceRef.class, 8, "01"));
 
 
-        atb_kol = new ArrayList<>();
+        atb_kol_akt = new ArrayList<>();
         //StopPointRef
-        atb_kol.add(new LeftPaddingAdapter(StopPointRef.class, 8, '0'));
-        atb_kol.add(new RightPaddingStopPlaceAdapter(StopPointRef.class, 8, "01"));
+        atb_kol_akt.add(new LeftPaddingAdapter(StopPointRef.class, 8, '0'));
+        atb_kol_akt.add(new RightPaddingStopPlaceAdapter(StopPointRef.class, 8, "01"));
 
         //OriginRef
-        atb_kol.add(new LeftPaddingAdapter(JourneyPlaceRefStructure.class, 8, '0'));
-        atb_kol.add(new RightPaddingStopPlaceAdapter(JourneyPlaceRefStructure.class, 8, "01"));
+        atb_kol_akt.add(new LeftPaddingAdapter(JourneyPlaceRefStructure.class, 8, '0'));
+        atb_kol_akt.add(new RightPaddingStopPlaceAdapter(JourneyPlaceRefStructure.class, 8, "01"));
 
         //DestinationRef
-        atb_kol.add(new LeftPaddingAdapter(DestinationRef.class, 8, '0'));
-        atb_kol.add(new RightPaddingStopPlaceAdapter(DestinationRef.class, 8, "01"));
+        atb_kol_akt.add(new LeftPaddingAdapter(DestinationRef.class, 8, '0'));
+        atb_kol_akt.add(new RightPaddingStopPlaceAdapter(DestinationRef.class, 8, "01"));
 
         adapterPresets.put(Preset.RUTER, ruter);
-        adapterPresets.put(Preset.ATB, atb_kol);
-        adapterPresets.put(Preset.KOLUMBUS, atb_kol);
+        adapterPresets.put(Preset.ATB, atb_kol_akt);
+        adapterPresets.put(Preset.KOLUMBUS, atb_kol_akt);
+        adapterPresets.put(Preset.AKT, atb_kol_akt);
     }
 
     public enum Preset {
-        RUTER, ATB, KOLUMBUS
+        RUTER, ATB, KOLUMBUS, AKT
     }
 }

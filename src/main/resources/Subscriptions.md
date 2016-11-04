@@ -14,10 +14,10 @@
 |  GET_VEHICLE_MONITORING|localhost:8080/siri/vm |URL to SIRI VM-ServiceRequest|
 |  GET_SITUATION_EXCHANGE|localhost:8080/siri/sx |URL to SIRI SX-ServiceRequest|
 |version|1.4, 2.0  |SIRI-version remote service implements|
-|subscriptionId|Any string, _${random.uuid}_  will generate a random uuid|Unique ID used to identify subscription|
+|subscriptionId|Random uuid|Unique ID used to identify subscription|
 |requestorRef|Any String, may be provided by remote serviceprovider |Used to identify against remote server|
 |durationOfSubscriptionHours|Any int |Number of hours to trigger subscription to be terminated/restarted|
-|mappingAdapterPreset|RUTER, ATB, KOLUMBUS|Adapters used to convert ids to common format|
+|mappingAdapterPreset|RUTER, ATB, KOLUMBUS, AKT|Adapters used to convert ids to common format|
 |active|true,false |Enables/disables subscription|
 
 Example:
@@ -37,7 +37,7 @@ anshar:
         DELETE_SUBSCRIPTION: mottak-test.rutebanken.org/anshar/subscribe
         GET_VEHICLE_MONITORING: mottak-test.rutebanken.org/anshar/services
       version: 2.0
-      subscriptionId: ${random.uuid}
+      subscriptionId: bbd85dee-2a50-49d4-852a-60e8fd00269a
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
       mappingAdapterPreset:
