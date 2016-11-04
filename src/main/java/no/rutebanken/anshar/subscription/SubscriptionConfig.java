@@ -1,5 +1,6 @@
 package no.rutebanken.anshar.subscription;
 
+import com.google.common.base.Preconditions;
 import no.rutebanken.anshar.routes.siri.*;
 import org.apache.camel.CamelContext;
 import org.apache.camel.CamelContextAware;
@@ -41,8 +42,19 @@ public class SubscriptionConfig implements CamelContextAware {
         if (config != null) {
             List<SubscriptionSetup> subscriptionSetups = config.getSubscriptions();
             logger.info("Initializing {} subscriptions", subscriptionSetups.size());
+            Set<String> subscriptionIds = new HashSet<>();
             for (SubscriptionSetup subscriptionSetup : subscriptionSetups) {
                 subscriptionSetup.setAddress(inboundUrl);
+
+                if (!isValid(subscriptionSetup)) {
+                    throw new ServiceConfigurationError("Configuration is not valid for subscription " + subscriptionSetup);
+                }
+
+                if (subscriptionIds.contains(subscriptionSetup.getSubscriptionId())) {
+                    //Verify subscriptionId-uniqueness
+                    throw new ServiceConfigurationError("SubscriptionIds are NOT unique for ID="+subscriptionSetup.getSubscriptionId());
+                }
+                subscriptionIds.add(subscriptionSetup.getSubscriptionId());
 
                 if (subscriptionSetup.getVersion().equals("1.4")) {
                     if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.SUBSCRIBE) {
@@ -75,5 +87,33 @@ public class SubscriptionConfig implements CamelContextAware {
             logger.error("Subscriptions not configured correctly - no subscriptions will be started");
         }
         return builders;
+    }
+
+    private boolean isValid(SubscriptionSetup s) {
+        Preconditions.checkNotNull(s.getVendor(), "Vendor is not set");
+        Preconditions.checkNotNull(s.getDatasetId(), "DatasetId is not set");
+        Preconditions.checkNotNull(s.getServiceType(), "DatasetId is not set");
+        Preconditions.checkNotNull(s.getSubscriptionType(), "DatasetId is not set");
+        Preconditions.checkNotNull(s.getSubscriptionMode(), "DatasetId is not set");
+        Preconditions.checkNotNull(s.getHeartbeatInterval(), "DatasetId is not set");
+        Preconditions.checkNotNull(s.getVersion(), "Version is not set");
+        Preconditions.checkNotNull(s.getSubscriptionId(), "SubscriptionId is not set");
+        Preconditions.checkNotNull(s.getRequestorRef(), "RequestorRef is not set");
+        Preconditions.checkNotNull(s.getDurationOfSubscription(), "Duration is not set");
+        Preconditions.checkNotNull(s.getUrlMap(), "UrlMap is not set");
+
+        Map<RequestType, String> urlMap = s.getUrlMap();
+        if (s.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.REQUEST_RESPONSE) {
+            if (SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE.equals(s.getSubscriptionType())) {
+                Preconditions.checkNotNull(urlMap.get(RequestType.GET_SITUATION_EXCHANGE), "GET_SITUATION_EXCHANGE-url is missing. " + s);
+            } else if (SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING.equals(s.getSubscriptionType())) {
+                Preconditions.checkNotNull(urlMap.get(RequestType.GET_VEHICLE_MONITORING), "GET_VEHICLE_MONITORING-url is missing. " + s);
+            }
+        } else if (s.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.SUBSCRIBE) {
+            Preconditions.checkNotNull(urlMap.get(RequestType.SUBSCRIBE), "SUBSCRIBE-url is missing. " + s);
+            Preconditions.checkNotNull(urlMap.get(RequestType.DELETE_SUBSCRIPTION), "DELETE_SUBSCRIPTION-url is missing. " + s);
+        }
+
+        return true;
     }
 }
