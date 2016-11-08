@@ -2,11 +2,12 @@ package no.rutebanken.anshar.routes.outbound;
 
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 
+import java.io.Serializable;
 import java.time.ZonedDateTime;
 import java.util.Map;
 import java.util.Set;
 
-public class OutboundSubscriptionSetup {
+public class OutboundSubscriptionSetup implements Serializable {
 
     private final ZonedDateTime requestTimestamp;
     private final SubscriptionSetup.SubscriptionType subscriptionType;
