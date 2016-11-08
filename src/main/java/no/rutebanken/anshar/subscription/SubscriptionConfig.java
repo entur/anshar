@@ -181,12 +181,12 @@ public class SubscriptionConfig implements CamelContextAware {
             public void configure() throws Exception {
                 SubscriptionManager.activatePendingSubscription(subscriptionSetup.getSubscriptionId());
 
+                RouteBuilder routeBuilder = getRouteBuilder(subscriptionSetup);
+
                 if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.SUBSCRIBE) {
 
-                    RouteBuilder route = getRouteBuilder(subscriptionSetup);
-
                     try {
-                        camelContext.addRoutes(route);
+                        camelContext.addRoutes(routeBuilder);
                     } catch (Exception e) {
                         logger.warn("Could not start subscription {}", subscriptionSetup);
                     }
@@ -195,11 +195,19 @@ public class SubscriptionConfig implements CamelContextAware {
                     RouteDefinition routeDefinition = from("timer:forceStart"+subscriptionSetup.getSubscriptionId()+"?delay=0&repeatCount=1")
                             .routeId(tmpRouteId)
                             .to("direct:" + subscriptionSetup.getStartSubscriptionRouteName());
+
                     RouteDefinition previousStart = camelContext.getRouteDefinition(tmpRouteId);
                     if (previousStart != null) {
                         camelContext.removeRouteDefinition(previousStart);
                     }
                     camelContext.addRouteDefinition(routeDefinition);
+                } else if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.REQUEST_RESPONSE) {
+
+                    try {
+                        camelContext.addRoutes(routeBuilder);
+                    } catch (Exception e) {
+                        logger.warn("Could not start subscription {}", subscriptionSetup);
+                    }
                 }
 
             }
@@ -234,6 +242,7 @@ public class SubscriptionConfig implements CamelContextAware {
                     }
 
                 } else if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.REQUEST_RESPONSE) {
+
                     // If request/response-routes lose its connection, it will not be reestablished - needs to be restarted
                     Route route = camelContext.getRoute(subscriptionSetup.getRequestResponseRouteName());
                     if (route != null) {
