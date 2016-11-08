@@ -36,8 +36,6 @@ public class Siri20ToSiriWS14RequestResponse extends RouteBuilder {
         Namespaces ns = new Namespaces("siri", "http://www.siri.org.uk/siri")
                 .add("xsd", "http://www.w3.org/2001/XMLSchema");
 
-        SubscriptionManager.addSubscription(subscriptionSetup.getSubscriptionId(), subscriptionSetup);
-
         errorHandler(
                 deadLetterChannel("activemq:queue:error:"+subscriptionSetup.getSubscriptionId())
         );
@@ -51,7 +49,7 @@ public class Siri20ToSiriWS14RequestResponse extends RouteBuilder {
 
         String httpOptions = "?httpClient.socketTimeout=" + timeout + "&httpClient.connectTimeout=" + timeout;
 
-        from("quartz2://" + subscriptionSetup.getRequestResponseRouteName() + "?deleteJob=false&durableJob=true&recoverableJob=true&trigger.repeatInterval=" + heartbeatIntervalMillis )
+        from("quartz2://" + subscriptionSetup.getRequestResponseRouteName() + "?fireNow=true&deleteJob=false&durableJob=true&recoverableJob=true&trigger.repeatInterval=" + heartbeatIntervalMillis )
                 .routeId(subscriptionSetup.getRequestResponseRouteName())
                 .log("Retrieving data " + subscriptionSetup.toString())
                 .setBody(simple(siriXml))

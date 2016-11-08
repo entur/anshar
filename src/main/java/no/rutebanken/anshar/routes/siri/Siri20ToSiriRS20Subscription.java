@@ -31,8 +31,7 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
                 .add("xsd", "http://www.w3.org/2001/XMLSchema");
 
         //Start subscription
-        from("activemq:" + subscriptionSetup.getStartSubscriptionRouteName() + "?asyncConsumer=true")
-                .routeId(subscriptionSetup.getStartSubscriptionRouteName())
+        from("activemq:delayedStart" + subscriptionSetup.getSubscriptionId() + "?asyncConsumer=true")
                 .bean(this, "marshalSiriSubscriptionRequest", false)
                 .setExchangePattern(ExchangePattern.InOut) // Make sure we wait for a response
                 .setHeader("operatorNamespace", constant(subscriptionSetup.getOperatorNamespace())) // Need to make SOAP request with endpoint specific element namespace
@@ -47,7 +46,6 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
                     String responseCode = p.getIn().getHeader("CamelHttpResponseCode", String.class);
                     if ("200".equals(responseCode)) {
                         logger.info("SubscriptionResponse OK - Async response performs actual registration");
-                        SubscriptionManager.addPendingSubscription(subscriptionSetup.getSubscriptionId(), subscriptionSetup);
                     }
 
                 })
@@ -75,8 +73,7 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
         }
 
         //Cancel subscription
-        from("activemq:" + subscriptionSetup.getCancelSubscriptionRouteName() + "?asyncConsumer=true")
-                .routeId(subscriptionSetup.getCancelSubscriptionRouteName())
+        from("activemq:delayedCancel" + subscriptionSetup.getSubscriptionId() + "?asyncConsumer=true")
                 .bean(this, "marshalSiriTerminateSubscriptionRequest", false)
                 .setExchangePattern(ExchangePattern.InOut) // Make sure we wait for a response
                 .setProperty(Exchange.LOG_DEBUG_BODY_STREAMS, constant("true"))
@@ -91,10 +88,8 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
                     if (body != null && !body.isEmpty()) {
                         handleSiriResponse(body);
                     }
-
-                    SubscriptionManager.removeSubscription(subscriptionSetup.getSubscriptionId());
-
                 });
+        initTriggerRoutes();
     }
 
 }

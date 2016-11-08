@@ -98,4 +98,16 @@ public abstract class SiriSubscriptionRouteBuilder extends RouteBuilder {
 
         return "?httpClient.socketTimeout=" + timeout + "&httpClient.connectTimeout=" + timeout;
     }
+
+    void initTriggerRoutes() {
+        from("direct:" + subscriptionSetup.getStartSubscriptionRouteName())
+                .routeId(subscriptionSetup.getStartSubscriptionRouteName())
+                .log("Triggering start of " + subscriptionSetup)
+                .to("activemq:delayedStart" + subscriptionSetup.getSubscriptionId());
+
+        from("direct:" + subscriptionSetup.getCancelSubscriptionRouteName())
+                .routeId(subscriptionSetup.getCancelSubscriptionRouteName())
+                .log("Triggering cancel of " + subscriptionSetup)
+                .to("activemq:delayedCancel"+subscriptionSetup.getSubscriptionId());
+    }
 }
