@@ -144,7 +144,6 @@ public class SubscriptionConfig implements CamelContextAware {
                             Map<String, SubscriptionSetup> activeSubscriptions = SubscriptionManager.getActiveSubscriptions();
                             for (SubscriptionSetup subscriptionSetup : activeSubscriptions.values()) {
                                 if (!SubscriptionManager.isSubscriptionHealthy(subscriptionSetup.getSubscriptionId())) {
-                                    SubscriptionManager.removeSubscription(subscriptionSetup.getSubscriptionId());
                                     //start "cancel"-route
                                     logger.info("Healthcheck: Trigger cancel subscription {}", subscriptionSetup);
                                     cancelSubscription(subscriptionSetup);
@@ -180,6 +179,8 @@ public class SubscriptionConfig implements CamelContextAware {
         RouteBuilder initializerRoute = new RouteBuilder() {
             @Override
             public void configure() throws Exception {
+                SubscriptionManager.activatePendingSubscription(subscriptionSetup.getSubscriptionId());
+
                 if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.REQUEST_RESPONSE) {
 
                     String routeId = subscriptionSetup.getRequestResponseRouteName();
@@ -197,6 +198,18 @@ public class SubscriptionConfig implements CamelContextAware {
                     }
 
                 } else {
+                    RouteDefinition routeDefinition = camelContext.getRouteDefinition(subscriptionSetup.getStartSubscriptionRouteName());
+                    if (routeDefinition != null) {
+                        camelContext.removeRouteDefinition(routeDefinition);
+                    }
+
+                    RouteBuilder route = getRouteBuilder(subscriptionSetup);
+                    try {
+                        camelContext.addRoutes(route);
+                    } catch (Exception e) {
+                        logger.warn("Could not start subscription {}", subscriptionSetup);
+                    }
+
                     from("timer://triggerStart" + subscriptionSetup.getSubscriptionId() + "?repeatCount=1&delay=50")
                             .routeId(routeId)
                             .to("activemq:" + subscriptionSetup.getStartSubscriptionRouteName());
@@ -216,6 +229,8 @@ public class SubscriptionConfig implements CamelContextAware {
         RouteBuilder initializerRoute = new RouteBuilder() {
             @Override
             public void configure() throws Exception {
+                SubscriptionManager.removeSubscription(subscriptionSetup.getSubscriptionId());
+
                 if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.REQUEST_RESPONSE) {
                     String routeId = subscriptionSetup.getRequestResponseRouteName();
 
@@ -224,6 +239,19 @@ public class SubscriptionConfig implements CamelContextAware {
                         camelContext.removeRouteDefinition(routeDefinition);
                     }
                 } else {
+                    RouteDefinition routeDefinition = camelContext.getRouteDefinition(subscriptionSetup.getCancelSubscriptionRouteName());
+                    if (routeDefinition != null) {
+                        camelContext.removeRouteDefinition(routeDefinition);
+                    }
+
+                    RouteBuilder route = getRouteBuilder(subscriptionSetup);
+                    try {
+                        camelContext.addRoutes(route);
+                    } catch (Exception e) {
+                        logger.warn("Could not start subscription {}", subscriptionSetup);
+                    }
+
+
                     from("timer://triggerCancel" + subscriptionSetup.getSubscriptionId() + "?repeatCount=1&delay=50")
                             .routeId(routeId)
                             .to("activemq:" + subscriptionSetup.getCancelSubscriptionRouteName());
