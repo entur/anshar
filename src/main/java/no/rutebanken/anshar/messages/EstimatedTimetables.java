@@ -133,7 +133,7 @@ public class EstimatedTimetables {
 
         String timestamp = "";
         List<EstimatedCall> estimatedCalls = element.getEstimatedCalls().getEstimatedCalls();
-        if (estimatedCalls.size() > 0) {
+        if (estimatedCalls != null && estimatedCalls.size() > 0) {
             timestamp = estimatedCalls.get(0).getAimedDepartureTime().toLocalDateTime().toString();
         }
 
