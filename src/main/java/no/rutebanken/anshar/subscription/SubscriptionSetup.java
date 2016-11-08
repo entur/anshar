@@ -75,6 +75,23 @@ public class SubscriptionSetup implements Serializable{
         return (includeServerAddress ? address:"") + MessageFormat.format("/{0}/{1}/{2}/{3}", version, serviceType == ServiceType.REST ? "rs" : "ws", vendor, subscriptionId);
     }
 
+    public String getStartSubscriptionRouteName() {
+        return getRouteName("start");
+    }
+    public String getCancelSubscriptionRouteName() {
+        return getRouteName("cancel");
+    }
+    public String getCheckStatusRouteName() {
+        return getRouteName("checkstatus");
+    }
+    public String getRequestResponseRouteName() {
+        return getRouteName("request_response");
+    }
+
+    private String getRouteName(String prefix) {
+        return prefix + subscriptionId;
+    }
+
     public Duration getHeartbeatInterval() {
         return heartbeatInterval;
     }

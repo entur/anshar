@@ -51,7 +51,8 @@ public class Siri20ToSiriWS14RequestResponse extends RouteBuilder {
 
         String httpOptions = "?httpClient.socketTimeout=" + timeout + "&httpClient.connectTimeout=" + timeout;
 
-        from("quartz2://request_response_" + subscriptionSetup.getSubscriptionId() + "?deleteJob=false&durableJob=true&recoverableJob=true&trigger.repeatInterval=" + heartbeatIntervalMillis )
+        from("quartz2://" + subscriptionSetup.getRequestResponseRouteName() + "?deleteJob=false&durableJob=true&recoverableJob=true&trigger.repeatInterval=" + heartbeatIntervalMillis )
+                .routeId(subscriptionSetup.getRequestResponseRouteName())
                 .log("Retrieving data " + subscriptionSetup.toString())
                 .setBody(simple(siriXml))
                 .setExchangePattern(ExchangePattern.InOut) // Make sure we wait for a response
@@ -68,6 +69,8 @@ public class Siri20ToSiriWS14RequestResponse extends RouteBuilder {
                 .to("http4://" + urlMap.get(RequestType.GET_VEHICLE_MONITORING) + httpOptions)
                 .when(header("SOAPAction").isEqualTo("GetSituationExchange"))
                 .to("http4://" + urlMap.get(RequestType.GET_SITUATION_EXCHANGE) + httpOptions)
+                .when(header("SOAPAction").isEqualTo("GetEstimatedTimetable"))
+                .to("http4://" + urlMap.get(RequestType.GET_ESTIMATED_TIMETABLE) + httpOptions)
                 .otherwise()
                 .throwException(new ServiceNotSupportedException())
                 .end()

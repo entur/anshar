@@ -6,7 +6,7 @@ and also supply external endpoints.
 The name Anshar comes from the Sumerian primordial god.
 
 ``` 
-anshar.incoming.logdirectory=target/incoming
+anshar.incoming.logdirectory=/deployments/incoming
 anshar.incoming.port = 8012
 anshar.inbound.url = http://mottak.rutebanken.org/anshar
 ``` 
@@ -22,6 +22,10 @@ anshar.inbound.url = http://mottak.rutebanken.org/anshar
 To view status/statistics (JSON-format) for all subscriptions.
 ```
 - http://<host>:<port>/anshar/stats
+```
+To view status/statistics (JSON-format) for all clustering.
+```
+- http://<host>:<port>/anshar/clusterstats
 ```
 
 # XML Validation

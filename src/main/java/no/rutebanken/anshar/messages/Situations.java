@@ -1,5 +1,6 @@
 package no.rutebanken.anshar.messages;
 
+import no.rutebanken.anshar.messages.collections.DistributedCollection;
 import no.rutebanken.anshar.messages.collections.ExpiringConcurrentMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -7,16 +8,18 @@ import uk.org.siri.siri20.PtSituationElement;
 
 import java.time.ZonedDateTime;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-
-import static no.rutebanken.anshar.messages.collections.DistributedCollection.getSituationsMap;
 
 public class Situations {
     private static Logger logger = LoggerFactory.getLogger(Situations.class);
 
-    static ExpiringConcurrentMap<String,PtSituationElement> situations = getSituationsMap();
-    static ExpiringConcurrentMap<String, Set<String>> changesMap = new ExpiringConcurrentMap<>(new ConcurrentHashMap<>(), 30, 300);
+    static ExpiringConcurrentMap<String,PtSituationElement> situations;
+    static ExpiringConcurrentMap<String, Set<String>> changesMap;
 
+    static {
+        DistributedCollection dc = new DistributedCollection();
+        situations = dc.getSituationsMap();
+        changesMap = dc.getSituationChangesMap();
+    }
     /**
      * @return All situations that are still valid
      */
@@ -89,9 +92,15 @@ public class Situations {
 
     public static PtSituationElement add(PtSituationElement situation, String datasetId) {
         if (situation == null) {
-            return situation;
+            return null;
         }
         String key = createKey(datasetId, situation);
+
+        ZonedDateTime expiration = getExpiration(situation);
+        if (expiration != null && expiration.isBefore(ZonedDateTime.now())) {
+            //Ignore elements that have already expired
+            return null;
+        }
 
         changesMap.keySet().forEach(requestor -> {
             Set<String> ids = changesMap.get(requestor);
@@ -99,7 +108,7 @@ public class Situations {
             changesMap.put(requestor, ids);
         });
 
-        PtSituationElement previousElement = situations.put(key, situation, getExpiration(situation));
+        PtSituationElement previousElement = situations.put(key, situation, expiration);
         if (previousElement != null) {
             //Situation existed, and may have been updated
             /*

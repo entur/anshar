@@ -44,13 +44,13 @@ public class EstimatedTimetablesTest {
 
         assertEquals(0, EstimatedTimetables.getAll().size());
 
-        EstimatedTimetables.add(createEstimatedVehicleJourney("1234", "4321", 30, ZonedDateTime.now()), "test");
-        EstimatedTimetables.add(createEstimatedVehicleJourney("2345", "4321", 30, ZonedDateTime.now()), "test");
-        EstimatedTimetables.add(createEstimatedVehicleJourney("3456", "4321", 30, ZonedDateTime.now()), "test");
+        EstimatedTimetables.add(createEstimatedVehicleJourney("1234", "4321", 30, ZonedDateTime.now().plusHours(1)), "test");
+        EstimatedTimetables.add(createEstimatedVehicleJourney("2345", "4321", 30, ZonedDateTime.now().plusHours(1)), "test");
+        EstimatedTimetables.add(createEstimatedVehicleJourney("3456", "4321", 30, ZonedDateTime.now().plusHours(1)), "test");
         // Added 3
         assertEquals(3, EstimatedTimetables.getAllUpdates("1234-1234").size());
 
-        EstimatedTimetables.add(createEstimatedVehicleJourney("4567", "4321", 30, ZonedDateTime.now()), "test");
+        EstimatedTimetables.add(createEstimatedVehicleJourney("4567", "4321", 30, ZonedDateTime.now().plusHours(1)), "test");
 
         //Added one
         assertEquals(1, EstimatedTimetables.getAllUpdates("1234-1234").size());
@@ -90,7 +90,7 @@ public class EstimatedTimetablesTest {
     public void testUpdatedJourney() {
         int previousSize = EstimatedTimetables.getAll().size();
 
-        ZonedDateTime departure = ZonedDateTime.now();
+        ZonedDateTime departure = ZonedDateTime.now().plusHours(1);
         EstimatedTimetables.add(createEstimatedVehicleJourney("12345", "4321", 30, departure), "test");
         int expectedSize = previousSize +1;
         assertTrue("Adding Journey did not add element.", EstimatedTimetables.getAll().size() == expectedSize);
@@ -98,7 +98,7 @@ public class EstimatedTimetablesTest {
         EstimatedTimetables.add(createEstimatedVehicleJourney("12345", "4321", 30, departure), "test");
         assertTrue("Updating Journey added element.", EstimatedTimetables.getAll().size() == expectedSize);
 
-        ZonedDateTime departure_2 = ZonedDateTime.now();
+        ZonedDateTime departure_2 = ZonedDateTime.now().plusHours(1);
         EstimatedTimetables.add(createEstimatedVehicleJourney("54321", "4321", 30, departure_2), "test");
         expectedSize++;
         assertTrue("Adding Journey did not add element.", EstimatedTimetables.getAll().size() == expectedSize);

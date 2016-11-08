@@ -1,5 +1,6 @@
 package no.rutebanken.anshar.messages;
 
+import no.rutebanken.anshar.messages.collections.DistributedCollection;
 import no.rutebanken.anshar.messages.collections.ExpiringConcurrentMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -7,15 +8,18 @@ import uk.org.siri.siri20.*;
 
 import java.time.ZonedDateTime;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-
-import static no.rutebanken.anshar.messages.collections.DistributedCollection.getVehiclesMap;
 
 public class VehicleActivities {
     private static Logger logger = LoggerFactory.getLogger(VehicleActivities.class);
 
-    static ExpiringConcurrentMap<String, VehicleActivityStructure> vehicleActivities = getVehiclesMap();
-    static ExpiringConcurrentMap<String, Set<String>> changesMap = new ExpiringConcurrentMap<>(new ConcurrentHashMap<>(), 30, 300);
+    static ExpiringConcurrentMap<String, VehicleActivityStructure> vehicleActivities;
+    static ExpiringConcurrentMap<String, Set<String>> changesMap;
+
+    static {
+        DistributedCollection dc = new DistributedCollection();
+        vehicleActivities = dc.getVehiclesMap();
+        changesMap = dc.getVehicleChangesMap();
+    }
 
     /**
      * @return All vehicle activities that are still valid
@@ -80,13 +84,19 @@ public class VehicleActivities {
         if (keep) {
             String key = createKey(datasetId, activity);
 
+            ZonedDateTime expiration = getExpiration(activity);
+            if (expiration != null && expiration.isBefore(ZonedDateTime.now())) {
+                //Ignore elements that have already expired
+                return null;
+            }
+
             changesMap.keySet().forEach(requestor -> {
                 Set<String> ids = changesMap.get(requestor);
                 ids.add(key);
                 changesMap.put(requestor, ids);
             });
 
-            VehicleActivityStructure previousValue = vehicleActivities.put(key, activity, getExpiration(activity));
+            VehicleActivityStructure previousValue = vehicleActivities.put(key, activity, expiration);
 
             if (previousValue != null) {
                 //Activity has been updated

@@ -142,8 +142,6 @@ public class SubscriptionManagerTest {
 
         SubscriptionManager.removeSubscription(subscription.getSubscriptionId());
         assertFalse("Removed subscription marked as active", SubscriptionManager.isActiveSubscription(subscription.getSubscriptionId()));
-        assertFalse("Removed subscription marked as pending", SubscriptionManager.isPendingSubscription(subscription.getSubscriptionId()));
-        assertFalse("Removed subscription marked as registered", SubscriptionManager.isSubscriptionRegistered(subscription.getSubscriptionId()));
     }
 
     @Test

@@ -1,6 +1,8 @@
 package no.rutebanken.anshar.subscription;
 
 
+import no.rutebanken.anshar.messages.collections.DistributedCollection;
+import no.rutebanken.anshar.messages.collections.ExpiringConcurrentMap;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -10,6 +12,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static no.rutebanken.anshar.messages.collections.DistributedCollection.*;
 
@@ -17,13 +20,22 @@ public class SubscriptionManager {
 
     private static Logger logger = LoggerFactory.getLogger(SubscriptionManager.class);
 
-    private static Map<String, SubscriptionSetup> activeSubscriptions = getActiveSubscriptionsMap();
+    private static Map<String, SubscriptionSetup> activeSubscriptions;
 
-    private static Map<String, SubscriptionSetup> pendingSubscriptions = getPendingSubscriptionsMap();
+    private static Map<String, SubscriptionSetup> pendingSubscriptions;
 
-    private static Map<String, java.time.Instant> lastActivity = getLastActivityMap();
-    private static Map<String, java.time.Instant> activatedTimestamp = getActivatedTimestampMap();
-    private static Map<String, Integer> hitcount = getHitcountMap();
+    private static Map<String, java.time.Instant> lastActivity;
+    private static Map<String, java.time.Instant> activatedTimestamp;
+    private static Map<String, Integer> hitcount;
+
+    static {
+        DistributedCollection dc = new DistributedCollection();
+        activeSubscriptions = dc.getActiveSubscriptionsMap();
+        pendingSubscriptions = dc.getPendingSubscriptionsMap();
+        lastActivity = dc.getLastActivityMap();
+        activatedTimestamp = dc.getActivatedTimestampMap();
+        hitcount = dc.getHitcountMap();
+    }
 
     public static void addSubscription(String subscriptionId, SubscriptionSetup setup) {
         if (pendingSubscriptions.containsKey(subscriptionId)) {
@@ -40,10 +52,7 @@ public class SubscriptionManager {
         SubscriptionSetup setup = activeSubscriptions.remove(subscriptionId);
 
         boolean found = (setup != null);
-
-        lastActivity.remove(subscriptionId);
-        activatedTimestamp.remove(subscriptionId);
-        pendingSubscriptions.remove(subscriptionId);
+        addPendingSubscription(subscriptionId, setup);
         logStats();
 
         logger.info("Removed subscription {}, found: {}", subscriptionId, found);
@@ -84,7 +93,7 @@ public class SubscriptionManager {
                 return touchSubscription(subscriptionId);
             } else {
                 logger.info("Remote service has been restarted, reestablishing subscription [{}]", subscriptionId);
-                removeSubscription(subscriptionId);
+                lastActivity.put(subscriptionId, Instant.MIN);
             }
         }
         return false;
@@ -119,7 +128,7 @@ public class SubscriptionManager {
         pendingSubscriptions.put(subscriptionId, subscriptionSetup);
         lastActivity.put(subscriptionId, Instant.now());
 
-        logger.trace("Added pending subscription {}", subscriptionSetup.toString());
+        logger.info("Added pending subscription {}", subscriptionSetup.toString());
     }
 
     public static boolean isPendingSubscription(String subscriptionId) {
@@ -181,7 +190,7 @@ public class SubscriptionManager {
             long tripleInterval = pendingSubscription.getHeartbeatInterval().toMillis() * 3;
             if (instant.isBefore(Instant.now().minusMillis(tripleInterval))) {
                 logger.info("Subscription {} never activated.", pendingSubscription.toString());
-                //Subscription created, but async response never received - reestablish subscription
+                //Subscription created, but never received - reestablish subscription
                 return false;
             }
         }

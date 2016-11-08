@@ -1,5 +1,7 @@
 package no.rutebanken.anshar.messages.collections;
 
+import com.google.common.base.Preconditions;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,54 +17,96 @@ import java.util.stream.Collectors;
  * @param <String>
  * @param <T>
  */
-public class ExpiringConcurrentMap<String,T>  extends ConcurrentHashMap<String,T> {
+public class ExpiringConcurrentMap<String,T>  implements Map<String,T> {
     private static Logger logger = LoggerFactory.getLogger(ExpiringConcurrentMap.class);
 
-    final ConcurrentMap map;
-    final Map<String, ZonedDateTime> expiryMap = new HashMap<>();
-    private int defaultExpirationSeconds;
+    final ConcurrentMap<String,T> map;
+    final Map<String, ZonedDateTime> expiryMap = new ConcurrentHashMap<>();
     int expiryPeriodSeconds = 30;
     ZonedDateTime lastRun;
 
     /**
      *
      * @param map Wrapped map to store actual data
-     * @param expiryPeriodSeconds Period between each execution og expiration-check
+     * @param expiryPeriodSeconds Period between each execution of expiration-check
      */
-    public ExpiringConcurrentMap(ConcurrentMap map, int expiryPeriodSeconds, int defaultExpirationSeconds) {
-        this.map = map;
-        this.expiryPeriodSeconds = expiryPeriodSeconds;
-        this.defaultExpirationSeconds = defaultExpirationSeconds;
-        initExpiryManagerThread();
-    }
-    /**
-     *
-     * @param map Wrapped map to store actual data
-     * @param expiryPeriodSeconds Period between each execution og expiration-check
-     */
-    public ExpiringConcurrentMap(ConcurrentMap map, int expiryPeriodSeconds) {
+    public ExpiringConcurrentMap(ConcurrentMap<String,T> map, int expiryPeriodSeconds) {
+        Preconditions.checkNotNull(map, "Parameter 'map' cannot be null");
+        Preconditions.checkArgument(expiryPeriodSeconds > 0, "Parameter 'expiryPeriodSeconds' must be > 0");
+
         this.map = map;
         this.expiryPeriodSeconds = expiryPeriodSeconds;
         initExpiryManagerThread();
     }
 
     public T put(String key, T value, ZonedDateTime expiry) {
+        if (expiry == null) {
+           return put(key, value);
+        }
         expiryMap.put(key, expiry);
-        return super.put(key, value);
+        return map.put(key, value);
     }
 
     public T put(String key, T value) {
-        if (defaultExpirationSeconds > 0 && !expiryMap.containsKey(key)) {
-            expiryMap.put(key, ZonedDateTime.now().plusSeconds(defaultExpirationSeconds));
+        if (expiryPeriodSeconds > 0 && !expiryMap.containsKey(key)) {
+            expiryMap.put(key, ZonedDateTime.now().plusSeconds(expiryPeriodSeconds));
         }
-        return super.put(key, value);
+        return map.put(key, value);
+    }
+
+    public int size(){
+        return map.size();
+    }
+
+    @Override
+    public boolean isEmpty() {
+        return map.isEmpty();
+    }
+
+    @Override
+    public boolean containsKey(Object key) {
+        return map.containsKey(key);
+    }
+
+    @Override
+    public boolean containsValue(Object value) {
+        return map.containsValue(value);
+    }
+
+    public T get(Object key){
+        return map.get(key);
+    }
+
+    public Collection<T> values() {
+        return map.values();
+    }
+
+    @NotNull
+    @Override
+    public Set<Entry<String, T>> entrySet() {
+        return map.entrySet();
+    }
+
+    public void clear() {
+        map.clear();
+    }
+
+    @NotNull
+    @Override
+    public Set<String> keySet() {
+        return map.keySet();
     }
 
     @Override
     public T remove(Object key) {
-        T value = super.remove(key);
+        T value = map.remove(key);
         expiryMap.remove(key);
         return value;
+    }
+
+    @Override
+    public void putAll(Map<? extends String, ? extends T> m) {
+        map.putAll(m);
     }
 
     private void initExpiryManagerThread() {
@@ -80,6 +124,7 @@ public class ExpiringConcurrentMap<String,T>  extends ConcurrentHashMap<String,T
 
     public void removeExpiredElements() {
         long t1 = System.currentTimeMillis();
+
         List<String> expiredKeys = expiryMap.keySet()
                 .stream()
                 .filter(key ->

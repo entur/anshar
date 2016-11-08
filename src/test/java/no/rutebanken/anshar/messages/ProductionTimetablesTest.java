@@ -59,22 +59,22 @@ public class ProductionTimetablesTest {
         assertEquals(0, ProductionTimetables.getAll().size());
 
         ProductionTimetables.add(
-                createProductionTimetableDeliveryStructure(UUID.randomUUID().toString(), ZonedDateTime.now().minusMinutes(1))
+                createProductionTimetableDeliveryStructure(UUID.randomUUID().toString(), ZonedDateTime.now().plusMinutes(1))
                 , "test"
         );
         ProductionTimetables.add(
-                createProductionTimetableDeliveryStructure(UUID.randomUUID().toString(), ZonedDateTime.now().minusMinutes(1))
+                createProductionTimetableDeliveryStructure(UUID.randomUUID().toString(), ZonedDateTime.now().plusMinutes(1))
                 , "test"
         );
         ProductionTimetables.add(
-                createProductionTimetableDeliveryStructure(UUID.randomUUID().toString(), ZonedDateTime.now().minusMinutes(1))
+                createProductionTimetableDeliveryStructure(UUID.randomUUID().toString(), ZonedDateTime.now().plusMinutes(1))
                 , "test"
         );
         // Added 3
         assertEquals(3, ProductionTimetables.getAllUpdates("1234-1234").size());
 
         ProductionTimetables.add(
-                createProductionTimetableDeliveryStructure(UUID.randomUUID().toString(), ZonedDateTime.now().minusMinutes(1))
+                createProductionTimetableDeliveryStructure(UUID.randomUUID().toString(), ZonedDateTime.now().plusMinutes(1))
                 , "test"
         );
         //Added one

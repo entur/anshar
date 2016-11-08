@@ -21,7 +21,6 @@ public abstract class SiriSubscriptionRouteBuilder extends RouteBuilder {
 
     NamespacePrefixMapper customNamespacePrefixMapper;
     SubscriptionSetup subscriptionSetup;
-    String uniqueRouteName = UUID.randomUUID().toString();
 
     /*
      * Called dynamically from camel-routes
@@ -98,39 +97,5 @@ public abstract class SiriSubscriptionRouteBuilder extends RouteBuilder {
         int timeout = (int) heartbeatIntervalMillis / 2;
 
         return "?httpClient.socketTimeout=" + timeout + "&httpClient.connectTimeout=" + timeout;
-    }
-
-    void initShedulerRoute() {
-
-        getContext().setUseMDCLogging(true);
-
-        //Verify health periodically
-        long healthCheckInterval = 30000;
-
-        from("quartz2://healthcheck" + uniqueRouteName + "?fireNow=true&trigger.repeatInterval=" + healthCheckInterval)
-                .choice()
-                .when(hasNotBeenStarted -> !SubscriptionManager.isSubscriptionRegistered(subscriptionSetup.getSubscriptionId()))
-                    .choice()
-                    .when(isActive -> subscriptionSetup.isActive())
-                        .log("Starting subscription " + subscriptionSetup.toString())
-                        .process(p -> SubscriptionManager.addPendingSubscription(subscriptionSetup.getSubscriptionId(), subscriptionSetup))
-                        .to("activemq:start" + uniqueRouteName)
-                    .endChoice()
-                .endChoice()
-                .when(isHealthy -> SubscriptionManager.isSubscriptionHealthy(subscriptionSetup.getSubscriptionId()))
-                    //.log("Subscription is healthy " + subscriptionSetup.toString())
-                    .choice()
-                        .when(isDeactivated -> !subscriptionSetup.isActive())
-                            .log("Subscription has been deactivated - cancelling")
-                            .to("activemq:cancel" + uniqueRouteName)
-                            .process(p -> SubscriptionManager.removeSubscription(subscriptionSetup.getSubscriptionId()))
-                        .endChoice()
-                .endChoice()
-                .otherwise()
-                    .process(p -> SubscriptionManager.removeSubscription(subscriptionSetup.getSubscriptionId()))
-                    .log("Subscription has died - terminating subscription " + subscriptionSetup.toString())
-                    .to("activemq:cancel" + uniqueRouteName)
-                .end();
-
     }
 }

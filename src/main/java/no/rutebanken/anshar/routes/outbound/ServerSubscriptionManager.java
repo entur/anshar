@@ -1,5 +1,6 @@
 package no.rutebanken.anshar.routes.outbound;
 
+import no.rutebanken.anshar.messages.collections.DistributedCollection;
 import no.rutebanken.anshar.routes.siri.SiriObjectFactory;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.json.simple.JSONArray;
@@ -21,8 +22,14 @@ public class ServerSubscriptionManager extends CamelRouteManager {
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    private static Map<String, OutboundSubscriptionSetup> subscriptions = new HashMap<>();
-    private static Map<String, Timer> heartbeatTimerMap = new HashMap<>();
+    private static Map<String, OutboundSubscriptionSetup> subscriptions;
+    private static Map<String, Timer> heartbeatTimerMap;
+
+    static {
+        DistributedCollection dc = new DistributedCollection();
+        subscriptions = dc.getOutboundSubscriptionMap();
+        heartbeatTimerMap = dc.getHeartbeatTimerMap();
+    }
 
 
     @Value("${anshar.outbound.heartbeatinterval.minimum}")
@@ -38,7 +45,7 @@ public class ServerSubscriptionManager extends CamelRouteManager {
 
     }
 
-    public String getSubscriptionsAsJson() {
+    public static String getSubscriptionsAsJson() {
 
         JSONArray stats = new JSONArray();
 

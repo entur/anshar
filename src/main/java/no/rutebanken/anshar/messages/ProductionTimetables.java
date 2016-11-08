@@ -1,22 +1,25 @@
 package no.rutebanken.anshar.messages;
 
+import no.rutebanken.anshar.messages.collections.DistributedCollection;
 import no.rutebanken.anshar.messages.collections.ExpiringConcurrentMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.org.siri.siri20.EstimatedVehicleJourney;
 import uk.org.siri.siri20.ProductionTimetableDeliveryStructure;
 
 import java.time.ZonedDateTime;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-
-import static no.rutebanken.anshar.messages.collections.DistributedCollection.getProductionTimetablesMap;
 
 public class ProductionTimetables {
     private static Logger logger = LoggerFactory.getLogger(ProductionTimetables.class);
 
-    static ExpiringConcurrentMap<String, ProductionTimetableDeliveryStructure> timetableDeliveries = getProductionTimetablesMap();
-    static ExpiringConcurrentMap<String, Set<String>> changesMap = new ExpiringConcurrentMap<>(new ConcurrentHashMap<>(), 30, 300);
+    static ExpiringConcurrentMap<String, ProductionTimetableDeliveryStructure> timetableDeliveries;
+    static ExpiringConcurrentMap<String, Set<String>> changesMap;
+
+    static {
+        DistributedCollection dc = new DistributedCollection();
+        timetableDeliveries = dc.getProductionTimetablesMap();
+        changesMap = dc.getProductionTimetableChangesMap();
+    }
 
     /**
      * @return All vehicle activities that are still valid
@@ -78,6 +81,13 @@ public class ProductionTimetables {
             return null;
         }
         String key = createKey(datasetId, timetableDelivery);
+
+        ZonedDateTime expiration = getExpiration(timetableDelivery);
+        if (expiration != null && expiration.isBefore(ZonedDateTime.now())) {
+            //Ignore elements that have already expired
+            return null;
+        }
+
 
         changesMap.keySet().forEach(requestor -> {
             Set<String> ids = changesMap.get(requestor);

@@ -1,11 +1,13 @@
 package no.rutebanken.anshar.routes.health;
 
+import no.rutebanken.anshar.messages.collections.DistributedCollection;
 import no.rutebanken.anshar.routes.outbound.ServerSubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
@@ -21,6 +23,9 @@ public class LivenessReadinessRoute extends RouteBuilder {
     private String inboundPort;
 
     private Map<String, Integer> healthMap = new HashMap<>();
+
+    @Autowired
+    DistributedCollection distributedCollection;
 
     @Override
     public void configure() throws Exception {
@@ -54,7 +59,13 @@ public class LivenessReadinessRoute extends RouteBuilder {
         //Return subscription status
         from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/subscriptions")
                 .process(p -> {
-                    p.getOut().setBody(new ServerSubscriptionManager().getSubscriptionsAsJson());
+                    p.getOut().setBody(ServerSubscriptionManager.getSubscriptionsAsJson());
+                })
+        ;
+        //Return subscription status
+        from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/clusterstats")
+                .process(p -> {
+                    p.getOut().setBody(distributedCollection.listNodes());
                 })
         ;
 

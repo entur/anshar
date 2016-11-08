@@ -1,5 +1,6 @@
 package no.rutebanken.anshar.messages;
 
+import no.rutebanken.anshar.messages.collections.DistributedCollection;
 import no.rutebanken.anshar.messages.collections.ExpiringConcurrentMap;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -9,16 +10,20 @@ import uk.org.siri.siri20.EstimatedVehicleJourney;
 
 import java.time.ZonedDateTime;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-
-import static no.rutebanken.anshar.messages.collections.DistributedCollection.getJourneysMap;
 
 public class EstimatedTimetables {
     private static Logger logger = LoggerFactory.getLogger(EstimatedTimetables.class);
 
-    static ExpiringConcurrentMap<String, EstimatedVehicleJourney> timetableDeliveries = getJourneysMap();
+    static ExpiringConcurrentMap<String, EstimatedVehicleJourney> timetableDeliveries;
 
-    static ExpiringConcurrentMap<String, Set<String>> changesMap = new ExpiringConcurrentMap<>(new ConcurrentHashMap<>(), 30, 300);
+    static ExpiringConcurrentMap<String, Set<String>> changesMap;
+
+    static {
+        DistributedCollection dc = new DistributedCollection();
+        timetableDeliveries = dc.getEstimatedTimetablesMap();
+        changesMap = dc.getEstimatedTimetableChangesMap();
+    }
+
 
     /**
      * @return All vehicle activities that are still valid
@@ -99,6 +104,11 @@ public class EstimatedTimetables {
         if (timetableDelivery == null) {return null;}
 
         String key = createKey(datasetId, timetableDelivery);
+        ZonedDateTime expiration = getExpiration(timetableDelivery);
+        if (expiration != null && expiration.isBefore(ZonedDateTime.now())) {
+            //Ignore elements that have already expired
+            return null;
+        }
 
         changesMap.keySet().forEach(requestor -> {
             Set<String> ids = changesMap.get(requestor);
@@ -106,7 +116,7 @@ public class EstimatedTimetables {
             changesMap.put(requestor, ids);
         });
 
-        EstimatedVehicleJourney previous = timetableDeliveries.put(key, timetableDelivery, getExpiration(timetableDelivery));
+        EstimatedVehicleJourney previous = timetableDeliveries.put(key, timetableDelivery, expiration);
 
         if (previous != null) {
             // TODO: Determine if data is updated?
