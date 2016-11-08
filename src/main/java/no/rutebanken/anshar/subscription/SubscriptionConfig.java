@@ -128,7 +128,7 @@ public class SubscriptionConfig implements CamelContextAware {
             boolean locked = lockMap.tryLock(ANSHAR_HEALTHCHECK_KEY);
 
             if (locked) {
-                logger.info("Healthcheck: Got lock");
+                logger.trace("Healthcheck: Got lock");
                 try {
                     Instant instant = lockMap.get(ANSHAR_HEALTHCHECK_KEY);
                     if (instant == null || instant.isBefore(Instant.now().minusSeconds(healthCheckInterval))) {
@@ -137,6 +137,7 @@ public class SubscriptionConfig implements CamelContextAware {
                         try {
                             Map<String, SubscriptionSetup> pendingSubscriptions = SubscriptionManager.getPendingSubscriptions();
                             for (SubscriptionSetup subscriptionSetup : pendingSubscriptions.values()) {
+                                logger.info("Healthcheck: Trigger start subscription {}", subscriptionSetup);
                                 startSubscription(subscriptionSetup);
                             }
 
@@ -145,6 +146,7 @@ public class SubscriptionConfig implements CamelContextAware {
                                 if (!SubscriptionManager.isSubscriptionHealthy(subscriptionSetup.getSubscriptionId())) {
                                     SubscriptionManager.removeSubscription(subscriptionSetup.getSubscriptionId());
                                     //start "cancel"-route
+                                    logger.info("Healthcheck: Trigger cancel subscription {}", subscriptionSetup);
                                     cancelSubscription(subscriptionSetup);
                                 }
                             }
@@ -156,7 +158,7 @@ public class SubscriptionConfig implements CamelContextAware {
                     }
                 } finally {
                     lockMap.unlock(ANSHAR_HEALTHCHECK_KEY);
-                    logger.info("Healthcheck: Lock released");
+                    logger.trace("Healthcheck: Lock released");
                 }
             } else {
                 logger.info("Healthcheck: Already locked - skipping");
