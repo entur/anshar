@@ -50,7 +50,7 @@ public class DistributedCollection {
     }
 
     public ExpiringConcurrentMap<String, Set<String>> getSituationChangesMap() {
-        return getCachedOrNewMap("anshar.sx.changes");
+        return getCachedOrNewMap("anshar.sx.changes", 300);
     }
 
     public ExpiringConcurrentMap<String, EstimatedVehicleJourney> getEstimatedTimetablesMap(){
@@ -58,7 +58,7 @@ public class DistributedCollection {
     }
 
     public ExpiringConcurrentMap<String, Set<String>> getEstimatedTimetableChangesMap() {
-        return getCachedOrNewMap("anshar.et.changes");
+        return getCachedOrNewMap("anshar.et.changes", 300);
     }
 
     public ExpiringConcurrentMap<String, VehicleActivityStructure> getVehiclesMap(){
@@ -66,7 +66,7 @@ public class DistributedCollection {
     }
 
     public ExpiringConcurrentMap<String, Set<String>> getVehicleChangesMap() {
-        return getCachedOrNewMap("anshar.vm.changes");
+        return getCachedOrNewMap("anshar.vm.changes", 300);
     }
 
     public ExpiringConcurrentMap<String, ProductionTimetableDeliveryStructure> getProductionTimetablesMap(){
@@ -74,7 +74,7 @@ public class DistributedCollection {
     }
 
     public ExpiringConcurrentMap<String, Set<String>> getProductionTimetableChangesMap() {
-        return getCachedOrNewMap("anshar.pt.changes");
+        return getCachedOrNewMap("anshar.pt.changes", 300);
     }
 
     /**
@@ -83,6 +83,18 @@ public class DistributedCollection {
      * @return
      */
     private ExpiringConcurrentMap getCachedOrNewMap(String key) {
+        if (!existingMaps.containsKey(key)) {
+            existingMaps.put(key, new ExpiringConcurrentMap<>(hazelcastInstance.getMap(key), expiryPeriodSeconds));
+        }
+        return (ExpiringConcurrentMap) existingMaps.get(key);
+    }
+
+    /**
+     * Theses maps are cached since the HZ-Map is wrapped in another map
+     * @param key
+     * @return
+     */
+    private ExpiringConcurrentMap getCachedOrNewMap(String key, int expiryPeriodSeconds) {
         if (!existingMaps.containsKey(key)) {
             existingMaps.put(key, new ExpiringConcurrentMap<>(hazelcastInstance.getMap(key), expiryPeriodSeconds));
         }

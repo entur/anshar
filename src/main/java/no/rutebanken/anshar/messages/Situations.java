@@ -54,7 +54,6 @@ public class Situations {
         if (requestorId != null) {
 
             Set<String> idSet = changesMap.get(requestorId);
-            changesMap.get(requestorId).removeAll(idSet);
             if (idSet != null) {
                 List<PtSituationElement> changes = new ArrayList<>();
 
@@ -64,7 +63,12 @@ public class Situations {
                         changes.add(element);
                     }
                 });
+                Set<String> existingSet = changesMap.get(requestorId);
+                existingSet.removeAll(idSet);
+                changesMap.put(requestorId, existingSet);
                 return changes;
+            } else {
+                changesMap.put(requestorId, new HashSet<>());
             }
         }
 
@@ -103,7 +107,9 @@ public class Situations {
         }
 
         changesMap.keySet().forEach(requestor -> {
-            changesMap.get(requestor).add(key);
+            Set<String> changes = changesMap.get(requestor);
+            changes.add(key);
+            changesMap.put(requestor, changes);
         });
 
         PtSituationElement previousElement = situations.put(key, situation, expiration);

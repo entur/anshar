@@ -54,7 +54,6 @@ public class VehicleActivities {
         if (requestorId != null) {
 
             Set<String> idSet = changesMap.get(requestorId);
-            changesMap.get(requestorId).removeAll(idSet);
             if (idSet != null) {
                 List<VehicleActivityStructure> changes = new ArrayList<>();
 
@@ -64,7 +63,12 @@ public class VehicleActivities {
                         changes.add(element);
                     }
                 });
+                Set<String> existingSet = changesMap.get(requestorId);
+                existingSet.removeAll(idSet);
+                changesMap.put(requestorId, existingSet);
                 return changes;
+            } else {
+                changesMap.put(requestorId, new HashSet<>());
             }
         }
 
@@ -91,7 +95,9 @@ public class VehicleActivities {
             }
 
             changesMap.keySet().forEach(requestor -> {
-                changesMap.get(requestor).add(key);
+                Set<String> changes = changesMap.get(requestor);
+                changes.add(key);
+                changesMap.put(requestor, changes);
             });
 
             VehicleActivityStructure previousValue = vehicleActivities.put(key, activity, expiration);
