@@ -202,15 +202,17 @@ public class SubscriptionConfig implements CamelContextAware {
                     }
 
                     String tmpRouteId = "forceStart:" + subscriptionSetup.getSubscriptionId();
-                    RouteDefinition routeDefinition = from("timer:forceStart"+subscriptionSetup.getSubscriptionId()+"?delay=0&repeatCount=1")
-                            .routeId(tmpRouteId)
-                            .to("direct:" + subscriptionSetup.getStartSubscriptionRouteName());
 
-                    RouteDefinition previousStart = camelContext.getRouteDefinition(tmpRouteId);
-                    if (previousStart != null) {
-                        camelContext.removeRouteDefinition(previousStart);
+                    RouteDefinition routeDefinition = camelContext.getRouteDefinition(tmpRouteId);
+                    if (routeDefinition == null) {
+                        routeDefinition = from("timer:forceStart"+subscriptionSetup.getSubscriptionId()+"?delay=0&repeatCount=1")
+                                .routeId(tmpRouteId)
+                                .to("direct:" + subscriptionSetup.getStartSubscriptionRouteName());
+
+
+                        camelContext.addRouteDefinition(routeDefinition);
                     }
-                    camelContext.addRouteDefinition(routeDefinition);
+                    camelContext.startRoute(tmpRouteId);
                 } else if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.REQUEST_RESPONSE) {
 
                     try {
@@ -239,17 +241,19 @@ public class SubscriptionConfig implements CamelContextAware {
                 if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.SUBSCRIBE) {
                     SubscriptionManager.removeSubscription(subscriptionSetup.getSubscriptionId());
 
-                    RouteDefinition routeDefinition = camelContext.getRouteDefinition(subscriptionSetup.getCancelSubscriptionRouteName());
-                    if (routeDefinition != null) {
-                        camelContext.removeRouteDefinition(routeDefinition);
+                    String tmpRouteId = "forceCancel:" + subscriptionSetup.getSubscriptionId();
+
+                    RouteDefinition routeDefinition = camelContext.getRouteDefinition(tmpRouteId);
+                    if (routeDefinition == null) {
+                        routeDefinition = from("timer:forceCancel"+subscriptionSetup.getSubscriptionId()+"?delay=0&repeatCount=1")
+                                .routeId(tmpRouteId)
+                                .to("direct:" + subscriptionSetup.getCancelSubscriptionRouteName());
+
+
+                        camelContext.addRouteDefinition(routeDefinition);
                     }
 
-                    RouteBuilder route = getRouteBuilder(subscriptionSetup);
-                    try {
-                        camelContext.addRoutes(route);
-                    } catch (Exception e) {
-                        logger.warn("Could not start subscription {}", subscriptionSetup);
-                    }
+                    camelContext.startRoute(tmpRouteId);
 
                 } else if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.REQUEST_RESPONSE) {
 
