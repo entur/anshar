@@ -53,8 +53,8 @@ public class ProductionTimetables {
     public static List<ProductionTimetableDeliveryStructure> getAllUpdates(String requestorId) {
         if (requestorId != null) {
 
-            Set<String> idSet = changesMap.remove(requestorId);
-            changesMap.put(requestorId, new HashSet<>());
+            Set<String> idSet = changesMap.get(requestorId);
+            changesMap.get(requestorId).removeAll(idSet);
             if (idSet != null) {
                 List<ProductionTimetableDeliveryStructure> changes = new ArrayList<>();
 
@@ -90,9 +90,7 @@ public class ProductionTimetables {
 
 
         changesMap.keySet().forEach(requestor -> {
-            Set<String> ids = changesMap.get(requestor);
-            ids.add(key);
-            changesMap.put(requestor, ids);
+            changesMap.get(requestor).add(key);
         });
 
         ProductionTimetableDeliveryStructure previous = timetableDeliveries.put(key, timetableDelivery, getExpiration(timetableDelivery));

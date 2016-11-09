@@ -38,8 +38,8 @@ public class EstimatedTimetables {
     public static List<EstimatedVehicleJourney> getAllUpdates(String requestorId) {
         if (requestorId != null) {
 
-            Set<String> idSet = changesMap.remove(requestorId);
-            changesMap.put(requestorId, new HashSet<>());
+            Set<String> idSet = changesMap.get(requestorId);
+            changesMap.get(requestorId).removeAll(idSet);
             if (idSet != null) {
                 List<EstimatedVehicleJourney> changes = new ArrayList<>();
 
@@ -111,9 +111,7 @@ public class EstimatedTimetables {
         }
 
         changesMap.keySet().forEach(requestor -> {
-            Set<String> ids = changesMap.get(requestor);
-            ids.add(key);
-            changesMap.put(requestor, ids);
+            changesMap.get(requestor).add(key);
         });
 
         EstimatedVehicleJourney previous = timetableDeliveries.put(key, timetableDelivery, expiration);
