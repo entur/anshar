@@ -16,6 +16,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.time.Instant;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -128,36 +129,37 @@ public class SubscriptionConfig implements CamelContextAware {
             boolean locked = lockMap.tryLock(ANSHAR_HEALTHCHECK_KEY);
 
             if (locked) {
-                logger.trace("Healthcheck: Got lock");
+                logger.info("Healthcheck: Got lock");
                 try {
                     Instant instant = lockMap.get(ANSHAR_HEALTHCHECK_KEY);
                     if (instant == null || instant.isBefore(Instant.now().minusSeconds(healthCheckInterval))) {
                         lockMap.put(ANSHAR_HEALTHCHECK_KEY, Instant.now());
                         logger.info("Healthcheck: Checking health {}", lockMap.get(ANSHAR_HEALTHCHECK_KEY));
-                        try {
-                            Map<String, SubscriptionSetup> pendingSubscriptions = SubscriptionManager.getPendingSubscriptions();
-                            for (SubscriptionSetup subscriptionSetup : pendingSubscriptions.values()) {
-                                logger.info("Healthcheck: Trigger start subscription {}", subscriptionSetup);
-                                startSubscription(subscriptionSetup);
-                            }
 
-                            Map<String, SubscriptionSetup> activeSubscriptions = SubscriptionManager.getActiveSubscriptions();
-                            for (SubscriptionSetup subscriptionSetup : activeSubscriptions.values()) {
-                                if (!SubscriptionManager.isSubscriptionHealthy(subscriptionSetup.getSubscriptionId())) {
-                                    //start "cancel"-route
-                                    logger.info("Healthcheck: Trigger cancel subscription {}", subscriptionSetup);
-                                    cancelSubscription(subscriptionSetup);
-                                }
-                            }
-                        } catch (Exception e) {
-                            logger.error("Healthcheck: Caught exception during healthcheck.", e);
+                        Map<String, SubscriptionSetup> pendingSubscriptions = SubscriptionManager.getPendingSubscriptions();
+
+                        for (SubscriptionSetup subscriptionSetup : pendingSubscriptions.values()) {
+                            logger.info("Healthcheck: Trigger start subscription {}", subscriptionSetup);
+                            startSubscription(subscriptionSetup);
                         }
+
+                        Map<String, SubscriptionSetup> activeSubscriptions = SubscriptionManager.getActiveSubscriptions();
+                        for (SubscriptionSetup subscriptionSetup : activeSubscriptions.values()) {
+                            if (!SubscriptionManager.isSubscriptionHealthy(subscriptionSetup.getSubscriptionId())) {
+                                //start "cancel"-route
+                                logger.info("Healthcheck: Trigger cancel subscription {}", subscriptionSetup);
+                                cancelSubscription(subscriptionSetup);
+                            }
+                        }
+
                     } else {
                         logger.info("Healthcheck: Healthcheck has already been handled recently [{}]", instant);
                     }
+                } catch (Exception e) {
+                    logger.error("Healthcheck: Caught exception during healthcheck.", e);
                 } finally {
                     lockMap.unlock(ANSHAR_HEALTHCHECK_KEY);
-                    logger.trace("Healthcheck: Lock released");
+                    logger.info("Healthcheck: Lock released");
                 }
             } else {
                 logger.info("Healthcheck: Already locked - skipping");
@@ -168,7 +170,7 @@ public class SubscriptionConfig implements CamelContextAware {
         execService.scheduleAtFixedRate(() -> {
             Instant instant = lockMap.get(ANSHAR_HEALTHCHECK_KEY);
             if (instant != null && instant.isBefore(Instant.now().minusSeconds(3*healthCheckInterval))) {
-                logger.error("Healthcheck has stopped - last check [{}]", instant);
+                logger.error("Healthcheck has stopped - last check [{}]", instant.atZone(ZoneId.systemDefault()));
             }
         }, 0, healthCheckInterval, TimeUnit.SECONDS);
     }
