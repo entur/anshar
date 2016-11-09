@@ -4,7 +4,9 @@ import com.google.common.base.Preconditions;
 import com.hazelcast.core.IMap;
 import no.rutebanken.anshar.messages.collections.DistributedCollection;
 import no.rutebanken.anshar.routes.siri.*;
-import org.apache.camel.*;
+import org.apache.camel.CamelContext;
+import org.apache.camel.CamelContextAware;
+import org.apache.camel.Route;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.RouteDefinition;
 import org.jetbrains.annotations.NotNull;
@@ -18,9 +20,6 @@ import org.springframework.context.annotation.Configuration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 @Configuration
 public class SubscriptionConfig implements CamelContextAware {
@@ -40,7 +39,7 @@ public class SubscriptionConfig implements CamelContextAware {
     private Config config;
 
     protected static CamelContext camelContext;
-    private ScheduledExecutorService execService;
+    private Timer healthCheckTimer;
     @Override
     public CamelContext getCamelContext() {
         return camelContext;
@@ -120,59 +119,68 @@ public class SubscriptionConfig implements CamelContextAware {
             }
         }
 
-        execService =   Executors.newScheduledThreadPool(2);
+        healthCheckTimer =  new Timer();
 
         // Subscription Healthcheck
-        execService.scheduleWithFixedDelay(() -> {
+        TimerTask healthCheck = new TimerTask() {
+            @Override
+            public void run() {
+                // tryLock returns immediately - does not wait for lock to be released
+                boolean locked = lockMap.tryLock(ANSHAR_HEALTHCHECK_KEY);
 
-            // tryLock returns immediately - does not wait for lock to be released
-            boolean locked = lockMap.tryLock(ANSHAR_HEALTHCHECK_KEY);
+                if (locked) {
+                    logger.info("Healthcheck: Got lock");
+                    try {
+                        Instant instant = lockMap.get(ANSHAR_HEALTHCHECK_KEY);
+                        if (instant == null || instant.isBefore(Instant.now().minusSeconds(healthCheckInterval))) {
+                            lockMap.put(ANSHAR_HEALTHCHECK_KEY, Instant.now());
+                            logger.info("Healthcheck: Checking health {}", lockMap.get(ANSHAR_HEALTHCHECK_KEY).atZone(ZoneId.systemDefault()));
 
-            if (locked) {
-                logger.info("Healthcheck: Got lock");
-                try {
-                    Instant instant = lockMap.get(ANSHAR_HEALTHCHECK_KEY);
-                    if (instant == null || instant.isBefore(Instant.now().minusSeconds(healthCheckInterval))) {
-                        lockMap.put(ANSHAR_HEALTHCHECK_KEY, Instant.now());
-                        logger.info("Healthcheck: Checking health {}", lockMap.get(ANSHAR_HEALTHCHECK_KEY).atZone(ZoneId.systemDefault()));
+                            Map<String, SubscriptionSetup> pendingSubscriptions = SubscriptionManager.getPendingSubscriptions();
 
-                        Map<String, SubscriptionSetup> pendingSubscriptions = SubscriptionManager.getPendingSubscriptions();
-
-                        for (SubscriptionSetup subscriptionSetup : pendingSubscriptions.values()) {
-                            logger.info("Healthcheck: Trigger start subscription {}", subscriptionSetup);
-                            startSubscription(subscriptionSetup);
-                        }
-
-                        Map<String, SubscriptionSetup> activeSubscriptions = SubscriptionManager.getActiveSubscriptions();
-                        for (SubscriptionSetup subscriptionSetup : activeSubscriptions.values()) {
-                            if (!SubscriptionManager.isSubscriptionHealthy(subscriptionSetup.getSubscriptionId())) {
-                                //start "cancel"-route
-                                logger.info("Healthcheck: Trigger cancel subscription {}", subscriptionSetup);
-                                cancelSubscription(subscriptionSetup);
+                            for (SubscriptionSetup subscriptionSetup : pendingSubscriptions.values()) {
+                                logger.info("Healthcheck: Trigger start subscription {}", subscriptionSetup);
+                                startSubscription(subscriptionSetup);
                             }
-                        }
 
-                    } else {
-                        logger.info("Healthcheck: Healthcheck has already been handled recently [{}]", instant);
+                            Map<String, SubscriptionSetup> activeSubscriptions = SubscriptionManager.getActiveSubscriptions();
+                            for (SubscriptionSetup subscriptionSetup : activeSubscriptions.values()) {
+                                if (!SubscriptionManager.isSubscriptionHealthy(subscriptionSetup.getSubscriptionId())) {
+                                    //start "cancel"-route
+                                    logger.info("Healthcheck: Trigger cancel subscription {}", subscriptionSetup);
+                                    cancelSubscription(subscriptionSetup);
+                                }
+                            }
+
+                        } else {
+                            logger.info("Healthcheck: Healthcheck has already been handled recently [{}]", instant);
+                        }
+                    } catch (Exception e) {
+                        logger.error("Healthcheck: Caught exception during healthcheck.", e);
+                    } finally {
+                        lockMap.unlock(ANSHAR_HEALTHCHECK_KEY);
+                        logger.info("Healthcheck: Lock released");
                     }
-                } catch (Exception e) {
-                    logger.error("Healthcheck: Caught exception during healthcheck.", e);
-                } finally {
-                    lockMap.unlock(ANSHAR_HEALTHCHECK_KEY);
-                    logger.info("Healthcheck: Lock released");
+                } else {
+                    logger.info("Healthcheck: Already locked - skipping");
                 }
-            } else {
-                logger.info("Healthcheck: Already locked - skipping");
             }
-        }, 0, healthCheckInterval, TimeUnit.SECONDS);
+        };
+
+        healthCheckTimer.scheduleAtFixedRate(healthCheck, 0, healthCheckInterval);
 
         // Monitor healthcheck-task
-        execService.scheduleAtFixedRate(() -> {
-            Instant instant = lockMap.get(ANSHAR_HEALTHCHECK_KEY);
-            if (instant != null && instant.isBefore(Instant.now().minusSeconds(3*healthCheckInterval))) {
-                logger.error("Healthcheck has stopped - last check [{}]", instant.atZone(ZoneId.systemDefault()));
+        TimerTask task = new TimerTask() {
+            @Override
+            public void run() {
+                Instant instant = lockMap.get(ANSHAR_HEALTHCHECK_KEY);
+                if (instant != null && instant.isBefore(Instant.now().minusSeconds(3 * healthCheckInterval))) {
+                    logger.error("Healthcheck has stopped - last check [{}]", instant.atZone(ZoneId.systemDefault()));
+                }
             }
-        }, 0, healthCheckInterval, TimeUnit.SECONDS);
+        };
+        Timer timer = new Timer();
+        timer.scheduleAtFixedRate(task, 0, healthCheckInterval);
     }
 
 
