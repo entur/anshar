@@ -18,6 +18,7 @@ import static no.rutebanken.anshar.messages.collections.DistributedCollection.*;
 
 public class SubscriptionManager {
 
+    private static final int HEALTHCHECK_INTERVAL_FACTOR = 3;
     private static Logger logger = LoggerFactory.getLogger(SubscriptionManager.class);
 
     private static Map<String, SubscriptionSetup> activeSubscriptions;
@@ -93,7 +94,8 @@ public class SubscriptionManager {
                 return touchSubscription(subscriptionId);
             } else {
                 logger.info("Remote service has been restarted, reestablishing subscription [{}]", subscriptionId);
-                lastActivity.put(subscriptionId, Instant.MIN);
+                //Setting 'last activity' to longer ago than healthcheck accepts
+                lastActivity.put(subscriptionId, Instant.now().minusSeconds((HEALTHCHECK_INTERVAL_FACTOR+1) * setup.getHeartbeatInterval().getSeconds()));
             }
         }
         return false;
@@ -164,7 +166,7 @@ public class SubscriptionManager {
 
         SubscriptionSetup activeSubscription = activeSubscriptions.get(subscriptionId);
         if (activeSubscription != null) {
-            long tripleInterval = activeSubscription.getHeartbeatInterval().toMillis() * 3;
+            long tripleInterval = activeSubscription.getHeartbeatInterval().toMillis() * HEALTHCHECK_INTERVAL_FACTOR;
             if (instant.isBefore(Instant.now().minusMillis(tripleInterval))) {
                 //Subscription exists, but there has not been any activity recently
                 return false;
@@ -187,7 +189,7 @@ public class SubscriptionManager {
 
         SubscriptionSetup pendingSubscription = pendingSubscriptions.get(subscriptionId);
         if (pendingSubscription != null) {
-            long tripleInterval = pendingSubscription.getHeartbeatInterval().toMillis() * 3;
+            long tripleInterval = pendingSubscription.getHeartbeatInterval().toMillis() * HEALTHCHECK_INTERVAL_FACTOR;
             if (instant.isBefore(Instant.now().minusMillis(tripleInterval))) {
                 logger.info("Subscription {} never activated.", pendingSubscription.toString());
                 //Subscription created, but never received - reestablish subscription
