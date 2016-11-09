@@ -134,7 +134,7 @@ public class SubscriptionConfig implements CamelContextAware {
                     Instant instant = lockMap.get(ANSHAR_HEALTHCHECK_KEY);
                     if (instant == null || instant.isBefore(Instant.now().minusSeconds(healthCheckInterval))) {
                         lockMap.put(ANSHAR_HEALTHCHECK_KEY, Instant.now());
-                        logger.info("Healthcheck: Checking health {}", lockMap.get(ANSHAR_HEALTHCHECK_KEY));
+                        logger.info("Healthcheck: Checking health {}", lockMap.get(ANSHAR_HEALTHCHECK_KEY).atZone(ZoneId.systemDefault()));
 
                         Map<String, SubscriptionSetup> pendingSubscriptions = SubscriptionManager.getPendingSubscriptions();
 
