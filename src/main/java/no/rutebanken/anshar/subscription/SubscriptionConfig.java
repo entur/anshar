@@ -129,12 +129,14 @@ public class SubscriptionConfig implements CamelContextAware {
                 boolean locked = lockMap.tryLock(ANSHAR_HEALTHCHECK_KEY);
 
                 if (locked) {
-                    logger.info("Healthcheck: Got lock");
+                    logger.debug("Healthcheck: Got lock");
                     try {
                         Instant instant = lockMap.get(ANSHAR_HEALTHCHECK_KEY);
                         if (instant == null || instant.isBefore(Instant.now().minusSeconds(healthCheckInterval))) {
                             lockMap.put(ANSHAR_HEALTHCHECK_KEY, Instant.now());
-                            logger.info("Healthcheck: Checking health {}", lockMap.get(ANSHAR_HEALTHCHECK_KEY).atZone(ZoneId.systemDefault()));
+                            logger.info("Healthcheck: Checking health {}, {} routes",
+                                    lockMap.get(ANSHAR_HEALTHCHECK_KEY).atZone(ZoneId.systemDefault()),
+                                    camelContext.getRoutes().size());
 
                             Map<String, SubscriptionSetup> pendingSubscriptions = SubscriptionManager.getPendingSubscriptions();
 
@@ -153,16 +155,16 @@ public class SubscriptionConfig implements CamelContextAware {
                             }
 
                         } else {
-                            logger.info("Healthcheck: Healthcheck has already been handled recently [{}]", instant);
+                            logger.debug("Healthcheck: Healthcheck has already been handled recently [{}]", instant);
                         }
                     } catch (Exception e) {
                         logger.error("Healthcheck: Caught exception during healthcheck.", e);
                     } finally {
                         lockMap.unlock(ANSHAR_HEALTHCHECK_KEY);
-                        logger.info("Healthcheck: Lock released");
+                        logger.debug("Healthcheck: Lock released");
                     }
                 } else {
-                    logger.info("Healthcheck: Already locked - skipping");
+                    logger.debug("Healthcheck: Already locked - skipping");
                 }
             }
         };
@@ -175,6 +177,8 @@ public class SubscriptionConfig implements CamelContextAware {
             public void run() {
                 Instant instant = lockMap.get(ANSHAR_HEALTHCHECK_KEY);
                 if (instant != null && instant.isBefore(Instant.now().minusSeconds(3 * healthCheckInterval))) {
+                    // TODO: Should stopped healthcheck-thread trigger server restart?
+                    // LivenessReadinessRoute.triggerRestart = true;
                     logger.error("Healthcheck has stopped - last check [{}]", instant.atZone(ZoneId.systemDefault()));
                 }
             }
@@ -205,10 +209,9 @@ public class SubscriptionConfig implements CamelContextAware {
 
                     RouteDefinition routeDefinition = camelContext.getRouteDefinition(tmpRouteId);
                     if (routeDefinition == null) {
-                        routeDefinition = from("timer:forceStart"+subscriptionSetup.getSubscriptionId()+"?delay=0&repeatCount=1")
+                        routeDefinition = from("timer:"+tmpRouteId+"?delay=0&repeatCount=1")
                                 .routeId(tmpRouteId)
                                 .to("direct:" + subscriptionSetup.getStartSubscriptionRouteName());
-
 
                         camelContext.addRouteDefinition(routeDefinition);
                     }
@@ -245,10 +248,9 @@ public class SubscriptionConfig implements CamelContextAware {
 
                     RouteDefinition routeDefinition = camelContext.getRouteDefinition(tmpRouteId);
                     if (routeDefinition == null) {
-                        routeDefinition = from("timer:forceCancel"+subscriptionSetup.getSubscriptionId()+"?delay=0&repeatCount=1")
+                        routeDefinition = from("timer:"+tmpRouteId+"?delay=0&repeatCount=1")
                                 .routeId(tmpRouteId)
                                 .to("direct:" + subscriptionSetup.getCancelSubscriptionRouteName());
-
 
                         camelContext.addRouteDefinition(routeDefinition);
                     }
