@@ -167,7 +167,7 @@ public class SubscriptionConfig implements CamelContextAware {
             }
         };
 
-        healthCheckTimer.scheduleAtFixedRate(healthCheck, 0, healthCheckInterval);
+        healthCheckTimer.scheduleAtFixedRate(healthCheck, 0, healthCheckInterval*1000);
 
         // Monitor healthcheck-task
         TimerTask task = new TimerTask() {
@@ -180,7 +180,7 @@ public class SubscriptionConfig implements CamelContextAware {
             }
         };
         Timer timer = new Timer();
-        timer.scheduleAtFixedRate(task, 0, healthCheckInterval);
+        timer.scheduleAtFixedRate(task, 0, healthCheckInterval*1000);
     }
 
 
