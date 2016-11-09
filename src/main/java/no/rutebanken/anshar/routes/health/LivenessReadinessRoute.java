@@ -27,6 +27,8 @@ public class LivenessReadinessRoute extends RouteBuilder {
     @Autowired
     DistributedCollection distributedCollection;
 
+    public static boolean triggerRestart;
+
     @Override
     public void configure() throws Exception {
 
@@ -45,8 +47,15 @@ public class LivenessReadinessRoute extends RouteBuilder {
         from("jetty:http://0.0.0.0:" + inboundPort + "/up")
                 //TODO: On error - POST to hubot
                 // Ex: wget --post-data='{"source":"otp", "message":"Downloaded file is empty or not present. This makes OTP fail! Please check logs"}' http://hubot/hubot/say/
-                .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
-                .setBody(constant("OK"))
+                .choice()
+                .when(p -> triggerRestart)
+                    .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("500"))
+                    .setBody(constant("Restart requested"))
+                .endChoice()
+                .otherwise()
+                    .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
+                    .setBody(simple("OK"))
+                .end()
         ;
 
         //Return subscription status
