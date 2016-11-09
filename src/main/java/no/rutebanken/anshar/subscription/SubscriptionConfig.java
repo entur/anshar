@@ -78,7 +78,15 @@ public class SubscriptionConfig implements CamelContextAware {
                     throw new ServiceConfigurationError("SubscriptionIds are NOT unique for ID="+subscriptionSetup.getSubscriptionId());
                 }
                 subscriptionIds.add(subscriptionSetup.getSubscriptionId());
+
+                RouteBuilder routeBuilder = getRouteBuilder(subscriptionSetup);
+                try {
+                    camelContext.addRoutes(routeBuilder);
+                } catch (Exception e) {
+                    logger.warn("Could not add subscription {}", subscriptionSetup);
+                }
             }
+
 
             startPeriodicHealthcheckService(subscriptionSetups);
         } else {
@@ -195,15 +203,7 @@ public class SubscriptionConfig implements CamelContextAware {
             public void configure() throws Exception {
                 SubscriptionManager.activatePendingSubscription(subscriptionSetup.getSubscriptionId());
 
-                RouteBuilder routeBuilder = getRouteBuilder(subscriptionSetup);
-
                 if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.SUBSCRIBE) {
-
-                    try {
-                        camelContext.addRoutes(routeBuilder);
-                    } catch (Exception e) {
-                        logger.warn("Could not start subscription {}", subscriptionSetup);
-                    }
 
                     String tmpRouteId = "forceStart:" + subscriptionSetup.getSubscriptionId();
 
@@ -218,11 +218,19 @@ public class SubscriptionConfig implements CamelContextAware {
                     camelContext.startRoute(tmpRouteId);
                 } else if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.REQUEST_RESPONSE) {
 
-                    try {
-                        camelContext.addRoutes(routeBuilder);
-                    } catch (Exception e) {
-                        logger.warn("Could not start subscription {}", subscriptionSetup);
+                    // If request/response-routes lose its connection, it will not be reestablished - needs to be restarted
+                    Route route = camelContext.getRoute(subscriptionSetup.getRequestResponseRouteName());
+                    if (route != null) {
+                        logger.info("Starting route for subscription {}", subscriptionSetup);
+                        route.getServices().forEach(service -> {
+                            try {
+                                service.start();
+                            } catch (Exception e) {
+                                logger.warn("Restarting route failed", e);
+                            }
+                        });
                     }
+
                 }
 
             }
@@ -240,9 +248,8 @@ public class SubscriptionConfig implements CamelContextAware {
         RouteBuilder initializerRoute = new RouteBuilder() {
             @Override
             public void configure() throws Exception {
-
+                SubscriptionManager.removeSubscription(subscriptionSetup.getSubscriptionId());
                 if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.SUBSCRIBE) {
-                    SubscriptionManager.removeSubscription(subscriptionSetup.getSubscriptionId());
 
                     String tmpRouteId = "forceCancel:" + subscriptionSetup.getSubscriptionId();
 
@@ -262,13 +269,12 @@ public class SubscriptionConfig implements CamelContextAware {
                     // If request/response-routes lose its connection, it will not be reestablished - needs to be restarted
                     Route route = camelContext.getRoute(subscriptionSetup.getRequestResponseRouteName());
                     if (route != null) {
-                        logger.info("Restarting route for subscription {}", subscriptionSetup);
+                        logger.info("Stopping route for subscription {}", subscriptionSetup);
                         route.getServices().forEach(service -> {
                             try {
                                 service.stop();
-                                service.start();
                             } catch (Exception e) {
-                               logger.warn("Restarting route failed", e);
+                               logger.warn("Stopping route failed", e);
                             }
                         });
                     }
