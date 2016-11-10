@@ -4,6 +4,7 @@ import no.rutebanken.anshar.routes.siri.transformer.impl.LeftPaddingAdapter;
 import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.routes.siri.transformer.impl.RuterSubstringAdapter;
+import no.rutebanken.anshar.routes.siri.transformer.impl.StopPlaceRegisterMapper;
 import org.junit.Test;
 import uk.org.siri.siri20.*;
 
@@ -11,7 +12,9 @@ import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static junit.framework.TestCase.assertNull;
 import static junit.framework.TestCase.assertEquals;
@@ -185,7 +188,52 @@ public class SiriValueTransformerTest {
 
     }
 
+    @Test
+    public void testStopPlaceRegisterMapping() throws JAXBException {
+        SiriValueTransformer transformer = new SiriValueTransformer();
+
+        String origin = "1234";
+        String newOrigin = "11223344";
+
+        String destination = "2345";
+        String newDestination = "22334455";
+
+        String lineRefValue = "99";
+        String blockRefValue = "34";
+
+        Map<String, String> nsrMap = new HashMap<>();
+        nsrMap.put("4321", "44332211");
+        nsrMap.put(origin, newOrigin);
+        nsrMap.put(destination, newDestination);
+
+        Siri siri = createSiriObject(lineRefValue, blockRefValue, origin, destination);
+
+        assertEquals(origin, getOriginFromSiriObj(siri));
+        assertEquals(destination, getDestinationfFromSiriObj(siri));
+        assertEquals(lineRefValue, getLineRefFromSiriObj(siri));
+        assertEquals(blockRefValue, getBlockRefFromSiriObj(siri));
+
+
+        List<ValueAdapter> mappingAdapters = new ArrayList<>();
+        mappingAdapters.add(new StopPlaceRegisterMapper(JourneyPlaceRefStructure.class, nsrMap));
+        mappingAdapters.add(new StopPlaceRegisterMapper(DestinationRef.class, nsrMap));
+
+        siri = transformer.transform(siri, mappingAdapters);
+
+        assertEquals("Origin has not been replaced as expected", newOrigin, getOriginFromSiriObj(siri));
+        assertEquals("Destination has not been replaced as expected", newDestination, getDestinationfFromSiriObj(siri));
+
+        assertEquals("LineRef should not be replaced", lineRefValue, getLineRefFromSiriObj(siri));
+        assertEquals("BlockRef should not be replaced", blockRefValue, getBlockRefFromSiriObj(siri));
+
+    }
+
     private Siri createSiriObject(String lineRefValue, String blockRefValue) {
+        return createSiriObject(lineRefValue, blockRefValue, null, null);
+    }
+
+
+    private Siri createSiriObject(String lineRefValue, String blockRefValue, String originStopPointValue, String destinationStopPointValue) {
         Siri siri = new Siri();
             ServiceDelivery serviceDelivery = new ServiceDelivery();
         EstimatedTimetableDeliveryStructure estimatedTimetableDelivery = new EstimatedTimetableDeliveryStructure();
@@ -199,6 +247,16 @@ public class SiriValueTransformerTest {
             BlockRefStructure blockRef = new BlockRefStructure();
             blockRef.setValue(blockRefValue);
             estimatedVehicleJourney.setBlockRef(blockRef);
+
+
+        JourneyPlaceRefStructure origin = new JourneyPlaceRefStructure();
+        origin.setValue(originStopPointValue);
+        estimatedVehicleJourney.setOriginRef(origin);
+
+        DestinationRef destination = new DestinationRef();
+        destination.setValue(destinationStopPointValue);
+        estimatedVehicleJourney.setDestinationRef(destination);
+
 
         estimatedJourneyVersionFrame.getEstimatedVehicleJourneies().add(estimatedVehicleJourney);
         estimatedTimetableDelivery.getEstimatedJourneyVersionFrames().add(estimatedJourneyVersionFrame);
@@ -214,6 +272,14 @@ public class SiriValueTransformerTest {
 
     private String getLineRefFromSiriObj(Siri siri) {
         return siri.getServiceDelivery().getEstimatedTimetableDeliveries().get(0).getEstimatedJourneyVersionFrames().get(0).getEstimatedVehicleJourneies().get(0).getLineRef().getValue();
+    }
+
+    private String getOriginFromSiriObj(Siri siri) {
+        return siri.getServiceDelivery().getEstimatedTimetableDeliveries().get(0).getEstimatedJourneyVersionFrames().get(0).getEstimatedVehicleJourneies().get(0).getOriginRef().getValue();
+    }
+
+    private String getDestinationfFromSiriObj(Siri siri) {
+        return siri.getServiceDelivery().getEstimatedTimetableDeliveries().get(0).getEstimatedJourneyVersionFrames().get(0).getEstimatedVehicleJourneies().get(0).getDestinationRef().getValue();
     }
 
 
