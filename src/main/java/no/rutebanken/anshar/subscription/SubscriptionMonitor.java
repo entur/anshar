@@ -22,8 +22,8 @@ import java.time.ZoneId;
 import java.util.*;
 
 @Configuration
-public class SubscriptionConfig implements CamelContextAware {
-    private static Logger logger = LoggerFactory.getLogger(SubscriptionConfig.class);
+public class SubscriptionMonitor implements CamelContextAware {
+    private static Logger logger = LoggerFactory.getLogger(SubscriptionMonitor.class);
 
     private final String ANSHAR_HEALTHCHECK_KEY = "anshar.healthcheck";
 
@@ -50,7 +50,7 @@ public class SubscriptionConfig implements CamelContextAware {
         this.camelContext = camelContext;
     }
 
-    public SubscriptionConfig() {
+    public SubscriptionMonitor() {
         DistributedCollection dc = new DistributedCollection();
         lockMap = dc.getLockMap();
     }
