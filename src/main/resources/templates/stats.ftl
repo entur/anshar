@@ -29,9 +29,9 @@
                 <tr data-toggle="collapse" data-target="#accordion${item?counter}"  class="clickable ${item.healthy?then("success","danger")}">
                     <td>${item.status}</td>
                     <td>${item.healthy?c}</td>
-                    <td>${item.activated}</td>
+                    <td>${item.activated:"null"}</td>
                     <td>${item.vendor}</td>
-                    <td>${item.lastActivity}</td>
+                    <td>${item.lastActivity:"null"}</td>
                     <td>${item.hitcount!0}</td>
                 </tr>
                 <tr id="accordion${item?counter}" class="collapse ${item.healthy?then("success","danger")}">
