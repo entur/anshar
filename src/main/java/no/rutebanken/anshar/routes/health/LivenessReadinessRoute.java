@@ -63,6 +63,7 @@ public class LivenessReadinessRoute extends RouteBuilder {
                 .process(p-> {
                     p.getOut().setBody(SubscriptionManager.buildStats());
                 })
+                .to("freemarker:templates/stats.ftl")
         ;
 
         //Return subscription status

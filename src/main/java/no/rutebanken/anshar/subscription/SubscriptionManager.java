@@ -2,7 +2,6 @@ package no.rutebanken.anshar.subscription;
 
 
 import no.rutebanken.anshar.messages.collections.DistributedCollection;
-import no.rutebanken.anshar.messages.collections.ExpiringConcurrentMap;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -11,10 +10,8 @@ import org.slf4j.LoggerFactory;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
-import static no.rutebanken.anshar.messages.collections.DistributedCollection.*;
 
 public class SubscriptionManager {
 
@@ -210,19 +207,18 @@ public class SubscriptionManager {
         return false;
     }
 
-    public static String buildStats() {
+    public static JSONArray buildStats() {
 
-
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneId.systemDefault());
         JSONArray stats = new JSONArray();
-
 
         for (String key : activeSubscriptions.keySet()) {
 
             SubscriptionSetup setup = activeSubscriptions.get(key);
 
             JSONObject obj = setup.toJSON();
-            obj.put("activated",""+activatedTimestamp.get(setup.getSubscriptionId()).atZone(ZoneId.systemDefault()));
-            obj.put("lastActivity",""+lastActivity.get(setup.getSubscriptionId()).atZone(ZoneId.systemDefault()));
+            obj.put("activated",""+formatter.format(activatedTimestamp.get(setup.getSubscriptionId())));
+            obj.put("lastActivity",""+formatter.format(lastActivity.get(setup.getSubscriptionId())));
             obj.put("status","active");
             obj.put("healthy",isSubscriptionHealthy(setup.getSubscriptionId()));
             obj.put("hitcount",hitcount.get(setup.getSubscriptionId()));
@@ -234,7 +230,7 @@ public class SubscriptionManager {
 
             JSONObject obj = setup.toJSON();
             obj.put("activated",null);
-            obj.put("lastActivity",""+lastActivity.get(setup.getSubscriptionId()).atZone(ZoneId.systemDefault()));
+            obj.put("lastActivity",""+formatter.format(lastActivity.get(setup.getSubscriptionId())));
             obj.put("status","pending");
             obj.put("healthy",isSubscriptionHealthy(setup.getSubscriptionId()));
             obj.put("hitcount",hitcount.get(setup.getSubscriptionId()));
@@ -242,7 +238,7 @@ public class SubscriptionManager {
             stats.add(obj);
         }
 
-        return stats.toJSONString();
+        return stats;
     }
 
     public static Map<String, SubscriptionSetup> getActiveSubscriptions() {
