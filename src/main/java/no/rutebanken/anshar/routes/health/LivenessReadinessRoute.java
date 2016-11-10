@@ -71,6 +71,7 @@ public class LivenessReadinessRoute extends RouteBuilder {
                 .process(p -> {
                     p.getOut().setBody(ServerSubscriptionManager.getSubscriptionsAsJson());
                 })
+                .to("freemarker:templates/subscriptions.ftl")
         ;
         //Return subscription status
         from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/clusterstats")

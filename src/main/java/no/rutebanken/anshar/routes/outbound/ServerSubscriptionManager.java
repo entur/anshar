@@ -12,7 +12,9 @@ import org.springframework.context.annotation.Configuration;
 import uk.org.siri.siri20.*;
 
 import javax.xml.datatype.Duration;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import static no.rutebanken.anshar.routes.outbound.SiriHelper.getFilter;
@@ -45,10 +47,11 @@ public class ServerSubscriptionManager extends CamelRouteManager {
 
     }
 
-    public static String getSubscriptionsAsJson() {
+    public static JSONArray getSubscriptionsAsJson() {
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneId.systemDefault());
 
         JSONArray stats = new JSONArray();
-
 
         for (String key : subscriptions.keySet()) {
 
@@ -56,14 +59,16 @@ public class ServerSubscriptionManager extends CamelRouteManager {
 
             JSONObject obj = new JSONObject();
             obj.put("subscriptionRef",""+key);
+            obj.put("subscriptionType",""+subscription.getSubscriptionType());
             obj.put("address",""+subscription.getAddress());
-            obj.put("requestReceived",""+subscription.getRequestTimestamp());
-            obj.put("initialTerminationTime",""+subscription.getInitialTerminationTime());
+            obj.put("heartbeatInterval",""+subscription.getHeartbeatInterval());
+            obj.put("requestReceived", formatter.format(subscription.getRequestTimestamp()));
+            obj.put("initialTerminationTime",formatter.format(subscription.getInitialTerminationTime()));
 
             stats.add(obj);
         }
 
-        return stats.toJSONString();
+        return stats;
     }
 
     public void handleSubscriptionRequest(SubscriptionRequest subscriptionRequest, String datasetId) {
