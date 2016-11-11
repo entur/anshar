@@ -12,6 +12,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class SubscriptionManager {
 
@@ -34,6 +35,8 @@ public class SubscriptionManager {
         activatedTimestamp = dc.getActivatedTimestampMap();
         hitcount = dc.getHitcountMap();
     }
+
+    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneId.systemDefault());
 
     public static void addSubscription(String subscriptionId, SubscriptionSetup setup) {
         if (pendingSubscriptions.containsKey(subscriptionId)) {
@@ -209,36 +212,32 @@ public class SubscriptionManager {
 
     public static JSONArray buildStats() {
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneId.systemDefault());
-        JSONArray stats = new JSONArray();
+        JSONArray stats = activeSubscriptions.keySet().stream()
+                .map(key -> getJsonObject(formatter, activeSubscriptions.get(key), "active"))
+                .collect(Collectors.toCollection(() -> new JSONArray()));
 
-        for (String key : activeSubscriptions.keySet()) {
-
-            SubscriptionSetup setup = activeSubscriptions.get(key);
-
-            JSONObject obj = setup.toJSON();
-            obj.put("activated",formatter.format(activatedTimestamp.get(setup.getSubscriptionId())));
-            obj.put("lastActivity",formatter.format(lastActivity.get(setup.getSubscriptionId())));
-            obj.put("status","active");
-            obj.put("healthy",isSubscriptionHealthy(setup.getSubscriptionId()));
-            obj.put("hitcount",hitcount.get(setup.getSubscriptionId()));
-
-            stats.add(obj);
-        }
-        for (String key : pendingSubscriptions.keySet()) {
-            SubscriptionSetup setup = pendingSubscriptions.get(key);
-
-            JSONObject obj = setup.toJSON();
-            obj.put("activated",null);
-            obj.put("lastActivity",formatter.format(lastActivity.get(setup.getSubscriptionId())));
-            obj.put("status","pending");
-            obj.put("healthy",isSubscriptionHealthy(setup.getSubscriptionId()));
-            obj.put("hitcount",hitcount.get(setup.getSubscriptionId()));
-
-            stats.add(obj);
-        }
+        stats.addAll(pendingSubscriptions.keySet().stream()
+                .map(key -> getJsonObject(formatter, pendingSubscriptions.get(key), "pending"))
+                .collect(Collectors.toList()));
 
         return stats;
+    }
+
+    private static JSONObject getJsonObject(DateTimeFormatter formatter, SubscriptionSetup setup, String status) {
+        JSONObject obj = setup.toJSON();
+        obj.put("activated",formatter.format(activatedTimestamp.get(setup.getSubscriptionId())));
+        obj.put("lastActivity",""+formatter.format(lastActivity.get(setup.getSubscriptionId())));
+        obj.put("status", status);
+        obj.put("healthy",isSubscriptionHealthy(setup.getSubscriptionId()));
+        obj.put("hitcount",hitcount.get(setup.getSubscriptionId()));
+
+        JSONObject urllist = new JSONObject();
+        for (RequestType s : setup.getUrlMap().keySet()) {
+            urllist.put(s.name(), setup.getUrlMap().get(s));
+        }
+        obj.put("urllist", urllist);
+
+        return obj;
     }
 
     public static Map<String, SubscriptionSetup> getActiveSubscriptions() {
