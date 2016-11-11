@@ -29,22 +29,22 @@
                 <tr data-toggle="collapse" data-target="#accordion${item?counter}"  class="clickable ${item.healthy?then("success","danger")}">
                     <td>${item.status}</td>
                     <td>${item.healthy?c}</td>
-                    <td>${item.activated:"null"}</td>
+                    <td>${item.activated!""}</td>
                     <td>${item.vendor}</td>
-                    <td>${item.lastActivity:"null"}</td>
+                    <td>${item.lastActivity!""}</td>
                     <td>${item.hitcount!0}</td>
                 </tr>
                 <tr id="accordion${item?counter}" class="collapse ${item.healthy?then("success","danger")}">
                 <td colspan="6">
-                    <div >
-                        <p>Dataset ID: ${item.datasetId}</p>
-                        <p>Servicetype: ${item.serviceType}</p>
-                        <p>Heartbeat interval: ${item.heartbeatInterval}</p>
-                        <p>Duration: ${item.durationOfSubscription}</p>
-                        <p>Type: ${item.subscriptionType}</p>
-                        <p>Id: ${item.subscriptionId}</p>
-                        <p>Mode: ${item.subscriptionMode}</p>
-                    </div>
+                    <table class="table table-striped">
+                        <tr><th>Dataset ID</th><td>${item.datasetId}</td></tr>
+                        <tr><th>Servicetype</th><td>${item.serviceType}</td></tr>
+                        <tr><th>Heartbeat interval</th><td>${item.heartbeatInterval}</td></tr>
+                        <tr><th>Duration</th><td>${item.durationOfSubscription}</td></tr>
+                        <tr><th>Type</th><td>${item.subscriptionType}</td></tr>
+                        <tr><th>Id</th><td>${item.subscriptionId}</td></tr>
+                        <tr><th>Mode</th><td>${item.subscriptionMode}</td></tr>
+                    </table>
                 </td>
                 </tr>
             </#list>

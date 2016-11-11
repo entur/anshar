@@ -217,8 +217,8 @@ public class SubscriptionManager {
             SubscriptionSetup setup = activeSubscriptions.get(key);
 
             JSONObject obj = setup.toJSON();
-            obj.put("activated",""+formatter.format(activatedTimestamp.get(setup.getSubscriptionId())));
-            obj.put("lastActivity",""+formatter.format(lastActivity.get(setup.getSubscriptionId())));
+            obj.put("activated",formatter.format(activatedTimestamp.get(setup.getSubscriptionId())));
+            obj.put("lastActivity",formatter.format(lastActivity.get(setup.getSubscriptionId())));
             obj.put("status","active");
             obj.put("healthy",isSubscriptionHealthy(setup.getSubscriptionId()));
             obj.put("hitcount",hitcount.get(setup.getSubscriptionId()));
@@ -230,7 +230,7 @@ public class SubscriptionManager {
 
             JSONObject obj = setup.toJSON();
             obj.put("activated",null);
-            obj.put("lastActivity",""+formatter.format(lastActivity.get(setup.getSubscriptionId())));
+            obj.put("lastActivity",formatter.format(lastActivity.get(setup.getSubscriptionId())));
             obj.put("status","pending");
             obj.put("healthy",isSubscriptionHealthy(setup.getSubscriptionId()));
             obj.put("hitcount",hitcount.get(setup.getSubscriptionId()));
