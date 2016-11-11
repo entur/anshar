@@ -26,7 +26,7 @@
         </thead>
         <tbody>
             <#list body as item>
-                <tr data-toggle="collapse" data-target="#accordion${item?counter}"  class="clickable ${item.healthy?then("success","danger")}">
+                <tr data-toggle="collapse" data-target="#accordion${item?counter}" style="cursor: pointer" class="clickable ${item.healthy?then("success","danger")}">
                     <td>${item.status}</td>
                     <td>${item.healthy?c}</td>
                     <td>${item.activated!""}</td>
