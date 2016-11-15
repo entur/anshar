@@ -11,9 +11,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -96,8 +95,7 @@ public class StopPlaceRegisterMapper extends ValueAdapter {
 
                 logger.info("Initializing data - start. Fetching mapping-data from internal file ");
                 ClassLoader classLoader = getClass().getClassLoader();
-                File file = new File(classLoader.getResource("id_mapping.csv").getFile());
-                BufferedReader in = new BufferedReader(new FileReader(file));
+                BufferedReader in = new BufferedReader(new InputStreamReader(classLoader.getResourceAsStream("id_mapping.csv")));
 
                 String inputLine;
                 int duplicates = 0;
