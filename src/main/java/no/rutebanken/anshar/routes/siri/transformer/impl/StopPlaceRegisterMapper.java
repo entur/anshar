@@ -26,7 +26,7 @@ public class StopPlaceRegisterMapper extends ValueAdapter {
     private static List<String> prefixes;
 
     @Value("${anshar.mapping.stopplaces.url}")
-    private String stopPlaceMappingUrl = null;
+    private String stopPlaceMappingUrl = "http://tiamat:8777/jersey/id_mapping";
 
     private static Map<String, String> stopPlaceMappings;
     private static IMap<String, Instant> lockMap;
