@@ -213,20 +213,20 @@ public class SubscriptionManager {
     public static JSONArray buildStats() {
 
         JSONArray stats = activeSubscriptions.keySet().stream()
-                .map(key -> getJsonObject(formatter, activeSubscriptions.get(key), "active"))
+                .map(key -> getJsonObject(activeSubscriptions.get(key), "active"))
                 .collect(Collectors.toCollection(() -> new JSONArray()));
 
         stats.addAll(pendingSubscriptions.keySet().stream()
-                .map(key -> getJsonObject(formatter, pendingSubscriptions.get(key), "pending"))
+                .map(key -> getJsonObject(pendingSubscriptions.get(key), "pending"))
                 .collect(Collectors.toList()));
 
         return stats;
     }
 
-    private static JSONObject getJsonObject(DateTimeFormatter formatter, SubscriptionSetup setup, String status) {
+    private static JSONObject getJsonObject(SubscriptionSetup setup, String status) {
         JSONObject obj = setup.toJSON();
-        obj.put("activated",formatter.format(activatedTimestamp.get(setup.getSubscriptionId())));
-        obj.put("lastActivity",""+formatter.format(lastActivity.get(setup.getSubscriptionId())));
+        obj.put("activated",formatTimestamp(activatedTimestamp.get(setup.getSubscriptionId())));
+        obj.put("lastActivity",""+formatTimestamp(lastActivity.get(setup.getSubscriptionId())));
         obj.put("status", status);
         obj.put("healthy",isSubscriptionHealthy(setup.getSubscriptionId()));
         obj.put("hitcount",hitcount.get(setup.getSubscriptionId()));
@@ -238,6 +238,13 @@ public class SubscriptionManager {
         obj.put("urllist", urllist);
 
         return obj;
+    }
+
+    private static String formatTimestamp(Instant instant) {
+        if (instant != null) {
+            return formatter.format(instant);
+        }
+        return "";
     }
 
     public static Map<String, SubscriptionSetup> getActiveSubscriptions() {
