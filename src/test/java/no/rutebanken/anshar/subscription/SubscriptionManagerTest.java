@@ -8,9 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class SubscriptionManagerTest {
 
@@ -164,8 +162,11 @@ public class SubscriptionManagerTest {
                 "tst",
                 SubscriptionSetup.ServiceType.SOAP,
                 new ArrayList<>(),
-                new HashMap<>(), UUID.randomUUID().toString(),
-                "RutebankenDEV", Duration.ofSeconds(initialDuration),
+                new HashMap<>(),
+                new ArrayList<>(),
+                UUID.randomUUID().toString(),
+                "RutebankenDEV",
+                Duration.ofSeconds(initialDuration),
                 true
         );
         return sub;
@@ -184,8 +185,11 @@ public class SubscriptionManagerTest {
                 "tst",
                 SubscriptionSetup.ServiceType.SOAP,
                 new ArrayList<>(),
-                new HashMap<>(), UUID.randomUUID().toString(),
-                "RutebankenDEV", Duration.ofSeconds(initialDuration),
+                new HashMap<>(),
+                new ArrayList<>(),
+                UUID.randomUUID().toString(),
+                "RutebankenDEV",
+                Duration.ofSeconds(initialDuration),
                 true
         );
         return sub;

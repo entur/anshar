@@ -6,7 +6,10 @@ import org.json.simple.JSONObject;
 import java.io.Serializable;
 import java.text.MessageFormat;
 import java.time.Duration;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class SubscriptionSetup implements Serializable{
 
@@ -26,6 +29,7 @@ public class SubscriptionSetup implements Serializable{
     private boolean active;
     private SubscriptionMode subscriptionMode;
     private Map<Class, Set<String>> filterMap;
+    private List<String> idMappingPrefixes;
 
     public SubscriptionSetup() {
     }
@@ -47,8 +51,8 @@ public class SubscriptionSetup implements Serializable{
      * @param active Activates/deactivates subscription
      */
     SubscriptionSetup(SubscriptionType subscriptionType, SubscriptionMode subscriptionMode, String address, Duration heartbeatInterval, String operatorNamespace, Map<RequestType, String> urlMap,
-                             String version, String vendor, String datasetId, ServiceType serviceType, List<ValueAdapter> mappingAdapters, Map<Class, Set<String>> filterMap, String subscriptionId,
-                             String requestorRef, Duration durationOfSubscription, boolean active) {
+                             String version, String vendor, String datasetId, ServiceType serviceType, List<ValueAdapter> mappingAdapters, Map<Class, Set<String>> filterMap, List<String> idMappingPrefixes,
+                             String subscriptionId, String requestorRef, Duration durationOfSubscription, boolean active) {
         this.subscriptionType = subscriptionType;
         this.subscriptionMode = subscriptionMode;
         this.address = address;
@@ -61,6 +65,7 @@ public class SubscriptionSetup implements Serializable{
         this.serviceType = serviceType;
         this.mappingAdapters = mappingAdapters;
         this.filterMap = filterMap;
+        this.idMappingPrefixes = idMappingPrefixes;
         this.subscriptionId = subscriptionId;
         this.requestorRef = requestorRef;
         this.durationOfSubscription = durationOfSubscription;
@@ -185,12 +190,30 @@ public class SubscriptionSetup implements Serializable{
     public enum SubscriptionType {SITUATION_EXCHANGE, VEHICLE_MONITORING, PRODUCTION_TIMETABLE, ESTIMATED_TIMETABLE}
     public enum SubscriptionMode {SUBSCRIBE, REQUEST_RESPONSE}
 
-    public void setMappingAdapterPreset(MappingAdapterPresets.Preset preset) {
-        setMappingAdapters(MappingAdapterPresets.adapterPresets.get(preset));
+    public void setMappingAdapterPresets(MappingAdapterPresets.Preset[] presets) {
+        for (MappingAdapterPresets.Preset preset : presets) {
+            addMappingAdapters(MappingAdapterPresets.get(preset));
+        }
+    }
+
+    private void addMappingAdapters(List<ValueAdapter> valueAdapters) {
+        if (mappingAdapters == null) {
+            mappingAdapters = new ArrayList<>();
+        }
+        mappingAdapters.addAll(valueAdapters);
     }
 
     private void setMappingAdapters(List<ValueAdapter> mappingAdapters) {
         this.mappingAdapters = mappingAdapters;
+    }
+
+
+    public void setIdMappingPrefixes(List<String> idMappingPrefixes) {
+        this.idMappingPrefixes = idMappingPrefixes;
+    }
+
+    public List<String> getIdMappingPrefixes() {
+        return idMappingPrefixes;
     }
 
     public void setSubscriptionType(SubscriptionType subscriptionType) {

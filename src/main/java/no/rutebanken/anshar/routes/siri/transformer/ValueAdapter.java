@@ -10,6 +10,9 @@ public abstract class ValueAdapter implements Serializable {
         this.clazz = clazz;
     }
 
+    protected ValueAdapter() {
+    }
+
     public Class getClassToApply() {
         return clazz;
     }

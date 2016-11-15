@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import com.hazelcast.core.IMap;
 import no.rutebanken.anshar.messages.collections.DistributedCollection;
 import no.rutebanken.anshar.routes.siri.*;
+import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import org.apache.camel.CamelContext;
 import org.apache.camel.CamelContextAware;
 import org.apache.camel.Route;
@@ -77,6 +78,12 @@ public class SubscriptionMonitor implements CamelContextAware {
                     //Verify subscriptionId-uniqueness
                     throw new ServiceConfigurationError("SubscriptionIds are NOT unique for ID="+subscriptionSetup.getSubscriptionId());
                 }
+
+                //Add NSR StopPlaceIdMapperAdapters
+                List<ValueAdapter> nsr = MappingAdapterPresets.createNsrIdMappingAdapters(subscriptionSetup.getIdMappingPrefixes());
+
+                subscriptionSetup.getMappingAdapters().addAll(nsr);
+
                 subscriptionIds.add(subscriptionSetup.getSubscriptionId());
 
                 RouteBuilder routeBuilder = getRouteBuilder(subscriptionSetup);

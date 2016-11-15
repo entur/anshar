@@ -169,4 +169,8 @@ public class DistributedCollection {
     public Map<String, Timer> getHeartbeatTimerMap() {
         return hazelcastInstance.getMap("anshar.subscriptions.outbound.heartbeat");
     }
+
+    public Map<String,String> getStopPlaceMappings() {
+        return hazelcastInstance.getMap("anshar.mapping.stopplaces");
+    }
 }

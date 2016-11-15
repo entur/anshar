@@ -2,7 +2,7 @@ anshar:
   subscriptions:
     -
       vendor: kolumbussx
-      datasetId: kol
+      datasetId: KOL
       serviceType: SOAP
       subscriptionType: SITUATION_EXCHANGE
       subscriptionMode: REQUEST_RESPONSE
@@ -17,10 +17,11 @@ anshar:
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
       mappingAdapterPreset: KOLUMBUS
+      idMappingPrefixes: KOL
       active: true
     -
       vendor: kolumbusvm
-      datasetId: kol
+      datasetId: KOL
       serviceType: SOAP
       subscriptionType: VEHICLE_MONITORING
       subscriptionMode: REQUEST_RESPONSE
@@ -33,10 +34,11 @@ anshar:
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
       mappingAdapterPreset: KOLUMBUS
+      idMappingPrefixes: KOL
       active: true
     -
       vendor: atbsx
-      datasetId: atb
+      datasetId: ATB
       serviceType: SOAP
       subscriptionType: SITUATION_EXCHANGE
       subscriptionMode: REQUEST_RESPONSE
@@ -51,10 +53,11 @@ anshar:
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
       mappingAdapterPreset: ATB
+      idMappingPrefixes: ATB
       active: true
     -
       vendor: atbvm
-      datasetId: atb
+      datasetId: ATB
       serviceType: SOAP
       subscriptionType: VEHICLE_MONITORING
       subscriptionMode: REQUEST_RESPONSE
@@ -67,10 +70,11 @@ anshar:
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
       mappingAdapterPreset: ATB
+      idMappingPrefixes: ATB
       active: true
     -
       vendor: aktsx
-      datasetId: akt
+      datasetId: AKT
       serviceType: REST
       subscriptionType: SITUATION_EXCHANGE
       subscriptionMode: SUBSCRIBE
@@ -84,10 +88,11 @@ anshar:
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
       mappingAdapterPreset: AKT
+      idMappingPrefixes: AKT
       active: true
     -
       vendor: aktet
-      datasetId: akt
+      datasetId: AKT
       serviceType: REST
       subscriptionType: ESTIMATED_TIMETABLE
       subscriptionMode: SUBSCRIBE
@@ -101,10 +106,11 @@ anshar:
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
       mappingAdapterPreset: AKT
+      idMappingPrefixes: AKT
       active: true
     -
       vendor: rutersx
-      datasetId: rut
+      datasetId: RUT
       serviceType: REST
       subscriptionType: SITUATION_EXCHANGE
       subscriptionMode: SUBSCRIBE
@@ -119,10 +125,11 @@ anshar:
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
       mappingAdapterPreset: RUTER
+      idMappingPrefixes: RUT,OPP,BRA,OST
       active: true
     -
       vendor: rutervm
-      datasetId: rut
+      datasetId: RUT
       serviceType: REST
       subscriptionType: VEHICLE_MONITORING
       subscriptionMode: SUBSCRIBE
@@ -137,10 +144,11 @@ anshar:
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
       mappingAdapterPreset: RUTER
+      idMappingPrefixes: RUT,OPP,BRA,OST
       active: true
     -
       vendor: ruteret
-      datasetId: rut
+      datasetId: RUT
       serviceType: REST
       subscriptionType: ESTIMATED_TIMETABLE
       subscriptionMode: SUBSCRIBE
@@ -155,4 +163,5 @@ anshar:
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
       mappingAdapterPreset: RUTER
+      idMappingPrefixes: RUT,OPP,BRA,OST
       active: true

@@ -4,6 +4,7 @@ import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.routes.siri.transformer.impl.LeftPaddingAdapter;
 import no.rutebanken.anshar.routes.siri.transformer.impl.RightPaddingStopPlaceAdapter;
 import no.rutebanken.anshar.routes.siri.transformer.impl.RuterSubstringAdapter;
+import no.rutebanken.anshar.routes.siri.transformer.impl.StopPlaceRegisterMapper;
 import uk.org.ifopt.siri20.StopPlaceRef;
 import uk.org.siri.siri20.DestinationRef;
 import uk.org.siri.siri20.JourneyPlaceRefStructure;
@@ -11,48 +12,50 @@ import uk.org.siri.siri20.LineRef;
 import uk.org.siri.siri20.StopPointRef;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class MappingAdapterPresets {
 
-    public static final Map<Preset, List<ValueAdapter>> adapterPresets = new HashMap<>();
-
-    static {
-        List<ValueAdapter> ruter;
-        List<ValueAdapter> atb_kol_akt;
-
-        ruter = new ArrayList<>();
-        ruter.add(new LeftPaddingAdapter(LineRef.class, 4, '0'));
-
-        ruter.add(new RuterSubstringAdapter(StopPointRef.class, ':', '0', 2));
-        ruter.add(new LeftPaddingAdapter(StopPointRef.class, 10, '0'));
-
-        ruter.add(new LeftPaddingAdapter(StopPlaceRef.class, 8, '0'));
-        ruter.add(new RightPaddingStopPlaceAdapter(StopPlaceRef.class, 8, "01"));
-
-
-        atb_kol_akt = new ArrayList<>();
-        //StopPointRef
-        atb_kol_akt.add(new LeftPaddingAdapter(StopPointRef.class, 8, '0'));
-        atb_kol_akt.add(new RightPaddingStopPlaceAdapter(StopPointRef.class, 8, "01"));
-
-        //OriginRef
-        atb_kol_akt.add(new LeftPaddingAdapter(JourneyPlaceRefStructure.class, 8, '0'));
-        atb_kol_akt.add(new RightPaddingStopPlaceAdapter(JourneyPlaceRefStructure.class, 8, "01"));
-
-        //DestinationRef
-        atb_kol_akt.add(new LeftPaddingAdapter(DestinationRef.class, 8, '0'));
-        atb_kol_akt.add(new RightPaddingStopPlaceAdapter(DestinationRef.class, 8, "01"));
-
-        adapterPresets.put(Preset.RUTER, ruter);
-        adapterPresets.put(Preset.ATB, atb_kol_akt);
-        adapterPresets.put(Preset.KOLUMBUS, atb_kol_akt);
-        adapterPresets.put(Preset.AKT, atb_kol_akt);
-    }
-
     public enum Preset {
         RUTER, ATB, KOLUMBUS, AKT
+    }
+
+    public static List<ValueAdapter> get(Preset preset) {
+
+        List<ValueAdapter> adapters = new ArrayList<>();
+        switch (preset) {
+            case RUTER:
+                adapters.add(new LeftPaddingAdapter(LineRef.class, 4, '0'));
+                adapters.add(new RuterSubstringAdapter(StopPointRef.class, ':', '0', 2));
+                adapters.add(new LeftPaddingAdapter(StopPointRef.class, 10, '0'));
+                adapters.add(new LeftPaddingAdapter(StopPlaceRef.class, 8, '0'));
+                adapters.add(new RightPaddingStopPlaceAdapter(StopPlaceRef.class, 8, "01"));
+                return adapters;
+            case ATB:
+            case KOLUMBUS:
+            case AKT:
+                adapters.add(new LeftPaddingAdapter(StopPointRef.class, 8, '0'));
+                adapters.add(new RightPaddingStopPlaceAdapter(StopPointRef.class, 8, "01"));
+
+                //OriginRef
+                adapters.add(new LeftPaddingAdapter(JourneyPlaceRefStructure.class, 8, '0'));
+                adapters.add(new RightPaddingStopPlaceAdapter(JourneyPlaceRefStructure.class, 8, "01"));
+
+                //DestinationRef
+                adapters.add(new LeftPaddingAdapter(DestinationRef.class, 8, '0'));
+                adapters.add(new RightPaddingStopPlaceAdapter(DestinationRef.class, 8, "01"));
+                return  adapters;
+        }
+
+        return adapters;
+    }
+
+    public static List<ValueAdapter> createNsrIdMappingAdapters(List<String> idMappingPrefixes) {
+        List<ValueAdapter> nsr = new ArrayList<>();
+        nsr.add(new StopPlaceRegisterMapper(StopPlaceRef.class, idMappingPrefixes));
+        nsr.add(new StopPlaceRegisterMapper(StopPointRef.class, idMappingPrefixes));
+        nsr.add(new StopPlaceRegisterMapper(JourneyPlaceRefStructure.class, idMappingPrefixes));
+        nsr.add(new StopPlaceRegisterMapper(DestinationRef.class, idMappingPrefixes));
+        return nsr;
     }
 }

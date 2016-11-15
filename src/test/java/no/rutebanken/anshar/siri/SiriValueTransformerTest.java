@@ -1,8 +1,8 @@
 package no.rutebanken.anshar.siri;
 
-import no.rutebanken.anshar.routes.siri.transformer.impl.LeftPaddingAdapter;
 import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
+import no.rutebanken.anshar.routes.siri.transformer.impl.LeftPaddingAdapter;
 import no.rutebanken.anshar.routes.siri.transformer.impl.RuterSubstringAdapter;
 import no.rutebanken.anshar.routes.siri.transformer.impl.StopPlaceRegisterMapper;
 import org.junit.Test;
@@ -16,8 +16,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static junit.framework.TestCase.assertNull;
 import static junit.framework.TestCase.assertEquals;
+import static junit.framework.TestCase.assertNull;
 import static org.junit.Assert.assertNotNull;
 
 public class SiriValueTransformerTest {
@@ -213,10 +213,10 @@ public class SiriValueTransformerTest {
         assertEquals(lineRefValue, getLineRefFromSiriObj(siri));
         assertEquals(blockRefValue, getBlockRefFromSiriObj(siri));
 
-
+        StopPlaceRegisterMapper.setStopPlaceMappings(nsrMap);
         List<ValueAdapter> mappingAdapters = new ArrayList<>();
-        mappingAdapters.add(new StopPlaceRegisterMapper(JourneyPlaceRefStructure.class, nsrMap));
-        mappingAdapters.add(new StopPlaceRegisterMapper(DestinationRef.class, nsrMap));
+        mappingAdapters.add(new StopPlaceRegisterMapper(JourneyPlaceRefStructure.class));
+        mappingAdapters.add(new StopPlaceRegisterMapper(DestinationRef.class));
 
         siri = transformer.transform(siri, mappingAdapters);
 
