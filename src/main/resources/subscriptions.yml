@@ -16,7 +16,7 @@ anshar:
       subscriptionId: bbd85dee-2a50-49d4-852a-60e8fd00269a
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
-      mappingAdapterPreset: KOLUMBUS
+      mappingAdapterPresets: KOLUMBUS
       idMappingPrefixes: KOL
       active: true
     -
@@ -33,7 +33,7 @@ anshar:
       subscriptionId: 371ff4cc-e9d0-49ed-90f0-13d6781493d1
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
-      mappingAdapterPreset: KOLUMBUS
+      mappingAdapterPresets: KOLUMBUS
       idMappingPrefixes: KOL
       active: true
     -
@@ -52,7 +52,7 @@ anshar:
       subscriptionId: 7f53f3b0-8679-415d-a3bc-8d0eb4eb8a00
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
-      mappingAdapterPreset: ATB
+      mappingAdapterPresets: ATB
       idMappingPrefixes: ATB
       active: true
     -
@@ -69,7 +69,7 @@ anshar:
       subscriptionId: 3a420d8b-a719-41fe-99d7-5eae8b87a3fc
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
-      mappingAdapterPreset: ATB
+      mappingAdapterPresets: ATB
       idMappingPrefixes: ATB
       active: true
     -
@@ -87,7 +87,7 @@ anshar:
       subscriptionId: 1f9b3a80-8c1a-49ef-9842-4a7edf0f952d
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
-      mappingAdapterPreset: AKT
+      mappingAdapterPresets: AKT
       idMappingPrefixes: AKT
       active: true
     -
@@ -105,7 +105,7 @@ anshar:
       subscriptionId: 962c8456-4b67-4b75-b852-55e9f2ca0444
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
-      mappingAdapterPreset: AKT
+      mappingAdapterPresets: AKT
       idMappingPrefixes: AKT
       active: true
     -
@@ -124,7 +124,7 @@ anshar:
       subscriptionId: 4df2bf3e-6687-4f2b-950b-853da7579cf6
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
-      mappingAdapterPreset: RUTER
+      mappingAdapterPresets: RUTER
       idMappingPrefixes: RUT,OPP,BRA,OST
       active: true
     -
@@ -143,7 +143,7 @@ anshar:
       subscriptionId: 20c2e3a3-1659-41d3-b1a2-1411978b1d43
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
-      mappingAdapterPreset: RUTER
+      mappingAdapterPresets: RUTER
       idMappingPrefixes: RUT,OPP,BRA,OST
       active: true
     -
@@ -162,6 +162,6 @@ anshar:
       subscriptionId: 1f6a687e-58b8-4e46-a23c-98adadad78ed
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
-      mappingAdapterPreset: RUTER
+      mappingAdapterPresets: RUTER
       idMappingPrefixes: RUT,OPP,BRA,OST
       active: true
