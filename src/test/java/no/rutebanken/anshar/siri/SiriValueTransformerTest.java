@@ -215,8 +215,8 @@ public class SiriValueTransformerTest {
 
         StopPlaceRegisterMapper.setStopPlaceMappings(nsrMap);
         List<ValueAdapter> mappingAdapters = new ArrayList<>();
-        mappingAdapters.add(new StopPlaceRegisterMapper(JourneyPlaceRefStructure.class));
-        mappingAdapters.add(new StopPlaceRegisterMapper(DestinationRef.class));
+        mappingAdapters.add(new StopPlaceRegisterMapper(JourneyPlaceRefStructure.class, new ArrayList<>()));
+        mappingAdapters.add(new StopPlaceRegisterMapper(DestinationRef.class, new ArrayList<>()));
 
         siri = transformer.transform(siri, mappingAdapters);
 

@@ -22,14 +22,15 @@ import java.util.StringTokenizer;
 public class StopPlaceRegisterMapper extends ValueAdapter {
 
     private static Logger logger = LoggerFactory.getLogger(StopPlaceRegisterMapper.class);
-    private static List<String> prefixes;
-
-    @Value("${anshar.mapping.stopplaces.url}")
-    private String stopPlaceMappingUrl = "http://tiamat:8777/jersey/id_mapping";
 
     private static Map<String, String> stopPlaceMappings;
     private static IMap<String, Instant> lockMap;
     private static boolean attemptedToInitialize = false;
+
+    @Value("${anshar.mapping.stopplaces.url}")
+    private String stopPlaceMappingUrl = "http://tiamat:8777/jersey/id_mapping";
+
+    private List<String> prefixes;
 
     static {
         DistributedCollection dc = new DistributedCollection();
@@ -38,16 +39,11 @@ public class StopPlaceRegisterMapper extends ValueAdapter {
     }
 
     public StopPlaceRegisterMapper() {
-
-    }
-
-    public StopPlaceRegisterMapper(Class clazz) {
-        super(clazz);
-        initialize();
+        //called by Spring during startup
     }
 
     public StopPlaceRegisterMapper(Class clazz, List<String> prefixes) {
-        this(clazz);
+        super(clazz);
         this.prefixes = prefixes;
         initialize();
     }
