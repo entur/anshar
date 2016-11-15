@@ -4,6 +4,8 @@ package no.rutebanken.anshar.routes.siri.transformer.impl;
 import com.hazelcast.core.IMap;
 import no.rutebanken.anshar.messages.collections.DistributedCollection;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
+import org.quartz.utils.counter.Counter;
+import org.quartz.utils.counter.CounterImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,7 +31,7 @@ public class StopPlaceRegisterMapper extends ValueAdapter {
     private static boolean attemptedToInitialize = false;
 
     @Value("${anshar.mapping.stopplaces.url}")
-    private String stopPlaceMappingUrl = "http://tiamat:8777/jersey/id_mapping?recordsPerRoundTrip=30000";
+    private String stopPlaceMappingUrl = "http://tiamat:8777/jersey/id_mapping?recordsPerRoundTrip=50000";
 
     private List<String> prefixes;
 
@@ -88,26 +90,29 @@ public class StopPlaceRegisterMapper extends ValueAdapter {
                 attemptedToInitialize = true;
                 logger.info("Initializing data - start. Fetching mapping-data from {}", stopPlaceMappingUrl);
                 URL url = new URL(stopPlaceMappingUrl);
-                BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream()));
 
-//                logger.info("Initializing data - start. Fetching mapping-data from internal file ");
-//                ClassLoader classLoader = getClass().getClassLoader();
-//                BufferedReader in = new BufferedReader(new InputStreamReader(classLoader.getResourceAsStream("id_mapping.csv")));
+                Counter duplicates = new CounterImpl(0);
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()))) {
 
-                String inputLine;
-                int duplicates = 0;
-                while ((inputLine = in.readLine()) != null) {
-                    StringTokenizer tokenizer = new StringTokenizer(inputLine, ",");
-                    String id = tokenizer.nextToken(); //First token
-                    String generatedId = tokenizer.nextToken().replaceAll(":", ".");
+                    reader.lines().forEach(line -> {
 
-                    if (stopPlaceMappings.containsKey(id)) {
-                        duplicates++;
-                    }
-                    stopPlaceMappings.put(id, generatedId);
+                        StringTokenizer tokenizer = new StringTokenizer(line, ",");
+                        String id = tokenizer.nextToken(); //First token
+                        String generatedId = tokenizer.nextToken().replaceAll(":", ".");
+
+                        if (stopPlaceMappings.containsKey(id)) {
+                            duplicates.increment();
+                        }
+                        stopPlaceMappings.put(id, generatedId);
+
+                        if (stopPlaceMappings.size() % 5000 == 0) {
+                            logger.info("Initializing data - progress: [{}]", stopPlaceMappings.size());
+                        }
+                    });
+
                 }
-                in.close();
-                logger.info("Initializing data - done - {} mappings, found {} duplicates.", stopPlaceMappings.size(), duplicates);
+
+                logger.info("Initializing data - done - {} mappings, found {} duplicates.", stopPlaceMappings.size(), duplicates.getValue());
             } else {
                 logger.trace("Initializing data - already initialized.");
             }
