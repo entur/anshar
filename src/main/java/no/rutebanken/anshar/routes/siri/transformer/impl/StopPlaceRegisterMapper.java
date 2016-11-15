@@ -109,7 +109,7 @@ public class StopPlaceRegisterMapper extends ValueAdapter {
                 in.close();
                 logger.info("Initializing data - done - {} mappings, found {} duplicates.", stopPlaceMappings.size(), duplicates);
             } else {
-                logger.info("Initializing data - already initialized.");
+                logger.trace("Initializing data - already initialized.");
             }
         } catch (IOException e) {
             logger.error("Initializing data - caused exception", e);
