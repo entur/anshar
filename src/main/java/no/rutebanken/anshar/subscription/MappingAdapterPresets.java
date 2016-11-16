@@ -58,7 +58,7 @@ public class MappingAdapterPresets {
         List<ValueAdapter> adapters = new ArrayList<>();
         adapters.add(new PrefixAdapter(LineRef.class, datasetId + ".Line."));
         adapters.add(new PrefixAdapter(CourseOfJourneyRefStructure.class, datasetId + ".VehicleJourney."));
-        return null;
+        return adapters;
     }
 
 }
