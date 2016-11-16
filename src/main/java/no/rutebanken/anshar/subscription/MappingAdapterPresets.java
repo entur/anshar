@@ -1,15 +1,9 @@
 package no.rutebanken.anshar.subscription;
 
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
-import no.rutebanken.anshar.routes.siri.transformer.impl.LeftPaddingAdapter;
-import no.rutebanken.anshar.routes.siri.transformer.impl.RightPaddingStopPlaceAdapter;
-import no.rutebanken.anshar.routes.siri.transformer.impl.RuterSubstringAdapter;
-import no.rutebanken.anshar.routes.siri.transformer.impl.StopPlaceRegisterMapper;
+import no.rutebanken.anshar.routes.siri.transformer.impl.*;
 import uk.org.ifopt.siri20.StopPlaceRef;
-import uk.org.siri.siri20.DestinationRef;
-import uk.org.siri.siri20.JourneyPlaceRefStructure;
-import uk.org.siri.siri20.LineRef;
-import uk.org.siri.siri20.StopPointRef;
+import uk.org.siri.siri20.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -58,4 +52,13 @@ public class MappingAdapterPresets {
         nsr.add(new StopPlaceRegisterMapper(DestinationRef.class, idMappingPrefixes));
         return nsr;
     }
+
+
+    public static List<ValueAdapter> createIdPrefixAdapters(String datasetId) {
+        List<ValueAdapter> adapters = new ArrayList<>();
+        adapters.add(new PrefixAdapter(LineRef.class, datasetId + ".Line."));
+        adapters.add(new PrefixAdapter(CourseOfJourneyRefStructure.class, datasetId + ".VehicleJourney."));
+        return null;
+    }
+
 }

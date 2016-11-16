@@ -81,8 +81,11 @@ public class SubscriptionMonitor implements CamelContextAware {
 
                 //Add NSR StopPlaceIdMapperAdapters
                 List<ValueAdapter> nsr = MappingAdapterPresets.createNsrIdMappingAdapters(subscriptionSetup.getIdMappingPrefixes());
-
                 subscriptionSetup.getMappingAdapters().addAll(nsr);
+
+                //Add Chouette route_id, trip_id adapters
+                List<ValueAdapter> datasetPrefix = MappingAdapterPresets.createIdPrefixAdapters(subscriptionSetup.getDatasetId());
+                subscriptionSetup.getMappingAdapters().addAll(datasetPrefix);
 
                 subscriptionIds.add(subscriptionSetup.getSubscriptionId());
 
