@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
@@ -91,6 +92,7 @@ public class StopPlaceRegisterMapper extends ValueAdapter {
                 logger.info("Initializing data - start. Fetching mapping-data from {}", stopPlaceMappingUrl);
                 URL url = new URL(stopPlaceMappingUrl);
 
+                Map<String, String> tmpStopPlaceMappings = new HashMap<>();
                 Counter duplicates = new CounterImpl(0);
                 try (BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()))) {
 
@@ -100,17 +102,19 @@ public class StopPlaceRegisterMapper extends ValueAdapter {
                         String id = tokenizer.nextToken(); //First token
                         String generatedId = tokenizer.nextToken().replaceAll(":", ".");
 
-                        if (stopPlaceMappings.containsKey(id)) {
+                        if (tmpStopPlaceMappings.containsKey(id)) {
                             duplicates.increment();
                         }
-                        stopPlaceMappings.put(id, generatedId);
+                        tmpStopPlaceMappings.put(id, generatedId);
 
-                        if (stopPlaceMappings.size() % 5000 == 0) {
-                            logger.info("Initializing data - progress: [{}]", stopPlaceMappings.size());
+                        if (tmpStopPlaceMappings.size() % 5000 == 0) {
+                            logger.info("Initializing data - progress: [{}]", tmpStopPlaceMappings.size());
                         }
                     });
 
                 }
+                //Adding to Hazelcast in one operation
+                stopPlaceMappings.putAll(tmpStopPlaceMappings);
 
                 logger.info("Initializing data - done - {} mappings, found {} duplicates.", stopPlaceMappings.size(), duplicates.getValue());
             } else {
