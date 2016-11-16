@@ -31,7 +31,7 @@ public class StopPlaceRegisterMapper extends ValueAdapter {
     private static boolean attemptedToInitialize = false;
 
     @Value("${anshar.mapping.stopplaces.url}")
-    private String stopPlaceMappingUrl = "http://tiamat:8777/jersey/id_mapping?recordsPerRoundTrip=50000";
+    private String stopPlaceMappingUrl = "http://tiamat/jersey/id_mapping?recordsPerRoundTrip=50000";
 
     private List<String> prefixes;
 
