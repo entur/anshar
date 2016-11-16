@@ -17,22 +17,24 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.StringTokenizer;
+import java.util.*;
 
 @Configuration
 public class StopPlaceRegisterMapper extends ValueAdapter {
 
+    private static final String UPDATED_TIMESTAMP_KEY = "anshar.nsr.updater";
     private static Logger logger = LoggerFactory.getLogger(StopPlaceRegisterMapper.class);
 
     private static Map<String, String> stopPlaceMappings;
     private static IMap<String, Instant> lockMap;
-    private static boolean attemptedToInitialize = false;
 
     @Value("${anshar.mapping.stopplaces.url}")
     private String stopPlaceMappingUrl = "http://tiamat/jersey/id_mapping?recordsPerRoundTrip=50000";
+
+    @Value("${anshar.mapping.stopplaces.update.frequency.min}")
+    private int updateFrequency = 60;
+
+    private static Timer updater;
 
     private List<String> prefixes;
 
@@ -79,16 +81,31 @@ public class StopPlaceRegisterMapper extends ValueAdapter {
         StopPlaceRegisterMapper.stopPlaceMappings = stopPlaceMappings;
     }
 
+    public void initialize() {
+        if (updater == null) {
+            TimerTask cacheUpdater = new TimerTask() {
+                @Override
+                public void run() {
+                    updateIdMapping();
+                }
+            };
+            updater = new Timer(true);
+            updater.schedule(cacheUpdater,  new Date(), updateFrequency*60*1000);
+        }
+    }
+
     @Bean
-    protected boolean initialize() {
-        lockMap.lock("Initializing");
+    protected boolean updateIdMapping() {
+        boolean locked = lockMap.tryLock(UPDATED_TIMESTAMP_KEY);
+        if (!locked) {
+            return false;
+        }
         try {
-            if (stopPlaceMappings.isEmpty() & !attemptedToInitialize) {
+            Instant instant = lockMap.get(UPDATED_TIMESTAMP_KEY);
 
-                // Data is not initialized, and no attempt has been made
-                // Results in only one attempt during startup
+            if ((instant == null || instant.isBefore(Instant.now().minusSeconds(updateFrequency * 60)))) {
+                // Data is not initialized, or is older than allowed
 
-                attemptedToInitialize = true;
                 logger.info("Initializing data - start. Fetching mapping-data from {}", stopPlaceMappingUrl);
                 URL url = new URL(stopPlaceMappingUrl);
 
@@ -99,31 +116,31 @@ public class StopPlaceRegisterMapper extends ValueAdapter {
                     reader.lines().forEach(line -> {
 
                         StringTokenizer tokenizer = new StringTokenizer(line, ",");
-                        String id = tokenizer.nextToken(); //First token
-                        String generatedId = tokenizer.nextToken().replaceAll(":", ".");
+                        String id = tokenizer.nextToken();
+                        String generatedId = tokenizer.nextToken().replaceAll(":", "."); //Converting to OTP naming convention
 
                         if (tmpStopPlaceMappings.containsKey(id)) {
                             duplicates.increment();
                         }
                         tmpStopPlaceMappings.put(id, generatedId);
-
-                        if (tmpStopPlaceMappings.size() % 5000 == 0) {
-                            logger.info("Initializing data - progress: [{}]", tmpStopPlaceMappings.size());
-                        }
                     });
 
-                }
-                //Adding to Hazelcast in one operation
-                stopPlaceMappings.putAll(tmpStopPlaceMappings);
+                    //Adding to Hazelcast in one operation
+                    stopPlaceMappings.putAll(tmpStopPlaceMappings);
+                    lockMap.put(UPDATED_TIMESTAMP_KEY, Instant.now());
 
-                logger.info("Initializing data - done - {} mappings, found {} duplicates.", stopPlaceMappings.size(), duplicates.getValue());
+                    logger.info("Initializing data - done - {} mappings, found {} duplicates.", stopPlaceMappings.size(), duplicates.getValue());
+
+                } catch (IOException io) {
+                    logger.info("Initializing data failed during loading- keeping existing data.");
+                }
             } else {
-                logger.trace("Initializing data - already initialized.");
+                logger.trace("Initializing data - already initialized [{}].", instant);
             }
         } catch (IOException e) {
             logger.error("Initializing data - caused exception", e);
         } finally {
-            lockMap.unlock("Initializing");
+            lockMap.unlock(UPDATED_TIMESTAMP_KEY);
         }
         return true;
     }
