@@ -13,7 +13,7 @@ anshar:
         DELETE_SUBSCRIPTION: sis.kolumbus.no:90/SXWS/SXService.svc
         GET_SITUATION_EXCHANGE: sis.kolumbus.no:90/SXWS/SXService.svc
       version: 1.4
-      subscriptionId: bbd85dee-2a50-49d4-852a-60e8fd00269a
+      subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: KOLUMBUS
@@ -30,7 +30,7 @@ anshar:
       urlMap:
         GET_VEHICLE_MONITORING: sis.kolumbus.no:90/VMWS/VMService.svc
       version: 1.4
-      subscriptionId: 371ff4cc-e9d0-49ed-90f0-13d6781493d1
+      subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: KOLUMBUS
@@ -49,7 +49,7 @@ anshar:
         DELETE_SUBSCRIPTION: st.atb.no/SXWS/SXService.svc
         GET_SITUATION_EXCHANGE: st.atb.no/SXWS/SXService.svc
       version: 1.4
-      subscriptionId: 7f53f3b0-8679-415d-a3bc-8d0eb4eb8a00
+      subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: ATB
@@ -66,7 +66,7 @@ anshar:
       urlMap:
         GET_VEHICLE_MONITORING: st.atb.no/VMWS/VMService.svc
       version: 1.4
-      subscriptionId: 3a420d8b-a719-41fe-99d7-5eae8b87a3fc
+      subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: ATB
@@ -84,7 +84,7 @@ anshar:
         SUBSCRIBE: 83.145.60.18/siri/1.4/sx
         DELETE_SUBSCRIPTION: 83.145.60.18/siri/1.4/sx
       version: 1.4
-      subscriptionId: 1f9b3a80-8c1a-49ef-9842-4a7edf0f952d
+      subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: AKT
@@ -102,7 +102,7 @@ anshar:
         SUBSCRIBE: 83.145.60.18/siri/1.4/et
         DELETE_SUBSCRIPTION: 83.145.60.18/siri/1.4/et
       version: 1.4
-      subscriptionId: 962c8456-4b67-4b75-b852-55e9f2ca0444
+      subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: AKT
@@ -121,7 +121,7 @@ anshar:
         DELETE_SUBSCRIPTION: sirisx.ruter.no/sx/managesubscription.xml
         CHECK_STATUS: sirisx.ruter.no/sx/checkstatus.xml
       version: 2.0
-      subscriptionId: 4df2bf3e-6687-4f2b-950b-853da7579cf6
+      subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: RUTER
@@ -140,7 +140,7 @@ anshar:
         DELETE_SUBSCRIPTION: 109.239.226.193:8080/RutebankenDEV/vm/managesubscription.xml
         CHECK_STATUS: 109.239.226.193:8080/RutebankenDEV/vm/checkstatus.xml
       version: 2.0
-      subscriptionId: 20c2e3a3-1659-41d3-b1a2-1411978b1d43
+      subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: RUTER
@@ -159,7 +159,7 @@ anshar:
         DELETE_SUBSCRIPTION: 109.239.226.193:8080/RutebankenDEV/et/managesubscription.xml
         CHECK_STATUS: 109.239.226.193:8080/RutebankenDEV/et/checkstatus.xml
       version: 2.0
-      subscriptionId: 1f6a687e-58b8-4e46-a23c-98adadad78ed
+      subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: RUTER
