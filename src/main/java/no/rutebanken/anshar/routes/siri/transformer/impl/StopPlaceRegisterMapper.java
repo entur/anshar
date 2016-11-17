@@ -15,7 +15,6 @@ import org.springframework.context.annotation.Configuration;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.URL;
 import java.time.Instant;
 import java.util.*;
 
@@ -106,12 +105,16 @@ public class StopPlaceRegisterMapper extends ValueAdapter {
             if ((instant == null || instant.isBefore(Instant.now().minusSeconds(updateFrequency * 60)))) {
                 // Data is not initialized, or is older than allowed
 
-                logger.info("Initializing data - start. Fetching mapping-data from {}", stopPlaceMappingUrl);
-                URL url = new URL(stopPlaceMappingUrl);
+//                logger.info("Initializing data - start. Fetching mapping-data from {}", stopPlaceMappingUrl);
+//                URL url = new URL(stopPlaceMappingUrl);
+
+                logger.info("Initializing data - start. Fetching mapping-data from internal file ");
+                ClassLoader classLoader = getClass().getClassLoader();
 
                 Map<String, String> tmpStopPlaceMappings = new HashMap<>();
                 Counter duplicates = new CounterImpl(0);
-                try (BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()))) {
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(classLoader.getResourceAsStream("id_mapping.csv")))) {
+//                try (BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream()))) {
 
                     reader.lines().forEach(line -> {
 
@@ -137,7 +140,7 @@ public class StopPlaceRegisterMapper extends ValueAdapter {
             } else {
                 logger.trace("Initializing data - already initialized [{}].", instant);
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             logger.error("Initializing data - caused exception", e);
         } finally {
             lockMap.unlock(UPDATED_TIMESTAMP_KEY);
