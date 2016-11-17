@@ -159,7 +159,7 @@ anshar:
         DELETE_SUBSCRIPTION: 109.239.226.193:8080/RutebankenDEV/et/managesubscription.xml
         CHECK_STATUS: 109.239.226.193:8080/RutebankenDEV/et/checkstatus.xml
       version: 2.0
-      subscriptionId: 1f6a687e-58b8-4e46-a23c-98adadad78ed
+      subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: RUTER
