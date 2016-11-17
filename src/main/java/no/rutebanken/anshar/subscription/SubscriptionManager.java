@@ -144,14 +144,14 @@ public class SubscriptionManager {
         if (isPendingSubscription(subscriptionId)) {
             SubscriptionSetup setup = pendingSubscriptions.remove(subscriptionId);
             addSubscription(subscriptionId, setup);
-            logger.trace("Pending subscription {} activated", setup.toString());
+            logger.info("Pending subscription {} activated", setup.toString());
             return true;
         }
         if (isActiveSubscription(subscriptionId)) {
-            logger.trace("Pending subscription {} already activated", activeSubscriptions.get(subscriptionId));
+            logger.info("Pending subscription {} already activated", activeSubscriptions.get(subscriptionId));
             return true;
         }
-        logger.debug("Pending subscriptionId [{}] NOT found", subscriptionId);
+        logger.warn("Pending subscriptionId [{}] NOT found", subscriptionId);
         return false;
     }
 
