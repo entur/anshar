@@ -49,6 +49,9 @@ public class EstimatedTimetables {
                     }
                 });
                 Set<String> existingSet = changesMap.get(requestorId);
+                if (existingSet == null) {
+                    existingSet = new HashSet<>();
+                }
                 existingSet.removeAll(idSet);
                 changesMap.put(requestorId, existingSet);
                 return changes;
