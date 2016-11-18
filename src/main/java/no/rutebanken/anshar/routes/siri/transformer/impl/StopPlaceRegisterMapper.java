@@ -68,7 +68,11 @@ public class StopPlaceRegisterMapper extends ValueAdapter {
         }
 
         String mappedValue = stopPlaceMappings.get(id);
-        return mappedValue != null ? mappedValue : id;
+        if (mappedValue != null) {
+            return mappedValue;
+        }
+        logger.info("Unmapped StopPlace [{}]", id);
+        return id;
     }
 
     private String createCompleteId(String prefix, String id) {
