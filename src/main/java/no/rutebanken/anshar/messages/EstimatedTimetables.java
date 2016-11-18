@@ -135,10 +135,10 @@ public class EstimatedTimetables {
     private static String createKey(String datasetId, EstimatedVehicleJourney element) {
         StringBuffer key = new StringBuffer();
 
-        String timestamp = "";
-        List<EstimatedCall> estimatedCalls = element.getEstimatedCalls() != null ? element.getEstimatedCalls().getEstimatedCalls():null;
-        if (estimatedCalls != null && estimatedCalls.size() > 0) {
-            timestamp = estimatedCalls.get(0).getAimedDepartureTime().toLocalDateTime().toString();
+        String datedVehicleJourney = element.getDatedVehicleJourneyRef() != null ? element.getDatedVehicleJourneyRef().getValue() : null;
+        if (datedVehicleJourney == null && element.getFramedVehicleJourneyRef() != null) {
+            String dataFrameRef = element.getFramedVehicleJourneyRef().getDataFrameRef() != null ? element.getFramedVehicleJourneyRef().getDataFrameRef().getValue():"null";
+            datedVehicleJourney = dataFrameRef + ":" + element.getFramedVehicleJourneyRef().getDatedVehicleJourneyRef();
         }
 
         key.append(datasetId).append(":")
@@ -150,9 +150,7 @@ public class EstimatedTimetables {
                 .append(":")
                 .append((element.getDirectionRef() != null ? element.getDirectionRef().getValue() :"null"))
                 .append(":")
-                .append((element.getDatedVehicleJourneyRef() != null ? element.getDatedVehicleJourneyRef().getValue() :"null"))
-                .append(":")
-                .append(timestamp);
+                .append(datedVehicleJourney);
 
         return key.toString();
     }
