@@ -32,7 +32,7 @@
                 <td>${item.activated!""}</td>
                 <td>${item.vendor}</td>
                 <td>${item.lastActivity!""}</td>
-                <td>${item.hitcount!0}</td>
+                <td align="right">${item.hitcount!0}</td>
             </tr>
             <tr id="accordion${item?counter}" class="collapse ${item.healthy?then("success","danger")}">
             <td colspan="6">
