@@ -176,7 +176,25 @@ anshar:
       urlMap:
         SUBSCRIBE: 109.70.83.57/siri/1.4/et
         DELETE_SUBSCRIPTION: 109.70.83.57/siri/1.4/et
-      version: 2.0
+      version: 1.4
+      subscriptionId: ${random.uuid}
+      requestorRef: RutebankenDEV
+      durationOfSubscriptionHours: 168
+      mappingAdapterPresets: SKYSS
+      idMappingPrefixes: HRD
+      active: true
+    -
+      vendor: skysset
+      datasetId: HRD
+      serviceType: REST
+      subscriptionType: SITUATION_EXCHANGE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 60
+      operatorNamespace: http://www.siri.org.uk/siri
+      urlMap:
+        SUBSCRIBE: 109.70.83.57/siri/1.4/sx
+        DELETE_SUBSCRIPTION: 109.70.83.57/siri/1.4/sx
+      version: 1.4
       subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
