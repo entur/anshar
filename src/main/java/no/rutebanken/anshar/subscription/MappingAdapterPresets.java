@@ -11,7 +11,7 @@ import java.util.List;
 public class MappingAdapterPresets {
 
     public enum Preset {
-        RUTER, ATB, KOLUMBUS, AKT
+        RUTER, ATB, KOLUMBUS, AKT, SKYSS
     }
 
     public static List<ValueAdapter> get(Preset preset) {
@@ -41,6 +41,7 @@ public class MappingAdapterPresets {
                 adapters.add(new LeftPaddingAdapter(DestinationRef.class, 8, '0'));
                 adapters.add(new RightPaddingStopPlaceAdapter(DestinationRef.class, 8, "01"));
                 return  adapters;
+            case SKYSS:
         }
 
         return adapters;
