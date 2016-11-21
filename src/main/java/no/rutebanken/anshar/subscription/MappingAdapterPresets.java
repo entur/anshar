@@ -28,6 +28,8 @@ public class MappingAdapterPresets {
             case ATB:
             case KOLUMBUS:
             case AKT:
+                adapters.add(new LeftPaddingAdapter(LineRef.class, 4, '0'));
+
                 adapters.add(new LeftPaddingAdapter(StopPointRef.class, 8, '0'));
                 adapters.add(new RightPaddingStopPlaceAdapter(StopPointRef.class, 8, "01"));
 
