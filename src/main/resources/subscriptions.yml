@@ -177,14 +177,14 @@ anshar:
         SUBSCRIBE: 109.70.83.57/siri/1.4/et
         DELETE_SUBSCRIPTION: 109.70.83.57/siri/1.4/et
       version: 1.4
-      subscriptionId: ${random.uuid}
+      subscriptionId: 36916b72033769116891f1fb6a9e88ff
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: SKYSS
       idMappingPrefixes: HRD
       active: true
     -
-      vendor: skysset
+      vendor: skysssx
       datasetId: HRD
       serviceType: REST
       subscriptionType: SITUATION_EXCHANGE
@@ -195,7 +195,7 @@ anshar:
         SUBSCRIBE: 109.70.83.57/siri/1.4/sx
         DELETE_SUBSCRIPTION: 109.70.83.57/siri/1.4/sx
       version: 1.4
-      subscriptionId: ${random.uuid}
+      subscriptionId: f9ef149ec66ded94836a4da53e12169a
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: SKYSS
