@@ -9,7 +9,7 @@
 </head>
 <body>
 <div class="jumbotron text-center">
-    <h2>Anshar statistics</h2>
+    <h2>Anshar status/statistics</h2>
 </div>
 <div class="container">
     <div class="row">
