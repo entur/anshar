@@ -107,15 +107,45 @@ public class EstimatedTimetables {
     }
 
 
-    public static EstimatedVehicleJourney add(EstimatedVehicleJourney timetableDelivery, String datasetId) {
-        if (timetableDelivery == null) {return null;}
+    public static EstimatedVehicleJourney add(EstimatedVehicleJourney delivery, String datasetId) {
+        if (delivery == null) {return null;}
 
-        String key = createKey(datasetId, timetableDelivery);
-        ZonedDateTime expiration = getExpiration(timetableDelivery);
+        String key = createKey(datasetId, delivery);
+        ZonedDateTime expiration = getExpiration(delivery);
         if (expiration != null && expiration.isBefore(ZonedDateTime.now())) {
             //Ignore elements that have already expired
             return null;
         }
+
+
+        if (delivery.isIsCompleteStopSequence() != null && !delivery.isIsCompleteStopSequence()) {
+            //Not complete - calculate partial update
+            EstimatedVehicleJourney existing = timetableDeliveries.get(key);
+            if (existing != null) {
+                EstimatedVehicleJourney.EstimatedCalls existingCallWrapper = existing.getEstimatedCalls();
+                EstimatedVehicleJourney.EstimatedCalls updatedCallWrapper = delivery.getEstimatedCalls();
+
+                SortedMap<Integer, EstimatedCall> joinedCallsMap = new TreeMap<>();
+
+                //Existing calls
+                for (EstimatedCall call : existingCallWrapper.getEstimatedCalls()) {
+                    //Assuming that either Visitnumber or Order is always used
+                    int order = (call.getVisitNumber() != null ? call.getVisitNumber():call.getOrder()).intValue();
+                    joinedCallsMap.put(order, call);
+                }
+                //Add or replace existing calls
+                for (EstimatedCall call : updatedCallWrapper.getEstimatedCalls()) {
+                    int order = (call.getVisitNumber() != null ? call.getVisitNumber():call.getOrder()).intValue();
+                    joinedCallsMap.put(order, call);
+                }
+
+                EstimatedVehicleJourney.EstimatedCalls joinedCalls = new EstimatedVehicleJourney.EstimatedCalls();
+                joinedCalls.getEstimatedCalls().addAll(joinedCallsMap.values());
+
+                delivery.setEstimatedCalls(joinedCalls);
+            }
+        }
+
 
         changesMap.keySet().forEach(requestor -> {
             Set<String> changes = changesMap.get(requestor);
@@ -123,7 +153,7 @@ public class EstimatedTimetables {
             changesMap.put(requestor, changes);
         });
 
-        EstimatedVehicleJourney previous = timetableDeliveries.put(key, timetableDelivery, expiration);
+        EstimatedVehicleJourney previous = timetableDeliveries.put(key, delivery, expiration);
 
         if (previous != null) {
             // TODO: Determine if data is updated?
@@ -131,7 +161,7 @@ public class EstimatedTimetables {
             return previous;
         } else {
             // new element
-            return timetableDelivery;
+            return delivery;
         }
     }
 
