@@ -201,3 +201,39 @@ anshar:
       mappingAdapterPresets: SKYSS
       idMappingPrefixes: HRD
       active: true
+    -
+      vendor: brakaret
+      datasetId: BRA
+      serviceType: REST
+      subscriptionType: ESTIMATED_TIMETABLE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 60
+      operatorNamespace: http://www.siri.org.uk/siri
+      urlMap:
+        SUBSCRIBE: brakar.tmix.se/siri/1.4/et
+        DELETE_SUBSCRIPTION: brakar.tmix.se/siri/1.4/et
+      version: 1.4
+      subscriptionId: ${random.uuid}
+      requestorRef: RutebankenDEV
+      durationOfSubscriptionHours: 168
+      mappingAdapterPresets: BRAKAR
+      idMappingPrefixes: BRA
+      active: true
+    -
+      vendor: brakarsx
+      datasetId: BRA
+      serviceType: REST
+      subscriptionType: SITUATION_EXCHANGE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 60
+      operatorNamespace: http://www.siri.org.uk/siri
+      urlMap:
+        SUBSCRIBE: brakar.tmix.se/siri/1.4/et
+        DELETE_SUBSCRIPTION: brakar.tmix.se/siri/1.4/et
+      version: 1.4
+      subscriptionId: ${random.uuid}
+      requestorRef: RutebankenDEV
+      durationOfSubscriptionHours: 168
+      mappingAdapterPresets: BRAKAR
+      idMappingPrefixes: BRA
+      active: true
