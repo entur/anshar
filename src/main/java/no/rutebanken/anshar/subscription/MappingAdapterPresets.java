@@ -24,7 +24,7 @@ public class MappingAdapterPresets {
                 adapters.add(new LeftPaddingAdapter(StopPointRef.class, 10, '0'));
                 adapters.add(new LeftPaddingAdapter(StopPlaceRef.class, 8, '0'));
                 adapters.add(new RightPaddingStopPlaceAdapter(StopPlaceRef.class, 8, "01"));
-                return adapters;
+                break;
             case ATB:
             case KOLUMBUS:
             case AKT:
@@ -40,9 +40,11 @@ public class MappingAdapterPresets {
                 //DestinationRef
                 adapters.add(new LeftPaddingAdapter(DestinationRef.class, 8, '0'));
                 adapters.add(new RightPaddingStopPlaceAdapter(DestinationRef.class, 8, "01"));
-                return  adapters;
-            case SKYSS:
+                break;
             case BRAKAR:
+                adapters.add(new LeftPaddingAdapter(StopPointRef.class, 10, '0'));
+                break;
+            case SKYSS:
         }
 
         return adapters;
