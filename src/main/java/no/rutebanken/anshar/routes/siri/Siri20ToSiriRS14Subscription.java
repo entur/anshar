@@ -1,10 +1,9 @@
 package no.rutebanken.anshar.routes.siri;
 
 import no.rutebanken.anshar.subscription.RequestType;
+import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
-import no.rutebanken.anshar.subscription.SubscriptionManager;
-import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.org.siri.siri20.Siri;
@@ -39,13 +38,22 @@ public class Siri20ToSiriRS14Subscription extends SiriSubscriptionRouteBuilder {
                 .setHeader(Exchange.CONTENT_TYPE, constant("text/xml;charset=UTF-8")) // Necessary when talking to Microsoft web services
                 .setHeader(Exchange.HTTP_METHOD, constant(org.apache.camel.component.http4.HttpMethods.POST))
                 .to("http4://" + urlMap.get(RequestType.SUBSCRIBE) + getTimeout())
-                .to("xslt:xsl/siri_14_20.xsl?saxon=true&allowStAX=false") // Convert from v1.4 to 2.0
                 .to("log:received:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .process(p -> {
-                    Siri siri = handleSiriResponse(p.getIn().getBody(String.class));
-                    SubscriptionResponseStructure response = siri.getSubscriptionResponse();
 
-                    handleSubscriptionResponse(response, p.getIn().getHeader("CamelHttpResponseCode", String.class));
+                    String responseCode = p.getIn().getHeader("CamelHttpResponseCode", String.class);
+                    if ("200".equals(responseCode)) {
+                        logger.info("SubscriptionResponse OK");
+                    }
+
+                    String body = p.getIn().getBody(String.class);
+
+                    if (body != null && !body.isEmpty()) {
+                        Siri siri = handleSiriResponse(body);
+                        SubscriptionResponseStructure response = siri.getSubscriptionResponse();
+
+                        handleSubscriptionResponse(response, p.getIn().getHeader("CamelHttpResponseCode", String.class));
+                    }
                 })
         ;
 
@@ -61,8 +69,7 @@ public class Siri20ToSiriRS14Subscription extends SiriSubscriptionRouteBuilder {
                 .removeHeaders("CamelHttp*") // Remove any incoming HTTP headers as they interfere with the outgoing definition
                 .setHeader(Exchange.CONTENT_TYPE, constant("text/xml;charset=UTF-8")) // Necessary when talking to Microsoft web services
                 .setHeader(Exchange.HTTP_METHOD, constant(org.apache.camel.component.http4.HttpMethods.POST))
-                .to("http4://" + urlMap.get(RequestType.DELETE_SUBSCRIPTION)+getTimeout())
-                .to("xslt:xsl/siri_14_20.xsl?saxon=true&allowStAX=false") // Convert from v1.4 to 2.0
+                .to("http4://" + urlMap.get(RequestType.DELETE_SUBSCRIPTION) + getTimeout())
                 .to("log:received:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .process(p -> {
                     String body = p.getIn().getBody(String.class);
