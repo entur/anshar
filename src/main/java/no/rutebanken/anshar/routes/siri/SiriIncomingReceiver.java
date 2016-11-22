@@ -85,7 +85,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                     })
                     .endChoice()
                     .when(header("CamelHttpPath").contains("/subscribe")) //Handle synchronous response
-                        .to("activemq:queue:" + TRANSFORM_QUEUE + "?disableReplyTo=true")
+                        .to("activemq:queue:" + TRANSFORM_QUEUE + "?requestTimeout=120000&disableReplyTo=true")
                         .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
                         .setBody(constant(null))
                     .endChoice()
@@ -96,7 +96,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                                     return SubscriptionManager.isSubscriptionRegistered(subscriptionId);
                                 })
                                     //Valid subscription
-                                .to("activemq:queue:" + TRANSFORM_QUEUE + "?disableReplyTo=true")
+                                .to("activemq:queue:" + TRANSFORM_QUEUE + "?requestTimeout=120000&disableReplyTo=true")
                                 .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
                                 .setBody(constant(null))
                             .endChoice()
