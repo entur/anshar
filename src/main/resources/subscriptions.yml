@@ -1,206 +1,206 @@
 anshar:
   subscriptions:
-    -
-      vendor: kolumbussx
-      datasetId: KOL
-      serviceType: SOAP
-      subscriptionType: SITUATION_EXCHANGE
-      subscriptionMode: REQUEST_RESPONSE
-      heartbeatIntervalSeconds: 60
-      operatorNamespace: http://www.kolumbus.no/siri
-      urlMap:
-        SUBSCRIBE: sis.kolumbus.no:90/SXWS/SXService.svc
-        DELETE_SUBSCRIPTION: sis.kolumbus.no:90/SXWS/SXService.svc
-        GET_SITUATION_EXCHANGE: sis.kolumbus.no:90/SXWS/SXService.svc
-      version: 1.4
-      subscriptionId: ${random.uuid}
-      requestorRef: RutebankenDEV
-      durationOfSubscriptionHours: 168
-      mappingAdapterPresets: KOLUMBUS
-      idMappingPrefixes: KOL
-      active: true
-    -
-      vendor: kolumbusvm
-      datasetId: KOL
-      serviceType: SOAP
-      subscriptionType: VEHICLE_MONITORING
-      subscriptionMode: REQUEST_RESPONSE
-      heartbeatIntervalSeconds: 60
-      operatorNamespace: http://www.kolumbus.no/siri
-      urlMap:
-        GET_VEHICLE_MONITORING: sis.kolumbus.no:90/VMWS/VMService.svc
-      version: 1.4
-      subscriptionId: ${random.uuid}
-      requestorRef: RutebankenDEV
-      durationOfSubscriptionHours: 168
-      mappingAdapterPresets: KOLUMBUS
-      idMappingPrefixes: KOL
-      active: true
-    -
-      vendor: atbsx
-      datasetId: ATB
-      serviceType: SOAP
-      subscriptionType: SITUATION_EXCHANGE
-      subscriptionMode: REQUEST_RESPONSE
-      heartbeatIntervalSeconds: 60
-      operatorNamespace: http://www.siri.org.uk/siri
-      urlMap:
-        SUBSCRIBE: st.atb.no/SXWS/SXService.svc
-        DELETE_SUBSCRIPTION: st.atb.no/SXWS/SXService.svc
-        GET_SITUATION_EXCHANGE: st.atb.no/SXWS/SXService.svc
-      version: 1.4
-      subscriptionId: ${random.uuid}
-      requestorRef: RutebankenDEV
-      durationOfSubscriptionHours: 168
-      mappingAdapterPresets: ATB
-      idMappingPrefixes: ATB
-      active: true
-    -
-      vendor: atbvm
-      datasetId: ATB
-      serviceType: SOAP
-      subscriptionType: VEHICLE_MONITORING
-      subscriptionMode: REQUEST_RESPONSE
-      heartbeatIntervalSeconds: 60
-      operatorNamespace: http://www.siri.org.uk/siri
-      urlMap:
-        GET_VEHICLE_MONITORING: st.atb.no/VMWS/VMService.svc
-      version: 1.4
-      subscriptionId: ${random.uuid}
-      requestorRef: RutebankenDEV
-      durationOfSubscriptionHours: 168
-      mappingAdapterPresets: ATB
-      idMappingPrefixes: ATB
-      active: true
-    -
-      vendor: aktsx
-      datasetId: AKT
-      serviceType: REST
-      subscriptionType: SITUATION_EXCHANGE
-      subscriptionMode: SUBSCRIBE
-      heartbeatIntervalSeconds: 60
-      operatorNamespace: http://www.siri.org.uk/siri
-      urlMap:
-        SUBSCRIBE: 83.145.60.18/siri/1.4/sx
-        DELETE_SUBSCRIPTION: 83.145.60.18/siri/1.4/sx
-      version: 1.4
-      subscriptionId: ${random.uuid}
-      requestorRef: RutebankenDEV
-      durationOfSubscriptionHours: 168
-      mappingAdapterPresets: AKT
-      idMappingPrefixes: AKT
-      active: true
-    -
-      vendor: aktet
-      datasetId: AKT
-      serviceType: REST
-      subscriptionType: ESTIMATED_TIMETABLE
-      subscriptionMode: SUBSCRIBE
-      heartbeatIntervalSeconds: 60
-      operatorNamespace: http://www.siri.org.uk/siri
-      urlMap:
-        SUBSCRIBE: 83.145.60.18/siri/1.4/et
-        DELETE_SUBSCRIPTION: 83.145.60.18/siri/1.4/et
-      version: 1.4
-      subscriptionId: ${random.uuid}
-      requestorRef: RutebankenDEV
-      durationOfSubscriptionHours: 168
-      mappingAdapterPresets: AKT
-      idMappingPrefixes: AKT
-      active: true
-    -
-      vendor: rutersx
-      datasetId: RUT
-      serviceType: REST
-      subscriptionType: SITUATION_EXCHANGE
-      subscriptionMode: SUBSCRIBE
-      heartbeatIntervalSeconds: 60
-      operatorNamespace: http://www.siri.org.uk/siri
-      urlMap:
-        SUBSCRIBE: sirisx.ruter.no/sx/subscribe.xml
-        DELETE_SUBSCRIPTION: sirisx.ruter.no/sx/managesubscription.xml
-        CHECK_STATUS: sirisx.ruter.no/sx/checkstatus.xml
-      version: 2.0
-      subscriptionId: ${random.uuid}
-      requestorRef: RutebankenDEV
-      durationOfSubscriptionHours: 168
-      mappingAdapterPresets: RUTER
-      idMappingPrefixes: RUT,OPP,BRA,OST
-      active: true
-    -
-      vendor: rutervm
-      datasetId: RUT
-      serviceType: REST
-      subscriptionType: VEHICLE_MONITORING
-      subscriptionMode: SUBSCRIBE
-      heartbeatIntervalSeconds: 60
-      operatorNamespace: http://www.siri.org.uk/siri
-      urlMap:
-        SUBSCRIBE: 109.239.226.193:8080/RutebankenDEV/vm/subscribe.xml
-        DELETE_SUBSCRIPTION: 109.239.226.193:8080/RutebankenDEV/vm/managesubscription.xml
-        CHECK_STATUS: 109.239.226.193:8080/RutebankenDEV/vm/checkstatus.xml
-      version: 2.0
-      subscriptionId: 20c2e3a3-1659-41d3-b1a2-1411978b1d43
-      requestorRef: RutebankenDEV
-      durationOfSubscriptionHours: 168
-      mappingAdapterPresets: RUTER
-      idMappingPrefixes: RUT,OPP,BRA,OST
-      active: true
-    -
-      vendor: ruteret
-      datasetId: RUT
-      serviceType: REST
-      subscriptionType: ESTIMATED_TIMETABLE
-      subscriptionMode: SUBSCRIBE
-      heartbeatIntervalSeconds: 60
-      operatorNamespace: http://www.siri.org.uk/siri
-      urlMap:
-        SUBSCRIBE: 109.239.226.193:8080/RutebankenDEV/et/subscribe.xml
-        DELETE_SUBSCRIPTION: 109.239.226.193:8080/RutebankenDEV/et/managesubscription.xml
-        CHECK_STATUS: 109.239.226.193:8080/RutebankenDEV/et/checkstatus.xml
-      version: 2.0
-      subscriptionId: 1f6a687e-58b8-4e46-a23c-98adadad78ed
-      requestorRef: RutebankenDEV
-      durationOfSubscriptionHours: 168
-      mappingAdapterPresets: RUTER
-      idMappingPrefixes: RUT,OPP,BRA,OST
-      active: true
-    -
-      vendor: skysset
-      datasetId: HRD
-      serviceType: REST
-      subscriptionType: ESTIMATED_TIMETABLE
-      subscriptionMode: SUBSCRIBE
-      heartbeatIntervalSeconds: 60
-      operatorNamespace: http://www.siri.org.uk/siri
-      urlMap:
-        SUBSCRIBE: 109.70.83.57/siri/1.4/et
-        DELETE_SUBSCRIPTION: 109.70.83.57/siri/1.4/et
-      version: 1.4
-      subscriptionId: 36916b72033769116891f1fb6a9e88ff
-      requestorRef: RutebankenDEV
-      durationOfSubscriptionHours: 168
-      mappingAdapterPresets: SKYSS
-      idMappingPrefixes: HRD
-      active: true
-    -
-      vendor: skysssx
-      datasetId: HRD
-      serviceType: REST
-      subscriptionType: SITUATION_EXCHANGE
-      subscriptionMode: SUBSCRIBE
-      heartbeatIntervalSeconds: 60
-      operatorNamespace: http://www.siri.org.uk/siri
-      urlMap:
-        SUBSCRIBE: 109.70.83.57/siri/1.4/sx
-        DELETE_SUBSCRIPTION: 109.70.83.57/siri/1.4/sx
-      version: 1.4
-      subscriptionId: f9ef149ec66ded94836a4da53e12169a
-      requestorRef: RutebankenDEV
-      durationOfSubscriptionHours: 168
-      mappingAdapterPresets: SKYSS
-      idMappingPrefixes: HRD
-      active: true
+#    -
+#      vendor: kolumbussx
+#      datasetId: KOL
+#      serviceType: SOAP
+#      subscriptionType: SITUATION_EXCHANGE
+#      subscriptionMode: REQUEST_RESPONSE
+#      heartbeatIntervalSeconds: 60
+#      operatorNamespace: http://www.kolumbus.no/siri
+#      urlMap:
+#        SUBSCRIBE: sis.kolumbus.no:90/SXWS/SXService.svc
+#        DELETE_SUBSCRIPTION: sis.kolumbus.no:90/SXWS/SXService.svc
+#        GET_SITUATION_EXCHANGE: sis.kolumbus.no:90/SXWS/SXService.svc
+#      version: 1.4
+#      subscriptionId: ${random.uuid}
+#      requestorRef: RutebankenDEV
+#      durationOfSubscriptionHours: 168
+#      mappingAdapterPresets: KOLUMBUS
+#      idMappingPrefixes: KOL
+#      active: true
+#    -
+#      vendor: kolumbusvm
+#      datasetId: KOL
+#      serviceType: SOAP
+#      subscriptionType: VEHICLE_MONITORING
+#      subscriptionMode: REQUEST_RESPONSE
+#      heartbeatIntervalSeconds: 60
+#      operatorNamespace: http://www.kolumbus.no/siri
+#      urlMap:
+#        GET_VEHICLE_MONITORING: sis.kolumbus.no:90/VMWS/VMService.svc
+#      version: 1.4
+#      subscriptionId: ${random.uuid}
+#      requestorRef: RutebankenDEV
+#      durationOfSubscriptionHours: 168
+#      mappingAdapterPresets: KOLUMBUS
+#      idMappingPrefixes: KOL
+#      active: true
+#    -
+#      vendor: atbsx
+#      datasetId: ATB
+#      serviceType: SOAP
+#      subscriptionType: SITUATION_EXCHANGE
+#      subscriptionMode: REQUEST_RESPONSE
+#      heartbeatIntervalSeconds: 60
+#      operatorNamespace: http://www.siri.org.uk/siri
+#      urlMap:
+#        SUBSCRIBE: st.atb.no/SXWS/SXService.svc
+#        DELETE_SUBSCRIPTION: st.atb.no/SXWS/SXService.svc
+#        GET_SITUATION_EXCHANGE: st.atb.no/SXWS/SXService.svc
+#      version: 1.4
+#      subscriptionId: ${random.uuid}
+#      requestorRef: RutebankenDEV
+#      durationOfSubscriptionHours: 168
+#      mappingAdapterPresets: ATB
+#      idMappingPrefixes: ATB
+#      active: true
+#    -
+#      vendor: atbvm
+#      datasetId: ATB
+#      serviceType: SOAP
+#      subscriptionType: VEHICLE_MONITORING
+#      subscriptionMode: REQUEST_RESPONSE
+#      heartbeatIntervalSeconds: 60
+#      operatorNamespace: http://www.siri.org.uk/siri
+#      urlMap:
+#        GET_VEHICLE_MONITORING: st.atb.no/VMWS/VMService.svc
+#      version: 1.4
+#      subscriptionId: ${random.uuid}
+#      requestorRef: RutebankenDEV
+#      durationOfSubscriptionHours: 168
+#      mappingAdapterPresets: ATB
+#      idMappingPrefixes: ATB
+#      active: true
+#    -
+#      vendor: aktsx
+#      datasetId: AKT
+#      serviceType: REST
+#      subscriptionType: SITUATION_EXCHANGE
+#      subscriptionMode: SUBSCRIBE
+#      heartbeatIntervalSeconds: 60
+#      operatorNamespace: http://www.siri.org.uk/siri
+#      urlMap:
+#        SUBSCRIBE: 83.145.60.18/siri/1.4/sx
+#        DELETE_SUBSCRIPTION: 83.145.60.18/siri/1.4/sx
+#      version: 1.4
+#      subscriptionId: ${random.uuid}
+#      requestorRef: RutebankenDEV
+#      durationOfSubscriptionHours: 168
+#      mappingAdapterPresets: AKT
+#      idMappingPrefixes: AKT
+#      active: true
+#    -
+#      vendor: aktet
+#      datasetId: AKT
+#      serviceType: REST
+#      subscriptionType: ESTIMATED_TIMETABLE
+#      subscriptionMode: SUBSCRIBE
+#      heartbeatIntervalSeconds: 60
+#      operatorNamespace: http://www.siri.org.uk/siri
+#      urlMap:
+#        SUBSCRIBE: 83.145.60.18/siri/1.4/et
+#        DELETE_SUBSCRIPTION: 83.145.60.18/siri/1.4/et
+#      version: 1.4
+#      subscriptionId: ${random.uuid}
+#      requestorRef: RutebankenDEV
+#      durationOfSubscriptionHours: 168
+#      mappingAdapterPresets: AKT
+#      idMappingPrefixes: AKT
+#      active: true
+#    -
+#      vendor: rutersx
+#      datasetId: RUT
+#      serviceType: REST
+#      subscriptionType: SITUATION_EXCHANGE
+#      subscriptionMode: SUBSCRIBE
+#      heartbeatIntervalSeconds: 60
+#      operatorNamespace: http://www.siri.org.uk/siri
+#      urlMap:
+#        SUBSCRIBE: sirisx.ruter.no/sx/subscribe.xml
+#        DELETE_SUBSCRIPTION: sirisx.ruter.no/sx/managesubscription.xml
+#        CHECK_STATUS: sirisx.ruter.no/sx/checkstatus.xml
+#      version: 2.0
+#      subscriptionId: ${random.uuid}
+#      requestorRef: RutebankenDEV
+#      durationOfSubscriptionHours: 168
+#      mappingAdapterPresets: RUTER
+#      idMappingPrefixes: RUT,OPP,BRA,OST
+#      active: true
+#    -
+#      vendor: rutervm
+#      datasetId: RUT
+#      serviceType: REST
+#      subscriptionType: VEHICLE_MONITORING
+#      subscriptionMode: SUBSCRIBE
+#      heartbeatIntervalSeconds: 60
+#      operatorNamespace: http://www.siri.org.uk/siri
+#      urlMap:
+#        SUBSCRIBE: 109.239.226.193:8080/RutebankenDEV/vm/subscribe.xml
+#        DELETE_SUBSCRIPTION: 109.239.226.193:8080/RutebankenDEV/vm/managesubscription.xml
+#        CHECK_STATUS: 109.239.226.193:8080/RutebankenDEV/vm/checkstatus.xml
+#      version: 2.0
+#      subscriptionId: 20c2e3a3-1659-41d3-b1a2-1411978b1d43
+#      requestorRef: RutebankenDEV
+#      durationOfSubscriptionHours: 168
+#      mappingAdapterPresets: RUTER
+#      idMappingPrefixes: RUT,OPP,BRA,OST
+#      active: true
+#    -
+#      vendor: ruteret
+#      datasetId: RUT
+#      serviceType: REST
+#      subscriptionType: ESTIMATED_TIMETABLE
+#      subscriptionMode: SUBSCRIBE
+#      heartbeatIntervalSeconds: 60
+#      operatorNamespace: http://www.siri.org.uk/siri
+#      urlMap:
+#        SUBSCRIBE: 109.239.226.193:8080/RutebankenDEV/et/subscribe.xml
+#        DELETE_SUBSCRIPTION: 109.239.226.193:8080/RutebankenDEV/et/managesubscription.xml
+#        CHECK_STATUS: 109.239.226.193:8080/RutebankenDEV/et/checkstatus.xml
+#      version: 2.0
+#      subscriptionId: 1f6a687e-58b8-4e46-a23c-98adadad78ed
+#      requestorRef: RutebankenDEV
+#      durationOfSubscriptionHours: 168
+#      mappingAdapterPresets: RUTER
+#      idMappingPrefixes: RUT,OPP,BRA,OST
+#      active: true
+#    -
+#      vendor: skysset
+#      datasetId: HRD
+#      serviceType: REST
+#      subscriptionType: ESTIMATED_TIMETABLE
+#      subscriptionMode: SUBSCRIBE
+#      heartbeatIntervalSeconds: 60
+#      operatorNamespace: http://www.siri.org.uk/siri
+#      urlMap:
+#        SUBSCRIBE: 109.70.83.57/siri/1.4/et
+#        DELETE_SUBSCRIPTION: 109.70.83.57/siri/1.4/et
+#      version: 1.4
+#      subscriptionId: 36916b72033769116891f1fb6a9e88ff
+#      requestorRef: RutebankenDEV
+#      durationOfSubscriptionHours: 168
+#      mappingAdapterPresets: SKYSS
+#      idMappingPrefixes: HRD
+#      active: true
+#    -
+#      vendor: skysssx
+#      datasetId: HRD
+#      serviceType: REST
+#      subscriptionType: SITUATION_EXCHANGE
+#      subscriptionMode: SUBSCRIBE
+#      heartbeatIntervalSeconds: 60
+#      operatorNamespace: http://www.siri.org.uk/siri
+#      urlMap:
+#        SUBSCRIBE: 109.70.83.57/siri/1.4/sx
+#        DELETE_SUBSCRIPTION: 109.70.83.57/siri/1.4/sx
+#      version: 1.4
+#      subscriptionId: f9ef149ec66ded94836a4da53e12169a
+#      requestorRef: RutebankenDEV
+#      durationOfSubscriptionHours: 168
+#      mappingAdapterPresets: SKYSS
+#      idMappingPrefixes: HRD
+#      active: true
     -
       vendor: brakaret
       datasetId: BRA
