@@ -228,8 +228,8 @@ anshar:
       heartbeatIntervalSeconds: 60
       operatorNamespace: http://www.siri.org.uk/siri
       urlMap:
-        SUBSCRIBE: brakar.tmix.se/siri/1.4/et
-        DELETE_SUBSCRIPTION: brakar.tmix.se/siri/1.4/et
+        SUBSCRIBE: brakar.tmix.se/siri/1.4/sx
+        DELETE_SUBSCRIPTION: brakar.tmix.se/siri/1.4/sx
       version: 1.4
       subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV
