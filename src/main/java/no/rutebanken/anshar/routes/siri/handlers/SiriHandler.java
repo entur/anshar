@@ -145,12 +145,8 @@ public class SiriHandler {
                                 if (sx.isStatus() != null && !sx.isStatus()) {
                                     logger.info(getErrorContents(sx.getErrorCondition()));
                                 } else {
-                                    sx.getSituations().getPtSituationElements().forEach(ptSx -> {
-                                        PtSituationElement situationElement = Situations.add(ptSx, subscriptionSetup.getDatasetId());
-                                        if (situationElement != null) {
-                                            addedOrUpdated.add(situationElement);
-                                        }
-                                    });
+                                    addedOrUpdated.addAll(sx.getSituations().getPtSituationElements());
+                                    Situations.addAll(subscriptionSetup.getDatasetId(), addedOrUpdated);
                                 }
                             }
                     );
@@ -168,13 +164,8 @@ public class SiriHandler {
                             if (vm.isStatus() != null && !vm.isStatus()) {
                                 logger.info(getErrorContents(vm.getErrorCondition()));
                             } else {
-                                vm.getVehicleActivities().forEach(activity -> {
-                                            VehicleActivityStructure addedOrUpdatedActivity = VehicleActivities.add(activity, subscriptionSetup.getDatasetId());
-                                            if (addedOrUpdatedActivity != null) {
-                                                addedOrUpdated.add(addedOrUpdatedActivity);
-                                            }
-                                        }
-                                );
+                                addedOrUpdated.addAll(vm.getVehicleActivities());
+                                VehicleActivities.addAll(subscriptionSetup.getDatasetId(), addedOrUpdated);
                             }
                         }
                     );
@@ -193,12 +184,8 @@ public class SiriHandler {
                                     logger.info(getErrorContents(et.getErrorCondition()));
                                 } else {
                                     et.getEstimatedJourneyVersionFrames().forEach(versionFrame -> {
-                                        versionFrame.getEstimatedVehicleJourneies().forEach(journey -> {
-                                            EstimatedVehicleJourney element = EstimatedTimetables.add(journey, subscriptionSetup.getDatasetId());
-                                            if (element != null) {
-                                                addedOrUpdated.add(journey);
-                                            }
-                                        });
+                                        addedOrUpdated.addAll(versionFrame.getEstimatedVehicleJourneies());
+                                        EstimatedTimetables.addAll(subscriptionSetup.getDatasetId(), addedOrUpdated);
                                     });
                                 }
                             }
@@ -211,17 +198,10 @@ public class SiriHandler {
                     logger.info("Got PT-delivery: Subscription [{}]", subscriptionSetup);
 
                     List<ProductionTimetableDeliveryStructure> addedOrUpdated = new ArrayList<>();
-                    productionTimetableDeliveries.forEach(pt -> {
-                                if (pt.isStatus() != null && !pt.isStatus()) {
-                                    logger.info(getErrorContents(pt.getErrorCondition()));
-                                } else {
-                                    ProductionTimetableDeliveryStructure element = ProductionTimetables.add(pt, subscriptionSetup.getDatasetId());
-                                    if (element != null) {
-                                        addedOrUpdated.add(element);
-                                    }
-                                }
-                            }
-                    );
+
+                    addedOrUpdated.addAll(productionTimetableDeliveries);
+                    ProductionTimetables.addAll(subscriptionSetup.getDatasetId(), productionTimetableDeliveries);
+
                     serverSubscriptionManager.pushUpdatedProductionTimetables(addedOrUpdated, subscriptionSetup.getDatasetId());
                     logger.info("Active PT-elements: {}, new/updated: {}", ProductionTimetables.getAll().size(), addedOrUpdated.size());
                 }

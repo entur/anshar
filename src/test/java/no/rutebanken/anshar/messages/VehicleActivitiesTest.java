@@ -11,7 +11,6 @@ import java.time.ZonedDateTime;
 import java.util.UUID;
 
 import static org.junit.Assert.*;
-import static org.junit.Assert.assertEquals;
 
 public class VehicleActivitiesTest {
 
@@ -27,7 +26,7 @@ public class VehicleActivitiesTest {
         VehicleActivityStructure element = createVehicleActivityStructure(
                                                     ZonedDateTime.now().plusMinutes(1), UUID.randomUUID().toString());
 
-        VehicleActivities.add(element, "test");
+        VehicleActivities.add("test", element);
         assertTrue(VehicleActivities.getAll().size() == previousSize+1);
     }
 
@@ -38,7 +37,7 @@ public class VehicleActivitiesTest {
         VehicleActivityStructure element = createVehicleActivityStructure(
                                                     ZonedDateTime.now().minusMinutes(11), UUID.randomUUID().toString());
 
-        VehicleActivities.add(element, "test");
+        VehicleActivities.add("test", element);
 
         VehicleActivities.vehicleActivities.removeExpiredElements();
         assertTrue(VehicleActivities.getAll().size() == previousSize);
@@ -53,7 +52,7 @@ public class VehicleActivitiesTest {
 
         element.getMonitoredVehicleJourney().setVehicleLocation(new LocationStructure());
 
-        VehicleActivities.add(element, "test");
+        VehicleActivities.add("test", element);
         assertTrue(VehicleActivities.getAll().size() == previousSize);
     }
 
@@ -61,7 +60,7 @@ public class VehicleActivitiesTest {
     public void testNullVehicle() {
         int previousSize = VehicleActivities.getAll().size();
 
-        VehicleActivities.add(null, "test");
+        VehicleActivities.add("test", null);
         assertTrue(VehicleActivities.getAll().size() == previousSize);
     }
 
@@ -74,7 +73,7 @@ public class VehicleActivitiesTest {
         VehicleActivityStructure element = createVehicleActivityStructure(
                                                     ZonedDateTime.now().plusMinutes(1), vehicleReference);
 
-        VehicleActivities.add(element, "test");
+        VehicleActivities.add("test", element);
         //Verify that element is added
         assertTrue(VehicleActivities.getAll().size() == previousSize+1);
 
@@ -82,7 +81,7 @@ public class VehicleActivitiesTest {
         VehicleActivityStructure element2 = createVehicleActivityStructure(
                                                     ZonedDateTime.now().plusMinutes(1), vehicleReference);
 
-        VehicleActivityStructure updatedVehicle = VehicleActivities.add(element2, "test");
+        VehicleActivityStructure updatedVehicle = VehicleActivities.add("test", element2);
 
         //Verify that activity is found as updated
         assertNotNull(updatedVehicle);
@@ -93,14 +92,14 @@ public class VehicleActivitiesTest {
         VehicleActivityStructure element3 = createVehicleActivityStructure(
                 ZonedDateTime.now().plusMinutes(1), UUID.randomUUID().toString());
 
-        updatedVehicle = VehicleActivities.add(element3, "test");
+        updatedVehicle = VehicleActivities.add("test", element3);
 
         //Verify that activity is found as new
         assertNotNull(updatedVehicle);
         //Verify that new element is added
         assertTrue(VehicleActivities.getAll().size() == previousSize+2);
 
-        VehicleActivities.add(element3, "test2");
+        VehicleActivities.add("test2", element3);
         //Verify that new element is added
         assertTrue(VehicleActivities.getAll().size() == previousSize+3);
 
@@ -113,13 +112,13 @@ public class VehicleActivitiesTest {
 
         assertEquals(0, VehicleActivities.getAll().size());
 
-        VehicleActivities.add(createVehicleActivityStructure(ZonedDateTime.now(), "1234"), "test");
-        VehicleActivities.add(createVehicleActivityStructure(ZonedDateTime.now(), "2345"), "test");
-        VehicleActivities.add(createVehicleActivityStructure(ZonedDateTime.now(), "3456"), "test");
+        VehicleActivities.add("test", createVehicleActivityStructure(ZonedDateTime.now(), "1234"));
+        VehicleActivities.add("test", createVehicleActivityStructure(ZonedDateTime.now(), "2345"));
+        VehicleActivities.add("test", createVehicleActivityStructure(ZonedDateTime.now(), "3456"));
         // Added 3
         assertEquals(3, VehicleActivities.getAllUpdates("1234-1234").size());
 
-        VehicleActivities.add(createVehicleActivityStructure(ZonedDateTime.now(), "4567"), "test");
+        VehicleActivities.add("test", createVehicleActivityStructure(ZonedDateTime.now(), "4567"));
 
         //Added one
         assertEquals(1, VehicleActivities.getAllUpdates("1234-1234").size());

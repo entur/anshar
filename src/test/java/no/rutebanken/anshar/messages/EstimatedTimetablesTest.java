@@ -26,7 +26,7 @@ public class EstimatedTimetablesTest {
     public void testAddNull() {
         int previousSize = EstimatedTimetables.getAll().size();
 
-        EstimatedTimetables.add(null, "test");
+        EstimatedTimetables.add("test", null);
 
         assertTrue(EstimatedTimetables.getAll().size() == previousSize);
     }
@@ -36,7 +36,7 @@ public class EstimatedTimetablesTest {
         int previousSize = EstimatedTimetables.getAll().size();
         EstimatedVehicleJourney element = createEstimatedVehicleJourney("1234", "4321", 0, 30, ZonedDateTime.now().plusMinutes(1), true);
 
-        EstimatedTimetables.add(element, "test");
+        EstimatedTimetables.add("test", element);
 
         assertTrue(EstimatedTimetables.getAll().size() == previousSize+1);
     }
@@ -46,13 +46,13 @@ public class EstimatedTimetablesTest {
 
         assertEquals(0, EstimatedTimetables.getAll().size());
 
-        EstimatedTimetables.add(createEstimatedVehicleJourney("1234", "4321", 0, 30, ZonedDateTime.now().plusHours(1), true), "test");
-        EstimatedTimetables.add(createEstimatedVehicleJourney("2345", "4321", 0, 30, ZonedDateTime.now().plusHours(1), true), "test");
-        EstimatedTimetables.add(createEstimatedVehicleJourney("3456", "4321", 0, 30, ZonedDateTime.now().plusHours(1), true), "test");
+        EstimatedTimetables.add("test", createEstimatedVehicleJourney("1234", "4321", 0, 30, ZonedDateTime.now().plusHours(1), true));
+        EstimatedTimetables.add("test", createEstimatedVehicleJourney("2345", "4321", 0, 30, ZonedDateTime.now().plusHours(1), true));
+        EstimatedTimetables.add("test", createEstimatedVehicleJourney("3456", "4321", 0, 30, ZonedDateTime.now().plusHours(1), true));
         // Added 3
         assertEquals(3, EstimatedTimetables.getAllUpdates("1234-1234").size());
 
-        EstimatedTimetables.add(createEstimatedVehicleJourney("4567", "4321", 0, 30, ZonedDateTime.now().plusHours(1), true), "test");
+        EstimatedTimetables.add("test", createEstimatedVehicleJourney("4567", "4321", 0, 30, ZonedDateTime.now().plusHours(1), true));
 
         //Added one
         assertEquals(1, EstimatedTimetables.getAllUpdates("1234-1234").size());
@@ -70,8 +70,7 @@ public class EstimatedTimetablesTest {
         int previousSize = EstimatedTimetables.getAll().size();
 
         EstimatedTimetables.add(
-                createEstimatedVehicleJourney("1111", "4321", 0, 30, ZonedDateTime.now().minusDays(2), true)
-                , "test"
+                "test", createEstimatedVehicleJourney("1111", "4321", 0, 30, ZonedDateTime.now().minusDays(2), true)
         );
 
         EstimatedTimetables.timetableDeliveries.removeExpiredElements();
@@ -79,8 +78,7 @@ public class EstimatedTimetablesTest {
         assertEquals(previousSize, EstimatedTimetables.getAll().size());
 
         EstimatedTimetables.add(
-                createEstimatedVehicleJourney("2222", "4321", 0, 30, ZonedDateTime.now().plusDays(2), true)
-                , "test"
+                "test", createEstimatedVehicleJourney("2222", "4321", 0, 30, ZonedDateTime.now().plusDays(2), true)
         );
 
         EstimatedTimetables.timetableDeliveries.removeExpiredElements();
@@ -93,19 +91,19 @@ public class EstimatedTimetablesTest {
         int previousSize = EstimatedTimetables.getAll().size();
 
         ZonedDateTime departure = ZonedDateTime.now().plusHours(1);
-        EstimatedTimetables.add(createEstimatedVehicleJourney("12345", "4321", 0, 30, departure, true), "test");
+        EstimatedTimetables.add("test", createEstimatedVehicleJourney("12345", "4321", 0, 30, departure, true));
         int expectedSize = previousSize +1;
         assertTrue("Adding Journey did not add element.", EstimatedTimetables.getAll().size() == expectedSize);
 
-        EstimatedTimetables.add(createEstimatedVehicleJourney("12345", "4321", 0, 30, departure, true), "test");
+        EstimatedTimetables.add("test", createEstimatedVehicleJourney("12345", "4321", 0, 30, departure, true));
         assertTrue("Updating Journey added element.", EstimatedTimetables.getAll().size() == expectedSize);
 
         ZonedDateTime departure_2 = ZonedDateTime.now().plusHours(1);
-        EstimatedTimetables.add(createEstimatedVehicleJourney("54321", "4321", 0, 30, departure_2, true), "test");
+        EstimatedTimetables.add("test", createEstimatedVehicleJourney("54321", "4321", 0, 30, departure_2, true));
         expectedSize++;
         assertTrue("Adding Journey did not add element.", EstimatedTimetables.getAll().size() == expectedSize);
 
-        EstimatedTimetables.add(createEstimatedVehicleJourney("12345", "4321", 0, 30, departure_2, true), "test2");
+        EstimatedTimetables.add("test2", createEstimatedVehicleJourney("12345", "4321", 0, 30, departure_2, true));
         expectedSize++;
         assertTrue("Adding Journey for other vendor did not add element.", EstimatedTimetables.getAll().size() == expectedSize);
         assertTrue("Getting Journey for vendor did not return correct element-count.", EstimatedTimetables.getAll("test2").size() == previousSize+1);
@@ -118,7 +116,7 @@ public class EstimatedTimetablesTest {
 
         ZonedDateTime departure = ZonedDateTime.now().plusHours(1);
         //Adding ET-data with stops 0-20
-        EstimatedTimetables.add(createEstimatedVehicleJourney("12345", "4321", 0, 20, departure, false), "test");
+        EstimatedTimetables.add("test", createEstimatedVehicleJourney("12345", "4321", 0, 20, departure, false));
         assertEquals("Adding Journey did not add element.", 1, EstimatedTimetables.getAll().size());
 
         //Adding ET-data with stops 10-30
@@ -129,7 +127,7 @@ public class EstimatedTimetablesTest {
         EstimatedCall lastCall = callList.get(callList.size() - 1);
         assertEquals(updatedDeparture, lastCall.getExpectedArrivalTime());
 
-        EstimatedTimetables.add(estimatedVehicleJourney, "test");
+        EstimatedTimetables.add("test", estimatedVehicleJourney);
         assertEquals("Updating Journey should not add element.", 1, EstimatedTimetables.getAll().size());
 
         List<EstimatedCall> estimatedCallsList = EstimatedTimetables.getAll().get(0).getEstimatedCalls().getEstimatedCalls();

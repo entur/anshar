@@ -97,38 +97,41 @@ public class Situations {
         return expiry;
     }
 
-    public static PtSituationElement add(PtSituationElement situation, String datasetId) {
+    public static void addAll(String datasetId, List<PtSituationElement> sxList) {
+        Map< String, PtSituationElement> updates = new HashMap<>();
+        Map<String, ZonedDateTime> expiries = new HashMap<>();
+        Set<String> changes = new HashSet<>();
+
+        sxList.forEach(situation -> {
+            String key = createKey(datasetId, situation);
+
+            ZonedDateTime expiration = getExpiration(situation);
+
+            if (expiration != null && expiration.isAfter(ZonedDateTime.now())) {
+                changes.add(key);
+                updates.put(key, situation);
+                expiries.put(key, expiration);
+            }
+
+        });
+
+        Situations.situations.putAll(updates, expiries);
+
+        changesMap.keySet().forEach(requestor -> {
+            Set<String> tmpChanges = changesMap.get(requestor);
+            tmpChanges.addAll(changes);
+            changesMap.put(requestor, tmpChanges);
+        });
+    }
+
+    static PtSituationElement add(String datasetId, PtSituationElement situation) {
         if (situation == null) {
             return null;
         }
-        String key = createKey(datasetId, situation);
-
-        ZonedDateTime expiration = getExpiration(situation);
-        if (expiration != null && expiration.isBefore(ZonedDateTime.now())) {
-            //Ignore elements that have already expired
-            return null;
-        }
-
-        changesMap.keySet().forEach(requestor -> {
-            Set<String> changes = changesMap.get(requestor);
-            changes.add(key);
-            changesMap.put(requestor, changes);
-        });
-
-        PtSituationElement previousElement = situations.put(key, situation, expiration);
-        if (previousElement != null) {
-            //Situation existed, and may have been updated
-            /*
-             * TODO: How to determine updated situation?
-             */
-            if (situation.getCreationTime().isAfter(previousElement.getCreationTime())) {
-                return situation;
-            }
-        } else {
-            return situation;
-        }
-
-        return null;
+        List<PtSituationElement> situations = new ArrayList<>();
+        situations.add(situation);
+        addAll(datasetId, situations);
+        return Situations.situations.get(createKey(datasetId, situation));
     }
 
     private static String createKey(String datasetId, PtSituationElement element) {

@@ -83,35 +83,43 @@ public class ProductionTimetables {
         return s.getValidUntil();
     }
 
-    public static ProductionTimetableDeliveryStructure add(ProductionTimetableDeliveryStructure timetableDelivery, String datasetId) {
+    public static void addAll(String datasetId, List<ProductionTimetableDeliveryStructure> ptList) {
+
+        Map< String, ProductionTimetableDeliveryStructure> updates = new HashMap<>();
+        Map<String, ZonedDateTime> expiries = new HashMap<>();
+        Set<String> changes = new HashSet<>();
+
+        ptList.forEach(pt -> {
+            String key = createKey(datasetId, pt);
+
+            ZonedDateTime expiration = getExpiration(pt);
+
+            if (expiration != null && expiration.isAfter(ZonedDateTime.now())) {
+                changes.add(key);
+                updates.put(key, pt);
+                expiries.put(key, expiration);
+            }
+
+        });
+
+        ProductionTimetables.timetableDeliveries.putAll(updates, expiries);
+
+        changesMap.keySet().forEach(requestor -> {
+            Set<String> tmpChanges = changesMap.get(requestor);
+            tmpChanges.addAll(changes);
+            changesMap.put(requestor, tmpChanges);
+        });
+    }
+
+    public static ProductionTimetableDeliveryStructure add(String datasetId, ProductionTimetableDeliveryStructure timetableDelivery) {
         if (timetableDelivery == null) {
             return null;
         }
-        String key = createKey(datasetId, timetableDelivery);
 
-        ZonedDateTime expiration = getExpiration(timetableDelivery);
-        if (expiration != null && expiration.isBefore(ZonedDateTime.now())) {
-            //Ignore elements that have already expired
-            return null;
-        }
-
-
-        changesMap.keySet().forEach(requestor -> {
-            Set<String> changes = changesMap.get(requestor);
-            changes.add(key);
-            changesMap.put(requestor, changes);
-        });
-
-        ProductionTimetableDeliveryStructure previous = timetableDeliveries.put(key, timetableDelivery, getExpiration(timetableDelivery));
-        if (previous != null) {
-            /*
-             * TODO: How to determine if PT-element has been updated?
-             */
-            if (!timetableDelivery.equals(previous)) {
-                return timetableDelivery;
-            }
-        }
-        return null;
+        List<ProductionTimetableDeliveryStructure> situations = new ArrayList<>();
+        situations.add(timetableDelivery);
+        addAll(datasetId, situations);
+        return ProductionTimetables.timetableDeliveries.get(createKey(datasetId, timetableDelivery));
     }
     private static String createKey(String datasetId, ProductionTimetableDeliveryStructure element) {
         StringBuffer key = new StringBuffer();

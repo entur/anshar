@@ -107,62 +107,70 @@ public class EstimatedTimetables {
     }
 
 
-    public static EstimatedVehicleJourney add(EstimatedVehicleJourney delivery, String datasetId) {
-        if (delivery == null) {return null;}
+    public static void addAll(String datasetId, List<EstimatedVehicleJourney> etList) {
 
-        String key = createKey(datasetId, delivery);
-        ZonedDateTime expiration = getExpiration(delivery);
-        if (expiration != null && expiration.isBefore(ZonedDateTime.now())) {
-            //Ignore elements that have already expired
-            return null;
-        }
+        Map< String, EstimatedVehicleJourney> updates = new HashMap<>();
+        Map<String, ZonedDateTime> expiries = new HashMap<>();
+        Set<String> changes = new HashSet<>();
 
+        etList.forEach(et -> {
+            String key = createKey(datasetId, et);
 
-        if (delivery.isIsCompleteStopSequence() != null && !delivery.isIsCompleteStopSequence()) {
-            //Not complete - calculate partial update
-            EstimatedVehicleJourney existing = timetableDeliveries.get(key);
-            if (existing != null) {
-                EstimatedVehicleJourney.EstimatedCalls existingCallWrapper = existing.getEstimatedCalls();
-                EstimatedVehicleJourney.EstimatedCalls updatedCallWrapper = delivery.getEstimatedCalls();
+            if (et.isIsCompleteStopSequence() != null && !et.isIsCompleteStopSequence()) {
+                //Not complete - merge partial update into existing
+                EstimatedVehicleJourney existing = timetableDeliveries.get(key);
+                if (existing != null) {
+                    EstimatedVehicleJourney.EstimatedCalls existingCallWrapper = existing.getEstimatedCalls();
+                    EstimatedVehicleJourney.EstimatedCalls updatedCallWrapper = et.getEstimatedCalls();
 
-                SortedMap<Integer, EstimatedCall> joinedCallsMap = new TreeMap<>();
+                    SortedMap<Integer, EstimatedCall> joinedCallsMap = new TreeMap<>();
 
-                //Existing calls
-                for (EstimatedCall call : existingCallWrapper.getEstimatedCalls()) {
-                    //Assuming that either Visitnumber or Order is always used
-                    int order = (call.getVisitNumber() != null ? call.getVisitNumber():call.getOrder()).intValue();
-                    joinedCallsMap.put(order, call);
+                    //Existing calls
+                    for (EstimatedCall call : existingCallWrapper.getEstimatedCalls()) {
+                        //Assuming that either Visitnumber or Order is always used
+                        int order = (call.getVisitNumber() != null ? call.getVisitNumber():call.getOrder()).intValue();
+                        joinedCallsMap.put(order, call);
+                    }
+                    //Add or replace existing calls
+                    for (EstimatedCall call : updatedCallWrapper.getEstimatedCalls()) {
+                        int order = (call.getVisitNumber() != null ? call.getVisitNumber():call.getOrder()).intValue();
+                        joinedCallsMap.put(order, call);
+                    }
+
+                    EstimatedVehicleJourney.EstimatedCalls joinedCalls = new EstimatedVehicleJourney.EstimatedCalls();
+                    joinedCalls.getEstimatedCalls().addAll(joinedCallsMap.values());
+
+                    et.setEstimatedCalls(joinedCalls);
                 }
-                //Add or replace existing calls
-                for (EstimatedCall call : updatedCallWrapper.getEstimatedCalls()) {
-                    int order = (call.getVisitNumber() != null ? call.getVisitNumber():call.getOrder()).intValue();
-                    joinedCallsMap.put(order, call);
-                }
-
-                EstimatedVehicleJourney.EstimatedCalls joinedCalls = new EstimatedVehicleJourney.EstimatedCalls();
-                joinedCalls.getEstimatedCalls().addAll(joinedCallsMap.values());
-
-                delivery.setEstimatedCalls(joinedCalls);
             }
-        }
 
+            ZonedDateTime expiration = getExpiration(et);
 
-        changesMap.keySet().forEach(requestor -> {
-            Set<String> changes = changesMap.get(requestor);
-            changes.add(key);
-            changesMap.put(requestor, changes);
+            if (expiration != null && expiration.isAfter(ZonedDateTime.now())) {
+                changes.add(key);
+                updates.put(key, et);
+                expiries.put(key, expiration);
+            }
+
         });
 
-        EstimatedVehicleJourney previous = timetableDeliveries.put(key, delivery, expiration);
+        EstimatedTimetables.timetableDeliveries.putAll(updates, expiries);
 
-        if (previous != null) {
-            // TODO: Determine if data is updated?
-            // Currently assumes that unique key is enough to replace/update data
-            return previous;
-        } else {
-            // new element
-            return delivery;
-        }
+        changesMap.keySet().forEach(requestor -> {
+            Set<String> tmpChanges = changesMap.get(requestor);
+            tmpChanges.addAll(changes);
+            changesMap.put(requestor, tmpChanges);
+        });
+    }
+
+
+    static EstimatedVehicleJourney add(String datasetId, EstimatedVehicleJourney delivery) {
+        if (delivery == null) {return null;}
+
+        List<EstimatedVehicleJourney> deliveries = new ArrayList<>();
+        deliveries.add(delivery);
+        addAll(datasetId, deliveries);
+        return EstimatedTimetables.timetableDeliveries.get(createKey(datasetId, delivery));
     }
 
     private static String createKey(String datasetId, EstimatedVehicleJourney element) {

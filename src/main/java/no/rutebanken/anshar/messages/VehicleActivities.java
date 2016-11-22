@@ -82,40 +82,45 @@ public class VehicleActivities {
         return a.getValidUntilTime();
     }
 
-    public static VehicleActivityStructure add(VehicleActivityStructure activity, String datasetId) {
-        if (activity == null) {
-            return activity;
-        }
-        boolean keep = isLocationValid(activity) && isActivityMeaningful(activity);
+    public static void addAll(String datasetId, List<VehicleActivityStructure> vmList) {
+        Map< String, VehicleActivityStructure> updates = new HashMap<>();
+        Map<String, ZonedDateTime> expiries = new HashMap<>();
+        Set<String> changes = new HashSet<>();
 
-        if (keep) {
-            String key = createKey(datasetId, activity);
+        vmList.forEach(activity -> {
+            boolean keep = isLocationValid(activity) && isActivityMeaningful(activity);
 
-            ZonedDateTime expiration = getExpiration(activity);
-            if (expiration != null && expiration.isBefore(ZonedDateTime.now())) {
-                //Ignore elements that have already expired
-                return null;
-            }
+            if (keep) {
+                String key = createKey(datasetId, activity);
 
-            changesMap.keySet().forEach(requestor -> {
-                Set<String> changes = changesMap.get(requestor);
-                changes.add(key);
-                changesMap.put(requestor, changes);
-            });
+                ZonedDateTime expiration = getExpiration(activity);
 
-            VehicleActivityStructure previousValue = vehicleActivities.put(key, activity, expiration);
-
-            if (previousValue != null) {
-                //Activity has been updated
-                if (activity.getRecordedAtTime().isAfter(previousValue.getRecordedAtTime())) {
-                    return activity;
+                if (expiration != null && expiration.isAfter(ZonedDateTime.now())) {
+                    changes.add(key);
+                    updates.put(key, activity);
+                    expiries.put(key, expiration);
                 }
-            } else {
-                //New activity
-                return activity;
             }
+        });
+
+        VehicleActivities.vehicleActivities.putAll(updates, expiries);
+
+        changesMap.keySet().forEach(requestor -> {
+            Set<String> tmpChanges = changesMap.get(requestor);
+            tmpChanges.addAll(changes);
+            changesMap.put(requestor, tmpChanges);
+        });
+
+    }
+
+    static VehicleActivityStructure add(String datasetId, VehicleActivityStructure activity) {
+        if (activity == null) {
+            return null;
         }
-        return null;
+        List<VehicleActivityStructure> activities = new ArrayList<>();
+        activities.add(activity);
+        addAll(datasetId, activities);
+        return vehicleActivities.get(createKey(datasetId, activity));
     }
 
     /*

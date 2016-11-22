@@ -109,6 +109,11 @@ public class ExpiringConcurrentMap<String,T>  implements Map<String,T> {
         map.putAll(m);
     }
 
+    public void putAll(Map<? extends String, ? extends T> m, Map<String, ZonedDateTime> expiry) {
+        map.putAll(m);
+        expiryMap.putAll(expiry);
+    }
+
     private void initExpiryManagerThread() {
         TimerTask timerTask = new TimerTask() {
             @Override

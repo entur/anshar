@@ -1,10 +1,7 @@
 package no.rutebanken.anshar.messages;
 
-import no.rutebanken.anshar.messages.ProductionTimetables;
-import no.rutebanken.anshar.messages.ProductionTimetables;
 import org.junit.Before;
 import org.junit.Test;
-import uk.org.siri.siri20.EstimatedTimetableDeliveryStructure;
 import uk.org.siri.siri20.ProductionTimetableDeliveryStructure;
 
 import java.time.ZonedDateTime;
@@ -25,7 +22,7 @@ public class ProductionTimetablesTest {
     public void testAddNull() {
         int previousSize = ProductionTimetables.getAll().size();
 
-        ProductionTimetables.add(null, "test");
+        ProductionTimetables.add("test", null);
 
         assertTrue(ProductionTimetables.getAll().size() == previousSize);
     }
@@ -35,7 +32,7 @@ public class ProductionTimetablesTest {
         int previousSize = ProductionTimetables.getAll().size();
         ProductionTimetableDeliveryStructure element = createProductionTimetableDeliveryStructure(UUID.randomUUID().toString(), ZonedDateTime.now().plusMinutes(1));
 
-        ProductionTimetables.add(element, "test");
+        ProductionTimetables.add("test", element);
 
         assertTrue(ProductionTimetables.getAll().size() == previousSize+1);
     }
@@ -45,8 +42,7 @@ public class ProductionTimetablesTest {
         int previousSize = ProductionTimetables.getAll().size();
 
         ProductionTimetables.add(
-                createProductionTimetableDeliveryStructure(UUID.randomUUID().toString(), ZonedDateTime.now().minusMinutes(1))
-                , "test"
+                "test", createProductionTimetableDeliveryStructure(UUID.randomUUID().toString(), ZonedDateTime.now().minusMinutes(1))
         );
 
         ProductionTimetables.timetableDeliveries.removeExpiredElements();
@@ -59,23 +55,19 @@ public class ProductionTimetablesTest {
         assertEquals(0, ProductionTimetables.getAll().size());
 
         ProductionTimetables.add(
-                createProductionTimetableDeliveryStructure(UUID.randomUUID().toString(), ZonedDateTime.now().plusMinutes(1))
-                , "test"
+                "test", createProductionTimetableDeliveryStructure(UUID.randomUUID().toString(), ZonedDateTime.now().plusMinutes(1))
         );
         ProductionTimetables.add(
-                createProductionTimetableDeliveryStructure(UUID.randomUUID().toString(), ZonedDateTime.now().plusMinutes(1))
-                , "test"
+                "test", createProductionTimetableDeliveryStructure(UUID.randomUUID().toString(), ZonedDateTime.now().plusMinutes(1))
         );
         ProductionTimetables.add(
-                createProductionTimetableDeliveryStructure(UUID.randomUUID().toString(), ZonedDateTime.now().plusMinutes(1))
-                , "test"
+                "test", createProductionTimetableDeliveryStructure(UUID.randomUUID().toString(), ZonedDateTime.now().plusMinutes(1))
         );
         // Added 3
         assertEquals(3, ProductionTimetables.getAllUpdates("1234-1234").size());
 
         ProductionTimetables.add(
-                createProductionTimetableDeliveryStructure(UUID.randomUUID().toString(), ZonedDateTime.now().plusMinutes(1))
-                , "test"
+                "test", createProductionTimetableDeliveryStructure(UUID.randomUUID().toString(), ZonedDateTime.now().plusMinutes(1))
         );
         //Added one
         assertEquals(1, ProductionTimetables.getAllUpdates("1234-1234").size());
@@ -93,18 +85,18 @@ public class ProductionTimetablesTest {
         int previousSize = ProductionTimetables.getAll().size();
         String version = UUID.randomUUID().toString();
 
-        ProductionTimetables.add(createProductionTimetableDeliveryStructure(version, ZonedDateTime.now().plusMinutes(1)), "test");
+        ProductionTimetables.add("test", createProductionTimetableDeliveryStructure(version, ZonedDateTime.now().plusMinutes(1)));
         int expectedSize = previousSize +1;
         assertTrue("Adding Journey did not add element.", ProductionTimetables.getAll().size() == expectedSize);
 
-        ProductionTimetables.add(createProductionTimetableDeliveryStructure(version, ZonedDateTime.now().plusMinutes(1)), "test");
+        ProductionTimetables.add("test", createProductionTimetableDeliveryStructure(version, ZonedDateTime.now().plusMinutes(1)));
         assertTrue("Updating Journey added element.", ProductionTimetables.getAll().size() == expectedSize);
 
-        ProductionTimetables.add(createProductionTimetableDeliveryStructure(UUID.randomUUID().toString(), ZonedDateTime.now().plusMinutes(1)), "test");
+        ProductionTimetables.add("test", createProductionTimetableDeliveryStructure(UUID.randomUUID().toString(), ZonedDateTime.now().plusMinutes(1)));
         expectedSize++;
         assertTrue("Adding Journey did not add element.", ProductionTimetables.getAll().size() == expectedSize);
 
-        ProductionTimetables.add(createProductionTimetableDeliveryStructure(UUID.randomUUID().toString(), ZonedDateTime.now().plusMinutes(1)), "test2");
+        ProductionTimetables.add("test2", createProductionTimetableDeliveryStructure(UUID.randomUUID().toString(), ZonedDateTime.now().plusMinutes(1)));
         expectedSize++;
         assertTrue("Adding Journey for other vendor did not add element.", ProductionTimetables.getAll().size() == expectedSize);
         assertTrue("Getting Journey for vendor did not return correct element-count.", ProductionTimetables.getAll("test2").size() == previousSize+1);

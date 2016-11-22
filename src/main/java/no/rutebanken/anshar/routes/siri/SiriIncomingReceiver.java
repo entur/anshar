@@ -57,8 +57,19 @@ public class SiriIncomingReceiver extends RouteBuilder {
     @Override
     public void configure() throws Exception {
 
+
+        /*
+        <bean id="jmsConfig" class="org.apache.camel.component.jms.JmsConfiguration">
+    <property name="connectionFactory" ref="pooledJmsConnectionFactory"/>
+    <property name="cacheLevelName" value="CACHE_CONSUMER" />
+    <property name="disableReplyTo" value="true" />
+</bean>
+         */
+
         Namespaces ns = new Namespaces("siri", "http://www.siri.org.uk/siri")
                 .add("xsd", "http://www.w3.org/2001/XMLSchema");
+
+        String activeMQParameters = "?disableReplyTo=true";
 
         //Incoming notifications/deliveries
         from("jetty:http://0.0.0.0:" + inboundPort + "?matchOnUriPrefix=true&httpMethodRestrict=POST")
@@ -85,7 +96,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                     })
                     .endChoice()
                     .when(header("CamelHttpPath").contains("/subscribe")) //Handle synchronous response
-                        .to("activemq:queue:" + TRANSFORM_QUEUE + "?requestTimeout=120000&disableReplyTo=true")
+                        .to("activemq:queue:" + TRANSFORM_QUEUE + activeMQParameters)
                         .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
                         .setBody(constant(null))
                     .endChoice()
@@ -96,7 +107,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                                     return SubscriptionManager.isSubscriptionRegistered(subscriptionId);
                                 })
                                     //Valid subscription
-                                .to("activemq:queue:" + TRANSFORM_QUEUE + "?requestTimeout=120000&disableReplyTo=true")
+                                .to("activemq:queue:" + TRANSFORM_QUEUE + activeMQParameters)
                                 .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
                                 .setBody(constant(null))
                             .endChoice()
@@ -108,6 +119,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                         .endChoice()
                 .end()
         ;
+
 
         from("activemq:queue:" + TRANSFORM_QUEUE + "?asyncConsumer=true")
                 .to("xslt:xsl/siri_soap_raw.xsl?saxon=true&allowStAX=false") // Extract SOAP version and convert to raw SIRI
@@ -140,7 +152,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                         })
                     .endChoice()
                 .end()
-                .to("activemq:queue:" + ROUTER_QUEUE)
+                .to("activemq:queue:" + ROUTER_QUEUE + activeMQParameters)
         ;
 
 
@@ -173,25 +185,25 @@ public class SiriIncomingReceiver extends RouteBuilder {
         from("activemq:queue:" + ROUTER_QUEUE + "?asyncConsumer=true")
                 .choice()
                 .when().xpath("/siri:Siri/siri:HeartbeatNotification", ns)
-                    .to("activemq:queue:" + HEARTBEAT_QUEUE)
+                    .to("activemq:queue:" + HEARTBEAT_QUEUE + activeMQParameters)
                 .endChoice()
                 .when().xpath("/siri:Siri/siri:CheckStatusResponse", ns)
-                    .to("activemq:queue:" + HEARTBEAT_QUEUE)
+                    .to("activemq:queue:" + HEARTBEAT_QUEUE + activeMQParameters)
                 .endChoice()
                 .when().xpath("/siri:Siri/siri:ServiceDelivery/siri:SituationExchangeDelivery", ns)
-                    .to("activemq:queue:" + SITUATION_EXCHANGE_QUEUE)
+                    .to("activemq:queue:" + SITUATION_EXCHANGE_QUEUE + activeMQParameters)
                 .endChoice()
                 .when().xpath("/siri:Siri/siri:ServiceDelivery/siri:VehicleMonitoringDelivery", ns)
-                    .to("activemq:queue:" + VEHICLE_MONITORING_QUEUE)
+                    .to("activemq:queue:" + VEHICLE_MONITORING_QUEUE + activeMQParameters)
                 .endChoice()
                 .when().xpath("/siri:Siri/siri:ServiceDelivery/siri:EstimatedTimetableDelivery", ns)
-                    .to("activemq:queue:" + ESTIMATED_TIMETABLE_QUEUE)
+                    .to("activemq:queue:" + ESTIMATED_TIMETABLE_QUEUE + activeMQParameters)
                 .endChoice()
                 .when().xpath("/siri:Siri/siri:ServiceDelivery/siri:ProductionTimetableDelivery", ns)
-                    .to("activemq:queue:" + PRODUCTION_TIMETABLE_QUEUE)
+                    .to("activemq:queue:" + PRODUCTION_TIMETABLE_QUEUE + activeMQParameters)
                 .endChoice()
                 .otherwise()
-                    .to("activemq:queue:" + DEFAULT_PROCESSOR_QUEUE)
+                    .to("activemq:queue:" + DEFAULT_PROCESSOR_QUEUE + activeMQParameters)
                 .end()
                 .routeId("anshar.activemq.route")
         ;
