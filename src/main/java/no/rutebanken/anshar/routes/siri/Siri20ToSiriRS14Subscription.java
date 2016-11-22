@@ -43,7 +43,7 @@ public class Siri20ToSiriRS14Subscription extends SiriSubscriptionRouteBuilder {
 
                     String responseCode = p.getIn().getHeader("CamelHttpResponseCode", String.class);
                     if ("200".equals(responseCode)) {
-                        logger.info("SubscriptionResponse OK");
+                        logger.info("SubscriptionResponse OK {}", subscriptionSetup);
                     }
 
                     String body = p.getIn().getBody(String.class);
