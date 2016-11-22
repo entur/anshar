@@ -158,9 +158,10 @@ public class SubscriptionMonitor implements CamelContextAware {
 
                             Map<String, SubscriptionSetup> pendingSubscriptions = SubscriptionManager.getPendingSubscriptions();
 
+                            int counter = 0;
                             for (SubscriptionSetup subscriptionSetup : pendingSubscriptions.values()) {
                                 logger.info("Healthcheck: Trigger start subscription {}", subscriptionSetup);
-                                startSubscription(subscriptionSetup);
+                                startSubscription(subscriptionSetup, 3000*counter++);
                             }
 
                             Map<String, SubscriptionSetup> activeSubscriptions = SubscriptionManager.getActiveSubscriptions();
@@ -206,7 +207,7 @@ public class SubscriptionMonitor implements CamelContextAware {
     }
 
 
-    private void startSubscription(final SubscriptionSetup subscriptionSetup) throws Exception {
+    private void startSubscription(final SubscriptionSetup subscriptionSetup, int delay) throws Exception {
         String routeId = "triggerStart" + subscriptionSetup.getSubscriptionId();
         RouteBuilder initializerRoute = new RouteBuilder() {
             @Override
@@ -219,7 +220,7 @@ public class SubscriptionMonitor implements CamelContextAware {
 
                     RouteDefinition routeDefinition = camelContext.getRouteDefinition(tmpRouteId);
                     if (routeDefinition == null) {
-                        routeDefinition = from("timer:"+tmpRouteId+"?delay=0&repeatCount=1")
+                        routeDefinition = from("timer:"+tmpRouteId+"?delay=" + delay + " &repeatCount=1")
                                 .routeId(tmpRouteId)
                                 .to("direct:" + subscriptionSetup.getStartSubscriptionRouteName());
 
