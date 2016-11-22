@@ -107,7 +107,7 @@ public class SiriHandler {
 
             if (incoming.getHeartbeatNotification() != null) {
                 SubscriptionManager.touchSubscription(subscriptionId);
-
+                logger.info("Heartbeat - {}", subscriptionSetup);
             } else if (incoming.getCheckStatusResponse() != null) {
                 logger.info("Incoming CheckStatusResponse [{}]", subscriptionId);
                 SubscriptionManager.touchSubscription(subscriptionId, incoming.getCheckStatusResponse().getServiceStartedTime());
