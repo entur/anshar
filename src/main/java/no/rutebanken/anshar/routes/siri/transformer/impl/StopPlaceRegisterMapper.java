@@ -71,7 +71,7 @@ public class StopPlaceRegisterMapper extends ValueAdapter {
         if (mappedValue != null) {
             return mappedValue;
         }
-        logger.info("Unmapped StopPlace [{}]", id);
+//        logger.info("Unmapped StopPlace [{}]", id);
         return id;
     }
 
