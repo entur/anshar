@@ -240,7 +240,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
         ;
 
         from("activemq:queue:" + SITUATION_EXCHANGE_QUEUE + "?asyncConsumer=true")
-                .to("log:processor-sx:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
+                .log("Processing SX")
                 .process(p -> {
                     String subscriptionId = getSubscriptionIdFromPath(p.getIn().getHeader("CamelHttpPath", String.class));
 
@@ -252,7 +252,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
         ;
 
         from("activemq:queue:" + VEHICLE_MONITORING_QUEUE + "?asyncConsumer=true")
-                .to("log:processor-vm:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
+                .log("Processing VM")
                 .process(p -> {
 
                     String subscriptionId = getSubscriptionIdFromPath(p.getIn().getHeader("CamelHttpPath", String.class));
@@ -265,7 +265,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
         ;
 
         from("activemq:queue:" + ESTIMATED_TIMETABLE_QUEUE + "?asyncConsumer=true")
-                .to("log:processor-et:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
+                .log("Processing ET")
                 .process(p -> {
                     String subscriptionId = getSubscriptionIdFromPath(p.getIn().getHeader("CamelHttpPath", String.class));
 
@@ -279,7 +279,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
 
 
         from("activemq:queue:" + PRODUCTION_TIMETABLE_QUEUE + "?asyncConsumer=true")
-                .to("log:processor-pt:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
+                .log("Processing PT")
                 .process(p -> {
                     String subscriptionId = getSubscriptionIdFromPath(p.getIn().getHeader("CamelHttpPath", String.class));
 
