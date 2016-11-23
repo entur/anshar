@@ -190,7 +190,6 @@ public class SiriObjectFactory {
         vmSubscriptionReq.setSubscriptionIdentifier(createSubscriptionIdentifier(subscriptionId));
         vmSubscriptionReq.setInitialTerminationTime(ZonedDateTime.now().plusSeconds(subscriptionDuration.getSeconds()));
         vmSubscriptionReq.setSubscriberRef(request.getRequestorRef());
-        
 
         request.getVehicleMonitoringSubscriptionRequests().add(vmSubscriptionReq);
 
@@ -204,7 +203,7 @@ public class SiriObjectFactory {
         EstimatedTimetableRequestStructure etRequest = new EstimatedTimetableRequestStructure();
         etRequest.setRequestTimestamp(ZonedDateTime.now());
         etRequest.setVersion("2.0");
-        etRequest.setPreviewInterval(createDataTypeFactory().newDuration("P1D"));
+        etRequest.setPreviewInterval(createDataTypeFactory().newDuration("PT6H"));
 
         if (filterMap != null) {
             if (filterMap.size() > 0) {
