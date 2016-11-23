@@ -2,7 +2,6 @@ package no.rutebanken.anshar.routes.siri;
 
 import no.rutebanken.anshar.routes.ServiceNotSupportedException;
 import no.rutebanken.anshar.subscription.RequestType;
-import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
@@ -72,7 +71,7 @@ public class Siri20ToSiriRS20RequestResponse extends RouteBuilder {
                 .end()
                 .setHeader("CamelHttpPath", constant("/appContext" + subscriptionSetup.buildUrl(false)))
                 .log("Got response " + subscriptionSetup.toString())
-                .to("activemq:queue:" + SiriIncomingReceiver.TRANSFORM_QUEUE)
+                .to("activemq:queue:" + SiriIncomingReceiver.TRANSFORM_QUEUE + "?disableReplyTo=true")
         ;
     }
 }
