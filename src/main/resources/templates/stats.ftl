@@ -23,7 +23,6 @@
                 <th>Vendor</th>
                 <th>Last activity</th>
                 <th>Requests</th>
-                <th>Active elements</th>
             </tr>
         </thead>
         <tbody>
@@ -35,7 +34,6 @@
                 <td>${item.vendor}</td>
                 <td>${item.lastActivity!""}</td>
                 <td align="right">${item.hitcount!0}</td>
-                <td align="right">${item.currentlyActive!0}</td>
             </tr>
             <tr id="accordion${item?counter}" class="collapse ${item.healthy?then("success","danger")}">
             <td colspan="7">

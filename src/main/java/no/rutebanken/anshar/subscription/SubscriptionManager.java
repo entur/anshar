@@ -1,10 +1,6 @@
 package no.rutebanken.anshar.subscription;
 
 
-import no.rutebanken.anshar.messages.EstimatedTimetables;
-import no.rutebanken.anshar.messages.ProductionTimetables;
-import no.rutebanken.anshar.messages.Situations;
-import no.rutebanken.anshar.messages.VehicleActivities;
 import no.rutebanken.anshar.messages.collections.DistributedCollection;
 import no.rutebanken.anshar.routes.siri.SiriObjectFactory;
 import org.json.simple.JSONArray;
@@ -245,25 +241,6 @@ public class SubscriptionManager {
             urllist.put(s.name(), setup.getUrlMap().get(s));
         }
         obj.put("urllist", urllist);
-
-        int activeCount = 0;
-        switch (setup.getSubscriptionType()) {
-            case ESTIMATED_TIMETABLE:
-                activeCount = EstimatedTimetables.getAll(setup.getDatasetId()).size();
-                break;
-            case PRODUCTION_TIMETABLE:
-                activeCount = ProductionTimetables.getAll(setup.getDatasetId()).size();
-                break;
-            case SITUATION_EXCHANGE:
-                activeCount = Situations.getAll(setup.getDatasetId()).size();
-                break;
-            case VEHICLE_MONITORING:
-                activeCount = VehicleActivities.getAll(setup.getDatasetId()).size();
-                break;
-
-        }
-
-        obj.put("currentlyActive", activeCount);
 
         return obj;
     }
