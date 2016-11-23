@@ -116,8 +116,8 @@ public class SiriIncomingReceiver extends RouteBuilder {
         from("activemq:queue:" + TRANSFORM_QUEUE + "?asyncConsumer=true")
                 .to("xslt:xsl/siri_soap_raw.xsl?saxon=true&allowStAX=false") // Extract SOAP version and convert to raw SIRI
                 .to("xslt:xsl/siri_14_20.xsl?saxon=true&allowStAX=false") // Convert from v1.4 to 2.0
-                .to("log:transformed:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .to("file:" + incomingLogDirectory + "/validator/")
+                .to("log:transformed:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .choice()
                     .when(exchange -> validationEnabled)
                         .to("activemq:queue:" + VALIDATOR_QUEUE + activeMQParameters)
