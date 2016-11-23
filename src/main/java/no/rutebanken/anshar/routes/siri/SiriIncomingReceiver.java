@@ -28,6 +28,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
     static final String QUEUE_PREFIX              = "anshar.siri";
     static final String TRANSFORM_QUEUE           = QUEUE_PREFIX + ".transform";
     static final String ROUTER_QUEUE              = QUEUE_PREFIX + ".router";
+    static final String VALIDATOR_QUEUE              = QUEUE_PREFIX + ".validator";
     static final String DEFAULT_PROCESSOR_QUEUE   = QUEUE_PREFIX + ".process";
     static final String PUSH_UPDATES_QUEUE        = QUEUE_PREFIX + ".push";
     static final String SITUATION_EXCHANGE_QUEUE  = DEFAULT_PROCESSOR_QUEUE + ".sx";
@@ -56,15 +57,6 @@ public class SiriIncomingReceiver extends RouteBuilder {
 
     @Override
     public void configure() throws Exception {
-
-
-        /*
-        <bean id="jmsConfig" class="org.apache.camel.component.jms.JmsConfiguration">
-    <property name="connectionFactory" ref="pooledJmsConnectionFactory"/>
-    <property name="cacheLevelName" value="CACHE_CONSUMER" />
-    <property name="disableReplyTo" value="true" />
-</bean>
-         */
 
         Namespaces ns = new Namespaces("siri", "http://www.siri.org.uk/siri")
                 .add("xsd", "http://www.w3.org/2001/XMLSchema");
@@ -125,31 +117,10 @@ public class SiriIncomingReceiver extends RouteBuilder {
                 .to("xslt:xsl/siri_soap_raw.xsl?saxon=true&allowStAX=false") // Extract SOAP version and convert to raw SIRI
                 .to("xslt:xsl/siri_14_20.xsl?saxon=true&allowStAX=false") // Convert from v1.4 to 2.0
                 .to("log:transformed:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
+                .to("file:" + incomingLogDirectory + "/validator/")
                 .choice()
                     .when(exchange -> validationEnabled)
-                        .to("file:" + incomingLogDirectory + "/validator/")
-                        .process(p -> {
-                            SiriValidator.Version siriVersion = SiriValidator.Version.VERSION_2_0;
-
-                            File targetFile = new File(p.getIn().getHeader("CamelFileNameProduced") + "_report");
-
-                            File parent = targetFile.getParentFile();
-                            if (!parent.exists() && !parent.mkdirs()) {
-                                throw new IllegalStateException("Couldn't create dir: " + parent);
-                            }
-
-                            FileOutputStream fos = new FileOutputStream(targetFile);
-                            PrintStream ps = new PrintStream(fos);
-
-                            ps.println(p.getIn().getHeader("CamelHttpPath", String.class));
-                            ps.println("Validating XML as " + siriVersion);
-
-                            String xml = p.getIn().getBody(String.class);
-                            SiriValidator.validate(xml, siriVersion, ps);
-
-                            fos.close();
-
-                        })
+                        .to("activemq:queue:" + VALIDATOR_QUEUE + activeMQParameters)
                     .endChoice()
                 .end()
                 .to("activemq:queue:" + ROUTER_QUEUE + activeMQParameters)
@@ -181,6 +152,35 @@ public class SiriIncomingReceiver extends RouteBuilder {
                     }
                 })
         ;
+
+        from("activemq:queue:" + VALIDATOR_QUEUE + "?asyncConsumer=true")
+                .process(p -> {
+                    logger.info("XMLValidation - start");
+                    SiriValidator.Version siriVersion = SiriValidator.Version.VERSION_2_0;
+
+                    File targetFile = new File(p.getIn().getHeader("CamelFileNameProduced") + "_report");
+
+                    File parent = targetFile.getParentFile();
+                    if (!parent.exists() && !parent.mkdirs()) {
+                        throw new IllegalStateException("Couldn't create dir: " + parent);
+                    }
+
+                    FileOutputStream fos = new FileOutputStream(targetFile);
+                    PrintStream ps = new PrintStream(fos);
+
+                    ps.println(p.getIn().getHeader("CamelHttpPath", String.class));
+                    ps.println("Validating XML as " + siriVersion);
+
+                    String xml = p.getIn().getBody(String.class);
+                    SiriValidator.validate(xml, siriVersion, ps);
+
+                    fos.close();
+                    logger.info("XMLValidation - done");
+
+                })
+        ;
+
+
 
         from("activemq:queue:" + ROUTER_QUEUE + "?asyncConsumer=true")
                 .choice()
