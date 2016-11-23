@@ -1,7 +1,12 @@
 package no.rutebanken.anshar.subscription;
 
 
+import no.rutebanken.anshar.messages.EstimatedTimetables;
+import no.rutebanken.anshar.messages.ProductionTimetables;
+import no.rutebanken.anshar.messages.Situations;
+import no.rutebanken.anshar.messages.VehicleActivities;
 import no.rutebanken.anshar.messages.collections.DistributedCollection;
+import no.rutebanken.anshar.routes.siri.SiriObjectFactory;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -210,8 +215,8 @@ public class SubscriptionManager {
         return false;
     }
 
-    public static JSONArray buildStats() {
-
+    public static JSONObject buildStats() {
+        JSONObject result = new JSONObject();
         JSONArray stats = activeSubscriptions.keySet().stream()
                 .map(key -> getJsonObject(activeSubscriptions.get(key), "active"))
                 .collect(Collectors.toCollection(() -> new JSONArray()));
@@ -220,7 +225,11 @@ public class SubscriptionManager {
                 .map(key -> getJsonObject(pendingSubscriptions.get(key), "pending"))
                 .collect(Collectors.toList()));
 
-        return stats;
+        result.put("subscriptions", stats);
+
+        result.put("serverStarted", formatTimestamp(SiriObjectFactory.serverStartTime.toInstant()));
+
+        return result;
     }
 
     private static JSONObject getJsonObject(SubscriptionSetup setup, String status) {
@@ -236,6 +245,25 @@ public class SubscriptionManager {
             urllist.put(s.name(), setup.getUrlMap().get(s));
         }
         obj.put("urllist", urllist);
+
+        int activeCount = 0;
+        switch (setup.getSubscriptionType()) {
+            case ESTIMATED_TIMETABLE:
+                activeCount = EstimatedTimetables.getAll(setup.getDatasetId()).size();
+                break;
+            case PRODUCTION_TIMETABLE:
+                activeCount = ProductionTimetables.getAll(setup.getDatasetId()).size();
+                break;
+            case SITUATION_EXCHANGE:
+                activeCount = Situations.getAll(setup.getDatasetId()).size();
+                break;
+            case VEHICLE_MONITORING:
+                activeCount = VehicleActivities.getAll(setup.getDatasetId()).size();
+                break;
+
+        }
+
+        obj.put("currentlyActive", activeCount);
 
         return obj;
     }

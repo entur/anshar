@@ -10,6 +10,7 @@
 <body>
 <div class="jumbotron text-center">
     <h2>Anshar status/statistics</h2>
+    <small>Server started ${body.serverStarted}</small>
 </div>
 <div class="container">
     <div class="row">
@@ -21,11 +22,12 @@
                 <th>Activated</th>
                 <th>Vendor</th>
                 <th>Last activity</th>
-                <th>Hitcount</th>
+                <th>Requests</th>
+                <th>Active elements</th>
             </tr>
         </thead>
         <tbody>
-        <#list body?sort_by("vendor") as item>
+        <#list body.subscriptions?sort_by("vendor") as item>
             <tr data-toggle="collapse" data-target="#accordion${item?counter}" style="cursor: pointer" class="clickable ${item.healthy?then("success","danger")}">
                 <td>${item.status}</td>
                 <td>${item.healthy?c}</td>
@@ -33,9 +35,10 @@
                 <td>${item.vendor}</td>
                 <td>${item.lastActivity!""}</td>
                 <td align="right">${item.hitcount!0}</td>
+                <td align="right">${item.currentlyActive!0}</td>
             </tr>
             <tr id="accordion${item?counter}" class="collapse ${item.healthy?then("success","danger")}">
-            <td colspan="6">
+            <td colspan="7">
                 <table class="table table-striped">
                     <tr><th>Dataset ID</th><td>${item.datasetId}</td></tr>
                     <tr><th>Servicetype</th><td>${item.serviceType}</td></tr>
@@ -44,6 +47,16 @@
                     <tr><th>Type</th><td>${item.subscriptionType}</td></tr>
                     <tr><th>Id</th><td>${item.subscriptionId}</td></tr>
                     <tr><th>Mode</th><td>${item.subscriptionMode}</td></tr>
+                    <tr>
+                        <th>URLs</th>
+                        <td>
+                            <table width="80%">
+                            <#list item.urllist?keys as label>
+                               <tr><td>${label}</td><td>${item.urllist[label]}</td></tr>
+                            </#list>
+                            </table>
+                        </td>
+                    </tr>
                 </table>
             </td>
             </tr>

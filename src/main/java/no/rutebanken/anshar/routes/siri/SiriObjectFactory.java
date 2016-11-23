@@ -20,7 +20,7 @@ public class SiriObjectFactory {
 
     private static Logger logger = LoggerFactory.getLogger(SiriObjectFactory.class);
 
-    private static final ZonedDateTime serverStartTime = ZonedDateTime.now();
+    public static final ZonedDateTime serverStartTime = ZonedDateTime.now();
 
     public  SiriObjectFactory() {
     }
