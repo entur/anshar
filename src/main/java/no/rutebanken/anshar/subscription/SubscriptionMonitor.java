@@ -235,11 +235,22 @@ public class SubscriptionMonitor implements CamelContextAware {
 
                     RouteDefinition routeDefinition = camelContext.getRouteDefinition(tmpRouteId);
                     if (routeDefinition == null) {
-                        routeDefinition = from("timer:"+tmpRouteId+"?repeatCount=1")
-                                .routeId(tmpRouteId)
+                        routeDefinition = from("timer:"+tmpRouteId+"?delay=0repeatCount=1")
+                                .routeId(tmpRouteId).log("Starting subscription: " + tmpRouteId)
                                 .to("direct:" + subscriptionSetup.getStartSubscriptionRouteName());
 
                         camelContext.addRouteDefinition(routeDefinition);
+                    } else {
+                        // Trigger-route needs to be restarted to run
+                        Route route = camelContext.getRoute(tmpRouteId);
+                        route.getServices().forEach(service -> {
+                            try {
+                                logger.info("Stopping temporary route");
+                                service.stop();
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        });
                     }
                     camelContext.startRoute(tmpRouteId);
                 } else if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.REQUEST_RESPONSE) {
@@ -286,6 +297,17 @@ public class SubscriptionMonitor implements CamelContextAware {
                                 .to("direct:" + subscriptionSetup.getCancelSubscriptionRouteName());
 
                         camelContext.addRouteDefinition(routeDefinition);
+                    } else {
+                        // Trigger-route needs to be restarted to run
+                        Route route = camelContext.getRoute(tmpRouteId);
+                        route.getServices().forEach(service -> {
+                            try {
+                                logger.info("Stopping temporary route");
+                                service.stop();
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        });
                     }
 
                     camelContext.startRoute(tmpRouteId);
