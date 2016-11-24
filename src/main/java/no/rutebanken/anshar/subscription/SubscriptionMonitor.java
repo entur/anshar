@@ -161,7 +161,7 @@ public class SubscriptionMonitor implements CamelContextAware {
                             int counter = 0;
                             for (SubscriptionSetup subscriptionSetup : pendingSubscriptions.values()) {
                                 logger.info("Healthcheck: Trigger start subscription {}", subscriptionSetup);
-                                startSubscription(subscriptionSetup, 3000*counter++);
+                                startSubscriptionAsync(subscriptionSetup, 3000 * counter++);
                             }
 
                             Map<String, SubscriptionSetup> activeSubscriptions = SubscriptionManager.getActiveSubscriptions();
@@ -206,8 +206,23 @@ public class SubscriptionMonitor implements CamelContextAware {
         timer.scheduleAtFixedRate(task, 0, healthCheckInterval*1000);
     }
 
+    private void startSubscriptionAsync(SubscriptionSetup subscriptionSetup, int delay) {
+        TimerTask task = new TimerTask() {
+            @Override
+            public void run() {
+                try {
+                    startSubscription(subscriptionSetup);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        };
+        Timer timer = new Timer();
+        timer.schedule(task, delay);
+    }
 
-    private void startSubscription(final SubscriptionSetup subscriptionSetup, int delay) throws Exception {
+
+    private void startSubscription(final SubscriptionSetup subscriptionSetup) throws Exception {
         String routeId = "triggerStart" + subscriptionSetup.getSubscriptionId();
         RouteBuilder initializerRoute = new RouteBuilder() {
             @Override
@@ -220,7 +235,7 @@ public class SubscriptionMonitor implements CamelContextAware {
 
                     RouteDefinition routeDefinition = camelContext.getRouteDefinition(tmpRouteId);
                     if (routeDefinition == null) {
-                        routeDefinition = from("timer:"+tmpRouteId+"?delay=" + delay + "&repeatCount=1")
+                        routeDefinition = from("timer:"+tmpRouteId+"?repeatCount=1")
                                 .routeId(tmpRouteId)
                                 .to("direct:" + subscriptionSetup.getStartSubscriptionRouteName());
 
