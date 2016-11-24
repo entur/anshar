@@ -235,7 +235,7 @@ public class SubscriptionMonitor implements CamelContextAware {
 
                     RouteDefinition routeDefinition = camelContext.getRouteDefinition(tmpRouteId);
                     if (routeDefinition == null) {
-                        routeDefinition = from("timer:"+tmpRouteId+"?delay=0repeatCount=1")
+                        routeDefinition = from("timer:"+tmpRouteId+"?delay=0&repeatCount=1")
                                 .routeId(tmpRouteId).log("Starting subscription: " + tmpRouteId)
                                 .to("direct:" + subscriptionSetup.getStartSubscriptionRouteName());
 
