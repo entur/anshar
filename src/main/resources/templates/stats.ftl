@@ -9,11 +9,18 @@
     <script>
         function restartSubscription(id) {
 
-            var uri = "restart?subscriptionId="+id;
+            var uri = "/anshar/restart?subscriptionId="+id;
             var xhr = new XMLHttpRequest();
-            xhr.open('GET', uri, false);
+            xhr.open('GET', uri, true);
+            xhr.onreadystatechange = function() {
+                bootstrap_alert.warning('Subscription [' + id + '] restarted');
+            }
             xhr.send(null);
-            location.reload;
+        }
+
+        bootstrap_alert = function() {}
+        bootstrap_alert.warning = function(message) {
+            $('#alert_placeholder').html('<div class="alert alert-success alert-dismissible"><a class="close" data-dismiss="alert">×</a><span>'+message+'</span></div>');
         }
     </script>
 </head>
@@ -23,6 +30,7 @@
     <small>Server started ${body.serverStarted}</small>
 </div>
 <div class="container">
+    <div id = "alert_placeholder"></div>
     <div class="row">
     <table class="table">
         <thead>

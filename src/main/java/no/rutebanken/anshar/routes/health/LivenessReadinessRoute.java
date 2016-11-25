@@ -72,7 +72,9 @@ public class LivenessReadinessRoute extends RouteBuilder {
                 .process(p -> {
                     HttpServletRequest request = p.getIn().getBody(HttpServletRequest.class);
                     String subscriptionId = request.getParameter("subscriptionId");
-                    if (subscriptionId != null && !subscriptionId.isEmpty()) {
+                    if (subscriptionId != null &&
+                            !subscriptionId.isEmpty() &&
+                            SubscriptionManager.isActiveSubscription(subscriptionId)) {
                         SubscriptionManager.removeSubscription(subscriptionId);
                     }
 
