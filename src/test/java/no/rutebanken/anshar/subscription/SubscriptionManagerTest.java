@@ -2,6 +2,7 @@ package no.rutebanken.anshar.subscription;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.time.Duration;
@@ -13,6 +14,12 @@ import java.util.UUID;
 import static org.junit.Assert.*;
 
 public class SubscriptionManagerTest {
+
+    @Before
+    public void setUp() {
+        SubscriptionManager.getActiveSubscriptions().clear();
+        SubscriptionManager.getPendingSubscriptions().clear();
+    }
 
     @Test
     public void activeSubscriptionIsHealthy() throws InterruptedException {
