@@ -141,8 +141,6 @@ public class SubscriptionMonitor implements CamelContextAware {
             }
         }
 
-        healthCheckTimer =  new Timer();
-
         // Subscription Healthcheck
         TimerTask healthCheck = new TimerTask() {
             @Override
@@ -192,7 +190,8 @@ public class SubscriptionMonitor implements CamelContextAware {
             }
         };
 
-        healthCheckTimer.scheduleAtFixedRate(healthCheck, 0, healthCheckInterval*1000);
+        healthCheckTimer =  new Timer();
+        healthCheckTimer.scheduleAtFixedRate(healthCheck, 0, 10000);
 
         // Monitor healthcheck-task
         TimerTask task = new TimerTask() {
@@ -246,6 +245,9 @@ public class SubscriptionMonitor implements CamelContextAware {
     }
 
     private void cancelSubscription(final SubscriptionSetup subscriptionSetup) throws Exception {
+
+        SubscriptionManager.removeSubscription(subscriptionSetup.getSubscriptionId());
+
         if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.SUBSCRIBE) {
             triggerRoute(subscriptionSetup.getCancelSubscriptionRouteName());
         } else {
