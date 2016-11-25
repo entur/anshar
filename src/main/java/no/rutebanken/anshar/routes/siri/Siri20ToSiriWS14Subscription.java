@@ -2,10 +2,9 @@ package no.rutebanken.anshar.routes.siri;
 
 import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
 import no.rutebanken.anshar.subscription.RequestType;
+import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
-import no.rutebanken.anshar.subscription.SubscriptionManager;
-import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.camel.component.http4.HttpMethods;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +36,7 @@ public class Siri20ToSiriWS14Subscription extends SiriSubscriptionRouteBuilder {
         RouteHelper helper = new RouteHelper(subscriptionSetup, customNamespacePrefixMapper);
 
         //Start subscription
-        from("activemq:delayedStart" + subscriptionSetup.getSubscriptionId() + "?asyncConsumer=true")
+        from("direct:delayedStart" + subscriptionSetup.getSubscriptionId())
                 .bean(helper, "marshalSiriSubscriptionRequest", false)
                 .setExchangePattern(ExchangePattern.InOut) // Make sure we wait for a response
                 .setHeader("SOAPAction", constant(RequestType.SUBSCRIBE))
@@ -64,7 +63,7 @@ public class Siri20ToSiriWS14Subscription extends SiriSubscriptionRouteBuilder {
         ;
 
         //Cancel subscription
-        from("activemq:delayedCancel" + subscriptionSetup.getSubscriptionId() + "?asyncConsumer=true")
+        from("direct:delayedCancel" + subscriptionSetup.getSubscriptionId())
                 .bean(helper, "marshalSiriTerminateSubscriptionRequest", false)
                 .setExchangePattern(ExchangePattern.InOut) // Make sure we wait for a response
                 .setProperty(Exchange.LOG_DEBUG_BODY_STREAMS, constant("true"))

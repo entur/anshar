@@ -67,11 +67,11 @@ public abstract class SiriSubscriptionRouteBuilder extends RouteBuilder {
         from("direct:" + subscriptionSetup.getStartSubscriptionRouteName())
                 .routeId(subscriptionSetup.getStartSubscriptionRouteName())
                 .log("Triggering start of " + subscriptionSetup)
-                .to("activemq:delayedStart" + subscriptionSetup.getSubscriptionId());
+                .to("direct:delayedStart" + subscriptionSetup.getSubscriptionId());
 
         from("direct:" + subscriptionSetup.getCancelSubscriptionRouteName())
                 .routeId(subscriptionSetup.getCancelSubscriptionRouteName())
                 .log("Triggering cancel of " + subscriptionSetup)
-                .to("activemq:delayedCancel"+subscriptionSetup.getSubscriptionId());
+                .to("direct:delayedCancel"+subscriptionSetup.getSubscriptionId());
     }
 }

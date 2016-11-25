@@ -27,7 +27,7 @@ public class Siri20ToSiriRS14Subscription extends SiriSubscriptionRouteBuilder {
         RouteHelper helper = new RouteHelper(subscriptionSetup, customNamespacePrefixMapper);
 
         //Start subscription
-        from("activemq:delayedStart" + subscriptionSetup.getSubscriptionId() + "?asyncConsumer=true")
+        from("direct:delayedStart" + subscriptionSetup.getSubscriptionId())
                 .bean(helper, "marshalSiriSubscriptionRequest", false)
                 .setExchangePattern(ExchangePattern.InOut) // Make sure we wait for a response
                 .setHeader("SOAPAction", constant("Subscribe"))
@@ -58,7 +58,7 @@ public class Siri20ToSiriRS14Subscription extends SiriSubscriptionRouteBuilder {
         ;
 
         //Cancel subscription
-        from("activemq:delayedCancel" + subscriptionSetup.getSubscriptionId() + "?asyncConsumer=true")
+        from("direct:delayedCancel" + subscriptionSetup.getSubscriptionId())
                 .bean(helper, "marshalSiriTerminateSubscriptionRequest", false)
                 .setExchangePattern(ExchangePattern.InOut) // Make sure we wait for a response
                 .setProperty(Exchange.LOG_DEBUG_BODY_STREAMS, constant("true"))
