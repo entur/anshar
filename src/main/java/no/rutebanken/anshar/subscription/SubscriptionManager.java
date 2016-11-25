@@ -128,8 +128,10 @@ public class SubscriptionManager {
     public static void incrementObjectCounter(SubscriptionSetup subscriptionSetup, int size) {
 
         String subscriptionId = subscriptionSetup.getSubscriptionId();
-        BigInteger counter = (objectCounter.get(subscriptionId) != null ? objectCounter.get(subscriptionId):new BigInteger("0"));
-        objectCounter.put(subscriptionId, counter.add(BigInteger.valueOf(size)));
+        if (subscriptionId != null) {
+            BigInteger counter = (objectCounter.get(subscriptionId) != null ? objectCounter.get(subscriptionId) : new BigInteger("0"));
+            objectCounter.put(subscriptionId, counter.add(BigInteger.valueOf(size)));
+        }
     }
 
     public static void addPendingSubscription(String subscriptionId, SubscriptionSetup subscriptionSetup) {
