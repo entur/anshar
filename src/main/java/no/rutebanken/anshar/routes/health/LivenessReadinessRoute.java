@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -64,6 +65,18 @@ public class LivenessReadinessRoute extends RouteBuilder {
                     p.getOut().setBody(SubscriptionManager.buildStats());
                 })
                 .to("freemarker:templates/stats.ftl")
+        ;
+
+        //Restart subscription
+        from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/restart")
+                .process(p -> {
+                    HttpServletRequest request = p.getIn().getBody(HttpServletRequest.class);
+                    String subscriptionId = request.getParameter("subscriptionId");
+                    if (subscriptionId != null && !subscriptionId.isEmpty()) {
+                        SubscriptionManager.removeSubscription(subscriptionId);
+                    }
+
+                })
         ;
 
         //Return subscription status

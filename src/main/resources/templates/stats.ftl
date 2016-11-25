@@ -6,6 +6,16 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script>
+        function restartSubscription(id) {
+
+            var uri = "restart?subscriptionId="+id;
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', uri, false);
+            xhr.send(null);
+            location.reload;
+        }
+    </script>
 </head>
 <body>
 <div class="jumbotron text-center">
@@ -58,6 +68,7 @@
                         </td>
                     </tr>
                 </table>
+                <button type="button" class="btn btn-danger" onclick="restartSubscription('${item.subscriptionId}')">Force restart</button>
             </td>
             </tr>
         </#list>
