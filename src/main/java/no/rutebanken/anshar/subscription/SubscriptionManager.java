@@ -8,6 +8,7 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.math.BigInteger;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -27,6 +28,7 @@ public class SubscriptionManager {
     private static Map<String, java.time.Instant> lastActivity;
     private static Map<String, java.time.Instant> activatedTimestamp;
     private static Map<String, Integer> hitcount;
+    private static Map<String, BigInteger> objectCounter;
 
     static {
         DistributedCollection dc = new DistributedCollection();
@@ -35,6 +37,7 @@ public class SubscriptionManager {
         lastActivity = dc.getLastActivityMap();
         activatedTimestamp = dc.getActivatedTimestampMap();
         hitcount = dc.getHitcountMap();
+        objectCounter = dc.getObjectCounterMap();
     }
 
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneId.systemDefault());
@@ -118,11 +121,15 @@ public class SubscriptionManager {
     }
 
     private static void hit(String subscriptionId) {
-        int counter = 1;
-        if (hitcount.containsKey(subscriptionId)) {
-           counter = hitcount.get(subscriptionId)+1;
-        }
-        hitcount.put(subscriptionId, counter);
+        int counter = (hitcount.get(subscriptionId) != null ? hitcount.get(subscriptionId):0);
+        hitcount.put(subscriptionId, counter+1);
+    }
+
+    public static void incrementObjectCounter(SubscriptionSetup subscriptionSetup, int size) {
+
+        String subscriptionId = subscriptionSetup.getSubscriptionId();
+        BigInteger counter = (objectCounter.get(subscriptionId) != null ? objectCounter.get(subscriptionId):new BigInteger("0"));
+        objectCounter.put(subscriptionId, counter.add(BigInteger.valueOf(size)));
     }
 
     public static void addPendingSubscription(String subscriptionId, SubscriptionSetup subscriptionSetup) {
@@ -235,6 +242,7 @@ public class SubscriptionManager {
         obj.put("status", status);
         obj.put("healthy",isSubscriptionHealthy(setup.getSubscriptionId()));
         obj.put("hitcount",hitcount.get(setup.getSubscriptionId()));
+        obj.put("objectcount",objectCounter.get(setup.getSubscriptionId()));
 
         JSONObject urllist = new JSONObject();
         for (RequestType s : setup.getUrlMap().keySet()) {

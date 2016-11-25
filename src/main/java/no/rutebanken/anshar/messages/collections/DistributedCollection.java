@@ -19,6 +19,7 @@ import uk.org.siri.siri20.ProductionTimetableDeliveryStructure;
 import uk.org.siri.siri20.PtSituationElement;
 import uk.org.siri.siri20.VehicleActivityStructure;
 
+import java.math.BigInteger;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
@@ -172,5 +173,9 @@ public class DistributedCollection {
 
     public Map<String,String> getStopPlaceMappings() {
         return hazelcastInstance.getMap("anshar.mapping.stopplaces");
+    }
+
+    public Map<String,BigInteger> getObjectCounterMap() {
+        return hazelcastInstance.getMap("anshar.activity.objectcount");
     }
 }

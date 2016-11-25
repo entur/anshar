@@ -1,5 +1,7 @@
 package no.rutebanken.anshar.subscription;
 
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 import org.junit.Test;
 
 import java.time.Duration;
@@ -140,6 +142,55 @@ public class SubscriptionManagerTest {
 
         SubscriptionManager.removeSubscription(subscription.getSubscriptionId());
         assertFalse("Removed subscription marked as active", SubscriptionManager.isActiveSubscription(subscription.getSubscriptionId()));
+    }
+
+    @Test
+    public void testStatObjectCounterHugeNumber() {
+        SubscriptionSetup subscription = createSubscription(1);
+        assertFalse(SubscriptionManager.isSubscriptionRegistered(subscription.getSubscriptionId()));
+
+        SubscriptionManager.addSubscription(subscription.getSubscriptionId(), subscription);
+
+        for (int i = 0; i < 10; i++) {
+            SubscriptionManager.incrementObjectCounter(subscription, Integer.MAX_VALUE);
+        }
+
+        JSONObject jsonObject = SubscriptionManager.buildStats();
+        assertNotNull(jsonObject.get("subscriptions"));
+        assertTrue(jsonObject.get("subscriptions") instanceof JSONArray);
+
+        JSONArray subscriptions = (JSONArray) jsonObject.get("subscriptions");
+        assertTrue(subscriptions.size() > 0);
+
+        JSONObject jsonStats = (JSONObject) subscriptions.get(0);
+
+        assertNotNull(jsonStats.get("objectcount"));
+    }
+
+    @Test
+    public void testStatObjectCounter() {
+        SubscriptionSetup subscription = createSubscription(1);
+        assertFalse(SubscriptionManager.isSubscriptionRegistered(subscription.getSubscriptionId()));
+
+        SubscriptionManager.addSubscription(subscription.getSubscriptionId(), subscription);
+
+        int sum = 0;
+        int increment = 999;
+        for (int i = 1; i < 10;i++) {
+            sum += increment;
+            SubscriptionManager.incrementObjectCounter(subscription, increment);
+        }
+
+        JSONObject jsonObject = SubscriptionManager.buildStats();
+        assertNotNull(jsonObject.get("subscriptions"));
+        assertTrue(jsonObject.get("subscriptions") instanceof JSONArray);
+
+        JSONArray subscriptions = (JSONArray) jsonObject.get("subscriptions");
+        assertTrue(subscriptions.size() > 0);
+
+        JSONObject jsonStats = (JSONObject) subscriptions.get(0);
+
+        assertEquals("" + sum, "" + jsonStats.get("objectcount"));
     }
 
     @Test

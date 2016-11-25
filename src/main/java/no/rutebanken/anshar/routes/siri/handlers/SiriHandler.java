@@ -153,6 +153,8 @@ public class SiriHandler {
 
                     serverSubscriptionManager.pushUpdatedSituations(addedOrUpdated, subscriptionSetup.getDatasetId());
 
+                    SubscriptionManager.incrementObjectCounter(subscriptionSetup, addedOrUpdated.size());
+
                     logger.info("Active SX-elements: {}, new/updated: {}, {}", Situations.getAll().size(), addedOrUpdated.size(), subscriptionSetup);
                 }
                 if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING)) {
@@ -171,6 +173,8 @@ public class SiriHandler {
                     );
 
                     serverSubscriptionManager.pushUpdatedVehicleActivities(addedOrUpdated, subscriptionSetup.getDatasetId());
+
+                    SubscriptionManager.incrementObjectCounter(subscriptionSetup, addedOrUpdated.size());
 
                     logger.info("Active VM-elements: {}, new/updated: {}, {}", VehicleActivities.getAll().size(), addedOrUpdated.size(), subscriptionSetup);
                 }
@@ -191,6 +195,9 @@ public class SiriHandler {
                             }
                     );
                     serverSubscriptionManager.pushUpdatedEstimatedTimetables(addedOrUpdated, subscriptionSetup.getDatasetId());
+
+                    SubscriptionManager.incrementObjectCounter(subscriptionSetup, addedOrUpdated.size());
+
                     logger.info("Active ET-elements: {}, new/updated: {}, {}", EstimatedTimetables.getAll().size(), addedOrUpdated.size(), subscriptionSetup);
                 }
                 if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.PRODUCTION_TIMETABLE)) {
@@ -203,6 +210,9 @@ public class SiriHandler {
                     ProductionTimetables.addAll(subscriptionSetup.getDatasetId(), productionTimetableDeliveries);
 
                     serverSubscriptionManager.pushUpdatedProductionTimetables(addedOrUpdated, subscriptionSetup.getDatasetId());
+
+                    SubscriptionManager.incrementObjectCounter(subscriptionSetup, addedOrUpdated.size());
+
                     logger.info("Active PT-elements: {}, new/updated: {}, {}", ProductionTimetables.getAll().size(), addedOrUpdated.size(), subscriptionSetup);
                 }
             } else {
