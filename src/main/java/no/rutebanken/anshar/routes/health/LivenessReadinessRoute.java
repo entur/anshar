@@ -75,8 +75,7 @@ public class LivenessReadinessRoute extends RouteBuilder {
                     HttpServletRequest request = p.getIn().getBody(HttpServletRequest.class);
                     String subscriptionId = request.getParameter("subscriptionId");
                     if (subscriptionId != null &&
-                            !subscriptionId.isEmpty() &&
-                            SubscriptionManager.isActiveSubscription(subscriptionId)) {
+                            !subscriptionId.isEmpty()) {
                         SubscriptionManager.removeSubscription(subscriptionId);
 
                         SubscriptionSetup subscriptionSetup = SubscriptionManager.get(subscriptionId);
@@ -93,12 +92,13 @@ public class LivenessReadinessRoute extends RouteBuilder {
                     HttpServletRequest request = p.getIn().getBody(HttpServletRequest.class);
                     String subscriptionId = request.getParameter("subscriptionId");
                     if (subscriptionId != null &&
-                            !subscriptionId.isEmpty() &&
-                            SubscriptionManager.isPendingSubscription(subscriptionId)) {
+                            !subscriptionId.isEmpty()) {
 
                         SubscriptionSetup subscriptionSetup = SubscriptionManager.get(subscriptionId);
                         subscriptionSetup.setActive(true);
-                        SubscriptionManager.getPendingSubscriptions().put(subscriptionId, subscriptionSetup);
+
+                        SubscriptionManager.addSubscription(subscriptionId, subscriptionSetup);
+
                         SubscriptionMonitor.startSubscription(subscriptionSetup);
                     }
 

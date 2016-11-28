@@ -169,7 +169,7 @@ public class SubscriptionMonitor implements CamelContextAware {
 
                             Map<String, SubscriptionSetup> activeSubscriptions = SubscriptionManager.getActiveSubscriptions();
                             for (SubscriptionSetup subscriptionSetup : activeSubscriptions.values()) {
-                                if (subscriptionSetup.isActive() && !SubscriptionManager.isSubscriptionHealthy(subscriptionSetup.getSubscriptionId())) {
+                                if (!subscriptionSetup.isActive() | !SubscriptionManager.isSubscriptionHealthy(subscriptionSetup.getSubscriptionId())) {
                                     //start "cancel"-route
                                     logger.info("Healthcheck: Trigger cancel subscription {}", subscriptionSetup);
                                     cancelSubscription(subscriptionSetup);
@@ -232,6 +232,8 @@ public class SubscriptionMonitor implements CamelContextAware {
         } else {
             // If request/response-routes lose its connection, it will not be reestablished - needs to be restarted
 //            Route route = camelContext.getRoute(subscriptionSetup.getRequestResponseRouteName());
+
+            SubscriptionManager.activatePendingSubscription(subscriptionSetup.getSubscriptionId());
             camelContext.startRoute(subscriptionSetup.getRequestResponseRouteName());
 //            if (route != null) {
 //                logger.info("Starting route for subscription {}", subscriptionSetup);
