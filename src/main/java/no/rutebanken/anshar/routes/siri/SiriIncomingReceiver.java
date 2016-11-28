@@ -96,7 +96,11 @@ public class SiriIncomingReceiver extends RouteBuilder {
                         .choice()
                             .when(p -> {
                                     String subscriptionId = getSubscriptionIdFromPath(p.getIn().getHeader("CamelHttpPath", String.class));
-                                    return SubscriptionManager.isSubscriptionRegistered(subscriptionId);
+                                    if (subscriptionId == null || subscriptionId.isEmpty()) {
+                                        return false;
+                                    }
+                                    return (SubscriptionManager.isSubscriptionRegistered(subscriptionId) &
+                                            SubscriptionManager.get(subscriptionId).isActive());
                                 })
                                     //Valid subscription
                                 .to("activemq:queue:" + TRANSFORM_QUEUE + activeMQParameters)
