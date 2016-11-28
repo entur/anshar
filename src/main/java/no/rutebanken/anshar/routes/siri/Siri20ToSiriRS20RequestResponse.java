@@ -25,9 +25,6 @@ public class Siri20ToSiriRS20RequestResponse extends RouteBuilder {
 
     @Override
     public void configure() throws Exception {
-        if (!subscriptionSetup.isActive()) {
-            return;
-        }
         String siriXml = SiriXml.toXml(request);
 
         Map<RequestType, String> urlMap = subscriptionSetup.getUrlMap();
@@ -48,8 +45,9 @@ public class Siri20ToSiriRS20RequestResponse extends RouteBuilder {
 
         String httpOptions = "?httpClient.socketTimeout=" + timeout + "&httpClient.connectTimeout=" + timeout;
 
-        from("quartz2://" + subscriptionSetup.getRequestResponseRouteName() + "?fireNow=true&deleteJob=false&durableJob=true&recoverableJob=true&trigger.repeatInterval=" + heartbeatIntervalMillis )
+        from("quartz2://" + subscriptionSetup.getRequestResponseRouteName() + "?fireNow=true&deleteJob=false&durableJob=true&recoverableJob=true&trigger.repeatInterval=" + heartbeatIntervalMillis)
                 .routeId(subscriptionSetup.getRequestResponseRouteName())
+                .autoStartup(false)
                 .log("Retrieving data " + subscriptionSetup.toString())
                 .setBody(simple(siriXml))
                 .setExchangePattern(ExchangePattern.InOut) // Make sure we wait for a response

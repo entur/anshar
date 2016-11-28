@@ -53,7 +53,7 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
         ;
 
         //Check status-request checks the server status - NOT the subscription
-        if (subscriptionSetup.isActive() & urlMap.get(RequestType.CHECK_STATUS) != null) {
+        if (urlMap.get(RequestType.CHECK_STATUS) != null) {
             from("quartz2://" + subscriptionSetup.getCheckStatusRouteName() + "?fireNow=true&trigger.repeatInterval=" + subscriptionSetup.getHeartbeatInterval().toMillis())
                     .bean(helper, "marshalSiriCheckStatusRequest", false)
                     .removeHeaders("CamelHttp*") // Remove any incoming HTTP headers as they interfere with the outgoing definition
@@ -70,6 +70,7 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
                         }
 
                     })
+                .endChoice()
             ;
         }
 

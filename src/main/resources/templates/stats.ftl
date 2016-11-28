@@ -7,13 +7,13 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <script>
-        function restartSubscription(id) {
+        function administerSubscription(operation,id) {
 
-            var uri = "/anshar/restart?subscriptionId="+id;
+            var uri = "/anshar/" + operation + "?subscriptionId="+id;
             var xhr = new XMLHttpRequest();
             xhr.open('GET', uri, true);
             xhr.onreadystatechange = function() {
-                bootstrap_alert.warning('Subscription [' + id + '] restarted');
+                bootstrap_alert.warning(operation + ' called for Subscription [' + id + ']');
             }
             xhr.send(null);
         }
@@ -76,7 +76,8 @@
                         </td>
                     </tr>
                 </table>
-                <button type="button" class="btn btn-danger" onclick="restartSubscription('${item.subscriptionId}')">Force restart</button>
+                <button type="button" class="btn btn-danger" onclick="administerSubscription('stop', '${item.subscriptionId}')">Stop</button>
+                <button type="button" class="btn btn-success" onclick="administerSubscription('start', '${item.subscriptionId}')">Start</button>
             </td>
             </tr>
         </#list>

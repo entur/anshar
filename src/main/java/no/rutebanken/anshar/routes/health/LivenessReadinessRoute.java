@@ -3,6 +3,8 @@ package no.rutebanken.anshar.routes.health;
 import no.rutebanken.anshar.messages.collections.DistributedCollection;
 import no.rutebanken.anshar.routes.outbound.ServerSubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
+import no.rutebanken.anshar.subscription.SubscriptionMonitor;
+import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.slf4j.Logger;
@@ -68,7 +70,7 @@ public class LivenessReadinessRoute extends RouteBuilder {
         ;
 
         //Restart subscription
-        from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/restart")
+        from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/stop")
                 .process(p -> {
                     HttpServletRequest request = p.getIn().getBody(HttpServletRequest.class);
                     String subscriptionId = request.getParameter("subscriptionId");
@@ -76,6 +78,28 @@ public class LivenessReadinessRoute extends RouteBuilder {
                             !subscriptionId.isEmpty() &&
                             SubscriptionManager.isActiveSubscription(subscriptionId)) {
                         SubscriptionManager.removeSubscription(subscriptionId);
+
+                        SubscriptionSetup subscriptionSetup = SubscriptionManager.get(subscriptionId);
+                        subscriptionSetup.setActive(false);
+                        SubscriptionManager.getActiveSubscriptions().put(subscriptionId, subscriptionSetup);
+                        SubscriptionMonitor.cancelSubscription(subscriptionSetup);
+                    }
+
+                })
+        ;
+        //Restart subscription
+        from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/start")
+                .process(p -> {
+                    HttpServletRequest request = p.getIn().getBody(HttpServletRequest.class);
+                    String subscriptionId = request.getParameter("subscriptionId");
+                    if (subscriptionId != null &&
+                            !subscriptionId.isEmpty() &&
+                            SubscriptionManager.isPendingSubscription(subscriptionId)) {
+
+                        SubscriptionSetup subscriptionSetup = SubscriptionManager.get(subscriptionId);
+                        subscriptionSetup.setActive(true);
+                        SubscriptionManager.getPendingSubscriptions().put(subscriptionId, subscriptionSetup);
+                        SubscriptionMonitor.startSubscription(subscriptionSetup);
                     }
 
                 })

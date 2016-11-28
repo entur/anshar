@@ -48,7 +48,6 @@ public class SubscriptionManager {
         }
         activeSubscriptions.put(subscriptionId, setup);
         logger.trace("Added subscription {}", setup);
-        lastActivity.put(subscriptionId, Instant.now());
         activatedTimestamp.put(subscriptionId, Instant.now());
         logStats();
     }
@@ -138,7 +137,6 @@ public class SubscriptionManager {
         activatedTimestamp.remove(subscriptionId);
         activeSubscriptions.remove(subscriptionId);
         pendingSubscriptions.put(subscriptionId, subscriptionSetup);
-        lastActivity.put(subscriptionId, Instant.now());
 
         logger.info("Added pending subscription {}", subscriptionSetup.toString());
     }
@@ -154,13 +152,16 @@ public class SubscriptionManager {
         if (isPendingSubscription(subscriptionId)) {
             SubscriptionSetup setup = pendingSubscriptions.remove(subscriptionId);
             addSubscription(subscriptionId, setup);
+            lastActivity.put(subscriptionId, Instant.now());
             logger.info("Pending subscription {} activated", setup.toString());
             return true;
         }
         if (isActiveSubscription(subscriptionId)) {
+            lastActivity.put(subscriptionId, Instant.now());
             logger.info("Pending subscription {} already activated", activeSubscriptions.get(subscriptionId));
             return true;
         }
+
         logger.warn("Pending subscriptionId [{}] NOT found", subscriptionId);
         return false;
     }

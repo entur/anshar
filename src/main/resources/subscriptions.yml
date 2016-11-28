@@ -18,7 +18,7 @@ anshar:
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: KOLUMBUS
       idMappingPrefixes: KOL
-      active: true
+      active: false
     -
       vendor: kolumbusvm
       datasetId: KOL
@@ -35,7 +35,7 @@ anshar:
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: KOLUMBUS
       idMappingPrefixes: KOL
-      active: true
+      active: false
     -
       vendor: atbsx
       datasetId: ATB
@@ -54,7 +54,7 @@ anshar:
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: ATB
       idMappingPrefixes: ATB
-      active: true
+      active: false
     -
       vendor: atbvm
       datasetId: ATB
@@ -71,7 +71,7 @@ anshar:
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: ATB
       idMappingPrefixes: ATB
-      active: true
+      active: false
     -
       vendor: aktsx
       datasetId: AKT
@@ -89,7 +89,7 @@ anshar:
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: AKT
       idMappingPrefixes: AKT
-      active: true
+      active: false
     -
       vendor: aktet
       datasetId: AKT
@@ -107,7 +107,7 @@ anshar:
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: AKT
       idMappingPrefixes: AKT
-      active: true
+      active: false
     -
       vendor: rutersx
       datasetId: RUT
@@ -126,7 +126,7 @@ anshar:
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: RUTER
       idMappingPrefixes: RUT,OPP,BRA,OST
-      active: true
+      active: false
     -
       vendor: rutervm
       datasetId: RUT
@@ -145,7 +145,7 @@ anshar:
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: RUTER
       idMappingPrefixes: RUT,OPP,BRA,OST
-      active: true
+      active: false
     -
       vendor: ruteret
       datasetId: RUT
@@ -164,7 +164,7 @@ anshar:
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: RUTER
       idMappingPrefixes: RUT,OPP,BRA,OST
-      active: true
+      active: false
     -
       vendor: skysset
       datasetId: HRD
@@ -182,7 +182,7 @@ anshar:
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: SKYSS
       idMappingPrefixes: HRD
-      active: true
+      active: false
     -
       vendor: skysssx
       datasetId: HRD
@@ -200,7 +200,7 @@ anshar:
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: SKYSS
       idMappingPrefixes: HRD
-      active: true
+      active: false
     -
       vendor: brakaret
       datasetId: BRA
@@ -218,7 +218,7 @@ anshar:
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: BRAKAR
       idMappingPrefixes: BRA
-      active: true
+      active: false
     -
       vendor: brakarsx
       datasetId: BRA
@@ -236,4 +236,4 @@ anshar:
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: BRAKAR
       idMappingPrefixes: BRA
-      active: true
+      active: false

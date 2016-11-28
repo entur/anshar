@@ -25,9 +25,6 @@ public class Siri20ToSiriWS14RequestResponse extends RouteBuilder {
 
     @Override
     public void configure() throws Exception {
-        if (!subscriptionSetup.isActive()) {
-            return;
-        }
         String siriXml = SiriXml.toXml(request);
 
         Map<RequestType, String> urlMap = subscriptionSetup.getUrlMap();
@@ -48,8 +45,9 @@ public class Siri20ToSiriWS14RequestResponse extends RouteBuilder {
 
         String httpOptions = "?httpClient.socketTimeout=" + timeout + "&httpClient.connectTimeout=" + timeout;
 
-        from("quartz2://" + subscriptionSetup.getRequestResponseRouteName() + "?fireNow=true&deleteJob=false&durableJob=true&recoverableJob=true&trigger.repeatInterval=" + heartbeatIntervalMillis )
+        from("quartz2://" + subscriptionSetup.getRequestResponseRouteName() + "?fireNow=true&deleteJob=false&durableJob=true&recoverableJob=true&trigger.repeatInterval=" + heartbeatIntervalMillis)
                 .routeId(subscriptionSetup.getRequestResponseRouteName())
+                .autoStartup(false)
                 .log("Retrieving data " + subscriptionSetup.toString())
                 .setBody(simple(siriXml))
                 .setExchangePattern(ExchangePattern.InOut) // Make sure we wait for a response
@@ -72,8 +70,8 @@ public class Siri20ToSiriWS14RequestResponse extends RouteBuilder {
                 .throwException(new ServiceNotSupportedException())
                 .end()
                 .to("xslt:xsl/siri_soap_raw.xsl?saxon=true&allowStAX=false") // Extract SOAP version and convert to raw SIRI
-                .to("xslt:xsl/siri_14_20.xsl?saxon=true&allowStAX=false") // Convert from v1.4 to 2.0
-                .setHeader("CamelHttpPath", constant("/appContext" + subscriptionSetup.buildUrl(false)))
+                    .to("xslt:xsl/siri_14_20.xsl?saxon=true&allowStAX=false") // Convert from v1.4 to 2.0
+                    .setHeader("CamelHttpPath", constant("/appContext" + subscriptionSetup.buildUrl(false)))
                 .log("Got response " + subscriptionSetup.toString())
                 .to("activemq:queue:" + SiriIncomingReceiver.TRANSFORM_QUEUE + "?disableReplyTo=true")
         ;

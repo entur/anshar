@@ -8,7 +8,6 @@ import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import org.apache.camel.CamelContext;
 import org.apache.camel.CamelContextAware;
 import org.apache.camel.ProducerTemplate;
-import org.apache.camel.Route;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.RouteDefinition;
 import org.jetbrains.annotations.NotNull;
@@ -97,7 +96,7 @@ public class SubscriptionMonitor implements CamelContextAware {
                 try {
                     camelContext.addRoutes(routeBuilder);
                 } catch (Exception e) {
-                    logger.warn("Could not add subscription {}", subscriptionSetup);
+                    logger.warn("Could not add subscription", e);
                 }
             }
 
@@ -211,7 +210,7 @@ public class SubscriptionMonitor implements CamelContextAware {
         timer.scheduleAtFixedRate(task, 0, healthCheckInterval*1000);
     }
 
-    private void startSubscriptionAsync(SubscriptionSetup subscriptionSetup, int delay) {
+    private static void startSubscriptionAsync(SubscriptionSetup subscriptionSetup, int delay) {
         TimerTask task = new TimerTask() {
             @Override
             public void run() {
@@ -227,26 +226,27 @@ public class SubscriptionMonitor implements CamelContextAware {
     }
 
 
-    private void startSubscription(final SubscriptionSetup subscriptionSetup) throws Exception {
+    public static void startSubscription(final SubscriptionSetup subscriptionSetup) throws Exception {
         if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.SUBSCRIBE) {
             triggerRoute(subscriptionSetup.getStartSubscriptionRouteName());
         } else {
             // If request/response-routes lose its connection, it will not be reestablished - needs to be restarted
-            Route route = camelContext.getRoute(subscriptionSetup.getRequestResponseRouteName());
-            if (route != null) {
-                logger.info("Starting route for subscription {}", subscriptionSetup);
-                route.getServices().forEach(service -> {
-                    try {
-                        service.start();
-                    } catch (Exception e) {
-                        logger.warn("Restarting route failed", e);
-                    }
-                });
-            }
+//            Route route = camelContext.getRoute(subscriptionSetup.getRequestResponseRouteName());
+            camelContext.startRoute(subscriptionSetup.getRequestResponseRouteName());
+//            if (route != null) {
+//                logger.info("Starting route for subscription {}", subscriptionSetup);
+//                route.getServices().forEach(service -> {
+//                    try {
+//                        service.start();
+//                    } catch (Exception e) {
+//                        logger.warn("Restarting route failed", e);
+//                    }
+//                });
+//            }
         }
     }
 
-    private void cancelSubscription(final SubscriptionSetup subscriptionSetup) throws Exception {
+    public static void cancelSubscription(final SubscriptionSetup subscriptionSetup) throws Exception {
 
         SubscriptionManager.removeSubscription(subscriptionSetup.getSubscriptionId());
 
@@ -254,22 +254,23 @@ public class SubscriptionMonitor implements CamelContextAware {
             triggerRoute(subscriptionSetup.getCancelSubscriptionRouteName());
         } else {
             // If request/response-routes lose its connection, it will not be reestablished - needs to be restarted
-            Route route = camelContext.getRoute(subscriptionSetup.getRequestResponseRouteName());
-            if (route != null) {
-                logger.info("Stopping route for subscription {}", subscriptionSetup);
-                route.getServices().forEach(service -> {
-                    try {
-                        service.stop();
-                    } catch (Exception e) {
-                        logger.warn("Restarting route failed", e);
-                    }
-                });
-            }
+//            Route route = camelContext.getRoute(subscriptionSetup.getRequestResponseRouteName());
+            camelContext.stopRoute(subscriptionSetup.getRequestResponseRouteName());
+//            if (route != null) {
+//                logger.info("Stopping route for subscription {}", subscriptionSetup);
+//                route.getServices().forEach(service -> {
+//                    try {
+//                        service.stop();
+//                    } catch (Exception e) {
+//                        logger.warn("Restarting route failed", e);
+//                    }
+//                });
+//            }
         }
     }
 
 
-    private void triggerRoute(final String routeName) {
+    private static void triggerRoute(final String routeName) {
         if (camelContext.getRoutes().isEmpty()) {
             //Not yet started
             return;
@@ -296,18 +297,18 @@ public class SubscriptionMonitor implements CamelContextAware {
         r.start();
     }
 
-    private String addRoute(TriggerRouteBuilder route) throws Exception {
+    private static String addRoute(TriggerRouteBuilder route) throws Exception {
         camelContext.addRoutes(route);
         logger.trace("Route added - CamelContext now has {} routes", camelContext.getRoutes().size());
         return route.getDefinition().getId();
     }
 
-    private void executeRoute(String routeName) {
+    private static void executeRoute(String routeName) {
         ProducerTemplate template = camelContext.createProducerTemplate();
         template.sendBody(routeName, "");
     }
 
-    private boolean stopAndRemoveRoute(String routeId) throws Exception {
+    private static boolean stopAndRemoveRoute(String routeId) throws Exception {
         RouteDefinition routeDefinition = camelContext.getRouteDefinition(routeId);
         camelContext.removeRouteDefinition(routeDefinition);
         logger.trace("Route removed - CamelContext now has {} routes", camelContext.getRoutes().size());
@@ -352,30 +353,31 @@ public class SubscriptionMonitor implements CamelContextAware {
         return true;
     }
 
-    private class TriggerRouteBuilder extends RouteBuilder {
+}
 
-        private final String routeToTrigger;
-        private String routeName;
-        private RouteDefinition definition;
+class TriggerRouteBuilder extends RouteBuilder {
 
-        public TriggerRouteBuilder(String routeToTrigger) {
-            this.routeToTrigger = routeToTrigger;
-        }
+    private final String routeToTrigger;
+    private String routeName;
+    private RouteDefinition definition;
 
-        @Override
-        public void configure() throws Exception {
-            routeName = String.format("direct:%s", UUID.randomUUID().toString());
-            definition = from(routeName)
-                    .log("Triggering route: " + routeToTrigger)
-                    .to("direct:" + routeToTrigger);
-        }
+    public TriggerRouteBuilder(String routeToTrigger) {
+        this.routeToTrigger = routeToTrigger;
+    }
 
-        public RouteDefinition getDefinition() {
-            return definition;
-        }
+    @Override
+    public void configure() throws Exception {
+        routeName = String.format("direct:%s", UUID.randomUUID().toString());
+        definition = from(routeName)
+                .log("Triggering route: " + routeToTrigger)
+                .to("direct:" + routeToTrigger);
+    }
 
-        public String getRouteName() {
-            return routeName;
-        }
+    public RouteDefinition getDefinition() {
+        return definition;
+    }
+
+    public String getRouteName() {
+        return routeName;
     }
 }
