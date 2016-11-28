@@ -67,7 +67,13 @@ public abstract class SiriSubscriptionRouteBuilder extends RouteBuilder {
         from("direct:" + subscriptionSetup.getStartSubscriptionRouteName())
                 .routeId(subscriptionSetup.getStartSubscriptionRouteName())
                 .log("Triggering start of " + subscriptionSetup)
-                .to("direct:delayedStart" + subscriptionSetup.getSubscriptionId());
+                .choice()
+                .when(p ->subscriptionSetup.isActive())
+                .to("direct:delayedStart" + subscriptionSetup.getSubscriptionId())
+                .otherwise()
+                .log("Subscription not active - ignoring " + subscriptionSetup)
+                .endChoice()
+                ;
 
         from("direct:" + subscriptionSetup.getCancelSubscriptionRouteName())
                 .routeId(subscriptionSetup.getCancelSubscriptionRouteName())
