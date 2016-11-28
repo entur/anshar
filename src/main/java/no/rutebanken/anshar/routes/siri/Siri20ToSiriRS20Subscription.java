@@ -70,7 +70,6 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
                         }
 
                     })
-                .endChoice()
             ;
         }
 

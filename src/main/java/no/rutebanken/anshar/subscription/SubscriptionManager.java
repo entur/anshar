@@ -137,6 +137,7 @@ public class SubscriptionManager {
         activatedTimestamp.remove(subscriptionId);
         activeSubscriptions.remove(subscriptionId);
         pendingSubscriptions.put(subscriptionId, subscriptionSetup);
+        lastActivity.put(subscriptionId, Instant.now());
 
         logger.info("Added pending subscription {}", subscriptionSetup.toString());
     }

@@ -26,6 +26,7 @@ public class SubscriptionManagerTest {
         long subscriptionDurationSec = 1;
         SubscriptionSetup subscriptionSoonToExpire = createSubscription(subscriptionDurationSec);
         SubscriptionManager.addSubscription("1234", subscriptionSoonToExpire);
+        SubscriptionManager.activatePendingSubscription("1234");
 
         assertTrue(SubscriptionManager.isSubscriptionHealthy("1234"));
 
@@ -39,6 +40,7 @@ public class SubscriptionManagerTest {
         long subscriptionDurationSec = 180;
         SubscriptionSetup activeSubscription = createSubscription(subscriptionDurationSec, Duration.ofMillis(100));
         SubscriptionManager.addSubscription("1234", activeSubscription);
+        SubscriptionManager.activatePendingSubscription("1234");
 
         assertTrue(SubscriptionManager.isSubscriptionHealthy("1234"));
 
@@ -65,6 +67,7 @@ public class SubscriptionManagerTest {
         long subscriptionDurationSec = 180;
         SubscriptionSetup subscription = createSubscription(subscriptionDurationSec);
         SubscriptionManager.addSubscription(subscription.getSubscriptionId(), subscription);
+        SubscriptionManager.activatePendingSubscription(subscription.getSubscriptionId());
 
         ZonedDateTime serviceStartedTime = ZonedDateTime.now().minusMinutes(1);
         boolean touched = SubscriptionManager.touchSubscription(subscription.getSubscriptionId(), serviceStartedTime);
@@ -82,6 +85,7 @@ public class SubscriptionManagerTest {
         SubscriptionSetup subscription = createSubscription(1);
         assertFalse("Subscription already marked as registered", SubscriptionManager.isSubscriptionRegistered(subscription.getSubscriptionId()));
         SubscriptionManager.addSubscription(subscription.getSubscriptionId(), subscription);
+        SubscriptionManager.activatePendingSubscription(subscription.getSubscriptionId());
 
         assertTrue("Subscription not marked as registered", SubscriptionManager.isSubscriptionRegistered(subscription.getSubscriptionId()));
         assertTrue("Subscription not marked as active", SubscriptionManager.isActiveSubscription(subscription.getSubscriptionId()));
@@ -128,7 +132,6 @@ public class SubscriptionManagerTest {
 
         assertTrue("Subscription not healthy", SubscriptionManager.isSubscriptionHealthy(subscription.getSubscriptionId()));
 
-
         SubscriptionManager.touchSubscription(subscription.getSubscriptionId());
 
         assertTrue("Subscription not marked as registered", SubscriptionManager.isSubscriptionRegistered(subscription.getSubscriptionId()));
@@ -142,6 +145,7 @@ public class SubscriptionManagerTest {
         assertFalse(SubscriptionManager.isSubscriptionRegistered(subscription.getSubscriptionId()));
 
         SubscriptionManager.addSubscription(subscription.getSubscriptionId(), subscription);
+        SubscriptionManager.activatePendingSubscription(subscription.getSubscriptionId());
 
         assertTrue("Subscription not registered", SubscriptionManager.isSubscriptionRegistered(subscription.getSubscriptionId()));
         assertFalse("Subscription marked as pending", SubscriptionManager.isPendingSubscription(subscription.getSubscriptionId()));
@@ -157,6 +161,7 @@ public class SubscriptionManagerTest {
         assertFalse(SubscriptionManager.isSubscriptionRegistered(subscription.getSubscriptionId()));
 
         SubscriptionManager.addSubscription(subscription.getSubscriptionId(), subscription);
+        SubscriptionManager.activatePendingSubscription(subscription.getSubscriptionId());
 
         for (int i = 0; i < 10; i++) {
             SubscriptionManager.incrementObjectCounter(subscription, Integer.MAX_VALUE);
@@ -180,6 +185,7 @@ public class SubscriptionManagerTest {
         assertFalse(SubscriptionManager.isSubscriptionRegistered(subscription.getSubscriptionId()));
 
         SubscriptionManager.addSubscription(subscription.getSubscriptionId(), subscription);
+        SubscriptionManager.activatePendingSubscription(subscription.getSubscriptionId());
 
         int sum = 0;
         int increment = 999;

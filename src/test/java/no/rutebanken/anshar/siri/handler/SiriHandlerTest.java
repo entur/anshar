@@ -9,9 +9,7 @@ import uk.org.siri.siri20.Siri;
 
 import javax.xml.bind.JAXBException;
 
-import static junit.framework.Assert.assertTrue;
 import static junit.framework.Assert.fail;
-import static junit.framework.TestCase.assertNotNull;
 
 public class SiriHandlerTest {
     private SiriHandler handler;
@@ -26,9 +24,13 @@ public class SiriHandlerTest {
         handler = new SiriHandler();
 
         SubscriptionManager.addSubscription(SX_SUBSCRIPTION_ID, getSxSubscription());
+        SubscriptionManager.activatePendingSubscription(SX_SUBSCRIPTION_ID);
         SubscriptionManager.addSubscription(ET_SUBSCRIPTION_ID, getEtSubscription());
+        SubscriptionManager.activatePendingSubscription(ET_SUBSCRIPTION_ID);
         SubscriptionManager.addSubscription(VM_SUBSCRIPTION_ID, getVmSubscription());
+        SubscriptionManager.activatePendingSubscription(VM_SUBSCRIPTION_ID);
         SubscriptionManager.addSubscription(PT_SUBSCRIPTION_ID, getPtSubscription());
+        SubscriptionManager.activatePendingSubscription(PT_SUBSCRIPTION_ID);
 
     }
 
