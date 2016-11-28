@@ -162,13 +162,15 @@ public class SubscriptionMonitor implements CamelContextAware {
 
                             int counter = 0;
                             for (SubscriptionSetup subscriptionSetup : pendingSubscriptions.values()) {
-                                logger.info("Healthcheck: Trigger start subscription {}", subscriptionSetup);
-                                startSubscriptionAsync(subscriptionSetup, 3000 * counter++);
+                                if (subscriptionSetup.isActive()) {
+                                    logger.info("Healthcheck: Trigger start subscription {}", subscriptionSetup);
+                                    startSubscriptionAsync(subscriptionSetup, 3000 * counter++);
+                                }
                             }
 
                             Map<String, SubscriptionSetup> activeSubscriptions = SubscriptionManager.getActiveSubscriptions();
                             for (SubscriptionSetup subscriptionSetup : activeSubscriptions.values()) {
-                                if (!SubscriptionManager.isSubscriptionHealthy(subscriptionSetup.getSubscriptionId())) {
+                                if (subscriptionSetup.isActive() && !SubscriptionManager.isSubscriptionHealthy(subscriptionSetup.getSubscriptionId())) {
                                     //start "cancel"-route
                                     logger.info("Healthcheck: Trigger cancel subscription {}", subscriptionSetup);
                                     cancelSubscription(subscriptionSetup);

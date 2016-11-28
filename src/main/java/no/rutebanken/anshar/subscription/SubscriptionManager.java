@@ -241,7 +241,11 @@ public class SubscriptionManager {
         JSONObject obj = setup.toJSON();
         obj.put("activated",formatTimestamp(activatedTimestamp.get(setup.getSubscriptionId())));
         obj.put("lastActivity",""+formatTimestamp(lastActivity.get(setup.getSubscriptionId())));
-        obj.put("status", status);
+        if (!setup.isActive()) {
+            obj.put("status", "deactivated");
+        } else {
+            obj.put("status", status);
+        }
         obj.put("healthy",isSubscriptionHealthy(setup.getSubscriptionId()));
         obj.put("hitcount",hitcount.get(setup.getSubscriptionId()));
         obj.put("objectcount",objectCounter.get(setup.getSubscriptionId()));
