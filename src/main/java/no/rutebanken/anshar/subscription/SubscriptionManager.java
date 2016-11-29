@@ -204,7 +204,7 @@ public class SubscriptionManager {
         if (pendingSubscription != null) {
             long tripleInterval = pendingSubscription.getHeartbeatInterval().toMillis() * HEALTHCHECK_INTERVAL_FACTOR;
             if (instant.isBefore(Instant.now().minusMillis(tripleInterval))) {
-                logger.info("Subscription {} never activated.", pendingSubscription.toString());
+                logger.debug("Subscription {} never activated.", pendingSubscription.toString());
                 //Subscription created, but never received - reestablish subscription
                 return false;
             }
@@ -246,10 +246,11 @@ public class SubscriptionManager {
         obj.put("lastActivity",""+formatTimestamp(lastActivity.get(setup.getSubscriptionId())));
         if (!setup.isActive()) {
             obj.put("status", "deactivated");
+            obj.put("healthy",null);
         } else {
             obj.put("status", status);
+            obj.put("healthy",isSubscriptionHealthy(setup.getSubscriptionId()));
         }
-        obj.put("healthy",isSubscriptionHealthy(setup.getSubscriptionId()));
         obj.put("hitcount",hitcount.get(setup.getSubscriptionId()));
         obj.put("objectcount",objectCounter.get(setup.getSubscriptionId()));
 

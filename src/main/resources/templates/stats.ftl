@@ -13,14 +13,9 @@
             var xhr = new XMLHttpRequest();
             xhr.open('GET', uri, true);
             xhr.onreadystatechange = function() {
-                bootstrap_alert.warning(operation + ' called for Subscription [' + id + ']');
+                window.location.reload()
             }
             xhr.send(null);
-        }
-
-        bootstrap_alert = function() {}
-        bootstrap_alert.warning = function(message) {
-            $('#alert_placeholder').html('<div class="alert alert-success alert-dismissible"><a class="close" data-dismiss="alert">×</a><span>'+message+'</span></div>');
         }
     </script>
 </head>
@@ -46,16 +41,16 @@
         </thead>
         <tbody>
         <#list body.subscriptions?sort_by("vendor") as item>
-            <tr data-toggle="collapse" data-target="#accordion${item?counter}" style="cursor: pointer" class="clickable ${item.healthy?then("success","danger")}">
+            <tr data-toggle="collapse" data-target="#accordion${item?counter}" style="cursor: pointer" class="clickable ${item.healthy?exists?then(item.healthy?then("success","danger"), "warning")}">
                 <td>${item.status}</td>
-                <td>${item.healthy?c}</td>
+                <td>${item.healthy?exists?then(item.healthy?c,"")}</td>
                 <td>${item.activated!""}</td>
                 <td>${item.vendor}</td>
                 <td>${item.lastActivity!""}</td>
                 <td align="right">${item.hitcount!0}</td>
                 <td align="right">${item.objectcount!0}</td>
             </tr>
-            <tr id="accordion${item?counter}" class="collapse ${item.healthy?then("success","danger")}">
+            <tr id="accordion${item?counter}" class="collapse ${item.healthy?exists?then(item.healthy?then("success","danger"), "warning")}">
             <td colspan="7">
                 <table class="table table-striped">
                     <tr><th>Dataset ID</th><td>${item.datasetId}</td></tr>
@@ -76,8 +71,13 @@
                         </td>
                     </tr>
                 </table>
-                <button type="button" class="btn btn-danger" onclick="administerSubscription('stop', '${item.subscriptionId}')">Stop</button>
-                <button type="button" class="btn btn-success" onclick="administerSubscription('start', '${item.subscriptionId}')">Start</button>
+                <#if item.status=='deactivated'>
+                    <button type="button" class="btn btn-danger" disabled onclick="administerSubscription('stop', '${item.subscriptionId}')">Stop</button>
+                    <button type="button" class="btn btn-success" onclick="administerSubscription('start', '${item.subscriptionId}')">Start</button>
+                <#else >
+                    <button type="button" class="btn btn-danger"  onclick="administerSubscription('stop', '${item.subscriptionId}')">Stop</button>
+                    <button type="button" class="btn btn-success" disabled onclick="administerSubscription('start', '${item.subscriptionId}')">Start</button>
+                </#if>
             </td>
             </tr>
         </#list>
