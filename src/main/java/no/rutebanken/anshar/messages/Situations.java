@@ -106,6 +106,8 @@ public class Situations {
         sxList.forEach(situation -> {
             String key = createKey(datasetId, situation);
 
+            //TODO: Determine if newer situation has already been handled
+
             ZonedDateTime expiration = getExpiration(situation);
 
             if (expiration != null && expiration.isAfter(ZonedDateTime.now())) {

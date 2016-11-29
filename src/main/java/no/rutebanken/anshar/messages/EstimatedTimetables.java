@@ -116,42 +116,46 @@ public class EstimatedTimetables {
         etList.forEach(et -> {
             String key = createKey(datasetId, et);
 
-            if (et.isIsCompleteStopSequence() != null && !et.isIsCompleteStopSequence()) {
-                //Not complete - merge partial update into existing
-                EstimatedVehicleJourney existing = timetableDeliveries.get(key);
-                if (existing != null) {
-                    EstimatedVehicleJourney.EstimatedCalls existingCallWrapper = existing.getEstimatedCalls();
-                    EstimatedVehicleJourney.EstimatedCalls updatedCallWrapper = et.getEstimatedCalls();
+            EstimatedVehicleJourney existing = timetableDeliveries.get(key);
 
-                    SortedMap<Integer, EstimatedCall> joinedCallsMap = new TreeMap<>();
+            if (existing == null || et.getRecordedAtTime().isAfter(existing.getRecordedAtTime())) {
+                if (et.isIsCompleteStopSequence() != null && !et.isIsCompleteStopSequence()) {
+                    //Not complete - merge partial update into existing
+                    if (existing != null) {
+                        EstimatedVehicleJourney.EstimatedCalls existingCallWrapper = existing.getEstimatedCalls();
+                        EstimatedVehicleJourney.EstimatedCalls updatedCallWrapper = et.getEstimatedCalls();
 
-                    //Existing calls
-                    for (EstimatedCall call : existingCallWrapper.getEstimatedCalls()) {
-                        //Assuming that either Visitnumber or Order is always used
-                        int order = (call.getVisitNumber() != null ? call.getVisitNumber():call.getOrder()).intValue();
-                        joinedCallsMap.put(order, call);
+                        SortedMap<Integer, EstimatedCall> joinedCallsMap = new TreeMap<>();
+
+                        //Existing calls
+                        for (EstimatedCall call : existingCallWrapper.getEstimatedCalls()) {
+                            //Assuming that either Visitnumber or Order is always used
+                            int order = (call.getVisitNumber() != null ? call.getVisitNumber() : call.getOrder()).intValue();
+                            joinedCallsMap.put(order, call);
+                        }
+                        //Add or replace existing calls
+                        for (EstimatedCall call : updatedCallWrapper.getEstimatedCalls()) {
+                            int order = (call.getVisitNumber() != null ? call.getVisitNumber() : call.getOrder()).intValue();
+                            joinedCallsMap.put(order, call);
+                        }
+
+                        EstimatedVehicleJourney.EstimatedCalls joinedCalls = new EstimatedVehicleJourney.EstimatedCalls();
+                        joinedCalls.getEstimatedCalls().addAll(joinedCallsMap.values());
+
+                        et.setEstimatedCalls(joinedCalls);
                     }
-                    //Add or replace existing calls
-                    for (EstimatedCall call : updatedCallWrapper.getEstimatedCalls()) {
-                        int order = (call.getVisitNumber() != null ? call.getVisitNumber():call.getOrder()).intValue();
-                        joinedCallsMap.put(order, call);
-                    }
-
-                    EstimatedVehicleJourney.EstimatedCalls joinedCalls = new EstimatedVehicleJourney.EstimatedCalls();
-                    joinedCalls.getEstimatedCalls().addAll(joinedCallsMap.values());
-
-                    et.setEstimatedCalls(joinedCalls);
                 }
+
+                ZonedDateTime expiration = getExpiration(et);
+
+                if (expiration != null && expiration.isAfter(ZonedDateTime.now())) {
+                    changes.add(key);
+                    updates.put(key, et);
+                    expiries.put(key, expiration);
+                }
+            } else {
+                //Newer data has already been processed
             }
-
-            ZonedDateTime expiration = getExpiration(et);
-
-            if (expiration != null && expiration.isAfter(ZonedDateTime.now())) {
-                changes.add(key);
-                updates.put(key, et);
-                expiries.put(key, expiration);
-            }
-
         });
 
         EstimatedTimetables.timetableDeliveries.putAll(updates, expiries);

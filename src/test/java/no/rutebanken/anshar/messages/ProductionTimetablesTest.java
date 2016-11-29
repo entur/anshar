@@ -104,8 +104,32 @@ public class ProductionTimetablesTest {
 
     }
 
+    @Test
+    public void testUpdatedJourneyWrongOrder() {
+
+        String version = UUID.randomUUID().toString();
+
+        ProductionTimetableDeliveryStructure structure_1 = createProductionTimetableDeliveryStructure(version, ZonedDateTime.now().plusMinutes(1));
+        structure_1.setResponseTimestamp(ZonedDateTime.now().plusMinutes(1));
+        structure_1.setValidUntil(ZonedDateTime.now().plusDays(10));
+        ProductionTimetables.add("test", structure_1);
+
+        assertTrue("Adding Journey did not add element.", ProductionTimetables.getAll().size() == 1);
+
+        ProductionTimetableDeliveryStructure structure_2 = createProductionTimetableDeliveryStructure(version, ZonedDateTime.now().plusMinutes(1));
+        structure_2.setResponseTimestamp(ZonedDateTime.now());
+        structure_2.setValidUntil(ZonedDateTime.now().plusDays(20));
+
+        ProductionTimetables.add("test", structure_2);
+        assertTrue("Updating Journey added element.", ProductionTimetables.getAll().size() == 1);
+
+        assertTrue("PT has been overwritten by older version", ProductionTimetables.getAll().get(0).getValidUntil().isBefore(ZonedDateTime.now().plusDays(19)));
+
+    }
+
     private ProductionTimetableDeliveryStructure createProductionTimetableDeliveryStructure(String version, ZonedDateTime validUntil) {
         ProductionTimetableDeliveryStructure element = new ProductionTimetableDeliveryStructure();
+        element.setResponseTimestamp(ZonedDateTime.now());
         element.setValidUntil(validUntil);
         element.setVersion(version);
         return element;

@@ -92,14 +92,19 @@ public class ProductionTimetables {
         ptList.forEach(pt -> {
             String key = createKey(datasetId, pt);
 
-            ZonedDateTime expiration = getExpiration(pt);
 
-            if (expiration != null && expiration.isAfter(ZonedDateTime.now())) {
-                changes.add(key);
-                updates.put(key, pt);
-                expiries.put(key, expiration);
+            ProductionTimetableDeliveryStructure existing = timetableDeliveries.get(key);
+            if (existing == null || pt.getResponseTimestamp().isAfter(existing.getResponseTimestamp())) {
+                ZonedDateTime expiration = getExpiration(pt);
+
+                if (expiration != null && expiration.isAfter(ZonedDateTime.now())) {
+                    changes.add(key);
+                    updates.put(key, pt);
+                    expiries.put(key, expiration);
+                }
+            } else {
+                //Newer update has already been processed
             }
-
         });
 
         ProductionTimetables.timetableDeliveries.putAll(updates, expiries);

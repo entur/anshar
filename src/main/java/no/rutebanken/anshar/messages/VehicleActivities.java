@@ -93,12 +93,16 @@ public class VehicleActivities {
             if (keep) {
                 String key = createKey(datasetId, activity);
 
-                ZonedDateTime expiration = getExpiration(activity);
+                VehicleActivityStructure existing = vehicleActivities.get(key);
 
-                if (expiration != null && expiration.isAfter(ZonedDateTime.now())) {
-                    changes.add(key);
-                    updates.put(key, activity);
-                    expiries.put(key, expiration);
+                if (existing == null || activity.getRecordedAtTime().isAfter(activity.getRecordedAtTime())) {
+                    ZonedDateTime expiration = getExpiration(activity);
+
+                    if (expiration != null && expiration.isAfter(ZonedDateTime.now())) {
+                        changes.add(key);
+                        updates.put(key, activity);
+                        expiries.put(key, expiration);
+                    }
                 }
             }
         });

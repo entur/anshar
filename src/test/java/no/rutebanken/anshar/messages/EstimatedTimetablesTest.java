@@ -112,6 +112,32 @@ public class EstimatedTimetablesTest {
     }
 
     @Test
+    public void testUpdatedJourneyWrongOrder() {
+        int previousSize = EstimatedTimetables.getAll().size();
+
+        ZonedDateTime departure = ZonedDateTime.now().plusHours(1);
+        EstimatedVehicleJourney estimatedVehicleJourney = createEstimatedVehicleJourney("12345", "4321", 0, 10, departure, true);
+        estimatedVehicleJourney.setRecordedAtTime(ZonedDateTime.now().plusMinutes(1));
+
+        EstimatedTimetables.add("test", estimatedVehicleJourney);
+        int expectedSize = previousSize +1;
+        assertTrue("Adding Journey did not add element.", EstimatedTimetables.getAll().size() == expectedSize);
+
+        EstimatedVehicleJourney estimatedVehicleJourney1 = createEstimatedVehicleJourney("12345", "4321", 1, 20, departure, true);
+        estimatedVehicleJourney1.setRecordedAtTime(ZonedDateTime.now());
+        EstimatedTimetables.add("test", estimatedVehicleJourney1);
+
+        assertTrue("Updating Journey added element.", EstimatedTimetables.getAll().size() == expectedSize);
+
+        List<EstimatedCall> estimatedCallsList = EstimatedTimetables.getAll().get(0).getEstimatedCalls().getEstimatedCalls();
+        int size = estimatedCallsList.size();
+        assertEquals("Older request should have been ignored.", 10, size);
+
+
+
+    }
+
+    @Test
     public void testPartiallyUpdatedJourney() {
 
         ZonedDateTime departure = ZonedDateTime.now().plusHours(1);
@@ -161,6 +187,7 @@ public class EstimatedTimetablesTest {
         }
 
         element.setEstimatedCalls(estimatedCalls);
+        element.setRecordedAtTime(ZonedDateTime.now());
 
         return element;
     }

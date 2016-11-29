@@ -2,11 +2,9 @@ package no.rutebanken.anshar.messages;
 
 import org.junit.Before;
 import org.junit.Test;
-import uk.org.siri.siri20.CourseOfJourneyRefStructure;
-import uk.org.siri.siri20.LocationStructure;
-import uk.org.siri.siri20.VehicleActivityStructure;
-import uk.org.siri.siri20.VehicleRef;
+import uk.org.siri.siri20.*;
 
+import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 import java.util.UUID;
 
@@ -105,6 +103,41 @@ public class VehicleActivitiesTest {
 
         //Verify that element added is vendor-specific
         assertTrue(VehicleActivities.getAll("test").size() == previousSize+2);
+    }
+
+    @Test
+    public void testUpdatedVehicleWrongOrder() {
+        int previousSize = VehicleActivities.getAll().size();
+
+        //Add element
+        String vehicleReference = UUID.randomUUID().toString();
+        VehicleActivityStructure element = createVehicleActivityStructure(
+                                                    ZonedDateTime.now().plusMinutes(1), vehicleReference);
+        ProgressBetweenStopsStructure progress = new ProgressBetweenStopsStructure();
+        progress.setPercentage(BigDecimal.ONE);
+        element.setProgressBetweenStops(progress);
+        element.setRecordedAtTime(ZonedDateTime.now().plusMinutes(1));
+
+        VehicleActivities.add("test", element);
+
+        VehicleActivityStructure testOriginal = VehicleActivities.add("test", element);
+
+        assertEquals("VM has not been added.", BigDecimal.ONE, testOriginal.getProgressBetweenStops().getPercentage());
+
+        //Update element
+        VehicleActivityStructure element2 = createVehicleActivityStructure(
+                                                    ZonedDateTime.now().plusMinutes(1), vehicleReference);
+
+        ProgressBetweenStopsStructure progress2 = new ProgressBetweenStopsStructure();
+        progress2.setPercentage(BigDecimal.TEN);
+        element2.setProgressBetweenStops(progress2);
+
+        //Update is recorder BEFORE current - should be ignored
+        element2.setRecordedAtTime(ZonedDateTime.now());
+
+        VehicleActivityStructure test = VehicleActivities.add("test", element2);
+
+        assertEquals("VM has been wrongfully updated", BigDecimal.ONE, test.getProgressBetweenStops().getPercentage());
     }
 
     @Test
