@@ -18,6 +18,7 @@ import java.util.UUID;
 
 public class SiriObjectFactory {
 
+    private static final String SIRI_VERSION = "2.0";
     private static Logger logger = LoggerFactory.getLogger(SiriObjectFactory.class);
 
     public static final ZonedDateTime serverStartTime = ZonedDateTime.now();
@@ -108,7 +109,7 @@ public class SiriObjectFactory {
     private static SituationExchangeRequestStructure createSituationExchangeRequestStructure() {
         SituationExchangeRequestStructure sxRequest = new SituationExchangeRequestStructure();
         sxRequest.setRequestTimestamp(ZonedDateTime.now());
-        sxRequest.setVersion("2.0");
+        sxRequest.setVersion(SIRI_VERSION);
         sxRequest.setMessageIdentifier(createMessageIdentifier());
         return sxRequest;
     }
@@ -116,7 +117,7 @@ public class SiriObjectFactory {
     private static VehicleMonitoringRequestStructure createVehicleMonitoringRequestStructure() {
         VehicleMonitoringRequestStructure vmRequest = new VehicleMonitoringRequestStructure();
         vmRequest.setRequestTimestamp(ZonedDateTime.now());
-        vmRequest.setVersion("2.0");
+        vmRequest.setVersion(SIRI_VERSION);
         vmRequest.setMessageIdentifier(createMessageIdentifier());
         return vmRequest;
     }
@@ -124,7 +125,7 @@ public class SiriObjectFactory {
     private static EstimatedTimetableRequestStructure createEstimatedTimetableRequestStructure() {
         EstimatedTimetableRequestStructure etRequest = new EstimatedTimetableRequestStructure();
         etRequest.setRequestTimestamp(ZonedDateTime.now());
-        etRequest.setVersion("2.0");
+        etRequest.setVersion(SIRI_VERSION);
         etRequest.setMessageIdentifier(createMessageIdentifier());
         return etRequest;
     }
@@ -132,7 +133,7 @@ public class SiriObjectFactory {
     private static ProductionTimetableRequestStructure createProductionTimetableRequestStructure() {
         ProductionTimetableRequestStructure ptRequest = new ProductionTimetableRequestStructure();
         ptRequest.setRequestTimestamp(ZonedDateTime.now());
-        ptRequest.setVersion("2.0");
+        ptRequest.setVersion(SIRI_VERSION);
         ptRequest.setMessageIdentifier(createMessageIdentifier());
         return ptRequest;
     }
@@ -168,7 +169,7 @@ public class SiriObjectFactory {
 
         VehicleMonitoringRequestStructure vmRequest = new VehicleMonitoringRequestStructure();
         vmRequest.setRequestTimestamp(ZonedDateTime.now());
-        vmRequest.setVersion("2.0");
+        vmRequest.setVersion(SIRI_VERSION);
 
         if (filterMap != null) {
             Set<String> lineRefs = filterMap.get(LineRef.class);
@@ -202,7 +203,7 @@ public class SiriObjectFactory {
 
         EstimatedTimetableRequestStructure etRequest = new EstimatedTimetableRequestStructure();
         etRequest.setRequestTimestamp(ZonedDateTime.now());
-        etRequest.setVersion("2.0");
+        etRequest.setVersion(SIRI_VERSION);
         etRequest.setPreviewInterval(createDataTypeFactory().newDuration("PT24H"));
 
         if (filterMap != null) {
@@ -241,7 +242,7 @@ public class SiriObjectFactory {
 
         ProductionTimetableRequestStructure ptRequest = new ProductionTimetableRequestStructure();
         ptRequest.setRequestTimestamp(ZonedDateTime.now());
-        ptRequest.setVersion("2.0");
+        ptRequest.setVersion(SIRI_VERSION);
 
         if (filterMap != null) {
             if (filterMap.size() > 0) {
@@ -345,7 +346,7 @@ public class SiriObjectFactory {
         Siri siri = createSiriObject();
         ServiceDelivery delivery = new ServiceDelivery();
         VehicleMonitoringDeliveryStructure deliveryStructure = new VehicleMonitoringDeliveryStructure();
-        deliveryStructure.setVersion("2.0");
+        deliveryStructure.setVersion(SIRI_VERSION);
         deliveryStructure.getVehicleActivities().addAll(elements);
         deliveryStructure.setResponseTimestamp(ZonedDateTime.now());
         delivery.getVehicleMonitoringDeliveries().add(deliveryStructure);
@@ -358,7 +359,7 @@ public class SiriObjectFactory {
         Siri siri = createSiriObject();
         ServiceDelivery delivery = new ServiceDelivery();
         EstimatedTimetableDeliveryStructure deliveryStructure = new EstimatedTimetableDeliveryStructure();
-        deliveryStructure.setVersion("2.0");
+        deliveryStructure.setVersion(SIRI_VERSION);
         EstimatedVersionFrameStructure estimatedVersionFrameStructure = new EstimatedVersionFrameStructure();
         estimatedVersionFrameStructure.setRecordedAtTime(ZonedDateTime.now());
         estimatedVersionFrameStructure.getEstimatedVehicleJourneies().addAll(elements);
@@ -409,7 +410,7 @@ public class SiriObjectFactory {
 
     private static Siri createSiriObject() {
         Siri siri = new Siri();
-        siri.setVersion("2.0");
+        siri.setVersion(SIRI_VERSION);
         return siri;
     }
 
