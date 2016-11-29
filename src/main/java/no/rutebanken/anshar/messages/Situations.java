@@ -4,6 +4,7 @@ import no.rutebanken.anshar.messages.collections.DistributedCollection;
 import no.rutebanken.anshar.messages.collections.ExpiringConcurrentMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.org.siri.siri20.HalfOpenTimestampOutputRangeStructure;
 import uk.org.siri.siri20.PtSituationElement;
 
 import java.time.ZonedDateTime;
@@ -79,12 +80,12 @@ public class Situations {
     }
 
     private static ZonedDateTime getExpiration(PtSituationElement situationElement) {
-        List<PtSituationElement.ValidityPeriod> validityPeriods = situationElement.getValidityPeriods();
+        List<HalfOpenTimestampOutputRangeStructure> validityPeriods = situationElement.getValidityPeriods();
 
         ZonedDateTime expiry = null;
 
         if (validityPeriods != null) {
-            for (PtSituationElement.ValidityPeriod validity : validityPeriods) {
+            for (HalfOpenTimestampOutputRangeStructure validity : validityPeriods) {
 
                 //Find latest validity
                 if (expiry == null) {

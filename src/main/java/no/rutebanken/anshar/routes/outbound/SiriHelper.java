@@ -349,13 +349,11 @@ public class SiriHelper {
                         List<AffectedLineStructure> affectedLines = affectedNetwork.getAffectedLines();
                         if (affectedLines != null) {
                             for (AffectedLineStructure affectedLine : affectedLines) {
-                                List<LineRef> lineReves = affectedLine.getLineReves();
-                                if (lineReves != null) {
-                                    for (LineRef lineRef : lineReves) {
-                                        if (linerefValues.contains(lineRef.getValue())) {
-                                            if (!filteredSituationElements.contains(s)) {
-                                                filteredSituationElements.add(s);
-                                            }
+                                LineRef lineRef = affectedLine.getLineRef();
+                                if (lineRef != null) {
+                                    if (linerefValues.contains(lineRef.getValue())) {
+                                        if (!filteredSituationElements.contains(s)) {
+                                            filteredSituationElements.add(s);
                                         }
                                     }
                                 }

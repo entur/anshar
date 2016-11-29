@@ -10,7 +10,7 @@ import uk.org.siri.siri20.Siri;
 
 import javax.xml.bind.JAXBException;
 
-import static junit.framework.Assert.fail;
+import static junit.framework.TestCase.fail;
 
 public class SiriHandlerTest {
     private SiriHandler handler;

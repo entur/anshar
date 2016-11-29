@@ -3,6 +3,7 @@ package no.rutebanken.anshar.messages;
 import no.rutebanken.anshar.routes.siri.SiriObjectFactory;
 import org.junit.Before;
 import org.junit.Test;
+import uk.org.siri.siri20.HalfOpenTimestampOutputRangeStructure;
 import uk.org.siri.siri20.PtSituationElement;
 import uk.org.siri.siri20.SituationNumber;
 
@@ -109,7 +110,7 @@ public class SituationsTest {
     private PtSituationElement createPtSituationElement(String participantRef, String situationNumber, ZonedDateTime startTime, ZonedDateTime endTime) {
         PtSituationElement element = new PtSituationElement();
         element.setCreationTime(ZonedDateTime.now());
-        PtSituationElement.ValidityPeriod period = new PtSituationElement.ValidityPeriod();
+        HalfOpenTimestampOutputRangeStructure period = new HalfOpenTimestampOutputRangeStructure();
         period.setStartTime(startTime);
 
         element.setParticipantRef(SiriObjectFactory.createRequestorRef(participantRef));
