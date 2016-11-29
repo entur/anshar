@@ -99,8 +99,13 @@ public class SiriIncomingReceiver extends RouteBuilder {
                                     if (subscriptionId == null || subscriptionId.isEmpty()) {
                                         return false;
                                     }
-                                    return (SubscriptionManager.isSubscriptionRegistered(subscriptionId) &&
+                                    boolean existsAndIsActive = (SubscriptionManager.isSubscriptionRegistered(subscriptionId) &&
                                             SubscriptionManager.get(subscriptionId).isActive());
+
+                                    if (existsAndIsActive) {
+                                        SubscriptionManager.touchSubscription(subscriptionId);
+                                    }
+                                    return existsAndIsActive;
                                 })
                                     //Valid subscription
                                 .to("activemq:queue:" + TRANSFORM_QUEUE + activeMQParameters)
