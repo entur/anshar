@@ -32,13 +32,6 @@ public class Siri20ToSiriRS20RequestResponse extends RouteBuilder {
         Namespaces ns = new Namespaces("siri", "http://www.siri.org.uk/siri")
                 .add("xsd", "http://www.w3.org/2001/XMLSchema");
 
-        errorHandler(
-                deadLetterChannel("activemq:queue:error:"+subscriptionSetup.getSubscriptionId())
-        );
-
-        from("activemq:queue:error:"+subscriptionSetup.getSubscriptionId())
-                .log("Request failed " + subscriptionSetup.toString());
-
         long heartbeatIntervalMillis = subscriptionSetup.getHeartbeatInterval().toMillis();
 
         int timeout = (int) heartbeatIntervalMillis / 2;
