@@ -41,16 +41,16 @@ public abstract class SiriSubscriptionRouteBuilder extends RouteBuilder {
     void handleSubscriptionResponse(SubscriptionResponseStructure response, String responseCode) {
         if (response.getResponseStatuses().isEmpty()) {
             if ("200".equals(responseCode)) {
-                SubscriptionManager.addSubscription(subscriptionSetup.getSubscriptionId(), subscriptionSetup);
+                SubscriptionManager.activatePendingSubscription(subscriptionSetup.getSubscriptionId());
             }
         } else {
             response.getResponseStatuses().forEach(s -> {
                 if (s.isStatus() != null && s.isStatus()) {
-                    SubscriptionManager.addSubscription(s.getSubscriptionRef().getValue(), subscriptionSetup);
+                    SubscriptionManager.activatePendingSubscription(s.getSubscriptionRef().getValue());
                 } else if (s.getErrorCondition() != null) {
                     logger.error("Error starting subscription:  {}", (s.getErrorCondition().getDescription() != null ? s.getErrorCondition().getDescription().getValue():""));
                 } else {
-                    SubscriptionManager.addSubscription(s.getSubscriptionRef().getValue(), subscriptionSetup);
+                    SubscriptionManager.activatePendingSubscription(s.getSubscriptionRef().getValue());
                 }
             });
         }

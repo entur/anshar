@@ -4,6 +4,7 @@ import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import uk.org.siri.siri20.Siri;
 
@@ -14,15 +15,13 @@ import static junit.framework.Assert.fail;
 public class SiriHandlerTest {
     private SiriHandler handler;
 
-    String SX_SUBSCRIPTION_ID = "1234";
-    String ET_SUBSCRIPTION_ID = "2345";
-    String VM_SUBSCRIPTION_ID = "3456";
-    String PT_SUBSCRIPTION_ID = "4567";
+    static String SX_SUBSCRIPTION_ID = "1234";
+    static String ET_SUBSCRIPTION_ID = "2345";
+    static String VM_SUBSCRIPTION_ID = "3456";
+    static String PT_SUBSCRIPTION_ID = "4567";
 
-    @Before
-    public void setUp() {
-        handler = new SiriHandler();
-
+    @BeforeClass
+    public static void setUpClass() {
         SubscriptionManager.addSubscription(SX_SUBSCRIPTION_ID, getSxSubscription());
         SubscriptionManager.activatePendingSubscription(SX_SUBSCRIPTION_ID);
         SubscriptionManager.addSubscription(ET_SUBSCRIPTION_ID, getEtSubscription());
@@ -32,6 +31,11 @@ public class SiriHandlerTest {
         SubscriptionManager.addSubscription(PT_SUBSCRIPTION_ID, getPtSubscription());
         SubscriptionManager.activatePendingSubscription(PT_SUBSCRIPTION_ID);
 
+    }
+
+    @Before
+    public void setUp() {
+        handler = new SiriHandler();
     }
 
     @Test
@@ -145,25 +149,25 @@ public class SiriHandlerTest {
 
 
 
-    private SubscriptionSetup getSxSubscription() {
+    private static SubscriptionSetup getSxSubscription() {
         SubscriptionSetup setup = new SubscriptionSetup();
         setup.setSubscriptionType(SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE);
         return setup;
     }
 
-    private SubscriptionSetup getVmSubscription() {
+    private static SubscriptionSetup getVmSubscription() {
         SubscriptionSetup setup = new SubscriptionSetup();
         setup.setSubscriptionType(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING);
         return setup;
     }
 
-    private SubscriptionSetup getEtSubscription() {
+    private static SubscriptionSetup getEtSubscription() {
         SubscriptionSetup setup = new SubscriptionSetup();
         setup.setSubscriptionType(SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE);
         return setup;
     }
 
-    private SubscriptionSetup getPtSubscription() {
+    private static SubscriptionSetup getPtSubscription() {
         SubscriptionSetup setup = new SubscriptionSetup();
         setup.setSubscriptionType(SubscriptionSetup.SubscriptionType.PRODUCTION_TIMETABLE);
         return setup;

@@ -1,6 +1,7 @@
 package no.rutebanken.anshar.subscription;
 
 
+import com.google.common.base.Preconditions;
 import no.rutebanken.anshar.messages.collections.DistributedCollection;
 import no.rutebanken.anshar.routes.siri.SiriObjectFactory;
 import org.json.simple.JSONArray;
@@ -43,9 +44,9 @@ public class SubscriptionManager {
     private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneId.systemDefault());
 
     public static void addSubscription(String subscriptionId, SubscriptionSetup setup) {
-        if (pendingSubscriptions.containsKey(subscriptionId)) {
-            activatePendingSubscription(subscriptionId);
-        }
+        Preconditions.checkState(!pendingSubscriptions.containsKey(subscriptionId), "Subscription already exists (pending)");
+        Preconditions.checkState(!activeSubscriptions.containsKey(subscriptionId), "Subscription already exists (active)");
+
         activeSubscriptions.put(subscriptionId, setup);
         logger.trace("Added subscription {}", setup);
         activatedTimestamp.put(subscriptionId, Instant.now());

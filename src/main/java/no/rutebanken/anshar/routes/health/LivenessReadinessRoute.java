@@ -76,12 +76,14 @@ public class LivenessReadinessRoute extends RouteBuilder {
                     String subscriptionId = request.getParameter("subscriptionId");
                     if (subscriptionId != null &&
                             !subscriptionId.isEmpty()) {
-                        SubscriptionManager.removeSubscription(subscriptionId);
 
-                        SubscriptionSetup subscriptionSetup = SubscriptionManager.get(subscriptionId);
-                        subscriptionSetup.setActive(false);
-                        SubscriptionManager.getActiveSubscriptions().put(subscriptionId, subscriptionSetup);
-                        SubscriptionMonitor.cancelSubscription(subscriptionSetup);
+                        SubscriptionSetup subscriptionSetup = SubscriptionManager.getActiveSubscriptions().get(subscriptionId);
+                        if (subscriptionSetup != null) {
+                            subscriptionSetup.setActive(false);
+                            SubscriptionManager.getActiveSubscriptions().put(subscriptionId, subscriptionSetup);
+
+                            SubscriptionMonitor.cancelSubscription(subscriptionSetup);
+                        }
                     }
 
                 })
@@ -94,12 +96,14 @@ public class LivenessReadinessRoute extends RouteBuilder {
                     if (subscriptionId != null &&
                             !subscriptionId.isEmpty()) {
 
-                        SubscriptionSetup subscriptionSetup = SubscriptionManager.get(subscriptionId);
-                        subscriptionSetup.setActive(true);
+                        SubscriptionSetup subscriptionSetup = SubscriptionManager.getPendingSubscriptions().get(subscriptionId);
+                        if (subscriptionSetup != null) {
 
-                        SubscriptionManager.addSubscription(subscriptionId, subscriptionSetup);
+                            subscriptionSetup.setActive(true);
+                            SubscriptionManager.addPendingSubscription(subscriptionId, subscriptionSetup);
 
-                        SubscriptionMonitor.startSubscription(subscriptionSetup);
+                            //SubscriptionMonitor.startSubscription(subscriptionSetup);
+                        }
                     }
 
                 })
