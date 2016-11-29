@@ -22,7 +22,7 @@ import static no.rutebanken.anshar.routes.outbound.SiriHelper.getFilter;
 @Configuration
 public class ServerSubscriptionManager extends CamelRouteManager {
 
-    private Logger logger = LoggerFactory.getLogger(this.getClass());
+    private static Logger logger = LoggerFactory.getLogger(ServerSubscriptionManager.class);
 
     private static Map<String, OutboundSubscriptionSetup> subscriptions;
     private static Map<String, Timer> heartbeatTimerMap;
@@ -30,7 +30,7 @@ public class ServerSubscriptionManager extends CamelRouteManager {
     static {
         DistributedCollection dc = new DistributedCollection();
         subscriptions = dc.getOutboundSubscriptionMap();
-        heartbeatTimerMap = dc.getHeartbeatTimerMap();
+        heartbeatTimerMap = new HashMap<>();
     }
 
 
@@ -148,6 +148,10 @@ public class ServerSubscriptionManager extends CamelRouteManager {
             return SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE;
         }
         return null;
+    }
+
+    public static void removeSubscription(OutboundSubscriptionSetup subscription) {
+        subscriptions.remove(subscription.getSubscriptionId());
     }
 
     private void startHeartbeatNotifier(final OutboundSubscriptionSetup subscription) {
