@@ -70,7 +70,7 @@ public class LivenessReadinessRoute extends RouteBuilder {
         ;
 
         //Restart subscription
-        from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/stop")
+        from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/stop?httpMethodRestrict=PUT")
                 .process(p -> {
                     HttpServletRequest request = p.getIn().getBody(HttpServletRequest.class);
                     String subscriptionId = request.getParameter("subscriptionId");
@@ -90,7 +90,7 @@ public class LivenessReadinessRoute extends RouteBuilder {
                 })
         ;
         //Restart subscription
-        from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/start")
+        from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/start?httpMethodRestrict=PUT")
                 .process(p -> {
                     HttpServletRequest request = p.getIn().getBody(HttpServletRequest.class);
                     String subscriptionId = request.getParameter("subscriptionId");

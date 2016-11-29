@@ -11,7 +11,7 @@
 
             var uri = "/anshar/" + operation + "?subscriptionId="+id;
             var xhr = new XMLHttpRequest();
-            xhr.open('GET', uri, true);
+            xhr.open('PUT', uri, true);
             xhr.onreadystatechange = function() {
                 window.location.reload()
             }
