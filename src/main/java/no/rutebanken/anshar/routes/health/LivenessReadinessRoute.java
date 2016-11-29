@@ -83,6 +83,7 @@ public class LivenessReadinessRoute extends RouteBuilder {
                             SubscriptionManager.getActiveSubscriptions().put(subscriptionId, subscriptionSetup);
 
                             SubscriptionMonitor.cancelSubscription(subscriptionSetup);
+                            logger.info("Handled request to cancel subscription ", subscriptionSetup);
                         }
                     }
 
@@ -101,8 +102,7 @@ public class LivenessReadinessRoute extends RouteBuilder {
 
                             subscriptionSetup.setActive(true);
                             SubscriptionManager.addPendingSubscription(subscriptionId, subscriptionSetup);
-
-                            //SubscriptionMonitor.startSubscription(subscriptionSetup);
+                            logger.info("Handled request to start subscription ", subscriptionSetup);
                         }
                     }
 
