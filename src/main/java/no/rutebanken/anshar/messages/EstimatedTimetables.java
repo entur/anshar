@@ -2,7 +2,6 @@ package no.rutebanken.anshar.messages;
 
 import no.rutebanken.anshar.messages.collections.DistributedCollection;
 import no.rutebanken.anshar.messages.collections.ExpiringConcurrentMap;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.org.siri.siri20.EstimatedCall;
@@ -81,8 +80,6 @@ public class EstimatedTimetables {
         return new ArrayList<>(datasetIdSpecific.values());
     }
 
-
-    @Nullable
     private static ZonedDateTime getExpiration(EstimatedVehicleJourney vehicleJourney) {
         ZonedDateTime expiryTimestamp = null;
         if (vehicleJourney != null) {

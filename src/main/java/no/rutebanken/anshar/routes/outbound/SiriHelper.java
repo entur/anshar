@@ -5,7 +5,6 @@ import no.rutebanken.anshar.messages.ProductionTimetables;
 import no.rutebanken.anshar.messages.Situations;
 import no.rutebanken.anshar.messages.VehicleActivities;
 import no.rutebanken.anshar.routes.siri.SiriObjectFactory;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.org.siri.siri20.*;
@@ -173,7 +172,6 @@ public class SiriHelper {
         return siriList;
     }
 
-    @NotNull
     private static List<List> splitList(List fullList, int maximumSizePerDelivery) {
         int startIndex = 0;
         int endIndex = Math.min(startIndex + maximumSizePerDelivery, fullList.size());

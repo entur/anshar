@@ -10,7 +10,6 @@ import org.apache.camel.CamelContextAware;
 import org.apache.camel.ProducerTemplate;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.RouteDefinition;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -109,7 +108,6 @@ public class SubscriptionMonitor implements CamelContextAware {
         return builders;
     }
 
-    @NotNull
     private RouteBuilder getRouteBuilder(SubscriptionSetup subscriptionSetup) {
         RouteBuilder route;
         if (subscriptionSetup.getVersion().equals("1.4")) {

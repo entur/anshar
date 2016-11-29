@@ -1,7 +1,6 @@
 package no.rutebanken.anshar.messages.collections;
 
 import com.google.common.base.Preconditions;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,7 +80,6 @@ public class ExpiringConcurrentMap<String,T>  implements Map<String,T> {
         return map.values();
     }
 
-    @NotNull
     @Override
     public Set<Entry<String, T>> entrySet() {
         return map.entrySet();
@@ -91,7 +89,6 @@ public class ExpiringConcurrentMap<String,T>  implements Map<String,T> {
         map.clear();
     }
 
-    @NotNull
     @Override
     public Set<String> keySet() {
         return map.keySet();
