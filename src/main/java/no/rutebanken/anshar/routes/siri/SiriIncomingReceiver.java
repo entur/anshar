@@ -99,7 +99,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                                     if (subscriptionId == null || subscriptionId.isEmpty()) {
                                         return false;
                                     }
-                                    return (SubscriptionManager.isSubscriptionRegistered(subscriptionId) &
+                                    return (SubscriptionManager.isSubscriptionRegistered(subscriptionId) &&
                                             SubscriptionManager.get(subscriptionId).isActive());
                                 })
                                     //Valid subscription
