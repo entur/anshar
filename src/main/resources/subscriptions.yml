@@ -237,3 +237,39 @@ anshar:
       mappingAdapterPresets: BRAKAR
       idMappingPrefixes: BRA
       active: true
+    -
+      vendor: bybanenEt
+      datasetId: BYB
+      serviceType: REST
+      subscriptionType: ESTIMATED_TIMETABLE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 60
+      operatorNamespace: http://www.siri.org.uk/siri
+      urlMap:
+        SUBSCRIBE: 62.97.192.2:8080/SIRIProducer/SiriProducerHttp
+        DELETE_SUBSCRIPTION: 62.97.192.2:8080/SIRIProducer/SiriProducerHttp
+      version: 2.0
+      subscriptionId: ${random.uuid}
+      requestorRef: RutebankenDEV
+      durationOfSubscriptionHours: 168
+      mappingAdapterPresets: SKYSS
+      idMappingPrefixes: HRD
+      active: false
+#    -
+#      vendor: anshar-vm
+#      datasetId: ANS
+#      serviceType: REST
+#      subscriptionType: VEHICLE_MONITORING
+#      subscriptionMode: SUBSCRIBE
+#      heartbeatIntervalSeconds: 60
+#      operatorNamespace: http://www.siri.org.uk/siri
+#      urlMap:
+#        SUBSCRIBE: mottak-test.rutebanken.org/anshar/subscribe
+#        DELETE_SUBSCRIPTION: mottak-test.rutebanken.org/anshar/subscribe
+#      version: 2.0
+#      subscriptionId: ${random.uuid}
+#      requestorRef: RutebankenDEV
+#      durationOfSubscriptionHours: 168
+#      mappingAdapterPresets: ATB
+#      idMappingPrefixes: AND
+#      active: false
