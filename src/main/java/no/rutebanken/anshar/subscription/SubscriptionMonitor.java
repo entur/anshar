@@ -161,7 +161,7 @@ public class SubscriptionMonitor implements CamelContextAware {
                             for (SubscriptionSetup subscriptionSetup : pendingSubscriptions.values()) {
                                 if (subscriptionSetup.isActive()) {
                                     logger.info("Healthcheck: Trigger start subscription {}", subscriptionSetup);
-                                    startSubscriptionAsync(subscriptionSetup, 3000 * counter++);
+                                    startSubscriptionAsync(subscriptionSetup, 1000 * counter++);
                                 }
                             }
 
