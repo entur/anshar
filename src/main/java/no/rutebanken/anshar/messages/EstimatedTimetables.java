@@ -115,7 +115,13 @@ public class EstimatedTimetables {
 
             EstimatedVehicleJourney existing = timetableDeliveries.get(key);
 
-            if (existing == null || et.getRecordedAtTime().isAfter(existing.getRecordedAtTime())) {
+            boolean keep = (existing == null); //No existing data - keep
+            if (et.getRecordedAtTime() != null && existing.getRecordedAtTime() != null) {
+                //Newer data has already been processed
+                keep = et.getRecordedAtTime().isAfter(existing.getRecordedAtTime());
+            }
+
+            if (keep) {
                 if (et.isIsCompleteStopSequence() != null && !et.isIsCompleteStopSequence()) {
                     //Not complete - merge partial update into existing
                     if (existing != null) {
@@ -150,8 +156,6 @@ public class EstimatedTimetables {
                     updates.put(key, et);
                     expiries.put(key, expiration);
                 }
-            } else {
-                //Newer data has already been processed
             }
         });
 
