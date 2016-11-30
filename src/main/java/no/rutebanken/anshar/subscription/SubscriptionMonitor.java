@@ -8,6 +8,7 @@ import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import org.apache.camel.CamelContext;
 import org.apache.camel.CamelContextAware;
 import org.apache.camel.ProducerTemplate;
+import org.apache.camel.Route;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.RouteDefinition;
 import org.slf4j.Logger;
@@ -228,21 +229,23 @@ public class SubscriptionMonitor implements CamelContextAware {
         SubscriptionManager.activatePendingSubscription(subscriptionSetup.getSubscriptionId());
         if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.SUBSCRIBE) {
             triggerRoute(subscriptionSetup.getStartSubscriptionRouteName());
-        } else {
-            // If request/response-routes lose its connection, it will not be reestablished - needs to be restarted
-//            Route route = camelContext.getRoute(subscriptionSetup.getRequestResponseRouteName());
 
+            camelContext.startRoute(subscriptionSetup.getCheckStatusRouteName());
+        } else {
             camelContext.startRoute(subscriptionSetup.getRequestResponseRouteName());
-//            if (route != null) {
-//                logger.info("Starting route for subscription {}", subscriptionSetup);
-//                route.getServices().forEach(service -> {
-//                    try {
-//                        service.start();
-//                    } catch (Exception e) {
-//                        logger.warn("Restarting route failed", e);
-//                    }
-//                });
-//            }
+
+            // If request/response-routes lose its connection, it will not be reestablished - needs to be restarted
+            Route route = camelContext.getRoute(subscriptionSetup.getRequestResponseRouteName());
+            if (route != null) {
+                logger.info("Starting route for subscription {}", subscriptionSetup);
+                route.getServices().forEach(service -> {
+                    try {
+                        service.start();
+                    } catch (Exception e) {
+                        logger.warn("Restarting route failed", e);
+                    }
+                });
+            }
         }
     }
 
@@ -252,20 +255,22 @@ public class SubscriptionMonitor implements CamelContextAware {
 
         if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.SUBSCRIBE) {
             triggerRoute(subscriptionSetup.getCancelSubscriptionRouteName());
+            camelContext.stopRoute(subscriptionSetup.getCheckStatusRouteName());
         } else {
-            // If request/response-routes lose its connection, it will not be reestablished - needs to be restarted
-//            Route route = camelContext.getRoute(subscriptionSetup.getRequestResponseRouteName());
             camelContext.stopRoute(subscriptionSetup.getRequestResponseRouteName());
-//            if (route != null) {
-//                logger.info("Stopping route for subscription {}", subscriptionSetup);
-//                route.getServices().forEach(service -> {
-//                    try {
-//                        service.stop();
-//                    } catch (Exception e) {
-//                        logger.warn("Restarting route failed", e);
-//                    }
-//                });
-//            }
+
+            // If request/response-routes lose its connection, it will not be reestablished - needs to be restarted
+            Route route = camelContext.getRoute(subscriptionSetup.getRequestResponseRouteName());
+            if (route != null) {
+                logger.info("Stopping route for subscription {}", subscriptionSetup);
+                route.getServices().forEach(service -> {
+                    try {
+                        service.stop();
+                    } catch (Exception e) {
+                        logger.warn("Restarting route failed", e);
+                    }
+                });
+            }
         }
     }
 
