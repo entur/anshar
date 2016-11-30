@@ -16,6 +16,7 @@ import org.rutebanken.hazelcasthelper.service.HazelCastService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 import uk.org.siri.siri20.EstimatedVehicleJourney;
 import uk.org.siri.siri20.ProductionTimetableDeliveryStructure;
 import uk.org.siri.siri20.PtSituationElement;
@@ -29,6 +30,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
 
+@Service
 public class DistributedCollection extends HazelCastService {
 
     private static Logger logger = LoggerFactory.getLogger(DistributedCollection.class);
