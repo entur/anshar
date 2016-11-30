@@ -55,6 +55,7 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
         //Check status-request checks the server status - NOT the subscription
         if (urlMap.get(RequestType.CHECK_STATUS) != null) {
             from("quartz2://" + subscriptionSetup.getCheckStatusRouteName() + "?fireNow=true&trigger.repeatInterval=" + subscriptionSetup.getHeartbeatInterval().toMillis())
+                    .autoStartup(false)
                     .bean(helper, "marshalSiriCheckStatusRequest", false)
                     .removeHeaders("CamelHttp*") // Remove any incoming HTTP headers as they interfere with the outgoing definition
                     .setHeader(Exchange.CONTENT_TYPE, constant("text/xml;charset=UTF-8")) // Necessary when talking to Microsoft web services
