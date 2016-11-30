@@ -95,7 +95,15 @@ public class VehicleActivities {
 
                 VehicleActivityStructure existing = vehicleActivities.get(key);
 
-                if (existing == null || activity.getRecordedAtTime().isAfter(activity.getRecordedAtTime())) {
+                keep = (existing == null); //No existing data i.e. keep
+
+                if (existing != null &&
+                        (activity.getRecordedAtTime() != null && existing.getRecordedAtTime() != null)) {
+                    //Newer data has already been processed
+                    keep = activity.getRecordedAtTime().isAfter(existing.getRecordedAtTime());
+                }
+
+                if (keep) {
                     ZonedDateTime expiration = getExpiration(activity);
 
                     if (expiration != null && expiration.isAfter(ZonedDateTime.now())) {

@@ -107,7 +107,6 @@ public class VehicleActivitiesTest {
 
     @Test
     public void testUpdatedVehicleWrongOrder() {
-        int previousSize = VehicleActivities.getAll().size();
 
         //Add element
         String vehicleReference = UUID.randomUUID().toString();
@@ -134,6 +133,39 @@ public class VehicleActivitiesTest {
 
         //Update is recorder BEFORE current - should be ignored
         element2.setRecordedAtTime(ZonedDateTime.now());
+
+        VehicleActivityStructure test = VehicleActivities.add("test", element2);
+
+        assertEquals("VM has been wrongfully updated", BigDecimal.ONE, test.getProgressBetweenStops().getPercentage());
+    }
+
+    @Test
+    public void testUpdatedVehicleNoRecordedAtTime() {
+
+        //Add element
+        String vehicleReference = UUID.randomUUID().toString();
+        VehicleActivityStructure element = createVehicleActivityStructure(
+                                                    ZonedDateTime.now().plusMinutes(1), vehicleReference);
+        ProgressBetweenStopsStructure progress = new ProgressBetweenStopsStructure();
+        progress.setPercentage(BigDecimal.ONE);
+        element.setProgressBetweenStops(progress);
+        element.setRecordedAtTime(null);
+
+        VehicleActivities.add("test", element);
+
+        VehicleActivityStructure testOriginal = VehicleActivities.add("test", element);
+
+        assertEquals("VM has not been added.", BigDecimal.ONE, testOriginal.getProgressBetweenStops().getPercentage());
+
+        //Update element
+        VehicleActivityStructure element2 = createVehicleActivityStructure(
+                                                    ZonedDateTime.now().plusMinutes(1), vehicleReference);
+
+        ProgressBetweenStopsStructure progress2 = new ProgressBetweenStopsStructure();
+        progress2.setPercentage(BigDecimal.TEN);
+        element2.setProgressBetweenStops(progress2);
+
+        element2.setRecordedAtTime(null);
 
         VehicleActivityStructure test = VehicleActivities.add("test", element2);
 
