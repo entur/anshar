@@ -1,6 +1,9 @@
 package no.rutebanken.anshar.routes.outbound;
 
-import org.apache.camel.*;
+import org.apache.camel.CamelContext;
+import org.apache.camel.CamelContextAware;
+import org.apache.camel.LoggingLevel;
+import org.apache.camel.ProducerTemplate;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.RouteDefinition;
 import org.rutebanken.siri20.util.SiriXml;
@@ -15,7 +18,6 @@ import java.util.List;
 import java.util.UUID;
 
 import static no.rutebanken.anshar.routes.outbound.SiriHelper.containsValues;
-import static no.rutebanken.anshar.routes.outbound.SiriHelper.getFilter;
 import static no.rutebanken.anshar.routes.outbound.SiriHelper.splitDeliveries;
 
 @Service
@@ -152,19 +154,14 @@ public class CamelRouteManager implements CamelContextAware {
 
             routeName = String.format("direct:%s", UUID.randomUUID().toString());
 
-            errorHandler(
-                    deadLetterChannel("activemq:queue:error")
-            );
-
-            from("activemq:queue:error")
-                    .routeId("errorhandler:"+remoteEndPoint) //One errorhandler per subscription/endpoint
-                    .log("Error sending data to url " + remoteEndPoint);
-
+            int timeout = 60000;
+            String httpOptions = "?httpClient.socketTimeout=" + timeout + "&httpClient.connectTimeout=" + timeout;
             definition = from(routeName)
                     .log(LoggingLevel.INFO, "POST data to " + remoteEndPoint)
                     .setHeader("CamelHttpMethod", constant("POST"))
                     .marshal().string("UTF-8")
-                    .to("http4://" + remoteEndPoint);
+                    .to("http4://" + remoteEndPoint + httpOptions)
+                    .log(LoggingLevel.INFO, "POST complete");
 
         }
 
