@@ -138,18 +138,19 @@ public class SiriObjectFactory {
         return ptRequest;
     }
 
-    private static SubscriptionRequest createSituationExchangeSubscriptionRequest(String requestorRef, String subscriptionId, String heartbeatInterval, String address, Duration subscriptionDuration, Map<Class, Set<String>> filterMap) {
+    private static SubscriptionRequest createSituationExchangeSubscriptionRequest(String requestorRef, String subscriptionId, String heartbeatInterval, String address, Duration subscriptionDuration, Map<Class, Set<Object>> filterMap) {
         SubscriptionRequest request = createSubscriptionRequest(requestorRef, heartbeatInterval, address);
 
         SituationExchangeRequestStructure sxRequest = createSituationExchangeRequestStructure();
         sxRequest.setPreviewInterval(createDataTypeFactory().newDuration("P1Y"));
 
         if (filterMap != null) {
-            Set<String> vehicleRefs = filterMap.get(VehicleRef.class);
+            Set<Object> vehicleRefs = filterMap.get(VehicleRef.class);
             if (vehicleRefs != null && vehicleRefs.size() > 0) {
-                VehicleRef vehicleRef = new VehicleRef();
-                vehicleRef.setValue(vehicleRefs.iterator().next());
-                sxRequest.setVehicleRef(vehicleRef);
+                Object next = vehicleRefs.iterator().next();
+                if (next instanceof VehicleRef)  {
+                    sxRequest.setVehicleRef((VehicleRef) next);
+                }
             }
         }
 
@@ -164,7 +165,7 @@ public class SiriObjectFactory {
         return request;
     }
 
-    private static SubscriptionRequest createVehicleMonitoringSubscriptionRequest(String requestorRef, String subscriptionId, String heartbeatInterval, String address, Duration subscriptionDuration, Map<Class, Set<String>> filterMap) {
+    private static SubscriptionRequest createVehicleMonitoringSubscriptionRequest(String requestorRef, String subscriptionId, String heartbeatInterval, String address, Duration subscriptionDuration, Map<Class, Set<Object>> filterMap) {
         SubscriptionRequest request = createSubscriptionRequest(requestorRef,heartbeatInterval, address);
 
         VehicleMonitoringRequestStructure vmRequest = new VehicleMonitoringRequestStructure();
@@ -172,17 +173,19 @@ public class SiriObjectFactory {
         vmRequest.setVersion(SIRI_VERSION);
 
         if (filterMap != null) {
-            Set<String> lineRefs = filterMap.get(LineRef.class);
+            Set lineRefs = filterMap.get(LineRef.class);
             if (lineRefs != null && lineRefs.size() > 0) {
-                LineRef lineRef = new LineRef();
-                lineRef.setValue(lineRefs.iterator().next());
-                vmRequest.setLineRef(lineRef);
+                Object next = lineRefs.iterator().next();
+                if (next instanceof LineRef) {
+                    vmRequest.setLineRef((LineRef) next);
+                }
             }
-            Set<String> vehicleRefs = filterMap.get(VehicleRef.class);
+            Set<Object> vehicleRefs = filterMap.get(VehicleRef.class);
             if (vehicleRefs != null && vehicleRefs.size() > 0) {
-                VehicleRef vehicleRef = new VehicleRef();
-                vehicleRef.setValue(vehicleRefs.iterator().next());
-                vmRequest.setVehicleRef(vehicleRef);
+                Object next = vehicleRefs.iterator().next();
+                if (next instanceof VehicleRef)  {
+                    vmRequest.setVehicleRef((VehicleRef) next);
+                }
             }
         }
 
@@ -198,7 +201,7 @@ public class SiriObjectFactory {
     }
 
 
-    private static SubscriptionRequest createEstimatedTimetableSubscriptionRequest(String requestorRef, String subscriptionId, String heartbeatInterval, String address, Duration subscriptionDuration, Map<Class, Set<String>> filterMap) {
+    private static SubscriptionRequest createEstimatedTimetableSubscriptionRequest(String requestorRef, String subscriptionId, String heartbeatInterval, String address, Duration subscriptionDuration, Map<Class, Set<Object>> filterMap) {
         SubscriptionRequest request = createSubscriptionRequest(requestorRef, heartbeatInterval, address);
 
         EstimatedTimetableRequestStructure etRequest = new EstimatedTimetableRequestStructure();
@@ -210,14 +213,12 @@ public class SiriObjectFactory {
             if (filterMap.size() > 0) {
                 EstimatedTimetableRequestStructure.Lines lines = new EstimatedTimetableRequestStructure.Lines();
 
-                Set<String> lineRefs = filterMap.get(LineRef.class);
-                for (String lineRefValue : lineRefs) {
-                    LineDirectionStructure lineDir = new LineDirectionStructure();
-                    LineRef lineRef = new LineRef();
-                    lineRef.setValue(lineRefValue);
-                    lineDir.setLineRef(lineRef);
-
-                    lines.getLineDirections().add(lineDir);
+                Set lineRefs = filterMap.get(LineDirectionStructure.class);
+                for (Object lineref : lineRefs) {
+                    if (lineref != null &&
+                            lineref instanceof LineDirectionStructure) {
+                        lines.getLineDirections().add((LineDirectionStructure) lineref);
+                    }
                 }
 
                 etRequest.setLines(lines);
@@ -237,7 +238,7 @@ public class SiriObjectFactory {
     }
 
 
-    private static SubscriptionRequest createProductionTimetableSubscriptionRequest(String requestorRef, String subscriptionId, String heartbeatInterval, String address, Duration subscriptionDuration, Map<Class, Set<String>> filterMap) {
+    private static SubscriptionRequest createProductionTimetableSubscriptionRequest(String requestorRef, String subscriptionId, String heartbeatInterval, String address, Duration subscriptionDuration, Map<Class, Set<Object>> filterMap) {
         SubscriptionRequest request = createSubscriptionRequest(requestorRef, heartbeatInterval, address);
 
         ProductionTimetableRequestStructure ptRequest = new ProductionTimetableRequestStructure();

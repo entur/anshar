@@ -6,10 +6,7 @@ import org.json.simple.JSONObject;
 import java.io.Serializable;
 import java.text.MessageFormat;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class SubscriptionSetup implements Serializable{
 
@@ -28,7 +25,7 @@ public class SubscriptionSetup implements Serializable{
     private String requestorRef;
     private boolean active;
     private SubscriptionMode subscriptionMode;
-    private Map<Class, Set<String>> filterMap;
+    private Map<Class, Set<Object>> filterMap;
     private List<String> idMappingPrefixes;
 
     public SubscriptionSetup() {
@@ -51,7 +48,7 @@ public class SubscriptionSetup implements Serializable{
      * @param active Activates/deactivates subscription
      */
     SubscriptionSetup(SubscriptionType subscriptionType, SubscriptionMode subscriptionMode, String address, Duration heartbeatInterval, String operatorNamespace, Map<RequestType, String> urlMap,
-                             String version, String vendor, String datasetId, ServiceType serviceType, List<ValueAdapter> mappingAdapters, Map<Class, Set<String>> filterMap, List<String> idMappingPrefixes,
+                             String version, String vendor, String datasetId, ServiceType serviceType, List<ValueAdapter> mappingAdapters, Map<Class, Set<Object>> filterMap, List<String> idMappingPrefixes,
                              String subscriptionId, String requestorRef, Duration durationOfSubscription, boolean active) {
         this.subscriptionType = subscriptionType;
         this.subscriptionMode = subscriptionMode;
@@ -178,12 +175,24 @@ public class SubscriptionSetup implements Serializable{
         return subscriptionMode;
     }
 
-    public void setFilterMap(Map<Class, Set<String>> filterMap) {
+    public void setFilterPresets(FilterMapPresets.Preset[] presets) {
+        for (FilterMapPresets.Preset preset : presets) {
+            addFilterMap(FilterMapPresets.get(preset));
+        }
+    }
+    public void setFilterMap(Map<Class, Set<Object>> filterMap) {
         this.filterMap = filterMap;
     }
 
-    public Map<Class, Set<String>> getFilterMap() {
+    public Map<Class, Set<Object>> getFilterMap() {
         return filterMap;
+    }
+
+    private void addFilterMap(Map<Class, Set<Object>> filters) {
+        if (this.filterMap == null) {
+            this.filterMap = new HashMap<>();
+        }
+        this.filterMap.putAll(filters);
     }
 
     public enum ServiceType {SOAP, REST}

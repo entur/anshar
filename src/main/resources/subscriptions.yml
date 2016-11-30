@@ -17,6 +17,7 @@ anshar:
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: KOLUMBUS
+      filterPresets:
       idMappingPrefixes: KOL
       active: true
     -
@@ -34,6 +35,7 @@ anshar:
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: KOLUMBUS
+      filterPresets:
       idMappingPrefixes: KOL
       active: true
     -
@@ -53,6 +55,7 @@ anshar:
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: ATB
+      filterPresets:
       idMappingPrefixes: ATB
       active: true
     -
@@ -70,6 +73,7 @@ anshar:
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: ATB
+      filterPresets:
       idMappingPrefixes: ATB
       active: true
     -
@@ -88,6 +92,7 @@ anshar:
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: AKT
+      filterPresets:
       idMappingPrefixes: AKT
       active: true
     -
@@ -106,6 +111,7 @@ anshar:
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: AKT
+      filterPresets:
       idMappingPrefixes: AKT
       active: true
     -
@@ -125,6 +131,7 @@ anshar:
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: RUTER
+      filterPresets:
       idMappingPrefixes: RUT,OPP,BRA,OST
       active: true
     -
@@ -144,6 +151,7 @@ anshar:
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: RUTER
+      filterPresets:
       idMappingPrefixes: RUT,OPP,BRA,OST
       active: true
     -
@@ -163,6 +171,7 @@ anshar:
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: RUTER
+      filterPresets:
       idMappingPrefixes: RUT,OPP,BRA,OST
       active: true
     -
@@ -181,6 +190,7 @@ anshar:
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: SKYSS
+      filterPresets:
       idMappingPrefixes: HRD
       active: false
     -
@@ -199,6 +209,7 @@ anshar:
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: SKYSS
+      filterPresets:
       idMappingPrefixes: HRD
       active: false
     -
@@ -217,6 +228,7 @@ anshar:
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: BRAKAR
+      filterPresets:
       idMappingPrefixes: BRA
       active: true
     -
@@ -235,6 +247,7 @@ anshar:
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: BRAKAR
+      filterPresets:
       idMappingPrefixes: BRA
       active: true
     -
@@ -253,6 +266,7 @@ anshar:
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: SKYSS
+      filterPresets: BYBANEN
       idMappingPrefixes: HRD
       active: false
 #    -
@@ -271,5 +285,6 @@ anshar:
 #      requestorRef: RutebankenDEV
 #      durationOfSubscriptionHours: 168
 #      mappingAdapterPresets: ATB
+#      filterPresets:
 #      idMappingPrefixes: AND
-#      active: false
+#      active: true
