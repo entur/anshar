@@ -11,24 +11,13 @@ import java.util.Set;
 
 public class FilterMapPresets {
 
-    public enum Preset {
-        RUTER, ATB, KOLUMBUS, AKT, SKYSS, BRAKAR, BYBANEN
-    }
-
-    public static Map<Class, Set<Object>> get(Preset preset) {
+    public static Map<Class, Set<Object>> get(SubscriptionPreset preset) {
 
         Map<Class, Set<Object>> filters = new HashMap<>();
         switch (preset) {
             case BYBANEN:
-
                 filters.put(LineDirectionStructure.class, getSkyssLineDirectionFilters());
                 break;
-            case RUTER:
-            case ATB:
-            case KOLUMBUS:
-            case AKT:
-            case BRAKAR:
-            case SKYSS:
         }
 
         return filters;

@@ -10,11 +10,7 @@ import java.util.List;
 
 public class MappingAdapterPresets {
 
-    public enum Preset {
-        RUTER, ATB, KOLUMBUS, AKT, SKYSS, BRAKAR
-    }
-
-    public static List<ValueAdapter> get(Preset preset) {
+    public static List<ValueAdapter> get(SubscriptionPreset preset) {
 
         List<ValueAdapter> adapters = new ArrayList<>();
         switch (preset) {

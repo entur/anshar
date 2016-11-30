@@ -175,8 +175,8 @@ public class SubscriptionSetup implements Serializable{
         return subscriptionMode;
     }
 
-    public void setFilterPresets(FilterMapPresets.Preset[] presets) {
-        for (FilterMapPresets.Preset preset : presets) {
+    public void setFilterPresets(SubscriptionPreset[] presets) {
+        for (SubscriptionPreset preset : presets) {
             addFilterMap(FilterMapPresets.get(preset));
         }
     }
@@ -199,8 +199,8 @@ public class SubscriptionSetup implements Serializable{
     public enum SubscriptionType {SITUATION_EXCHANGE, VEHICLE_MONITORING, PRODUCTION_TIMETABLE, ESTIMATED_TIMETABLE}
     public enum SubscriptionMode {SUBSCRIBE, REQUEST_RESPONSE}
 
-    public void setMappingAdapterPresets(MappingAdapterPresets.Preset[] presets) {
-        for (MappingAdapterPresets.Preset preset : presets) {
+    public void setMappingAdapterPresets(SubscriptionPreset[] presets) {
+        for (SubscriptionPreset preset : presets) {
             addMappingAdapters(MappingAdapterPresets.get(preset));
         }
     }
