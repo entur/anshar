@@ -1,6 +1,8 @@
 package no.rutebanken.anshar.messages.collections;
 
-import com.hazelcast.core.*;
+import com.hazelcast.core.Cluster;
+import com.hazelcast.core.IMap;
+import com.hazelcast.core.Member;
 import no.rutebanken.anshar.messages.EstimatedTimetables;
 import no.rutebanken.anshar.messages.ProductionTimetables;
 import no.rutebanken.anshar.messages.Situations;
@@ -10,15 +12,16 @@ import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.rutebanken.hazelcasthelper.service.HazelCastService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Configuration;
 import uk.org.siri.siri20.EstimatedVehicleJourney;
 import uk.org.siri.siri20.ProductionTimetableDeliveryStructure;
 import uk.org.siri.siri20.PtSituationElement;
 import uk.org.siri.siri20.VehicleActivityStructure;
 
+import javax.annotation.PostConstruct;
 import java.math.BigInteger;
 import java.time.Instant;
 import java.util.HashMap;
@@ -26,21 +29,17 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
 
-@Configuration
-public class DistributedCollection {
+public class DistributedCollection extends HazelCastService {
 
     private static Logger logger = LoggerFactory.getLogger(DistributedCollection.class);
-    private static HazelcastInstance hazelcastInstance;
 
     private static Map<String, Map> existingMaps;
 
     @Value("${anshar.expiry.period.seconds}")
     private int expiryPeriodSeconds = 30;
 
-    public DistributedCollection() {
-        if (hazelcastInstance == null) {
-            hazelcastInstance = Hazelcast.newHazelcastInstance();
-        }
+    @PostConstruct
+    private void afterInit() {
         if (existingMaps == null) {
             existingMaps = new HashMap<>();
         }
@@ -80,56 +79,52 @@ public class DistributedCollection {
 
     /**
      * Theses maps are cached since the HZ-Map is wrapped in another map
-     * @param key
-     * @return
      */
     private ExpiringConcurrentMap getCachedOrNewMap(String key) {
         if (!existingMaps.containsKey(key)) {
-            existingMaps.put(key, new ExpiringConcurrentMap<>(hazelcastInstance.getMap(key), expiryPeriodSeconds));
+            existingMaps.put(key, new ExpiringConcurrentMap<>(hazelcast.getMap(key), expiryPeriodSeconds));
         }
         return (ExpiringConcurrentMap) existingMaps.get(key);
     }
 
     /**
      * Theses maps are cached since the HZ-Map is wrapped in another map
-     * @param key
-     * @return
      */
     private ExpiringConcurrentMap getCachedOrNewMap(String key, int expiryPeriodSeconds) {
         if (!existingMaps.containsKey(key)) {
-            existingMaps.put(key, new ExpiringConcurrentMap<>(hazelcastInstance.getMap(key), expiryPeriodSeconds));
+            existingMaps.put(key, new ExpiringConcurrentMap<>(hazelcast.getMap(key), expiryPeriodSeconds));
         }
         return (ExpiringConcurrentMap) existingMaps.get(key);
     }
 
     public Map<String,SubscriptionSetup> getActiveSubscriptionsMap() {
-        return hazelcastInstance.getMap("anshar.subscriptions.active");
+        return hazelcast.getMap("anshar.subscriptions.active");
     }
 
     public Map<String,SubscriptionSetup> getPendingSubscriptionsMap() {
-        return hazelcastInstance.getMap("anshar.subscriptions.pending");
+        return hazelcast.getMap("anshar.subscriptions.pending");
     }
 
     public Map<String, Instant> getLastActivityMap() {
-        return hazelcastInstance.getMap("anshar.activity.last");
+        return hazelcast.getMap("anshar.activity.last");
     }
 
     public Map<String, Instant> getActivatedTimestampMap() {
-        return hazelcastInstance.getMap("anshar.activity.activated");
+        return hazelcast.getMap("anshar.activity.activated");
     }
 
     public Map<String, Integer> getHitcountMap() {
-        return hazelcastInstance.getMap("anshar.activity.hitcount");
+        return hazelcast.getMap("anshar.activity.hitcount");
     }
 
     public IMap<String, Instant> getLockMap() {
-        return hazelcastInstance.getMap("anshar.locks");
+        return hazelcast.getMap("anshar.locks");
     }
 
     public String listNodes() {
         JSONObject root = new JSONObject();
         JSONArray clusterMembers = new JSONArray();
-        Cluster cluster = hazelcastInstance.getCluster();
+        Cluster cluster = hazelcast.getCluster();
         if (cluster != null) {
             Set<Member> members = cluster.getMembers();
             if (members != null && !members.isEmpty()) {
@@ -164,18 +159,18 @@ public class DistributedCollection {
     }
 
     public Map<String, OutboundSubscriptionSetup> getOutboundSubscriptionMap() {
-        return hazelcastInstance.getMap("anshar.subscriptions.outbound");
+        return hazelcast.getMap("anshar.subscriptions.outbound");
     }
 
     public Map<String, Timer> getHeartbeatTimerMap() {
-        return hazelcastInstance.getMap("anshar.subscriptions.outbound.heartbeat");
+        return hazelcast.getMap("anshar.subscriptions.outbound.heartbeat");
     }
 
     public Map<String,String> getStopPlaceMappings() {
-        return hazelcastInstance.getMap("anshar.mapping.stopplaces");
+        return hazelcast.getMap("anshar.mapping.stopplaces");
     }
 
     public Map<String,BigInteger> getObjectCounterMap() {
-        return hazelcastInstance.getMap("anshar.activity.objectcount");
+        return hazelcast.getMap("anshar.activity.objectcount");
     }
 }
