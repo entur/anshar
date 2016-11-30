@@ -116,7 +116,8 @@ public class EstimatedTimetables {
             EstimatedVehicleJourney existing = timetableDeliveries.get(key);
 
             boolean keep = (existing == null); //No existing data - keep
-            if (et.getRecordedAtTime() != null && existing.getRecordedAtTime() != null) {
+            if (existing != null &&
+                    (et.getRecordedAtTime() != null && existing.getRecordedAtTime() != null)) {
                 //Newer data has already been processed
                 keep = et.getRecordedAtTime().isAfter(existing.getRecordedAtTime());
             }
