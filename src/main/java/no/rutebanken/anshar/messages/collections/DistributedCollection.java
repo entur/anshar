@@ -1,6 +1,13 @@
 package no.rutebanken.anshar.messages.collections;
 
+import com.hazelcast.config.Config;
+import com.hazelcast.config.JoinConfig;
+import com.hazelcast.config.MulticastConfig;
+import com.hazelcast.config.NetworkConfig;
+import com.hazelcast.config.SSLConfig;
+import com.hazelcast.config.TcpIpConfig;
 import com.hazelcast.core.Cluster;
+import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.IMap;
 import com.hazelcast.core.Member;
 import no.rutebanken.anshar.messages.EstimatedTimetables;
@@ -13,8 +20,10 @@ import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.rutebanken.hazelcasthelper.service.HazelCastService;
+import org.rutebanken.hazelcasthelper.service.KubernetesService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uk.org.siri.siri20.EstimatedVehicleJourney;
@@ -22,13 +31,13 @@ import uk.org.siri.siri20.ProductionTimetableDeliveryStructure;
 import uk.org.siri.siri20.PtSituationElement;
 import uk.org.siri.siri20.VehicleActivityStructure;
 
-import javax.annotation.PostConstruct;
 import java.math.BigInteger;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
+import java.util.UUID;
 
 @Service
 public class DistributedCollection extends HazelCastService {
@@ -40,8 +49,34 @@ public class DistributedCollection extends HazelCastService {
     @Value("${anshar.expiry.period.seconds}")
     private int expiryPeriodSeconds = 30;
 
-    @PostConstruct
-    private void afterInit() {
+    public DistributedCollection(@Autowired KubernetesService kubernetesService) {
+        super(kubernetesService);
+    }
+
+    /**
+     * @deprecated Please autowire the dependencies, and delete this method
+     */
+    @Deprecated
+    public DistributedCollection() {
+        super(null);
+        logger.warn("** WARNING ** This methods should be replaced with autowired spring niceness");
+        logger.warn("              Running hazelcast with LOCAL configuration ONLY");
+        final Config cfg = new Config()
+                .setInstanceName(UUID.randomUUID().toString())
+                .setProperty("hazelcast.phone.home.enabled", "false");
+        final JoinConfig joinCfg = new JoinConfig()
+                .setMulticastConfig(new MulticastConfig().setEnabled(false))
+                .setTcpIpConfig(new TcpIpConfig().setEnabled(false));
+        cfg.setNetworkConfig(
+                new NetworkConfig()
+                        .setPortAutoIncrement(true)
+                        .setJoin(joinCfg)
+                        .setSSLConfig(new SSLConfig().setEnabled(false))
+        );
+
+        if (hazelcast == null) {
+            hazelcast = Hazelcast.newHazelcastInstance(cfg);
+        }
         if (existingMaps == null) {
             existingMaps = new HashMap<>();
         }
