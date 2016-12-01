@@ -44,6 +44,10 @@ public class DistributedCollection extends HazelCastService {
 
     private static Logger logger = LoggerFactory.getLogger(DistributedCollection.class);
 
+    /**
+     * @deprecated Use expiry as implemented in hazelcast as IMAP.put("abc", "def", 1, TimeUnit.SECONDS)
+     */
+    @Deprecated
     private static Map<String, Map> existingMaps;
 
     @Value("${anshar.expiry.period.seconds}")
@@ -51,6 +55,9 @@ public class DistributedCollection extends HazelCastService {
 
     public DistributedCollection(@Autowired KubernetesService kubernetesService) {
         super(kubernetesService);
+        if (existingMaps == null) {
+            existingMaps = new HashMap<>();
+        }
     }
 
     /**
