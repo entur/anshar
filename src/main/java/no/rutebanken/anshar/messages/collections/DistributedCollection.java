@@ -31,6 +31,7 @@ import uk.org.siri.siri20.ProductionTimetableDeliveryStructure;
 import uk.org.siri.siri20.PtSituationElement;
 import uk.org.siri.siri20.VehicleActivityStructure;
 
+import javax.annotation.PostConstruct;
 import java.math.BigInteger;
 import java.time.Instant;
 import java.util.HashMap;
@@ -58,6 +59,12 @@ public class DistributedCollection extends HazelCastService {
         if (existingMaps == null) {
             existingMaps = new HashMap<>();
         }
+    }
+
+    @PostConstruct
+    @Override
+    public void init() {
+        super.init();
     }
 
     /**
