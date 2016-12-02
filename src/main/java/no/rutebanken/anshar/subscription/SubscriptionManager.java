@@ -2,12 +2,15 @@ package no.rutebanken.anshar.subscription;
 
 
 import com.google.common.base.Preconditions;
-import no.rutebanken.anshar.messages.collections.DistributedCollection;
+import com.hazelcast.core.IMap;
 import no.rutebanken.anshar.routes.siri.SiriObjectFactory;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
 import java.time.Instant;
@@ -17,33 +20,37 @@ import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Service
 public class SubscriptionManager {
 
-    private static final int HEALTHCHECK_INTERVAL_FACTOR = 3;
-    private static Logger logger = LoggerFactory.getLogger(SubscriptionManager.class);
+    private final int HEALTHCHECK_INTERVAL_FACTOR = 3;
+    private Logger logger = LoggerFactory.getLogger(SubscriptionManager.class);
 
-    private static Map<String, SubscriptionSetup> activeSubscriptions;
+    @Autowired
+    @Qualifier("getActiveSubscriptionsMap")
+    private IMap<String, SubscriptionSetup> activeSubscriptions;
 
-    private static Map<String, SubscriptionSetup> pendingSubscriptions;
+    @Autowired
+    @Qualifier("getPendingSubscriptionsMap")
+    private IMap<String, SubscriptionSetup> pendingSubscriptions;
 
-    private static Map<String, java.time.Instant> lastActivity;
-    private static Map<String, java.time.Instant> activatedTimestamp;
-    private static Map<String, Integer> hitcount;
-    private static Map<String, BigInteger> objectCounter;
+    @Autowired
+    @Qualifier("getLastActivityMap")
+    private IMap<String, java.time.Instant> lastActivity;
 
-    static {
-        DistributedCollection dc = new DistributedCollection();
-        activeSubscriptions = dc.getActiveSubscriptionsMap();
-        pendingSubscriptions = dc.getPendingSubscriptionsMap();
-        lastActivity = dc.getLastActivityMap();
-        activatedTimestamp = dc.getActivatedTimestampMap();
-        hitcount = dc.getHitcountMap();
-        objectCounter = dc.getObjectCounterMap();
-    }
+    @Autowired
+    @Qualifier("getActivatedTimestampMap")
+    private IMap<String, java.time.Instant> activatedTimestamp;
 
-    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneId.systemDefault());
+    @Autowired
+    private IMap<String, Integer> hitcount;
 
-    public static void addSubscription(String subscriptionId, SubscriptionSetup setup) {
+    @Autowired
+    private IMap<String, BigInteger> objectCounter;
+
+    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneId.systemDefault());
+
+    public void addSubscription(String subscriptionId, SubscriptionSetup setup) {
         Preconditions.checkState(!pendingSubscriptions.containsKey(subscriptionId), "Subscription already exists (pending)");
         Preconditions.checkState(!activeSubscriptions.containsKey(subscriptionId), "Subscription already exists (active)");
 
@@ -53,7 +60,7 @@ public class SubscriptionManager {
         logStats();
     }
 
-    public static boolean removeSubscription(String subscriptionId) {
+    public boolean removeSubscription(String subscriptionId) {
         SubscriptionSetup setup = activeSubscriptions.remove(subscriptionId);
 
         boolean found = (setup != null);
@@ -64,7 +71,7 @@ public class SubscriptionManager {
         return found;
     }
 
-    public static boolean touchSubscription(String subscriptionId) {
+    public boolean touchSubscription(String subscriptionId) {
         SubscriptionSetup setup = activeSubscriptions.get(subscriptionId);
         hit(subscriptionId);
 
@@ -91,7 +98,7 @@ public class SubscriptionManager {
      * @param serviceStartedTime
      * @return
      */
-    public static boolean touchSubscription(String subscriptionId, ZonedDateTime serviceStartedTime) {
+    public boolean touchSubscription(String subscriptionId, ZonedDateTime serviceStartedTime) {
         SubscriptionSetup setup = activeSubscriptions.get(subscriptionId);
         if (setup != null && serviceStartedTime != null) {
             if (lastActivity.get(subscriptionId).isAfter(serviceStartedTime.toInstant())) {
@@ -105,12 +112,12 @@ public class SubscriptionManager {
         return false;
     }
 
-    private static void logStats() {
+    private void logStats() {
         String stats = "Active subscriptions: " + activeSubscriptions.size() + ", Pending subscriptions: " + pendingSubscriptions.size();
         logger.debug(stats);
     }
 
-    public static SubscriptionSetup get(String subscriptionId) {
+    public SubscriptionSetup get(String subscriptionId) {
         SubscriptionSetup subscriptionSetup = activeSubscriptions.get(subscriptionId);
 
         if (subscriptionSetup == null) {
@@ -120,12 +127,12 @@ public class SubscriptionManager {
         return subscriptionSetup;
     }
 
-    private static void hit(String subscriptionId) {
+    private void hit(String subscriptionId) {
         int counter = (hitcount.get(subscriptionId) != null ? hitcount.get(subscriptionId):0);
         hitcount.put(subscriptionId, counter+1);
     }
 
-    public static void incrementObjectCounter(SubscriptionSetup subscriptionSetup, int size) {
+    public void incrementObjectCounter(SubscriptionSetup subscriptionSetup, int size) {
 
         String subscriptionId = subscriptionSetup.getSubscriptionId();
         if (subscriptionId != null) {
@@ -134,7 +141,7 @@ public class SubscriptionManager {
         }
     }
 
-    public static void addPendingSubscription(String subscriptionId, SubscriptionSetup subscriptionSetup) {
+    public void addPendingSubscription(String subscriptionId, SubscriptionSetup subscriptionSetup) {
         activatedTimestamp.remove(subscriptionId);
         activeSubscriptions.remove(subscriptionId);
         pendingSubscriptions.put(subscriptionId, subscriptionSetup);
@@ -143,14 +150,14 @@ public class SubscriptionManager {
         logger.info("Added pending subscription {}", subscriptionSetup.toString());
     }
 
-    public static boolean isPendingSubscription(String subscriptionId) {
+    public boolean isPendingSubscription(String subscriptionId) {
         return pendingSubscriptions.containsKey(subscriptionId);
     }
-    public static boolean isActiveSubscription(String subscriptionId) {
+    public boolean isActiveSubscription(String subscriptionId) {
         return activeSubscriptions.containsKey(subscriptionId);
     }
 
-    public static boolean activatePendingSubscription(String subscriptionId) {
+    public boolean activatePendingSubscription(String subscriptionId) {
         if (isPendingSubscription(subscriptionId)) {
             SubscriptionSetup setup = pendingSubscriptions.remove(subscriptionId);
             addSubscription(subscriptionId, setup);
@@ -168,7 +175,7 @@ public class SubscriptionManager {
         return false;
     }
 
-    public static Boolean isSubscriptionHealthy(String subscriptionId) {
+    public Boolean isSubscriptionHealthy(String subscriptionId) {
         Instant instant = lastActivity.get(subscriptionId);
 
         if (instant == null) {
@@ -213,7 +220,7 @@ public class SubscriptionManager {
         return true;
     }
 
-    public static boolean isSubscriptionRegistered(String subscriptionId) {
+    public boolean isSubscriptionRegistered(String subscriptionId) {
 
         if (activeSubscriptions.containsKey(subscriptionId) |
                 pendingSubscriptions.containsKey(subscriptionId)) {
@@ -223,7 +230,7 @@ public class SubscriptionManager {
         return false;
     }
 
-    public static JSONObject buildStats() {
+    public JSONObject buildStats() {
         JSONObject result = new JSONObject();
         JSONArray stats = activeSubscriptions.keySet().stream()
                 .map(key -> getJsonObject(activeSubscriptions.get(key), "active"))
@@ -240,7 +247,7 @@ public class SubscriptionManager {
         return result;
     }
 
-    private static JSONObject getJsonObject(SubscriptionSetup setup, String status) {
+    private JSONObject getJsonObject(SubscriptionSetup setup, String status) {
         JSONObject obj = setup.toJSON();
         obj.put("activated",formatTimestamp(activatedTimestamp.get(setup.getSubscriptionId())));
         obj.put("lastActivity",""+formatTimestamp(lastActivity.get(setup.getSubscriptionId())));
@@ -263,18 +270,18 @@ public class SubscriptionManager {
         return obj;
     }
 
-    private static String formatTimestamp(Instant instant) {
+    private String formatTimestamp(Instant instant) {
         if (instant != null) {
             return formatter.format(instant);
         }
         return "";
     }
 
-    public static Map<String, SubscriptionSetup> getActiveSubscriptions() {
+    public Map<String, SubscriptionSetup> getActiveSubscriptions() {
         return activeSubscriptions;
     }
 
-    public static Map<String, SubscriptionSetup> getPendingSubscriptions() {
+    public Map<String, SubscriptionSetup> getPendingSubscriptions() {
         return pendingSubscriptions;
     }
 }

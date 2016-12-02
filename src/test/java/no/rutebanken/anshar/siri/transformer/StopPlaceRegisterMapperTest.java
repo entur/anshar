@@ -1,8 +1,14 @@
 package no.rutebanken.anshar.siri.transformer;
 
-import junit.framework.TestCase;
+import no.rutebanken.anshar.App;
+import no.rutebanken.anshar.routes.siri.transformer.ApplicationContextHolder;
 import no.rutebanken.anshar.routes.siri.transformer.impl.StopPlaceRegisterMapper;
+import no.rutebanken.anshar.routes.siri.transformer.impl.StopPlaceUpdaterService;
 import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import uk.org.siri.siri20.JourneyPlaceRefStructure;
 
 import java.util.ArrayList;
@@ -10,13 +16,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class StopPlaceRegisterMapperTest extends TestCase {
+import static junit.framework.TestCase.assertEquals;
 
+@RunWith(SpringJUnit4ClassRunner.class)
+@SpringBootTest(webEnvironment= SpringBootTest.WebEnvironment.MOCK, classes = App.class)
+public class StopPlaceRegisterMapperTest {
+
+    Map<String, String> stopPlaceMap;
 
     @Before
     public void setUp() throws Exception {
 
-        Map<String, String> stopPlaceMap = new HashMap<>();
+        stopPlaceMap = new HashMap<>();
         stopPlaceMap.put("1234", "NSR:QUAY:11223344");
         stopPlaceMap.put("ABC:StopArea:1234", "NSR:QUAY:11223344");
         stopPlaceMap.put("ABC:StopArea:2345", "NSR:QUAY:22334455");
@@ -24,9 +35,15 @@ public class StopPlaceRegisterMapperTest extends TestCase {
         stopPlaceMap.put("ABC:StopArea:4567", "NSR:QUAY:44556677");
         stopPlaceMap.put("ABC:StopArea:5678", "NSR:QUAY:55667788");
         stopPlaceMap.put("XYZ:StopArea:5555", "NSR:QUAY:44444444");
-        StopPlaceRegisterMapper.setStopPlaceMappings(stopPlaceMap);
+
+        Object mappings = ApplicationContextHolder.getContext().getBean("getStopPlaceMappings");
+        if (mappings instanceof Map) {
+            //Manually adding custom mapping to Spring context
+            ((Map) mappings).putAll(stopPlaceMap);
+        }
     }
 
+    @Test
     public void testNoPrefixMapping() {
 
         List<String> prefixes = new ArrayList<>();
@@ -36,21 +53,29 @@ public class StopPlaceRegisterMapperTest extends TestCase {
         assertEquals("NSR:QUAY:11223344", mapper.apply("1234"));
     }
 
+    @Test
     public void testSimpleMapping() {
 
         List<String> prefixes = new ArrayList<>();
         prefixes.add("ABC");
+
+        StopPlaceUpdaterService stopPlaceService = ApplicationContextHolder.getContext().getBean(StopPlaceUpdaterService.class);
+        stopPlaceService.addStopPlaceMappings(stopPlaceMap);
 
         StopPlaceRegisterMapper mapper = new StopPlaceRegisterMapper(JourneyPlaceRefStructure.class, prefixes);
 
         assertEquals("NSR:QUAY:11223344", mapper.apply("1234"));
     }
 
+    @Test
     public void testMultiplePrefixes() {
 
         List<String> prefixes = new ArrayList<>();
         prefixes.add("ABC");
         prefixes.add("XYZ");
+
+        StopPlaceUpdaterService stopPlaceService = ApplicationContextHolder.getContext().getBean(StopPlaceUpdaterService.class);
+        stopPlaceService.addStopPlaceMappings(stopPlaceMap);
 
         StopPlaceRegisterMapper mapper = new StopPlaceRegisterMapper(JourneyPlaceRefStructure.class, prefixes);
 

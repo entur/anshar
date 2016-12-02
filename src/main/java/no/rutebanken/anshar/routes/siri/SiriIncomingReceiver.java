@@ -9,6 +9,7 @@ import org.rutebanken.siri20.util.SiriXml;
 import org.rutebanken.validator.SiriValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import uk.org.siri.siri20.Siri;
@@ -49,10 +50,13 @@ public class SiriIncomingReceiver extends RouteBuilder {
     @Value("${anshar.validation.enabled}")
     private boolean validationEnabled = false;
 
+    @Autowired
+    private static SubscriptionManager subscriptionManager;
+
+    @Autowired
     private SiriHandler handler;
 
     public SiriIncomingReceiver() {
-        handler = new SiriHandler();
     }
 
     @Override
@@ -99,11 +103,11 @@ public class SiriIncomingReceiver extends RouteBuilder {
                                     if (subscriptionId == null || subscriptionId.isEmpty()) {
                                         return false;
                                     }
-                                    boolean existsAndIsActive = (SubscriptionManager.isSubscriptionRegistered(subscriptionId) &&
-                                            SubscriptionManager.get(subscriptionId).isActive());
+                                    boolean existsAndIsActive = (subscriptionManager.isSubscriptionRegistered(subscriptionId) &&
+                                            subscriptionManager.get(subscriptionId).isActive());
 
                                     if (existsAndIsActive) {
-                                        SubscriptionManager.touchSubscription(subscriptionId);
+                                        subscriptionManager.touchSubscription(subscriptionId);
                                     }
                                     return existsAndIsActive;
                                 })

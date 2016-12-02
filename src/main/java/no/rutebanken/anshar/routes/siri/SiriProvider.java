@@ -4,18 +4,20 @@ import no.rutebanken.anshar.messages.EstimatedTimetables;
 import no.rutebanken.anshar.messages.ProductionTimetables;
 import no.rutebanken.anshar.messages.Situations;
 import no.rutebanken.anshar.messages.VehicleActivities;
-import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
 import org.apache.camel.builder.RouteBuilder;
 import org.rutebanken.siri20.util.SiriXml;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Service;
 import uk.org.siri.siri20.Siri;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+@Service
 @Configuration
 public class SiriProvider extends RouteBuilder {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -29,13 +31,18 @@ public class SiriProvider extends RouteBuilder {
     @Value("${anshar.incoming.logdirectory}")
     private String incomingLogDirectory = "/tmp";
 
-    private SiriObjectFactory factory;
-    private SiriHandler handler;
+    @Autowired
+    private Situations situations;
 
-    public SiriProvider() {
-        factory = new SiriObjectFactory();
-        handler = new SiriHandler();
-    }
+    @Autowired
+    private VehicleActivities vehicleActivities;
+
+    @Autowired
+    private EstimatedTimetables estimatedTimetables;
+
+    @Autowired
+    private ProductionTimetables productionTimetables;
+
 
     @Override
     public void configure() throws Exception {
@@ -53,11 +60,11 @@ public class SiriProvider extends RouteBuilder {
 
                     Siri response;
                     if (datasetId != null && !datasetId.isEmpty()) {
-                        response = factory.createSXServiceDelivery(Situations.getAll(datasetId));
+                        response = SiriObjectFactory.createSXServiceDelivery(situations.getAll(datasetId));
                     }  else if (requestorId != null && !requestorId.isEmpty()) {
-                        response = factory.createSXServiceDelivery(Situations.getAllUpdates(requestorId));
+                        response = SiriObjectFactory.createSXServiceDelivery(situations.getAllUpdates(requestorId));
                     } else {
-                        response = factory.createSXServiceDelivery(Situations.getAll());
+                        response = SiriObjectFactory.createSXServiceDelivery(situations.getAll());
                     }
                     HttpServletResponse out = p.getOut().getBody(HttpServletResponse.class);
 
@@ -77,11 +84,11 @@ public class SiriProvider extends RouteBuilder {
 
                     Siri response;
                     if (datasetId != null && !datasetId.isEmpty()) {
-                        response = factory.createVMServiceDelivery(VehicleActivities.getAll(datasetId));
+                        response = SiriObjectFactory.createVMServiceDelivery(vehicleActivities.getAll(datasetId));
                     }  else if (requestorId != null && !requestorId.isEmpty()) {
-                        response = factory.createVMServiceDelivery(VehicleActivities.getAllUpdates(requestorId));
+                        response = SiriObjectFactory.createVMServiceDelivery(vehicleActivities.getAllUpdates(requestorId));
                     } else {
-                        response = factory.createVMServiceDelivery(VehicleActivities.getAll());
+                        response = SiriObjectFactory.createVMServiceDelivery(vehicleActivities.getAll());
                     }
                     HttpServletResponse out = p.getOut().getBody(HttpServletResponse.class);
 
@@ -102,11 +109,11 @@ public class SiriProvider extends RouteBuilder {
 
                     Siri response;
                     if (datasetId != null && !datasetId.isEmpty()) {
-                        response = factory.createETServiceDelivery(EstimatedTimetables.getAll(datasetId));
+                        response = SiriObjectFactory.createETServiceDelivery(estimatedTimetables.getAll(datasetId));
                     } else if (requestorId != null && !requestorId.isEmpty()) {
-                        response = factory.createETServiceDelivery(EstimatedTimetables.getAllUpdates(requestorId));
+                        response = SiriObjectFactory.createETServiceDelivery(estimatedTimetables.getAllUpdates(requestorId));
                     } else {
-                        response = factory.createETServiceDelivery(EstimatedTimetables.getAll());
+                        response = SiriObjectFactory.createETServiceDelivery(estimatedTimetables.getAll());
                     }
                     HttpServletResponse out = p.getOut().getBody(HttpServletResponse.class);
 
@@ -126,11 +133,11 @@ public class SiriProvider extends RouteBuilder {
                     String requestorId = request.getParameter("requestorId");
                     Siri response;
                     if (datasetId != null && !datasetId.isEmpty()) {
-                        response = factory.createPTServiceDelivery(ProductionTimetables.getAll(datasetId));
+                        response = SiriObjectFactory.createPTServiceDelivery(productionTimetables.getAll(datasetId));
                     }  else if (requestorId != null && !requestorId.isEmpty()) {
-                        response = factory.createPTServiceDelivery(ProductionTimetables.getAllUpdates(requestorId));
+                        response = SiriObjectFactory.createPTServiceDelivery(productionTimetables.getAllUpdates(requestorId));
                     } else {
-                        response = factory.createPTServiceDelivery(ProductionTimetables.getAll());
+                        response = SiriObjectFactory.createPTServiceDelivery(productionTimetables.getAll());
                     }
                     HttpServletResponse out = p.getOut().getBody(HttpServletResponse.class);
 

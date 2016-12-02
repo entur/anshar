@@ -2,15 +2,17 @@ package no.rutebanken.anshar.subscription;
 
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.routes.siri.transformer.impl.*;
+import org.springframework.stereotype.Component;
 import uk.org.ifopt.siri20.StopPlaceRef;
 import uk.org.siri.siri20.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Component
 public class MappingAdapterPresets {
 
-    public static List<ValueAdapter> get(SubscriptionPreset preset) {
+    public List<ValueAdapter> get(SubscriptionPreset preset) {
 
         List<ValueAdapter> adapters = new ArrayList<>();
         switch (preset) {
@@ -46,7 +48,7 @@ public class MappingAdapterPresets {
         return adapters;
     }
 
-    public static List<ValueAdapter> createNsrIdMappingAdapters(List<String> idMappingPrefixes) {
+    public List<ValueAdapter> createNsrIdMappingAdapters(List<String> idMappingPrefixes) {
         List<ValueAdapter> nsr = new ArrayList<>();
         nsr.add(new StopPlaceRegisterMapper(StopPlaceRef.class, idMappingPrefixes));
         nsr.add(new StopPlaceRegisterMapper(StopPointRef.class, idMappingPrefixes));
@@ -56,7 +58,7 @@ public class MappingAdapterPresets {
     }
 
 
-    public static List<ValueAdapter> createIdPrefixAdapters(String datasetId) {
+    public List<ValueAdapter> createIdPrefixAdapters(String datasetId) {
         List<ValueAdapter> adapters = new ArrayList<>();
         adapters.add(new PrefixAdapter(LineRef.class, datasetId + ".Line."));
         adapters.add(new PrefixAdapter(CourseOfJourneyRefStructure.class, datasetId + ".VehicleJourney."));

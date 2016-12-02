@@ -14,7 +14,7 @@ import java.util.Map;
 
 public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
 
-    private static Logger logger = LoggerFactory.getLogger(Siri20ToSiriRS20Subscription.class);
+    private Logger logger = LoggerFactory.getLogger(Siri20ToSiriRS20Subscription.class);
 
     public Siri20ToSiriRS20Subscription(SubscriptionSetup subscriptionSetup) {
 

@@ -47,7 +47,7 @@ public class SubscriptionSetup implements Serializable{
      * @param durationOfSubscription Initial duration of subscription
      * @param active Activates/deactivates subscription
      */
-    SubscriptionSetup(SubscriptionType subscriptionType, SubscriptionMode subscriptionMode, String address, Duration heartbeatInterval, String operatorNamespace, Map<RequestType, String> urlMap,
+    public SubscriptionSetup(SubscriptionType subscriptionType, SubscriptionMode subscriptionMode, String address, Duration heartbeatInterval, String operatorNamespace, Map<RequestType, String> urlMap,
                              String version, String vendor, String datasetId, ServiceType serviceType, List<ValueAdapter> mappingAdapters, Map<Class, Set<Object>> filterMap, List<String> idMappingPrefixes,
                              String subscriptionId, String requestorRef, Duration durationOfSubscription, boolean active) {
         this.subscriptionType = subscriptionType;
@@ -176,8 +176,9 @@ public class SubscriptionSetup implements Serializable{
     }
 
     public void setFilterPresets(SubscriptionPreset[] presets) {
+        FilterMapPresets filterMapPresets = new FilterMapPresets();
         for (SubscriptionPreset preset : presets) {
-            addFilterMap(FilterMapPresets.get(preset));
+            addFilterMap(filterMapPresets.get(preset));
         }
     }
     public void setFilterMap(Map<Class, Set<Object>> filterMap) {
@@ -200,8 +201,9 @@ public class SubscriptionSetup implements Serializable{
     public enum SubscriptionMode {SUBSCRIBE, REQUEST_RESPONSE}
 
     public void setMappingAdapterPresets(SubscriptionPreset[] presets) {
+        MappingAdapterPresets mappingAdapterPresets = new MappingAdapterPresets();
         for (SubscriptionPreset preset : presets) {
-            addMappingAdapters(MappingAdapterPresets.get(preset));
+            addMappingAdapters(mappingAdapterPresets.get(preset));
         }
     }
 

@@ -1,42 +1,33 @@
 package no.rutebanken.anshar.siri.handler;
 
+import no.rutebanken.anshar.App;
 import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import uk.org.siri.siri20.Siri;
 
 import javax.xml.bind.JAXBException;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.UUID;
 
 import static junit.framework.TestCase.fail;
 
+@RunWith(SpringJUnit4ClassRunner.class)
+@SpringBootTest(webEnvironment= SpringBootTest.WebEnvironment.MOCK, classes = App.class)
 public class SiriHandlerTest {
+
+    @Autowired
+    private SubscriptionManager subscriptionManager;
+
+    @Autowired
     private SiriHandler handler;
-
-    static String SX_SUBSCRIPTION_ID = "1234";
-    static String ET_SUBSCRIPTION_ID = "2345";
-    static String VM_SUBSCRIPTION_ID = "3456";
-    static String PT_SUBSCRIPTION_ID = "4567";
-
-    @BeforeClass
-    public static void setUpClass() {
-        SubscriptionManager.addSubscription(SX_SUBSCRIPTION_ID, getSxSubscription());
-        SubscriptionManager.activatePendingSubscription(SX_SUBSCRIPTION_ID);
-        SubscriptionManager.addSubscription(ET_SUBSCRIPTION_ID, getEtSubscription());
-        SubscriptionManager.activatePendingSubscription(ET_SUBSCRIPTION_ID);
-        SubscriptionManager.addSubscription(VM_SUBSCRIPTION_ID, getVmSubscription());
-        SubscriptionManager.activatePendingSubscription(VM_SUBSCRIPTION_ID);
-        SubscriptionManager.addSubscription(PT_SUBSCRIPTION_ID, getPtSubscription());
-        SubscriptionManager.activatePendingSubscription(PT_SUBSCRIPTION_ID);
-
-    }
-
-    @Before
-    public void setUp() {
-        handler = new SiriHandler();
-    }
 
     @Test
     public void testErrorInSXServiceDelivery() throws JAXBException {
@@ -59,7 +50,9 @@ public class SiriHandlerTest {
                 "</siri:Siri>\n";
 
         try {
-            Siri siri = handler.handleIncomingSiri(SX_SUBSCRIPTION_ID, xml);
+            SubscriptionSetup sxSubscription = getSxSubscription();
+            subscriptionManager.addSubscription(sxSubscription.getSubscriptionId(), sxSubscription);
+            Siri siri = handler.handleIncomingSiri(sxSubscription.getSubscriptionId(), xml);
         } catch (Throwable t) {
             fail("Handling empty response caused exception");
         }
@@ -87,7 +80,9 @@ public class SiriHandlerTest {
                 "</siri:Siri>\n";
 
         try {
-            handler.handleIncomingSiri(ET_SUBSCRIPTION_ID, xml);
+            SubscriptionSetup etSubscription = getEtSubscription();
+            subscriptionManager.addSubscription(etSubscription.getSubscriptionId(), etSubscription);
+            handler.handleIncomingSiri(etSubscription.getSubscriptionId(), xml);
         } catch (Throwable t) {
             fail("Handling empty response caused exception");
         }
@@ -114,7 +109,9 @@ public class SiriHandlerTest {
                 "  </siril:ServiceDelivery>\n" +
                 "</siri:Siri>\n";
         try {
-            handler.handleIncomingSiri(VM_SUBSCRIPTION_ID, xml);
+            SubscriptionSetup vmSubscription = getVmSubscription();
+            subscriptionManager.addSubscription(vmSubscription.getSubscriptionId(), vmSubscription);
+            handler.handleIncomingSiri(vmSubscription.getSubscriptionId(), xml);
         } catch (Throwable t) {
             fail("Handling empty response caused exception");
         }
@@ -141,7 +138,9 @@ public class SiriHandlerTest {
                 "  </siril:ServiceDelivery>\n" +
                 "</siri:Siri>\n";
         try {
-            handler.handleIncomingSiri(PT_SUBSCRIPTION_ID, xml);
+            SubscriptionSetup ptSubscription = getPtSubscription();
+            subscriptionManager.addSubscription(ptSubscription.getSubscriptionId(), ptSubscription);
+            handler.handleIncomingSiri(ptSubscription.getSubscriptionId(), xml);
         } catch (Throwable t) {
             fail("Handling empty response caused exception");
         }
@@ -149,29 +148,47 @@ public class SiriHandlerTest {
 
 
 
-    private static SubscriptionSetup getSxSubscription() {
-        SubscriptionSetup setup = new SubscriptionSetup();
-        setup.setSubscriptionType(SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE);
+    private SubscriptionSetup getSxSubscription() {
+        SubscriptionSetup.SubscriptionType subscriptionType = SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE;
+        SubscriptionSetup setup = getSubscriptionSetup(subscriptionType);
         return setup;
     }
 
-    private static SubscriptionSetup getVmSubscription() {
-        SubscriptionSetup setup = new SubscriptionSetup();
-        setup.setSubscriptionType(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING);
+    private SubscriptionSetup getVmSubscription() {
+        SubscriptionSetup setup = getSubscriptionSetup(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING);
         return setup;
     }
 
-    private static SubscriptionSetup getEtSubscription() {
-        SubscriptionSetup setup = new SubscriptionSetup();
-        setup.setSubscriptionType(SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE);
+    private SubscriptionSetup getEtSubscription() {
+        SubscriptionSetup setup = getSubscriptionSetup(SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE);
         return setup;
     }
 
-    private static SubscriptionSetup getPtSubscription() {
-        SubscriptionSetup setup = new SubscriptionSetup();
-        setup.setSubscriptionType(SubscriptionSetup.SubscriptionType.PRODUCTION_TIMETABLE);
+    private SubscriptionSetup getPtSubscription() {
+        SubscriptionSetup setup = getSubscriptionSetup(SubscriptionSetup.SubscriptionType.PRODUCTION_TIMETABLE);
         return setup;
     }
 
-
+    private SubscriptionSetup getSubscriptionSetup(SubscriptionSetup.SubscriptionType type) {
+        SubscriptionSetup sub = new SubscriptionSetup(
+                type,
+                SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
+                "http://localhost",
+                Duration.ofMinutes(1),
+                "http://www.kolumbus.no/siri",
+                new HashMap<>(),
+                "1.4",
+                "SwarcoMizar",
+                "tst",
+                SubscriptionSetup.ServiceType.SOAP,
+                new ArrayList<>(),
+                new HashMap<>(),
+                new ArrayList<>(),
+                UUID.randomUUID().toString(),
+                "RutebankenDEV",
+                Duration.ofSeconds(600),
+                true
+        );
+        return sub;
+    }
 }

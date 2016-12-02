@@ -1,40 +1,41 @@
 package no.rutebanken.anshar.messages;
 
-import no.rutebanken.anshar.messages.collections.DistributedCollection;
-import no.rutebanken.anshar.messages.collections.ExpiringConcurrentMap;
+import com.hazelcast.core.IMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Repository;
 import uk.org.siri.siri20.EstimatedCall;
 import uk.org.siri.siri20.EstimatedVehicleJourney;
 
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
+@Repository
 public class EstimatedTimetables {
-    private static Logger logger = LoggerFactory.getLogger(EstimatedTimetables.class);
+    private Logger logger = LoggerFactory.getLogger(EstimatedTimetables.class);
 
-    static ExpiringConcurrentMap<String, EstimatedVehicleJourney> timetableDeliveries;
+    @Autowired
+    private IMap<String, EstimatedVehicleJourney> timetableDeliveries;
 
-    static ExpiringConcurrentMap<String, Set<String>> changesMap;
-
-    static {
-        DistributedCollection dc = new DistributedCollection();
-        timetableDeliveries = dc.getEstimatedTimetablesMap();
-        changesMap = dc.getEstimatedTimetableChangesMap();
-    }
-
+    @Autowired
+    @Qualifier("getEstimatedTimetableChangesMap")
+    private IMap<String, Set<String>> changesMap;
 
     /**
-     * @return All vehicle activities that are still valid
+     * @return All vehicle activities
      */
-    public static List<EstimatedVehicleJourney> getAll() {
+    public List<EstimatedVehicleJourney> getAll() {
         return new ArrayList<>(timetableDeliveries.values());
     }
 
     /**
      * @return All vehicle activities that are still valid
      */
-    public static List<EstimatedVehicleJourney> getAllUpdates(String requestorId) {
+    public List<EstimatedVehicleJourney> getAllUpdates(String requestorId) {
         if (requestorId != null) {
 
             Set<String> idSet = changesMap.get(requestorId);
@@ -65,7 +66,7 @@ public class EstimatedTimetables {
     /**
      * @return All vehicle activities that are still valid
      */
-    public static List<EstimatedVehicleJourney> getAll(String datasetId) {
+    public List<EstimatedVehicleJourney> getAll(String datasetId) {
         if (datasetId == null) {
             return getAll();
         }
@@ -80,7 +81,7 @@ public class EstimatedTimetables {
         return new ArrayList<>(datasetIdSpecific.values());
     }
 
-    private static ZonedDateTime getExpiration(EstimatedVehicleJourney vehicleJourney) {
+    private static long getExpiration(EstimatedVehicleJourney vehicleJourney) {
         ZonedDateTime expiryTimestamp = null;
         if (vehicleJourney != null) {
             if (vehicleJourney.getEstimatedCalls() != null) {
@@ -100,14 +101,16 @@ public class EstimatedTimetables {
             }
         }
 
-        return expiryTimestamp;
+        if (expiryTimestamp != null) {
+            return ZonedDateTime.now().until(expiryTimestamp, ChronoUnit.MILLIS);
+        } else {
+            return 0;
+        }
     }
 
 
-    public static void addAll(String datasetId, List<EstimatedVehicleJourney> etList) {
+    public void addAll(String datasetId, List<EstimatedVehicleJourney> etList) {
 
-        Map< String, EstimatedVehicleJourney> updates = new HashMap<>();
-        Map<String, ZonedDateTime> expiries = new HashMap<>();
         Set<String> changes = new HashSet<>();
 
         etList.forEach(et -> {
@@ -150,17 +153,10 @@ public class EstimatedTimetables {
                     }
                 }
 
-                ZonedDateTime expiration = getExpiration(et);
-
-                if (expiration != null && expiration.isAfter(ZonedDateTime.now())) {
-                    changes.add(key);
-                    updates.put(key, et);
-                    expiries.put(key, expiration);
-                }
+                changes.add(key);
+                timetableDeliveries.put(key, et, getExpiration(et), TimeUnit.MILLISECONDS);
             }
         });
-
-        EstimatedTimetables.timetableDeliveries.putAll(updates, expiries);
 
         changesMap.keySet().forEach(requestor -> {
             Set<String> tmpChanges = changesMap.get(requestor);
@@ -170,13 +166,13 @@ public class EstimatedTimetables {
     }
 
 
-    static EstimatedVehicleJourney add(String datasetId, EstimatedVehicleJourney delivery) {
+    EstimatedVehicleJourney add(String datasetId, EstimatedVehicleJourney delivery) {
         if (delivery == null) {return null;}
 
         List<EstimatedVehicleJourney> deliveries = new ArrayList<>();
         deliveries.add(delivery);
         addAll(datasetId, deliveries);
-        return EstimatedTimetables.timetableDeliveries.get(createKey(datasetId, delivery));
+        return timetableDeliveries.get(createKey(datasetId, delivery));
     }
 
     private static String createKey(String datasetId, EstimatedVehicleJourney element) {

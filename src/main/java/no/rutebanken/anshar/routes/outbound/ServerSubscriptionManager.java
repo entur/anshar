@@ -1,12 +1,13 @@
 package no.rutebanken.anshar.routes.outbound;
 
-import no.rutebanken.anshar.messages.collections.DistributedCollection;
+import com.hazelcast.core.IMap;
 import no.rutebanken.anshar.routes.siri.SiriObjectFactory;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import uk.org.siri.siri20.*;
@@ -15,23 +16,23 @@ import javax.xml.datatype.Duration;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import static no.rutebanken.anshar.routes.outbound.SiriHelper.getFilter;
 
 @Configuration
 public class ServerSubscriptionManager extends CamelRouteManager {
 
-    private static Logger logger = LoggerFactory.getLogger(ServerSubscriptionManager.class);
+    private Logger logger = LoggerFactory.getLogger(ServerSubscriptionManager.class);
 
-    private static Map<String, OutboundSubscriptionSetup> subscriptions;
-    private static Map<String, Timer> heartbeatTimerMap;
+    @Autowired
+    private IMap<String, OutboundSubscriptionSetup> subscriptions;
 
-    static {
-        DistributedCollection dc = new DistributedCollection();
-        subscriptions = dc.getOutboundSubscriptionMap();
-        heartbeatTimerMap = new HashMap<>();
-    }
+    @Autowired
+    private IMap<String, Timer> heartbeatTimerMap;
 
 
     @Value("${anshar.outbound.heartbeatinterval.minimum}")
@@ -43,11 +44,14 @@ public class ServerSubscriptionManager extends CamelRouteManager {
     @Value("${anshar.outbound.error.initialtermination}")
     private String initialTerminationTimePassed = "Error";
 
+    @Autowired
+    private SiriHelper siriHelper;
+
     public ServerSubscriptionManager() {
 
     }
 
-    public static JSONArray getSubscriptionsAsJson() {
+    public JSONArray getSubscriptionsAsJson() {
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneId.systemDefault());
 
@@ -101,7 +105,7 @@ public class ServerSubscriptionManager extends CamelRouteManager {
             pushSiriData(subscriptionResponse, subscription);
 
             //Send initial ServiceDelivery
-            Siri delivery = SiriHelper.findInitialDeliveryData(subscription);
+            Siri delivery = siriHelper.findInitialDeliveryData(subscription);
 
             if (delivery != null) {
                 logger.info("Sending initial delivery to " + subscription.getAddress());
@@ -150,7 +154,7 @@ public class ServerSubscriptionManager extends CamelRouteManager {
         return null;
     }
 
-    public static void removeSubscription(OutboundSubscriptionSetup subscription) {
+    public void removeSubscription(OutboundSubscriptionSetup subscription) {
         subscriptions.remove(subscription.getSubscriptionId());
     }
 

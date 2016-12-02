@@ -1,37 +1,40 @@
 package no.rutebanken.anshar.messages;
 
-import no.rutebanken.anshar.messages.collections.DistributedCollection;
-import no.rutebanken.anshar.messages.collections.ExpiringConcurrentMap;
+import com.hazelcast.core.IMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Repository;
 import uk.org.siri.siri20.ProductionTimetableDeliveryStructure;
 
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
+@Repository
 public class ProductionTimetables {
-    private static Logger logger = LoggerFactory.getLogger(ProductionTimetables.class);
+    private Logger logger = LoggerFactory.getLogger(ProductionTimetables.class);
 
-    static ExpiringConcurrentMap<String, ProductionTimetableDeliveryStructure> timetableDeliveries;
-    static ExpiringConcurrentMap<String, Set<String>> changesMap;
+    @Autowired
+    private IMap<String, ProductionTimetableDeliveryStructure> timetableDeliveries;
 
-    static {
-        DistributedCollection dc = new DistributedCollection();
-        timetableDeliveries = dc.getProductionTimetablesMap();
-        changesMap = dc.getProductionTimetableChangesMap();
-    }
-
+    @Autowired
+    @Qualifier("getProductionTimetableChangesMap")
+    private IMap<String, Set<String>> changesMap;
+    
     /**
      * @return All vehicle activities that are still valid
      */
-    public static List<ProductionTimetableDeliveryStructure> getAll() {
+    public List<ProductionTimetableDeliveryStructure> getAll() {
         return new ArrayList<>(timetableDeliveries.values());
     }
 
     /**
      * @return All vehicle activities that are still valid
      */
-    public static List<ProductionTimetableDeliveryStructure> getAll(String datasetId) {
+    public List<ProductionTimetableDeliveryStructure> getAll(String datasetId) {
         if (datasetId == null) {
             return getAll();
         }        
@@ -50,7 +53,7 @@ public class ProductionTimetables {
     /**
      * @return All vehicle activities that are still valid
      */
-    public static List<ProductionTimetableDeliveryStructure> getAllUpdates(String requestorId) {
+    public List<ProductionTimetableDeliveryStructure> getAllUpdates(String requestorId) {
         if (requestorId != null) {
 
             Set<String> idSet = changesMap.get(requestorId);
@@ -78,12 +81,17 @@ public class ProductionTimetables {
         return getAll();
     }
 
-    private static ZonedDateTime getExpiration(ProductionTimetableDeliveryStructure s) {
+    private long getExpiration(ProductionTimetableDeliveryStructure s) {
 
-        return s.getValidUntil();
+        ZonedDateTime validUntil = s.getValidUntil();
+        if (validUntil != null) {
+            return ZonedDateTime.now().until(validUntil, ChronoUnit.MILLIS);
+        }
+
+        return 0;
     }
 
-    public static void addAll(String datasetId, List<ProductionTimetableDeliveryStructure> ptList) {
+    public void addAll(String datasetId, List<ProductionTimetableDeliveryStructure> ptList) {
 
         Map< String, ProductionTimetableDeliveryStructure> updates = new HashMap<>();
         Map<String, ZonedDateTime> expiries = new HashMap<>();
@@ -94,20 +102,16 @@ public class ProductionTimetables {
 
 
             ProductionTimetableDeliveryStructure existing = timetableDeliveries.get(key);
-            if (existing == null || pt.getResponseTimestamp().isAfter(existing.getResponseTimestamp())) {
-                ZonedDateTime expiration = getExpiration(pt);
 
-                if (expiration != null && expiration.isAfter(ZonedDateTime.now())) {
-                    changes.add(key);
-                    updates.put(key, pt);
-                    expiries.put(key, expiration);
-                }
+            if (existing == null || pt.getResponseTimestamp().isAfter(existing.getResponseTimestamp())) {
+
+                changes.add(key);
+                timetableDeliveries.put(key, pt, getExpiration(pt), TimeUnit.MILLISECONDS);
+
             } else {
                 //Newer update has already been processed
             }
         });
-
-        ProductionTimetables.timetableDeliveries.putAll(updates, expiries);
 
         changesMap.keySet().forEach(requestor -> {
             Set<String> tmpChanges = changesMap.get(requestor);
@@ -116,17 +120,17 @@ public class ProductionTimetables {
         });
     }
 
-    public static ProductionTimetableDeliveryStructure add(String datasetId, ProductionTimetableDeliveryStructure timetableDelivery) {
+    public ProductionTimetableDeliveryStructure add(String datasetId, ProductionTimetableDeliveryStructure timetableDelivery) {
         if (timetableDelivery == null) {
             return null;
         }
 
-        List<ProductionTimetableDeliveryStructure> situations = new ArrayList<>();
-        situations.add(timetableDelivery);
-        addAll(datasetId, situations);
-        return ProductionTimetables.timetableDeliveries.get(createKey(datasetId, timetableDelivery));
+        List<ProductionTimetableDeliveryStructure> ptList = new ArrayList<>();
+        ptList.add(timetableDelivery);
+        addAll(datasetId, ptList);
+        return timetableDeliveries.get(createKey(datasetId, timetableDelivery));
     }
-    private static String createKey(String datasetId, ProductionTimetableDeliveryStructure element) {
+    private String createKey(String datasetId, ProductionTimetableDeliveryStructure element) {
         StringBuffer key = new StringBuffer();
 
         key.append(datasetId).append(":")

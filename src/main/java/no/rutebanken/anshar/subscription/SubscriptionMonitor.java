@@ -2,7 +2,6 @@ package no.rutebanken.anshar.subscription;
 
 import com.google.common.base.Preconditions;
 import com.hazelcast.core.IMap;
-import no.rutebanken.anshar.messages.collections.DistributedCollection;
 import no.rutebanken.anshar.routes.siri.*;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import org.apache.camel.CamelContext;
@@ -14,10 +13,11 @@ import org.apache.camel.model.RouteDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import javax.annotation.PostConstruct;
 import java.net.SocketException;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -25,7 +25,13 @@ import java.util.*;
 
 @Configuration
 public class SubscriptionMonitor implements CamelContextAware {
-    private static Logger logger = LoggerFactory.getLogger(SubscriptionMonitor.class);
+    private Logger logger = LoggerFactory.getLogger(SubscriptionMonitor.class);
+
+    @Autowired
+    private SubscriptionManager subscriptionManager;
+
+    @Autowired
+    private MappingAdapterPresets mappingAdapterPresets;
 
     private final String ANSHAR_HEALTHCHECK_KEY = "anshar.healthcheck";
 
@@ -35,12 +41,14 @@ public class SubscriptionMonitor implements CamelContextAware {
     @Value("${anshar.healtcheck.interval.seconds}")
     private int healthCheckInterval = 30;
 
+    @Autowired
+    @Qualifier("getLockMap")
     private IMap<String, Instant> lockMap;
 
     @Autowired
     private Config config;
 
-    protected static CamelContext camelContext;
+    private CamelContext camelContext;
 
     private Timer healthCheckTimer;
 
@@ -54,12 +62,7 @@ public class SubscriptionMonitor implements CamelContextAware {
         this.camelContext = camelContext;
     }
 
-    public SubscriptionMonitor() {
-        DistributedCollection dc = new DistributedCollection();
-        lockMap = dc.getLockMap();
-    }
-
-    @Bean
+    @PostConstruct
     List<RouteBuilder> createSubscriptions() {
         camelContext.setUseMDCLogging(true);
 
@@ -83,11 +86,11 @@ public class SubscriptionMonitor implements CamelContextAware {
                 }
 
                 //Add NSR StopPlaceIdMapperAdapters
-                List<ValueAdapter> nsr = MappingAdapterPresets.createNsrIdMappingAdapters(subscriptionSetup.getIdMappingPrefixes());
+                List<ValueAdapter> nsr = mappingAdapterPresets.createNsrIdMappingAdapters(subscriptionSetup.getIdMappingPrefixes());
                 subscriptionSetup.getMappingAdapters().addAll(nsr);
 
                 //Add Chouette route_id, trip_id adapters
-                List<ValueAdapter> datasetPrefix = MappingAdapterPresets.createIdPrefixAdapters(subscriptionSetup.getDatasetId());
+                List<ValueAdapter> datasetPrefix = mappingAdapterPresets.createIdPrefixAdapters(subscriptionSetup.getDatasetId());
                 subscriptionSetup.getMappingAdapters().addAll(datasetPrefix);
 
                 subscriptionIds.add(subscriptionSetup.getSubscriptionId());
@@ -132,10 +135,9 @@ public class SubscriptionMonitor implements CamelContextAware {
     }
 
     private void startPeriodicHealthcheckService(final List<SubscriptionSetup> subscriptionSetups) {
-
         for (SubscriptionSetup subscriptionSetup : subscriptionSetups) {
-            if (!SubscriptionManager.isSubscriptionRegistered(subscriptionSetup.getSubscriptionId())) {
-                SubscriptionManager.addPendingSubscription(subscriptionSetup.getSubscriptionId(), subscriptionSetup);
+            if (!subscriptionManager.isSubscriptionRegistered(subscriptionSetup.getSubscriptionId())) {
+                subscriptionManager.addPendingSubscription(subscriptionSetup.getSubscriptionId(), subscriptionSetup);
             }
         }
 
@@ -146,7 +148,7 @@ public class SubscriptionMonitor implements CamelContextAware {
                 // tryLock returns immediately - does not wait for lock to be released
                 boolean locked = lockMap.tryLock(ANSHAR_HEALTHCHECK_KEY);
 
-                if (locked) {
+                if (!camelContext.getRoutes().isEmpty() && locked) {
                     logger.debug("Healthcheck: Got lock");
                     try {
                         Instant instant = lockMap.get(ANSHAR_HEALTHCHECK_KEY);
@@ -156,7 +158,7 @@ public class SubscriptionMonitor implements CamelContextAware {
                                     lockMap.get(ANSHAR_HEALTHCHECK_KEY).atZone(ZoneId.systemDefault()),
                                     camelContext.getRoutes().size());
 
-                            Map<String, SubscriptionSetup> pendingSubscriptions = SubscriptionManager.getPendingSubscriptions();
+                            Map<String, SubscriptionSetup> pendingSubscriptions = subscriptionManager.getPendingSubscriptions();
 
                             int counter = 0;
                             for (SubscriptionSetup subscriptionSetup : pendingSubscriptions.values()) {
@@ -166,9 +168,9 @@ public class SubscriptionMonitor implements CamelContextAware {
                                 }
                             }
 
-                            Map<String, SubscriptionSetup> activeSubscriptions = SubscriptionManager.getActiveSubscriptions();
+                            Map<String, SubscriptionSetup> activeSubscriptions = subscriptionManager.getActiveSubscriptions();
                             for (SubscriptionSetup subscriptionSetup : activeSubscriptions.values()) {
-                                if (!SubscriptionManager.isSubscriptionHealthy(subscriptionSetup.getSubscriptionId())) {
+                                if (!subscriptionManager.isSubscriptionHealthy(subscriptionSetup.getSubscriptionId())) {
                                     //start "cancel"-route
                                     logger.info("Healthcheck: Trigger cancel subscription {}", subscriptionSetup);
                                     cancelSubscription(subscriptionSetup);
@@ -209,7 +211,7 @@ public class SubscriptionMonitor implements CamelContextAware {
         timer.scheduleAtFixedRate(task, 0, healthCheckInterval*1000);
     }
 
-    private static void startSubscriptionAsync(SubscriptionSetup subscriptionSetup, int delay) {
+    private void startSubscriptionAsync(SubscriptionSetup subscriptionSetup, int delay) {
         TimerTask task = new TimerTask() {
             @Override
             public void run() {
@@ -225,8 +227,8 @@ public class SubscriptionMonitor implements CamelContextAware {
     }
 
 
-    public static void startSubscription(final SubscriptionSetup subscriptionSetup) throws Exception {
-        SubscriptionManager.activatePendingSubscription(subscriptionSetup.getSubscriptionId());
+    public void startSubscription(final SubscriptionSetup subscriptionSetup) throws Exception {
+        subscriptionManager.activatePendingSubscription(subscriptionSetup.getSubscriptionId());
         if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.SUBSCRIBE) {
             triggerRoute(subscriptionSetup.getStartSubscriptionRouteName());
 
@@ -249,9 +251,9 @@ public class SubscriptionMonitor implements CamelContextAware {
         }
     }
 
-    public static void cancelSubscription(final SubscriptionSetup subscriptionSetup) throws Exception {
+    public void cancelSubscription(final SubscriptionSetup subscriptionSetup) throws Exception {
 
-        SubscriptionManager.removeSubscription(subscriptionSetup.getSubscriptionId());
+        subscriptionManager.removeSubscription(subscriptionSetup.getSubscriptionId());
 
         if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.SUBSCRIBE) {
             triggerRoute(subscriptionSetup.getCancelSubscriptionRouteName());
@@ -275,11 +277,7 @@ public class SubscriptionMonitor implements CamelContextAware {
     }
 
 
-    private static void triggerRoute(final String routeName) {
-        if (camelContext.getRoutes().isEmpty()) {
-            //Not yet started
-            return;
-        }
+    private void triggerRoute(final String routeName) {
         Thread r = new Thread() {
             @Override
             public void run() {
@@ -302,18 +300,18 @@ public class SubscriptionMonitor implements CamelContextAware {
         r.start();
     }
 
-    private static String addRoute(TriggerRouteBuilder route) throws Exception {
+    private String addRoute(TriggerRouteBuilder route) throws Exception {
         camelContext.addRoutes(route);
         logger.trace("Route added - CamelContext now has {} routes", camelContext.getRoutes().size());
         return route.getDefinition().getId();
     }
 
-    private static void executeRoute(String routeName) {
+    private void executeRoute(String routeName) {
         ProducerTemplate template = camelContext.createProducerTemplate();
         template.sendBody(routeName, "");
     }
 
-    private static boolean stopAndRemoveRoute(String routeId) throws Exception {
+    private boolean stopAndRemoveRoute(String routeId) throws Exception {
         RouteDefinition routeDefinition = camelContext.getRouteDefinition(routeId);
         camelContext.removeRouteDefinition(routeDefinition);
         logger.trace("Route removed - CamelContext now has {} routes", camelContext.getRoutes().size());

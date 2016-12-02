@@ -30,7 +30,16 @@ public class LivenessReadinessRoute extends RouteBuilder {
     @Autowired
     DistributedCollection distributedCollection;
 
-    public static boolean triggerRestart;
+    private boolean triggerRestart;
+
+    @Autowired
+    private SubscriptionManager subscriptionManager;
+
+    @Autowired
+    private ServerSubscriptionManager serverSubscriptionManager;
+
+    @Autowired
+    private SubscriptionMonitor subscriptionMonitor;
 
     @Override
     public void configure() throws Exception {
@@ -64,7 +73,7 @@ public class LivenessReadinessRoute extends RouteBuilder {
         //Return subscription status
         from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/stats")
                 .process(p-> {
-                    p.getOut().setBody(SubscriptionManager.buildStats());
+                    p.getOut().setBody(subscriptionManager.buildStats());
                 })
                 .to("freemarker:templates/stats.ftl")
         ;
@@ -77,12 +86,12 @@ public class LivenessReadinessRoute extends RouteBuilder {
                     if (subscriptionId != null &&
                             !subscriptionId.isEmpty()) {
 
-                        SubscriptionSetup subscriptionSetup = SubscriptionManager.getActiveSubscriptions().get(subscriptionId);
+                        SubscriptionSetup subscriptionSetup = subscriptionManager.getActiveSubscriptions().get(subscriptionId);
                         if (subscriptionSetup != null) {
                             subscriptionSetup.setActive(false);
-                            SubscriptionManager.getActiveSubscriptions().put(subscriptionId, subscriptionSetup);
+                            subscriptionManager.getActiveSubscriptions().put(subscriptionId, subscriptionSetup);
 
-                            SubscriptionMonitor.cancelSubscription(subscriptionSetup);
+                            subscriptionMonitor.cancelSubscription(subscriptionSetup);
                             logger.info("Handled request to cancel subscription ", subscriptionSetup);
                         }
                     }
@@ -97,11 +106,11 @@ public class LivenessReadinessRoute extends RouteBuilder {
                     if (subscriptionId != null &&
                             !subscriptionId.isEmpty()) {
 
-                        SubscriptionSetup subscriptionSetup = SubscriptionManager.getPendingSubscriptions().get(subscriptionId);
+                        SubscriptionSetup subscriptionSetup = subscriptionManager.getPendingSubscriptions().get(subscriptionId);
                         if (subscriptionSetup != null) {
 
                             subscriptionSetup.setActive(true);
-                            SubscriptionManager.addPendingSubscription(subscriptionId, subscriptionSetup);
+                            subscriptionManager.addPendingSubscription(subscriptionId, subscriptionSetup);
                             logger.info("Handled request to start subscription ", subscriptionSetup);
                         }
                     }
@@ -112,7 +121,7 @@ public class LivenessReadinessRoute extends RouteBuilder {
         //Return subscription status
         from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/subscriptions")
                 .process(p -> {
-                    p.getOut().setBody(ServerSubscriptionManager.getSubscriptionsAsJson());
+                    p.getOut().setBody(serverSubscriptionManager.getSubscriptionsAsJson());
                 })
                 .to("freemarker:templates/subscriptions.ftl")
         ;

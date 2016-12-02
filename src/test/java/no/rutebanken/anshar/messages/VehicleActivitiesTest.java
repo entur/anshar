@@ -1,7 +1,12 @@
 package no.rutebanken.anshar.messages;
 
+import no.rutebanken.anshar.App;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import uk.org.siri.siri20.*;
 
 import java.math.BigDecimal;
@@ -10,99 +15,91 @@ import java.util.UUID;
 
 import static org.junit.Assert.*;
 
+@RunWith(SpringJUnit4ClassRunner.class)
+@SpringBootTest(webEnvironment= SpringBootTest.WebEnvironment.MOCK, classes = App.class)
 public class VehicleActivitiesTest {
 
 
+    @Autowired
+    private VehicleActivities vehicleActivities;
+
     @Before
     public void setup() {
-        VehicleActivities.vehicleActivities.clear();
+
     }
 
     @Test
     public void testAddVehicle() {
-        int previousSize = VehicleActivities.getAll().size();
+        int previousSize = vehicleActivities.getAll().size();
         VehicleActivityStructure element = createVehicleActivityStructure(
                                                     ZonedDateTime.now().plusMinutes(1), UUID.randomUUID().toString());
 
-        VehicleActivities.add("test", element);
-        assertTrue(VehicleActivities.getAll().size() == previousSize+1);
-    }
-
-    @Test
-    public void testExpiredVehicle() {
-        int previousSize = VehicleActivities.getAll().size();
-
-        VehicleActivityStructure element = createVehicleActivityStructure(
-                                                    ZonedDateTime.now().minusMinutes(11), UUID.randomUUID().toString());
-
-        VehicleActivities.add("test", element);
-
-        VehicleActivities.vehicleActivities.removeExpiredElements();
-        assertTrue(VehicleActivities.getAll().size() == previousSize);
+        vehicleActivities.add("test", element);
+        assertEquals("Vehicle not added", previousSize + 1, vehicleActivities.getAll().size());
     }
 
     @Test
     public void testEmptyLocation() {
-        int previousSize = VehicleActivities.getAll().size();
+        int previousSize = vehicleActivities.getAll().size();
 
         VehicleActivityStructure element = createVehicleActivityStructure(
                                                     ZonedDateTime.now().plusMinutes(1), UUID.randomUUID().toString());
 
         element.getMonitoredVehicleJourney().setVehicleLocation(new LocationStructure());
 
-        VehicleActivities.add("test", element);
-        assertTrue(VehicleActivities.getAll().size() == previousSize);
+        vehicleActivities.add("test", element);
+        assertEquals("Activity without location was added", previousSize, vehicleActivities.getAll().size());
     }
 
     @Test
     public void testNullVehicle() {
-        int previousSize = VehicleActivities.getAll().size();
+        int previousSize = vehicleActivities.getAll().size();
 
-        VehicleActivities.add("test", null);
-        assertTrue(VehicleActivities.getAll().size() == previousSize);
+        vehicleActivities.add("test", null);
+        assertEquals("Null-element added", previousSize, vehicleActivities.getAll().size());
     }
 
     @Test
     public void testUpdatedVehicle() {
-        int previousSize = VehicleActivities.getAll().size();
+        int previousSize = vehicleActivities.getAll().size();
 
         //Add element
         String vehicleReference = UUID.randomUUID().toString();
         VehicleActivityStructure element = createVehicleActivityStructure(
                                                     ZonedDateTime.now().plusMinutes(1), vehicleReference);
 
-        VehicleActivities.add("test", element);
+        vehicleActivities.add("test", element);
         //Verify that element is added
-        assertTrue(VehicleActivities.getAll().size() == previousSize+1);
+        assertEquals(previousSize + 1, vehicleActivities.getAll().size());
 
         //Update element
         VehicleActivityStructure element2 = createVehicleActivityStructure(
                                                     ZonedDateTime.now().plusMinutes(1), vehicleReference);
 
-        VehicleActivityStructure updatedVehicle = VehicleActivities.add("test", element2);
+        VehicleActivityStructure updatedVehicle = vehicleActivities.add("test", element2);
 
         //Verify that activity is found as updated
         assertNotNull(updatedVehicle);
         //Verify that existing element is updated
-        assertTrue(VehicleActivities.getAll().size() == previousSize + 1);
+        assertTrue(vehicleActivities.getAll().size() == previousSize + 1);
 
         //Add brand new element
         VehicleActivityStructure element3 = createVehicleActivityStructure(
                 ZonedDateTime.now().plusMinutes(1), UUID.randomUUID().toString());
 
-        updatedVehicle = VehicleActivities.add("test", element3);
+        updatedVehicle = vehicleActivities.add("test", element3);
 
         //Verify that activity is found as new
         assertNotNull(updatedVehicle);
         //Verify that new element is added
-        assertTrue(VehicleActivities.getAll().size() == previousSize+2);
+        assertEquals(previousSize + 2, vehicleActivities.getAll().size());
 
-        VehicleActivities.add("test2", element3);
+        vehicleActivities.add("test2", element3);
         //Verify that new element is added
-        assertTrue(VehicleActivities.getAll().size() == previousSize+3);
+        assertEquals(previousSize + 3, vehicleActivities.getAll().size());
 
         //Verify that element added is vendor-specific
-        assertTrue(VehicleActivities.getAll("test").size() == previousSize+2);
+        assertEquals(previousSize + 2, vehicleActivities.getAll("test").size());
     }
 
     @Test
@@ -117,9 +114,9 @@ public class VehicleActivitiesTest {
         element.setProgressBetweenStops(progress);
         element.setRecordedAtTime(ZonedDateTime.now().plusMinutes(1));
 
-        VehicleActivities.add("test", element);
+        vehicleActivities.add("test", element);
 
-        VehicleActivityStructure testOriginal = VehicleActivities.add("test", element);
+        VehicleActivityStructure testOriginal = vehicleActivities.add("test", element);
 
         assertEquals("VM has not been added.", BigDecimal.ONE, testOriginal.getProgressBetweenStops().getPercentage());
 
@@ -134,7 +131,7 @@ public class VehicleActivitiesTest {
         //Update is recorder BEFORE current - should be ignored
         element2.setRecordedAtTime(ZonedDateTime.now());
 
-        VehicleActivityStructure test = VehicleActivities.add("test", element2);
+        VehicleActivityStructure test = vehicleActivities.add("test", element2);
 
         assertEquals("VM has been wrongfully updated", BigDecimal.ONE, test.getProgressBetweenStops().getPercentage());
     }
@@ -151,9 +148,9 @@ public class VehicleActivitiesTest {
         element.setProgressBetweenStops(progress);
         element.setRecordedAtTime(null);
 
-        VehicleActivities.add("test", element);
+        vehicleActivities.add("test", element);
 
-        VehicleActivityStructure testOriginal = VehicleActivities.add("test", element);
+        VehicleActivityStructure testOriginal = vehicleActivities.add("test", element);
 
         assertEquals("VM has not been added.", BigDecimal.ONE, testOriginal.getProgressBetweenStops().getPercentage());
 
@@ -167,33 +164,33 @@ public class VehicleActivitiesTest {
 
         element2.setRecordedAtTime(null);
 
-        VehicleActivityStructure test = VehicleActivities.add("test", element2);
+        VehicleActivityStructure test = vehicleActivities.add("test", element2);
 
         assertEquals("VM has been wrongfully updated", BigDecimal.ONE, test.getProgressBetweenStops().getPercentage());
     }
 
     @Test
     public void testGetUpdatesOnly() {
+        int previousSize = vehicleActivities.getAll().size();
 
-        assertEquals(0, VehicleActivities.getAll().size());
-
-        VehicleActivities.add("test", createVehicleActivityStructure(ZonedDateTime.now(), "1234"));
-        VehicleActivities.add("test", createVehicleActivityStructure(ZonedDateTime.now(), "2345"));
-        VehicleActivities.add("test", createVehicleActivityStructure(ZonedDateTime.now(), "3456"));
+        String prefix = "updateOnly-";
+        vehicleActivities.add("test", createVehicleActivityStructure(ZonedDateTime.now(), prefix+"1234"));
+        vehicleActivities.add("test", createVehicleActivityStructure(ZonedDateTime.now(), prefix+"2345"));
+        vehicleActivities.add("test", createVehicleActivityStructure(ZonedDateTime.now(), prefix+"3456"));
         // Added 3
-        assertEquals(3, VehicleActivities.getAllUpdates("1234-1234").size());
+        assertEquals(previousSize+3, vehicleActivities.getAllUpdates("1234-1234").size());
 
-        VehicleActivities.add("test", createVehicleActivityStructure(ZonedDateTime.now(), "4567"));
+        vehicleActivities.add("test", createVehicleActivityStructure(ZonedDateTime.now(), prefix+"4567"));
 
         //Added one
-        assertEquals(1, VehicleActivities.getAllUpdates("1234-1234").size());
+        assertEquals(1, vehicleActivities.getAllUpdates("1234-1234").size());
 
 
         //None added
-        assertEquals(0, VehicleActivities.getAllUpdates("1234-1234").size());
+        assertEquals(0, vehicleActivities.getAllUpdates("1234-1234").size());
 
         //Verify that all elements still exist
-        assertEquals(4, VehicleActivities.getAll().size());
+        assertEquals(previousSize+4, vehicleActivities.getAll().size());
     }
 
     private VehicleActivityStructure createVehicleActivityStructure(ZonedDateTime recordedAtTime, String vehicleReference) {

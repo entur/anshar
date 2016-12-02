@@ -7,14 +7,30 @@ import no.rutebanken.anshar.messages.VehicleActivities;
 import no.rutebanken.anshar.routes.siri.SiriObjectFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import uk.org.siri.siri20.*;
 
 import javax.xml.bind.JAXBException;
 import java.util.*;
 
+@Component
 public class SiriHelper {
 
     private static Logger logger = LoggerFactory.getLogger(SiriHelper.class);
+
+
+    @Autowired
+    private Situations situations;
+
+    @Autowired
+    private VehicleActivities vehicleActivities;
+
+    @Autowired
+    private EstimatedTimetables estimatedTimetables;
+
+    @Autowired
+    private ProductionTimetables productionTimetables;
 
 
     static Map<Class, Set<String>> getFilter(SubscriptionRequest subscriptionRequest) {
@@ -88,32 +104,32 @@ public class SiriHelper {
         return filterMap;
     }
 
-    static Siri findInitialDeliveryData(OutboundSubscriptionSetup subscriptionRequest) {
+    Siri findInitialDeliveryData(OutboundSubscriptionSetup subscriptionRequest) {
         Siri delivery = null;
 
         switch (subscriptionRequest.getSubscriptionType()) {
             case SITUATION_EXCHANGE:
 
-                List<PtSituationElement> situationElementList = Situations.getAll(subscriptionRequest.getDatasetId());
+                List<PtSituationElement> situationElementList = situations.getAll(subscriptionRequest.getDatasetId());
                 logger.info("Initial SX-delivery: {} elements", situationElementList.size());
                 delivery = SiriObjectFactory.createSXServiceDelivery(situationElementList);
                 break;
             case VEHICLE_MONITORING:
 
-                List<VehicleActivityStructure> vehicleActivities = VehicleActivities.getAll(subscriptionRequest.getDatasetId());
-                logger.info("Initial VM-delivery: {} elements", vehicleActivities.size());
-                delivery = SiriObjectFactory.createVMServiceDelivery(vehicleActivities);
+                List<VehicleActivityStructure> vehicleActivityList = vehicleActivities.getAll(subscriptionRequest.getDatasetId());
+                logger.info("Initial VM-delivery: {} elements", vehicleActivityList.size());
+                delivery = SiriObjectFactory.createVMServiceDelivery(vehicleActivityList);
                 break;
             case ESTIMATED_TIMETABLE:
 
 
-                List<EstimatedVehicleJourney> timetables = EstimatedTimetables.getAll(subscriptionRequest.getDatasetId());
+                List<EstimatedVehicleJourney> timetables = estimatedTimetables.getAll(subscriptionRequest.getDatasetId());
                 logger.info("Initial ET-delivery: {} elements", timetables.size());
                 delivery = SiriObjectFactory.createETServiceDelivery(timetables);
                 break;
             case PRODUCTION_TIMETABLE:
 
-                List<ProductionTimetableDeliveryStructure> ptTimetables = ProductionTimetables.getAll(subscriptionRequest.getDatasetId());
+                List<ProductionTimetableDeliveryStructure> ptTimetables = productionTimetables.getAll(subscriptionRequest.getDatasetId());
                 logger.info("Initial EPT-delivery: {} elements", ptTimetables.size());
                 delivery = SiriObjectFactory.createPTServiceDelivery(ptTimetables);
                 break;

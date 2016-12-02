@@ -1,37 +1,41 @@
 package no.rutebanken.anshar.messages;
 
-import no.rutebanken.anshar.messages.collections.DistributedCollection;
-import no.rutebanken.anshar.messages.collections.ExpiringConcurrentMap;
+import com.hazelcast.core.IMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Repository;
 import uk.org.siri.siri20.HalfOpenTimestampOutputRangeStructure;
 import uk.org.siri.siri20.PtSituationElement;
 
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
+@Repository
 public class Situations {
-    private static Logger logger = LoggerFactory.getLogger(Situations.class);
+    private Logger logger = LoggerFactory.getLogger(Situations.class);
 
-    static ExpiringConcurrentMap<String,PtSituationElement> situations;
-    static ExpiringConcurrentMap<String, Set<String>> changesMap;
+    @Autowired
+    private IMap<String,PtSituationElement> situations;
 
-    static {
-        DistributedCollection dc = new DistributedCollection();
-        situations = dc.getSituationsMap();
-        changesMap = dc.getSituationChangesMap();
-    }
+    @Autowired
+    @Qualifier("getSituationChangesMap")
+    private IMap<String, Set<String>> changesMap;
+
     /**
      * @return All situations that are still valid
      */
-    public static List<PtSituationElement> getAll() {
+    public List<PtSituationElement> getAll() {
         return new ArrayList<>(situations.values());
     }
 
     /**
      * @return All vehicle activities that are still valid
      */
-    public static List<PtSituationElement> getAll(String datasetId) {
+    public List<PtSituationElement> getAll(String datasetId) {
         if (datasetId == null) {
             return getAll();
         }
@@ -51,7 +55,7 @@ public class Situations {
     /**
      * @return All vehicle activities that have been updated since last request from requestor
      */
-    public static List<PtSituationElement> getAllUpdates(String requestorId) {
+    public List<PtSituationElement> getAllUpdates(String requestorId) {
         if (requestorId != null) {
 
             Set<String> idSet = changesMap.get(requestorId);
@@ -79,7 +83,7 @@ public class Situations {
         return getAll();
     }
 
-    private static ZonedDateTime getExpiration(PtSituationElement situationElement) {
+    private long getExpiration(PtSituationElement situationElement) {
         List<HalfOpenTimestampOutputRangeStructure> validityPeriods = situationElement.getValidityPeriods();
 
         ZonedDateTime expiry = null;
@@ -95,10 +99,15 @@ public class Situations {
                 }
             }
         }
-        return expiry;
+
+        if (expiry != null) {
+            return ZonedDateTime.now().until(expiry, ChronoUnit.MILLIS);
+        } else {
+            return 0;
+        }
     }
 
-    public static void addAll(String datasetId, List<PtSituationElement> sxList) {
+    public void addAll(String datasetId, List<PtSituationElement> sxList) {
         Map< String, PtSituationElement> updates = new HashMap<>();
         Map<String, ZonedDateTime> expiries = new HashMap<>();
         Set<String> changes = new HashSet<>();
@@ -108,17 +117,10 @@ public class Situations {
 
             //TODO: Determine if newer situation has already been handled
 
-            ZonedDateTime expiration = getExpiration(situation);
-
-            if (expiration != null && expiration.isAfter(ZonedDateTime.now())) {
-                changes.add(key);
-                updates.put(key, situation);
-                expiries.put(key, expiration);
-            }
+            changes.add(key);
+            situations.put(key, situation, getExpiration(situation), TimeUnit.MILLISECONDS);
 
         });
-
-        Situations.situations.putAll(updates, expiries);
 
         changesMap.keySet().forEach(requestor -> {
             Set<String> tmpChanges = changesMap.get(requestor);
@@ -127,14 +129,14 @@ public class Situations {
         });
     }
 
-    static PtSituationElement add(String datasetId, PtSituationElement situation) {
+    PtSituationElement add(String datasetId, PtSituationElement situation) {
         if (situation == null) {
             return null;
         }
-        List<PtSituationElement> situations = new ArrayList<>();
-        situations.add(situation);
-        addAll(datasetId, situations);
-        return Situations.situations.get(createKey(datasetId, situation));
+        List<PtSituationElement> situationList = new ArrayList<>();
+        situationList.add(situation);
+        addAll(datasetId, situationList);
+        return situations.get(createKey(datasetId, situation));
     }
 
     private static String createKey(String datasetId, PtSituationElement element) {

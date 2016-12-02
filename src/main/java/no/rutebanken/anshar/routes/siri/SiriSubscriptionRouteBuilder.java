@@ -7,6 +7,7 @@ import org.apache.camel.builder.RouteBuilder;
 import org.rutebanken.siri20.util.SiriXml;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import uk.org.siri.siri20.Siri;
 import uk.org.siri.siri20.SubscriptionResponseStructure;
 import uk.org.siri.siri20.TerminateSubscriptionResponseStructure;
@@ -16,6 +17,9 @@ import javax.xml.bind.JAXBException;
 public abstract class SiriSubscriptionRouteBuilder extends RouteBuilder {
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
+
+    @Autowired
+    private SubscriptionManager subscriptionManager;
 
     NamespacePrefixMapper customNamespacePrefixMapper;
     SubscriptionSetup subscriptionSetup;
@@ -27,7 +31,7 @@ public abstract class SiriSubscriptionRouteBuilder extends RouteBuilder {
             if (siri.getTerminateSubscriptionResponse() != null) {
                 TerminateSubscriptionResponseStructure response = siri.getTerminateSubscriptionResponse();
                 response.getTerminationResponseStatuses().forEach(s -> {
-                    boolean removed = SubscriptionManager.removeSubscription(s.getSubscriptionRef().getValue());
+                    boolean removed = subscriptionManager.removeSubscription(s.getSubscriptionRef().getValue());
                     logger.trace("Subscription " + s.getSubscriptionRef().getValue() + " terminated: " + removed);
                 });
             }
@@ -41,16 +45,16 @@ public abstract class SiriSubscriptionRouteBuilder extends RouteBuilder {
     void handleSubscriptionResponse(SubscriptionResponseStructure response, String responseCode) {
         if (response.getResponseStatuses().isEmpty()) {
             if ("200".equals(responseCode)) {
-                SubscriptionManager.activatePendingSubscription(subscriptionSetup.getSubscriptionId());
+                subscriptionManager.activatePendingSubscription(subscriptionSetup.getSubscriptionId());
             }
         } else {
             response.getResponseStatuses().forEach(s -> {
                 if (s.isStatus() != null && s.isStatus()) {
-                    SubscriptionManager.activatePendingSubscription(s.getSubscriptionRef().getValue());
+                    subscriptionManager.activatePendingSubscription(s.getSubscriptionRef().getValue());
                 } else if (s.getErrorCondition() != null) {
                     logger.error("Error starting subscription:  {}", (s.getErrorCondition().getDescription() != null ? s.getErrorCondition().getDescription().getValue():""));
                 } else {
-                    SubscriptionManager.activatePendingSubscription(s.getSubscriptionRef().getValue());
+                    subscriptionManager.activatePendingSubscription(s.getSubscriptionRef().getValue());
                 }
             });
         }

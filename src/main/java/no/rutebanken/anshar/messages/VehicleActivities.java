@@ -1,37 +1,40 @@
 package no.rutebanken.anshar.messages;
 
-import no.rutebanken.anshar.messages.collections.DistributedCollection;
-import no.rutebanken.anshar.messages.collections.ExpiringConcurrentMap;
+import com.hazelcast.core.IMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Repository;
 import uk.org.siri.siri20.*;
 
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
+@Repository
 public class VehicleActivities {
-    private static Logger logger = LoggerFactory.getLogger(VehicleActivities.class);
+    private Logger logger = LoggerFactory.getLogger(VehicleActivities.class);
 
-    static ExpiringConcurrentMap<String, VehicleActivityStructure> vehicleActivities;
-    static ExpiringConcurrentMap<String, Set<String>> changesMap;
+    @Autowired
+    private IMap<String, VehicleActivityStructure> vehicleActivities;
 
-    static {
-        DistributedCollection dc = new DistributedCollection();
-        vehicleActivities = dc.getVehiclesMap();
-        changesMap = dc.getVehicleChangesMap();
-    }
+    @Autowired
+    @Qualifier("getVehicleChangesMap")
+    private IMap<String, Set<String>> changesMap;
 
     /**
      * @return All vehicle activities that are still valid
      */
-    public static List<VehicleActivityStructure> getAll() {
+    public List<VehicleActivityStructure> getAll() {
         return new ArrayList<>(vehicleActivities.values());
     }
 
     /**
      * @return All vehicle activities that are still valid
      */
-    public static List<VehicleActivityStructure> getAll(String datasetId) {
+    public List<VehicleActivityStructure> getAll(String datasetId) {
         if (datasetId == null) {
             return getAll();
         }
@@ -50,7 +53,7 @@ public class VehicleActivities {
     /**
      * @return All vehicle activities that have been updated since last request from requestor
      */
-    public static List<VehicleActivityStructure> getAllUpdates(String requestorId) {
+    public List<VehicleActivityStructure> getAllUpdates(String requestorId) {
         if (requestorId != null) {
 
             Set<String> idSet = changesMap.get(requestorId);
@@ -78,11 +81,17 @@ public class VehicleActivities {
         return getAll();
     }
 
-    private static ZonedDateTime getExpiration(VehicleActivityStructure a) {
-        return a.getValidUntilTime();
+    private long getExpiration(VehicleActivityStructure a) {
+
+        ZonedDateTime validUntil = a.getValidUntilTime();
+        if (validUntil != null) {
+            return ZonedDateTime.now().until(validUntil, ChronoUnit.MILLIS);
+        }
+
+        return 0;
     }
 
-    public static void addAll(String datasetId, List<VehicleActivityStructure> vmList) {
+    public void addAll(String datasetId, List<VehicleActivityStructure> vmList) {
         Map< String, VehicleActivityStructure> updates = new HashMap<>();
         Map<String, ZonedDateTime> expiries = new HashMap<>();
         Set<String> changes = new HashSet<>();
@@ -104,18 +113,13 @@ public class VehicleActivities {
                 }
 
                 if (keep) {
-                    ZonedDateTime expiration = getExpiration(activity);
 
-                    if (expiration != null && expiration.isAfter(ZonedDateTime.now())) {
-                        changes.add(key);
-                        updates.put(key, activity);
-                        expiries.put(key, expiration);
-                    }
+                    changes.add(key);
+                    vehicleActivities.put(key, activity, getExpiration(activity), TimeUnit.MILLISECONDS);
                 }
             }
         });
 
-        VehicleActivities.vehicleActivities.putAll(updates, expiries);
 
         changesMap.keySet().forEach(requestor -> {
             Set<String> tmpChanges = changesMap.get(requestor);
@@ -125,7 +129,7 @@ public class VehicleActivities {
 
     }
 
-    static VehicleActivityStructure add(String datasetId, VehicleActivityStructure activity) {
+    VehicleActivityStructure add(String datasetId, VehicleActivityStructure activity) {
         if (activity == null) {
             return null;
         }
@@ -139,7 +143,7 @@ public class VehicleActivities {
      * For VehicleActivity/MonitoredVehicleJourney - VehicleLocation is required to be valid according to schema
      * Only valid objects should be kept
      */
-    private static boolean isLocationValid(VehicleActivityStructure activity) {
+    private boolean isLocationValid(VehicleActivityStructure activity) {
         boolean keep = true;
         VehicleActivityStructure.MonitoredVehicleJourney monitoredVehicleJourney = activity.getMonitoredVehicleJourney();
         if (monitoredVehicleJourney != null) {
@@ -160,7 +164,7 @@ public class VehicleActivities {
      * A lot of the VM-data received adds no actual value, and does not provide enough data to identify a journey
      * This method identifies these activities, and flags them as trash.
      */
-    private static boolean isActivityMeaningful(VehicleActivityStructure activity) {
+    private boolean isActivityMeaningful(VehicleActivityStructure activity) {
         boolean keep = true;
 
         VehicleActivityStructure.MonitoredVehicleJourney monitoredVehicleJourney = activity.getMonitoredVehicleJourney();
@@ -180,7 +184,7 @@ public class VehicleActivities {
         return keep;
     }
 
-    private static String createKey(String datasetId, VehicleActivityStructure activity) {
+    private String createKey(String datasetId, VehicleActivityStructure activity) {
         StringBuffer key = new StringBuffer();
         key.append(datasetId).append(":");
 

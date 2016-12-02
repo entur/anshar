@@ -11,7 +11,7 @@ import java.util.Set;
 
 public class FilterMapPresets {
 
-    public static Map<Class, Set<Object>> get(SubscriptionPreset preset) {
+    public Map<Class, Set<Object>> get(SubscriptionPreset preset) {
 
         Map<Class, Set<Object>> filters = new HashMap<>();
         switch (preset) {
@@ -23,7 +23,7 @@ public class FilterMapPresets {
         return filters;
     }
 
-    private static Set<Object> getSkyssLineDirectionFilters() {
+    private Set<Object> getSkyssLineDirectionFilters() {
 
         LineRef lineRef = new LineRef();
         lineRef.setValue("1");

@@ -4,7 +4,6 @@ import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.routes.siri.transformer.impl.LeftPaddingAdapter;
 import no.rutebanken.anshar.routes.siri.transformer.impl.RuterSubstringAdapter;
-import no.rutebanken.anshar.routes.siri.transformer.impl.StopPlaceRegisterMapper;
 import org.junit.Test;
 import uk.org.siri.siri20.*;
 
@@ -12,9 +11,7 @@ import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertNull;
@@ -185,46 +182,6 @@ public class SiriValueTransformerTest {
 
         assertEquals("LineRef has not been padded as expected", paddedLineRef, getLineRefFromSiriObj(siri));
         assertEquals("BlockRef has not been padded as expected", paddedBlockRef, getBlockRefFromSiriObj(siri));
-
-    }
-
-    @Test
-    public void testStopPlaceRegisterMapping() throws JAXBException {
-        SiriValueTransformer transformer = new SiriValueTransformer();
-
-        String origin = "1234";
-        String newOrigin = "11223344";
-
-        String destination = "2345";
-        String newDestination = "22334455";
-
-        String lineRefValue = "99";
-        String blockRefValue = "34";
-
-        Map<String, String> nsrMap = new HashMap<>();
-        nsrMap.put("4321", "44332211");
-        nsrMap.put(origin, newOrigin);
-        nsrMap.put(destination, newDestination);
-
-        Siri siri = createSiriObject(lineRefValue, blockRefValue, origin, destination);
-
-        assertEquals(origin, getOriginFromSiriObj(siri));
-        assertEquals(destination, getDestinationfFromSiriObj(siri));
-        assertEquals(lineRefValue, getLineRefFromSiriObj(siri));
-        assertEquals(blockRefValue, getBlockRefFromSiriObj(siri));
-
-        StopPlaceRegisterMapper.setStopPlaceMappings(nsrMap);
-        List<ValueAdapter> mappingAdapters = new ArrayList<>();
-        mappingAdapters.add(new StopPlaceRegisterMapper(JourneyPlaceRefStructure.class, new ArrayList<>()));
-        mappingAdapters.add(new StopPlaceRegisterMapper(DestinationRef.class, new ArrayList<>()));
-
-        siri = transformer.transform(siri, mappingAdapters);
-
-        assertEquals("Origin has not been replaced as expected", newOrigin, getOriginFromSiriObj(siri));
-        assertEquals("Destination has not been replaced as expected", newDestination, getDestinationfFromSiriObj(siri));
-
-        assertEquals("LineRef should not be replaced", lineRefValue, getLineRefFromSiriObj(siri));
-        assertEquals("BlockRef should not be replaced", blockRefValue, getBlockRefFromSiriObj(siri));
 
     }
 

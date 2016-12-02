@@ -13,6 +13,8 @@ import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import uk.org.siri.siri20.*;
 
 import javax.xml.bind.JAXBException;
@@ -22,14 +24,31 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Service
 public class SiriHandler {
 
-    private static Logger logger = LoggerFactory.getLogger(SiriHandler.class);
+    private Logger logger = LoggerFactory.getLogger(SiriHandler.class);
 
+    @Autowired
     private ServerSubscriptionManager serverSubscriptionManager;
 
+    @Autowired
+    private SubscriptionManager subscriptionManager;
+
+    @Autowired
+    private Situations situations;
+
+    @Autowired
+    private VehicleActivities vehicleActivities;
+
+    @Autowired
+    private EstimatedTimetables estimatedTimetables;
+
+    @Autowired
+    private ProductionTimetables productionTimetables;
+
     public SiriHandler() {
-        serverSubscriptionManager = new ServerSubscriptionManager();
+
     }
 
     public Siri handleIncomingSiri(String subscriptionId, String xml) {
@@ -74,13 +93,13 @@ public class SiriHandler {
             ServiceRequest serviceRequest = incoming.getServiceRequest();
 
             if (hasValues(serviceRequest.getSituationExchangeRequests())) {
-                return SiriObjectFactory.createSXServiceDelivery(Situations.getAll(datasetId));
+                return SiriObjectFactory.createSXServiceDelivery(situations.getAll(datasetId));
             } else if (hasValues(serviceRequest.getVehicleMonitoringRequests())) {
-                return SiriObjectFactory.createVMServiceDelivery(VehicleActivities.getAll(datasetId));
+                return SiriObjectFactory.createVMServiceDelivery(vehicleActivities.getAll(datasetId));
             } else if (hasValues(serviceRequest.getEstimatedTimetableRequests())) {
-                return SiriObjectFactory.createETServiceDelivery(EstimatedTimetables.getAll(datasetId));
+                return SiriObjectFactory.createETServiceDelivery(estimatedTimetables.getAll(datasetId));
             } else if (hasValues(serviceRequest.getProductionTimetableRequests())) {
-                return SiriObjectFactory.createPTServiceDelivery(ProductionTimetables.getAll(datasetId));
+                return SiriObjectFactory.createPTServiceDelivery(productionTimetables.getAll(datasetId));
             }
         }
 
@@ -100,26 +119,26 @@ public class SiriHandler {
      * @throws JAXBException
      */
     private Siri processSiriClientRequest(String subscriptionId, String xml) throws JAXBException {
-        SubscriptionSetup subscriptionSetup = SubscriptionManager.get(subscriptionId);
+        SubscriptionSetup subscriptionSetup = subscriptionManager.get(subscriptionId);
 
         if (subscriptionSetup != null) {
             Siri incoming = SiriValueTransformer.parseXml(xml, subscriptionSetup.getMappingAdapters());
 
             if (incoming.getHeartbeatNotification() != null) {
-                SubscriptionManager.touchSubscription(subscriptionId);
+                subscriptionManager.touchSubscription(subscriptionId);
                 logger.info("Heartbeat - {}", subscriptionSetup);
             } else if (incoming.getCheckStatusResponse() != null) {
                 logger.info("Incoming CheckStatusResponse [{}]", subscriptionId);
-                SubscriptionManager.touchSubscription(subscriptionId, incoming.getCheckStatusResponse().getServiceStartedTime());
+                subscriptionManager.touchSubscription(subscriptionId, incoming.getCheckStatusResponse().getServiceStartedTime());
             } else if (incoming.getSubscriptionResponse() != null) {
                 SubscriptionResponseStructure subscriptionResponse = incoming.getSubscriptionResponse();
                 subscriptionResponse.getResponseStatuses().forEach(responseStatus ->
-                                SubscriptionManager.activatePendingSubscription(subscriptionId)
+                                subscriptionManager.activatePendingSubscription(subscriptionId)
                 );
 
             } else if (incoming.getTerminateSubscriptionResponse() != null) {
                 TerminateSubscriptionResponseStructure terminateSubscriptionResponse = incoming.getTerminateSubscriptionResponse();
-                boolean terminated = SubscriptionManager.removeSubscription(subscriptionId);
+                boolean terminated = subscriptionManager.removeSubscription(subscriptionId);
 
                 logger.info("Subscription [{}]  terminated: {}", subscriptionId, terminated);
 
@@ -134,7 +153,7 @@ public class SiriHandler {
                 dataReadyAcknowledgement.setConsumerRef(dataReadyNotification.getProducerRef());
 
             } else if (incoming.getServiceDelivery() != null) {
-                SubscriptionManager.touchSubscription(subscriptionId);
+                subscriptionManager.touchSubscription(subscriptionId);
 
                 if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE)) {
                     List<SituationExchangeDeliveryStructure> situationExchangeDeliveries = incoming.getServiceDelivery().getSituationExchangeDeliveries();
@@ -146,16 +165,16 @@ public class SiriHandler {
                                     logger.info(getErrorContents(sx.getErrorCondition()));
                                 } else {
                                     addedOrUpdated.addAll(sx.getSituations().getPtSituationElements());
-                                    Situations.addAll(subscriptionSetup.getDatasetId(), addedOrUpdated);
+                                    situations.addAll(subscriptionSetup.getDatasetId(), addedOrUpdated);
                                 }
                             }
                     );
 
                     serverSubscriptionManager.pushUpdatedSituations(addedOrUpdated, subscriptionSetup.getDatasetId());
 
-                    SubscriptionManager.incrementObjectCounter(subscriptionSetup, addedOrUpdated.size());
+                    subscriptionManager.incrementObjectCounter(subscriptionSetup, addedOrUpdated.size());
 
-                    logger.info("Active SX-elements: {}, new/updated: {}, {}", Situations.getAll().size(), addedOrUpdated.size(), subscriptionSetup);
+                    logger.info("Active SX-elements: {}, new/updated: {}, {}", situations.getAll().size(), addedOrUpdated.size(), subscriptionSetup);
                 }
                 if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING)) {
                     List<VehicleMonitoringDeliveryStructure> vehicleMonitoringDeliveries = incoming.getServiceDelivery().getVehicleMonitoringDeliveries();
@@ -167,16 +186,16 @@ public class SiriHandler {
                                 logger.info(getErrorContents(vm.getErrorCondition()));
                             } else {
                                 addedOrUpdated.addAll(vm.getVehicleActivities());
-                                VehicleActivities.addAll(subscriptionSetup.getDatasetId(), addedOrUpdated);
+                                vehicleActivities.addAll(subscriptionSetup.getDatasetId(), addedOrUpdated);
                             }
                         }
                     );
 
                     serverSubscriptionManager.pushUpdatedVehicleActivities(addedOrUpdated, subscriptionSetup.getDatasetId());
 
-                    SubscriptionManager.incrementObjectCounter(subscriptionSetup, addedOrUpdated.size());
+                    subscriptionManager.incrementObjectCounter(subscriptionSetup, addedOrUpdated.size());
 
-                    logger.info("Active VM-elements: {}, new/updated: {}, {}", VehicleActivities.getAll().size(), addedOrUpdated.size(), subscriptionSetup);
+                    logger.info("Active VM-elements: {}, new/updated: {}, {}", vehicleActivities.getAll().size(), addedOrUpdated.size(), subscriptionSetup);
                 }
                 if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE)) {
                     List<EstimatedTimetableDeliveryStructure> estimatedTimetableDeliveries = incoming.getServiceDelivery().getEstimatedTimetableDeliveries();
@@ -189,16 +208,16 @@ public class SiriHandler {
                                 } else {
                                     et.getEstimatedJourneyVersionFrames().forEach(versionFrame -> {
                                         addedOrUpdated.addAll(versionFrame.getEstimatedVehicleJourneies());
-                                        EstimatedTimetables.addAll(subscriptionSetup.getDatasetId(), addedOrUpdated);
+                                        estimatedTimetables.addAll(subscriptionSetup.getDatasetId(), addedOrUpdated);
                                     });
                                 }
                             }
                     );
                     serverSubscriptionManager.pushUpdatedEstimatedTimetables(addedOrUpdated, subscriptionSetup.getDatasetId());
 
-                    SubscriptionManager.incrementObjectCounter(subscriptionSetup, addedOrUpdated.size());
+                    subscriptionManager.incrementObjectCounter(subscriptionSetup, addedOrUpdated.size());
 
-                    logger.info("Active ET-elements: {}, new/updated: {}, {}", EstimatedTimetables.getAll().size(), addedOrUpdated.size(), subscriptionSetup);
+                    logger.info("Active ET-elements: {}, new/updated: {}, {}", estimatedTimetables.getAll().size(), addedOrUpdated.size(), subscriptionSetup);
                 }
                 if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.PRODUCTION_TIMETABLE)) {
                     List<ProductionTimetableDeliveryStructure> productionTimetableDeliveries = incoming.getServiceDelivery().getProductionTimetableDeliveries();
@@ -207,13 +226,13 @@ public class SiriHandler {
                     List<ProductionTimetableDeliveryStructure> addedOrUpdated = new ArrayList<>();
 
                     addedOrUpdated.addAll(productionTimetableDeliveries);
-                    ProductionTimetables.addAll(subscriptionSetup.getDatasetId(), productionTimetableDeliveries);
+                    productionTimetables.addAll(subscriptionSetup.getDatasetId(), productionTimetableDeliveries);
 
                     serverSubscriptionManager.pushUpdatedProductionTimetables(addedOrUpdated, subscriptionSetup.getDatasetId());
 
-                    SubscriptionManager.incrementObjectCounter(subscriptionSetup, addedOrUpdated.size());
+                    subscriptionManager.incrementObjectCounter(subscriptionSetup, addedOrUpdated.size());
 
-                    logger.info("Active PT-elements: {}, new/updated: {}, {}", ProductionTimetables.getAll().size(), addedOrUpdated.size(), subscriptionSetup);
+                    logger.info("Active PT-elements: {}, new/updated: {}, {}", productionTimetables.getAll().size(), addedOrUpdated.size(), subscriptionSetup);
                 }
             } else {
                 throw new RuntimeException(new ServiceNotSupportedException());
