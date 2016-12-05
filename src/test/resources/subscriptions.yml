@@ -1,0 +1,21 @@
+anshar:
+  subscriptions:
+    -
+      vendor: anshar-vm
+      datasetId: ANS
+      serviceType: REST
+      subscriptionType: VEHICLE_MONITORING
+      subscriptionMode: REQUEST_RESPONSE
+      heartbeatIntervalSeconds: 60
+      operatorNamespace: http://www.siri.org.uk/siri
+      urlMap:
+        SUBSCRIBE: mottak-test.rutebanken.org/anshar/subscribe
+        DELETE_SUBSCRIPTION: mottak-test.rutebanken.org/anshar/subscribe
+      version: 2.0
+      subscriptionId: ${random.uuid}
+      requestorRef: RutebankenDEV
+      durationOfSubscriptionHours: 168
+      mappingAdapterPresets: ATB
+      filterPresets:
+      idMappingPrefixes: AND
+      active: false
