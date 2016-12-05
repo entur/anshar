@@ -87,17 +87,17 @@ public class ProductionTimetablesTest {
         String version = UUID.randomUUID().toString();
 
         //Adding PT
-        String datasetId = "test-update";
-        productionTimetables.add(datasetId, createProductionTimetableDeliveryStructure(version, ZonedDateTime.now().plusMinutes(10)));
+        String datasetId_1 = "test-update";
+        productionTimetables.add(datasetId_1, createProductionTimetableDeliveryStructure(version, ZonedDateTime.now().plusMinutes(10)));
         int expectedSizeDataset_1 = 1;
         assertEquals("Adding Journey did not add element.", expectedSizeDataset_1, productionTimetables.getAll().size());
 
         //Updating previous PT
-        productionTimetables.add(datasetId, createProductionTimetableDeliveryStructure(version, ZonedDateTime.now().plusMinutes(10)));
+        productionTimetables.add(datasetId_1, createProductionTimetableDeliveryStructure(version, ZonedDateTime.now().plusMinutes(10)));
         assertEquals("Updating Journey added element.", expectedSizeDataset_1, productionTimetables.getAll().size());
 
         //Adding another PT
-        productionTimetables.add(datasetId, createProductionTimetableDeliveryStructure(UUID.randomUUID().toString(), ZonedDateTime.now().plusMinutes(10)));
+        productionTimetables.add(datasetId_1, createProductionTimetableDeliveryStructure(UUID.randomUUID().toString(), ZonedDateTime.now().plusMinutes(10)));
         expectedSizeDataset_1++;
         assertEquals("Adding Journey did not add element.", expectedSizeDataset_1, productionTimetables.getAll().size());
 
@@ -107,8 +107,8 @@ public class ProductionTimetablesTest {
         int expectedSizeDataset_2 = 1;
 
         assertEquals("Adding Journey for other vendor did not add element.", previousSize + expectedSizeDataset_1 + expectedSizeDataset_2, productionTimetables.getAll().size());
+        assertEquals("Getting Journey for vendor did not return correct element-count.", expectedSizeDataset_1, productionTimetables.getAll(datasetId_1).size());
         assertEquals("Getting Journey for vendor did not return correct element-count.", expectedSizeDataset_2, productionTimetables.getAll(datasetId_2).size());
-        assertEquals("Getting Journey for vendor did not return correct element-count.", expectedSizeDataset_1, productionTimetables.getAll(datasetId).size());
 
     }
 
