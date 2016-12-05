@@ -33,7 +33,8 @@ public class ProductionTimetablesTest {
     public void testAddNull() {
         int previousSize = productionTimetables.getAll().size();
 
-        productionTimetables.add("test", null);
+        String datasetId = "test-add-null";
+        productionTimetables.add(datasetId, null);
 
         assertTrue(productionTimetables.getAll().size() == previousSize);
     }
@@ -43,7 +44,8 @@ public class ProductionTimetablesTest {
         int previousSize = productionTimetables.getAll().size();
         ProductionTimetableDeliveryStructure element = createProductionTimetableDeliveryStructure(UUID.randomUUID().toString(), ZonedDateTime.now().plusMinutes(1));
 
-        productionTimetables.add("test", element);
+        String datasetId = "test-add";
+        productionTimetables.add(datasetId, element);
 
         assertTrue(productionTimetables.getAll().size() == previousSize+1);
     }
@@ -52,20 +54,21 @@ public class ProductionTimetablesTest {
     public void testGetUpdatesOnly() {
         int previousSize = productionTimetables.getAll().size();
 
+        String datasetId = "test-updates-only";
         productionTimetables.add(
-                "test", createProductionTimetableDeliveryStructure(UUID.randomUUID().toString(), ZonedDateTime.now().plusMinutes(1))
+                datasetId, createProductionTimetableDeliveryStructure(UUID.randomUUID().toString(), ZonedDateTime.now().plusMinutes(1))
         );
         productionTimetables.add(
-                "test", createProductionTimetableDeliveryStructure(UUID.randomUUID().toString(), ZonedDateTime.now().plusMinutes(1))
+                datasetId, createProductionTimetableDeliveryStructure(UUID.randomUUID().toString(), ZonedDateTime.now().plusMinutes(1))
         );
         productionTimetables.add(
-                "test", createProductionTimetableDeliveryStructure(UUID.randomUUID().toString(), ZonedDateTime.now().plusMinutes(1))
+                datasetId, createProductionTimetableDeliveryStructure(UUID.randomUUID().toString(), ZonedDateTime.now().plusMinutes(1))
         );
         // Added 3
         assertEquals(previousSize+3, productionTimetables.getAllUpdates("1234-1234").size());
 
         productionTimetables.add(
-                "test", createProductionTimetableDeliveryStructure(UUID.randomUUID().toString(), ZonedDateTime.now().plusMinutes(1))
+                datasetId, createProductionTimetableDeliveryStructure(UUID.randomUUID().toString(), ZonedDateTime.now().plusMinutes(1))
         );
         //Added one
         assertEquals(1, productionTimetables.getAllUpdates("1234-1234").size());
@@ -118,7 +121,8 @@ public class ProductionTimetablesTest {
         ProductionTimetableDeliveryStructure structure_1 = createProductionTimetableDeliveryStructure(version, ZonedDateTime.now().plusMinutes(1));
         structure_1.setResponseTimestamp(ZonedDateTime.now().plusMinutes(1));
         structure_1.setValidUntil(ZonedDateTime.now().plusDays(10));
-        productionTimetables.add("test", structure_1);
+        String datasetId = "test-wrong-order";
+        productionTimetables.add(datasetId, structure_1);
 
         assertEquals("Adding Journey did not add element.", previousSize + 1, productionTimetables.getAll().size());
 
@@ -126,7 +130,7 @@ public class ProductionTimetablesTest {
         structure_2.setResponseTimestamp(ZonedDateTime.now());
         structure_2.setValidUntil(ZonedDateTime.now().plusDays(20));
 
-        productionTimetables.add("test", structure_2);
+        productionTimetables.add(datasetId, structure_2);
         assertEquals("Updating Journey added element.", previousSize + 1, productionTimetables.getAll().size());
 
         boolean checkedMatchingElement = false;
