@@ -152,7 +152,7 @@ public class SubscriptionSetup implements Serializable{
     }
 
     public String toString() {
-        return MessageFormat.format("[vendor={0}, internalId={1}, internalId={2}]", vendor, subscriptionId, internalId);
+        return MessageFormat.format("[vendor={0}, subscriptionId={1}, internalId={2}]", vendor, subscriptionId, internalId);
     }
     public JSONObject toJSON() {
         JSONObject obj = new JSONObject();
