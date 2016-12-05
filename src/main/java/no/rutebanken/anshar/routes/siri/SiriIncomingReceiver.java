@@ -53,7 +53,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
     private boolean validationEnabled = false;
 
     @Autowired
-    private static SubscriptionManager subscriptionManager;
+    private SubscriptionManager subscriptionManager;
 
     @Autowired
     private SiriHandler handler;
