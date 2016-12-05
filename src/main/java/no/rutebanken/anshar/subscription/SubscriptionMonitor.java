@@ -2,6 +2,7 @@ package no.rutebanken.anshar.subscription;
 
 import com.google.common.base.Preconditions;
 import com.hazelcast.core.IMap;
+import no.rutebanken.anshar.messages.collections.DistributedCollection;
 import no.rutebanken.anshar.routes.siri.*;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import org.apache.camel.CamelContext;
@@ -15,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import javax.annotation.PostConstruct;
@@ -279,19 +281,29 @@ public class SubscriptionMonitor implements CamelContextAware {
 
     private void triggerRoute(final String routeName) {
         Thread r = new Thread() {
+            String routeId = "";
             @Override
             public void run() {
                 try {
                     logger.info("Triggering route {}", routeName);
                     TriggerRouteBuilder triggerRouteBuilder = new TriggerRouteBuilder(routeName);
-                    String routeId = addRoute(triggerRouteBuilder);
+
+                    routeId = addRoute(triggerRouteBuilder);
+                    logger.info("Route added - CamelContext now has {} routes", camelContext.getRoutes().size());
+
                     executeRoute(triggerRouteBuilder.getRouteName());
-                    stopAndRemoveRoute(routeId);
                 } catch (Exception e) {
                     if (e.getCause() instanceof SocketException) {
                         logger.info("Recipient is unreachable - ignoring");
                     } else {
                         logger.warn("Exception caught when triggering route ", e);
+                    }
+                } finally {
+                    try {
+                        boolean removed = stopAndRemoveRoute(routeId);
+                        logger.info("Route removed [{}] - CamelContext now has {} routes", removed, camelContext.getRoutes().size());
+                    } catch (Exception e) {
+                        logger.warn("Exception caught when removing route ", e);
                     }
                 }
             }
@@ -312,10 +324,8 @@ public class SubscriptionMonitor implements CamelContextAware {
     }
 
     private boolean stopAndRemoveRoute(String routeId) throws Exception {
-        RouteDefinition routeDefinition = camelContext.getRouteDefinition(routeId);
-        camelContext.removeRouteDefinition(routeDefinition);
-        logger.trace("Route removed - CamelContext now has {} routes", camelContext.getRoutes().size());
-        return true;
+        camelContext.stopRoute(routeId);
+        return camelContext.removeRoute(routeId);
     }
 
     private boolean isValid(SubscriptionSetup s) {
@@ -372,6 +382,7 @@ class TriggerRouteBuilder extends RouteBuilder {
     public void configure() throws Exception {
         routeName = String.format("direct:%s", UUID.randomUUID().toString());
         definition = from(routeName)
+                .routeId(routeName)
                 .log("Triggering route: " + routeToTrigger)
                 .to("direct:" + routeToTrigger);
     }

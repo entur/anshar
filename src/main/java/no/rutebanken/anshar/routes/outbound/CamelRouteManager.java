@@ -57,19 +57,25 @@ public class CamelRouteManager implements CamelContextAware {
 
         for (Siri siri : splitSiri) {
             Thread r = new Thread() {
+                String routeId = "";
                 @Override
                 public void run() {
                     try {
 
                         SiriPushRouteBuilder siriPushRouteBuilder = new SiriPushRouteBuilder(consumerAddress);
-                        String routeId = addSiriPushRoute(siriPushRouteBuilder);
+                        routeId = addSiriPushRoute(siriPushRouteBuilder);
                         executeSiriPushRoute(siri, siriPushRouteBuilder.getRouteName());
-                        stopAndRemoveSiriPushRoute(routeId);
                     } catch (Exception e) {
                         if (e.getCause() instanceof SocketException) {
                             logger.info("Recipient is unreachable - ignoring");
                         } else {
                             logger.warn("Exception caught when pushing SIRI-data", e);
+                        }
+                    } finally {
+                        try {
+                            stopAndRemoveSiriPushRoute(routeId);
+                        } catch (Exception e) {
+                            logger.warn("Exception caught when removing route " + routeId, e);
                         }
                     }
                 }
@@ -85,8 +91,8 @@ public class CamelRouteManager implements CamelContextAware {
     }
 
     private boolean stopAndRemoveSiriPushRoute(String routeId) throws Exception {
-        RouteDefinition routeDefinition = camelContext.getRouteDefinition(routeId);
-        camelContext.removeRouteDefinition(routeDefinition);
+        camelContext.stopRoute(routeId);
+        camelContext.removeRoute(routeId);
         logger.trace("Route removed - CamelContext now has {} routes", camelContext.getRoutes().size());
         return true;
     }
@@ -157,6 +163,7 @@ public class CamelRouteManager implements CamelContextAware {
             int timeout = 60000;
             String httpOptions = "?httpClient.socketTimeout=" + timeout + "&httpClient.connectTimeout=" + timeout;
             definition = from(routeName)
+                    .routeId(routeName)
                     .log(LoggingLevel.INFO, "POST data to " + remoteEndPoint)
                     .setHeader("CamelHttpMethod", constant("POST"))
                     .marshal().string("UTF-8")
