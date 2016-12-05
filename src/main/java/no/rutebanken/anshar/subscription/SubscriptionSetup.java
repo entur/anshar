@@ -10,6 +10,7 @@ import java.util.*;
 
 public class SubscriptionSetup implements Serializable{
 
+    private long internalId;
     private List<ValueAdapter> mappingAdapters;
     private SubscriptionType subscriptionType;
     private String address;
@@ -151,10 +152,11 @@ public class SubscriptionSetup implements Serializable{
     }
 
     public String toString() {
-        return MessageFormat.format("[vendor={0}, id={1}]", vendor, subscriptionId);
+        return MessageFormat.format("[vendor={0}, internalId={1}, internalId={2}]", vendor, subscriptionId, internalId);
     }
     public JSONObject toJSON() {
         JSONObject obj = new JSONObject();
+        obj.put("internalId", getInternalId());
         obj.put("vendor", getVendor());
         obj.put("datasetId", getDatasetId());
         obj.put("subscriptionId", getSubscriptionId());
@@ -165,6 +167,14 @@ public class SubscriptionSetup implements Serializable{
         obj.put("durationOfSubscription", getDurationOfSubscription().toString());
 
         return obj;
+    }
+
+    public long getInternalId() {
+        return internalId;
+    }
+
+    public void setInternalId(long internalId) {
+        this.internalId = internalId;
     }
 
     public void setSubscriptionMode(SubscriptionMode subscriptionMode) {

@@ -284,4 +284,18 @@ public class SubscriptionManager {
     public Map<String, SubscriptionSetup> getPendingSubscriptions() {
         return pendingSubscriptions;
     }
+
+    public SubscriptionSetup getSubscriptionById(long internalId) {
+        for (SubscriptionSetup setup : activeSubscriptions.values()) {
+            if (setup.getInternalId() == internalId) {
+                return setup;
+            }
+        }
+        for (SubscriptionSetup setup : pendingSubscriptions.values()) {
+            if (setup.getInternalId() == internalId) {
+                return setup;
+            }
+        }
+        return null;
+    }
 }

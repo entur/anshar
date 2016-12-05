@@ -1,6 +1,7 @@
 anshar:
   subscriptions:
     -
+      internalId: 1
       vendor: kolumbussx
       datasetId: KOL
       serviceType: SOAP
@@ -21,6 +22,7 @@ anshar:
       idMappingPrefixes: KOL
       active: true
     -
+      internalId: 2
       vendor: kolumbusvm
       datasetId: KOL
       serviceType: SOAP
@@ -39,6 +41,7 @@ anshar:
       idMappingPrefixes: KOL
       active: true
     -
+      internalId: 3
       vendor: atbsx
       datasetId: ATB
       serviceType: SOAP
@@ -59,6 +62,7 @@ anshar:
       idMappingPrefixes: ATB
       active: true
     -
+      internalId: 4
       vendor: atbvm
       datasetId: ATB
       serviceType: SOAP
@@ -77,6 +81,7 @@ anshar:
       idMappingPrefixes: ATB
       active: true
     -
+      internalId: 5
       vendor: aktsx
       datasetId: AKT
       serviceType: REST
@@ -96,6 +101,7 @@ anshar:
       idMappingPrefixes: AKT
       active: true
     -
+      internalId: 6
       vendor: aktet
       datasetId: AKT
       serviceType: REST
@@ -115,6 +121,7 @@ anshar:
       idMappingPrefixes: AKT
       active: true
     -
+      internalId: 7
       vendor: rutersx
       datasetId: RUT
       serviceType: REST
@@ -135,6 +142,7 @@ anshar:
       idMappingPrefixes: RUT,OPP,BRA,OST
       active: true
     -
+      internalId: 8
       vendor: rutervm
       datasetId: RUT
       serviceType: REST
@@ -155,6 +163,7 @@ anshar:
       idMappingPrefixes: RUT,OPP,BRA,OST
       active: true
     -
+      internalId: 9
       vendor: ruteret
       datasetId: RUT
       serviceType: REST
@@ -175,6 +184,7 @@ anshar:
       idMappingPrefixes: RUT,OPP,BRA,OST
       active: true
     -
+      internalId: 10
       vendor: skysset
       datasetId: HRD
       serviceType: REST
@@ -194,6 +204,7 @@ anshar:
       idMappingPrefixes: HRD
       active: false
     -
+      internalId: 11
       vendor: skysssx
       datasetId: HRD
       serviceType: REST
@@ -213,6 +224,7 @@ anshar:
       idMappingPrefixes: HRD
       active: false
     -
+      internalId: 12
       vendor: brakaret
       datasetId: BRA
       serviceType: REST
@@ -232,6 +244,7 @@ anshar:
       idMappingPrefixes: BRA
       active: true
     -
+      internalId: 13
       vendor: brakarsx
       datasetId: BRA
       serviceType: REST
@@ -251,6 +264,7 @@ anshar:
       idMappingPrefixes: BRA
       active: true
     -
+      internalId: 14
       vendor: bybanenEt
       datasetId: BYB
       serviceType: REST
