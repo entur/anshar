@@ -78,6 +78,7 @@ public class SubscriptionMonitor implements CamelContextAware {
             for (SubscriptionSetup subscriptionSetup : subscriptionSetups) {
                 if (subscriptionManager.getSubscriptionById(subscriptionSetup.getInternalId()) != null) {
                     logger.info("Subscription with internalId={} already registered - ignoring. {}", subscriptionSetup.getInternalId(), subscriptionSetup);
+                    continue;
                 }
 
                 subscriptionSetup.setAddress(inboundUrl);
