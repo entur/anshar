@@ -6,7 +6,7 @@ anshar:
       serviceType: REST
       subscriptionType: VEHICLE_MONITORING
       subscriptionMode: REQUEST_RESPONSE
-      heartbeatIntervalSeconds: 60
+      heartbeatIntervalSeconds: 600
       operatorNamespace: http://www.siri.org.uk/siri
       urlMap:
         GET_VEHICLE_MONITORING: mottak-test.rutebanken.org/anshar/service
