@@ -1,20 +1,22 @@
 package no.rutebanken.anshar.routes.siri;
 
+import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
 import no.rutebanken.anshar.subscription.RequestType;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.org.siri.siri20.Siri;
-import uk.org.siri.siri20.SubscriptionResponseStructure;
 
 import java.util.Map;
 
 public class Siri20ToSiriRS14Subscription extends SiriSubscriptionRouteBuilder {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    public Siri20ToSiriRS14Subscription(SubscriptionSetup subscriptionSetup) {
+    private SiriHandler handler;
+
+    public Siri20ToSiriRS14Subscription(SiriHandler handler, SubscriptionSetup subscriptionSetup) {
+        this.handler = handler;
         this.subscriptionSetup = subscriptionSetup;
     }
 
@@ -49,10 +51,7 @@ public class Siri20ToSiriRS14Subscription extends SiriSubscriptionRouteBuilder {
                     String body = p.getIn().getBody(String.class);
 
                     if (body != null && !body.isEmpty()) {
-                        Siri siri = handleSiriResponse(body);
-                        SubscriptionResponseStructure response = siri.getSubscriptionResponse();
-
-                        handleSubscriptionResponse(response, p.getIn().getHeader("CamelHttpResponseCode", String.class));
+                        handler.handleIncomingSiri(subscriptionSetup.getSubscriptionId(), body);
                     }
                 })
         ;
@@ -75,7 +74,7 @@ public class Siri20ToSiriRS14Subscription extends SiriSubscriptionRouteBuilder {
                     String body = p.getIn().getBody(String.class);
                     logger.info("Response body [{}]", body);
                     if (body != null && !body.isEmpty()) {
-                        handleSiriResponse(body);
+                        handler.handleIncomingSiri(subscriptionSetup.getSubscriptionId(), body);
                     }
                 })
         ;

@@ -3,6 +3,7 @@ package no.rutebanken.anshar.subscription;
 import com.google.common.base.Preconditions;
 import com.hazelcast.core.IMap;
 import no.rutebanken.anshar.routes.siri.*;
+import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import org.apache.camel.CamelContext;
 import org.apache.camel.CamelContextAware;
@@ -49,6 +50,9 @@ public class SubscriptionMonitor implements CamelContextAware {
 
     @Autowired
     private Config config;
+
+    @Autowired
+    SiriHandler handler;
 
     private CamelContext camelContext;
 
@@ -130,16 +134,16 @@ public class SubscriptionMonitor implements CamelContextAware {
         if (subscriptionSetup.getVersion().equals("1.4")) {
             if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.SUBSCRIBE) {
                 if (subscriptionSetup.getServiceType() == SubscriptionSetup.ServiceType.SOAP) {
-                    route = new Siri20ToSiriWS14Subscription(subscriptionSetup);
+                    route = new Siri20ToSiriWS14Subscription(handler, subscriptionSetup);
                 } else {
-                    route = new Siri20ToSiriRS14Subscription(subscriptionSetup);
+                    route = new Siri20ToSiriRS14Subscription(handler, subscriptionSetup);
                 }
             } else {
                 route = new Siri20ToSiriWS14RequestResponse(subscriptionSetup);
             }
         } else {
             if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.SUBSCRIBE) {
-                route = new Siri20ToSiriRS20Subscription(subscriptionSetup);
+                route = new Siri20ToSiriRS20Subscription(handler, subscriptionSetup);
             } else {
                 route = new Siri20ToSiriRS20RequestResponse(subscriptionSetup);
             }

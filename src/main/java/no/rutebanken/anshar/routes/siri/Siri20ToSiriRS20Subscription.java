@@ -1,5 +1,6 @@
 package no.rutebanken.anshar.routes.siri;
 
+import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
 import no.rutebanken.anshar.subscription.RequestType;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.camel.Exchange;
@@ -11,13 +12,14 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
-
 public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
 
     private Logger logger = LoggerFactory.getLogger(Siri20ToSiriRS20Subscription.class);
 
-    public Siri20ToSiriRS20Subscription(SubscriptionSetup subscriptionSetup) {
+    private SiriHandler handler;
 
+    public Siri20ToSiriRS20Subscription(SiriHandler handler, SubscriptionSetup subscriptionSetup) {
+        this.handler = handler;
         this.subscriptionSetup = subscriptionSetup;
     }
 
@@ -88,7 +90,7 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
                     String body = p.getIn().getBody(String.class);
                     logger.info("Response body [{}]", body);
                     if (body != null && !body.isEmpty()) {
-                        handleSiriResponse(body);
+                        handler.handleIncomingSiri(subscriptionSetup.getSubscriptionId(), body);
                     }
                 });
 
