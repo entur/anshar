@@ -103,11 +103,18 @@ public class ProductionTimetablesTest {
 
         //Adding another PT for other dataset
         String datasetId_2 = "test2-update";
-        productionTimetables.add(datasetId_2, createProductionTimetableDeliveryStructure(UUID.randomUUID().toString(), ZonedDateTime.now().plusMinutes(10)));
+        String version_datasetId_2 = UUID.randomUUID().toString();
+        productionTimetables.add(datasetId_2, createProductionTimetableDeliveryStructure(version_datasetId_2, ZonedDateTime.now().plusMinutes(10)));
+        System.out.println("Added PT with version " + version_datasetId_2);
         expectedSize++;
 
         assertEquals("Adding Journey for other vendor did not add element.", expectedSize, productionTimetables.getAll().size());
-        assertEquals("Getting Journey for vendor did not return correct element-count.", previousSize+1, productionTimetables.getAll(datasetId_2).size());
+        List<ProductionTimetableDeliveryStructure> ptListDatasetId_2 = productionTimetables.getAll(datasetId_2);
+        int counter = 1;
+        for (ProductionTimetableDeliveryStructure pt : ptListDatasetId_2) {
+            System.out.println("" + counter++ + ": Found PT with version " + pt.getVersion());
+        }
+        assertEquals("Getting Journey for vendor did not return correct element-count.", previousSize + 1, ptListDatasetId_2.size());
         assertEquals("Getting Journey for vendor did not return correct element-count.", expectedSize - 1, productionTimetables.getAll(datasetId).size());
 
     }
