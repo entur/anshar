@@ -10,6 +10,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import uk.org.siri.siri20.ProductionTimetableDeliveryStructure;
 
 import java.time.ZonedDateTime;
+import java.util.List;
 import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
@@ -84,20 +85,20 @@ public class ProductionTimetablesTest {
 
         productionTimetables.add("test", createProductionTimetableDeliveryStructure(version, ZonedDateTime.now().plusMinutes(1)));
         int expectedSize = previousSize +1;
-        assertTrue("Adding Journey did not add element.", productionTimetables.getAll().size() == expectedSize);
+        assertEquals("Adding Journey did not add element.", expectedSize, productionTimetables.getAll().size());
 
         productionTimetables.add("test", createProductionTimetableDeliveryStructure(version, ZonedDateTime.now().plusMinutes(1)));
-        assertTrue("Updating Journey added element.", productionTimetables.getAll().size() == expectedSize);
+        assertEquals("Updating Journey added element.", expectedSize, productionTimetables.getAll().size());
 
         productionTimetables.add("test", createProductionTimetableDeliveryStructure(UUID.randomUUID().toString(), ZonedDateTime.now().plusMinutes(1)));
         expectedSize++;
-        assertTrue("Adding Journey did not add element.", productionTimetables.getAll().size() == expectedSize);
+        assertEquals("Adding Journey did not add element.", expectedSize, productionTimetables.getAll().size());
 
         productionTimetables.add("test2", createProductionTimetableDeliveryStructure(UUID.randomUUID().toString(), ZonedDateTime.now().plusMinutes(1)));
         expectedSize++;
-        assertTrue("Adding Journey for other vendor did not add element.", productionTimetables.getAll().size() == expectedSize);
-        assertTrue("Getting Journey for vendor did not return correct element-count.", productionTimetables.getAll("test2").size() == previousSize+1);
-        assertTrue("Getting Journey for vendor did not return correct element-count.", productionTimetables.getAll("test").size() == expectedSize-1);
+        assertEquals("Adding Journey for other vendor did not add element.", expectedSize, productionTimetables.getAll().size());
+        assertEquals("Getting Journey for vendor did not return correct element-count.", previousSize+1, productionTimetables.getAll("test2").size());
+        assertEquals("Getting Journey for vendor did not return correct element-count.", expectedSize - 1, productionTimetables.getAll("test").size());
 
     }
 
@@ -112,16 +113,24 @@ public class ProductionTimetablesTest {
         structure_1.setValidUntil(ZonedDateTime.now().plusDays(10));
         productionTimetables.add("test", structure_1);
 
-        assertEquals("Adding Journey did not add element.", previousSize+1, productionTimetables.getAll().size());
+        assertEquals("Adding Journey did not add element.", previousSize + 1, productionTimetables.getAll().size());
 
         ProductionTimetableDeliveryStructure structure_2 = createProductionTimetableDeliveryStructure(version, ZonedDateTime.now().plusMinutes(1));
         structure_2.setResponseTimestamp(ZonedDateTime.now());
         structure_2.setValidUntil(ZonedDateTime.now().plusDays(20));
 
         productionTimetables.add("test", structure_2);
-        assertEquals("Updating Journey added element.", previousSize+1, productionTimetables.getAll().size());
+        assertEquals("Updating Journey added element.", previousSize + 1, productionTimetables.getAll().size());
 
-        assertTrue("PT has been overwritten by older version", productionTimetables.getAll().get(0).getValidUntil().isBefore(ZonedDateTime.now().plusDays(19)));
+        boolean checkedMatchingElement = false;
+        List<ProductionTimetableDeliveryStructure> all = productionTimetables.getAll();
+        for (ProductionTimetableDeliveryStructure element : all) {
+            if (version.equals(element.getVersion())) {
+                assertTrue("PT has been overwritten by older version", element.getValidUntil().isBefore(ZonedDateTime.now().plusDays(19)));
+                checkedMatchingElement = true;
+            }
+        }
+        assertTrue("Did not check matching ProductionTimetableDeliveryStructure", checkedMatchingElement);
 
     }
 

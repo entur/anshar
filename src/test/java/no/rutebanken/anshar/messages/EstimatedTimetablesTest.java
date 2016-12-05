@@ -48,7 +48,7 @@ public class EstimatedTimetablesTest {
 
         estimatedTimetables.add("test", element);
 
-        assertTrue(estimatedTimetables.getAll().size() == previousSize+1);
+        assertTrue(estimatedTimetables.getAll().size() == previousSize + 1);
     }
 
     @Test
@@ -61,7 +61,7 @@ public class EstimatedTimetablesTest {
         // Added 3
         String requestorId = UUID.randomUUID().toString();
 
-        assertEquals(previousSize+3, estimatedTimetables.getAllUpdates(requestorId).size());
+        assertEquals(previousSize + 3, estimatedTimetables.getAllUpdates(requestorId).size());
 
         estimatedTimetables.add("test", createEstimatedVehicleJourney("4567-update", "4321", 0, 30, ZonedDateTime.now().plusHours(1), true));
 
@@ -120,9 +120,17 @@ public class EstimatedTimetablesTest {
 
         assertTrue("Updating Journey added element.", estimatedTimetables.getAll().size() == expectedSize);
 
-        List<EstimatedCall> estimatedCallsList = estimatedTimetables.getAll().get(0).getEstimatedCalls().getEstimatedCalls();
-        int size = estimatedCallsList.size();
-        assertEquals("Older request should have been ignored.", 10, size);
+        boolean checkedMatchingJourney = false;
+        List<EstimatedVehicleJourney> all = estimatedTimetables.getAll();
+        for (EstimatedVehicleJourney vehicleJourney : all) {
+            if (lineRefValue.equals(vehicleJourney.getLineRef().getValue())) {
+                List<EstimatedCall> estimatedCallsList = vehicleJourney.getEstimatedCalls().getEstimatedCalls();
+                int size = estimatedCallsList.size();
+                assertEquals("Older request should have been ignored.", 10, size);
+                checkedMatchingJourney = true;
+            }
+        }
+        assertTrue("Did not check matching VehicleJourney", checkedMatchingJourney);
     }
 
     @Test
@@ -135,13 +143,13 @@ public class EstimatedTimetablesTest {
         estimatedVehicleJourney.setRecordedAtTime(null);
 
         estimatedTimetables.add("test", estimatedVehicleJourney);
-        assertEquals("Adding Journey did not add element.", previousSize+1, estimatedTimetables.getAll().size());
+        assertEquals("Adding Journey did not add element.", previousSize + 1, estimatedTimetables.getAll().size());
 
         EstimatedVehicleJourney estimatedVehicleJourney1 = createEstimatedVehicleJourney(lineRefValue, "4321", 1, 20, departure, true);
         estimatedVehicleJourney1.setRecordedAtTime(null);
         estimatedTimetables.add("test", estimatedVehicleJourney1);
 
-        assertEquals("Updating Journey added element.", previousSize+1, estimatedTimetables.getAll().size());
+        assertEquals("Updating Journey added element.", previousSize + 1, estimatedTimetables.getAll().size());
 
 
         boolean checkedMatchingJourney = false;
