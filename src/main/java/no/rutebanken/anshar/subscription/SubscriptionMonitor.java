@@ -74,10 +74,14 @@ public class SubscriptionMonitor implements CamelContextAware {
             logger.info("Initializing {} subscriptions", subscriptionSetups.size());
             Set<String> subscriptionIds = new HashSet<>();
 
+            List<SubscriptionSetup> actualSubscriptionSetups = new ArrayList<>();
+
             // Validation and consistency-verification
             for (SubscriptionSetup subscriptionSetup : subscriptionSetups) {
-                if (subscriptionManager.getSubscriptionById(subscriptionSetup.getInternalId()) != null) {
+                SubscriptionSetup existingSubscription = subscriptionManager.getSubscriptionById(subscriptionSetup.getInternalId());
+                if (existingSubscription != null) {
                     logger.info("Subscription with internalId={} already registered - ignoring. {}", subscriptionSetup.getInternalId(), subscriptionSetup);
+                    actualSubscriptionSetups.add(existingSubscription);
                     continue;
                 }
 
@@ -102,6 +106,8 @@ public class SubscriptionMonitor implements CamelContextAware {
 
                 subscriptionIds.add(subscriptionSetup.getSubscriptionId());
 
+                actualSubscriptionSetups.add(subscriptionSetup);
+
                 RouteBuilder routeBuilder = getRouteBuilder(subscriptionSetup);
                 try {
                     camelContext.addRoutes(routeBuilder);
@@ -111,7 +117,7 @@ public class SubscriptionMonitor implements CamelContextAware {
             }
 
 
-            startPeriodicHealthcheckService(subscriptionSetups);
+            startPeriodicHealthcheckService(actualSubscriptionSetups);
         } else {
             logger.error("Subscriptions not configured correctly - no subscriptions will be started");
         }
