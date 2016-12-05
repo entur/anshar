@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Service;
 import uk.org.siri.siri20.Siri;
 
 import javax.servlet.http.HttpServletRequest;
@@ -22,6 +23,7 @@ import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.Map;
 
+@Service
 @Configuration
 public class SiriIncomingReceiver extends RouteBuilder {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -55,9 +57,6 @@ public class SiriIncomingReceiver extends RouteBuilder {
 
     @Autowired
     private SiriHandler handler;
-
-    public SiriIncomingReceiver() {
-    }
 
     @Override
     public void configure() throws Exception {

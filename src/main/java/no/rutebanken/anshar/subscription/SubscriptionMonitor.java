@@ -2,7 +2,6 @@ package no.rutebanken.anshar.subscription;
 
 import com.google.common.base.Preconditions;
 import com.hazelcast.core.IMap;
-import no.rutebanken.anshar.messages.collections.DistributedCollection;
 import no.rutebanken.anshar.routes.siri.*;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import org.apache.camel.CamelContext;
@@ -16,8 +15,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.net.SocketException;
@@ -25,6 +24,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.util.*;
 
+@Service
 @Configuration
 public class SubscriptionMonitor implements CamelContextAware {
     private Logger logger = LoggerFactory.getLogger(SubscriptionMonitor.class);
@@ -210,7 +210,7 @@ public class SubscriptionMonitor implements CamelContextAware {
             }
         };
         Timer timer = new Timer();
-        timer.scheduleAtFixedRate(task, 0, healthCheckInterval*1000);
+        timer.scheduleAtFixedRate(task, 0, healthCheckInterval * 1000);
     }
 
     private void startSubscriptionAsync(SubscriptionSetup subscriptionSetup, int delay) {

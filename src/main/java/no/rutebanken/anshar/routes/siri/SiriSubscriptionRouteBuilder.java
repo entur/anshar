@@ -8,12 +8,14 @@ import org.rutebanken.siri20.util.SiriXml;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import uk.org.siri.siri20.Siri;
 import uk.org.siri.siri20.SubscriptionResponseStructure;
 import uk.org.siri.siri20.TerminateSubscriptionResponseStructure;
 
 import javax.xml.bind.JAXBException;
 
+@Component
 public abstract class SiriSubscriptionRouteBuilder extends RouteBuilder {
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());

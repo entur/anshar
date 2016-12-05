@@ -11,9 +11,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
 
+@Service
 @Configuration
 public class AdministrationRoute extends RouteBuilder {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
