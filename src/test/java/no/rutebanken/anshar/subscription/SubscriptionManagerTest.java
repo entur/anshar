@@ -239,26 +239,7 @@ public class SubscriptionManagerTest {
     }
 
     private SubscriptionSetup createSubscription(long initialDuration) {
-        SubscriptionSetup sub = new SubscriptionSetup(
-                SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE,
-                SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
-                "http://localhost",
-                Duration.ofMinutes(1),
-                "http://www.kolumbus.no/siri",
-                new HashMap<>(),
-                "1.4",
-                "SwarcoMizar",
-                "tst",
-                SubscriptionSetup.ServiceType.SOAP,
-                new ArrayList<>(),
-                new HashMap<>(),
-                new ArrayList<>(),
-                UUID.randomUUID().toString(),
-                "RutebankenDEV",
-                Duration.ofSeconds(initialDuration),
-                true
-        );
-        return sub;
+        return createSubscription(initialDuration, Duration.ofMinutes(4));
     }
 
     private SubscriptionSetup createSubscription(long initialDuration, Duration heartbeatInterval) {

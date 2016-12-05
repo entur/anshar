@@ -40,7 +40,7 @@ public class ProductionTimetablesTest {
     }
 
     @Test
-    public void testAddJourney() {
+    public void testAddPtElement() {
         int previousSize = productionTimetables.getAll().size();
         ProductionTimetableDeliveryStructure element = createProductionTimetableDeliveryStructure(UUID.randomUUID().toString(), ZonedDateTime.now().plusMinutes(1));
 
@@ -82,28 +82,28 @@ public class ProductionTimetablesTest {
     }
 
     @Test
-    public void testUpdatedJourney() {
+    public void testUpdatedPtDelivery() {
         int previousSize = productionTimetables.getAll().size();
         String version = UUID.randomUUID().toString();
 
         //Adding PT
         String datasetId = "test-update";
-        productionTimetables.add(datasetId, createProductionTimetableDeliveryStructure(version, ZonedDateTime.now().plusMinutes(1)));
+        productionTimetables.add(datasetId, createProductionTimetableDeliveryStructure(version, ZonedDateTime.now().plusMinutes(10)));
         int expectedSize = previousSize +1;
         assertEquals("Adding Journey did not add element.", expectedSize, productionTimetables.getAll().size());
 
         //Updating previous PT
-        productionTimetables.add(datasetId, createProductionTimetableDeliveryStructure(version, ZonedDateTime.now().plusMinutes(1)));
+        productionTimetables.add(datasetId, createProductionTimetableDeliveryStructure(version, ZonedDateTime.now().plusMinutes(10)));
         assertEquals("Updating Journey added element.", expectedSize, productionTimetables.getAll().size());
 
         //Adding another PT
-        productionTimetables.add(datasetId, createProductionTimetableDeliveryStructure(UUID.randomUUID().toString(), ZonedDateTime.now().plusMinutes(1)));
+        productionTimetables.add(datasetId, createProductionTimetableDeliveryStructure(UUID.randomUUID().toString(), ZonedDateTime.now().plusMinutes(10)));
         expectedSize++;
         assertEquals("Adding Journey did not add element.", expectedSize, productionTimetables.getAll().size());
 
         //Adding another PT for other dataset
         String datasetId_2 = "test2-update";
-        productionTimetables.add(datasetId_2, createProductionTimetableDeliveryStructure(UUID.randomUUID().toString(), ZonedDateTime.now().plusMinutes(1)));
+        productionTimetables.add(datasetId_2, createProductionTimetableDeliveryStructure(UUID.randomUUID().toString(), ZonedDateTime.now().plusMinutes(10)));
         expectedSize++;
 
         assertEquals("Adding Journey for other vendor did not add element.", expectedSize, productionTimetables.getAll().size());
@@ -113,7 +113,7 @@ public class ProductionTimetablesTest {
     }
 
     @Test
-    public void testUpdatedJourneyWrongOrder() {
+    public void testUpdatedPtDeliveryWrongOrder() {
 
         int previousSize = productionTimetables.getAll().size();
         String version = UUID.randomUUID().toString();
