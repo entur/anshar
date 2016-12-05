@@ -9,8 +9,7 @@ anshar:
       heartbeatIntervalSeconds: 60
       operatorNamespace: http://www.siri.org.uk/siri
       urlMap:
-        SUBSCRIBE: mottak-test.rutebanken.org/anshar/subscribe
-        DELETE_SUBSCRIPTION: mottak-test.rutebanken.org/anshar/subscribe
+        GET_VEHICLE_MONITORING: mottak-test.rutebanken.org/anshar/service
       version: 2.0
       subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV

@@ -30,7 +30,7 @@ public class EstimatedTimetablesTest {
 
     @Before
     public void setup() {
-        estimatedTimetables.getAll().clear();
+
     }
 
     @Test
@@ -44,7 +44,7 @@ public class EstimatedTimetablesTest {
     @Test
     public void testAddJourney() {
         int previousSize = estimatedTimetables.getAll().size();
-        EstimatedVehicleJourney element = createEstimatedVehicleJourney("1234", "4321", 0, 30, ZonedDateTime.now().plusMinutes(1), true);
+        EstimatedVehicleJourney element = createEstimatedVehicleJourney("1234-added", "4321", 0, 30, ZonedDateTime.now().plusMinutes(1), true);
 
         estimatedTimetables.add("test", element);
 
