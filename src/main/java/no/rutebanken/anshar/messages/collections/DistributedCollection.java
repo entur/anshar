@@ -19,8 +19,6 @@ import uk.org.siri.siri20.ProductionTimetableDeliveryStructure;
 import uk.org.siri.siri20.PtSituationElement;
 import uk.org.siri.siri20.VehicleActivityStructure;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import java.math.BigInteger;
 import java.time.Instant;
 import java.util.Set;
@@ -30,19 +28,6 @@ import java.util.Timer;
 public class DistributedCollection extends HazelCastService {
 
     private Logger logger = LoggerFactory.getLogger(DistributedCollection.class);
-
-    @PostConstruct
-    @Override
-    public void init() {
-        super.init();
-    }
-
-    @PreDestroy
-    public void gracefulShutdown() {
-        logger.info("Gracefully shutting down hazelcast-instance");
-        hazelcast.shutdown();
-        logger.info("Hazelcast-instance shut down");
-    }
 
     public DistributedCollection(@Autowired KubernetesService kubernetesService) {
         super(kubernetesService);

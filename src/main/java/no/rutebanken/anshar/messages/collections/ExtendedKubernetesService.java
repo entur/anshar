@@ -6,9 +6,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-
 @Service
 public final class ExtendedKubernetesService extends KubernetesService {
     private static final Logger log = LoggerFactory.getLogger(ExtendedKubernetesService.class);
@@ -17,13 +14,4 @@ public final class ExtendedKubernetesService extends KubernetesService {
         super(cfg.getKubernetesUrl(), cfg.getNamespace(), cfg.isKuberentesEnabled());
     }
 
-    @PostConstruct
-    public void init() {
-        super.init();
-    }
-
-    @PreDestroy
-    public void end() {
-        super.end();
-    }
 }
