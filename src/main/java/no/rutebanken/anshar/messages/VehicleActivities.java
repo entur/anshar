@@ -1,6 +1,8 @@
 package no.rutebanken.anshar.messages;
 
 import com.hazelcast.core.IMap;
+import org.quartz.utils.counter.Counter;
+import org.quartz.utils.counter.CounterImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -96,15 +98,19 @@ public class VehicleActivities {
         Map<String, ZonedDateTime> expiries = new HashMap<>();
         Set<String> changes = new HashSet<>();
 
+        Counter invalidLocationCounter = new CounterImpl(0);
+        Counter notMeaningfulCounter = new CounterImpl(0);
+        Counter outdatedCounter = new CounterImpl(0);
         vmList.forEach(activity -> {
-            boolean keep = isLocationValid(activity) && isActivityMeaningful(activity);
+            boolean locationValid = isLocationValid(activity);
+            boolean activityMeaningful = isActivityMeaningful(activity);
 
-            if (keep) {
+            if (locationValid && activityMeaningful) {
                 String key = createKey(datasetId, activity);
 
                 VehicleActivityStructure existing = vehicleActivities.get(key);
 
-                keep = (existing == null); //No existing data i.e. keep
+                boolean keep = (existing == null); //No existing data i.e. keep
 
                 if (existing != null &&
                         (activity.getRecordedAtTime() != null && existing.getRecordedAtTime() != null)) {
@@ -113,13 +119,18 @@ public class VehicleActivities {
                 }
 
                 if (keep) {
-
                     changes.add(key);
                     vehicleActivities.put(key, activity, getExpiration(activity), TimeUnit.MILLISECONDS);
+                } else {
+                    outdatedCounter.increment();
                 }
+            } else {
+                if (locationValid) {invalidLocationCounter.increment();}
+                if (activityMeaningful) {notMeaningfulCounter.increment();}
             }
         });
 
+        logger.info("Updated {} :: Ignored elements - Missing location:{}, Missing values: {}, Outdated: {}",changes.size(), invalidLocationCounter.getValue(), notMeaningfulCounter.getValue(), outdatedCounter.getValue());
 
         changesMap.keySet().forEach(requestor -> {
             Set<String> tmpChanges = changesMap.get(requestor);
