@@ -196,7 +196,7 @@ public class SubscriptionManager {
                 //Only actual subscriptions have an expiration - NOT request/response-"subscriptions"
 
                 //If active subscription has existed longer than "initial subscription duration" - restart
-                if (activatedTimestamp.get(subscriptionId)
+                if (activatedTimestamp.get(subscriptionId) == null && activatedTimestamp.get(subscriptionId)
                         .plusSeconds(
                                 activeSubscription.getDurationOfSubscription().getSeconds()
                         ).isBefore(Instant.now())) {
