@@ -112,14 +112,18 @@ public class SubscriptionMonitor implements CamelContextAware {
 
                 actualSubscriptionSetups.add(subscriptionSetup);
 
+            }
+
+            for (SubscriptionSetup subscriptionSetup : actualSubscriptionSetups) {
                 RouteBuilder routeBuilder = getRouteBuilder(subscriptionSetup);
                 try {
+                    //Adding all routes to current context
                     camelContext.addRoutes(routeBuilder);
                 } catch (Exception e) {
                     logger.warn("Could not add subscription", e);
                 }
-            }
 
+            }
 
             startPeriodicHealthcheckService(actualSubscriptionSetups);
         } else {
