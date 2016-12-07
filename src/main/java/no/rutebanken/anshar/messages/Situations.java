@@ -32,6 +32,10 @@ public class Situations {
         return new ArrayList<>(situations.values());
     }
 
+    public int getSize() {
+        return situations.size();
+    }
+
     /**
      * @return All vehicle activities that are still valid
      */

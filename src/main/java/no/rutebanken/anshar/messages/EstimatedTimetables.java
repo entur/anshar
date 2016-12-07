@@ -32,6 +32,10 @@ public class EstimatedTimetables {
         return new ArrayList<>(timetableDeliveries.values());
     }
 
+    public int getSize() {
+        return timetableDeliveries.size();
+    }
+
     /**
      * @return All vehicle activities that are still valid
      */

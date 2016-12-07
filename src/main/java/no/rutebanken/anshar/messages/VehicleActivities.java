@@ -33,6 +33,10 @@ public class VehicleActivities {
         return new ArrayList<>(vehicleActivities.values());
     }
 
+    public int getSize() {
+        return vehicleActivities.size();
+    }
+
     /**
      * @return All vehicle activities that are still valid
      */

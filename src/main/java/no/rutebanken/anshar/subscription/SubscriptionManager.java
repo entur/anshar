@@ -260,10 +260,10 @@ public class SubscriptionManager {
 
         result.put("serverStarted", formatTimestamp(siriObjectFactory.serverStartTime));
         JSONObject count = new JSONObject();
-        count.put("sx", sx.getAll().size());
-        count.put("et", et.getAll().size());
-        count.put("vm", vm.getAll().size());
-        count.put("pt", pt.getAll().size());
+        count.put("sx", sx.getSize());
+        count.put("et", et.getSize());
+        count.put("vm", vm.getSize());
+        count.put("pt", pt.getSize());
 
         result.put("elements", count);
 
