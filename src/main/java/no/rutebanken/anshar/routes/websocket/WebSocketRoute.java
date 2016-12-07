@@ -4,6 +4,7 @@ import no.rutebanken.anshar.routes.siri.SiriObjectFactory;
 import org.apache.camel.builder.RouteBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
@@ -14,10 +15,11 @@ public class WebSocketRoute extends RouteBuilder {
     @Value("${anshar.incoming.port}")
     private String inboundPort;
 
+    @Autowired
     private SiriObjectFactory factory;
 
     public WebSocketRoute() {
-        this.factory = new SiriObjectFactory();
+//        this.factory = new SiriObjectFactory();
     }
 
     @Override

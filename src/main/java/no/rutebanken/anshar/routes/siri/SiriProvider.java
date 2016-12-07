@@ -42,7 +42,9 @@ public class SiriProvider extends RouteBuilder {
 
     @Autowired
     private ProductionTimetables productionTimetables;
-
+    
+    @Autowired
+    private SiriObjectFactory siriObjectFactory;
 
     @Override
     public void configure() throws Exception {
@@ -60,11 +62,11 @@ public class SiriProvider extends RouteBuilder {
 
                     Siri response;
                     if (datasetId != null && !datasetId.isEmpty()) {
-                        response = SiriObjectFactory.createSXServiceDelivery(situations.getAll(datasetId));
+                        response = siriObjectFactory.createSXServiceDelivery(situations.getAll(datasetId));
                     }  else if (requestorId != null && !requestorId.isEmpty()) {
-                        response = SiriObjectFactory.createSXServiceDelivery(situations.getAllUpdates(requestorId));
+                        response = siriObjectFactory.createSXServiceDelivery(situations.getAllUpdates(requestorId));
                     } else {
-                        response = SiriObjectFactory.createSXServiceDelivery(situations.getAll());
+                        response = siriObjectFactory.createSXServiceDelivery(situations.getAll());
                     }
                     HttpServletResponse out = p.getOut().getBody(HttpServletResponse.class);
 
@@ -84,11 +86,11 @@ public class SiriProvider extends RouteBuilder {
 
                     Siri response;
                     if (datasetId != null && !datasetId.isEmpty()) {
-                        response = SiriObjectFactory.createVMServiceDelivery(vehicleActivities.getAll(datasetId));
+                        response = siriObjectFactory.createVMServiceDelivery(vehicleActivities.getAll(datasetId));
                     }  else if (requestorId != null && !requestorId.isEmpty()) {
-                        response = SiriObjectFactory.createVMServiceDelivery(vehicleActivities.getAllUpdates(requestorId));
+                        response = siriObjectFactory.createVMServiceDelivery(vehicleActivities.getAllUpdates(requestorId));
                     } else {
-                        response = SiriObjectFactory.createVMServiceDelivery(vehicleActivities.getAll());
+                        response = siriObjectFactory.createVMServiceDelivery(vehicleActivities.getAll());
                     }
                     HttpServletResponse out = p.getOut().getBody(HttpServletResponse.class);
 
@@ -109,11 +111,11 @@ public class SiriProvider extends RouteBuilder {
 
                     Siri response;
                     if (datasetId != null && !datasetId.isEmpty()) {
-                        response = SiriObjectFactory.createETServiceDelivery(estimatedTimetables.getAll(datasetId));
+                        response = siriObjectFactory.createETServiceDelivery(estimatedTimetables.getAll(datasetId));
                     } else if (requestorId != null && !requestorId.isEmpty()) {
-                        response = SiriObjectFactory.createETServiceDelivery(estimatedTimetables.getAllUpdates(requestorId));
+                        response = siriObjectFactory.createETServiceDelivery(estimatedTimetables.getAllUpdates(requestorId));
                     } else {
-                        response = SiriObjectFactory.createETServiceDelivery(estimatedTimetables.getAll());
+                        response = siriObjectFactory.createETServiceDelivery(estimatedTimetables.getAll());
                     }
                     HttpServletResponse out = p.getOut().getBody(HttpServletResponse.class);
 
@@ -133,11 +135,11 @@ public class SiriProvider extends RouteBuilder {
                     String requestorId = request.getParameter("requestorId");
                     Siri response;
                     if (datasetId != null && !datasetId.isEmpty()) {
-                        response = SiriObjectFactory.createPTServiceDelivery(productionTimetables.getAll(datasetId));
+                        response = siriObjectFactory.createPTServiceDelivery(productionTimetables.getAll(datasetId));
                     }  else if (requestorId != null && !requestorId.isEmpty()) {
-                        response = SiriObjectFactory.createPTServiceDelivery(productionTimetables.getAllUpdates(requestorId));
+                        response = siriObjectFactory.createPTServiceDelivery(productionTimetables.getAllUpdates(requestorId));
                     } else {
-                        response = SiriObjectFactory.createPTServiceDelivery(productionTimetables.getAll());
+                        response = siriObjectFactory.createPTServiceDelivery(productionTimetables.getAll());
                     }
                     HttpServletResponse out = p.getOut().getBody(HttpServletResponse.class);
 

@@ -2,14 +2,30 @@ package no.rutebanken.anshar.outbound;
 
 import no.rutebanken.anshar.routes.outbound.SiriHelper;
 import no.rutebanken.anshar.routes.siri.SiriObjectFactory;
+import org.junit.Before;
 import org.junit.Test;
-import uk.org.siri.siri20.*;
+import uk.org.siri.siri20.LineRef;
+import uk.org.siri.siri20.Siri;
+import uk.org.siri.siri20.VehicleActivityStructure;
+import uk.org.siri.siri20.VehicleRef;
 
+import java.time.Instant;
 import java.util.*;
 
 import static org.junit.Assert.*;
 
 public class SiriHelperTest {
+
+    private SiriHelper siriHelper;
+    private SiriObjectFactory siriObjectFactory;
+
+
+    @Before
+    public void setUp() {
+        siriObjectFactory = new SiriObjectFactory(Instant.now());
+        siriHelper = new SiriHelper(siriObjectFactory);
+    }
+
     @Test
     public void testFilterVmDelivery() throws Exception {
         List<VehicleActivityStructure> vmElements = new ArrayList<>();
@@ -27,7 +43,7 @@ public class SiriHelperTest {
 
         assertFalse("Filters are not unique", filterMatchingLineRef_1.equals(filterMatchingLineRef_2));
 
-        Siri serviceDelivery = SiriObjectFactory.createVMServiceDelivery(vmElements);
+        Siri serviceDelivery = siriObjectFactory.createVMServiceDelivery(vmElements);
 
         assertNotNull(serviceDelivery);
         assertNotNull(serviceDelivery.getServiceDelivery());
@@ -42,7 +58,7 @@ public class SiriHelperTest {
         matchingValues.add(filterMatchingLineRef_2);
         filter.put(LineRef.class, matchingValues);
 
-        Siri filtered = SiriHelper.filterSiriPayload(serviceDelivery, filter);
+        Siri filtered = siriHelper.filterSiriPayload(serviceDelivery, filter);
 
 
         assertNotNull(filtered);
@@ -100,7 +116,7 @@ public class SiriHelperTest {
         vmElements.add(createVehicleActivity(filterMatchingLineRef_2, "3333"));
         vmElements.add(createVehicleActivity("342435", "33"));
 
-        Siri siri = SiriObjectFactory.createVMServiceDelivery(vmElements);
+        Siri siri = siriObjectFactory.createVMServiceDelivery(vmElements);
         int sizeBefore = siri.getServiceDelivery().getVehicleMonitoringDeliveries().get(0).getVehicleActivities().size();
 
         Map<Class, Set<String>> filter = new HashMap<>();
@@ -108,7 +124,7 @@ public class SiriHelperTest {
         matchingValues.add(filterMatchingLineRef_1);
         filter.put(LineRef.class, matchingValues);
 
-        Siri filtered = SiriHelper.filterSiriPayload(siri, filter);
+        Siri filtered = siriHelper.filterSiriPayload(siri, filter);
 
         int sizeAfter = siri.getServiceDelivery().getVehicleMonitoringDeliveries().get(0).getVehicleActivities().size();
         int filteredSizeAfter = filtered.getServiceDelivery().getVehicleMonitoringDeliveries().get(0).getVehicleActivities().size();
@@ -123,7 +139,7 @@ public class SiriHelperTest {
         filter2.put(LineRef.class, matchingValues2);
 
         // Filtering original SIRI-data with different filter
-        Siri filtered2 = SiriHelper.filterSiriPayload(siri, filter2);
+        Siri filtered2 = siriHelper.filterSiriPayload(siri, filter2);
 
         int sizeAfter2 = siri.getServiceDelivery().getVehicleMonitoringDeliveries().get(0).getVehicleActivities().size();
         int filteredSizeAfter2 = filtered.getServiceDelivery().getVehicleMonitoringDeliveries().get(0).getVehicleActivities().size();
@@ -144,11 +160,11 @@ public class SiriHelperTest {
             vmElements.add(createVehicleActivity("" + i, "3333"));
         }
 
-        Siri siri = SiriObjectFactory.createVMServiceDelivery(vmElements);
+        Siri siri = siriObjectFactory.createVMServiceDelivery(vmElements);
 
         assertEquals(elementCount, siri.getServiceDelivery().getVehicleMonitoringDeliveries().get(0).getVehicleActivities().size());
 
-        List<Siri> splitDeliveries = SiriHelper.splitDeliveries(siri, 500);
+        List<Siri> splitDeliveries = siriHelper.splitDeliveries(siri, 500);
         assertEquals(3, splitDeliveries.size());
 
         int splitElementCount = 0;
@@ -164,9 +180,9 @@ public class SiriHelperTest {
     public void testNotSplitNonDelivery(){
 
 
-        Siri siri = SiriObjectFactory.createHeartbeatNotification("ref");
+        Siri siri = siriObjectFactory.createHeartbeatNotification("ref");
 
-        List<Siri> splitDeliveries = SiriHelper.splitDeliveries(siri, 500);
+        List<Siri> splitDeliveries = siriHelper.splitDeliveries(siri, 500);
         assertEquals(1, splitDeliveries.size());
 
         assertNotNull(splitDeliveries.get(0));

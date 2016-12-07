@@ -47,6 +47,9 @@ public class SiriHandler {
     @Autowired
     private ProductionTimetables productionTimetables;
 
+    @Autowired
+    private SiriObjectFactory siriObjectFactory;
+
     public SiriHandler() {
 
     }
@@ -93,13 +96,13 @@ public class SiriHandler {
             ServiceRequest serviceRequest = incoming.getServiceRequest();
 
             if (hasValues(serviceRequest.getSituationExchangeRequests())) {
-                return SiriObjectFactory.createSXServiceDelivery(situations.getAll(datasetId));
+                return siriObjectFactory.createSXServiceDelivery(situations.getAll(datasetId));
             } else if (hasValues(serviceRequest.getVehicleMonitoringRequests())) {
-                return SiriObjectFactory.createVMServiceDelivery(vehicleActivities.getAll(datasetId));
+                return siriObjectFactory.createVMServiceDelivery(vehicleActivities.getAll(datasetId));
             } else if (hasValues(serviceRequest.getEstimatedTimetableRequests())) {
-                return SiriObjectFactory.createETServiceDelivery(estimatedTimetables.getAll(datasetId));
+                return siriObjectFactory.createETServiceDelivery(estimatedTimetables.getAll(datasetId));
             } else if (hasValues(serviceRequest.getProductionTimetableRequests())) {
-                return SiriObjectFactory.createPTServiceDelivery(productionTimetables.getAll(datasetId));
+                return siriObjectFactory.createPTServiceDelivery(productionTimetables.getAll(datasetId));
             }
         }
 

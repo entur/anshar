@@ -13,6 +13,8 @@ public class RouteHelper {
     private NamespacePrefixMapper customNamespacePrefixMapper;
     private SubscriptionSetup subscriptionSetup;
 
+
+
     public RouteHelper(SubscriptionSetup subscriptionSetup, NamespacePrefixMapper customNamespacePrefixMapper) {
         this.subscriptionSetup = subscriptionSetup;
         this.customNamespacePrefixMapper = customNamespacePrefixMapper;

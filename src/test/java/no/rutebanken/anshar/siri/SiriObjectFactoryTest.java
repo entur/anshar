@@ -5,9 +5,10 @@ import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.junit.Test;
 import uk.org.siri.siri20.*;
 
-import java.time.Duration;
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.UUID;
 
 import static org.junit.Assert.*;
 

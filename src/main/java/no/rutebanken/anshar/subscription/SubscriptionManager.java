@@ -48,6 +48,9 @@ public class SubscriptionManager {
     @Autowired
     private IMap<String, BigInteger> objectCounter;
 
+    @Autowired
+    private SiriObjectFactory siriObjectFactory;
+
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneId.systemDefault());
 
     public void addSubscription(String subscriptionId, SubscriptionSetup setup) {
@@ -196,7 +199,7 @@ public class SubscriptionManager {
                 //Only actual subscriptions have an expiration - NOT request/response-"subscriptions"
 
                 //If active subscription has existed longer than "initial subscription duration" - restart
-                if (activatedTimestamp.get(subscriptionId) == null && activatedTimestamp.get(subscriptionId)
+                if (activatedTimestamp.get(subscriptionId) != null && activatedTimestamp.get(subscriptionId)
                         .plusSeconds(
                                 activeSubscription.getDurationOfSubscription().getSeconds()
                         ).isBefore(Instant.now())) {
@@ -242,7 +245,7 @@ public class SubscriptionManager {
 
         result.put("subscriptions", stats);
 
-        result.put("serverStarted", formatTimestamp(SiriObjectFactory.serverStartTime.toInstant()));
+        result.put("serverStarted", formatTimestamp(siriObjectFactory.serverStartTime));
 
         return result;
     }

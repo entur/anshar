@@ -22,15 +22,24 @@ import uk.org.siri.siri20.VehicleActivityStructure;
 import java.math.BigInteger;
 import java.time.Instant;
 import java.util.Set;
-import java.util.Timer;
 
 @Service
 public class DistributedCollection extends HazelCastService {
 
     private Logger logger = LoggerFactory.getLogger(DistributedCollection.class);
+    
+    private static final String SERVER_START_TIME_KEY = "server.start.time";
 
     public DistributedCollection(@Autowired KubernetesService kubernetesService) {
         super(kubernetesService);
+    }
+
+    @Bean
+    public Instant serverStartTime() {
+        if (!getLockMap().containsKey(SERVER_START_TIME_KEY)) {
+            getLockMap().put(SERVER_START_TIME_KEY, Instant.now());
+        }
+        return getLockMap().get(SERVER_START_TIME_KEY);
     }
 
     @Bean
@@ -130,7 +139,7 @@ public class DistributedCollection extends HazelCastService {
     }
 
     @Bean
-    public IMap<String, Timer> getHeartbeatTimerMap() {
+    public IMap<String, Instant> getHeartbeatTimerMap() {
         return hazelcast.getMap("anshar.subscriptions.outbound.heartbeat");
     }
 

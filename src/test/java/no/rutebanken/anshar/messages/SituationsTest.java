@@ -24,6 +24,9 @@ public class SituationsTest {
     @Autowired
     Situations situations;
 
+    @Autowired
+    private SiriObjectFactory siriObjectFactory;
+
     @Before
     public void setup() {
 
@@ -113,7 +116,7 @@ public class SituationsTest {
         HalfOpenTimestampOutputRangeStructure period = new HalfOpenTimestampOutputRangeStructure();
         period.setStartTime(startTime);
 
-        element.setParticipantRef(SiriObjectFactory.createRequestorRef(participantRef));
+        element.setParticipantRef(siriObjectFactory.createRequestorRef(participantRef));
 
         SituationNumber sn = new SituationNumber();
         sn.setValue(situationNumber);

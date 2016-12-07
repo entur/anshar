@@ -32,8 +32,14 @@ public class SiriHelper {
     @Autowired
     private ProductionTimetables productionTimetables;
 
+    private SiriObjectFactory siriObjectFactory;
 
-    static Map<Class, Set<String>> getFilter(SubscriptionRequest subscriptionRequest) {
+    public SiriHelper(@Autowired SiriObjectFactory siriObjectFactory) {
+        this.siriObjectFactory = siriObjectFactory;
+    }
+
+
+    Map<Class, Set<String>> getFilter(SubscriptionRequest subscriptionRequest) {
         if (containsValues(subscriptionRequest.getSituationExchangeSubscriptionRequests())) {
             return getFilter(subscriptionRequest.getSituationExchangeSubscriptionRequests().get(0));
         } else if (containsValues(subscriptionRequest.getVehicleMonitoringSubscriptionRequests())) {
@@ -45,7 +51,7 @@ public class SiriHelper {
         return new HashMap<>();
     }
 
-    private static Map<Class, Set<String>> getFilter(SituationExchangeSubscriptionStructure subscriptionStructure) {
+    private Map<Class, Set<String>> getFilter(SituationExchangeSubscriptionStructure subscriptionStructure) {
         SituationExchangeRequestStructure situationExchangeRequest = subscriptionStructure.getSituationExchangeRequest();
 
         Map<Class, Set<String>> filterMap = new HashMap<>();
@@ -63,7 +69,7 @@ public class SiriHelper {
     }
 
 
-    private static Map<Class, Set<String>> getFilter(VehicleMonitoringSubscriptionStructure subscriptionStructure) {
+    private Map<Class, Set<String>> getFilter(VehicleMonitoringSubscriptionStructure subscriptionStructure) {
         VehicleMonitoringRequestStructure vehicleMonitoringRequest = subscriptionStructure.getVehicleMonitoringRequest();
 
         Map<Class, Set<String>> filterMap = new HashMap<>();
@@ -79,7 +85,7 @@ public class SiriHelper {
         return filterMap;
     }
 
-    private static Map<Class, Set<String>> getFilter(EstimatedTimetableSubscriptionStructure subscriptionStructure) {
+    private Map<Class, Set<String>> getFilter(EstimatedTimetableSubscriptionStructure subscriptionStructure) {
         EstimatedTimetableRequestStructure request = subscriptionStructure.getEstimatedTimetableRequest();
 
         Map<Class, Set<String>> filterMap = new HashMap<>();
@@ -112,32 +118,32 @@ public class SiriHelper {
 
                 List<PtSituationElement> situationElementList = situations.getAll(subscriptionRequest.getDatasetId());
                 logger.info("Initial SX-delivery: {} elements", situationElementList.size());
-                delivery = SiriObjectFactory.createSXServiceDelivery(situationElementList);
+                delivery = siriObjectFactory.createSXServiceDelivery(situationElementList);
                 break;
             case VEHICLE_MONITORING:
 
                 List<VehicleActivityStructure> vehicleActivityList = vehicleActivities.getAll(subscriptionRequest.getDatasetId());
                 logger.info("Initial VM-delivery: {} elements", vehicleActivityList.size());
-                delivery = SiriObjectFactory.createVMServiceDelivery(vehicleActivityList);
+                delivery = siriObjectFactory.createVMServiceDelivery(vehicleActivityList);
                 break;
             case ESTIMATED_TIMETABLE:
 
 
                 List<EstimatedVehicleJourney> timetables = estimatedTimetables.getAll(subscriptionRequest.getDatasetId());
                 logger.info("Initial ET-delivery: {} elements", timetables.size());
-                delivery = SiriObjectFactory.createETServiceDelivery(timetables);
+                delivery = siriObjectFactory.createETServiceDelivery(timetables);
                 break;
             case PRODUCTION_TIMETABLE:
 
                 List<ProductionTimetableDeliveryStructure> ptTimetables = productionTimetables.getAll(subscriptionRequest.getDatasetId());
                 logger.info("Initial EPT-delivery: {} elements", ptTimetables.size());
-                delivery = SiriObjectFactory.createPTServiceDelivery(ptTimetables);
+                delivery = siriObjectFactory.createPTServiceDelivery(ptTimetables);
                 break;
         }
         return delivery;
     }
 
-    public static List<Siri> splitDeliveries(Siri payload, int maximumSizePerDelivery) {
+    public List<Siri> splitDeliveries(Siri payload, int maximumSizePerDelivery) {
 
         List<Siri> siriList = new ArrayList<>();
 
@@ -156,7 +162,7 @@ public class SiriHelper {
             List<List> sxList = splitList(situationElementList, maximumSizePerDelivery);
 
             for (List<PtSituationElement> list : sxList) {
-                siriList.add(SiriObjectFactory.createSXServiceDelivery(list));
+                siriList.add(siriObjectFactory.createSXServiceDelivery(list));
             }
 
         } else if (containsValues(payload.getServiceDelivery().getVehicleMonitoringDeliveries())) {
@@ -168,7 +174,7 @@ public class SiriHelper {
             List<List> vmList = splitList(vehicleActivities, maximumSizePerDelivery);
 
             for (List<VehicleActivityStructure> list : vmList) {
-                siriList.add(SiriObjectFactory.createVMServiceDelivery(list));
+                siriList.add(siriObjectFactory.createVMServiceDelivery(list));
             }
 
         } else if (containsValues(payload.getServiceDelivery().getEstimatedTimetableDeliveries())) {
@@ -181,14 +187,14 @@ public class SiriHelper {
             List<List> etList = splitList(timetables, maximumSizePerDelivery);
 
             for (List<EstimatedVehicleJourney> list : etList) {
-                siriList.add(SiriObjectFactory.createETServiceDelivery(list));
+                siriList.add(siriObjectFactory.createETServiceDelivery(list));
             }
         }
 
         return siriList;
     }
 
-    private static List<List> splitList(List fullList, int maximumSizePerDelivery) {
+    private List<List> splitList(List fullList, int maximumSizePerDelivery) {
         int startIndex = 0;
         int endIndex = Math.min(startIndex + maximumSizePerDelivery, fullList.size());
 
