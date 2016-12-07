@@ -25,7 +25,7 @@
     <small>Server started ${body.serverStarted}</small>
 </div>
 <div class="container">
-    <div id = "alert_placeholder"></div>
+
     <div class="row">
     <table class="table">
         <thead>
@@ -83,6 +83,12 @@
         </#list>
         </tbody>
     </table>
+    </div>
+    <div class="row">
+        <button type="button" class="btn btn-info" disabled>SX: ${body.elements.sx}</button>
+        <button type="button" class="btn btn-info" disabled>VM: ${body.elements.vm}</button>
+        <button type="button" class="btn btn-info" disabled>ET: ${body.elements.et}</button>
+        <button type="button" class="btn btn-info" disabled>PT: ${body.elements.pt}</button>
     </div>
 </div>
 </body>

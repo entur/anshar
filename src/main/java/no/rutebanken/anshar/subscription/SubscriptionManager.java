@@ -3,6 +3,10 @@ package no.rutebanken.anshar.subscription;
 
 import com.google.common.base.Preconditions;
 import com.hazelcast.core.IMap;
+import no.rutebanken.anshar.messages.EstimatedTimetables;
+import no.rutebanken.anshar.messages.ProductionTimetables;
+import no.rutebanken.anshar.messages.Situations;
+import no.rutebanken.anshar.messages.VehicleActivities;
 import no.rutebanken.anshar.routes.siri.SiriObjectFactory;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -52,6 +56,15 @@ public class SubscriptionManager {
     private SiriObjectFactory siriObjectFactory;
 
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneId.systemDefault());
+
+    @Autowired
+    private Situations sx;
+    @Autowired
+    private EstimatedTimetables et;
+    @Autowired
+    private ProductionTimetables pt;
+    @Autowired
+    private VehicleActivities vm;
 
     public void addSubscription(String subscriptionId, SubscriptionSetup setup) {
         Preconditions.checkState(!pendingSubscriptions.containsKey(subscriptionId), "Subscription already exists (pending)");
@@ -246,6 +259,13 @@ public class SubscriptionManager {
         result.put("subscriptions", stats);
 
         result.put("serverStarted", formatTimestamp(siriObjectFactory.serverStartTime));
+        JSONObject count = new JSONObject();
+        count.put("sx", sx.getAll().size());
+        count.put("et", et.getAll().size());
+        count.put("vm", vm.getAll().size());
+        count.put("pt", pt.getAll().size());
+
+        result.put("elements", count);
 
         return result;
     }
