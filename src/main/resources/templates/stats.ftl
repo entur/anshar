@@ -85,10 +85,23 @@
     </table>
     </div>
     <div class="row">
-        <button type="button" class="btn btn-info" disabled>SX: ${body.elements.sx}</button>
-        <button type="button" class="btn btn-info" disabled>VM: ${body.elements.vm}</button>
-        <button type="button" class="btn btn-info" disabled>ET: ${body.elements.et}</button>
-        <button type="button" class="btn btn-info" disabled>PT: ${body.elements.pt}</button>
+        <label>Active elements:</label>
+        <div class="row">
+            <div class="col-md-1">SX</div>
+            <div class="col-md-1">${body.elements.sx}</div>
+        </div>
+        <div class="row">
+            <div class="col-md-1">VM</div>
+            <div class="col-md-1">${body.elements.vm}</div>
+        </div>
+        <div class="row">
+            <div class="col-md-1">ET</div>
+            <div class="col-md-1">${body.elements.et}</div>
+        </div>
+        <div class="row">
+            <div class="col-md-1">PT</div>
+            <div class="col-md-1">${body.elements.pt}</div>
+        </div>
     </div>
 </div>
 </body>
