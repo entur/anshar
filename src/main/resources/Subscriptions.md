@@ -18,6 +18,7 @@
 |requestorRef|Any String, may be provided by remote serviceprovider |Used to identify against remote server|
 |durationOfSubscriptionHours|Any int |Number of hours to trigger subscription to be terminated/restarted|
 |mappingAdapterPreset|RUTER, ATB, KOLUMBUS, AKT|Adapters used to convert ids to common format|
+|filterPresets|BYBANEN|Specific filters to use|
 |idMappingPrefixes|RUT, ATB, KOL, AKT, NRI+++|List of prefixes to be used when mapping ids form NSR|
 |active|true,false |Enables/disables subscription|
 
@@ -42,6 +43,7 @@ anshar:
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
       mappingAdapterPreset: RUTER
+      filterPresets: BYBANEN
       idMappingPrefixes: RUT,OPP,BRA
       active: true
 ```
