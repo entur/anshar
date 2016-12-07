@@ -94,8 +94,6 @@ public class VehicleActivities {
     }
 
     public void addAll(String datasetId, List<VehicleActivityStructure> vmList) {
-        Map< String, VehicleActivityStructure> updates = new HashMap<>();
-        Map<String, ZonedDateTime> expiries = new HashMap<>();
         Set<String> changes = new HashSet<>();
 
         Counter invalidLocationCounter = new CounterImpl(0);
@@ -118,9 +116,11 @@ public class VehicleActivities {
                     keep = activity.getRecordedAtTime().isAfter(existing.getRecordedAtTime());
                 }
 
-                if (keep) {
+                long expiration = getExpiration(activity);
+
+                if (expiration >= 0 && keep) {
                     changes.add(key);
-                    vehicleActivities.put(key, activity, getExpiration(activity), TimeUnit.MILLISECONDS);
+                    vehicleActivities.put(key, activity, expiration, TimeUnit.MILLISECONDS);
                 } else {
                     outdatedCounter.increment();
                 }
@@ -130,7 +130,7 @@ public class VehicleActivities {
             }
         });
 
-        logger.info("Updated {} :: Ignored elements - Missing location:{}, Missing values: {}, Outdated: {}",changes.size(), invalidLocationCounter.getValue(), notMeaningfulCounter.getValue(), outdatedCounter.getValue());
+        logger.info("Updated {} :: Ignored elements - Missing location:{}, Missing values: {}, Outdated: {}", changes.size(), invalidLocationCounter.getValue(), notMeaningfulCounter.getValue(), outdatedCounter.getValue());
 
         changesMap.keySet().forEach(requestor -> {
             Set<String> tmpChanges = changesMap.get(requestor);

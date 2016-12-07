@@ -108,8 +108,6 @@ public class Situations {
     }
 
     public void addAll(String datasetId, List<PtSituationElement> sxList) {
-        Map< String, PtSituationElement> updates = new HashMap<>();
-        Map<String, ZonedDateTime> expiries = new HashMap<>();
         Set<String> changes = new HashSet<>();
 
         sxList.forEach(situation -> {
@@ -117,8 +115,11 @@ public class Situations {
 
             //TODO: Determine if newer situation has already been handled
 
-            changes.add(key);
-            situations.put(key, situation, getExpiration(situation), TimeUnit.MILLISECONDS);
+            long expiration = getExpiration(situation);
+            if (expiration >= 0) { //expiration < 0 => already expired
+                situations.put(key, situation, expiration, TimeUnit.MILLISECONDS);
+                changes.add(key);
+            }
 
         });
 

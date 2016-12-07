@@ -93,8 +93,6 @@ public class ProductionTimetables {
 
     public void addAll(String datasetId, List<ProductionTimetableDeliveryStructure> ptList) {
 
-        Map< String, ProductionTimetableDeliveryStructure> updates = new HashMap<>();
-        Map<String, ZonedDateTime> expiries = new HashMap<>();
         Set<String> changes = new HashSet<>();
 
         ptList.forEach(pt -> {
@@ -105,9 +103,12 @@ public class ProductionTimetables {
 
             if (existing == null || pt.getResponseTimestamp().isAfter(existing.getResponseTimestamp())) {
 
-                changes.add(key);
-                timetableDeliveries.put(key, pt, getExpiration(pt), TimeUnit.MILLISECONDS);
+                long expiration = getExpiration(pt);
 
+                if (expiration >= 0) {
+                    changes.add(key);
+                    timetableDeliveries.put(key, pt, expiration, TimeUnit.MILLISECONDS);
+                }
             } else {
                 //Newer update has already been processed
             }

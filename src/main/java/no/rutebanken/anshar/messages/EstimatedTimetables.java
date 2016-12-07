@@ -125,7 +125,8 @@ public class EstimatedTimetables {
                 keep = et.getRecordedAtTime().isAfter(existing.getRecordedAtTime());
             }
 
-            if (keep) {
+            long expiration = getExpiration(et);
+            if (expiration >= 0 && keep) {
                 if (et.isIsCompleteStopSequence() != null && !et.isIsCompleteStopSequence()) {
                     //Not complete - merge partial update into existing
                     if (existing != null) {
@@ -152,9 +153,8 @@ public class EstimatedTimetables {
                         et.setEstimatedCalls(joinedCalls);
                     }
                 }
-
                 changes.add(key);
-                timetableDeliveries.put(key, et, getExpiration(et), TimeUnit.MILLISECONDS);
+                timetableDeliveries.put(key, et, expiration, TimeUnit.MILLISECONDS);
             }
         });
 
