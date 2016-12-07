@@ -206,6 +206,7 @@ public class ServerSubscriptionManager extends CamelRouteManager {
     }
 
     public OutboundSubscriptionSetup removeSubscription(String subscriptionId) {
+        logger.info("Removing subscription {}" + subscriptionId);
         heartbeatTimerMap.remove(subscriptionId);
         return subscriptions.remove(subscriptionId);
     }
