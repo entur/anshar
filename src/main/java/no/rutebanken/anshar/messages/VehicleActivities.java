@@ -97,7 +97,7 @@ public class VehicleActivities {
         return 0;
     }
 
-    public void addAll(String datasetId, List<VehicleActivityStructure> vmList) {
+    public Collection<VehicleActivityStructure> addAll(String datasetId, List<VehicleActivityStructure> vmList) {
         Set<String> changes = new HashSet<>();
 
         Counter invalidLocationCounter = new CounterImpl(0);
@@ -134,7 +134,7 @@ public class VehicleActivities {
             }
         });
 
-        logger.info("Updated {} :: Ignored elements - Missing location:{}, Missing values: {}, Outdated: {}", changes.size(), invalidLocationCounter.getValue(), notMeaningfulCounter.getValue(), outdatedCounter.getValue());
+        logger.info("Updated {} :: Ignored elements - Missing location:{}, Missing values: {}, Skipped: {}", changes.size(), invalidLocationCounter.getValue(), notMeaningfulCounter.getValue(), outdatedCounter.getValue());
 
         changesMap.keySet().forEach(requestor -> {
             Set<String> tmpChanges = changesMap.get(requestor);
@@ -142,6 +142,7 @@ public class VehicleActivities {
             changesMap.put(requestor, tmpChanges);
         });
 
+        return vehicleActivities.getAll(changes).values();
     }
 
     VehicleActivityStructure add(String datasetId, VehicleActivityStructure activity) {

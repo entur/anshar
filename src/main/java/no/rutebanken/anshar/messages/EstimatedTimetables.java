@@ -113,7 +113,7 @@ public class EstimatedTimetables {
     }
 
 
-    public void addAll(String datasetId, List<EstimatedVehicleJourney> etList) {
+    public Collection<EstimatedVehicleJourney> addAll(String datasetId, List<EstimatedVehicleJourney> etList) {
 
         Set<String> changes = new HashSet<>();
 
@@ -167,6 +167,7 @@ public class EstimatedTimetables {
             tmpChanges.addAll(changes);
             changesMap.put(requestor, tmpChanges);
         });
+        return timetableDeliveries.getAll(changes).values();
     }
 
 

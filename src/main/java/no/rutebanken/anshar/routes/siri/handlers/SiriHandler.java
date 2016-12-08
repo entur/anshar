@@ -167,8 +167,9 @@ public class SiriHandler {
                                 if (sx.isStatus() != null && !sx.isStatus()) {
                                     logger.info(getErrorContents(sx.getErrorCondition()));
                                 } else {
-                                    addedOrUpdated.addAll(sx.getSituations().getPtSituationElements());
-                                    situations.addAll(subscriptionSetup.getDatasetId(), addedOrUpdated);
+                                    addedOrUpdated.addAll(
+                                            situations.addAll(subscriptionSetup.getDatasetId(), sx.getSituations().getPtSituationElements())
+                                    );
                                 }
                             }
                     );
@@ -188,8 +189,9 @@ public class SiriHandler {
                             if (vm.isStatus() != null && !vm.isStatus()) {
                                 logger.info(getErrorContents(vm.getErrorCondition()));
                             } else {
-                                addedOrUpdated.addAll(vm.getVehicleActivities());
-                                vehicleActivities.addAll(subscriptionSetup.getDatasetId(), addedOrUpdated);
+                                addedOrUpdated.addAll(
+                                        vehicleActivities.addAll(subscriptionSetup.getDatasetId(), vm.getVehicleActivities())
+                                );
                             }
                         }
                     );
@@ -210,8 +212,9 @@ public class SiriHandler {
                                     logger.info(getErrorContents(et.getErrorCondition()));
                                 } else {
                                     et.getEstimatedJourneyVersionFrames().forEach(versionFrame -> {
-                                        addedOrUpdated.addAll(versionFrame.getEstimatedVehicleJourneies());
-                                        estimatedTimetables.addAll(subscriptionSetup.getDatasetId(), addedOrUpdated);
+                                        addedOrUpdated.addAll(
+                                                estimatedTimetables.addAll(subscriptionSetup.getDatasetId(), versionFrame.getEstimatedVehicleJourneies())
+                                        );
                                     });
                                 }
                             }
@@ -228,8 +231,9 @@ public class SiriHandler {
 
                     List<ProductionTimetableDeliveryStructure> addedOrUpdated = new ArrayList<>();
 
-                    addedOrUpdated.addAll(productionTimetableDeliveries);
-                    productionTimetables.addAll(subscriptionSetup.getDatasetId(), productionTimetableDeliveries);
+                    addedOrUpdated.addAll(
+                        productionTimetables.addAll(subscriptionSetup.getDatasetId(), productionTimetableDeliveries)
+                    );
 
                     serverSubscriptionManager.pushUpdatedProductionTimetables(addedOrUpdated, subscriptionSetup.getDatasetId());
 

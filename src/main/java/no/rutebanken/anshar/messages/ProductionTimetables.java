@@ -95,7 +95,7 @@ public class ProductionTimetables {
         return 0;
     }
 
-    public void addAll(String datasetId, List<ProductionTimetableDeliveryStructure> ptList) {
+    public Collection<ProductionTimetableDeliveryStructure> addAll(String datasetId, List<ProductionTimetableDeliveryStructure> ptList) {
 
         Set<String> changes = new HashSet<>();
 
@@ -123,6 +123,8 @@ public class ProductionTimetables {
             tmpChanges.addAll(changes);
             changesMap.put(requestor, tmpChanges);
         });
+
+        return timetableDeliveries.getAll(changes).values();
     }
 
     public ProductionTimetableDeliveryStructure add(String datasetId, ProductionTimetableDeliveryStructure timetableDelivery) {

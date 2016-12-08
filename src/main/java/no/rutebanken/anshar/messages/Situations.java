@@ -111,7 +111,7 @@ public class Situations {
         }
     }
 
-    public void addAll(String datasetId, List<PtSituationElement> sxList) {
+    public Collection<PtSituationElement> addAll(String datasetId, List<PtSituationElement> sxList) {
         Set<String> changes = new HashSet<>();
 
         sxList.forEach(situation -> {
@@ -132,6 +132,7 @@ public class Situations {
             tmpChanges.addAll(changes);
             changesMap.put(requestor, tmpChanges);
         });
+        return situations.getAll(changes).values();
     }
 
     PtSituationElement add(String datasetId, PtSituationElement situation) {
