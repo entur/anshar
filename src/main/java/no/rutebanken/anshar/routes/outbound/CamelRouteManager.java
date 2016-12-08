@@ -1,9 +1,6 @@
 package no.rutebanken.anshar.routes.outbound;
 
-import org.apache.camel.CamelContext;
-import org.apache.camel.CamelContextAware;
-import org.apache.camel.LoggingLevel;
-import org.apache.camel.ProducerTemplate;
+import org.apache.camel.*;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.RouteDefinition;
 import org.rutebanken.siri20.util.SiriXml;
@@ -180,6 +177,7 @@ public class CamelRouteManager implements CamelContextAware {
                     .routeId(routeName)
                     .log(LoggingLevel.INFO, "POST data to " + remoteEndPoint)
                     .setHeader("CamelHttpMethod", constant("POST"))
+                    .setHeader(Exchange.CONTENT_TYPE, constant("application/xml"))
                     .marshal().string("UTF-8")
                     .to("http4://" + remoteEndPoint + httpOptions)
                     .log(LoggingLevel.INFO, "POST complete");
