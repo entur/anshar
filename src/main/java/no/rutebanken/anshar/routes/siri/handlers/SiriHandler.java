@@ -177,7 +177,7 @@ public class SiriHandler {
 
                     subscriptionManager.incrementObjectCounter(subscriptionSetup, addedOrUpdated.size());
 
-                    logger.info("Active SX-elements: {}, current delivery: {}, {}", situations.getAll().size(), addedOrUpdated.size(), subscriptionSetup);
+                    logger.info("Active SX-elements: {}, current delivery: {}, {}", situations.getSize(), addedOrUpdated.size(), subscriptionSetup);
                 }
                 if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING)) {
                     List<VehicleMonitoringDeliveryStructure> vehicleMonitoringDeliveries = incoming.getServiceDelivery().getVehicleMonitoringDeliveries();
@@ -198,7 +198,7 @@ public class SiriHandler {
 
                     subscriptionManager.incrementObjectCounter(subscriptionSetup, addedOrUpdated.size());
 
-                    logger.info("Active VM-elements: {}, current delivery: {}, {}", vehicleActivities.getAll().size(), addedOrUpdated.size(), subscriptionSetup);
+                    logger.info("Active VM-elements: {}, current delivery: {}, {}", vehicleActivities.getSize(), addedOrUpdated.size(), subscriptionSetup);
                 }
                 if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE)) {
                     List<EstimatedTimetableDeliveryStructure> estimatedTimetableDeliveries = incoming.getServiceDelivery().getEstimatedTimetableDeliveries();
@@ -220,7 +220,7 @@ public class SiriHandler {
 
                     subscriptionManager.incrementObjectCounter(subscriptionSetup, addedOrUpdated.size());
 
-                    logger.info("Active ET-elements: {}, current delivery: {}, {}", estimatedTimetables.getAll().size(), addedOrUpdated.size(), subscriptionSetup);
+                    logger.info("Active ET-elements: {}, current delivery: {}, {}", estimatedTimetables.getSize(), addedOrUpdated.size(), subscriptionSetup);
                 }
                 if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.PRODUCTION_TIMETABLE)) {
                     List<ProductionTimetableDeliveryStructure> productionTimetableDeliveries = incoming.getServiceDelivery().getProductionTimetableDeliveries();
@@ -235,7 +235,7 @@ public class SiriHandler {
 
                     subscriptionManager.incrementObjectCounter(subscriptionSetup, addedOrUpdated.size());
 
-                    logger.info("Active PT-elements: {}, current delivery: {}, {}", productionTimetables.getAll().size(), addedOrUpdated.size(), subscriptionSetup);
+                    logger.info("Active PT-elements: {}, current delivery: {}, {}", productionTimetables.getSize(), addedOrUpdated.size(), subscriptionSetup);
                 }
             } else {
                 throw new RuntimeException(new ServiceNotSupportedException());
