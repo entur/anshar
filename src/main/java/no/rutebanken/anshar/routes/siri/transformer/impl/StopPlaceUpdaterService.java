@@ -16,7 +16,12 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.time.Instant;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.StringTokenizer;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @Component
 @Configuration
@@ -39,27 +44,23 @@ public class StopPlaceUpdaterService {
     @Value("${anshar.mapping.stopplaces.update.frequency.min}")
     private int updateFrequency = 60;
 
-    private Timer updater;
-
-
     public String get(String id) {
         return stopPlaceMappings.get(id);
     }
 
     @PostConstruct
     private void initialize() {
-        if (updater == null) {
-            fetchMapping();
 
-            TimerTask cacheUpdater = new TimerTask() {
-                @Override
-                public void run() {
-                    updateIdMapping();
-                }
-            };
-            updater = new Timer(true);
-            updater.schedule(cacheUpdater,  new Date(), updateFrequency*60*1000);
+        int initialDelay;
+        if (stopPlaceMappings.isEmpty()) {
+            initialDelay = 0;
+        } else {
+            initialDelay = updateFrequency;
         }
+
+        ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+        executor.scheduleAtFixedRate(() -> updateIdMapping(), initialDelay, updateFrequency, TimeUnit.MINUTES);
+
     }
 
     private boolean updateIdMapping() {
@@ -72,10 +73,8 @@ public class StopPlaceUpdaterService {
 
             if ((instant == null || instant.isBefore(Instant.now().minusSeconds(updateFrequency * 60)))) {
                 // Data is not initialized, or is older than allowed
-                fetchMapping();
-
-            } else {
-                logger.trace("Initializing data - already initialized [{}].", instant);
+                updateStopPlaceMapping();
+                lockMap.put(UPDATED_TIMESTAMP_KEY, Instant.now());
             }
         } catch (Exception e) {
             logger.error("Initializing data - caused exception", e);
@@ -85,7 +84,7 @@ public class StopPlaceUpdaterService {
         return true;
     }
 
-    private void fetchMapping() {
+    private void updateStopPlaceMapping() {
         //                logger.info("Initializing data - start. Fetching mapping-data from {}", stopPlaceMappingUrl);
 //                URL url = new URL(stopPlaceMappingUrl);
 
@@ -111,7 +110,6 @@ public class StopPlaceUpdaterService {
 
             //Adding to Hazelcast in one operation
             stopPlaceMappings.putAll(tmpStopPlaceMappings);
-            lockMap.put(UPDATED_TIMESTAMP_KEY, Instant.now());
 
             logger.info("Initializing data - done - {} mappings, found {} duplicates.", stopPlaceMappings.size(), duplicates.getValue());
 

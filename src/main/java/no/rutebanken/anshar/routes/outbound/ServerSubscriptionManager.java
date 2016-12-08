@@ -23,8 +23,9 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @Configuration
@@ -38,8 +39,8 @@ public class ServerSubscriptionManager extends CamelRouteManager {
     private IMap<String, OutboundSubscriptionSetup> subscriptions;
 
     @Autowired
-    @Qualifier("getHeartbeatTimerMap")
-    private IMap<String, Instant> heartbeatTimerMap;
+    @Qualifier("getHeartbeatTimestampMap")
+    private IMap<String, Instant> heartbeatTimestampMap;
 
     @Autowired
     @Qualifier("getLockMap")
@@ -64,41 +65,36 @@ public class ServerSubscriptionManager extends CamelRouteManager {
 
     @PostConstruct
     private void startHeartbeatManager() {
+        ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 
-            Timer timer = new Timer("HeartbeatNotifier");
+        executor.scheduleAtFixedRate(() -> {
+                    boolean acquiredLock = lockMap.tryLock(ANSHAR_HEARTBEAT_KEY);
 
-            timer.scheduleAtFixedRate(new TimerTask() {
-                                          @Override
-                                          public void run() {
-                                              boolean acquiredLock = lockMap.tryLock(ANSHAR_HEARTBEAT_KEY);
+                    if (acquiredLock) {
+                        try {
+                            if (!heartbeatTimestampMap.isEmpty()) {
+                                heartbeatTimestampMap.keySet().forEach(key -> {
 
-                                              if (acquiredLock) {
-                                                  try {
-                                                      if (!heartbeatTimerMap.isEmpty()) {
-                                                          heartbeatTimerMap.keySet().forEach(key -> {
+                                    OutboundSubscriptionSetup subscription = subscriptions.get(key);
 
-                                                              OutboundSubscriptionSetup subscription = subscriptions.get(key);
+                                    if (LocalDateTime.now().isAfter(subscription.getInitialTerminationTime().toLocalDateTime())) {
+                                        logger.info("Subscription [{}] expired at {}, and will be terminated", subscription.getSubscriptionId(), subscription.getInitialTerminationTime());
+                                        terminateSubscription(subscription.getSubscriptionId());
 
-                                                              if (LocalDateTime.now().isAfter(subscription.getInitialTerminationTime().toLocalDateTime())) {
-                                                                  logger.info("Subscription [{}] expired at {}, and will be terminated", subscription.getSubscriptionId(), subscription.getInitialTerminationTime());
-                                                                  terminateSubscription(subscription.getSubscriptionId());
-
-                                                              } else if (heartbeatTimerMap.get(key).isBefore(Instant.now().minusMillis(subscription.getHeartbeatInterval()))) {
-                                                                  // More than "heartbeatinterval" since last heartbeat
-                                                                  Siri heartbeatNotification = siriObjectFactory.createHeartbeatNotification(subscription.getSubscriptionId());
-                                                                  pushSiriData(heartbeatNotification, subscription);
-                                                                  heartbeatTimerMap.put(key, Instant.now());
-                                                              }
-                                                          });
-                                                      }
-                                                  } finally {
-                                                      lockMap.unlock(ANSHAR_HEARTBEAT_KEY);
-                                                  }
-                                              }
-                                          }
-                                      },
-                                        5000,
-                                        5000);
+                                    } else if (heartbeatTimestampMap.get(key).isBefore(Instant.now().minusMillis(subscription.getHeartbeatInterval()))) {
+                                        // More than "heartbeatinterval" since last heartbeat
+                                        Siri heartbeatNotification = siriObjectFactory.createHeartbeatNotification(subscription.getSubscriptionId());
+                                        pushSiriData(heartbeatNotification, subscription);
+                                        heartbeatTimestampMap.put(key, Instant.now());
+                                    }
+                                });
+                            }
+                        } finally {
+                            lockMap.unlock(ANSHAR_HEARTBEAT_KEY);
+                        }
+                    }
+                },
+                5000, 5000, TimeUnit.MILLISECONDS);
     }
 
     public JSONArray getSubscriptionsAsJson() {
@@ -202,12 +198,12 @@ public class ServerSubscriptionManager extends CamelRouteManager {
 
     private void addSubscription(OutboundSubscriptionSetup subscription) {
         subscriptions.put(subscription.getSubscriptionId(), subscription);
-        heartbeatTimerMap.put(subscription.getSubscriptionId(), Instant.now());
+        heartbeatTimestampMap.put(subscription.getSubscriptionId(), Instant.now());
     }
 
     public OutboundSubscriptionSetup removeSubscription(String subscriptionId) {
         logger.info("Removing subscription {}" + subscriptionId);
-        heartbeatTimerMap.remove(subscriptionId);
+        heartbeatTimestampMap.remove(subscriptionId);
         return subscriptions.remove(subscriptionId);
     }
 

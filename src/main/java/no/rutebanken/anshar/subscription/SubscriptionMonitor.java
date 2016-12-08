@@ -24,6 +24,9 @@ import java.net.SocketException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @Configuration
@@ -55,8 +58,6 @@ public class SubscriptionMonitor implements CamelContextAware {
     SiriHandler handler;
 
     private CamelContext camelContext;
-
-    private Timer healthCheckTimer;
 
     @Override
     public CamelContext getCamelContext() {
@@ -161,11 +162,9 @@ public class SubscriptionMonitor implements CamelContextAware {
                 subscriptionManager.addPendingSubscription(subscriptionSetup.getSubscriptionId(), subscriptionSetup);
             }
         }
+        ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 
-        // Subscription Healthcheck
-        TimerTask healthCheck = new TimerTask() {
-            @Override
-            public void run() {
+        executor.scheduleAtFixedRate(() -> {
                 // tryLock returns immediately - does not wait for lock to be released
                 boolean locked = lockMap.tryLock(ANSHAR_HEALTHCHECK_KEY);
 
@@ -210,41 +209,19 @@ public class SubscriptionMonitor implements CamelContextAware {
                 } else {
                     logger.debug("Healthcheck: Already locked - skipping");
                 }
-            }
-        };
-
-        healthCheckTimer =  new Timer();
-        healthCheckTimer.scheduleAtFixedRate(healthCheck, 0, 10000);
-
-        // Monitor healthcheck-task
-        TimerTask task = new TimerTask() {
-            @Override
-            public void run() {
-                Instant instant = lockMap.get(ANSHAR_HEALTHCHECK_KEY);
-                if (instant != null && instant.isBefore(Instant.now().minusSeconds(3 * healthCheckInterval))) {
-                    // TODO: Should stopped healthcheck-thread trigger server restart?
-                    // LivenessReadinessRoute.triggerRestart = true;
-                    logger.error("Healthcheck has stopped - last check [{}]", instant.atZone(ZoneId.systemDefault()));
-                }
-            }
-        };
-        Timer timer = new Timer();
-        timer.scheduleAtFixedRate(task, 0, healthCheckInterval * 1000);
+            },
+                5000, 5000, TimeUnit.MILLISECONDS);
     }
 
     private void startSubscriptionAsync(SubscriptionSetup subscriptionSetup, int delay) {
-        TimerTask task = new TimerTask() {
-            @Override
-            public void run() {
-                try {
-                    startSubscription(subscriptionSetup);
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
+        ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+        executor.schedule(() -> {
+            try {
+                startSubscription(subscriptionSetup);
+            } catch (Exception e) {
+                logger.warn("Caught exception when starting route", e);
             }
-        };
-        Timer timer = new Timer();
-        timer.schedule(task, delay);
+        }, delay, TimeUnit.MILLISECONDS);
     }
 
 
@@ -265,7 +242,7 @@ public class SubscriptionMonitor implements CamelContextAware {
                     try {
                         service.start();
                     } catch (Exception e) {
-                        logger.warn("Restarting route failed", e);
+                        logger.warn("Starting route-service failed", e);
                     }
                 });
             }

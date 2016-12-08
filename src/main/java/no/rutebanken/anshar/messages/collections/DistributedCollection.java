@@ -27,7 +27,7 @@ import java.util.Set;
 public class DistributedCollection extends HazelCastService {
 
     private Logger logger = LoggerFactory.getLogger(DistributedCollection.class);
-    
+
     private static final String SERVER_START_TIME_KEY = "server.start.time";
 
     public DistributedCollection(@Autowired KubernetesService kubernetesService) {
@@ -139,7 +139,7 @@ public class DistributedCollection extends HazelCastService {
     }
 
     @Bean
-    public IMap<String, Instant> getHeartbeatTimerMap() {
+    public IMap<String, Instant> getHeartbeatTimestampMap() {
         return hazelcast.getMap("anshar.subscriptions.outbound.heartbeat");
     }
 
