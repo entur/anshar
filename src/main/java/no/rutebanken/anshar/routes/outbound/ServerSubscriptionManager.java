@@ -70,10 +70,10 @@ public class ServerSubscriptionManager extends CamelRouteManager {
             timer.scheduleAtFixedRate(new TimerTask() {
                                           @Override
                                           public void run() {
-                                              boolean aquiredLock = lockMap.tryLock(ANSHAR_HEARTBEAT_KEY);
+                                              boolean acquiredLock = lockMap.tryLock(ANSHAR_HEARTBEAT_KEY);
 
-                                              try {
-                                                  if (aquiredLock) {
+                                              if (acquiredLock) {
+                                                  try {
                                                       if (!heartbeatTimerMap.isEmpty()) {
                                                           heartbeatTimerMap.keySet().forEach(key -> {
 
@@ -91,9 +91,9 @@ public class ServerSubscriptionManager extends CamelRouteManager {
                                                               }
                                                           });
                                                       }
+                                                  } finally {
+                                                      lockMap.unlock(ANSHAR_HEARTBEAT_KEY);
                                                   }
-                                              } finally {
-                                                  lockMap.unlock(ANSHAR_HEARTBEAT_KEY);
                                               }
                                           }
                                       },
