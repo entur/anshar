@@ -141,6 +141,27 @@ anshar:
       filterPresets:
       idMappingPrefixes: RUT,OPP,BRA,OST
       active: true
+#    -
+#      internalId: 8
+#      vendor: rutervm
+#      datasetId: RUT
+#      serviceType: REST
+#      subscriptionType: VEHICLE_MONITORING
+#      subscriptionMode: SUBSCRIBE
+#      heartbeatIntervalSeconds: 60
+#      operatorNamespace: http://www.siri.org.uk/siri
+#      urlMap:
+#        SUBSCRIBE: 109.239.226.193:8080/RutebankenDEV/vm/subscribe.xml
+#        DELETE_SUBSCRIPTION: 109.239.226.193:8080/RutebankenDEV/vm/managesubscription.xml
+#        CHECK_STATUS: 109.239.226.193:8080/RutebankenDEV/vm/checkstatus.xml
+#      version: 2.0
+#      subscriptionId: 20c2e3a3-1659-41d3-b1a2-1411978b1d43
+#      requestorRef: RutebankenDEV
+#      durationOfSubscriptionHours: 168
+#      mappingAdapterPresets: RUTER
+#      filterPresets:
+#      idMappingPrefixes: RUT,OPP,BRA,OST
+#      active: false
     -
       internalId: 8
       vendor: rutervm
@@ -151,9 +172,9 @@ anshar:
       heartbeatIntervalSeconds: 60
       operatorNamespace: http://www.siri.org.uk/siri
       urlMap:
-        SUBSCRIBE: 109.239.226.193:8080/RutebankenDEV/vm/subscribe.xml
-        DELETE_SUBSCRIPTION: 109.239.226.193:8080/RutebankenDEV/vm/managesubscription.xml
-        CHECK_STATUS: 109.239.226.193:8080/RutebankenDEV/vm/checkstatus.xml
+        SUBSCRIBE: 193.69.85.197:8080/RutebankenDEV/vm/subscribe.xml
+        DELETE_SUBSCRIPTION: 193.69.85.197:8080/RutebankenDEV/vm/managesubscription.xml
+        CHECK_STATUS: 193.69.85.197:8080/RutebankenDEV/vm/checkstatus.xml
       version: 2.0
       subscriptionId: 20c2e3a3-1659-41d3-b1a2-1411978b1d43
       requestorRef: RutebankenDEV
