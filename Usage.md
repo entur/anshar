@@ -4,13 +4,12 @@
 - Supports SIRI 2.0 SubscriptionRequest
 - HTTP POST http://mottak-test.rutebanken.org/anshar/subscribe
 - Vendor-specific subscriptions can be obtained by specifying datasetId in url (e.g. http://mottak-test.rutebanken.org/anshar/subscribe/rut)
-- possible datasetIds are [atb, akt, kol, rut]
  
 # SIRI GetServiceRequest
 - Supports SIRI 2.0 ServiceRequests
 - HTTP POST http://mottak-test.rutebanken.org/anshar/services
-- Vendor-specific data can be obtained by specifying datasetId in url (e.g. http://mottak-test.rutebanken.org/anshar/services/rut)
-- possible datasetIds are [atb, akt, kol, rut]
+- Vendor-specific data can be obtained by specifying datasetId in url (e.g. http://mottak-test.rutebanken.org/anshar/services/RUT)
+- *NOTE:* For periodic requests (currently within 5 minutes), RequestorRef may be reused to only get "changes since last request" - see requestorId below.
 
 # REST API
 
