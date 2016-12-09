@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 import uk.org.siri.siri20.EstimatedCall;
 import uk.org.siri.siri20.EstimatedVehicleJourney;
 
+import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -25,6 +26,10 @@ public class EstimatedTimetables {
     @Qualifier("getEstimatedTimetableChangesMap")
     private IMap<String, Set<String>> changesMap;
 
+    @Autowired
+    @Qualifier("getLastUpdateRequest")
+    private IMap<String, Instant> lastUpdateRequested;
+
     /**
      * @return All vehicle activities
      */
@@ -39,27 +44,38 @@ public class EstimatedTimetables {
     /**
      * @return All vehicle activities that are still valid
      */
-    public List<EstimatedVehicleJourney> getAllUpdates(String requestorId) {
+    public List<EstimatedVehicleJourney> getAllUpdates(String requestorId, String datasetId) {
         if (requestorId != null) {
 
             Set<String> idSet = changesMap.get(requestorId);
-            if (idSet != null) {
-                List<EstimatedVehicleJourney> changes = new ArrayList<>();
+            lastUpdateRequested.put(requestorId, Instant.now(), 5, TimeUnit.MINUTES);
 
-                idSet.stream().forEach(key -> {
-                    EstimatedVehicleJourney element = timetableDeliveries.get(key);
-                    if (element != null) {
-                        changes.add(element);
-                    }
-                });
+            if (idSet != null) {
+                Set<String> datasetFilteredIdSet = new HashSet<>();
+
+                if (datasetId != null) {
+                    idSet.stream().filter(key -> key.startsWith(datasetId + ":")).forEach(key -> {
+                        datasetFilteredIdSet.add(key);
+                    });
+                } else {
+                    datasetFilteredIdSet.addAll(idSet);
+                }
+
+                List<EstimatedVehicleJourney> changes = new ArrayList<>(timetableDeliveries.getAll(datasetFilteredIdSet).values());
+
                 Set<String> existingSet = changesMap.get(requestorId);
                 if (existingSet == null) {
                     existingSet = new HashSet<>();
                 }
                 existingSet.removeAll(idSet);
                 changesMap.put(requestorId, existingSet);
+
+
+                logger.info("Returning {} changes to requestorRef {}", changes.size(), requestorId);
                 return changes;
             } else {
+
+                logger.info("Returning all to requestorRef {}", requestorId);
                 changesMap.put(requestorId, new HashSet<>());
             }
         }
@@ -122,11 +138,18 @@ public class EstimatedTimetables {
 
             EstimatedVehicleJourney existing = timetableDeliveries.get(key);
 
-            boolean keep = (existing == null); //No existing data - keep
+            boolean keep = false;
+
             if (existing != null &&
                     (et.getRecordedAtTime() != null && existing.getRecordedAtTime() != null)) {
-                //Newer data has already been processed
-                keep = et.getRecordedAtTime().isAfter(existing.getRecordedAtTime());
+
+                if (et.getRecordedAtTime().isAfter(existing.getRecordedAtTime())) {
+                    keep = true;
+                } else {
+                    logger.info("Newer data has already been processed - ignoring ET-element");
+                }
+            } else {
+                keep = true;
             }
 
             long expiration = getExpiration(et);
@@ -163,10 +186,15 @@ public class EstimatedTimetables {
         });
 
         changesMap.keySet().forEach(requestor -> {
-            Set<String> tmpChanges = changesMap.get(requestor);
-            tmpChanges.addAll(changes);
-            changesMap.put(requestor, tmpChanges);
+            if (lastUpdateRequested.get(requestor) != null) {
+                Set<String> tmpChanges = changesMap.get(requestor);
+                tmpChanges.addAll(changes);
+                changesMap.put(requestor, tmpChanges);
+            } else {
+                changesMap.remove(requestor);
+            }
         });
+
         return timetableDeliveries.getAll(changes).values();
     }
 

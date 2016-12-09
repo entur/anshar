@@ -94,15 +94,19 @@ public class SiriHandler {
         } else if (incoming.getServiceRequest() != null) {
             logger.info("Handling serviceRequest...");
             ServiceRequest serviceRequest = incoming.getServiceRequest();
+            String requestorRef = null;
 
+            if (serviceRequest.getRequestorRef() != null) {
+                requestorRef = serviceRequest.getRequestorRef().getValue();
+            }
             if (hasValues(serviceRequest.getSituationExchangeRequests())) {
-                return siriObjectFactory.createSXServiceDelivery(situations.getAll(datasetId));
+                return siriObjectFactory.createSXServiceDelivery(situations.getAllUpdates(requestorRef, datasetId));
             } else if (hasValues(serviceRequest.getVehicleMonitoringRequests())) {
-                return siriObjectFactory.createVMServiceDelivery(vehicleActivities.getAll(datasetId));
+                return siriObjectFactory.createVMServiceDelivery(vehicleActivities.getAllUpdates(requestorRef, datasetId));
             } else if (hasValues(serviceRequest.getEstimatedTimetableRequests())) {
-                return siriObjectFactory.createETServiceDelivery(estimatedTimetables.getAll(datasetId));
+                return siriObjectFactory.createETServiceDelivery(estimatedTimetables.getAllUpdates(requestorRef, datasetId));
             } else if (hasValues(serviceRequest.getProductionTimetableRequests())) {
-                return siriObjectFactory.createPTServiceDelivery(productionTimetables.getAll(datasetId));
+                return siriObjectFactory.createPTServiceDelivery(productionTimetables.getAllUpdates(requestorRef, datasetId));
             }
         }
 

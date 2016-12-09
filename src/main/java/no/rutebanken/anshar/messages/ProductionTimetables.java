@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 import uk.org.siri.siri20.ProductionTimetableDeliveryStructure;
 
+import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -23,7 +24,11 @@ public class ProductionTimetables {
     @Autowired
     @Qualifier("getProductionTimetableChangesMap")
     private IMap<String, Set<String>> changesMap;
-    
+
+    @Autowired
+    @Qualifier("getLastUpdateRequest")
+    private IMap<String, Instant> lastUpdateRequested;
+
     /**
      * @return All vehicle activities that are still valid
      */
@@ -57,10 +62,11 @@ public class ProductionTimetables {
     /**
      * @return All vehicle activities that are still valid
      */
-    public List<ProductionTimetableDeliveryStructure> getAllUpdates(String requestorId) {
+    public List<ProductionTimetableDeliveryStructure> getAllUpdates(String requestorId, String datasetId) {
         if (requestorId != null) {
 
             Set<String> idSet = changesMap.get(requestorId);
+            lastUpdateRequested.put(requestorId, Instant.now(), 5, TimeUnit.MINUTES);
             if (idSet != null) {
                 List<ProductionTimetableDeliveryStructure> changes = new ArrayList<>();
 
@@ -76,8 +82,13 @@ public class ProductionTimetables {
                 }
                 existingSet.removeAll(idSet);
                 changesMap.put(requestorId, existingSet);
+
+
+                logger.info("Returning {} changes to requestorRef {}", changes.size(), requestorId);
                 return changes;
             } else {
+
+                logger.info("Returning all to requestorRef {}", requestorId);
                 changesMap.put(requestorId, new HashSet<>());
             }
         }
@@ -119,9 +130,13 @@ public class ProductionTimetables {
         });
 
         changesMap.keySet().forEach(requestor -> {
-            Set<String> tmpChanges = changesMap.get(requestor);
-            tmpChanges.addAll(changes);
-            changesMap.put(requestor, tmpChanges);
+            if (lastUpdateRequested.get(requestor) != null) {
+                Set<String> tmpChanges = changesMap.get(requestor);
+                tmpChanges.addAll(changes);
+                changesMap.put(requestor, tmpChanges);
+            } else {
+                changesMap.remove(requestor);
+            }
         });
 
         return timetableDeliveries.getAll(changes).values();

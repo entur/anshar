@@ -65,17 +65,17 @@ public class ProductionTimetablesTest {
                 datasetId, createProductionTimetableDeliveryStructure(UUID.randomUUID().toString(), ZonedDateTime.now().plusMinutes(1))
         );
         // Added 3
-        assertEquals(previousSize+3, productionTimetables.getAllUpdates("1234-1234").size());
+        assertEquals(previousSize+3, productionTimetables.getAllUpdates("1234-1234", null).size());
 
         productionTimetables.add(
                 datasetId, createProductionTimetableDeliveryStructure(UUID.randomUUID().toString(), ZonedDateTime.now().plusMinutes(1))
         );
         //Added one
-        assertEquals(1, productionTimetables.getAllUpdates("1234-1234").size());
+        assertEquals(1, productionTimetables.getAllUpdates("1234-1234", null).size());
 
 
         //None added
-        assertEquals(0, productionTimetables.getAllUpdates("1234-1234").size());
+        assertEquals(0, productionTimetables.getAllUpdates("1234-1234", null).size());
 
         //Verify that all elements still exist
         assertEquals(previousSize+4, productionTimetables.getAll().size());

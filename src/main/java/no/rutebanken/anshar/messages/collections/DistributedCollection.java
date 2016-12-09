@@ -98,6 +98,11 @@ public class DistributedCollection extends HazelCastService {
     }
 
     @Bean
+    public IMap<String, Instant> getLastUpdateRequest() {
+        return hazelcast.getMap("anshar.activity.last.update.request");
+    }
+
+    @Bean
     public IMap<String, Instant> getActivatedTimestampMap() {
         return hazelcast.getMap("anshar.activity.activated");
     }

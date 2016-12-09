@@ -178,16 +178,16 @@ public class VehicleActivitiesTest {
         vehicleActivities.add("test", createVehicleActivityStructure(ZonedDateTime.now(), prefix+"2345"));
         vehicleActivities.add("test", createVehicleActivityStructure(ZonedDateTime.now(), prefix+"3456"));
         // Added 3
-        assertEquals(previousSize+3, vehicleActivities.getAllUpdates("1234-1234").size());
+        assertEquals(previousSize+3, vehicleActivities.getAllUpdates("1234-1234", null).size());
 
         vehicleActivities.add("test", createVehicleActivityStructure(ZonedDateTime.now(), prefix+"4567"));
 
         //Added one
-        assertEquals(1, vehicleActivities.getAllUpdates("1234-1234").size());
+        assertEquals(1, vehicleActivities.getAllUpdates("1234-1234", null).size());
 
 
         //None added
-        assertEquals(0, vehicleActivities.getAllUpdates("1234-1234").size());
+        assertEquals(0, vehicleActivities.getAllUpdates("1234-1234", null).size());
 
         //Verify that all elements still exist
         assertEquals(previousSize+4, vehicleActivities.getAll().size());

@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 import uk.org.siri.siri20.HalfOpenTimestampOutputRangeStructure;
 import uk.org.siri.siri20.PtSituationElement;
 
+import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -24,6 +25,11 @@ public class Situations {
     @Autowired
     @Qualifier("getSituationChangesMap")
     private IMap<String, Set<String>> changesMap;
+
+
+    @Autowired
+    @Qualifier("getLastUpdateRequest")
+    private IMap<String, Instant> lastUpdateRequested;
 
     /**
      * @return All situations that are still valid
@@ -59,27 +65,37 @@ public class Situations {
     /**
      * @return All vehicle activities that have been updated since last request from requestor
      */
-    public List<PtSituationElement> getAllUpdates(String requestorId) {
+    public List<PtSituationElement> getAllUpdates(String requestorId, String datasetId) {
         if (requestorId != null) {
 
             Set<String> idSet = changesMap.get(requestorId);
+            lastUpdateRequested.put(requestorId, Instant.now(), 5, TimeUnit.MINUTES);
             if (idSet != null) {
-                List<PtSituationElement> changes = new ArrayList<>();
+                Set<String> datasetFilteredIdSet = new HashSet<>();
 
-                idSet.stream().forEach(key -> {
-                    PtSituationElement element = situations.get(key);
-                    if (element != null) {
-                        changes.add(element);
-                    }
-                });
+                if (datasetId != null) {
+                    idSet.stream().filter(key -> key.startsWith(datasetId + ":")).forEach(key -> {
+                        datasetFilteredIdSet.add(key);
+                    });
+                } else {
+                    datasetFilteredIdSet.addAll(idSet);
+                }
+                List<PtSituationElement> changes = new ArrayList<>(situations.getAll(datasetFilteredIdSet).values());
+
+                // Data may have been updated
                 Set<String> existingSet = changesMap.get(requestorId);
                 if (existingSet == null) {
                     existingSet = new HashSet<>();
                 }
                 existingSet.removeAll(idSet);
                 changesMap.put(requestorId, existingSet);
+
+
+                logger.info("Returning {} changes to requestorRef {}", changes.size(), requestorId);
                 return changes;
             } else {
+
+                logger.info("Returning all to requestorRef {}", requestorId);
                 changesMap.put(requestorId, new HashSet<>());
             }
         }
@@ -128,9 +144,13 @@ public class Situations {
         });
 
         changesMap.keySet().forEach(requestor -> {
-            Set<String> tmpChanges = changesMap.get(requestor);
-            tmpChanges.addAll(changes);
-            changesMap.put(requestor, tmpChanges);
+            if (lastUpdateRequested.get(requestor) != null) {
+                Set<String> tmpChanges = changesMap.get(requestor);
+                tmpChanges.addAll(changes);
+                changesMap.put(requestor, tmpChanges);
+            } else {
+                changesMap.remove(requestor);
+            }
         });
         return situations.getAll(changes).values();
     }
