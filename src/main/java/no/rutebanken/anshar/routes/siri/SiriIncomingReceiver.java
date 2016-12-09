@@ -79,6 +79,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                 .choice()
                     .when(header("CamelHttpPath").contains("/services")) //Handle synchronous response
                     .process(p -> {
+                        p.getOut().setHeaders(p.getIn().getHeaders());
 
                         String path = (String) p.getIn().getHeader("CamelHttpPath");
                         String datasetId = null;
