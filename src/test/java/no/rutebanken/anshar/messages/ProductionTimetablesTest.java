@@ -10,7 +10,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import uk.org.siri.siri20.ProductionTimetableDeliveryStructure;
 
 import java.time.ZonedDateTime;
-import java.util.List;
+import java.util.Collection;
 import java.util.UUID;
 
 import static org.junit.Assert.assertEquals;
@@ -134,7 +134,7 @@ public class ProductionTimetablesTest {
         assertEquals("Updating Journey added element.", previousSize + 1, productionTimetables.getAll().size());
 
         boolean checkedMatchingElement = false;
-        List<ProductionTimetableDeliveryStructure> all = productionTimetables.getAll();
+        Collection<ProductionTimetableDeliveryStructure> all = productionTimetables.getAll();
         for (ProductionTimetableDeliveryStructure element : all) {
             if (version.equals(element.getVersion())) {
                 assertTrue("PT has been overwritten by older version", element.getValidUntil().isBefore(ZonedDateTime.now().plusDays(19)));

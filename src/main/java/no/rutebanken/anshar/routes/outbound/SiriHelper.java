@@ -116,26 +116,25 @@ public class SiriHelper {
         switch (subscriptionRequest.getSubscriptionType()) {
             case SITUATION_EXCHANGE:
 
-                List<PtSituationElement> situationElementList = situations.getAll(subscriptionRequest.getDatasetId());
+                Collection<PtSituationElement> situationElementList = situations.getAll(subscriptionRequest.getDatasetId());
                 logger.info("Initial SX-delivery: {} elements", situationElementList.size());
                 delivery = siriObjectFactory.createSXServiceDelivery(situationElementList);
                 break;
             case VEHICLE_MONITORING:
 
-                List<VehicleActivityStructure> vehicleActivityList = vehicleActivities.getAll(subscriptionRequest.getDatasetId());
+                Collection<VehicleActivityStructure> vehicleActivityList = vehicleActivities.getAll(subscriptionRequest.getDatasetId());
                 logger.info("Initial VM-delivery: {} elements", vehicleActivityList.size());
                 delivery = siriObjectFactory.createVMServiceDelivery(vehicleActivityList);
                 break;
             case ESTIMATED_TIMETABLE:
 
-
-                List<EstimatedVehicleJourney> timetables = estimatedTimetables.getAll(subscriptionRequest.getDatasetId());
+                Collection<EstimatedVehicleJourney> timetables = estimatedTimetables.getAll(subscriptionRequest.getDatasetId());
                 logger.info("Initial ET-delivery: {} elements", timetables.size());
                 delivery = siriObjectFactory.createETServiceDelivery(timetables);
                 break;
             case PRODUCTION_TIMETABLE:
 
-                List<ProductionTimetableDeliveryStructure> ptTimetables = productionTimetables.getAll(subscriptionRequest.getDatasetId());
+                Collection<ProductionTimetableDeliveryStructure> ptTimetables = productionTimetables.getAll(subscriptionRequest.getDatasetId());
                 logger.info("Initial EPT-delivery: {} elements", ptTimetables.size());
                 delivery = siriObjectFactory.createPTServiceDelivery(ptTimetables);
                 break;

@@ -14,6 +14,7 @@ import uk.org.siri.siri20.VehicleRef;
 
 import java.math.BigInteger;
 import java.time.ZonedDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -121,7 +122,7 @@ public class EstimatedTimetablesTest {
         assertTrue("Updating Journey added element.", estimatedTimetables.getAll().size() == expectedSize);
 
         boolean checkedMatchingJourney = false;
-        List<EstimatedVehicleJourney> all = estimatedTimetables.getAll();
+        Collection<EstimatedVehicleJourney> all = estimatedTimetables.getAll();
         for (EstimatedVehicleJourney vehicleJourney : all) {
             if (lineRefValue.equals(vehicleJourney.getLineRef().getValue())) {
                 List<EstimatedCall> estimatedCallsList = vehicleJourney.getEstimatedCalls().getEstimatedCalls();
@@ -152,7 +153,7 @@ public class EstimatedTimetablesTest {
         assertEquals("Updating Journey added element.", previousSize + 1, estimatedTimetables.getAll().size());
 
         boolean checkedMatchingJourney = false;
-        List<EstimatedVehicleJourney> all = estimatedTimetables.getAll();
+        Collection<EstimatedVehicleJourney> all = estimatedTimetables.getAll();
         for (EstimatedVehicleJourney vehicleJourney : all) {
             if (lineRefValue.equals(vehicleJourney.getLineRef().getValue())) {
                 List<EstimatedCall> estimatedCallsList = vehicleJourney.getEstimatedCalls().getEstimatedCalls();
@@ -187,7 +188,7 @@ public class EstimatedTimetablesTest {
 
 
         boolean checkedMatchingJourney = false;
-        List<EstimatedVehicleJourney> all = estimatedTimetables.getAll();
+        Collection<EstimatedVehicleJourney> all = estimatedTimetables.getAll();
         for (EstimatedVehicleJourney vehicleJourney : all) {
             if (lineRefValue.equals(vehicleJourney.getLineRef().getValue())) {
                 List<EstimatedCall> estimatedCallsList = vehicleJourney.getEstimatedCalls().getEstimatedCalls();
