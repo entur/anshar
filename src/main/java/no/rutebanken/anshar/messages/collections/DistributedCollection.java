@@ -1,6 +1,7 @@
 package no.rutebanken.anshar.messages.collections;
 
 import com.hazelcast.core.Cluster;
+import com.hazelcast.core.DistributedObject;
 import com.hazelcast.core.IMap;
 import com.hazelcast.core.Member;
 import no.rutebanken.anshar.routes.outbound.OutboundSubscriptionSetup;
@@ -21,6 +22,7 @@ import uk.org.siri.siri20.VehicleActivityStructure;
 
 import java.math.BigInteger;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.Set;
 
 @Service
@@ -125,11 +127,18 @@ public class DistributedCollection extends HazelCastService {
             Set<Member> members = cluster.getMembers();
             if (members != null && !members.isEmpty()) {
                 for (Member member : members) {
+                    JSONObject stats = new JSONObject();
+                    Collection<DistributedObject> distributedObjects = hazelcast.getDistributedObjects();
+                    for (DistributedObject distributedObject : distributedObjects) {
+                        stats.put(distributedObject.getName(), hazelcast.getMap(distributedObject.getName()).getLocalMapStats().toJson());
+                    }
+
                     JSONObject obj = new JSONObject();
                     obj.put("uuid", member.getUuid());
                     obj.put("host", member.getAddress().getHost());
                     obj.put("port", member.getAddress().getPort());
                     obj.put("local", member.localMember());
+                    obj.put("localmapstats", stats);
                     clusterMembers.add(obj);
                 }
             }
