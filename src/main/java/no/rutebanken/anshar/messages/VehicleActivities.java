@@ -29,14 +29,14 @@ public class VehicleActivities {
 
 
     @Autowired
-    @Qualifier("getLastUpdateRequest")
+    @Qualifier("getLastVmUpdateRequest")
     private IMap<String, Instant> lastUpdateRequested;
 
     /**
-     * @return All vehicle activities that are still valid
+     * @return All vehicle activities
      */
-    public List<VehicleActivityStructure> getAll() {
-        return new ArrayList<>(vehicleActivities.values());
+    public Collection<VehicleActivityStructure> getAll() {
+        return vehicleActivities.values();
     }
 
     public int getSize() {
@@ -46,7 +46,7 @@ public class VehicleActivities {
     /**
      * @return All vehicle activities that are still valid
      */
-    public List<VehicleActivityStructure> getAll(String datasetId) {
+    public Collection<VehicleActivityStructure> getAll(String datasetId) {
         if (datasetId == null) {
             return getAll();
         }
@@ -65,7 +65,7 @@ public class VehicleActivities {
     /**
      * @return All vehicle activities that have been updated since last request from requestor
      */
-    public List<VehicleActivityStructure> getAllUpdates(String requestorId, String datasetId) {
+    public Collection<VehicleActivityStructure> getAllUpdates(String requestorId, String datasetId) {
         if (requestorId != null) {
 
             Set<String> idSet = changesMap.get(requestorId);
@@ -81,7 +81,7 @@ public class VehicleActivities {
                     datasetFilteredIdSet.addAll(idSet);
                 }
 
-                List<VehicleActivityStructure> changes = new ArrayList<>(vehicleActivities.getAll(datasetFilteredIdSet).values());
+                Collection<VehicleActivityStructure> changes = vehicleActivities.getAll(datasetFilteredIdSet).values();
 
                 Set<String> existingSet = changesMap.get(requestorId);
                 if (existingSet == null) {

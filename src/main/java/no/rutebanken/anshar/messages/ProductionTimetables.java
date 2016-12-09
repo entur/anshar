@@ -26,24 +26,21 @@ public class ProductionTimetables {
     private IMap<String, Set<String>> changesMap;
 
     @Autowired
-    @Qualifier("getLastUpdateRequest")
+    @Qualifier("getLastPtUpdateRequest")
     private IMap<String, Instant> lastUpdateRequested;
 
     /**
-     * @return All vehicle activities that are still valid
+     * @return All PT-elements
      */
-    public List<ProductionTimetableDeliveryStructure> getAll() {
-        return new ArrayList<>(timetableDeliveries.values());
+    public Collection<ProductionTimetableDeliveryStructure> getAll() {
+        return timetableDeliveries.values();
     }
 
     public int getSize() {
         return timetableDeliveries.size();
     }
 
-    /**
-     * @return All vehicle activities that are still valid
-     */
-    public List<ProductionTimetableDeliveryStructure> getAll(String datasetId) {
+    public Collection<ProductionTimetableDeliveryStructure> getAll(String datasetId) {
         if (datasetId == null) {
             return getAll();
         }        
@@ -59,23 +56,24 @@ public class ProductionTimetables {
     }
 
 
-    /**
-     * @return All vehicle activities that are still valid
-     */
-    public List<ProductionTimetableDeliveryStructure> getAllUpdates(String requestorId, String datasetId) {
+    public Collection<ProductionTimetableDeliveryStructure> getAllUpdates(String requestorId, String datasetId) {
         if (requestorId != null) {
 
             Set<String> idSet = changesMap.get(requestorId);
             lastUpdateRequested.put(requestorId, Instant.now(), 5, TimeUnit.MINUTES);
             if (idSet != null) {
-                List<ProductionTimetableDeliveryStructure> changes = new ArrayList<>();
+                Set<String> datasetFilteredIdSet = new HashSet<>();
 
-                idSet.stream().forEach(key -> {
-                    ProductionTimetableDeliveryStructure element = timetableDeliveries.get(key);
-                    if (element != null) {
-                        changes.add(element);
-                    }
-                });
+                if (datasetId != null) {
+                    idSet.stream().filter(key -> key.startsWith(datasetId + ":")).forEach(key -> {
+                        datasetFilteredIdSet.add(key);
+                    });
+                } else {
+                    datasetFilteredIdSet.addAll(idSet);
+                }
+
+                Collection<ProductionTimetableDeliveryStructure> changes = timetableDeliveries.getAll(datasetFilteredIdSet).values();
+
                 Set<String> existingSet = changesMap.get(requestorId);
                 if (existingSet == null) {
                     existingSet = new HashSet<>();

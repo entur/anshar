@@ -100,8 +100,25 @@ public class DistributedCollection extends HazelCastService {
     }
 
     @Bean
-    public IMap<String, Instant> getLastUpdateRequest() {
-        return hazelcast.getMap("anshar.activity.last.update.request");
+    public IMap<String, Instant> getLastEtUpdateRequest() {
+        return hazelcast.getMap("anshar.activity.last.et.update.request");
+    }
+
+
+    @Bean
+    public IMap<String, Instant> getLastPtUpdateRequest() {
+        return hazelcast.getMap("anshar.activity.last.pt.update.request");
+    }
+
+    @Bean
+    public IMap<String, Instant> getLastSxUpdateRequest() {
+        return hazelcast.getMap("anshar.activity.last.sx.update.request");
+    }
+
+
+    @Bean
+    public IMap<String, Instant> getLastVmUpdateRequest() {
+        return hazelcast.getMap("anshar.activity.last.vm.update.request");
     }
 
     @Bean

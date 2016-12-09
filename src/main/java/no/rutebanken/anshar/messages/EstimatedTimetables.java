@@ -27,24 +27,21 @@ public class EstimatedTimetables {
     private IMap<String, Set<String>> changesMap;
 
     @Autowired
-    @Qualifier("getLastUpdateRequest")
+    @Qualifier("getLastEtUpdateRequest")
     private IMap<String, Instant> lastUpdateRequested;
 
     /**
-     * @return All vehicle activities
+     * @return All ET-elements
      */
-    public List<EstimatedVehicleJourney> getAll() {
-        return new ArrayList<>(timetableDeliveries.values());
+    public Collection<EstimatedVehicleJourney> getAll() {
+        return timetableDeliveries.values();
     }
 
     public int getSize() {
         return timetableDeliveries.size();
     }
 
-    /**
-     * @return All vehicle activities that are still valid
-     */
-    public List<EstimatedVehicleJourney> getAllUpdates(String requestorId, String datasetId) {
+    public Collection<EstimatedVehicleJourney> getAllUpdates(String requestorId, String datasetId) {
         if (requestorId != null) {
 
             Set<String> idSet = changesMap.get(requestorId);
@@ -61,7 +58,7 @@ public class EstimatedTimetables {
                     datasetFilteredIdSet.addAll(idSet);
                 }
 
-                List<EstimatedVehicleJourney> changes = new ArrayList<>(timetableDeliveries.getAll(datasetFilteredIdSet).values());
+                Collection<EstimatedVehicleJourney> changes = timetableDeliveries.getAll(datasetFilteredIdSet).values();
 
                 Set<String> existingSet = changesMap.get(requestorId);
                 if (existingSet == null) {
@@ -83,10 +80,7 @@ public class EstimatedTimetables {
         return getAll();
     }
 
-    /**
-     * @return All vehicle activities that are still valid
-     */
-    public List<EstimatedVehicleJourney> getAll(String datasetId) {
+    public Collection<EstimatedVehicleJourney> getAll(String datasetId) {
         if (datasetId == null) {
             return getAll();
         }

@@ -28,14 +28,14 @@ public class Situations {
 
 
     @Autowired
-    @Qualifier("getLastUpdateRequest")
+    @Qualifier("getLastSxUpdateRequest")
     private IMap<String, Instant> lastUpdateRequested;
 
     /**
-     * @return All situations that are still valid
+     * @return All situations
      */
-    public List<PtSituationElement> getAll() {
-        return new ArrayList<>(situations.values());
+    public Collection<PtSituationElement> getAll() {
+        return situations.values();
     }
 
     public int getSize() {
@@ -45,7 +45,7 @@ public class Situations {
     /**
      * @return All vehicle activities that are still valid
      */
-    public List<PtSituationElement> getAll(String datasetId) {
+    public Collection<PtSituationElement> getAll(String datasetId) {
         if (datasetId == null) {
             return getAll();
         }
@@ -65,7 +65,7 @@ public class Situations {
     /**
      * @return All vehicle activities that have been updated since last request from requestor
      */
-    public List<PtSituationElement> getAllUpdates(String requestorId, String datasetId) {
+    public Collection<PtSituationElement> getAllUpdates(String requestorId, String datasetId) {
         if (requestorId != null) {
 
             Set<String> idSet = changesMap.get(requestorId);
@@ -80,7 +80,7 @@ public class Situations {
                 } else {
                     datasetFilteredIdSet.addAll(idSet);
                 }
-                List<PtSituationElement> changes = new ArrayList<>(situations.getAll(datasetFilteredIdSet).values());
+                Collection<PtSituationElement> changes = situations.getAll(datasetFilteredIdSet).values();
 
                 // Data may have been updated
                 Set<String> existingSet = changesMap.get(requestorId);

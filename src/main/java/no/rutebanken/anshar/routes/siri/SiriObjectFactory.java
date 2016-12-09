@@ -15,7 +15,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.List;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -336,7 +336,7 @@ public class SiriObjectFactory {
         return createMessageIdentifier(UUID.randomUUID().toString());
     }
 
-    public Siri createSXServiceDelivery(List<PtSituationElement> elements) {
+    public Siri createSXServiceDelivery(Collection<PtSituationElement> elements) {
         Siri siri = createSiriObject();
         ServiceDelivery delivery = new ServiceDelivery();
         SituationExchangeDeliveryStructure deliveryStructure = new SituationExchangeDeliveryStructure();
@@ -350,7 +350,7 @@ public class SiriObjectFactory {
         return siri;
     }
 
-    public Siri createVMServiceDelivery(List<VehicleActivityStructure> elements) {
+    public Siri createVMServiceDelivery(Collection<VehicleActivityStructure> elements) {
         Siri siri = createSiriObject();
         ServiceDelivery delivery = new ServiceDelivery();
         VehicleMonitoringDeliveryStructure deliveryStructure = new VehicleMonitoringDeliveryStructure();
@@ -363,7 +363,7 @@ public class SiriObjectFactory {
         return siri;
     }
 
-    public Siri createETServiceDelivery(List<EstimatedVehicleJourney> elements) {
+    public Siri createETServiceDelivery(Collection<EstimatedVehicleJourney> elements) {
         Siri siri = createSiriObject();
         ServiceDelivery delivery = new ServiceDelivery();
         EstimatedTimetableDeliveryStructure deliveryStructure = new EstimatedTimetableDeliveryStructure();
@@ -378,7 +378,7 @@ public class SiriObjectFactory {
         return siri;
     }
 
-    public Siri createPTServiceDelivery(List<ProductionTimetableDeliveryStructure> elements) {
+    public Siri createPTServiceDelivery(Collection<ProductionTimetableDeliveryStructure> elements) {
         Siri siri = createSiriObject();
         ServiceDelivery delivery = new ServiceDelivery();
         delivery.getProductionTimetableDeliveries().addAll(elements);
