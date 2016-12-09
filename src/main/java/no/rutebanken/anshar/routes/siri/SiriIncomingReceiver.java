@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import uk.org.siri.siri20.Siri;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -90,7 +91,9 @@ public class SiriIncomingReceiver extends RouteBuilder {
 
                         Siri response = handler.handleIncomingSiri(null, p.getIn().getBody(String.class), datasetId);
                         if (response != null) {
-                            p.getOut().setBody(SiriXml.toXml(response));
+                            logger.info("Found ServiceRequest-response, streaming response");
+                            HttpServletResponse out = p.getOut().getBody(HttpServletResponse.class);
+                            SiriXml.toXml(response, null, out.getOutputStream());
                         } else {
                             p.getOut().setBody(simple(null));
                         }
