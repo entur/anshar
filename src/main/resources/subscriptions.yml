@@ -182,7 +182,7 @@ anshar:
       mappingAdapterPresets: RUTER
       filterPresets:
       idMappingPrefixes: RUT,OPP,BRA,OST
-      active: true
+      active: false
 #    -
 #      internalId: 10
 #      vendor: ruteret
@@ -224,7 +224,7 @@ anshar:
       mappingAdapterPresets: RUTER
       filterPresets:
       idMappingPrefixes: RUT,OPP,BRA,OST
-      active: true
+      active: false
     -
       internalId: 12
       vendor: skysset
@@ -325,3 +325,43 @@ anshar:
       filterPresets: BYBANEN
       idMappingPrefixes: HRD
       active: true
+    -
+      internalId: 100
+      vendor: internRuterVm
+      datasetId: RUT
+      serviceType: REST
+      subscriptionType: VEHICLE_MONITORING
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 60
+      operatorNamespace: http://www.siri.org.uk/siri
+      urlMap:
+        SUBSCRIBE: mottak-beta.rutebanken.org/anshar/services/RUT
+        DELETE_SUBSCRIPTION: mottak-beta.rutebanken.org/anshar/services/RUT
+      version: 2.0
+      subscriptionId: ${random.uuid}
+      requestorRef: ${random.uuid}
+      durationOfSubscriptionHours: 168
+      mappingAdapterPresets:
+      filterPresets:
+      idMappingPrefixes: 
+      active: false
+    -
+      internalId: 101
+      vendor: internRuterEt
+      datasetId: RUT
+      serviceType: REST
+      subscriptionType: ESTIMATED_TIMETABLE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 60
+      operatorNamespace: http://www.siri.org.uk/siri
+      urlMap:
+        SUBSCRIBE: mottak-beta.rutebanken.org/anshar/services/RUT
+        DELETE_SUBSCRIPTION: mottak-beta.rutebanken.org/anshar/services/RUT
+      version: 2.0
+      subscriptionId: ${random.uuid}
+      requestorRef: ${random.uuid}
+      durationOfSubscriptionHours: 168
+      mappingAdapterPresets:
+      filterPresets:
+      idMappingPrefixes:
+      active: false
