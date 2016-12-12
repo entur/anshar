@@ -141,29 +141,29 @@ anshar:
       filterPresets:
       idMappingPrefixes: RUT,OPP,BRA,OST
       active: true
-#    -
-#      internalId: 8
-#      vendor: rutervm
-#      datasetId: RUT
-#      serviceType: REST
-#      subscriptionType: VEHICLE_MONITORING
-#      subscriptionMode: SUBSCRIBE
-#      heartbeatIntervalSeconds: 60
-#      operatorNamespace: http://www.siri.org.uk/siri
-#      urlMap:
-#        SUBSCRIBE: 109.239.226.193:8080/RutebankenDEV/vm/subscribe.xml
-#        DELETE_SUBSCRIPTION: 109.239.226.193:8080/RutebankenDEV/vm/managesubscription.xml
-#        CHECK_STATUS: 109.239.226.193:8080/RutebankenDEV/vm/checkstatus.xml
-#      version: 2.0
-#      subscriptionId: 20c2e3a3-1659-41d3-b1a2-1411978b1d43
-#      requestorRef: RutebankenDEV
-#      durationOfSubscriptionHours: 168
-#      mappingAdapterPresets: RUTER
-#      filterPresets:
-#      idMappingPrefixes: RUT,OPP,BRA,OST
-#      active: false
     -
       internalId: 8
+      vendor: rutervm
+      datasetId: RUT
+      serviceType: REST
+      subscriptionType: VEHICLE_MONITORING
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 60
+      operatorNamespace: http://www.siri.org.uk/siri
+      urlMap:
+        SUBSCRIBE: 109.239.226.193:8080/RutebankenDEV/vm/subscribe.xml
+        DELETE_SUBSCRIPTION: 109.239.226.193:8080/RutebankenDEV/vm/managesubscription.xml
+        CHECK_STATUS: 109.239.226.193:8080/RutebankenDEV/vm/checkstatus.xml
+      version: 2.0
+      subscriptionId: 20c2e3a3-1659-41d3-b1a2-1411978b1d43
+      requestorRef: RutebankenDEV
+      durationOfSubscriptionHours: 168
+      mappingAdapterPresets: RUTER
+      filterPresets:
+      idMappingPrefixes: RUT,OPP,BRA,OST
+      active: true
+    -
+      internalId: 9
       vendor: rutervm
       datasetId: RUT
       serviceType: REST
@@ -182,9 +182,30 @@ anshar:
       mappingAdapterPresets: RUTER
       filterPresets:
       idMappingPrefixes: RUT,OPP,BRA,OST
+      active: false
+    -
+      internalId: 10
+      vendor: ruteret
+      datasetId: RUT
+      serviceType: REST
+      subscriptionType: ESTIMATED_TIMETABLE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 60
+      operatorNamespace: http://www.siri.org.uk/siri
+      urlMap:
+        SUBSCRIBE: 109.239.226.193:8080/RutebankenDEV/et/subscribe.xml
+        DELETE_SUBSCRIPTION: 109.239.226.193:8080/RutebankenDEV/et/managesubscription.xml
+        CHECK_STATUS: 109.239.226.193:8080/RutebankenDEV/et/checkstatus.xml
+      version: 2.0
+      subscriptionId: 1f6a687e-58b8-4e46-a23c-98adadad78ed
+      requestorRef: RutebankenDEV
+      durationOfSubscriptionHours: 168
+      mappingAdapterPresets: RUTER
+      filterPresets:
+      idMappingPrefixes: RUT,OPP,BRA,OST
       active: true
     -
-      internalId: 9
+      internalId: 11
       vendor: ruteret
       datasetId: RUT
       serviceType: REST
@@ -203,9 +224,9 @@ anshar:
       mappingAdapterPresets: RUTER
       filterPresets:
       idMappingPrefixes: RUT,OPP,BRA,OST
-      active: true
+      active: false
     -
-      internalId: 10
+      internalId: 12
       vendor: skysset
       datasetId: HRD
       serviceType: REST
@@ -225,7 +246,7 @@ anshar:
       idMappingPrefixes: HRD
       active: false
     -
-      internalId: 11
+      internalId: 13
       vendor: skysssx
       datasetId: HRD
       serviceType: REST
@@ -245,7 +266,7 @@ anshar:
       idMappingPrefixes: HRD
       active: false
     -
-      internalId: 12
+      internalId: 14
       vendor: brakaret
       datasetId: BRA
       serviceType: REST
@@ -265,7 +286,7 @@ anshar:
       idMappingPrefixes: BRA
       active: true
     -
-      internalId: 13
+      internalId: 15
       vendor: brakarsx
       datasetId: BRA
       serviceType: REST
@@ -285,7 +306,7 @@ anshar:
       idMappingPrefixes: BRA
       active: true
     -
-      internalId: 14
+      internalId: 16
       vendor: bybanenEt
       datasetId: BYB
       serviceType: REST
