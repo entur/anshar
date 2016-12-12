@@ -203,7 +203,7 @@ anshar:
 #      mappingAdapterPresets: RUTER
 #      filterPresets:
 #      idMappingPrefixes: RUT,OPP,BRA,OST
-#      active: false
+#      active: true
     -
       internalId: 11
       vendor: ruteret
@@ -244,7 +244,7 @@ anshar:
       mappingAdapterPresets: SKYSS
       filterPresets:
       idMappingPrefixes: HRD
-      active: false
+      active: true
     -
       internalId: 13
       vendor: skysssx
@@ -264,7 +264,7 @@ anshar:
       mappingAdapterPresets: SKYSS
       filterPresets:
       idMappingPrefixes: HRD
-      active: false
+      active: true
     -
       internalId: 14
       vendor: brakaret
@@ -324,4 +324,4 @@ anshar:
       mappingAdapterPresets: SKYSS
       filterPresets: BYBANEN
       idMappingPrefixes: HRD
-      active: false
+      active: true
