@@ -11,7 +11,7 @@ import java.util.*;
 public class SubscriptionSetup implements Serializable{
 
     private long internalId;
-    private List<ValueAdapter> mappingAdapters;
+    private List<ValueAdapter> mappingAdapters = new ArrayList<>();
     private SubscriptionType subscriptionType;
     private String address;
     private Duration heartbeatInterval;
