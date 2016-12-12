@@ -94,13 +94,12 @@ public class Situations {
                 logger.info("Returning {} changes to requestorRef {}", changes.size(), requestorId);
                 return changes;
             } else {
-
                 logger.info("Returning all to requestorRef {}", requestorId);
-                changesMap.put(requestorId, new HashSet<>());
             }
+            changesMap.put(requestorId, new HashSet<>());
         }
 
-        return getAll();
+        return getAll(datasetId);
     }
 
     private long getExpiration(PtSituationElement situationElement) {

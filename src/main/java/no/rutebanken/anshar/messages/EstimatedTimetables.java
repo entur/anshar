@@ -77,7 +77,7 @@ public class EstimatedTimetables {
             }
         }
 
-        return getAll();
+        return getAll(datasetId);
     }
 
     public Collection<EstimatedVehicleJourney> getAll(String datasetId) {

@@ -99,7 +99,7 @@ public class VehicleActivities {
             }
         }
 
-        return getAll();
+        return getAll(datasetId);
     }
 
     private long getExpiration(VehicleActivityStructure a) {

@@ -91,7 +91,7 @@ public class ProductionTimetables {
             }
         }
 
-        return getAll();
+        return getAll(datasetId);
     }
 
     private long getExpiration(ProductionTimetableDeliveryStructure s) {
