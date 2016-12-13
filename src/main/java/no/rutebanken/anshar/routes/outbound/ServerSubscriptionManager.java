@@ -164,6 +164,7 @@ public class ServerSubscriptionManager extends CamelRouteManager {
                 SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
                 subscriptionRequest.getConsumerAddress() != null ? subscriptionRequest.getConsumerAddress():subscriptionRequest.getAddress(),
                 getHeartbeatInterval(subscriptionRequest),
+                getChangeBeforeUpdates(subscriptionRequest),
                 SubscriptionSetup.ServiceType.REST,
                 siriHelper.getFilter(subscriptionRequest),
                 findSubscriptionIdentifier(subscriptionRequest),
@@ -192,8 +193,21 @@ public class ServerSubscriptionManager extends CamelRouteManager {
             return SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING;
         } else if (siriHelper.containsValues(subscriptionRequest.getEstimatedTimetableSubscriptionRequests())) {
             return SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE;
+        } else if (siriHelper.containsValues(subscriptionRequest.getProductionTimetableSubscriptionRequests())) {
+            return SubscriptionSetup.SubscriptionType.PRODUCTION_TIMETABLE;
         }
         return null;
+    }
+
+    private long getChangeBeforeUpdates(SubscriptionRequest subscriptionRequest) {
+        if (siriHelper.containsValues(subscriptionRequest.getVehicleMonitoringSubscriptionRequests())) {
+            return subscriptionRequest.getVehicleMonitoringSubscriptionRequests().get(0).getChangeBeforeUpdates().getSeconds()*1000;
+        } else if (siriHelper.containsValues(subscriptionRequest.getEstimatedTimetableSubscriptionRequests())) {
+            return subscriptionRequest.getEstimatedTimetableSubscriptionRequests().get(0).getChangeBeforeUpdates().getSeconds()*1000;
+        } else if (siriHelper.containsValues(subscriptionRequest.getProductionTimetableSubscriptionRequests())) {
+            return subscriptionRequest.getEstimatedTimetableSubscriptionRequests().get(0).getChangeBeforeUpdates().getSeconds()*1000;
+        }
+        return 0;
     }
 
     private void addSubscription(OutboundSubscriptionSetup subscription) {

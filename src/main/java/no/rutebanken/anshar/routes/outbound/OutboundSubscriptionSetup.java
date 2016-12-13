@@ -21,14 +21,17 @@ public class OutboundSubscriptionSetup implements Serializable {
     private final ZonedDateTime initialTerminationTime;
     private final boolean active;
     private final String datasetId;
+    private final long changeBeforeUpdates;
 
-    public OutboundSubscriptionSetup(ZonedDateTime requestTimestamp, SubscriptionSetup.SubscriptionType subscriptionType, SubscriptionSetup.SubscriptionMode subscriptionMode, String address, long heartbeatInterval, SubscriptionSetup.ServiceType serviceType,
+    public OutboundSubscriptionSetup(ZonedDateTime requestTimestamp, SubscriptionSetup.SubscriptionType subscriptionType, SubscriptionSetup.SubscriptionMode subscriptionMode, String address, long heartbeatInterval,
+                                     long changeBeforeUpdates, SubscriptionSetup.ServiceType serviceType,
                                      Map<Class, Set<String>> filterMap, String subscriptionId, String requestorRef, ZonedDateTime initialTerminationTime, String datasetId, boolean active) {
         this.requestTimestamp = requestTimestamp;
         this.subscriptionType = subscriptionType;
         this.subscriptionMode = subscriptionMode;
         this.address = address;
         this.heartbeatInterval = heartbeatInterval;
+        this.changeBeforeUpdates = changeBeforeUpdates;
         this.serviceType = serviceType;
         this.filterMap = filterMap;
         this.subscriptionId = subscriptionId;
@@ -56,6 +59,10 @@ public class OutboundSubscriptionSetup implements Serializable {
 
     public long getHeartbeatInterval() {
         return heartbeatInterval;
+    }
+
+    public long getChangeBeforeUpdates() {
+        return changeBeforeUpdates;
     }
 
     public SubscriptionSetup.ServiceType getServiceType() {
