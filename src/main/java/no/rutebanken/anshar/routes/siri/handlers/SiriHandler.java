@@ -6,6 +6,7 @@ import no.rutebanken.anshar.messages.Situations;
 import no.rutebanken.anshar.messages.VehicleActivities;
 import no.rutebanken.anshar.routes.ServiceNotSupportedException;
 import no.rutebanken.anshar.routes.outbound.ServerSubscriptionManager;
+import no.rutebanken.anshar.routes.outbound.SiriHelper;
 import no.rutebanken.anshar.routes.siri.SiriObjectFactory;
 import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
@@ -19,10 +20,7 @@ import uk.org.siri.siri20.*;
 
 import javax.xml.bind.JAXBException;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class SiriHandler {
@@ -102,7 +100,29 @@ public class SiriHandler {
             if (hasValues(serviceRequest.getSituationExchangeRequests())) {
                 return siriObjectFactory.createSXServiceDelivery(situations.getAllUpdates(requestorRef, datasetId));
             } else if (hasValues(serviceRequest.getVehicleMonitoringRequests())) {
-                return siriObjectFactory.createVMServiceDelivery(vehicleActivities.getAllUpdates(requestorRef, datasetId));
+
+                Map<Class, Set<String>> filterMap = new HashMap<>();
+                for (VehicleMonitoringRequestStructure req : serviceRequest.getVehicleMonitoringRequests()) {
+                    LineRef lineRef = req.getLineRef();
+                    if (lineRef != null) {
+                        Set linerefList = filterMap.get(LineRef.class) != null ? filterMap.get(LineRef.class): new HashSet<>();
+                        linerefList.add(lineRef.getValue());
+                        filterMap.put(LineRef.class, linerefList);
+                    }
+                    VehicleRef vehicleRef = req.getVehicleRef();
+                    if (vehicleRef != null) {
+                        Set vehicleRefList = filterMap.get(VehicleRef.class) != null ? filterMap.get(VehicleRef.class): new HashSet<>();
+                        vehicleRefList.add(vehicleRef.getValue());
+                        filterMap.put(VehicleRef.class, vehicleRefList);
+                    }
+                }
+                if (!filterMap.isEmpty()) {
+                    //Filter is specified - return data even if they have not changed
+                    requestorRef = null;
+                }
+
+                Siri siri = siriObjectFactory.createVMServiceDelivery(vehicleActivities.getAllUpdates(requestorRef, datasetId));
+                return SiriHelper.filterSiriPayload(siri, filterMap);
             } else if (hasValues(serviceRequest.getEstimatedTimetableRequests())) {
                 return siriObjectFactory.createETServiceDelivery(estimatedTimetables.getAllUpdates(requestorRef, datasetId));
             } else if (hasValues(serviceRequest.getProductionTimetableRequests())) {
