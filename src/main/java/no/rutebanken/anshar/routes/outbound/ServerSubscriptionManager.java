@@ -201,11 +201,18 @@ public class ServerSubscriptionManager extends CamelRouteManager {
 
     private long getChangeBeforeUpdates(SubscriptionRequest subscriptionRequest) {
         if (siriHelper.containsValues(subscriptionRequest.getVehicleMonitoringSubscriptionRequests())) {
-            return subscriptionRequest.getVehicleMonitoringSubscriptionRequests().get(0).getChangeBeforeUpdates().getSeconds()*1000;
+            return getMilliSeconds(subscriptionRequest.getVehicleMonitoringSubscriptionRequests().get(0).getChangeBeforeUpdates());
         } else if (siriHelper.containsValues(subscriptionRequest.getEstimatedTimetableSubscriptionRequests())) {
-            return subscriptionRequest.getEstimatedTimetableSubscriptionRequests().get(0).getChangeBeforeUpdates().getSeconds()*1000;
+            return getMilliSeconds(subscriptionRequest.getEstimatedTimetableSubscriptionRequests().get(0).getChangeBeforeUpdates());
         } else if (siriHelper.containsValues(subscriptionRequest.getProductionTimetableSubscriptionRequests())) {
-            return subscriptionRequest.getEstimatedTimetableSubscriptionRequests().get(0).getChangeBeforeUpdates().getSeconds()*1000;
+            return getMilliSeconds(subscriptionRequest.getEstimatedTimetableSubscriptionRequests().get(0).getChangeBeforeUpdates());
+        }
+        return 0;
+    }
+
+    private long getMilliSeconds(Duration changeBeforeUpdates) {
+        if (changeBeforeUpdates != null) {
+            return changeBeforeUpdates.getSeconds()*1000;
         }
         return 0;
     }
