@@ -12,6 +12,17 @@ import java.util.List;
 @Component
 public class MappingAdapterPresets {
 
+    public List<ValueAdapter> getOutboundAdapters(boolean mapped) {
+        List<ValueAdapter> adapters = new ArrayList<>();
+        adapters.add(new OutboundOriginalAdapter(LineRef.class, mapped));
+        adapters.add(new OutboundOriginalAdapter(StopPointRef.class, mapped));
+        adapters.add(new OutboundOriginalAdapter(StopPlaceRef.class, mapped));
+        adapters.add(new OutboundOriginalAdapter(JourneyPlaceRefStructure.class, mapped));
+        adapters.add(new OutboundOriginalAdapter(DestinationRef.class, mapped));
+        adapters.add(new OutboundOriginalAdapter(CourseOfJourneyRefStructure.class, mapped));
+        return adapters;
+    }
+
     public List<ValueAdapter> get(SubscriptionPreset preset) {
 
         List<ValueAdapter> adapters = new ArrayList<>();
@@ -59,7 +70,7 @@ public class MappingAdapterPresets {
 
 
     public List<ValueAdapter> createIdPrefixAdapters(String datasetId) {
-        List<ValueAdapter> adapters = new ArrayList<>();
+         List<ValueAdapter> adapters = new ArrayList<>();
         adapters.add(new PrefixAdapter(LineRef.class, datasetId + ".Line."));
         adapters.add(new PrefixAdapter(CourseOfJourneyRefStructure.class, datasetId + ".VehicleJourney."));
         return adapters;

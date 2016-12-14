@@ -42,8 +42,6 @@ public class StopPlaceRegisterMapper extends ValueAdapter {
                 }
             }
         }
-
-//        logger.info("Unmapped StopPlace [{}]", id);
         return id;
     }
 

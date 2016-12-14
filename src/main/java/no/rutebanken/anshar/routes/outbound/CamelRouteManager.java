@@ -1,5 +1,6 @@
 package no.rutebanken.anshar.routes.outbound;
 
+import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
 import org.apache.camel.*;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.RouteDefinition;
@@ -52,6 +53,9 @@ public class CamelRouteManager implements CamelContextAware {
 
         
         Siri filteredPayload = siriHelper.filterSiriPayload(payload, subscriptionRequest.getFilterMap());
+
+        // Use original/mapped ids based on subscription
+        filteredPayload = SiriValueTransformer.transform(filteredPayload, subscriptionRequest.getValueAdapters());
 
         List<Siri> splitSiri = siriHelper.splitDeliveries(filteredPayload, 1000);
 

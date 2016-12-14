@@ -2,6 +2,7 @@ package no.rutebanken.anshar.routes.outbound;
 
 import com.hazelcast.core.IMap;
 import no.rutebanken.anshar.routes.siri.SiriObjectFactory;
+import no.rutebanken.anshar.subscription.MappingAdapterPresets;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -49,6 +50,8 @@ public class ServerSubscriptionManager extends CamelRouteManager {
     @Autowired
     private SiriObjectFactory siriObjectFactory;
 
+    @Autowired
+    private MappingAdapterPresets mappingAdapterPresets;
 
     @Value("${anshar.outbound.heartbeatinterval.minimum}")
     private long minimumHeartbeatInterval = 60000;
@@ -121,9 +124,9 @@ public class ServerSubscriptionManager extends CamelRouteManager {
         return stats;
     }
 
-    public void handleSubscriptionRequest(SubscriptionRequest subscriptionRequest, String datasetId) {
+    public void handleSubscriptionRequest( SubscriptionRequest subscriptionRequest, String datasetId, boolean useMappedId) {
 
-        OutboundSubscriptionSetup subscription = createSubscription(subscriptionRequest, datasetId);
+        OutboundSubscriptionSetup subscription = createSubscription(subscriptionRequest, datasetId, useMappedId);
 
         boolean hasError = false;
         String errorText = null;
@@ -156,7 +159,9 @@ public class ServerSubscriptionManager extends CamelRouteManager {
         }
     }
 
-    private OutboundSubscriptionSetup createSubscription(SubscriptionRequest subscriptionRequest, String datasetId) {
+
+
+    private OutboundSubscriptionSetup createSubscription(SubscriptionRequest subscriptionRequest, String datasetId, boolean useMappedId) {
 
         OutboundSubscriptionSetup setup = new OutboundSubscriptionSetup(
                 subscriptionRequest.getRequestTimestamp(),
@@ -167,6 +172,7 @@ public class ServerSubscriptionManager extends CamelRouteManager {
                 getChangeBeforeUpdates(subscriptionRequest),
                 SubscriptionSetup.ServiceType.REST,
                 siriHelper.getFilter(subscriptionRequest),
+                mappingAdapterPresets.getOutboundAdapters(useMappedId),
                 findSubscriptionIdentifier(subscriptionRequest),
                 subscriptionRequest.getRequestorRef().getValue(),
                 findInitialTerminationTime(subscriptionRequest),

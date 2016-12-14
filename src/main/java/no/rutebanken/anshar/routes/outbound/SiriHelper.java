@@ -13,6 +13,7 @@ import uk.org.siri.siri20.*;
 
 import javax.xml.bind.JAXBException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 public class SiriHelper {
@@ -266,9 +267,12 @@ public class SiriHelper {
                 VehicleActivityStructure.MonitoredVehicleJourney monitoredVehicleJourney = vehicleActivity.getMonitoredVehicleJourney();
                 if (monitoredVehicleJourney != null) {
                     if (monitoredVehicleJourney.getLineRef() != null) {
-                        if (linerefValues.contains(monitoredVehicleJourney.getLineRef().getValue())) {
-                            filteredActivities.add(vehicleActivity);
-                        }
+                        String value = monitoredVehicleJourney.getLineRef().getValue();
+                        filteredActivities.addAll(
+                                linerefValues.stream().filter(linerefValue ->
+                                        value.startsWith(linerefValue) | value.endsWith(linerefValue)
+                                ).map(linerefValue -> vehicleActivity)
+                                .collect(Collectors.toList()));
                     }
                 }
             }
@@ -286,9 +290,12 @@ public class SiriHelper {
                 List<EstimatedVehicleJourney> estimatedVehicleJourneies = version.getEstimatedVehicleJourneies();
                 for (EstimatedVehicleJourney estimatedVehicleJourney : estimatedVehicleJourneies) {
                     if (estimatedVehicleJourney.getLineRef() != null) {
-                        if (linerefValues.contains(estimatedVehicleJourney.getLineRef().getValue())) {
-                            matches.add(estimatedVehicleJourney);
-                        }
+                        String value = estimatedVehicleJourney.getLineRef().getValue();
+                        matches.addAll(linerefValues.stream()
+                                .filter(linerefValue ->
+                                        value.startsWith(linerefValue) | value.endsWith(linerefValue)
+                                ).map(linerefValue -> estimatedVehicleJourney)
+                                .collect(Collectors.toList()));
                     }
                 }
                 version.getEstimatedVehicleJourneies().clear();
@@ -370,9 +377,13 @@ public class SiriHelper {
                             for (AffectedLineStructure affectedLine : affectedLines) {
                                 LineRef lineRef = affectedLine.getLineRef();
                                 if (lineRef != null) {
-                                    if (linerefValues.contains(lineRef.getValue())) {
-                                        if (!filteredSituationElements.contains(s)) {
-                                            filteredSituationElements.add(s);
+
+                                    String value = lineRef.getValue();
+                                    for (String linerefValue : linerefValues) {
+                                        if (value.startsWith(linerefValue) | value.endsWith(linerefValue)) {
+                                            if (!filteredSituationElements.contains(s)) {
+                                                filteredSituationElements.add(s);
+                                            }
                                         }
                                     }
                                 }

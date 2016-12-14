@@ -4,6 +4,8 @@ import no.rutebanken.anshar.messages.EstimatedTimetables;
 import no.rutebanken.anshar.messages.ProductionTimetables;
 import no.rutebanken.anshar.messages.Situations;
 import no.rutebanken.anshar.messages.VehicleActivities;
+import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
+import no.rutebanken.anshar.subscription.MappingAdapterPresets;
 import org.apache.camel.builder.RouteBuilder;
 import org.rutebanken.siri20.util.SiriXml;
 import org.slf4j.Logger;
@@ -46,6 +48,9 @@ public class SiriProvider extends RouteBuilder {
     @Autowired
     private SiriObjectFactory siriObjectFactory;
 
+    @Autowired
+    private MappingAdapterPresets mappingAdapterPresets;
+
     @Override
     public void configure() throws Exception {
 
@@ -59,6 +64,7 @@ public class SiriProvider extends RouteBuilder {
                     HttpServletRequest request = p.getIn().getBody(HttpServletRequest.class);
                     String datasetId = request.getParameter("datasetId");
                     String requestorId = request.getParameter("requestorId");
+                    String originalId = request.getParameter("useOriginalId");
 
                     Siri response;
                     if (datasetId != null && !datasetId.isEmpty()) {
@@ -68,6 +74,10 @@ public class SiriProvider extends RouteBuilder {
                     } else {
                         response = siriObjectFactory.createSXServiceDelivery(situations.getAll());
                     }
+
+                    boolean useMappedId = useMappedId(originalId);
+                    response = SiriValueTransformer.transform(response, mappingAdapterPresets.getOutboundAdapters(useMappedId));
+
                     HttpServletResponse out = p.getOut().getBody(HttpServletResponse.class);
 
                     SiriXml.toXml(response, null, out.getOutputStream());
@@ -83,6 +93,7 @@ public class SiriProvider extends RouteBuilder {
                     HttpServletRequest request = p.getIn().getBody(HttpServletRequest.class);
                     String datasetId = request.getParameter("datasetId");
                     String requestorId = request.getParameter("requestorId");
+                    String originalId = request.getParameter("useOriginalId");
 
                     Siri response;
                     if (datasetId != null && !datasetId.isEmpty()) {
@@ -92,6 +103,10 @@ public class SiriProvider extends RouteBuilder {
                     } else {
                         response = siriObjectFactory.createVMServiceDelivery(vehicleActivities.getAll());
                     }
+
+                    boolean useMappedId = useMappedId(originalId);
+                    response = SiriValueTransformer.transform(response, mappingAdapterPresets.getOutboundAdapters(useMappedId));
+
                     HttpServletResponse out = p.getOut().getBody(HttpServletResponse.class);
 
                     SiriXml.toXml(response, null, out.getOutputStream());
@@ -108,6 +123,7 @@ public class SiriProvider extends RouteBuilder {
                     HttpServletRequest request = p.getIn().getBody(HttpServletRequest.class);
                     String datasetId = request.getParameter("datasetId");
                     String requestorId = request.getParameter("requestorId");
+                    String originalId = request.getParameter("useOriginalId");
 
                     Siri response;
                     if (datasetId != null && !datasetId.isEmpty()) {
@@ -117,6 +133,10 @@ public class SiriProvider extends RouteBuilder {
                     } else {
                         response = siriObjectFactory.createETServiceDelivery(estimatedTimetables.getAll());
                     }
+
+                    boolean useMappedId = useMappedId(originalId);
+                    response = SiriValueTransformer.transform(response, mappingAdapterPresets.getOutboundAdapters(useMappedId));
+
                     HttpServletResponse out = p.getOut().getBody(HttpServletResponse.class);
 
                     SiriXml.toXml(response, null, out.getOutputStream());
@@ -133,19 +153,34 @@ public class SiriProvider extends RouteBuilder {
                     HttpServletRequest request = p.getIn().getBody(HttpServletRequest.class);
                     String datasetId = request.getParameter("datasetId");
                     String requestorId = request.getParameter("requestorId");
+                    String originalId = request.getParameter("useOriginalId");
+
                     Siri response;
                     if (datasetId != null && !datasetId.isEmpty()) {
                         response = siriObjectFactory.createPTServiceDelivery(productionTimetables.getAll(datasetId));
-                    }  else if (requestorId != null && !requestorId.isEmpty()) {
+                    } else if (requestorId != null && !requestorId.isEmpty()) {
                         response = siriObjectFactory.createPTServiceDelivery(productionTimetables.getAllUpdates(requestorId, datasetId));
                     } else {
                         response = siriObjectFactory.createPTServiceDelivery(productionTimetables.getAll());
                     }
+
+                    boolean useMappedId = useMappedId(originalId);
+                    response = SiriValueTransformer.transform(response, mappingAdapterPresets.getOutboundAdapters(useMappedId));
+
                     HttpServletResponse out = p.getOut().getBody(HttpServletResponse.class);
 
                     SiriXml.toXml(response, null, out.getOutputStream());
                 })
                 .log("RequestTracer - Request done (PT)")
         ;
+    }
+
+    // Mapped ID is default, but original ID may be returned by using optional parameter
+    private boolean useMappedId(String originalId) {
+        boolean useMappedId = true;
+        if (originalId != null && Boolean.valueOf(originalId)) {
+            useMappedId = !Boolean.valueOf(originalId);
+        }
+        return useMappedId;
     }
 }

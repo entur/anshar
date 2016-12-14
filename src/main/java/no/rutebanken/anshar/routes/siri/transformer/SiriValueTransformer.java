@@ -1,5 +1,6 @@
 package no.rutebanken.anshar.routes.siri.transformer;
 
+import no.rutebanken.anshar.routes.siri.transformer.impl.OutboundOriginalAdapter;
 import org.rutebanken.siri20.util.SiriXml;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,10 +9,11 @@ import uk.org.siri.siri20.Siri;
 import javax.xml.bind.JAXBException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.LinkedHashMap;
 import java.util.List;
 
 public class SiriValueTransformer {
+
+    public static final String SEPARATOR = "$";
 
     private static Logger logger = LoggerFactory.getLogger(SiriValueTransformer.class);
 
@@ -69,10 +71,28 @@ public class SiriValueTransformer {
                         Object previousValue = method.invoke(obj);
                         if (previousValue != null) {
                             String value = (String) previousValue.getClass().getMethod("getValue").invoke(previousValue);
-                            Object transformedValue = adapter.apply(value);
+                            String alteredValue;
+
+                            String originalId = value;
+
+                            if (adapter instanceof OutboundOriginalAdapter) {
+                                alteredValue = adapter.apply(value);
+                            } else {
+                                if (value.contains(SEPARATOR)) {
+                                    originalId = value.substring(0, value.indexOf(SEPARATOR));
+                                    alteredValue = adapter.apply(value.substring(value.indexOf(SEPARATOR)+SEPARATOR.length()));
+                                } else {
+                                    alteredValue = adapter.apply(value);
+                                }
+
+                                if (!alteredValue.equals(originalId)) {
+                                    alteredValue = originalId + SEPARATOR + alteredValue;
+                                }
+                            }
+
 
                             Method valueSetter = previousValue.getClass().getMethod("setValue", String.class);
-                            valueSetter.invoke(previousValue, transformedValue);
+                            valueSetter.invoke(previousValue, alteredValue);
                         }
                     } else {
                         Object currentValue = method.invoke(obj);
@@ -89,7 +109,6 @@ public class SiriValueTransformer {
                     }
                 }
             }
-
         }
     }
 }

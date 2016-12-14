@@ -9,6 +9,7 @@ import no.rutebanken.anshar.routes.outbound.ServerSubscriptionManager;
 import no.rutebanken.anshar.routes.outbound.SiriHelper;
 import no.rutebanken.anshar.routes.siri.SiriObjectFactory;
 import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
+import no.rutebanken.anshar.subscription.MappingAdapterPresets;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.json.simple.JSONObject;
@@ -16,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.w3c.dom.Element;
 import uk.org.siri.siri20.*;
 
 import javax.xml.bind.JAXBException;
@@ -48,6 +50,10 @@ public class SiriHandler {
     @Autowired
     private SiriObjectFactory siriObjectFactory;
 
+
+    @Autowired
+    private MappingAdapterPresets mappingAdapterPresets;
+
     public SiriHandler() {
 
     }
@@ -78,9 +84,11 @@ public class SiriHandler {
     private Siri processSiriServerRequest(String xml, String datasetId) throws JAXBException {
         Siri incoming = SiriValueTransformer.parseXml(xml);
 
+        boolean useMappedId = useMappedId(incoming);
+
         if (incoming.getSubscriptionRequest() != null) {
             logger.info("Handling subscriptionrequest...");
-            serverSubscriptionManager.handleSubscriptionRequest(incoming.getSubscriptionRequest(), datasetId);
+            serverSubscriptionManager.handleSubscriptionRequest(incoming.getSubscriptionRequest(), datasetId, useMappedId);
 
         } else if (incoming.getTerminateSubscriptionRequest() != null) {
             logger.info("Handling terminateSubscriptionrequest...");
@@ -94,11 +102,14 @@ public class SiriHandler {
             ServiceRequest serviceRequest = incoming.getServiceRequest();
             String requestorRef = null;
 
+            Siri serviceResponse = null;
+
             if (serviceRequest.getRequestorRef() != null) {
                 requestorRef = serviceRequest.getRequestorRef().getValue();
             }
+
             if (hasValues(serviceRequest.getSituationExchangeRequests())) {
-                return siriObjectFactory.createSXServiceDelivery(situations.getAllUpdates(requestorRef, datasetId));
+                serviceResponse = siriObjectFactory.createSXServiceDelivery(situations.getAllUpdates(requestorRef, datasetId));
             } else if (hasValues(serviceRequest.getVehicleMonitoringRequests())) {
 
                 Map<Class, Set<String>> filterMap = new HashMap<>();
@@ -122,15 +133,36 @@ public class SiriHandler {
                 }
 
                 Siri siri = siriObjectFactory.createVMServiceDelivery(vehicleActivities.getAllUpdates(requestorRef, datasetId));
-                return SiriHelper.filterSiriPayload(siri, filterMap);
+                serviceResponse = SiriHelper.filterSiriPayload(siri, filterMap);
             } else if (hasValues(serviceRequest.getEstimatedTimetableRequests())) {
-                return siriObjectFactory.createETServiceDelivery(estimatedTimetables.getAllUpdates(requestorRef, datasetId));
+                serviceResponse = siriObjectFactory.createETServiceDelivery(estimatedTimetables.getAllUpdates(requestorRef, datasetId));
             } else if (hasValues(serviceRequest.getProductionTimetableRequests())) {
-                return siriObjectFactory.createPTServiceDelivery(productionTimetables.getAllUpdates(requestorRef, datasetId));
+                serviceResponse = siriObjectFactory.createPTServiceDelivery(productionTimetables.getAllUpdates(requestorRef, datasetId));
+            }
+
+            if (serviceResponse != null) {
+                return SiriValueTransformer.transform(serviceResponse, mappingAdapterPresets.getOutboundAdapters(useMappedId));
             }
         }
 
         return null;
+    }
+
+    private boolean useMappedId(Siri siri) {
+        boolean useMappedId = true;
+        Extensions extensions = siri.getExtensions();
+        if (extensions != null && extensions.getAnies() != null) {
+            for (Element element : extensions.getAnies()) {
+                if ("IdMapping".equalsIgnoreCase(element.getLocalName())) {
+                    String nsrAttr = element.getAttribute("useOriginalId");
+                    if (nsrAttr != null) {
+                        boolean useOriginalId = Boolean.valueOf(nsrAttr);
+                        useMappedId = !useOriginalId;
+                    }
+                }
+            }
+        }
+        return useMappedId;
     }
 
     private boolean hasValues(List list) {

@@ -4,6 +4,7 @@ import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.routes.siri.transformer.impl.LeftPaddingAdapter;
 import no.rutebanken.anshar.routes.siri.transformer.impl.RuterSubstringAdapter;
+import no.rutebanken.anshar.subscription.MappingAdapterPresets;
 import org.junit.Test;
 import uk.org.siri.siri20.*;
 
@@ -60,7 +61,7 @@ public class SiriValueTransformerTest {
 
         assertEquals(lineRefValue, getLineRefFromSiriObj(siri));
         assertEquals(blockRefValue, getBlockRefFromSiriObj(siri));
-        String paddedLineRef = "0099";
+        String paddedLineRef = lineRefValue + SiriValueTransformer.SEPARATOR + "0099";
 
         List<ValueAdapter> mappingAdapters = new ArrayList<>();
         mappingAdapters.add(new LeftPaddingAdapter(LineRef.class, 4, '0'));
@@ -83,7 +84,7 @@ public class SiriValueTransformerTest {
 
         assertEquals(lineRefValue, getLineRefFromSiriObj(siri));
         assertEquals(blockRefValue, getBlockRefFromSiriObj(siri));
-        String paddedLineRef = "012304";
+        String paddedLineRef = lineRefValue + SiriValueTransformer.SEPARATOR + "012304";
 
         List<ValueAdapter> mappingAdapters = new ArrayList<>();
         mappingAdapters.add(new RuterSubstringAdapter(LineRef.class, ':', '0', 2));
@@ -97,6 +98,37 @@ public class SiriValueTransformerTest {
     }
 
     @Test
+    public void testOutboundMappingAdapters() throws JAXBException {
+        SiriValueTransformer transformer = new SiriValueTransformer();
+
+        String lineRefValue = "123:4";
+        String blockRefValue = "";
+
+        Siri siri = createSiriObject(lineRefValue, blockRefValue);
+
+        assertEquals(lineRefValue, getLineRefFromSiriObj(siri));
+        assertEquals(blockRefValue, getBlockRefFromSiriObj(siri));
+        String paddedLineRef = lineRefValue + SiriValueTransformer.SEPARATOR + "012304";
+
+        List<ValueAdapter> mappingAdapters = new ArrayList<>();
+        mappingAdapters.add(new RuterSubstringAdapter(LineRef.class, ':', '0', 2));
+        mappingAdapters.add(new LeftPaddingAdapter(LineRef.class, 6, '0'));
+
+        siri = transformer.transform(siri, mappingAdapters);
+
+        assertEquals("LineRef has not been padded as expected", paddedLineRef, getLineRefFromSiriObj(siri));
+        assertEquals("BlockRef should not be padded", blockRefValue, getBlockRefFromSiriObj(siri));
+
+
+        Siri originalIdSiri = transformer.transform(siri, new MappingAdapterPresets().getOutboundAdapters(false));
+        assertEquals("Outbound madapters did not return original id", lineRefValue, getLineRefFromSiriObj(originalIdSiri));
+
+        Siri mappedIdSiri = transformer.transform(siri, new MappingAdapterPresets().getOutboundAdapters(true));
+        assertEquals("Outbound madapters did not return mapped id", lineRefValue, getLineRefFromSiriObj(mappedIdSiri));
+
+    }
+
+    @Test
     public void testLongLineRefRuterSubstring() throws JAXBException {
         SiriValueTransformer transformer = new SiriValueTransformer();
 
@@ -105,7 +137,7 @@ public class SiriValueTransformerTest {
         Siri siri = createSiriObject(lineRefValue, null);
 
         assertEquals(lineRefValue, getLineRefFromSiriObj(siri));
-        String trimmedLineRef = "9999123";
+        String trimmedLineRef = lineRefValue + SiriValueTransformer.SEPARATOR + "9999123";
 
         List<ValueAdapter> mappingAdapters = new ArrayList<>();
         mappingAdapters.add(new RuterSubstringAdapter(LineRef.class, ':', '0', 2));
@@ -125,7 +157,7 @@ public class SiriValueTransformerTest {
         Siri siri = createSiriObject(lineRefValue, null);
 
         assertEquals(lineRefValue, getLineRefFromSiriObj(siri));
-        String trimmedLineRef = "999903";
+        String trimmedLineRef = lineRefValue + SiriValueTransformer.SEPARATOR + "999903";
 
         List<ValueAdapter> mappingAdapters = new ArrayList<>();
         mappingAdapters.add(new RuterSubstringAdapter(LineRef.class, ':', '0', 2));
@@ -147,7 +179,7 @@ public class SiriValueTransformerTest {
 
         assertEquals(lineRefValue, getLineRefFromSiriObj(siri));
         assertEquals(blockRefValue, getBlockRefFromSiriObj(siri));
-        String paddedBlockRef = "0034";
+        String paddedBlockRef = blockRefValue + SiriValueTransformer.SEPARATOR + "0034";
 
         List<ValueAdapter> mappingAdapters = new ArrayList<>();
         mappingAdapters.add(new LeftPaddingAdapter(BlockRefStructure.class, 4, '0'));
@@ -171,8 +203,8 @@ public class SiriValueTransformerTest {
         assertEquals(lineRefValue, getLineRefFromSiriObj(siri));
         assertEquals(blockRefValue, getBlockRefFromSiriObj(siri));
 
-        String paddedLineRef = "0099";
-        String paddedBlockRef = "0034";
+        String paddedLineRef = lineRefValue + SiriValueTransformer.SEPARATOR + "0099";
+        String paddedBlockRef = blockRefValue + SiriValueTransformer.SEPARATOR + "0034";
 
         List<ValueAdapter> mappingAdapters = new ArrayList<>();
         mappingAdapters.add(new LeftPaddingAdapter(BlockRefStructure.class, 4, '0'));
