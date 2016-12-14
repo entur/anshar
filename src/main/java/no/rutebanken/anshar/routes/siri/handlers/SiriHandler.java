@@ -87,7 +87,7 @@ public class SiriHandler {
         boolean useMappedId = useMappedId(incoming);
 
         if (incoming.getSubscriptionRequest() != null) {
-            logger.info("Handling subscriptionrequest...");
+            logger.info("Handling subscriptionrequest requesting {} ids...", (useMappedId ? "mapped": "original"));
             serverSubscriptionManager.handleSubscriptionRequest(incoming.getSubscriptionRequest(), datasetId, useMappedId);
 
         } else if (incoming.getTerminateSubscriptionRequest() != null) {
@@ -98,7 +98,7 @@ public class SiriHandler {
             logger.info("Handling checkStatusRequest...");
             return serverSubscriptionManager.handleCheckStatusRequest(incoming.getCheckStatusRequest());
         } else if (incoming.getServiceRequest() != null) {
-            logger.info("Handling serviceRequest...");
+            logger.info("Handling serviceRequest requesting {} ids...", (useMappedId ? "mapped": "original"));
             ServiceRequest serviceRequest = incoming.getServiceRequest();
             String requestorRef = null;
 

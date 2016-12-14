@@ -91,6 +91,7 @@ public class SiriProvider extends RouteBuilder {
                     Siri  response = siriObjectFactory.createVMServiceDelivery(vehicleActivities.getAllUpdates(requestorId, datasetId));
 
                     boolean useMappedId = useMappedId(originalId);
+
                     response = SiriValueTransformer.transform(response, mappingAdapterPresets.getOutboundAdapters(useMappedId));
 
                     HttpServletResponse out = p.getOut().getBody(HttpServletResponse.class);
@@ -153,6 +154,7 @@ public class SiriProvider extends RouteBuilder {
         if (originalId != null && Boolean.valueOf(originalId)) {
             useMappedId = !Boolean.valueOf(originalId);
         }
+        logger.info("Requested {} ids...", (useMappedId ? "mapped": "original"));
         return useMappedId;
     }
 }
