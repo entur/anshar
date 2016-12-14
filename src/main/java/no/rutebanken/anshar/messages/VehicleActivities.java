@@ -144,8 +144,8 @@ public class VehicleActivities {
                     outdatedCounter.increment();
                 }
             } else {
-                if (locationValid) {invalidLocationCounter.increment();}
-                if (activityMeaningful) {notMeaningfulCounter.increment();}
+                if (!locationValid) {invalidLocationCounter.increment();}
+                if (!activityMeaningful) {notMeaningfulCounter.increment();}
             }
         });
 
