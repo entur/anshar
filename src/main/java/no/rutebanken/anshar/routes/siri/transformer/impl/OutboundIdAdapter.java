@@ -4,11 +4,11 @@ package no.rutebanken.anshar.routes.siri.transformer.impl;
 import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 
-public class OutboundOriginalAdapter extends ValueAdapter {
+public class OutboundIdAdapter extends ValueAdapter {
 
     private boolean mapped;
 
-    public OutboundOriginalAdapter(Class clazz, boolean mapped) {
+    public OutboundIdAdapter(Class clazz, boolean mapped) {
         super(clazz);
         this.mapped = mapped;
     }
@@ -19,11 +19,19 @@ public class OutboundOriginalAdapter extends ValueAdapter {
         }
         if (text.indexOf(SiriValueTransformer.SEPARATOR) > 0) {
             if (mapped) {
-                text = text.substring(text.indexOf(SiriValueTransformer.SEPARATOR)+1);
+                text = getMappedId(text);
             } else {
-                text = text.substring(0, text.indexOf(SiriValueTransformer.SEPARATOR));
+                text = getOriginalId(text);
             }
         }
         return text;
+    }
+
+    public static String getOriginalId(String text) {
+        return text.substring(0, text.indexOf(SiriValueTransformer.SEPARATOR));
+    }
+
+    public static String getMappedId(String text) {
+        return text.substring(text.indexOf(SiriValueTransformer.SEPARATOR)+1);
     }
 }

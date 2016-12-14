@@ -1,6 +1,6 @@
 package no.rutebanken.anshar.routes.siri.transformer;
 
-import no.rutebanken.anshar.routes.siri.transformer.impl.OutboundOriginalAdapter;
+import no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter;
 import org.rutebanken.siri20.util.SiriXml;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,7 +75,7 @@ public class SiriValueTransformer {
 
                             String originalId = value;
 
-                            if (adapter instanceof OutboundOriginalAdapter) {
+                            if (adapter instanceof OutboundIdAdapter) {
                                 alteredValue = adapter.apply(value);
                             } else {
                                 if (value.contains(SEPARATOR)) {

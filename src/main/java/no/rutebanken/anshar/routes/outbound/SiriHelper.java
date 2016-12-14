@@ -5,6 +5,8 @@ import no.rutebanken.anshar.messages.ProductionTimetables;
 import no.rutebanken.anshar.messages.Situations;
 import no.rutebanken.anshar.messages.VehicleActivities;
 import no.rutebanken.anshar.routes.siri.SiriObjectFactory;
+import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
+import no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,7 +15,6 @@ import uk.org.siri.siri20.*;
 
 import javax.xml.bind.JAXBException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Component
 public class SiriHelper {
@@ -267,12 +268,16 @@ public class SiriHelper {
                 VehicleActivityStructure.MonitoredVehicleJourney monitoredVehicleJourney = vehicleActivity.getMonitoredVehicleJourney();
                 if (monitoredVehicleJourney != null) {
                     if (monitoredVehicleJourney.getLineRef() != null) {
-                        String value = monitoredVehicleJourney.getLineRef().getValue();
-                        filteredActivities.addAll(
-                                linerefValues.stream().filter(linerefValue ->
-                                        value.startsWith(linerefValue) | value.endsWith(linerefValue)
-                                ).map(linerefValue -> vehicleActivity)
-                                .collect(Collectors.toList()));
+                        String completeValue = monitoredVehicleJourney.getLineRef().getValue();
+                        if (completeValue.contains(SiriValueTransformer.SEPARATOR)) {
+                            String mappedId = OutboundIdAdapter.getMappedId(completeValue);
+                            String originalId = OutboundIdAdapter.getOriginalId(completeValue);
+                            if (linerefValues.contains(mappedId) | linerefValues.contains(originalId)) {
+                                filteredActivities.add(vehicleActivity);
+                            }
+                        } else if (linerefValues.contains(completeValue)) {
+                            filteredActivities.add(vehicleActivity);
+                        }
                     }
                 }
             }
@@ -290,12 +295,16 @@ public class SiriHelper {
                 List<EstimatedVehicleJourney> estimatedVehicleJourneies = version.getEstimatedVehicleJourneies();
                 for (EstimatedVehicleJourney estimatedVehicleJourney : estimatedVehicleJourneies) {
                     if (estimatedVehicleJourney.getLineRef() != null) {
-                        String value = estimatedVehicleJourney.getLineRef().getValue();
-                        matches.addAll(linerefValues.stream()
-                                .filter(linerefValue ->
-                                        value.startsWith(linerefValue) | value.endsWith(linerefValue)
-                                ).map(linerefValue -> estimatedVehicleJourney)
-                                .collect(Collectors.toList()));
+                        String completeValue = estimatedVehicleJourney.getLineRef().getValue();
+                        if (completeValue.contains(SiriValueTransformer.SEPARATOR)) {
+                            String mappedId = OutboundIdAdapter.getMappedId(completeValue);
+                            String originalId = OutboundIdAdapter.getOriginalId(completeValue);
+                            if (linerefValues.contains(mappedId) | linerefValues.contains(originalId)) {
+                                matches.add(estimatedVehicleJourney);
+                            }
+                        } else if (linerefValues.contains(completeValue)) {
+                            matches.add(estimatedVehicleJourney);
+                        }
                     }
                 }
                 version.getEstimatedVehicleJourneies().clear();
@@ -376,15 +385,16 @@ public class SiriHelper {
                         if (affectedLines != null) {
                             for (AffectedLineStructure affectedLine : affectedLines) {
                                 LineRef lineRef = affectedLine.getLineRef();
-                                if (lineRef != null) {
-
-                                    String value = lineRef.getValue();
-                                    for (String linerefValue : linerefValues) {
-                                        if (value.startsWith(linerefValue) | value.endsWith(linerefValue)) {
-                                            if (!filteredSituationElements.contains(s)) {
-                                                filteredSituationElements.add(s);
-                                            }
+                                if (!filteredSituationElements.contains(s) && lineRef != null) {
+                                    String completeValue = lineRef.getValue();
+                                    if (completeValue.contains(SiriValueTransformer.SEPARATOR)) {
+                                        String mappedId = OutboundIdAdapter.getMappedId(completeValue);
+                                        String originalId = OutboundIdAdapter.getOriginalId(completeValue);
+                                        if (linerefValues.contains(mappedId) | linerefValues.contains(originalId)) {
+                                            filteredSituationElements.add(s);
                                         }
+                                    } else if (linerefValues.contains(completeValue)) {
+                                        filteredSituationElements.add(s);
                                     }
                                 }
                             }

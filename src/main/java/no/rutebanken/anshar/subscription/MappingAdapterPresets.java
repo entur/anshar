@@ -14,12 +14,12 @@ public class MappingAdapterPresets {
 
     public List<ValueAdapter> getOutboundAdapters(boolean mapped) {
         List<ValueAdapter> adapters = new ArrayList<>();
-        adapters.add(new OutboundOriginalAdapter(LineRef.class, mapped));
-        adapters.add(new OutboundOriginalAdapter(StopPointRef.class, mapped));
-        adapters.add(new OutboundOriginalAdapter(StopPlaceRef.class, mapped));
-        adapters.add(new OutboundOriginalAdapter(JourneyPlaceRefStructure.class, mapped));
-        adapters.add(new OutboundOriginalAdapter(DestinationRef.class, mapped));
-        adapters.add(new OutboundOriginalAdapter(CourseOfJourneyRefStructure.class, mapped));
+        adapters.add(new OutboundIdAdapter(LineRef.class, mapped));
+        adapters.add(new OutboundIdAdapter(StopPointRef.class, mapped));
+        adapters.add(new OutboundIdAdapter(StopPlaceRef.class, mapped));
+        adapters.add(new OutboundIdAdapter(JourneyPlaceRefStructure.class, mapped));
+        adapters.add(new OutboundIdAdapter(DestinationRef.class, mapped));
+        adapters.add(new OutboundIdAdapter(CourseOfJourneyRefStructure.class, mapped));
         return adapters;
     }
 
