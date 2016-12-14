@@ -66,14 +66,7 @@ public class SiriProvider extends RouteBuilder {
                     String requestorId = request.getParameter("requestorId");
                     String originalId = request.getParameter("useOriginalId");
 
-                    Siri response;
-                    if (datasetId != null && !datasetId.isEmpty()) {
-                        response = siriObjectFactory.createSXServiceDelivery(situations.getAll(datasetId));
-                    }  else if (requestorId != null && !requestorId.isEmpty()) {
-                        response = siriObjectFactory.createSXServiceDelivery(situations.getAllUpdates(requestorId, datasetId));
-                    } else {
-                        response = siriObjectFactory.createSXServiceDelivery(situations.getAll());
-                    }
+                    Siri response = siriObjectFactory.createSXServiceDelivery(situations.getAllUpdates(requestorId, datasetId));
 
                     boolean useMappedId = useMappedId(originalId);
                     response = SiriValueTransformer.transform(response, mappingAdapterPresets.getOutboundAdapters(useMappedId));
@@ -95,14 +88,7 @@ public class SiriProvider extends RouteBuilder {
                     String requestorId = request.getParameter("requestorId");
                     String originalId = request.getParameter("useOriginalId");
 
-                    Siri response;
-                    if (datasetId != null && !datasetId.isEmpty()) {
-                        response = siriObjectFactory.createVMServiceDelivery(vehicleActivities.getAll(datasetId));
-                    }  else if (requestorId != null && !requestorId.isEmpty()) {
-                        response = siriObjectFactory.createVMServiceDelivery(vehicleActivities.getAllUpdates(requestorId, datasetId));
-                    } else {
-                        response = siriObjectFactory.createVMServiceDelivery(vehicleActivities.getAll());
-                    }
+                    Siri  response = siriObjectFactory.createVMServiceDelivery(vehicleActivities.getAllUpdates(requestorId, datasetId));
 
                     boolean useMappedId = useMappedId(originalId);
                     response = SiriValueTransformer.transform(response, mappingAdapterPresets.getOutboundAdapters(useMappedId));
@@ -125,14 +111,7 @@ public class SiriProvider extends RouteBuilder {
                     String requestorId = request.getParameter("requestorId");
                     String originalId = request.getParameter("useOriginalId");
 
-                    Siri response;
-                    if (datasetId != null && !datasetId.isEmpty()) {
-                        response = siriObjectFactory.createETServiceDelivery(estimatedTimetables.getAll(datasetId));
-                    } else if (requestorId != null && !requestorId.isEmpty()) {
-                        response = siriObjectFactory.createETServiceDelivery(estimatedTimetables.getAllUpdates(requestorId, datasetId));
-                    } else {
-                        response = siriObjectFactory.createETServiceDelivery(estimatedTimetables.getAll());
-                    }
+                    Siri response = siriObjectFactory.createETServiceDelivery(estimatedTimetables.getAllUpdates(requestorId, datasetId));
 
                     boolean useMappedId = useMappedId(originalId);
                     response = SiriValueTransformer.transform(response, mappingAdapterPresets.getOutboundAdapters(useMappedId));
@@ -155,14 +134,7 @@ public class SiriProvider extends RouteBuilder {
                     String requestorId = request.getParameter("requestorId");
                     String originalId = request.getParameter("useOriginalId");
 
-                    Siri response;
-                    if (datasetId != null && !datasetId.isEmpty()) {
-                        response = siriObjectFactory.createPTServiceDelivery(productionTimetables.getAll(datasetId));
-                    } else if (requestorId != null && !requestorId.isEmpty()) {
-                        response = siriObjectFactory.createPTServiceDelivery(productionTimetables.getAllUpdates(requestorId, datasetId));
-                    } else {
-                        response = siriObjectFactory.createPTServiceDelivery(productionTimetables.getAll());
-                    }
+                    Siri response = siriObjectFactory.createPTServiceDelivery(productionTimetables.getAllUpdates(requestorId, datasetId));
 
                     boolean useMappedId = useMappedId(originalId);
                     response = SiriValueTransformer.transform(response, mappingAdapterPresets.getOutboundAdapters(useMappedId));
