@@ -341,10 +341,10 @@ anshar:
       subscriptionId: ${random.uuid}
       requestorRef: ${random.uuid}
       durationOfSubscriptionHours: 168
-      mappingAdapterPresets:
+      mappingAdapterPresets: RUTER
       filterPresets:
       idMappingPrefixes: 
-      active: false
+      active: true
     -
       internalId: 101
       vendor: internRuterEt
@@ -361,7 +361,7 @@ anshar:
       subscriptionId: ${random.uuid}
       requestorRef: ${random.uuid}
       durationOfSubscriptionHours: 168
-      mappingAdapterPresets:
+      mappingAdapterPresets: RUTER
       filterPresets:
       idMappingPrefixes:
-      active: false
+      active: true
