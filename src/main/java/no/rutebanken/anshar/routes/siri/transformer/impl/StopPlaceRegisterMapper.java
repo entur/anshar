@@ -46,7 +46,11 @@ public class StopPlaceRegisterMapper extends ValueAdapter {
     }
 
     private String createCompleteId(String prefix, String id) {
-        return new StringBuilder().append(prefix).append(":").append("StopArea").append(":").append(id).toString();
+        String stopAreaPrefix = new StringBuilder().append(prefix).append(":").append("StopArea").append(":").toString();
+        if (id.startsWith(stopAreaPrefix)) {
+            return id;
+        }
+        return new StringBuilder().append(stopAreaPrefix).append(id).toString();
     }
 
 }

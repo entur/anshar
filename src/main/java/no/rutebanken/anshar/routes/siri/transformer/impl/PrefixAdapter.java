@@ -17,6 +17,10 @@ public class PrefixAdapter extends ValueAdapter {
         if (text == null || text.isEmpty()) {
             return text;
         }
+        if (text.startsWith(prefix)) {
+            //Already prefixed
+            return text;
+        }
         return prefix+text;
     }
 }

@@ -21,6 +21,12 @@ public class PrefixAdapterTest {
     }
 
     @Test
+    public void testDuplicatePrefixString() throws Exception {
+        PrefixAdapter adapter = new PrefixAdapter(LineRef.class,"ATB.Line.");
+        assertEquals("ATB.Line.12", adapter.apply("ATB.Line.12"));
+    }
+
+    @Test
     public void testPrefixNullString() throws Exception {
         PrefixAdapter adapter = new PrefixAdapter(LineRef.class,"ATB.Line.");
         assertNull(adapter.apply(null));

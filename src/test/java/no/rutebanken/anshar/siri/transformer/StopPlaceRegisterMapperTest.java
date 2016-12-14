@@ -82,4 +82,14 @@ public class StopPlaceRegisterMapperTest {
         assertEquals("NSR:QUAY:44444444", mapper.apply("5555"));
     }
 
+
+    @Test
+    public void testDuplicatePrefixMapping() {
+
+        List<String> prefixes = new ArrayList<>();
+
+        StopPlaceRegisterMapper mapper = new StopPlaceRegisterMapper(JourneyPlaceRefStructure.class, prefixes);
+
+        assertEquals("NSR:QUAY:11223344", mapper.apply("NSR:QUAY:11223344"));
+    }
 }
