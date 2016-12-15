@@ -63,11 +63,29 @@ public class SiriHandler {
     }
 
     public Siri handleIncomingSiri(String subscriptionId, String xml, String datasetId) {
+        return handleIncomingSiri(subscriptionId, xml, datasetId, null);
+    }
+
+    /**
+     *
+     * @param subscriptionId SubscriptionId
+     * @param xml SIRI-request as XML
+     * @param datasetId Optional datasetId
+     * @param useMappedId Optional override-parameter. If <code>null</code> it will be calculated from SIRI-XML Extensions
+     * @return
+     */
+    public Siri handleIncomingSiri(String subscriptionId, String xml, String datasetId, Boolean useMappedId) {
         try {
             if (subscriptionId != null) {
                 return processSiriClientRequest(subscriptionId, xml);
             } else {
-                return processSiriServerRequest(xml, datasetId);
+                Siri incoming = SiriValueTransformer.parseXml(xml);
+
+                if (useMappedId != null) {
+                    return processSiriServerRequest(incoming, datasetId, useMappedId);
+                } else {
+                    return processSiriServerRequest(incoming, datasetId, useMappedId(incoming));
+                }
             }
         } catch (JAXBException e) {
             logger.warn("Caught exception when parsing incoming XML", e);
@@ -78,13 +96,10 @@ public class SiriHandler {
     /**
      * Handling incoming requests from external clients
      *
-     * @param xml
+     * @param incoming
      * @throws JAXBException
      */
-    private Siri processSiriServerRequest(String xml, String datasetId) throws JAXBException {
-        Siri incoming = SiriValueTransformer.parseXml(xml);
-
-        boolean useMappedId = useMappedId(incoming);
+    private Siri processSiriServerRequest(Siri incoming, String datasetId, boolean useMappedId) throws JAXBException {
 
         if (incoming.getSubscriptionRequest() != null) {
             logger.info("Handling subscriptionrequest requesting {} ids...", (useMappedId ? "mapped": "original"));

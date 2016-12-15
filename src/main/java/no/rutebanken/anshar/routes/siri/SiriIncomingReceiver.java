@@ -89,8 +89,13 @@ public class SiriIncomingReceiver extends RouteBuilder {
                                         //e.g. "/anshar/services/akt" resolves "akt"
                             datasetId = path.substring(path.indexOf(pathPattern) + pathPattern.length());
                         }
+                        Boolean useMappedId = null;
+                        String query = p.getIn().getHeader("CamelHttpQuery", String.class);
+                        if (query != null && query.contains("useOriginalId")) {
+                            useMappedId = !(query.contains("useOriginalId=true"));
+                        }
 
-                        Siri response = handler.handleIncomingSiri(null, p.getIn().getBody(String.class), datasetId);
+                        Siri response = handler.handleIncomingSiri(null, p.getIn().getBody(String.class), datasetId, useMappedId);
                         if (response != null) {
                             logger.info("Found ServiceRequest-response, streaming response");
                             HttpServletResponse out = p.getOut().getBody(HttpServletResponse.class);
@@ -100,7 +105,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                         }
                     })
                     .endChoice()
-                    .when(header("CamelHttpPath").contains("/subscribe")) //Handle synchronous response
+                    .when(header("CamelHttpPath").contains("/subscribe")) //Handle asynchronous response
                         .to("activemq:queue:" + TRANSFORM_QUEUE + activeMQParameters)
                         .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
                         .setBody(constant(null))
@@ -245,8 +250,13 @@ public class SiriIncomingReceiver extends RouteBuilder {
                         datasetId = path.substring(path.indexOf(pathPattern) + pathPattern.length());
                     }
 
+                    Boolean useMappedId = null;
+                    String query = p.getIn().getHeader("CamelHttpQuery", String.class);
+                    if (query != null && query.contains("useOriginalId")) {
+                        useMappedId = !(query.contains("useOriginalId=true"));
+                    }
                     String xml = p.getIn().getBody(String.class);
-                    handler.handleIncomingSiri(subscriptionId, xml, datasetId);
+                    handler.handleIncomingSiri(subscriptionId, xml, datasetId, useMappedId);
 
                 })
         ;
