@@ -335,7 +335,7 @@ anshar:
       heartbeatIntervalSeconds: 60
       operatorNamespace: http://www.siri.org.uk/siri
       urlMap:
-        SUBSCRIBE: mottak-beta.rutebanken.org/anshar/subscribe/RUT
+        SUBSCRIBE: mottak-beta.rutebanken.org/anshar/subscribe/RUT?useOriginalId=true
         DELETE_SUBSCRIPTION: mottak-beta.rutebanken.org/anshar/subscribe/RUT
       version: 2.0
       subscriptionId: ${random.uuid}
@@ -355,7 +355,7 @@ anshar:
       heartbeatIntervalSeconds: 60
       operatorNamespace: http://www.siri.org.uk/siri
       urlMap:
-        SUBSCRIBE: mottak-beta.rutebanken.org/anshar/subscribe/RUT
+        SUBSCRIBE: mottak-beta.rutebanken.org/anshar/subscribe/RUT?useOriginalId=true
         DELETE_SUBSCRIPTION: mottak-beta.rutebanken.org/anshar/subscribe/RUT
       version: 2.0
       subscriptionId: ${random.uuid}
