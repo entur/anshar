@@ -344,7 +344,7 @@ anshar:
       mappingAdapterPresets: RUTER
       filterPresets:
       idMappingPrefixes: 
-      active: true
+      active: false
     -
       internalId: 101
       vendor: internRuterEt
@@ -364,4 +364,4 @@ anshar:
       mappingAdapterPresets: RUTER
       filterPresets:
       idMappingPrefixes:
-      active: true
+      active: false
