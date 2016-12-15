@@ -19,7 +19,7 @@ anshar.inbound.url = http://mottak.rutebanken.org/anshar
 
 
 # Statistics
-To view status/statistics (JSON-format) for all subscriptions.
+To view status/statistics for all subscriptions.
 ```
 - http://<host>:<port>/anshar/stats
 ```
