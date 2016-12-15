@@ -6,14 +6,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 import uk.org.siri.siri20.*;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
-import javax.xml.parsers.DocumentBuilderFactory;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -71,9 +68,6 @@ public class SiriObjectFactory {
                     subscriptionSetup.getFilterMap());
         }
         siri.setSubscriptionRequest(request);
-        if (subscriptionSetup.getVendor().startsWith("intern")) {
-            addOriginalIdExtension(siri);
-        }
 
         return siri;
     }
@@ -103,26 +97,8 @@ public class SiriObjectFactory {
         }
 
         siri.setServiceRequest(request);
-        if (subscriptionSetup.getVendor().startsWith("intern")) {
-            addOriginalIdExtension(siri);
-        }
 
         return siri;
-    }
-
-    private static void addOriginalIdExtension(Siri siri) {
-        try {
-            Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
-            Element idMappingElement = doc.createElement("IdMapping");
-            idMappingElement.setAttribute("useOriginalId", "true");
-
-
-            Extensions idMappingExtension = new Extensions();
-            idMappingExtension.getAnies().add(idMappingElement);
-            siri.setExtensions(idMappingExtension);
-        } catch (Throwable t) {
-            logger.error("Could not add IdMapping-extension - ignoring", t);
-        }
     }
 
     public static Siri createCheckStatusRequest(SubscriptionSetup subscriptionSetup) {
