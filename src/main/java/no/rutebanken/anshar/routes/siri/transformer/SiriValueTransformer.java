@@ -84,10 +84,7 @@ public class SiriValueTransformer {
                                 } else {
                                     alteredValue = adapter.apply(value);
                                 }
-
-                                if (!alteredValue.equals(originalId)) {
-                                    alteredValue = originalId + SEPARATOR + alteredValue;
-                                }
+                                alteredValue = originalId + SEPARATOR + alteredValue;
                             }
 
 
