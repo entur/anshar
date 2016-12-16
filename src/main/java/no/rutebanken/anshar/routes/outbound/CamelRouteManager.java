@@ -68,7 +68,7 @@ public class CamelRouteManager implements CamelContextAware {
                 public void run() {
                     try {
 
-                        SiriPushRouteBuilder siriPushRouteBuilder = new SiriPushRouteBuilder(consumerAddress);
+                        SiriPushRouteBuilder siriPushRouteBuilder = new SiriPushRouteBuilder(consumerAddress, subscriptionRequest);
                         routeId = addSiriPushRoute(siriPushRouteBuilder);
                         executeSiriPushRoute(siri, siriPushRouteBuilder.getRouteName());
                     } catch (Exception e) {
@@ -148,12 +148,14 @@ public class CamelRouteManager implements CamelContextAware {
 
     private class SiriPushRouteBuilder extends RouteBuilder {
 
+        private final OutboundSubscriptionSetup subscriptionRequest;
         private String remoteEndPoint;
         private RouteDefinition definition;
         private String routeName;
 
-        public SiriPushRouteBuilder(String remoteEndPoint) {
+        public SiriPushRouteBuilder(String remoteEndPoint, OutboundSubscriptionSetup subscriptionRequest) {
             this.remoteEndPoint=remoteEndPoint;
+            this.subscriptionRequest = subscriptionRequest;
         }
 
         @Override
@@ -179,14 +181,15 @@ public class CamelRouteManager implements CamelContextAware {
 
             definition = from(routeName)
                     .routeId(routeName)
-                    .log(LoggingLevel.INFO, "POST data to " + remoteEndPoint)
+                    .log(LoggingLevel.INFO, "POST data to " + remoteEndPoint + " [" + subscriptionRequest.getSubscriptionId() + "]")
+                    .setHeader("SubscriptionId", constant(subscriptionRequest.getSubscriptionId()))
                     .setHeader("CamelHttpMethod", constant("POST"))
                     .setHeader(Exchange.CONTENT_TYPE, constant("application/xml"))
                     .marshal().string("UTF-8")
                     .to("log:push:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                     .to("http4://" + remoteEndPoint + httpOptions)
                     .to("log:push-resp:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
-                    .log(LoggingLevel.INFO, "POST complete");
+                    .log(LoggingLevel.INFO, "POST complete [" + subscriptionRequest.getSubscriptionId() + "]");
 
         }
 
