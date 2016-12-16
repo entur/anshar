@@ -183,7 +183,9 @@ public class CamelRouteManager implements CamelContextAware {
                     .setHeader("CamelHttpMethod", constant("POST"))
                     .setHeader(Exchange.CONTENT_TYPE, constant("application/xml"))
                     .marshal().string("UTF-8")
+                    .to("log:push:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                     .to("http4://" + remoteEndPoint + httpOptions)
+                    .to("log:push-resp:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                     .log(LoggingLevel.INFO, "POST complete");
 
         }
