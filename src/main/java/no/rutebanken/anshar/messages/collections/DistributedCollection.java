@@ -32,8 +32,8 @@ public class DistributedCollection extends HazelCastService {
 
     private static final String SERVER_START_TIME_KEY = "server.start.time";
 
-    public DistributedCollection(@Autowired KubernetesService kubernetesService) {
-        super(kubernetesService);
+    public DistributedCollection(@Autowired KubernetesService kubernetesService, @Autowired AnsharConfiguration cfg) {
+        super(kubernetesService, cfg.getHazelcastManagementUrl());
     }
 
     @Bean

@@ -15,6 +15,14 @@ public class AnsharConfiguration {
     @Value("${rutebanken.kubernetes.namespace:default}")
     private String namespace;
 
+
+    @Value("${rutebanken.hazelcast.management.url:}")
+    private String hazelcastManagementUrl;
+
+    public String getHazelcastManagementUrl() {
+        return hazelcastManagementUrl;
+    }
+
     public String getKubernetesUrl() {
         return kubernetesUrl;
     }
