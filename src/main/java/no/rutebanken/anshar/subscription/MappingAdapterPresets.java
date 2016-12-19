@@ -29,12 +29,18 @@ public class MappingAdapterPresets {
         switch (preset) {
             case RUTER:
                 adapters.add(new LeftPaddingAdapter(LineRef.class, 4, '0'));
+
                 adapters.add(new RuterSubstringAdapter(StopPointRef.class, ':', '0', 2));
                 adapters.add(new LeftPaddingAdapter(StopPointRef.class, 10, '0'));
+
                 adapters.add(new LeftPaddingAdapter(StopPlaceRef.class, 8, '0'));
                 adapters.add(new RightPaddingStopPlaceAdapter(StopPlaceRef.class, 8, "01"));
+
                 adapters.add(new RuterSubstringAdapter(JourneyPlaceRefStructure.class, ':', '0', 2));
+                adapters.add(new LeftPaddingAdapter(JourneyPlaceRefStructure.class, 10, '0'));
+
                 adapters.add(new RuterSubstringAdapter(DestinationRef.class, ':', '0', 2));
+                adapters.add(new LeftPaddingAdapter(DestinationRef.class, 10, '0'));
                 break;
             case ATB:
             case KOLUMBUS:
