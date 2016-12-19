@@ -5,6 +5,7 @@ import no.rutebanken.anshar.messages.ProductionTimetables;
 import no.rutebanken.anshar.messages.Situations;
 import no.rutebanken.anshar.messages.VehicleActivities;
 import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
+import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.subscription.MappingAdapterPresets;
 import org.apache.camel.builder.RouteBuilder;
 import org.rutebanken.siri20.util.SiriXml;
@@ -18,6 +19,7 @@ import uk.org.siri.siri20.Siri;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.List;
 
 @Service
 @Configuration
@@ -69,7 +71,11 @@ public class SiriProvider extends RouteBuilder {
                     Siri response = siriObjectFactory.createSXServiceDelivery(situations.getAllUpdates(requestorId, datasetId));
 
                     boolean useMappedId = useMappedId(originalId);
-                    response = SiriValueTransformer.transform(response, mappingAdapterPresets.getOutboundAdapters(useMappedId));
+                    List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(useMappedId);
+                    if ("test".equals(originalId)) {
+                        outboundAdapters = null;
+                    }
+                    response = SiriValueTransformer.transform(response, outboundAdapters);
 
                     HttpServletResponse out = p.getOut().getBody(HttpServletResponse.class);
 
@@ -88,11 +94,15 @@ public class SiriProvider extends RouteBuilder {
                     String requestorId = request.getParameter("requestorId");
                     String originalId = request.getParameter("useOriginalId");
 
-                    Siri  response = siriObjectFactory.createVMServiceDelivery(vehicleActivities.getAllUpdates(requestorId, datasetId));
+                    Siri response = siriObjectFactory.createVMServiceDelivery(vehicleActivities.getAllUpdates(requestorId, datasetId));
 
                     boolean useMappedId = useMappedId(originalId);
 
-                    response = SiriValueTransformer.transform(response, mappingAdapterPresets.getOutboundAdapters(useMappedId));
+                    List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(useMappedId);
+                    if ("test".equals(originalId)) {
+                        outboundAdapters = null;
+                    }
+                    response = SiriValueTransformer.transform(response, outboundAdapters);
 
                     HttpServletResponse out = p.getOut().getBody(HttpServletResponse.class);
 
@@ -115,7 +125,11 @@ public class SiriProvider extends RouteBuilder {
                     Siri response = siriObjectFactory.createETServiceDelivery(estimatedTimetables.getAllUpdates(requestorId, datasetId));
 
                     boolean useMappedId = useMappedId(originalId);
-                    response = SiriValueTransformer.transform(response, mappingAdapterPresets.getOutboundAdapters(useMappedId));
+                    List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(useMappedId);
+                    if ("test".equals(originalId)) {
+                        outboundAdapters = null;
+                    }
+                    response = SiriValueTransformer.transform(response, outboundAdapters);
 
                     HttpServletResponse out = p.getOut().getBody(HttpServletResponse.class);
 
@@ -138,7 +152,11 @@ public class SiriProvider extends RouteBuilder {
                     Siri response = siriObjectFactory.createPTServiceDelivery(productionTimetables.getAllUpdates(requestorId, datasetId));
 
                     boolean useMappedId = useMappedId(originalId);
-                    response = SiriValueTransformer.transform(response, mappingAdapterPresets.getOutboundAdapters(useMappedId));
+                    List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(useMappedId);
+                    if ("test".equals(originalId)) {
+                        outboundAdapters = null;
+                    }
+                    response = SiriValueTransformer.transform(response, outboundAdapters);
 
                     HttpServletResponse out = p.getOut().getBody(HttpServletResponse.class);
 
