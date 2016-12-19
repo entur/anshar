@@ -1,9 +1,6 @@
 package no.rutebanken.anshar.messages.collections;
 
-import com.hazelcast.core.Cluster;
-import com.hazelcast.core.DistributedObject;
-import com.hazelcast.core.IMap;
-import com.hazelcast.core.Member;
+import com.hazelcast.core.*;
 import no.rutebanken.anshar.routes.outbound.OutboundSubscriptionSetup;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.json.simple.JSONArray;
@@ -31,9 +28,20 @@ public class DistributedCollection extends HazelCastService {
     private Logger logger = LoggerFactory.getLogger(DistributedCollection.class);
 
     private static final String SERVER_START_TIME_KEY = "server.start.time";
+    private static final String NODE_LIVENESS_CHECK = "node.liveness.check";
 
     public DistributedCollection(@Autowired KubernetesService kubernetesService, @Autowired AnsharConfiguration cfg) {
         super(kubernetesService, cfg.getHazelcastManagementUrl());
+    }
+
+    public boolean isAlive() {
+        try {
+            getLockMap().put(NODE_LIVENESS_CHECK, Instant.now());
+            return getLockMap().containsKey(NODE_LIVENESS_CHECK);
+        } catch (HazelcastInstanceNotActiveException e) {
+            logger.warn("HazelcastInstance not active - ", e);
+            return false;
+        }
     }
 
     @Bean
@@ -99,22 +107,22 @@ public class DistributedCollection extends HazelCastService {
         return hazelcast.getMap("anshar.activity.last");
     }
 
+
     @Bean
     public IMap<String, Instant> getLastEtUpdateRequest() {
         return hazelcast.getMap("anshar.activity.last.et.update.request");
     }
-
 
     @Bean
     public IMap<String, Instant> getLastPtUpdateRequest() {
         return hazelcast.getMap("anshar.activity.last.pt.update.request");
     }
 
+
     @Bean
     public IMap<String, Instant> getLastSxUpdateRequest() {
         return hazelcast.getMap("anshar.activity.last.sx.update.request");
     }
-
 
     @Bean
     public IMap<String, Instant> getLastVmUpdateRequest() {
@@ -149,7 +157,6 @@ public class DistributedCollection extends HazelCastService {
                     for (DistributedObject distributedObject : distributedObjects) {
                         stats.put(distributedObject.getName(), hazelcast.getMap(distributedObject.getName()).getLocalMapStats().toJson());
                     }
-
                     JSONObject obj = new JSONObject();
                     obj.put("uuid", member.getUuid());
                     obj.put("host", member.getAddress().getHost());
