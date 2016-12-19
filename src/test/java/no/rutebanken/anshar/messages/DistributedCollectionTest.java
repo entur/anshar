@@ -2,6 +2,7 @@ package no.rutebanken.anshar.messages;
 
 import no.rutebanken.anshar.App;
 import no.rutebanken.anshar.messages.collections.DistributedCollection;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +20,7 @@ public class DistributedCollectionTest {
     DistributedCollection distributedCollection;
 
     @Test
+    @Ignore
     public void testShutDownDiscovered() {
         assertTrue(distributedCollection.isAlive());
         distributedCollection.shutdown();
