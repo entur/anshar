@@ -157,15 +157,19 @@ public class EstimatedTimetables {
                         SortedMap<Integer, EstimatedCall> joinedCallsMap = new TreeMap<>();
 
                         //Existing calls
-                        for (EstimatedCall call : existingCallWrapper.getEstimatedCalls()) {
-                            //Assuming that either Visitnumber or Order is always used
-                            int order = (call.getVisitNumber() != null ? call.getVisitNumber() : call.getOrder()).intValue();
-                            joinedCallsMap.put(order, call);
+                        if (existingCallWrapper.getEstimatedCalls() != null ) {
+                            for (EstimatedCall call : existingCallWrapper.getEstimatedCalls()) {
+                                //Assuming that either Visitnumber or Order is always used
+                                int order = (call.getVisitNumber() != null ? call.getVisitNumber() : call.getOrder()).intValue();
+                                joinedCallsMap.put(order, call);
+                            }
                         }
                         //Add or replace existing calls
-                        for (EstimatedCall call : updatedCallWrapper.getEstimatedCalls()) {
-                            int order = (call.getVisitNumber() != null ? call.getVisitNumber() : call.getOrder()).intValue();
-                            joinedCallsMap.put(order, call);
+                        if (updatedCallWrapper.getEstimatedCalls() != null ) {
+                            for (EstimatedCall call : updatedCallWrapper.getEstimatedCalls()) {
+                                int order = (call.getVisitNumber() != null ? call.getVisitNumber() : call.getOrder()).intValue();
+                                joinedCallsMap.put(order, call);
+                            }
                         }
 
                         EstimatedVehicleJourney.EstimatedCalls joinedCalls = new EstimatedVehicleJourney.EstimatedCalls();
