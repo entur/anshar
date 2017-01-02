@@ -102,14 +102,17 @@ public class EstimatedTimetables {
                 List<EstimatedCall> estimatedCalls = vehicleJourney.getEstimatedCalls().getEstimatedCalls();
                 EstimatedCall lastEstimatedCall = estimatedCalls.get(estimatedCalls.size() - 1);
 
-                ZonedDateTime aimedArrivalTime = lastEstimatedCall.getAimedArrivalTime();
-                ZonedDateTime expectedArrivalTime = lastEstimatedCall.getExpectedArrivalTime();
-
-                if (expectedArrivalTime != null) {
-                    expiryTimestamp = expectedArrivalTime;
+                if (lastEstimatedCall.getAimedArrivalTime() != null) {
+                    expiryTimestamp = lastEstimatedCall.getAimedArrivalTime();
                 }
-                if (aimedArrivalTime != null) {
-                    expiryTimestamp = aimedArrivalTime;
+                if (lastEstimatedCall.getAimedDepartureTime() != null) {
+                    expiryTimestamp = lastEstimatedCall.getAimedDepartureTime();
+                }
+                if (lastEstimatedCall.getExpectedArrivalTime() != null) {
+                    expiryTimestamp = lastEstimatedCall.getExpectedArrivalTime();
+                }
+                if (lastEstimatedCall.getExpectedDepartureTime() != null) {
+                    expiryTimestamp = lastEstimatedCall.getExpectedDepartureTime();
                 }
 
             }
