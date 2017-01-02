@@ -16,7 +16,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Repository
-public class EstimatedTimetables {
+public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJourney> {
     private Logger logger = LoggerFactory.getLogger(EstimatedTimetables.class);
 
     @Autowired
@@ -95,7 +95,7 @@ public class EstimatedTimetables {
         return new ArrayList<>(datasetIdSpecific.values());
     }
 
-    private static long getExpiration(EstimatedVehicleJourney vehicleJourney) {
+    public long getExpiration(EstimatedVehicleJourney vehicleJourney) {
         ZonedDateTime expiryTimestamp = null;
         if (vehicleJourney != null) {
             if (vehicleJourney.getEstimatedCalls() != null) {
@@ -206,7 +206,7 @@ public class EstimatedTimetables {
     }
 
 
-    EstimatedVehicleJourney add(String datasetId, EstimatedVehicleJourney delivery) {
+    public EstimatedVehicleJourney add(String datasetId, EstimatedVehicleJourney delivery) {
         if (delivery == null) {return null;}
 
         List<EstimatedVehicleJourney> deliveries = new ArrayList<>();

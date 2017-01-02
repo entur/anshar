@@ -15,7 +15,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Repository
-public class ProductionTimetables {
+public class ProductionTimetables implements SiriRepository<ProductionTimetableDeliveryStructure> {
     private Logger logger = LoggerFactory.getLogger(ProductionTimetables.class);
 
     @Autowired
@@ -94,7 +94,7 @@ public class ProductionTimetables {
         return getAll(datasetId);
     }
 
-    private long getExpiration(ProductionTimetableDeliveryStructure s) {
+    public long getExpiration(ProductionTimetableDeliveryStructure s) {
 
         ZonedDateTime validUntil = s.getValidUntil();
         if (validUntil != null) {

@@ -16,7 +16,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Repository
-public class Situations {
+public class Situations implements SiriRepository<PtSituationElement> {
     private Logger logger = LoggerFactory.getLogger(Situations.class);
 
     @Autowired
@@ -102,7 +102,7 @@ public class Situations {
         return getAll(datasetId);
     }
 
-    private long getExpiration(PtSituationElement situationElement) {
+    public long getExpiration(PtSituationElement situationElement) {
         List<HalfOpenTimestampOutputRangeStructure> validityPeriods = situationElement.getValidityPeriods();
 
         ZonedDateTime expiry = null;
@@ -154,7 +154,7 @@ public class Situations {
         return situations.getAll(changes).values();
     }
 
-    PtSituationElement add(String datasetId, PtSituationElement situation) {
+    public PtSituationElement add(String datasetId, PtSituationElement situation) {
         if (situation == null) {
             return null;
         }

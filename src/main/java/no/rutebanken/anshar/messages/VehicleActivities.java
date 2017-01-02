@@ -17,7 +17,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Repository
-public class VehicleActivities {
+public class VehicleActivities implements SiriRepository<VehicleActivityStructure> {
     private Logger logger = LoggerFactory.getLogger(VehicleActivities.class);
 
     @Autowired
@@ -102,7 +102,7 @@ public class VehicleActivities {
         return getAll(datasetId);
     }
 
-    private long getExpiration(VehicleActivityStructure a) {
+    public long getExpiration(VehicleActivityStructure a) {
 
         ZonedDateTime validUntil = a.getValidUntilTime();
         if (validUntil != null) {
@@ -164,7 +164,7 @@ public class VehicleActivities {
         return vehicleActivities.getAll(changes).values();
     }
 
-    VehicleActivityStructure add(String datasetId, VehicleActivityStructure activity) {
+    public VehicleActivityStructure add(String datasetId, VehicleActivityStructure activity) {
         if (activity == null) {
             return null;
         }
