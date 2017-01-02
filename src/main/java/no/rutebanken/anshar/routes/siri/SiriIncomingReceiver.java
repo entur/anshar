@@ -85,7 +85,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                         String datasetId = null;
 
                         String pathPattern = "/services/";
-                        if (path.indexOf(pathPattern) >= 0) {
+                        if (path.contains(pathPattern)) {
                                         //e.g. "/anshar/services/akt" resolves "akt"
                             datasetId = path.substring(path.indexOf(pathPattern) + pathPattern.length());
                         }
@@ -245,7 +245,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                     String datasetId = null;
 
                     String pathPattern = "/subscribe/";
-                    if (path.indexOf(pathPattern) >= 0) {
+                    if (path.contains(pathPattern)) {
                                     //e.g. "/anshar/subscribe/akt" resolves "akt"
                         datasetId = path.substring(path.indexOf(pathPattern) + pathPattern.length());
                     }

@@ -17,7 +17,7 @@ public class OutboundIdAdapter extends ValueAdapter {
         if (text == null || text.isEmpty()) {
             return text;
         }
-        if (text.indexOf(SiriValueTransformer.SEPARATOR) > 0) {
+        if (text.contains(SiriValueTransformer.SEPARATOR)) {
             if (mapped) {
                 text = getMappedId(text);
             } else {
