@@ -178,8 +178,14 @@ public class EstimatedTimetables {
                         et.setEstimatedCalls(joinedCalls);
                     }
                 }
-                changes.add(key);
-                timetableDeliveries.put(key, et, expiration, TimeUnit.MILLISECONDS);
+
+                //Ignoring elements without EstimatedCalls
+                if (et.getEstimatedCalls() != null &&
+                        et.getEstimatedCalls().getEstimatedCalls() != null &&
+                        !et.getEstimatedCalls().getEstimatedCalls().isEmpty()) {
+                    changes.add(key);
+                    timetableDeliveries.put(key, et, expiration, TimeUnit.MILLISECONDS);
+                }
             }
         });
 
