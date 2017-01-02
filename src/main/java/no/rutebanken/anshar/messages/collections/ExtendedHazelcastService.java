@@ -23,14 +23,14 @@ import java.util.Collection;
 import java.util.Set;
 
 @Service
-public class DistributedCollection extends HazelCastService {
+public class ExtendedHazelcastService extends HazelCastService {
 
-    private Logger logger = LoggerFactory.getLogger(DistributedCollection.class);
+    private Logger logger = LoggerFactory.getLogger(ExtendedHazelcastService.class);
 
     private static final String SERVER_START_TIME_KEY = "server.start.time";
     private static final String NODE_LIVENESS_CHECK = "node.liveness.check";
 
-    public DistributedCollection(@Autowired KubernetesService kubernetesService, @Autowired AnsharConfiguration cfg) {
+    public ExtendedHazelcastService(@Autowired KubernetesService kubernetesService, @Autowired AnsharConfiguration cfg) {
         super(kubernetesService, cfg.getHazelcastManagementUrl());
     }
 

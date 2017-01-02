@@ -1,6 +1,6 @@
 package no.rutebanken.anshar.routes.health;
 
-import no.rutebanken.anshar.messages.collections.DistributedCollection;
+import no.rutebanken.anshar.messages.collections.ExtendedHazelcastService;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.slf4j.Logger;
@@ -19,7 +19,7 @@ public class LivenessReadinessRoute extends RouteBuilder {
     private String inboundPort;
 
     @Autowired
-    DistributedCollection distributedCollection;
+    ExtendedHazelcastService extendedHazelcastService;
 
     public static boolean triggerRestart;
 
@@ -47,7 +47,7 @@ public class LivenessReadinessRoute extends RouteBuilder {
                     .setBody(constant("Restart requested"))
                     .log("Application triggered restart")
                 .endChoice()
-                .when(p -> !distributedCollection.isAlive())
+                .when(p -> !extendedHazelcastService.isAlive())
                     .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("500"))
                     .setBody(simple("Hazelcast is shut down"))
                     .log("Hazelcast is shut down")

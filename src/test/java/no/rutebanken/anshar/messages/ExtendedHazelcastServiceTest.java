@@ -1,7 +1,7 @@
 package no.rutebanken.anshar.messages;
 
 import no.rutebanken.anshar.App;
-import no.rutebanken.anshar.messages.collections.DistributedCollection;
+import no.rutebanken.anshar.messages.collections.ExtendedHazelcastService;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -14,17 +14,17 @@ import static junit.framework.TestCase.assertTrue;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(webEnvironment= SpringBootTest.WebEnvironment.MOCK, classes = App.class)
-public class DistributedCollectionTest {
+public class ExtendedHazelcastServiceTest {
 
     @Autowired
-    DistributedCollection distributedCollection;
+    ExtendedHazelcastService extendedHazelcastService;
 
     @Test
     @Ignore
     public void testShutDownDiscovered() {
-        assertTrue(distributedCollection.isAlive());
-        distributedCollection.shutdown();
-        assertFalse(distributedCollection.isAlive());
+        assertTrue(extendedHazelcastService.isAlive());
+        extendedHazelcastService.shutdown();
+        assertFalse(extendedHazelcastService.isAlive());
     }
 
 

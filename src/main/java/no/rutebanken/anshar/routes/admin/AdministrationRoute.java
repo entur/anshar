@@ -1,6 +1,6 @@
 package no.rutebanken.anshar.routes.admin;
 
-import no.rutebanken.anshar.messages.collections.DistributedCollection;
+import no.rutebanken.anshar.messages.collections.ExtendedHazelcastService;
 import no.rutebanken.anshar.routes.outbound.ServerSubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionMonitor;
@@ -24,7 +24,7 @@ public class AdministrationRoute extends RouteBuilder {
     private String inboundPort;
 
     @Autowired
-    DistributedCollection distributedCollection;
+    ExtendedHazelcastService extendedHazelcastService;
 
     @Autowired
     private SubscriptionManager subscriptionManager;
@@ -97,7 +97,7 @@ public class AdministrationRoute extends RouteBuilder {
         //Return subscription status
         from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/clusterstats")
                 .process(p -> {
-                    p.getOut().setBody(distributedCollection.listNodes());
+                    p.getOut().setBody(extendedHazelcastService.listNodes());
                 })
         ;
 
