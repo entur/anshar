@@ -338,12 +338,12 @@ anshar:
         SUBSCRIBE: mottak-beta.rutebanken.org/anshar/subscribe/RUT?useOriginalId=true
         DELETE_SUBSCRIPTION: mottak-beta.rutebanken.org/anshar/subscribe/RUT
       version: 2.0
-      subscriptionId: ${random.uuid}
+      subscriptionId: vm-replication
       requestorRef: ${random.uuid}
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: RUTER
       filterPresets:
-      idMappingPrefixes: 
+      idMappingPrefixes: RUT,OPP,BRA,OST
       active: false
     -
       internalId: 101
@@ -358,10 +358,10 @@ anshar:
         SUBSCRIBE: mottak-beta.rutebanken.org/anshar/subscribe/RUT?useOriginalId=true
         DELETE_SUBSCRIPTION: mottak-beta.rutebanken.org/anshar/subscribe/RUT
       version: 2.0
-      subscriptionId: ${random.uuid}
+      subscriptionId: et-replication
       requestorRef: ${random.uuid}
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: RUTER
       filterPresets:
-      idMappingPrefixes:
+      idMappingPrefixes: RUT,OPP,BRA,OST
       active: false
