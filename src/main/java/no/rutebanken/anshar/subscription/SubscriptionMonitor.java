@@ -112,7 +112,8 @@ public class SubscriptionMonitor implements CamelContextAware {
                     if (existingSubscription.equals(subscriptionSetup)) {
                         logger.info("Subscription with internalId={} is updated - reinitializing. {}", subscriptionSetup.getInternalId(), subscriptionSetup);
 
-                        subscriptionSetup.setSubscriptionId(existingSubscription.getSubscriptionId());
+                        // Keeping subscription active/inactive
+                        subscriptionSetup.setActive(existingSubscription.isActive());
 
                         subscriptionManager.removeSubscription(existingSubscription.getSubscriptionId(), true);
 
