@@ -55,7 +55,7 @@ public class AdministrationRoute extends RouteBuilder {
                     if (subscriptionId != null &&
                             !subscriptionId.isEmpty()) {
 
-                        SubscriptionSetup subscriptionSetup = subscriptionManager.getActiveSubscriptions().get(subscriptionId);
+                        SubscriptionSetup subscriptionSetup = subscriptionManager.get(subscriptionId);
                         if (subscriptionSetup != null) {
                             subscriptionSetup.setActive(false);
                             subscriptionManager.getActiveSubscriptions().put(subscriptionId, subscriptionSetup);
@@ -75,7 +75,7 @@ public class AdministrationRoute extends RouteBuilder {
                     if (subscriptionId != null &&
                             !subscriptionId.isEmpty()) {
 
-                        SubscriptionSetup subscriptionSetup = subscriptionManager.getPendingSubscriptions().get(subscriptionId);
+                        SubscriptionSetup subscriptionSetup = subscriptionManager.get(subscriptionId);
                         if (subscriptionSetup != null) {
 
                             subscriptionSetup.setActive(true);
