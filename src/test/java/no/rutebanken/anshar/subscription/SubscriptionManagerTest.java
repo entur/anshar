@@ -168,6 +168,19 @@ public class SubscriptionManagerTest {
     }
 
     @Test
+    public void testForceRemoveSubscription() {
+        SubscriptionSetup subscription = createSubscription(1);
+        assertFalse(subscriptionManager.isSubscriptionRegistered(subscription.getSubscriptionId()));
+
+        subscriptionManager.addSubscription(subscription.getSubscriptionId(), subscription);
+        subscriptionManager.activatePendingSubscription(subscription.getSubscriptionId());
+
+        subscriptionManager.removeSubscription(subscription.getSubscriptionId(), true);
+        assertFalse("Removed subscription marked as active", subscriptionManager.isActiveSubscription(subscription.getSubscriptionId()));
+        assertFalse("Removed subscription marked as pending", subscriptionManager.isPendingSubscription(subscription.getSubscriptionId()));
+    }
+
+    @Test
     public void testStatObjectCounterHugeNumber() {
         SubscriptionSetup subscription = createSubscription(1);
         assertFalse(subscriptionManager.isSubscriptionRegistered(subscription.getSubscriptionId()));

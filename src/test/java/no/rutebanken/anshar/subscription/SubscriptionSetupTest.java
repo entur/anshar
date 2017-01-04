@@ -97,6 +97,13 @@ public class SubscriptionSetupTest {
     }
 
     @Test
+    public void testEqualsUpdatedInitialDuration() {
+        assertEquals(setup_1, setup_2);
+        setup_2.setDurationOfSubscriptionHours((int) (setup_1.getDurationOfSubscription().getSeconds()*2));
+        assertFalse(setup_1.equals(setup_2));
+    }
+
+    @Test
     public void testEqualsUpdatedUrl() {
         assertEquals(setup_1, setup_2);
         Map<RequestType, String> urlMap = setup_2.getUrlMap();

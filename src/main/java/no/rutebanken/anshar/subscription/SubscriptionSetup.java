@@ -308,9 +308,6 @@ public class SubscriptionSetup implements Serializable{
         SubscriptionSetup that = (SubscriptionSetup) o;
 
         if (getInternalId() != that.getInternalId()) return false;
-        if (isActive() != that.isActive()) return false;
-        if (getMappingAdapters() != null ? !getMappingAdapters().equals(that.getMappingAdapters()) : that.getMappingAdapters() != null)
-            return false;
         if (getSubscriptionType() != that.getSubscriptionType()) return false;
         if (!address.equals(that.address)) return false;
         if (!getHeartbeatInterval().equals(that.getHeartbeatInterval())) return false;
@@ -326,13 +323,9 @@ public class SubscriptionSetup implements Serializable{
         if (getRequestorRef() != null ? !getRequestorRef().equals(that.getRequestorRef()) : that.getRequestorRef() != null)
             return false;
         if (getSubscriptionMode() != that.getSubscriptionMode()) return false;
-        if (getFilterMap() != null ? !getFilterMap().equals(that.getFilterMap()) : that.getFilterMap() != null)
-            return false;
         if (getIdMappingPrefixes() != null ? !getIdMappingPrefixes().equals(that.getIdMappingPrefixes()) : that.getIdMappingPrefixes() != null)
             return false;
-        // Probably incorrect - comparing Object[] arrays with Arrays.equals
         if (!Arrays.equals(mappingAdapterPresets, that.mappingAdapterPresets)) return false;
-        // Probably incorrect - comparing Object[] arrays with Arrays.equals
         return Arrays.equals(filterMapPresets, that.filterMapPresets);
 
     }
