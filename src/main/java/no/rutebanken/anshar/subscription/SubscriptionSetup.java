@@ -28,6 +28,8 @@ public class SubscriptionSetup implements Serializable{
     private SubscriptionMode subscriptionMode;
     private Map<Class, Set<Object>> filterMap;
     private List<String> idMappingPrefixes;
+    private SubscriptionPreset[] mappingAdapterPresets;
+    private SubscriptionPreset[] filterMapPresets;
 
     public SubscriptionSetup() {
     }
@@ -186,9 +188,10 @@ public class SubscriptionSetup implements Serializable{
     }
 
     public void setFilterPresets(SubscriptionPreset[] presets) {
-        FilterMapPresets filterMapPresets = new FilterMapPresets();
+        this.filterMapPresets = presets;
+        filterMap = new HashMap<>();
         for (SubscriptionPreset preset : presets) {
-            addFilterMap(filterMapPresets.get(preset));
+            addFilterMap(new FilterMapPresets().get(preset));
         }
     }
     public void setFilterMap(Map<Class, Set<Object>> filterMap) {
@@ -210,10 +213,11 @@ public class SubscriptionSetup implements Serializable{
     public enum SubscriptionType {SITUATION_EXCHANGE, VEHICLE_MONITORING, PRODUCTION_TIMETABLE, ESTIMATED_TIMETABLE}
     public enum SubscriptionMode {SUBSCRIBE, REQUEST_RESPONSE}
 
-    public void setMappingAdapterPresets(SubscriptionPreset[] presets) {
-        MappingAdapterPresets mappingAdapterPresets = new MappingAdapterPresets();
-        for (SubscriptionPreset preset : presets) {
-            addMappingAdapters(mappingAdapterPresets.get(preset));
+    public void setMappingAdapterPresets(SubscriptionPreset[] mappingAdapterPresets) {
+        this.mappingAdapterPresets = mappingAdapterPresets;
+        mappingAdapters = new ArrayList<>();
+        for (SubscriptionPreset preset : mappingAdapterPresets) {
+            addMappingAdapters(new MappingAdapterPresets().get(preset));
         }
     }
 
@@ -287,5 +291,49 @@ public class SubscriptionSetup implements Serializable{
 
     public void setRequestorRef(String requestorRef) {
         this.requestorRef = requestorRef;
+    }
+
+    /**
+     * Variant of equals that only compares fields crucial to detect updated subscription-config
+     * NOTE: e.g. subscriptionId is NOT compared
+     *
+     * @param o
+     * @return true if crucial config-elements are equal
+     */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof SubscriptionSetup)) return false;
+
+        SubscriptionSetup that = (SubscriptionSetup) o;
+
+        if (getInternalId() != that.getInternalId()) return false;
+        if (isActive() != that.isActive()) return false;
+        if (getMappingAdapters() != null ? !getMappingAdapters().equals(that.getMappingAdapters()) : that.getMappingAdapters() != null)
+            return false;
+        if (getSubscriptionType() != that.getSubscriptionType()) return false;
+        if (!address.equals(that.address)) return false;
+        if (!getHeartbeatInterval().equals(that.getHeartbeatInterval())) return false;
+        if (getOperatorNamespace() != null ? !getOperatorNamespace().equals(that.getOperatorNamespace()) : that.getOperatorNamespace() != null)
+            return false;
+        if (!getUrlMap().equals(that.getUrlMap())) return false;
+        if (!getVersion().equals(that.getVersion())) return false;
+        if (!getVendor().equals(that.getVendor())) return false;
+        if (!getDatasetId().equals(that.getDatasetId())) return false;
+        if (getServiceType() != that.getServiceType()) return false;
+        if (getDurationOfSubscription() != null ? !getDurationOfSubscription().equals(that.getDurationOfSubscription()) : that.getDurationOfSubscription() != null)
+            return false;
+        if (getRequestorRef() != null ? !getRequestorRef().equals(that.getRequestorRef()) : that.getRequestorRef() != null)
+            return false;
+        if (getSubscriptionMode() != that.getSubscriptionMode()) return false;
+        if (getFilterMap() != null ? !getFilterMap().equals(that.getFilterMap()) : that.getFilterMap() != null)
+            return false;
+        if (getIdMappingPrefixes() != null ? !getIdMappingPrefixes().equals(that.getIdMappingPrefixes()) : that.getIdMappingPrefixes() != null)
+            return false;
+        // Probably incorrect - comparing Object[] arrays with Arrays.equals
+        if (!Arrays.equals(mappingAdapterPresets, that.mappingAdapterPresets)) return false;
+        // Probably incorrect - comparing Object[] arrays with Arrays.equals
+        return Arrays.equals(filterMapPresets, that.filterMapPresets);
+
     }
 }

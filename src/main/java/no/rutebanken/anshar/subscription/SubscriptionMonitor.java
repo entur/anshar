@@ -83,13 +83,6 @@ public class SubscriptionMonitor implements CamelContextAware {
 
             // Validation and consistency-verification
             for (SubscriptionSetup subscriptionSetup : subscriptionSetups) {
-                SubscriptionSetup existingSubscription = subscriptionManager.getSubscriptionById(subscriptionSetup.getInternalId());
-                if (existingSubscription != null) {
-                    logger.info("Subscription with internalId={} already registered - ignoring. {}", subscriptionSetup.getInternalId(), subscriptionSetup);
-                    actualSubscriptionSetups.add(existingSubscription);
-                    continue;
-                }
-
                 subscriptionSetup.setAddress(inboundUrl);
 
                 if (!isValid(subscriptionSetup)) {
@@ -113,9 +106,27 @@ public class SubscriptionMonitor implements CamelContextAware {
                     subscriptionSetup.getMappingAdapters().addAll(datasetPrefix);
                 }
 
-                subscriptionIds.add(subscriptionSetup.getSubscriptionId());
+                SubscriptionSetup existingSubscription = subscriptionManager.getSubscriptionById(subscriptionSetup.getInternalId());
 
-                actualSubscriptionSetups.add(subscriptionSetup);
+                if (existingSubscription != null) {
+                    if (existingSubscription.equals(subscriptionSetup)) {
+                        logger.info("Subscription with internalId={} is updated - reinitializing. {}", subscriptionSetup.getInternalId(), subscriptionSetup);
+
+                        subscriptionSetup.setSubscriptionId(existingSubscription.getSubscriptionId());
+
+                        subscriptionManager.removeSubscription(existingSubscription.getSubscriptionId(), true);
+
+                        actualSubscriptionSetups.add(subscriptionSetup);
+
+                    } else {
+                        logger.info("Subscription with internalId={} already registered - ignoring. {}", subscriptionSetup.getInternalId(), subscriptionSetup);
+                        actualSubscriptionSetups.add(existingSubscription);
+                    }
+                } else {
+                    subscriptionIds.add(subscriptionSetup.getSubscriptionId());
+
+                    actualSubscriptionSetups.add(subscriptionSetup);
+                }
 
             }
 

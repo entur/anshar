@@ -19,6 +19,9 @@ public class ExtendedHazelcastServiceTest {
     @Autowired
     ExtendedHazelcastService extendedHazelcastService;
 
+    /*
+     * Test is ignored as it shuts down entire hazelcast-instance causing ultiple tests to fail
+     */
     @Test
     @Ignore
     public void testShutDownDiscovered() {

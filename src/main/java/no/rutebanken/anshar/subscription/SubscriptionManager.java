@@ -77,10 +77,24 @@ public class SubscriptionManager {
     }
 
     public boolean removeSubscription(String subscriptionId) {
-        SubscriptionSetup setup = activeSubscriptions.remove(subscriptionId);
+        return removeSubscription(subscriptionId, false);
+    }
 
+    public boolean removeSubscription(String subscriptionId, boolean force) {
+        SubscriptionSetup setup = activeSubscriptions.remove(subscriptionId);
         boolean found = (setup != null);
-        addPendingSubscription(subscriptionId, setup);
+
+        if (force) {
+            logger.info("Completely deleting subscription by request.");
+            pendingSubscriptions.remove(subscriptionId);
+            activatedTimestamp.remove(subscriptionId);
+            lastActivity.remove(subscriptionId);
+            hitcount.remove(subscriptionId);
+            objectCounter.remove(subscriptionId);
+        } else {
+            addPendingSubscription(subscriptionId, setup);
+        }
+
         logStats();
 
         logger.info("Removed subscription {}, found: {}", subscriptionId, found);
