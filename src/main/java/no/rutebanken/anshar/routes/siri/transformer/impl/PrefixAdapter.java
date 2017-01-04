@@ -23,4 +23,17 @@ public class PrefixAdapter extends ValueAdapter {
         }
         return prefix+text;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof PrefixAdapter)) return false;
+
+        PrefixAdapter that = (PrefixAdapter) o;
+
+        if (!super.getClassToApply().equals(that.getClassToApply())) return false;
+
+        return prefix.equals(that.prefix);
+
+    }
 }

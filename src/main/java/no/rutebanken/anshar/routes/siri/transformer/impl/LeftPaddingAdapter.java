@@ -22,4 +22,17 @@ public class LeftPaddingAdapter extends ValueAdapter {
         }
         return StringUtils.leftPad(text, paddingLength, paddingChar);
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof LeftPaddingAdapter)) return false;
+
+        LeftPaddingAdapter that = (LeftPaddingAdapter) o;
+
+        if (paddingLength != that.paddingLength) return false;
+        if (!super.getClassToApply().equals(that.getClassToApply())) return false;
+        return paddingChar == that.paddingChar;
+
+    }
 }

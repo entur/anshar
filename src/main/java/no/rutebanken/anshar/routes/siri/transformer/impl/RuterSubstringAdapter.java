@@ -29,4 +29,18 @@ public class RuterSubstringAdapter extends ValueAdapter {
         this.replacementChar = ""+replacementChar;
         this.lengthAfterSeparator = lengthAfterSeparator;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof RuterSubstringAdapter)) return false;
+
+        RuterSubstringAdapter that = (RuterSubstringAdapter) o;
+
+        if (lengthAfterSeparator != that.lengthAfterSeparator) return false;
+        if (!replacementChar.equals(that.replacementChar)) return false;
+        if (!super.getClassToApply().equals(that.getClassToApply())) return false;
+        return valueSeparator.equals(that.valueSeparator);
+
+    }
 }

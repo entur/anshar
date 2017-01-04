@@ -25,4 +25,17 @@ public class RightPaddingStopPlaceAdapter extends ValueAdapter {
         }
         return text;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof RightPaddingStopPlaceAdapter)) return false;
+
+        RightPaddingStopPlaceAdapter that = (RightPaddingStopPlaceAdapter) o;
+
+        if (length != that.length) return false;
+        if (!super.getClassToApply().equals(that.getClassToApply())) return false;
+        return paddingValue.equals(that.paddingValue);
+
+    }
 }

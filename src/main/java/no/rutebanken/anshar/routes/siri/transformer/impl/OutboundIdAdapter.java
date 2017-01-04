@@ -34,4 +34,16 @@ public class OutboundIdAdapter extends ValueAdapter {
     public static String getMappedId(String text) {
         return text.substring(text.indexOf(SiriValueTransformer.SEPARATOR)+1);
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof OutboundIdAdapter)) return false;
+
+        OutboundIdAdapter that = (OutboundIdAdapter) o;
+
+        if (!super.getClassToApply().equals(that.getClassToApply())) return false;
+        return mapped == that.mapped;
+
+    }
 }

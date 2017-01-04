@@ -53,4 +53,14 @@ public class StopPlaceRegisterMapper extends ValueAdapter {
         return new StringBuilder().append(stopAreaPrefix).append(id).toString();
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof StopPlaceRegisterMapper)) return false;
+
+        StopPlaceRegisterMapper that = (StopPlaceRegisterMapper) o;
+
+        if (!super.getClassToApply().equals(that.getClassToApply())) return false;
+        return prefixes.equals(that.prefixes);
+    }
 }
