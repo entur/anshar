@@ -360,7 +360,7 @@ anshar:
       version: 2.0
       subscriptionId: et-replication
       requestorRef: ${random.uuid}
-      durationOfSubscriptionHours: 168
+      durationOfSubscriptionHours: 12
       mappingAdapterPresets: RUTER
       filterPresets:
       idMappingPrefixes: RUT,OPP,BRA,OST
