@@ -137,9 +137,6 @@ public class SubscriptionMonitor implements CamelContextAware {
             }
 
             for (SubscriptionSetup subscriptionToCancel : subscriptionSetupsToCancel) {
-                //Setting subscriptionid to not cancel updated subscription with possibly same id
-                subscriptionToCancel.setSubscriptionId(subscriptionToCancel.getSubscriptionId() + System.currentTimeMillis());
-
                 RouteBuilder routeBuilder = getRouteBuilder(subscriptionToCancel);
                 try {
                     camelContext.addRoutes(routeBuilder);
@@ -212,11 +209,12 @@ public class SubscriptionMonitor implements CamelContextAware {
                                     camelContext.getRoutes().size());
 
                             if (!subscriptionSetupsToCancel.isEmpty()) {
-                                logger.info("Cancelling {} subscriptions for update - start");
+                                logger.info("Cancelling {} subscriptions for update - start", subscriptionSetupsToCancel.size());
                                 for (SubscriptionSetup subscriptionSetup : subscriptionSetupsToCancel) {
+                                    logger.info("Healthcheck: Subscription updated - cancelling {}", subscriptionSetup);
                                     cancelSubscription(subscriptionSetup);
                                 }
-                                logger.info("Cancelling {} subscriptions for update - done");
+                                logger.info("Cancelling {} subscriptions for update - done", subscriptionSetupsToCancel.size());
                                 subscriptionSetupsToCancel.clear();
                             }
 
