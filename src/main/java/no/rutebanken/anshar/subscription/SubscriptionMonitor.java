@@ -121,6 +121,7 @@ public class SubscriptionMonitor implements CamelContextAware {
                         subscriptionSetup.setActive(existingSubscription.isActive());
 
                         subscriptionSetupsToCancel.add(existingSubscription);
+
                         actualSubscriptionSetups.add(subscriptionSetup);
                         subscriptionIds.add(subscriptionSetup.getSubscriptionId());
                     } else {
@@ -135,24 +136,17 @@ public class SubscriptionMonitor implements CamelContextAware {
 
             }
 
-            logger.info("Before cancelling {} subscriptions Camel has {} routes.", subscriptionSetupsToCancel.size(), camelContext.getRoutes().size());
             for (SubscriptionSetup subscriptionToCancel : subscriptionSetupsToCancel) {
+                //Setting subscriptionid to not cancel updated subscription with possibly same id
+                subscriptionToCancel.setSubscriptionId(subscriptionToCancel.getSubscriptionId() + System.currentTimeMillis());
+
                 RouteBuilder routeBuilder = getRouteBuilder(subscriptionToCancel);
                 try {
                     camelContext.addRoutes(routeBuilder);
-                    try {
-                        triggerRouteSynchronous(subscriptionToCancel.getCancelSubscriptionRouteName());
-                    } catch (Exception e) {
-                        logger.warn("Cancelling subscription caused by update failed - ignoring.", e);
-                    }
-                    logger.info("Existing subscription cancelled - removing by force {}.", subscriptionToCancel);
-                    subscriptionManager.removeSubscription(subscriptionToCancel.getSubscriptionId(), true);
-                    camelContext.removeRouteDefinitions(routeBuilder.getRouteCollection().getRoutes());
                 } catch (Exception e) {
                     logger.warn("Could not add subscription", e);
                 }
             }
-            logger.info("After cancelling {} subscriptions Camel has {} routes.", subscriptionSetupsToCancel.size(), camelContext.getRoutes().size());
 
             for (SubscriptionSetup subscriptionSetup : actualSubscriptionSetups) {
                 RouteBuilder routeBuilder = getRouteBuilder(subscriptionSetup);
@@ -165,7 +159,7 @@ public class SubscriptionMonitor implements CamelContextAware {
 
             }
 
-            startPeriodicHealthcheckService(actualSubscriptionSetups);
+            startPeriodicHealthcheckService(actualSubscriptionSetups, subscriptionSetupsToCancel);
         } else {
             logger.error("Subscriptions not configured correctly - no subscriptions will be started");
         }
@@ -195,7 +189,7 @@ public class SubscriptionMonitor implements CamelContextAware {
         return route;
     }
 
-    private void startPeriodicHealthcheckService(final List<SubscriptionSetup> subscriptionSetups) {
+    private void startPeriodicHealthcheckService(final List<SubscriptionSetup> subscriptionSetups, List<SubscriptionSetup> subscriptionSetupsToCancel) {
         for (SubscriptionSetup subscriptionSetup : subscriptionSetups) {
             if (!subscriptionManager.isSubscriptionRegistered(subscriptionSetup.getSubscriptionId())) {
                 subscriptionManager.addPendingSubscription(subscriptionSetup.getSubscriptionId(), subscriptionSetup);
@@ -216,6 +210,15 @@ public class SubscriptionMonitor implements CamelContextAware {
                             logger.info("Healthcheck: Checking health {}, {} routes",
                                     lockMap.get(ANSHAR_HEALTHCHECK_KEY).atZone(ZoneId.systemDefault()),
                                     camelContext.getRoutes().size());
+
+                            if (!subscriptionSetupsToCancel.isEmpty()) {
+                                logger.info("Cancelling {} subscriptions for update - start");
+                                for (SubscriptionSetup subscriptionSetup : subscriptionSetupsToCancel) {
+                                    cancelSubscription(subscriptionSetup);
+                                }
+                                logger.info("Cancelling {} subscriptions for update - done");
+                                subscriptionSetupsToCancel.clear();
+                            }
 
                             Map<String, SubscriptionSetup> pendingSubscriptions = subscriptionManager.getPendingSubscriptions();
 
