@@ -31,4 +31,5 @@ lib/
 gradle/
 gradlew
 gradlew.bat
-    
+
+/local_config/
