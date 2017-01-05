@@ -2,14 +2,17 @@ package no.rutebanken.anshar.subscription;
 
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import org.json.simple.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.text.MessageFormat;
 import java.time.Duration;
 import java.util.*;
 
-public class SubscriptionSetup implements Serializable{
+public class SubscriptionSetup implements Serializable {
 
+    private Logger logger = LoggerFactory.getLogger(SubscriptionSetup.class);
     private long internalId;
     private List<ValueAdapter> mappingAdapters = new ArrayList<>();
     private SubscriptionType subscriptionType;
@@ -302,31 +305,79 @@ public class SubscriptionSetup implements Serializable{
      */
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof SubscriptionSetup)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof SubscriptionSetup)) {
+            return false;
+        }
 
         SubscriptionSetup that = (SubscriptionSetup) o;
 
-        if (getInternalId() != that.getInternalId()) return false;
-        if (getSubscriptionType() != that.getSubscriptionType()) return false;
-        if (!address.equals(that.address)) return false;
-        if (!getHeartbeatInterval().equals(that.getHeartbeatInterval())) return false;
-        if (getOperatorNamespace() != null ? !getOperatorNamespace().equals(that.getOperatorNamespace()) : that.getOperatorNamespace() != null)
+        if (getInternalId() != that.getInternalId()) {
+            logger.info("getInternalId() does not match [{}] vs [{}]", getInternalId(), that.getInternalId());
             return false;
-        if (!getUrlMap().equals(that.getUrlMap())) return false;
-        if (!getVersion().equals(that.getVersion())) return false;
-        if (!getVendor().equals(that.getVendor())) return false;
-        if (!getDatasetId().equals(that.getDatasetId())) return false;
-        if (getServiceType() != that.getServiceType()) return false;
-        if (getDurationOfSubscription() != null ? !getDurationOfSubscription().equals(that.getDurationOfSubscription()) : that.getDurationOfSubscription() != null)
+        }
+        if (getSubscriptionType() != that.getSubscriptionType()) {
+            logger.info("getSubscriptionType() does not match [{}] vs [{}]", getSubscriptionType(), that.getSubscriptionType());
             return false;
-        if (getRequestorRef() != null ? !getRequestorRef().equals(that.getRequestorRef()) : that.getRequestorRef() != null)
+        }
+        if (!address.equals(that.address)) {
+            logger.info("address does not match [{}] vs [{}]", address, that.address);
             return false;
-        if (getSubscriptionMode() != that.getSubscriptionMode()) return false;
-        if (getIdMappingPrefixes() != null ? !getIdMappingPrefixes().equals(that.getIdMappingPrefixes()) : that.getIdMappingPrefixes() != null)
+        }
+        if (!getHeartbeatInterval().equals(that.getHeartbeatInterval())) {
+            logger.info("getHeartbeatInterval() does not match [{}] vs [{}]", getHeartbeatInterval(), that.getHeartbeatInterval());
             return false;
-        if (!Arrays.equals(mappingAdapterPresets, that.mappingAdapterPresets)) return false;
-        return Arrays.equals(filterMapPresets, that.filterMapPresets);
-
+        }
+        if (getOperatorNamespace() != null ? !getOperatorNamespace().equals(that.getOperatorNamespace()) : that.getOperatorNamespace() != null) {
+            logger.info("getOperatorNamespace() does not match [{}] vs [{}]", getOperatorNamespace(), that.getOperatorNamespace());
+            return false;
+        }
+        if (!getUrlMap().equals(that.getUrlMap())) {
+            logger.info("getUrlMap() does not match [{}] vs [{}]", getUrlMap(), that.getUrlMap());
+            return false;
+        }
+        if (!getVersion().equals(that.getVersion())) {
+            logger.info("getVersion() does not match [{}] vs [{}]", getVersion(), that.getVersion());
+            return false;
+        }
+        if (!getVendor().equals(that.getVendor())) {
+            logger.info("getVendor() does not match [{}] vs [{}]", getVendor(), that.getVendor());
+            return false;
+        }
+        if (!getDatasetId().equals(that.getDatasetId())) {
+            logger.info("getDatasetId() does not match [{}] vs [{}]", getDatasetId(), that.getDatasetId());
+            return false;
+        }
+        if (getServiceType() != that.getServiceType()) {
+            logger.info("getServiceType() does not match [{}] vs [{}]", getServiceType(), that.getServiceType());
+            return false;
+        }
+        if (getDurationOfSubscription() != null ? !getDurationOfSubscription().equals(that.getDurationOfSubscription()) : that.getDurationOfSubscription() != null) {
+            logger.info("getDurationOfSubscription() does not match [{}] vs [{}]", getDurationOfSubscription(), that.getDurationOfSubscription());
+            return false;
+        }
+        if (getRequestorRef() != null ? !getRequestorRef().equals(that.getRequestorRef()) : that.getRequestorRef() != null) {
+            logger.info("getRequestorRef() does not match [{}] vs [{}]", getRequestorRef(), that.getRequestorRef());
+            return false;
+        }
+        if (getSubscriptionMode() != that.getSubscriptionMode()) {
+            logger.info("getSubscriptionMode() does not match [{}] vs [{}]", getSubscriptionMode(), that.getSubscriptionMode());
+            return false;
+        }
+        if (getIdMappingPrefixes() != null ? !getIdMappingPrefixes().equals(that.getIdMappingPrefixes()) : that.getIdMappingPrefixes() != null) {
+            logger.info("getIdMappingPrefixes() does not match [{}] vs [{}]", getIdMappingPrefixes(), that.getIdMappingPrefixes());
+            return false;
+        }
+        if (!Arrays.equals(mappingAdapterPresets, that.mappingAdapterPresets)) {
+            logger.info("mappingAdapterPresets does not match [{}] vs [{}]", mappingAdapterPresets, that.mappingAdapterPresets);
+            return false;
+        }
+        if (!Arrays.equals(filterMapPresets, that.filterMapPresets)) {
+            logger.info("filterMapPresets does not match [{}] vs [{}]", filterMapPresets, that.filterMapPresets);
+            return false;
+        }
+        return true;
     }
 }
