@@ -182,7 +182,7 @@ anshar:
       mappingAdapterPresets: RUTER
       filterPresets:
       idMappingPrefixes: RUT,OPP,BRA,OST
-      active: false
+      active: true
 #    -
 #      internalId: 10
 #      vendor: ruteret
@@ -224,7 +224,7 @@ anshar:
       mappingAdapterPresets: RUTER
       filterPresets:
       idMappingPrefixes: RUT,OPP,BRA,OST
-      active: false
+      active: true
     -
       internalId: 12
       vendor: skysset
