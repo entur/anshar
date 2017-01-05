@@ -340,7 +340,7 @@ anshar:
       version: 2.0
       subscriptionId: vm-replication
       requestorRef: vm-requestorref
-      durationOfSubscriptionHours: 12
+      durationOfSubscriptionHours: 4
       mappingAdapterPresets: RUTER
       filterPresets:
       idMappingPrefixes: RUT,OPP,BRA,OST
@@ -360,7 +360,7 @@ anshar:
       version: 2.0
       subscriptionId: et-replication
       requestorRef: et-requestorref
-      durationOfSubscriptionHours: 12
+      durationOfSubscriptionHours: 4
       mappingAdapterPresets: RUTER
       filterPresets:
       idMappingPrefixes: RUT,OPP,BRA,OST
