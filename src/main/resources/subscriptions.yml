@@ -328,7 +328,7 @@ anshar:
     -
       internalId: 100
       vendor: internRuterVm
-      datasetId: RUT
+      datasetId: RUT2
       serviceType: REST
       subscriptionType: VEHICLE_MONITORING
       subscriptionMode: SUBSCRIBE
@@ -340,7 +340,7 @@ anshar:
       version: 2.0
       subscriptionId: vm-replication
       requestorRef: ${random.uuid}
-      durationOfSubscriptionHours: 14
+      durationOfSubscriptionHours: 12
       mappingAdapterPresets: RUTER
       filterPresets:
       idMappingPrefixes: RUT,OPP,BRA,OST
