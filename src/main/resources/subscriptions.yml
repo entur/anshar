@@ -328,7 +328,7 @@ anshar:
     -
       internalId: 100
       vendor: internRuterVm
-      datasetId: RUT2
+      datasetId: RUT
       serviceType: REST
       subscriptionType: VEHICLE_MONITORING
       subscriptionMode: SUBSCRIBE
