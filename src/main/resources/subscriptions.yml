@@ -339,7 +339,7 @@ anshar:
         DELETE_SUBSCRIPTION: mottak-beta.rutebanken.org/anshar/subscribe/RUT
       version: 2.0
       subscriptionId: vm-replication
-      requestorRef: ${random.uuid}
+      requestorRef: vm-requestorref
       durationOfSubscriptionHours: 12
       mappingAdapterPresets: RUTER
       filterPresets:
@@ -359,7 +359,7 @@ anshar:
         DELETE_SUBSCRIPTION: mottak-beta.rutebanken.org/anshar/subscribe/RUT
       version: 2.0
       subscriptionId: et-replication
-      requestorRef: ${random.uuid}
+      requestorRef: et-requestorref
       durationOfSubscriptionHours: 12
       mappingAdapterPresets: RUTER
       filterPresets:
