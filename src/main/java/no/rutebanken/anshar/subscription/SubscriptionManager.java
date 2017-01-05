@@ -82,6 +82,10 @@ public class SubscriptionManager {
 
     public boolean removeSubscription(String subscriptionId, boolean force) {
         SubscriptionSetup setup = activeSubscriptions.remove(subscriptionId);
+        if (setup == null) {
+            setup = pendingSubscriptions.remove(subscriptionId);
+        }
+
         boolean found = (setup != null);
 
         if (force) {
@@ -91,7 +95,7 @@ public class SubscriptionManager {
             lastActivity.remove(subscriptionId);
             hitcount.remove(subscriptionId);
             objectCounter.remove(subscriptionId);
-        } else {
+        } else if (found) {
             addPendingSubscription(subscriptionId, setup);
         }
 
