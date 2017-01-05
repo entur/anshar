@@ -135,7 +135,7 @@ public class SubscriptionMonitor implements CamelContextAware {
 
             }
 
-            logger.info("Before cancelling {} subscriptions Camel has {} routes.", camelContext.getRoutes().size());
+            logger.info("Before cancelling {} subscriptions Camel has {} routes.", subscriptionSetupsToCancel.size(), camelContext.getRoutes().size());
             for (SubscriptionSetup subscriptionSetup : subscriptionSetupsToCancel) {
                 RouteBuilder routeBuilder = getRouteBuilder(subscriptionSetup);
                 try {
@@ -152,7 +152,7 @@ public class SubscriptionMonitor implements CamelContextAware {
                     logger.warn("Could not add subscription", e);
                 }
             }
-            logger.info("After cancelling {} subscriptions Camel has {} routes.", camelContext.getRoutes().size());
+            logger.info("After cancelling {} subscriptions Camel has {} routes.", subscriptionSetupsToCancel.size(), camelContext.getRoutes().size());
 
             for (SubscriptionSetup subscriptionSetup : actualSubscriptionSetups) {
                 RouteBuilder routeBuilder = getRouteBuilder(subscriptionSetup);
