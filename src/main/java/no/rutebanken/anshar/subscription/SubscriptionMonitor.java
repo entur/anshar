@@ -119,10 +119,11 @@ public class SubscriptionMonitor implements CamelContextAware {
                         // Keeping subscription active/inactive
                         subscriptionSetup.setActive(existingSubscription.isActive());
                         try {
-                            cancelSubscription(existingSubscription);
+                            triggerRouteSynchronous(existingSubscription.getCancelSubscriptionRouteName());
                         } catch (Exception e) {
                             logger.warn("Cancelling subscription because of update failed - ignoring.", e);
                         }
+                        logger.info("Existing subscription cancelled - removing by force");
                         subscriptionManager.removeSubscription(existingSubscription.getSubscriptionId(), true);
 
                         actualSubscriptionSetups.add(subscriptionSetup);
@@ -250,6 +251,7 @@ public class SubscriptionMonitor implements CamelContextAware {
 
 
     public void startSubscription(final SubscriptionSetup subscriptionSetup) throws Exception {
+        logger.info("Starting subscription {}", subscriptionSetup);
         subscriptionManager.activatePendingSubscription(subscriptionSetup.getSubscriptionId());
         if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.SUBSCRIBE) {
             triggerRoute(subscriptionSetup.getStartSubscriptionRouteName());
@@ -274,7 +276,7 @@ public class SubscriptionMonitor implements CamelContextAware {
     }
 
     public void cancelSubscription(final SubscriptionSetup subscriptionSetup) throws Exception {
-
+        logger.info("Cancelling subscription {}", subscriptionSetup);
         subscriptionManager.removeSubscription(subscriptionSetup.getSubscriptionId());
 
         if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.SUBSCRIBE) {
@@ -301,35 +303,39 @@ public class SubscriptionMonitor implements CamelContextAware {
 
     private void triggerRoute(final String routeName) {
         Thread r = new Thread() {
-            String routeId = "";
             @Override
             public void run() {
-                try {
-                    logger.info("Triggering route {}", routeName);
-                    TriggerRouteBuilder triggerRouteBuilder = new TriggerRouteBuilder(routeName);
-
-                    routeId = addRoute(triggerRouteBuilder);
-                    logger.info("Route added - CamelContext now has {} routes", camelContext.getRoutes().size());
-
-                    executeRoute(triggerRouteBuilder.getRouteName());
-                } catch (Exception e) {
-                    if (e.getCause() instanceof SocketException) {
-                        logger.info("Recipient is unreachable - ignoring");
-                    } else {
-                        logger.warn("Exception caught when triggering route ", e);
-                    }
-                } finally {
-                    try {
-                        boolean removed = stopAndRemoveRoute(routeId);
-                        logger.info("Route removed [{}] - CamelContext now has {} routes", removed, camelContext.getRoutes().size());
-                    } catch (Exception e) {
-                        logger.warn("Exception caught when removing route ", e);
-                    }
-                }
+                triggerRouteSynchronous(routeName);
             }
         };
 
         r.start();
+    }
+    private void triggerRouteSynchronous(String routeName) {
+        String routeId = "";
+        try {
+            logger.info("Trigger route - start {}", routeName);
+            TriggerRouteBuilder triggerRouteBuilder = new TriggerRouteBuilder(routeName);
+
+            routeId = addRoute(triggerRouteBuilder);
+            logger.info("Trigger route - Route added - CamelContext now has {} routes", camelContext.getRoutes().size());
+
+            executeRoute(triggerRouteBuilder.getRouteName());
+        } catch (Exception e) {
+            if (e.getCause() instanceof SocketException) {
+                logger.info("Recipient is unreachable - ignoring");
+            } else {
+                logger.warn("Exception caught when triggering route ", e);
+            }
+        } finally {
+            try {
+                boolean removed = stopAndRemoveRoute(routeId);
+                logger.info("Route removed [{}] - CamelContext now has {} routes", removed, camelContext.getRoutes().size());
+            } catch (Exception e) {
+                logger.warn("Exception caught when removing route ", e);
+            }
+        }
+        logger.info("Trigger route - done {}", routeName);
     }
 
     private String addRoute(TriggerRouteBuilder route) throws Exception {

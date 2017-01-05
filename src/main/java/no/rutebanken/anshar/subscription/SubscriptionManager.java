@@ -101,7 +101,7 @@ public class SubscriptionManager {
 
         logStats();
 
-        logger.info("Removed subscription {}, found: {}", subscriptionId, found);
+        logger.info("Removed subscription {}, found: {}", (setup !=null ? setup.toString():subscriptionId), found);
         return found;
     }
 
