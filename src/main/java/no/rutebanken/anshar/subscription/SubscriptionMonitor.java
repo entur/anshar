@@ -80,6 +80,7 @@ public class SubscriptionMonitor implements CamelContextAware {
             Set<String> subscriptionIds = new HashSet<>();
 
             List<SubscriptionSetup> actualSubscriptionSetups = new ArrayList<>();
+            List<SubscriptionSetup> subscriptionSetupsToCancel = new ArrayList<>();
 
             // Validation and consistency-verification
             for (SubscriptionSetup subscriptionSetup : subscriptionSetups) {
@@ -118,27 +119,40 @@ public class SubscriptionMonitor implements CamelContextAware {
 
                         // Keeping subscription active/inactive
                         subscriptionSetup.setActive(existingSubscription.isActive());
-                        try {
-                            triggerRouteSynchronous(existingSubscription.getCancelSubscriptionRouteName());
-                        } catch (Exception e) {
-                            logger.warn("Cancelling subscription because of update failed - ignoring.", e);
-                        }
-                        logger.info("Existing subscription cancelled - removing by force");
-                        subscriptionManager.removeSubscription(existingSubscription.getSubscriptionId(), true);
 
+                        subscriptionSetupsToCancel.add(existingSubscription);
                         actualSubscriptionSetups.add(subscriptionSetup);
-
+                        subscriptionIds.add(subscriptionSetup.getSubscriptionId());
                     } else {
                         logger.info("Subscription with internalId={} already registered - ignoring. {}", subscriptionSetup.getInternalId(), subscriptionSetup);
                         actualSubscriptionSetups.add(existingSubscription);
+                        subscriptionIds.add(existingSubscription.getSubscriptionId());
                     }
                 } else {
-                    subscriptionIds.add(subscriptionSetup.getSubscriptionId());
-
                     actualSubscriptionSetups.add(subscriptionSetup);
+                    subscriptionIds.add(subscriptionSetup.getSubscriptionId());
                 }
 
             }
+
+            logger.info("Before cancelling {} subscriptions Camel has {} routes.", camelContext.getRoutes().size());
+            for (SubscriptionSetup subscriptionSetup : subscriptionSetupsToCancel) {
+                RouteBuilder routeBuilder = getRouteBuilder(subscriptionSetup);
+                try {
+                    camelContext.addRoutes(routeBuilder);
+                    try {
+                        triggerRouteSynchronous(subscriptionSetup.getCancelSubscriptionRouteName());
+                    } catch (Exception e) {
+                        logger.warn("Cancelling subscription because of update failed - ignoring.", e);
+                    }
+                    logger.info("Existing subscription cancelled - removing by force");
+                    subscriptionManager.removeSubscription(subscriptionSetup.getSubscriptionId(), true);
+                    camelContext.removeRouteDefinitions(routeBuilder.getRouteCollection().getRoutes());
+                } catch (Exception e) {
+                    logger.warn("Could not add subscription", e);
+                }
+            }
+            logger.info("After cancelling {} subscriptions Camel has {} routes.", camelContext.getRoutes().size());
 
             for (SubscriptionSetup subscriptionSetup : actualSubscriptionSetups) {
                 RouteBuilder routeBuilder = getRouteBuilder(subscriptionSetup);
