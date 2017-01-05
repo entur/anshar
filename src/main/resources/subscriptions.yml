@@ -340,7 +340,7 @@ anshar:
       version: 2.0
       subscriptionId: vm-replication
       requestorRef: ${random.uuid}
-      durationOfSubscriptionHours: 12
+      durationOfSubscriptionHours: 14
       mappingAdapterPresets: RUTER
       filterPresets:
       idMappingPrefixes: RUT,OPP,BRA,OST
