@@ -40,7 +40,7 @@ public class SubscriptionManagerTest {
 
         assertTrue(subscriptionManager.isSubscriptionHealthy(subscriptionId));
 
-        Thread.sleep(1000*subscriptionDurationSec * subscriptionManager.HEALTHCHECK_INTERVAL_FACTOR + 100);
+        Thread.sleep(1000*subscriptionDurationSec * subscriptionManager.HEALTHCHECK_INTERVAL_FACTOR + 150);
 
         assertFalse(subscriptionManager.isSubscriptionHealthy(subscriptionId));
     }
@@ -48,14 +48,14 @@ public class SubscriptionManagerTest {
     @Test
     public void activeSubscriptionNoHeartbeat() throws InterruptedException {
         long subscriptionDurationSec = 180;
-        SubscriptionSetup activeSubscription = createSubscription(subscriptionDurationSec, Duration.ofMillis(100));
+        SubscriptionSetup activeSubscription = createSubscription(subscriptionDurationSec, Duration.ofMillis(150));
         String subscriptionId = UUID.randomUUID().toString();;
         subscriptionManager.addSubscription(subscriptionId, activeSubscription);
         subscriptionManager.activatePendingSubscription(subscriptionId);
 
         assertTrue(subscriptionManager.isSubscriptionHealthy(subscriptionId));
 
-        Thread.sleep(activeSubscription.getHeartbeatInterval().toMillis()*subscriptionManager.HEALTHCHECK_INTERVAL_FACTOR+10);
+        Thread.sleep(activeSubscription.getHeartbeatInterval().toMillis()*subscriptionManager.HEALTHCHECK_INTERVAL_FACTOR+150);
 
         assertFalse(subscriptionManager.isSubscriptionHealthy(subscriptionId));
     }
@@ -63,13 +63,13 @@ public class SubscriptionManagerTest {
     @Test
     public void pendingSubscriptionIsHealthy() throws InterruptedException {
         long subscriptionDurationSec = 1;
-        SubscriptionSetup pendingSubscription = createSubscription(subscriptionDurationSec, Duration.ofMillis(100));
+        SubscriptionSetup pendingSubscription = createSubscription(subscriptionDurationSec, Duration.ofMillis(150));
         String subscriptionId = UUID.randomUUID().toString();;
         subscriptionManager.addPendingSubscription(subscriptionId, pendingSubscription);
 
         assertTrue(subscriptionManager.isSubscriptionHealthy(subscriptionId));
 
-        Thread.sleep(pendingSubscription.getHeartbeatInterval().toMillis()*subscriptionManager.HEALTHCHECK_INTERVAL_FACTOR+10);
+        Thread.sleep(pendingSubscription.getHeartbeatInterval().toMillis()*subscriptionManager.HEALTHCHECK_INTERVAL_FACTOR+150);
 
         assertFalse(subscriptionManager.isSubscriptionHealthy(subscriptionId));
     }
