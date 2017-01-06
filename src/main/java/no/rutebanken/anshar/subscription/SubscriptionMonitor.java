@@ -80,7 +80,6 @@ public class SubscriptionMonitor implements CamelContextAware {
             Set<String> subscriptionIds = new HashSet<>();
 
             List<SubscriptionSetup> actualSubscriptionSetups = new ArrayList<>();
-            List<SubscriptionSetup> subscriptionSetupsToCancel = new ArrayList<>();
 
             // Validation and consistency-verification
             for (SubscriptionSetup subscriptionSetup : subscriptionSetups) {
@@ -114,35 +113,25 @@ public class SubscriptionMonitor implements CamelContextAware {
                 SubscriptionSetup existingSubscription = subscriptionManager.getSubscriptionById(subscriptionSetup.getInternalId());
 
                 if (existingSubscription != null) {
-                    if (!existingSubscription.equals(subscriptionSetup)) {
-                        logger.info("Subscription with internalId={} is updated - reinitializing. {}", subscriptionSetup.getInternalId(), subscriptionSetup);
-
-                        // Keeping subscription active/inactive
-                        subscriptionSetup.setActive(existingSubscription.isActive());
-
-                        subscriptionSetupsToCancel.add(existingSubscription);
-
-                        actualSubscriptionSetups.add(subscriptionSetup);
-                        subscriptionIds.add(subscriptionSetup.getSubscriptionId());
-                    } else {
+//                    if (!existingSubscription.equals(subscriptionSetup)) {
+//                        logger.info("Subscription with internalId={} is updated - reinitializing. {}", subscriptionSetup.getInternalId(), subscriptionSetup);
+//
+//                        // Keeping subscription active/inactive
+//                        subscriptionSetup.setActive(existingSubscription.isActive());
+//                        subscriptionManager.removeSubscription(existingSubscription.getSubscriptionId(), true);
+//
+//                        actualSubscriptionSetups.add(subscriptionSetup);
+//                        subscriptionIds.add(subscriptionSetup.getSubscriptionId());
+//                    } else {
                         logger.info("Subscription with internalId={} already registered - ignoring. {}", subscriptionSetup.getInternalId(), subscriptionSetup);
                         actualSubscriptionSetups.add(existingSubscription);
                         subscriptionIds.add(existingSubscription.getSubscriptionId());
-                    }
+//                    }
                 } else {
                     actualSubscriptionSetups.add(subscriptionSetup);
                     subscriptionIds.add(subscriptionSetup.getSubscriptionId());
                 }
 
-            }
-
-            for (SubscriptionSetup subscriptionToCancel : subscriptionSetupsToCancel) {
-                RouteBuilder routeBuilder = getRouteBuilder(subscriptionToCancel);
-                try {
-                    camelContext.addRoutes(routeBuilder);
-                } catch (Exception e) {
-                    logger.warn("Could not add subscription", e);
-                }
             }
 
             for (SubscriptionSetup subscriptionSetup : actualSubscriptionSetups) {
@@ -156,7 +145,7 @@ public class SubscriptionMonitor implements CamelContextAware {
 
             }
 
-            startPeriodicHealthcheckService(actualSubscriptionSetups, subscriptionSetupsToCancel);
+            startPeriodicHealthcheckService(actualSubscriptionSetups);
         } else {
             logger.error("Subscriptions not configured correctly - no subscriptions will be started");
         }
@@ -186,7 +175,7 @@ public class SubscriptionMonitor implements CamelContextAware {
         return route;
     }
 
-    private void startPeriodicHealthcheckService(final List<SubscriptionSetup> subscriptionSetups, List<SubscriptionSetup> subscriptionSetupsToCancel) {
+    private void startPeriodicHealthcheckService(final List<SubscriptionSetup> subscriptionSetups) {
         for (SubscriptionSetup subscriptionSetup : subscriptionSetups) {
             if (!subscriptionManager.isSubscriptionRegistered(subscriptionSetup.getSubscriptionId())) {
                 subscriptionManager.addPendingSubscription(subscriptionSetup.getSubscriptionId(), subscriptionSetup);
@@ -207,16 +196,6 @@ public class SubscriptionMonitor implements CamelContextAware {
                             logger.info("Healthcheck: Checking health {}, {} routes",
                                     lockMap.get(ANSHAR_HEALTHCHECK_KEY).atZone(ZoneId.systemDefault()),
                                     camelContext.getRoutes().size());
-
-                            if (!subscriptionSetupsToCancel.isEmpty()) {
-                                logger.info("Cancelling {} subscriptions for update - start", subscriptionSetupsToCancel.size());
-                                for (SubscriptionSetup subscriptionSetup : subscriptionSetupsToCancel) {
-                                    logger.info("Healthcheck: Subscription updated - cancelling {}", subscriptionSetup);
-                                    cancelSubscription(subscriptionSetup);
-                                }
-                                logger.info("Cancelling {} subscriptions for update - done", subscriptionSetupsToCancel.size());
-                                subscriptionSetupsToCancel.clear();
-                            }
 
                             Map<String, SubscriptionSetup> pendingSubscriptions = subscriptionManager.getPendingSubscriptions();
 
@@ -320,37 +299,34 @@ public class SubscriptionMonitor implements CamelContextAware {
         Thread r = new Thread() {
             @Override
             public void run() {
-                triggerRouteSynchronous(routeName);
+                String routeId = "";
+                try {
+                    logger.info("Trigger route - start {}", routeName);
+                    TriggerRouteBuilder triggerRouteBuilder = new TriggerRouteBuilder(routeName);
+
+                    routeId = addRoute(triggerRouteBuilder);
+                    logger.info("Trigger route - Route added - CamelContext now has {} routes", camelContext.getRoutes().size());
+
+                    executeRoute(triggerRouteBuilder.getRouteName());
+                } catch (Exception e) {
+                    if (e.getCause() instanceof SocketException) {
+                        logger.info("Recipient is unreachable - ignoring");
+                    } else {
+                        logger.warn("Exception caught when triggering route ", e);
+                    }
+                } finally {
+                    try {
+                        boolean removed = stopAndRemoveRoute(routeId);
+                        logger.info("Route removed [{}] - CamelContext now has {} routes", removed, camelContext.getRoutes().size());
+                    } catch (Exception e) {
+                        logger.warn("Exception caught when removing route ", e);
+                    }
+                }
+                logger.info("Trigger route - done {}", routeName);
             }
         };
 
         r.start();
-    }
-    private void triggerRouteSynchronous(String routeName) {
-        String routeId = "";
-        try {
-            logger.info("Trigger route - start {}", routeName);
-            TriggerRouteBuilder triggerRouteBuilder = new TriggerRouteBuilder(routeName);
-
-            routeId = addRoute(triggerRouteBuilder);
-            logger.info("Trigger route - Route added - CamelContext now has {} routes", camelContext.getRoutes().size());
-
-            executeRoute(triggerRouteBuilder.getRouteName());
-        } catch (Exception e) {
-            if (e.getCause() instanceof SocketException) {
-                logger.info("Recipient is unreachable - ignoring");
-            } else {
-                logger.warn("Exception caught when triggering route ", e);
-            }
-        } finally {
-            try {
-                boolean removed = stopAndRemoveRoute(routeId);
-                logger.info("Route removed [{}] - CamelContext now has {} routes", removed, camelContext.getRoutes().size());
-            } catch (Exception e) {
-                logger.warn("Exception caught when removing route ", e);
-            }
-        }
-        logger.info("Trigger route - done {}", routeName);
     }
 
     private String addRoute(TriggerRouteBuilder route) throws Exception {
