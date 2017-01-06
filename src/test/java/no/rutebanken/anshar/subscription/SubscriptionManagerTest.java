@@ -40,7 +40,7 @@ public class SubscriptionManagerTest {
 
         assertTrue(subscriptionManager.isSubscriptionHealthy(subscriptionId));
 
-        Thread.sleep(1100);
+        Thread.sleep(subscriptionDurationSec * subscriptionManager.HEALTHCHECK_INTERVAL_FACTOR + 100);
 
         assertFalse(subscriptionManager.isSubscriptionHealthy(subscriptionId));
     }
@@ -55,7 +55,7 @@ public class SubscriptionManagerTest {
 
         assertTrue(subscriptionManager.isSubscriptionHealthy(subscriptionId));
 
-        Thread.sleep(activeSubscription.getHeartbeatInterval().toMillis()*3+10);
+        Thread.sleep(activeSubscription.getHeartbeatInterval().toMillis()*subscriptionManager.HEALTHCHECK_INTERVAL_FACTOR+10);
 
         assertFalse(subscriptionManager.isSubscriptionHealthy(subscriptionId));
     }
@@ -69,7 +69,7 @@ public class SubscriptionManagerTest {
 
         assertTrue(subscriptionManager.isSubscriptionHealthy(subscriptionId));
 
-        Thread.sleep(pendingSubscription.getHeartbeatInterval().toMillis()*3+10);
+        Thread.sleep(pendingSubscription.getHeartbeatInterval().toMillis()*subscriptionManager.HEALTHCHECK_INTERVAL_FACTOR+10);
 
         assertFalse(subscriptionManager.isSubscriptionHealthy(subscriptionId));
     }

@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 @Service
 public class SubscriptionManager {
 
-    private final int HEALTHCHECK_INTERVAL_FACTOR = 5;
+    final int HEALTHCHECK_INTERVAL_FACTOR = 5;
     private Logger logger = LoggerFactory.getLogger(SubscriptionManager.class);
 
     @Autowired
@@ -220,8 +220,8 @@ public class SubscriptionManager {
 
         SubscriptionSetup activeSubscription = activeSubscriptions.get(subscriptionId);
         if (activeSubscription != null) {
-            long tripleInterval = activeSubscription.getHeartbeatInterval().toMillis() * HEALTHCHECK_INTERVAL_FACTOR;
-            if (instant.isBefore(Instant.now().minusMillis(tripleInterval))) {
+            long allowedInterval = activeSubscription.getHeartbeatInterval().toMillis() * HEALTHCHECK_INTERVAL_FACTOR;
+            if (instant.isBefore(Instant.now().minusMillis(allowedInterval))) {
                 //Subscription exists, but there has not been any activity recently
                 return false;
             }
@@ -243,8 +243,8 @@ public class SubscriptionManager {
 
         SubscriptionSetup pendingSubscription = pendingSubscriptions.get(subscriptionId);
         if (pendingSubscription != null) {
-            long tripleInterval = pendingSubscription.getHeartbeatInterval().toMillis() * HEALTHCHECK_INTERVAL_FACTOR;
-            if (instant.isBefore(Instant.now().minusMillis(tripleInterval))) {
+            long allowedInterval = pendingSubscription.getHeartbeatInterval().toMillis() * HEALTHCHECK_INTERVAL_FACTOR;
+            if (instant.isBefore(Instant.now().minusMillis(allowedInterval))) {
                 logger.debug("Subscription {} never activated.", pendingSubscription.toString());
                 //Subscription created, but never received - reestablish subscription
                 return false;
