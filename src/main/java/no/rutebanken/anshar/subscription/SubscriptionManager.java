@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 @Service
 public class SubscriptionManager {
 
-    private final int HEALTHCHECK_INTERVAL_FACTOR = 3;
+    private final int HEALTHCHECK_INTERVAL_FACTOR = 5;
     private Logger logger = LoggerFactory.getLogger(SubscriptionManager.class);
 
     @Autowired
