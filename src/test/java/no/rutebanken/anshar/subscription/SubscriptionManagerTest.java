@@ -40,7 +40,7 @@ public class SubscriptionManagerTest {
 
         assertTrue(subscriptionManager.isSubscriptionHealthy(subscriptionId));
 
-        Thread.sleep(subscriptionDurationSec * subscriptionManager.HEALTHCHECK_INTERVAL_FACTOR + 100);
+        Thread.sleep(1000*subscriptionDurationSec * subscriptionManager.HEALTHCHECK_INTERVAL_FACTOR + 100);
 
         assertFalse(subscriptionManager.isSubscriptionHealthy(subscriptionId));
     }
