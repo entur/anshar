@@ -186,12 +186,13 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
             if (vehicleLocation != null) {
                 if(vehicleLocation.getLongitude() == null & vehicleLocation.getCoordinates() == null) {
                     keep = false;
+                    logger.info("Null location {}", vehicleRefToString(monitoredVehicleJourney));
                     logger.trace("Skipping invalid VehicleActivity - VehicleLocation is required, but is not set.");
                 }
                 if((vehicleLocation.getLongitude() != null && vehicleLocation.getLongitude().doubleValue() == 0) ||
                         (vehicleLocation.getLatitude() != null && vehicleLocation.getLatitude().doubleValue() == 0)) {
                     keep = false;
-                    logger.warn("Invalid location {}", vehicleRefToString(monitoredVehicleJourney));
+                    logger.info("Invalid location {}", vehicleRefToString(monitoredVehicleJourney));
                     logger.trace("Skipping invalid VehicleActivity - VehicleLocation is included, but is not set correctly.");
                 }
             }
