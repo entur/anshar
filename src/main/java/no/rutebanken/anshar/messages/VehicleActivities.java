@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 import uk.org.siri.siri20.*;
 
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
@@ -189,9 +188,10 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
                     keep = false;
                     logger.trace("Skipping invalid VehicleActivity - VehicleLocation is required, but is not set.");
                 }
-                if((vehicleLocation.getLongitude() != null && vehicleLocation.getLongitude().equals(BigDecimal.ZERO)) ||
-                        (vehicleLocation.getLatitude() != null && vehicleLocation.getLatitude().equals(BigDecimal.ZERO))) {
+                if((vehicleLocation.getLongitude() != null && vehicleLocation.getLongitude().doubleValue() == 0) ||
+                        (vehicleLocation.getLatitude() != null && vehicleLocation.getLatitude().doubleValue() == 0)) {
                     keep = false;
+                    logger.warn("Invalid location ", vehicleRefToString(monitoredVehicleJourney));
                     logger.trace("Skipping invalid VehicleActivity - VehicleLocation is included, but is not set correctly.");
                 }
             }
@@ -199,6 +199,17 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
             keep = false;
         }
         return keep;
+    }
+
+    private String vehicleRefToString(VehicleActivityStructure.MonitoredVehicleJourney monitoredVehicleJourney) {
+        StringBuffer s = new StringBuffer();
+        s.append("[")
+                .append("LineRef: ").append(monitoredVehicleJourney.getLineRef() != null ? monitoredVehicleJourney.getLineRef().getValue() : "null")
+                .append(",VehicleRef: ").append(monitoredVehicleJourney.getVehicleRef() != null ? monitoredVehicleJourney.getVehicleRef().getValue() : "null")
+                .append(",OperatorRef: ").append(monitoredVehicleJourney.getOperatorRef() != null ? monitoredVehicleJourney.getOperatorRef().getValue() : "null")
+        .append("]")
+        ;
+        return s.toString();
     }
 
     /*
