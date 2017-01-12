@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 import uk.org.siri.siri20.*;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
@@ -187,6 +188,11 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
                 if(vehicleLocation.getLongitude() == null & vehicleLocation.getCoordinates() == null) {
                     keep = false;
                     logger.trace("Skipping invalid VehicleActivity - VehicleLocation is required, but is not set.");
+                }
+                if((vehicleLocation.getLongitude() != null && vehicleLocation.getLongitude().equals(BigDecimal.ZERO)) ||
+                        (vehicleLocation.getLatitude() != null && vehicleLocation.getLatitude().equals(BigDecimal.ZERO))) {
+                    keep = false;
+                    logger.trace("Skipping invalid VehicleActivity - VehicleLocation is included, but is not set correctly.");
                 }
             }
         } else {
