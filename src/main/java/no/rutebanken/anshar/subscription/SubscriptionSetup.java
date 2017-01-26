@@ -170,6 +170,7 @@ public class SubscriptionSetup implements Serializable {
         obj.put("subscriptionMode", getSubscriptionMode().toString());
         obj.put("heartbeatInterval", getHeartbeatInterval().toString());
         obj.put("durationOfSubscription", getDurationOfSubscription().toString());
+        obj.put("requestorRef", getRequestorRef());
 
         return obj;
     }

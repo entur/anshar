@@ -59,6 +59,7 @@
                     <tr><th>Duration</th><td>${item.durationOfSubscription}</td></tr>
                     <tr><th>Type</th><td>${item.subscriptionType}</td></tr>
                     <tr><th>Id</th><td>${item.subscriptionId}</td></tr>
+                    <tr><th>RequestorRef</th><td>${item.requestorRef}</td></tr>
                     <tr><th>Mode</th><td>${item.subscriptionMode}</td></tr>
                     <tr>
                         <th>URLs</th>
