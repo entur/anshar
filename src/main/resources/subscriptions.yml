@@ -279,7 +279,7 @@ anshar:
         DELETE_SUBSCRIPTION: brakar.tmix.se/siri/1.4/et
       version: 1.4
       subscriptionId: ${random.uuid}
-      requestorRef: RutebankenDEV
+      requestorRef: RutebankenDEV_${random.uuid}
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: BRAKAR
       filterPresets:
@@ -299,7 +299,7 @@ anshar:
         DELETE_SUBSCRIPTION: brakar.tmix.se/siri/1.4/sx
       version: 1.4
       subscriptionId: ${random.uuid}
-      requestorRef: RutebankenDEV
+      requestorRef: RutebankenDEV_${random.uuid}
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: BRAKAR
       filterPresets:
