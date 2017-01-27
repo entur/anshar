@@ -6,7 +6,7 @@
   <parent>
       <groupId>org.rutebanken.superpom</groupId>
       <artifactId>superpom</artifactId>
-      <version>0.0.5</version>
+      <version>0.0.6</version>
   </parent>
 
 
@@ -72,7 +72,7 @@
             <dependency>
                 <groupId>org.rutebanken.helpers</groupId>
                 <artifactId>hazelcast-helper</artifactId>
-                <version>0.0.2-SNAPSHOT</version>
+                <version>0.0.3-SNAPSHOT</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
