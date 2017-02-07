@@ -13,7 +13,12 @@ public class RouteHelper {
     private NamespacePrefixMapper customNamespacePrefixMapper;
     private SubscriptionSetup subscriptionSetup;
 
-
+    static String getCamelUrl(String url) {
+        if (url != null && url.startsWith("https4://")) {
+            return url;
+        }
+        return "http4://" + url;
+    }
 
     public RouteHelper(SubscriptionSetup subscriptionSetup, NamespacePrefixMapper customNamespacePrefixMapper) {
         this.subscriptionSetup = subscriptionSetup;

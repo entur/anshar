@@ -163,7 +163,10 @@ public class CamelRouteManager implements CamelContextAware {
 
             if (remoteEndPoint.startsWith("http://")) {
                 //Translating URL to camel-format
-                remoteEndPoint = remoteEndPoint.substring("http://".length());
+                remoteEndPoint = "http4://" + remoteEndPoint.substring("http://".length());
+            } else if (remoteEndPoint.startsWith("https://")) {
+                //Translating URL to camel-format
+                remoteEndPoint = "https4://" + remoteEndPoint.substring("https://".length());
             }
 
             routeName = String.format("direct:%s", UUID.randomUUID().toString());
@@ -187,7 +190,7 @@ public class CamelRouteManager implements CamelContextAware {
                     .setHeader(Exchange.CONTENT_TYPE, constant("application/xml"))
                     .marshal().string("UTF-8")
                     .to("log:push:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
-                    .to("http4://" + remoteEndPoint + httpOptions)
+                    .to(remoteEndPoint + httpOptions)
                     .to("log:push-resp:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                     .log(LoggingLevel.INFO, "POST complete [" + subscriptionRequest.getSubscriptionId() + "]");
 

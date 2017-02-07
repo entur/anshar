@@ -12,6 +12,8 @@ import uk.org.siri.siri20.Siri;
 
 import java.util.Map;
 
+import static no.rutebanken.anshar.routes.siri.RouteHelper.getCamelUrl;
+
 public class Siri20ToSiriRS20RequestResponse extends RouteBuilder {
     private final Siri request;
     private final SubscriptionSetup subscriptionSetup;
@@ -52,11 +54,11 @@ public class Siri20ToSiriRS20RequestResponse extends RouteBuilder {
                         // Header routing
                 .choice()
                 .when(header("SOAPAction").isEqualTo("GetVehicleMonitoring"))
-                .to("http4://" + urlMap.get(RequestType.GET_VEHICLE_MONITORING) + httpOptions)
+                .to(getCamelUrl(urlMap.get(RequestType.GET_VEHICLE_MONITORING)) + httpOptions)
                 .when(header("SOAPAction").isEqualTo("GetSituationExchange"))
-                .to("http4://" + urlMap.get(RequestType.GET_SITUATION_EXCHANGE) + httpOptions)
+                .to(getCamelUrl(urlMap.get(RequestType.GET_SITUATION_EXCHANGE)) + httpOptions)
                 .when(header("SOAPAction").isEqualTo("GetEstimatedTimetable"))
-                .to("http4://" + urlMap.get(RequestType.GET_ESTIMATED_TIMETABLE) + httpOptions)
+                .to(getCamelUrl(urlMap.get(RequestType.GET_ESTIMATED_TIMETABLE)) + httpOptions)
                 .otherwise()
                 .throwException(new ServiceNotSupportedException())
                 .end()
@@ -65,4 +67,6 @@ public class Siri20ToSiriRS20RequestResponse extends RouteBuilder {
                 .to("activemq:queue:" + SiriIncomingReceiver.TRANSFORM_QUEUE + "?disableReplyTo=true")
         ;
     }
+
+
 }

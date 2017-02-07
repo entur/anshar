@@ -7,7 +7,7 @@
 |subscriptionMode|REQUEST_RESPONSE, SUBSCRIBE| - REQUEST_RESPONSE: Client gets all current data at som interval - SUBSCRIBE:Pubsub-pattern - changes are pushed from server to client when they occur|
 |heartbeatIntervalSeconds|Any int|Expected heartbeat frequency|
 |operatorNamespace|Namespace URL|Optional namespace used in XML-marshalling data from this subscription|
-|urlMap|List of urls| Specifies URLs to separate services, unused may be deleted|
+|urlMap|List of urls| Specifies URLs to separate services, unused may be deleted. Specify https4:// for HTTPS (e.g. https4://localhost:8080/siri/sx)|
 |  SUBSCRIBE|localhost:8080/siri/service/subscribe.xml |URL to register subscription|
 |  DELETE_SUBSCRIPTION|localhost:8080/siri/service/managesubscription.xml |URL to terminate subscription|
 |  CHECK_STATUS|localhost:8080/siri/service/checkstatus.xml|URL used to check status|

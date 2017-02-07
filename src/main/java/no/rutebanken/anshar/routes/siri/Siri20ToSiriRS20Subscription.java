@@ -12,6 +12,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
+import static no.rutebanken.anshar.routes.siri.RouteHelper.getCamelUrl;
+
 public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
 
     private Logger logger = LoggerFactory.getLogger(Siri20ToSiriRS20Subscription.class);
@@ -42,7 +44,7 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
                 .removeHeaders("CamelHttp*") // Remove any incoming HTTP headers as they interfere with the outgoing definition
                 .setHeader(Exchange.CONTENT_TYPE, constant("text/xml;charset=UTF-8")) // Necessary when talking to Microsoft web services
                 .setHeader(Exchange.HTTP_METHOD, constant(HttpMethods.POST))
-                .to("http4://" + urlMap.get(RequestType.SUBSCRIBE)+getTimeout())
+                .to(getCamelUrl(urlMap.get(RequestType.SUBSCRIBE)) + getTimeout())
                 .to("log:received response:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .process(p -> {
 
@@ -62,11 +64,11 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
                     .removeHeaders("CamelHttp*") // Remove any incoming HTTP headers as they interfere with the outgoing definition
                     .setHeader(Exchange.CONTENT_TYPE, constant("text/xml;charset=UTF-8")) // Necessary when talking to Microsoft web services
                     .setHeader(Exchange.HTTP_METHOD, constant(HttpMethods.POST))
-                    .to("http4://" + urlMap.get(RequestType.CHECK_STATUS)+getTimeout())
+                    .to(getCamelUrl(urlMap.get(RequestType.CHECK_STATUS)) + getTimeout())
                     .process(p -> {
 
                         String responseCode = p.getIn().getHeader("CamelHttpResponseCode", String.class);
-                        if ("200".equals(responseCode)) {
+                        if ("200" .equals(responseCode)) {
                             logger.trace("CheckStatus OK - Remote service is up [{}]", subscriptionSetup.buildUrl());
                         } else {
                             logger.info("CheckStatus NOT OK - Remote service is down [{}]", subscriptionSetup.buildUrl());
@@ -84,7 +86,7 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
                 .removeHeaders("CamelHttp*") // Remove any incoming HTTP headers as they interfere with the outgoing definition
                 .setHeader(Exchange.CONTENT_TYPE, constant("text/xml;charset=UTF-8")) // Necessary when talking to Microsoft web services
                 .setHeader(Exchange.HTTP_METHOD, constant(HttpMethods.POST))
-                .to("http4://" + urlMap.get(RequestType.DELETE_SUBSCRIPTION)+getTimeout())
+                .to(getCamelUrl(urlMap.get(RequestType.DELETE_SUBSCRIPTION))+getTimeout())
                 .to("log:received response:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .process(p -> {
                     String body = p.getIn().getBody(String.class);
