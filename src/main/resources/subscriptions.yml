@@ -326,6 +326,25 @@ anshar:
       idMappingPrefixes: HRD
       active: true
     -
+      internalId: 17
+      vendor: baneEt
+      datasetId: TOG
+      serviceType: REST
+      subscriptionType: ESTIMATED_TIMETABLE
+      subscriptionMode: REQUEST_RESPONSE
+      heartbeatIntervalSeconds: 60
+      operatorNamespace: http://www.siri.org.uk/siri
+      urlMap:
+        GET_ESTIMATED_TIMETABLE: https4://siri.opm.jbv.no/jbv/et
+      version: 2.0
+      subscriptionId: ${random.uuid}
+      requestorRef: ${random.uuid}
+      durationOfSubscriptionHours: 2
+      mappingAdapterPresets:
+      filterPresets:
+      idMappingPrefixes:
+      active: true
+    -
       internalId: 100
       vendor: internRuterVm
       datasetId: RUT
