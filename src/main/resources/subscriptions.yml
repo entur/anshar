@@ -228,7 +228,7 @@ anshar:
     -
       internalId: 12
       vendor: skysset
-      datasetId: HRD
+      datasetId: SKY
       serviceType: REST
       subscriptionType: ESTIMATED_TIMETABLE
       subscriptionMode: SUBSCRIBE
@@ -243,12 +243,12 @@ anshar:
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: SKYSS
       filterPresets:
-      idMappingPrefixes: HRD
+      idMappingPrefixes: SKY
       active: true
     -
       internalId: 13
       vendor: skysssx
-      datasetId: HRD
+      datasetId: SKY
       serviceType: REST
       subscriptionType: SITUATION_EXCHANGE
       subscriptionMode: SUBSCRIBE
@@ -263,7 +263,7 @@ anshar:
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: SKYSS
       filterPresets:
-      idMappingPrefixes: HRD
+      idMappingPrefixes: SKY
       active: true
     -
       internalId: 14
@@ -323,7 +323,7 @@ anshar:
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: SKYSS
       filterPresets: BYBANEN
-      idMappingPrefixes: HRD
+      idMappingPrefixes: SKY
       active: true
     -
       internalId: 17
