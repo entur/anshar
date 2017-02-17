@@ -342,7 +342,7 @@ anshar:
       durationOfSubscriptionHours: 2
       mappingAdapterPresets:
       filterPresets:
-      idMappingPrefixes:
+      idMappingPrefixes: NSB,FLT
       active: true
     -
       internalId: 100
