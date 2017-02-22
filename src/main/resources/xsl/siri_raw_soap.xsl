@@ -42,7 +42,7 @@
                                              <xsl:copy-of select="siri:SituationExchangeSubscriptionRequest/siri:SubscriptionIdentifier" copy-namespaces="no"/>
                                              <xsl:copy-of select="siri:SituationExchangeSubscriptionRequest/siri:SubscriberRef" copy-namespaces="no"/>
                                              <xsl:copy-of select="siri:SituationExchangeSubscriptionRequest/siri:InitialTerminationTime" copy-namespaces="no"/>
-                                             
+
                                              <xsl:element name="siri:SituationExchangeRequest">
                                                  <xsl:attribute name="version">
                                                      <!-- <xsl:value-of select="siri:SituationExchangeSubscriptionRequest/siri:SituationExchangeRequest/@version"/> -->
@@ -57,7 +57,7 @@
                                             <xsl:copy-of select="siri:VehicleMonitoringSubscriptionRequest/siri:SubscriptionIdentifier" copy-namespaces="no"/>
                                             <xsl:copy-of select="siri:VehicleMonitoringSubscriptionRequest/siri:SubscriberRef" copy-namespaces="no"/>
                                             <xsl:copy-of select="siri:VehicleMonitoringSubscriptionRequest/siri:InitialTerminationTime" copy-namespaces="no"/>
-                                            
+
                                             <xsl:element name="siri:VehicleMonitoringRequest">
                                                 <xsl:attribute name="version">
                                                     <!-- <xsl:value-of select="siri:SituationExchangeSubscriptionRequest/siri:SituationExchangeRequest/@version"/> -->
@@ -72,7 +72,7 @@
                                             <xsl:copy-of select="siri:EstimatedTimetableSubscriptionRequest/siri:SubscriptionIdentifier" copy-namespaces="no"/>
                                             <xsl:copy-of select="siri:EstimatedTimetableSubscriptionRequest/siri:SubscriberRef" copy-namespaces="no"/>
                                             <xsl:copy-of select="siri:EstimatedTimetableSubscriptionRequest/siri:InitialTerminationTime" copy-namespaces="no"/>
-                                            
+
                                             <xsl:element name="siri:EstimatedTimetableRequest">
                                                 <xsl:attribute name="version">
                                                     <xsl:value-of select="1.4"/>
@@ -83,12 +83,12 @@
                                     </xsl:when>
                                 </xsl:choose>
                             </xsl:element>
-                            
+
                             <xsl:element name="RequestExtension"/>
                         </xsl:element>
                     </xsl:when>
                     <xsl:when test="local-name()='TerminateSubscriptionRequest'">
-                        <xsl:element name="siri:DeleteSubscription" namespace="{$operatorNamespace}"> 
+                        <xsl:element name="siri:DeleteSubscription" namespace="{$operatorNamespace}">
                             <xsl:element name="DeleteSubscriptionInfo">
                                 <xsl:copy-of select="siri:RequestTimestamp" copy-namespaces="no"/>
                                 <xsl:copy-of select="siri:Address" copy-namespaces="no"/>
@@ -105,7 +105,7 @@
                         </xsl:element>
                     </xsl:when>
                     <xsl:otherwise>
-                        <xsl:element name="{concat('Get',substring-before(local-name(),'Request'))}" namespace="{$operatorNamespace}"> 
+                        <xsl:element name="{concat('Get',substring-before(local-name(),'Request'))}" namespace="{$operatorNamespace}">
                             <xsl:element name="ServiceRequestInfo">
                                 <xsl:copy-of select="../siri:ServiceRequestContext" copy-namespaces="no"/>
                                 <xsl:copy-of select="../siri:RequestTimestamp" copy-namespaces="no"/>
@@ -118,7 +118,12 @@
                                 <xsl:attribute name="version">
                                     <xsl:value-of select="/siri:Siri/@version"/>
                                 </xsl:attribute>
-                                <xsl:copy-of select="*" copy-namespaces="no"/>
+                                <xsl:element name="siri:RequestTimestamp">
+                                    <xsl:value-of select="siri:RequestTimestamp"/>
+                                </xsl:element>
+                                <xsl:element name="siri:MessageIdentifier">
+                                    <xsl:value-of select="siri:MessageIdentifier"/>
+                                </xsl:element>
                                 
                             </xsl:element>
                             <xsl:element name="RequestExtension"/>
