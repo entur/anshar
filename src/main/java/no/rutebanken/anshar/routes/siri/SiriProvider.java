@@ -10,6 +10,7 @@ import no.rutebanken.anshar.subscription.MappingAdapterPresets;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.http.HttpHeaders;
 import org.rutebanken.siri20.util.SiriJson;
+import org.rutebanken.siri20.util.SiriXml;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,9 +79,15 @@ public class SiriProvider extends RouteBuilder {
                     }
                     response = SiriValueTransformer.transform(response, outboundAdapters);
 
-                    p.getOut().setBody(response);
+                    HttpServletResponse out = p.getIn().getBody(HttpServletResponse.class);
+
+                    if ("application/json".equals(p.getIn().getHeader(HttpHeaders.CONTENT_TYPE))) {
+                        out.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
+                        SiriJson.toJson(response, out.getOutputStream());
+                    } else {
+                        SiriXml.toXml(response, null, out.getOutputStream());
+                    }
                 })
-                .to("direct:handleResponse")
                 .log("RequestTracer - Request done (SX)")
         ;
 
@@ -104,9 +111,15 @@ public class SiriProvider extends RouteBuilder {
                     }
                     response = SiriValueTransformer.transform(response, outboundAdapters);
 
-                    p.getOut().setBody(response);
+                    HttpServletResponse out = p.getIn().getBody(HttpServletResponse.class);
+
+                    if ("application/json".equals(p.getIn().getHeader(HttpHeaders.CONTENT_TYPE))) {
+                        out.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
+                        SiriJson.toJson(response, out.getOutputStream());
+                    } else {
+                        SiriXml.toXml(response, null, out.getOutputStream());
+                    }
                 })
-                .to("direct:handleResponse")
                 .log("RequestTracer - Request done (VM)")
         ;
 
@@ -130,9 +143,15 @@ public class SiriProvider extends RouteBuilder {
                     }
                     response = SiriValueTransformer.transform(response, outboundAdapters);
 
-                    p.getOut().setBody(response);
+                    HttpServletResponse out = p.getIn().getBody(HttpServletResponse.class);
+
+                    if ("application/json".equals(p.getIn().getHeader(HttpHeaders.CONTENT_TYPE))) {
+                        out.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
+                        SiriJson.toJson(response, out.getOutputStream());
+                    } else {
+                        SiriXml.toXml(response, null, out.getOutputStream());
+                    }
                 })
-                .to("direct:handleResponse")
                 .log("RequestTracer - Request done (ET)")
         ;
 
@@ -156,33 +175,16 @@ public class SiriProvider extends RouteBuilder {
                     }
                     response = SiriValueTransformer.transform(response, outboundAdapters);
 
-                    p.getOut().setBody(response);
-                })
-                .to("direct:handleResponse")
-                .log("RequestTracer - Request done (PT)")
-        ;
-
-        from("direct:handleResponse")
-                .choice()
-                .when(header(HttpHeaders.CONTENT_TYPE).isEqualTo("application/json"))
-                    .to("direct:handleJsonResponse")
-                .otherwise()
-                    .to("direct:handleXmlResponse")
-                .end();
-
-        from("direct:handleJsonResponse")
-                .log("Producing JSON")
-                .process(p -> {
                     HttpServletResponse out = p.getIn().getBody(HttpServletResponse.class);
-                    out.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
-                    SiriJson.toJson(p.getIn().getBody(Siri.class), out.getOutputStream());
-                })
-        ;
 
-        from("direct:handleXmlResponse")
-                .log("Producing XML")
-                //Xml is handled automatically by Jackson/Jaxb
-                .setHeader(HttpHeaders.CONTENT_TYPE, constant("application/xml"))
+                    if ("application/json".equals(p.getIn().getHeader(HttpHeaders.CONTENT_TYPE))) {
+                        out.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
+                        SiriJson.toJson(response, out.getOutputStream());
+                    } else {
+                        SiriXml.toXml(response, null, out.getOutputStream());
+                    }
+                })
+                .log("RequestTracer - Request done (PT)")
         ;
 
     }
