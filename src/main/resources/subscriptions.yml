@@ -8,7 +8,7 @@ anshar:
       subscriptionType: SITUATION_EXCHANGE
       subscriptionMode: REQUEST_RESPONSE
       heartbeatIntervalSeconds: 60
-      operatorNamespace: http://www.kolumbus.no/siri
+      operatorNamespace: http://www.siri.org.uk/siri
       urlMap:
         SUBSCRIBE: sis.kolumbus.no:90/SXWS/SXService.svc
         DELETE_SUBSCRIPTION: sis.kolumbus.no:90/SXWS/SXService.svc
@@ -29,7 +29,7 @@ anshar:
       subscriptionType: VEHICLE_MONITORING
       subscriptionMode: REQUEST_RESPONSE
       heartbeatIntervalSeconds: 60
-      operatorNamespace: http://www.kolumbus.no/siri
+      operatorNamespace: http://www.siri.org.uk/siri
       urlMap:
         GET_VEHICLE_MONITORING: sis.kolumbus.no:90/VMWS/VMService.svc
       version: 1.4
@@ -141,27 +141,6 @@ anshar:
       filterPresets:
       idMappingPrefixes: RUT,OPP,BRA,OST
       active: true
-#    -
-#      internalId: 8
-#      vendor: rutervm
-#      datasetId: RUT
-#      serviceType: REST
-#      subscriptionType: VEHICLE_MONITORING
-#      subscriptionMode: SUBSCRIBE
-#      heartbeatIntervalSeconds: 60
-#      operatorNamespace: http://www.siri.org.uk/siri
-#      urlMap:
-#        SUBSCRIBE: 109.239.226.193:8080/RutebankenDEV/vm/subscribe.xml
-#        DELETE_SUBSCRIPTION: 109.239.226.193:8080/RutebankenDEV/vm/managesubscription.xml
-#        CHECK_STATUS: 109.239.226.193:8080/RutebankenDEV/vm/checkstatus.xml
-#      version: 2.0
-#      subscriptionId: 20c2e3a3-1659-41d3-b1a2-1411978b1d43
-#      requestorRef: RutebankenDEV
-#      durationOfSubscriptionHours: 168
-#      mappingAdapterPresets: RUTER
-#      filterPresets:
-#      idMappingPrefixes: RUT,OPP,BRA,OST
-#      active: true
     -
       internalId: 9
       vendor: rutervm
@@ -183,27 +162,6 @@ anshar:
       filterPresets:
       idMappingPrefixes: RUT,OPP,BRA,OST
       active: true
-#    -
-#      internalId: 10
-#      vendor: ruteret
-#      datasetId: RUT
-#      serviceType: REST
-#      subscriptionType: ESTIMATED_TIMETABLE
-#      subscriptionMode: SUBSCRIBE
-#      heartbeatIntervalSeconds: 60
-#      operatorNamespace: http://www.siri.org.uk/siri
-#      urlMap:
-#        SUBSCRIBE: 109.239.226.193:8080/RutebankenDEV/et/subscribe.xml
-#        DELETE_SUBSCRIPTION: 109.239.226.193:8080/RutebankenDEV/et/managesubscription.xml
-#        CHECK_STATUS: 109.239.226.193:8080/RutebankenDEV/et/checkstatus.xml
-#      version: 2.0
-#      subscriptionId: 1f6a687e-58b8-4e46-a23c-98adadad78ed
-#      requestorRef: RutebankenDEV
-#      durationOfSubscriptionHours: 168
-#      mappingAdapterPresets: RUTER
-#      filterPresets:
-#      idMappingPrefixes: RUT,OPP,BRA,OST
-#      active: true
     -
       internalId: 11
       vendor: ruteret
