@@ -81,7 +81,8 @@ public class SiriProvider extends RouteBuilder {
 
                     HttpServletResponse out = p.getIn().getBody(HttpServletResponse.class);
 
-                    if ("application/json".equals(p.getIn().getHeader(HttpHeaders.CONTENT_TYPE))) {
+                    if ("application/json".equals(p.getIn().getHeader(HttpHeaders.CONTENT_TYPE)) |
+                            "application/json".equals(p.getIn().getHeader(HttpHeaders.ACCEPT))) {
                         out.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
                         SiriJson.toJson(response, out.getOutputStream());
                     } else {
@@ -113,7 +114,8 @@ public class SiriProvider extends RouteBuilder {
 
                     HttpServletResponse out = p.getIn().getBody(HttpServletResponse.class);
 
-                    if ("application/json".equals(p.getIn().getHeader(HttpHeaders.CONTENT_TYPE))) {
+                    if ("application/json".equals(p.getIn().getHeader(HttpHeaders.CONTENT_TYPE)) |
+                            "application/json".equals(p.getIn().getHeader(HttpHeaders.ACCEPT))) {
                         out.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
                         SiriJson.toJson(response, out.getOutputStream());
                     } else {
@@ -145,7 +147,8 @@ public class SiriProvider extends RouteBuilder {
 
                     HttpServletResponse out = p.getIn().getBody(HttpServletResponse.class);
 
-                    if ("application/json".equals(p.getIn().getHeader(HttpHeaders.CONTENT_TYPE))) {
+                    if ("application/json".equals(p.getIn().getHeader(HttpHeaders.CONTENT_TYPE)) |
+                            "application/json".equals(p.getIn().getHeader(HttpHeaders.ACCEPT))) {
                         out.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
                         SiriJson.toJson(response, out.getOutputStream());
                     } else {
@@ -177,7 +180,8 @@ public class SiriProvider extends RouteBuilder {
 
                     HttpServletResponse out = p.getIn().getBody(HttpServletResponse.class);
 
-                    if ("application/json".equals(p.getIn().getHeader(HttpHeaders.CONTENT_TYPE))) {
+                    if ("application/json".equals(p.getIn().getHeader(HttpHeaders.CONTENT_TYPE)) |
+                            "application/json".equals(p.getIn().getHeader(HttpHeaders.ACCEPT))) {
                         out.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
                         SiriJson.toJson(response, out.getOutputStream());
                     } else {
