@@ -67,11 +67,28 @@ public class SubscriptionManagerTest {
         String subscriptionId = UUID.randomUUID().toString();;
         subscriptionManager.addPendingSubscription(subscriptionId, pendingSubscription);
 
+        subscriptionManager.activatePendingSubscription(subscriptionId);
+
         assertTrue(subscriptionManager.isSubscriptionHealthy(subscriptionId));
 
         Thread.sleep(pendingSubscription.getHeartbeatInterval().toMillis()*subscriptionManager.HEALTHCHECK_INTERVAL_FACTOR+150);
 
         assertFalse(subscriptionManager.isSubscriptionHealthy(subscriptionId));
+    }
+
+    @Test
+    public void notStartedSubscriptionIsHealthy() throws InterruptedException {
+
+        long subscriptionDurationSec = 1;
+        SubscriptionSetup pendingSubscription = createSubscription(subscriptionDurationSec, Duration.ofMillis(150));
+        String subscriptionId = UUID.randomUUID().toString();;
+        subscriptionManager.addPendingSubscription(subscriptionId, pendingSubscription);
+
+        assertTrue(subscriptionManager.isSubscriptionHealthy(subscriptionId));
+
+        Thread.sleep(pendingSubscription.getHeartbeatInterval().toMillis()* subscriptionManager.HEALTHCHECK_INTERVAL_FACTOR + 150);
+
+        assertTrue(subscriptionManager.isSubscriptionHealthy(subscriptionId));
     }
 
     @Test

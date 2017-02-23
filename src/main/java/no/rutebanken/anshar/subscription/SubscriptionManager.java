@@ -179,7 +179,7 @@ public class SubscriptionManager {
         activatedTimestamp.remove(subscriptionId);
         activeSubscriptions.remove(subscriptionId);
         pendingSubscriptions.put(subscriptionId, subscriptionSetup);
-        lastActivity.put(subscriptionId, Instant.now());
+//        lastActivity.put(subscriptionId, Instant.now());
 
         logger.info("Added pending subscription {}", subscriptionSetup.toString());
     }
@@ -213,7 +213,8 @@ public class SubscriptionManager {
         Instant instant = lastActivity.get(subscriptionId);
 
         if (instant == null) {
-            return false;
+            //Subscription has not had any activity, and may not have been started yet - flag as healthy
+            return true;
         }
 
         logger.trace("SubscriptionId [{}], last activity {}.", subscriptionId, instant);
