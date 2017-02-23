@@ -12,7 +12,24 @@ import java.util.StringTokenizer;
 
 public class BaneNorIdReplacer extends ValueAdapter {
 
-    Map<String, String> stopPlaceMappings = new HashMap<>();
+    private static Map<String, String> stopPlaceMappings = new HashMap<>();
+
+    private void init() {
+        if (stopPlaceMappings.isEmpty()) {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getClassLoader().getResourceAsStream("banenor_mapping.csv")))) {
+                reader.lines().forEach(line -> {
+
+                    StringTokenizer tokenizer = new StringTokenizer(line, ",");
+                    String shortName = tokenizer.nextToken();
+                    String nsrId = tokenizer.hasMoreTokens() ? tokenizer.nextToken() : null;
+
+                    stopPlaceMappings.put(shortName, nsrId);
+                });
+            } catch (IOException io) {
+            }
+        }
+    }
+
 
     public String apply(String text) {
         if (text != null) {
@@ -26,20 +43,7 @@ public class BaneNorIdReplacer extends ValueAdapter {
 
     public BaneNorIdReplacer(Class clazz) {
         super(clazz);
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getClassLoader().getResourceAsStream("banenor_mapping.csv")))) {
-            if (reader.lines().count() > 0) {
-                reader.lines().forEach(line -> {
-
-                    StringTokenizer tokenizer = new StringTokenizer(line, ",");
-                    String shortName = tokenizer.nextToken();
-                    String nsrId = tokenizer.nextToken().replaceAll(":", ".");
-
-                    stopPlaceMappings.put(shortName, nsrId);
-                });
-            }
-        } catch (IOException io) {
-
-        }
+        init();
     }
 
     @Override
@@ -50,9 +54,5 @@ public class BaneNorIdReplacer extends ValueAdapter {
         BaneNorIdReplacer that = (BaneNorIdReplacer) o;
 
         return (super.getClassToApply().equals(that.getClassToApply()));
-    }
-    //Called from tests
-    public void addStopPlaceMappings(Map<String, String> stopPlaceMap) {
-        this.stopPlaceMappings.putAll(stopPlaceMap);
     }
 }
