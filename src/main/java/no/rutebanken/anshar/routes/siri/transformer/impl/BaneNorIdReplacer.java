@@ -27,15 +27,16 @@ public class BaneNorIdReplacer extends ValueAdapter {
     public BaneNorIdReplacer(Class clazz) {
         super(clazz);
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getClassLoader().getResourceAsStream("banenor_mapping.csv")))) {
-            reader.lines().forEach(line -> {
+            if (reader.lines().count() > 0) {
+                reader.lines().forEach(line -> {
 
-                StringTokenizer tokenizer = new StringTokenizer(line, ",");
-                String shortName = tokenizer.nextToken();
-                String nsrId = tokenizer.nextToken().replaceAll(":", ".");
+                    StringTokenizer tokenizer = new StringTokenizer(line, ",");
+                    String shortName = tokenizer.nextToken();
+                    String nsrId = tokenizer.nextToken().replaceAll(":", ".");
 
-                stopPlaceMappings.put(shortName, nsrId);
-            });
-
+                    stopPlaceMappings.put(shortName, nsrId);
+                });
+            }
         } catch (IOException io) {
 
         }
