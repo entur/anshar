@@ -62,6 +62,13 @@ public class MappingAdapterPresets {
                 adapters.add(new LeftPaddingAdapter(StopPointRef.class, 10, '0'));
                 break;
             case SKYSS:
+                break;
+            case BANENOR:
+                adapters.add(new BaneNorIdReplacer(StopPointRef.class));
+                adapters.add(new BaneNorIdReplacer(StopPlaceRef.class));
+                adapters.add(new BaneNorIdReplacer(JourneyPlaceRefStructure.class));
+                adapters.add(new BaneNorIdReplacer(DestinationRef.class));
+                break;
         }
 
         return adapters;

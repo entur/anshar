@@ -298,7 +298,7 @@ anshar:
       subscriptionId: ${random.uuid}
       requestorRef: ${random.uuid}
       durationOfSubscriptionHours: 2
-      mappingAdapterPresets:
+      mappingAdapterPresets: BANENOR
       filterPresets:
       idMappingPrefixes: NSB,FLT
       active: true

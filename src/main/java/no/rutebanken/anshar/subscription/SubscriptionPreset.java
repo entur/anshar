@@ -7,5 +7,6 @@ public enum SubscriptionPreset {
     AKT,
     SKYSS,
     BRAKAR,
-    BYBANEN
+    BYBANEN,
+    BANENOR
 }
