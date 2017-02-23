@@ -286,7 +286,7 @@ anshar:
     -
       internalId: 17
       vendor: baneEt
-      datasetId: TOG
+      datasetId: NSB
       serviceType: REST
       subscriptionType: ESTIMATED_TIMETABLE
       subscriptionMode: REQUEST_RESPONSE
