@@ -267,12 +267,14 @@ public class SubscriptionManager {
 
     public JSONObject buildStats() {
         JSONObject result = new JSONObject();
-        JSONArray stats = activeSubscriptions.keySet().stream()
+        JSONArray stats = new JSONArray();
+        stats.addAll(activeSubscriptions.keySet().stream()
                 .map(key -> getJsonObject(activeSubscriptions.get(key), "active"))
-                .collect(Collectors.toCollection(() -> new JSONArray()));
-
+                .filter(json -> json != null)
+                .collect(Collectors.toList()));
         stats.addAll(pendingSubscriptions.keySet().stream()
                 .map(key -> getJsonObject(pendingSubscriptions.get(key), "pending"))
+                .filter(json -> json != null)
                 .collect(Collectors.toList()));
 
         result.put("subscriptions", stats);
@@ -290,6 +292,9 @@ public class SubscriptionManager {
     }
 
     private JSONObject getJsonObject(SubscriptionSetup setup, String status) {
+        if (setup == null) {
+            return null;
+        }
         JSONObject obj = setup.toJSON();
         obj.put("activated",formatTimestamp(activatedTimestamp.get(setup.getSubscriptionId())));
         obj.put("lastActivity",""+formatTimestamp(lastActivity.get(setup.getSubscriptionId())));
