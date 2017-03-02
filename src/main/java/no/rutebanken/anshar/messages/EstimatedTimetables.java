@@ -162,7 +162,7 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
                         SortedMap<Integer, EstimatedCall> joinedCallsMap = new TreeMap<>();
 
                         //Existing calls
-                        if (existingCallWrapper.getEstimatedCalls() != null ) {
+                        if (existingCallWrapper != null && existingCallWrapper.getEstimatedCalls() != null ) {
                             for (EstimatedCall call : existingCallWrapper.getEstimatedCalls()) {
                                 //Assuming that either Visitnumber or Order is always used
                                 int order = (call.getVisitNumber() != null ? call.getVisitNumber() : call.getOrder()).intValue();
@@ -170,7 +170,7 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
                             }
                         }
                         //Add or replace existing calls
-                        if (updatedCallWrapper.getEstimatedCalls() != null ) {
+                        if (updatedCallWrapper != null && updatedCallWrapper.getEstimatedCalls() != null ) {
                             for (EstimatedCall call : updatedCallWrapper.getEstimatedCalls()) {
                                 int order = (call.getVisitNumber() != null ? call.getVisitNumber() : call.getOrder()).intValue();
                                 joinedCallsMap.put(order, call);
