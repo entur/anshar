@@ -10,7 +10,7 @@ public class AnsharConfiguration {
     private String kubernetesUrl;
 
     @Value("${rutebanken.kubernetes.enabled:true}")
-    private boolean kuberentesEnabled;
+    private boolean kubernetesEnabled;
 
     @Value("${rutebanken.kubernetes.namespace:default}")
     private String namespace;
@@ -27,8 +27,8 @@ public class AnsharConfiguration {
         return kubernetesUrl;
     }
 
-    public boolean isKuberentesEnabled() {
-        return kuberentesEnabled;
+    public boolean isKubernetesEnabled() {
+        return kubernetesEnabled;
     }
 
     public String getNamespace() {

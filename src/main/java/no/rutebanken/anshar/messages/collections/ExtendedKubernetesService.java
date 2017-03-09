@@ -11,7 +11,7 @@ public final class ExtendedKubernetesService extends KubernetesService {
     private static final Logger log = LoggerFactory.getLogger(ExtendedKubernetesService.class);
 
     public ExtendedKubernetesService(@Autowired AnsharConfiguration cfg) {
-        super(cfg.getKubernetesUrl(), cfg.getNamespace(), cfg.isKuberentesEnabled());
+        super(cfg.getKubernetesUrl(), cfg.getNamespace(), cfg.isKubernetesEnabled());
     }
 
 }
