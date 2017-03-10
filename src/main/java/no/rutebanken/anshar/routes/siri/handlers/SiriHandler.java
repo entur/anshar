@@ -217,6 +217,7 @@ public class SiriHandler {
                 logger.info("Subscription [{}]  terminated: {}", subscriptionId, terminated);
 
             } else if (incoming.getDataReadyNotification() != null) {
+                logger.info("DataReadyNotification:\n{}", xml);
                 //Fetched delivery
                 DataReadyRequestStructure dataReadyNotification = incoming.getDataReadyNotification();
                 //TODO: Implement this?
