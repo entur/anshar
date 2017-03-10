@@ -11,20 +11,21 @@ import java.util.Set;
 
 public class OutboundSubscriptionSetup implements Serializable {
 
-    private final ZonedDateTime requestTimestamp;
-    private final SubscriptionSetup.SubscriptionType subscriptionType;
-    private final SubscriptionSetup.SubscriptionMode subscriptionMode;
-    private final String address;
-    private final long heartbeatInterval;
-    private final SubscriptionSetup.ServiceType serviceType;
-    private final Map<Class, Set<String>> filterMap;
-    private final List<ValueAdapter> valueAdapters;
-    private final String subscriptionId;
-    private final String requestorRef;
-    private final ZonedDateTime initialTerminationTime;
-    private final boolean active;
-    private final String datasetId;
-    private final long changeBeforeUpdates;
+    private ZonedDateTime requestTimestamp;
+    private SubscriptionSetup.SubscriptionType subscriptionType;
+    private SubscriptionSetup.SubscriptionMode subscriptionMode;
+    private String address;
+    private long heartbeatInterval;
+    private int timeToLive;
+    private SubscriptionSetup.ServiceType serviceType;
+    private Map<Class, Set<String>> filterMap;
+    private List<ValueAdapter> valueAdapters;
+    private String subscriptionId;
+    private String requestorRef;
+    private ZonedDateTime initialTerminationTime;
+    private boolean active;
+    private String datasetId;
+    private long changeBeforeUpdates;
 
     public OutboundSubscriptionSetup(ZonedDateTime requestTimestamp, SubscriptionSetup.SubscriptionType subscriptionType, SubscriptionSetup.SubscriptionMode subscriptionMode, String address, long heartbeatInterval,
                                      long changeBeforeUpdates, SubscriptionSetup.ServiceType serviceType, Map<Class, Set<String>> filterMap, List<ValueAdapter> valueAdapters,
@@ -45,6 +46,12 @@ public class OutboundSubscriptionSetup implements Serializable {
         this.active = active;
     }
 
+    OutboundSubscriptionSetup(SubscriptionSetup.SubscriptionType subscriptionType, String address, int timeToLive) {
+        this.subscriptionType = subscriptionType;
+        this.address = address;
+        this.timeToLive = timeToLive;
+    }
+
     public ZonedDateTime getRequestTimestamp() {
         return requestTimestamp;
     }
@@ -63,6 +70,10 @@ public class OutboundSubscriptionSetup implements Serializable {
 
     public long getHeartbeatInterval() {
         return heartbeatInterval;
+    }
+
+    int getTimeToLive() {
+        return timeToLive;
     }
 
     public long getChangeBeforeUpdates() {

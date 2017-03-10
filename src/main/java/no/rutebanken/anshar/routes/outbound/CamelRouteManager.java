@@ -161,38 +161,52 @@ public class CamelRouteManager implements CamelContextAware {
         @Override
         public void configure() throws Exception {
 
+            boolean isActiveMQ = false;
+
             if (remoteEndPoint.startsWith("http://")) {
                 //Translating URL to camel-format
                 remoteEndPoint = "http4://" + remoteEndPoint.substring("http://".length());
             } else if (remoteEndPoint.startsWith("https://")) {
                 //Translating URL to camel-format
                 remoteEndPoint = "https4://" + remoteEndPoint.substring("https://".length());
+            } else if (remoteEndPoint.startsWith("activemq:")) {
+                isActiveMQ = true;
             }
 
             routeName = String.format("direct:%s", UUID.randomUUID().toString());
 
-            int timeout = 60000;
-            String httpOptions = "?httpClient.socketTimeout=" + timeout + "&httpClient.connectTimeout=" + timeout;
-            onException(ConnectException.class)
-                    .maximumRedeliveries(0)
-                    .log("Failed to connect to recipient")
-                    .process(p -> {
-                        p.getContext();
-                    });
+            String options;
+            if (isActiveMQ) {
+                int timeout = subscriptionRequest.getTimeToLive();
+                options = "?asyncConsumer=true&timeToLive=" + timeout;
+            } else {
+                int timeout = 60000;
+                options = "?httpClient.socketTimeout=" + timeout + "&httpClient.connectTimeout=" + timeout;
+                onException(ConnectException.class)
+                        .maximumRedeliveries(0)
+                        .log("Failed to connect to recipient");
 
-            errorHandler(noErrorHandler());
+                errorHandler(noErrorHandler());
+            }
 
-            definition = from(routeName)
-                    .routeId(routeName)
-                    .log(LoggingLevel.INFO, "POST data to " + remoteEndPoint + " [" + subscriptionRequest.getSubscriptionId() + "]")
-                    .setHeader("SubscriptionId", constant(subscriptionRequest.getSubscriptionId()))
-                    .setHeader("CamelHttpMethod", constant("POST"))
-                    .setHeader(Exchange.CONTENT_TYPE, constant("application/xml"))
-                    .marshal().string("UTF-8")
-                    .to("log:push:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
-                    .to(remoteEndPoint + httpOptions)
-                    .to("log:push-resp:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
-                    .log(LoggingLevel.INFO, "POST complete [" + subscriptionRequest.getSubscriptionId() + "]");
+            if (isActiveMQ) {
+                definition = from(routeName)
+                        .routeId(routeName)
+                        .to(ExchangePattern.InOnly, remoteEndPoint + options)
+                        .log(LoggingLevel.INFO, "Pushed data to ActiveMQ-topic: [" + remoteEndPoint + "]");
+            } else {
+                definition = from(routeName)
+                        .routeId(routeName)
+                        .log(LoggingLevel.INFO, "POST data to " + remoteEndPoint + " [" + subscriptionRequest.getSubscriptionId() + "]")
+                        .setHeader("SubscriptionId", constant(subscriptionRequest.getSubscriptionId()))
+                        .setHeader("CamelHttpMethod", constant("POST"))
+                        .setHeader(Exchange.CONTENT_TYPE, constant("application/xml"))
+                        .marshal().string("UTF-8")
+                        .to("log:push:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
+                        .to(remoteEndPoint + options)
+                        .to("log:push-resp:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
+                        .log(LoggingLevel.INFO, "POST complete [" + subscriptionRequest.getSubscriptionId() + "]");
+            }
 
         }
 
