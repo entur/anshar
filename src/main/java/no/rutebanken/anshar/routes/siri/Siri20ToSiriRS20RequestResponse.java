@@ -7,6 +7,7 @@ import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.builder.xml.Namespaces;
+import org.apache.camel.component.http4.HttpMethods;
 import org.rutebanken.siri20.util.SiriXml;
 import uk.org.siri.siri20.Siri;
 
@@ -50,7 +51,7 @@ public class Siri20ToSiriRS20RequestResponse extends RouteBuilder {
                 .setHeader("operatorNamespace", constant(subscriptionSetup.getOperatorNamespace())) // Need to make SOAP request with endpoint specific element namespace
                 .removeHeaders("CamelHttp*") // Remove any incoming HTTP headers as they interfere with the outgoing definition
                 .setHeader(Exchange.CONTENT_TYPE, constant("text/xml;charset=UTF-8")) // Necessary when talking to Microsoft web services
-                .setHeader(Exchange.HTTP_METHOD, constant(org.apache.camel.component.http4.HttpMethods.POST))
+                .setHeader(Exchange.HTTP_METHOD, constant(HttpMethods.POST))
                         // Header routing
                 .choice()
                 .when(header("SOAPAction").isEqualTo("GetVehicleMonitoring"))

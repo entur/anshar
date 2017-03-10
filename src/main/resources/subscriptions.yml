@@ -303,6 +303,25 @@ anshar:
       idMappingPrefixes: NSB,FLT
       active: true
     -
+      internalId: 18
+      vendor: baneSx
+      datasetId: NSB
+      serviceType: REST
+      subscriptionType: SITUATION_EXCHANGE
+      subscriptionMode: REQUEST_RESPONSE
+      heartbeatIntervalSeconds: 60
+      operatorNamespace: http://www.siri.org.uk/siri
+      urlMap:
+        GET_SITUATION_EXCHANGE: https4://siri.opm.jbv.no/jbv/sx
+      version: 2.0
+      subscriptionId: ${random.uuid}
+      requestorRef: ${random.uuid}
+      durationOfSubscriptionHours: 2
+      mappingAdapterPresets: BANENOR
+      filterPresets:
+      idMappingPrefixes: NSB,FLT
+      active: true
+    -
       internalId: 100
       vendor: internRuterVm
       datasetId: RUT
