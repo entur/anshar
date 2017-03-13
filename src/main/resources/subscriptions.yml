@@ -323,7 +323,6 @@ anshar:
       filterPresets:
       idMappingPrefixes: NSB,FLT
       active: true
-
     -
       internalId: 19
       vendor: baneEt
@@ -344,7 +343,7 @@ anshar:
       mappingAdapterPresets: BANENOR
       filterPresets:
       idMappingPrefixes: NSB,FLT
-      active: true
+      active: false
     -
       internalId: 20
       vendor: baneSx
@@ -365,7 +364,7 @@ anshar:
       mappingAdapterPresets: BANENOR
       filterPresets:
       idMappingPrefixes: NSB,FLT
-      active: true
+      active: false
     -
       internalId: 100
       vendor: internRuterVm
