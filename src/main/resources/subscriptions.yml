@@ -294,6 +294,7 @@ anshar:
       operatorNamespace: http://www.siri.org.uk/siri
       urlMap:
         SUBSCRIBE: https4://siri.opm.jbv.no/jbv/et
+        DELETE_SUBSCRIPTION: https4://siri.opm.jbv.no/jbv/et
         GET_ESTIMATED_TIMETABLE: https4://siri.opm.jbv.no/jbv/et
       version: 2.0
       subscriptionId: ${random.uuid}
@@ -314,6 +315,7 @@ anshar:
       operatorNamespace: http://www.siri.org.uk/siri
       urlMap:
         SUBSCRIBE: https4://siri.opm.jbv.no/jbv/sx
+        DELETE_SUBSCRIPTION: https4://siri.opm.jbv.no/jbv/sx
         GET_SITUATION_EXCHANGE: https4://siri.opm.jbv.no/jbv/sx
       version: 2.0
       subscriptionId: ${random.uuid}
