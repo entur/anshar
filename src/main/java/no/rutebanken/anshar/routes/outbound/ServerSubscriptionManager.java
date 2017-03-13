@@ -86,7 +86,11 @@ public class ServerSubscriptionManager extends CamelRouteManager {
     }
 
     private OutboundSubscriptionSetup createActiveMQSubscription(SubscriptionSetup.SubscriptionType type) {
-        return new OutboundSubscriptionSetup(type,activeMqTopicPrefix + type.name().toLowerCase(), activeMqTopicTimeToLive);
+        return new OutboundSubscriptionSetup(
+                type,
+                activeMqTopicPrefix + type.name().toLowerCase(),
+                activeMqTopicTimeToLive,
+                mappingAdapterPresets.getOutboundAdapters(true));
     }
 
     @PostConstruct

@@ -46,10 +46,11 @@ public class OutboundSubscriptionSetup implements Serializable {
         this.active = active;
     }
 
-    OutboundSubscriptionSetup(SubscriptionSetup.SubscriptionType subscriptionType, String address, int timeToLive) {
+    OutboundSubscriptionSetup(SubscriptionSetup.SubscriptionType subscriptionType, String address, int timeToLive, List<ValueAdapter> outboundAdapters) {
         this.subscriptionType = subscriptionType;
         this.address = address;
         this.timeToLive = timeToLive;
+        this.valueAdapters = outboundAdapters;
     }
 
     public ZonedDateTime getRequestTimestamp() {
