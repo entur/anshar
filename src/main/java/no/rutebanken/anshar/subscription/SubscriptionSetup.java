@@ -18,6 +18,7 @@ public class SubscriptionSetup implements Serializable {
     private SubscriptionType subscriptionType;
     private String address;
     private Duration heartbeatInterval;
+    private Duration previewInterval;
     private String operatorNamespace;
     private Map<RequestType, String> urlMap;
     private String subscriptionId;
@@ -172,6 +173,7 @@ public class SubscriptionSetup implements Serializable {
         obj.put("subscriptionType", getSubscriptionType().toString());
         obj.put("subscriptionMode", getSubscriptionMode().toString());
         obj.put("heartbeatInterval", getHeartbeatInterval().toString());
+        obj.put("previewInterval", getPreviewInterval() != null ? getPreviewInterval().toString():"");
         obj.put("durationOfSubscription", getDurationOfSubscription().toString());
         obj.put("requestorRef", getRequestorRef());
 
@@ -214,6 +216,10 @@ public class SubscriptionSetup implements Serializable {
             this.filterMap = new HashMap<>();
         }
         this.filterMap.putAll(filters);
+    }
+
+    public Duration getPreviewInterval() {
+        return previewInterval;
     }
 
     public enum ServiceType {SOAP, REST}
@@ -262,6 +268,13 @@ public class SubscriptionSetup implements Serializable {
 
     private void setHeartbeatInterval(Duration heartbeatInterval) {
         this.heartbeatInterval = heartbeatInterval;
+    }
+    public void setPreviewIntervalSeconds(int seconds) {
+        setPreviewInterval(Duration.ofSeconds(seconds));
+    }
+
+    private void setPreviewInterval(Duration previewIntervalSeconds) {
+        this.previewInterval = previewIntervalSeconds;
     }
 
     public void setOperatorNamespace(String operatorNamespace) {

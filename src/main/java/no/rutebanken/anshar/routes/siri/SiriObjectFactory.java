@@ -80,16 +80,15 @@ public class SiriObjectFactory {
         request.setRequestTimestamp(ZonedDateTime.now());
         request.setRequestorRef(createRequestorRef());
 
-
         if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE)) {
-            request.getSituationExchangeRequests().add(createSituationExchangeRequestStructure());
+            request.getSituationExchangeRequests().add(createSituationExchangeRequestStructure(subscriptionSetup.getPreviewInterval()));
 
         }
         if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING)) {
             request.getVehicleMonitoringRequests().add(createVehicleMonitoringRequestStructure());
         }
         if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE)) {
-            request.getEstimatedTimetableRequests().add(createEstimatedTimetableRequestStructure());
+            request.getEstimatedTimetableRequests().add(createEstimatedTimetableRequestStructure(subscriptionSetup.getPreviewInterval()));
         }
 
         if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.PRODUCTION_TIMETABLE)) {
@@ -113,11 +112,14 @@ public class SiriObjectFactory {
         return siri;
     }
 
-    private static SituationExchangeRequestStructure createSituationExchangeRequestStructure() {
+    private static SituationExchangeRequestStructure createSituationExchangeRequestStructure(Duration previewInterval) {
         SituationExchangeRequestStructure sxRequest = new SituationExchangeRequestStructure();
         sxRequest.setRequestTimestamp(ZonedDateTime.now());
         sxRequest.setVersion(SIRI_VERSION);
         sxRequest.setMessageIdentifier(createMessageIdentifier());
+        if (previewInterval != null) {
+            sxRequest.setPreviewInterval(createDataTypeFactory().newDuration(previewInterval.toString()));
+        }
         return sxRequest;
     }
 
@@ -129,11 +131,14 @@ public class SiriObjectFactory {
         return vmRequest;
     }
 
-    private static EstimatedTimetableRequestStructure createEstimatedTimetableRequestStructure() {
+    private static EstimatedTimetableRequestStructure createEstimatedTimetableRequestStructure(Duration previewInterval) {
         EstimatedTimetableRequestStructure etRequest = new EstimatedTimetableRequestStructure();
         etRequest.setRequestTimestamp(ZonedDateTime.now());
         etRequest.setVersion(SIRI_VERSION);
         etRequest.setMessageIdentifier(createMessageIdentifier());
+        if (previewInterval != null) {
+            etRequest.setPreviewInterval(createDataTypeFactory().newDuration(previewInterval.toString()));
+        }
         return etRequest;
     }
 
@@ -148,7 +153,7 @@ public class SiriObjectFactory {
     private static SubscriptionRequest createSituationExchangeSubscriptionRequest(String requestorRef, String subscriptionId, String heartbeatInterval, String address, Duration subscriptionDuration, Map<Class, Set<Object>> filterMap) {
         SubscriptionRequest request = createSubscriptionRequest(requestorRef, heartbeatInterval, address);
 
-        SituationExchangeRequestStructure sxRequest = createSituationExchangeRequestStructure();
+        SituationExchangeRequestStructure sxRequest = createSituationExchangeRequestStructure(null);
         sxRequest.setPreviewInterval(createDataTypeFactory().newDuration("P1Y"));
 
         if (filterMap != null) {
