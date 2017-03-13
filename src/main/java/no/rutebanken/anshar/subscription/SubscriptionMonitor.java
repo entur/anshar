@@ -135,14 +135,34 @@ public class SubscriptionMonitor implements CamelContextAware {
             }
 
             for (SubscriptionSetup subscriptionSetup : actualSubscriptionSetups) {
-                RouteBuilder routeBuilder = getRouteBuilder(subscriptionSetup);
+
                 try {
-                    //Adding all routes to current context
-                    camelContext.addRoutes(routeBuilder);
+                    if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.FETCHED_DELIVERY) {
+
+                        //Fetched delivery needs both subscribe-route and ServiceRequest-route
+                        String url = subscriptionSetup.getUrlMap().get(RequestType.SUBSCRIBE);
+
+                        subscriptionSetup.getUrlMap().putIfAbsent(RequestType.GET_ESTIMATED_TIMETABLE, url);
+                        subscriptionSetup.getUrlMap().putIfAbsent(RequestType.GET_VEHICLE_MONITORING, url);
+                        subscriptionSetup.getUrlMap().putIfAbsent(RequestType.GET_SITUATION_EXCHANGE, url);
+
+                        subscriptionSetup.setSubscriptionMode(SubscriptionSetup.SubscriptionMode.SUBSCRIBE);
+                        camelContext.addRoutes(getRouteBuilder(subscriptionSetup));
+
+                        subscriptionSetup.setSubscriptionMode(SubscriptionSetup.SubscriptionMode.REQUEST_RESPONSE);
+                        camelContext.addRoutes(getRouteBuilder(subscriptionSetup));
+
+                        subscriptionSetup.setSubscriptionMode(SubscriptionSetup.SubscriptionMode.FETCHED_DELIVERY);
+                    } else {
+
+                        RouteBuilder routeBuilder = getRouteBuilder(subscriptionSetup);
+                        //Adding all routes to current context
+                        camelContext.addRoutes(routeBuilder);
+                    }
+
                 } catch (Exception e) {
                     logger.warn("Could not add subscription", e);
                 }
-
             }
 
             startPeriodicHealthcheckService(actualSubscriptionSetups);
@@ -251,6 +271,11 @@ public class SubscriptionMonitor implements CamelContextAware {
             triggerRoute(subscriptionSetup.getStartSubscriptionRouteName());
 
             camelContext.startRoute(subscriptionSetup.getCheckStatusRouteName());
+        } if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.FETCHED_DELIVERY) {
+            triggerRoute(subscriptionSetup.getStartSubscriptionRouteName());
+
+            camelContext.startRoute(subscriptionSetup.getCheckStatusRouteName());
+            camelContext.startRoute(subscriptionSetup.getServiceRequestRouteName());
         } else {
             camelContext.startRoute(subscriptionSetup.getRequestResponseRouteName());
 
@@ -374,6 +399,9 @@ public class SubscriptionMonitor implements CamelContextAware {
                 Preconditions.checkArgument(false, "URLs not configured correctly");
             }
         } else if (s.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.SUBSCRIBE) {
+            Preconditions.checkNotNull(urlMap.get(RequestType.SUBSCRIBE), "SUBSCRIBE-url is missing. " + s);
+            Preconditions.checkNotNull(urlMap.get(RequestType.DELETE_SUBSCRIPTION), "DELETE_SUBSCRIPTION-url is missing. " + s);
+        }  else if (s.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.FETCHED_DELIVERY) {
             Preconditions.checkNotNull(urlMap.get(RequestType.SUBSCRIBE), "SUBSCRIBE-url is missing. " + s);
             Preconditions.checkNotNull(urlMap.get(RequestType.DELETE_SUBSCRIPTION), "DELETE_SUBSCRIPTION-url is missing. " + s);
         } else {

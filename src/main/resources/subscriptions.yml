@@ -289,10 +289,11 @@ anshar:
       datasetId: NSB
       serviceType: REST
       subscriptionType: ESTIMATED_TIMETABLE
-      subscriptionMode: REQUEST_RESPONSE
+      subscriptionMode: FETCHED_DELIVERY
       heartbeatIntervalSeconds: 60
       operatorNamespace: http://www.siri.org.uk/siri
       urlMap:
+        SUBSCRIBE: https4://siri.opm.jbv.no/jbv/et
         GET_ESTIMATED_TIMETABLE: https4://siri.opm.jbv.no/jbv/et
       version: 2.0
       subscriptionId: ${random.uuid}
@@ -308,10 +309,11 @@ anshar:
       datasetId: NSB
       serviceType: REST
       subscriptionType: SITUATION_EXCHANGE
-      subscriptionMode: REQUEST_RESPONSE
+      subscriptionMode: FETCHED_DELIVERY
       heartbeatIntervalSeconds: 60
       operatorNamespace: http://www.siri.org.uk/siri
       urlMap:
+        SUBSCRIBE: https4://siri.opm.jbv.no/jbv/sx
         GET_SITUATION_EXCHANGE: https4://siri.opm.jbv.no/jbv/sx
       version: 2.0
       subscriptionId: ${random.uuid}

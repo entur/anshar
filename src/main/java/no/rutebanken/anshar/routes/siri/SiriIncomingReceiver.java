@@ -2,6 +2,7 @@ package no.rutebanken.anshar.routes.siri;
 
 import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
+import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.builder.xml.Namespaces;
@@ -41,6 +42,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
     static final String ESTIMATED_TIMETABLE_QUEUE = DEFAULT_PROCESSOR_QUEUE + ".et";
     static final String PRODUCTION_TIMETABLE_QUEUE = DEFAULT_PROCESSOR_QUEUE + ".pt";
     static final String HEARTBEAT_QUEUE           = DEFAULT_PROCESSOR_QUEUE + ".heartbeat";
+    static final String FETCHED_DELIVERY_QUEUE    = DEFAULT_PROCESSOR_QUEUE + ".fetched.delivery";
 
     @Value("${anshar.incoming.port}")
     private String inboundPort;
@@ -229,6 +231,9 @@ public class SiriIncomingReceiver extends RouteBuilder {
                 .when().xpath("/siri:Siri/siri:ServiceDelivery/siri:ProductionTimetableDelivery", ns)
                     .to("activemq:queue:" + PRODUCTION_TIMETABLE_QUEUE + activeMQParameters)
                 .endChoice()
+                .when().xpath("/siri:Siri/siri:DataReadyNotification", ns)
+                    .to("activemq:queue:" + FETCHED_DELIVERY_QUEUE + activeMQParameters)
+                .endChoice()
                 .otherwise()
                     .to("activemq:queue:" + DEFAULT_PROCESSOR_QUEUE + activeMQParameters)
                 .end()
@@ -269,6 +274,28 @@ public class SiriIncomingReceiver extends RouteBuilder {
                     handler.handleIncomingSiri(subscriptionId, xml);
 
                 })
+        ;
+
+
+        from("activemq:queue:" + FETCHED_DELIVERY_QUEUE + "?asyncConsumer=true")
+                .log("Processing fetched delivery")
+                .process(p -> {
+                    String routeName = null;
+
+                    String subscriptionId = getSubscriptionIdFromPath(p.getIn().getHeader("CamelHttpPath", String.class));
+
+                    SubscriptionSetup subscription = subscriptionManager.get(subscriptionId);
+                    if (subscription != null) {
+                        routeName = subscription.getServiceRequestRouteName();
+                    }
+
+                    p.getOut().setHeader("routename", routeName);
+
+                })
+                .choice()
+                .when(header("routename").isNotNull())
+                    .toD("direct:${header.routename}")
+                .endChoice()
         ;
 
         from("activemq:queue:" + SITUATION_EXCHANGE_QUEUE + "?asyncConsumer=true")

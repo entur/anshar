@@ -4,7 +4,7 @@
 |datasetId|Any string - should be short|Id used to separate data from different vendors - also used in urls|
 |serviceType|REST, SOAP|Specifies if requests should be wrapped in soap envelopes|
 |subscriptionType|VEHICLE_MONITORING, SITUATION_EXCHANGE, ESTIMATED_TIMETABLE, PRODUCTION_TIMETABLE|SIRI datatype for this subscription|
-|subscriptionMode|REQUEST_RESPONSE, SUBSCRIBE| - REQUEST_RESPONSE: Client gets all current data at som interval - SUBSCRIBE:Pubsub-pattern - changes are pushed from server to client when they occur|
+|subscriptionMode|REQUEST_RESPONSE, SUBSCRIBE, FETCHED_DELIVERY| - REQUEST_RESPONSE: Client gets all current data at som interval - SUBSCRIBE:Pubsub-pattern - changes are pushed from server to client when they occur. - FETCHED_DELIVERY:Client is notified that data is updated, and should POST a GetServiceRequest to get updated data.|
 |heartbeatIntervalSeconds|Any int|Expected heartbeat frequency|
 |operatorNamespace|Namespace URL|Optional namespace used in XML-marshalling data from this subscription|
 |urlMap|List of urls| Specifies URLs to separate services, unused may be deleted. Specify https4:// for HTTPS (e.g. https4://localhost:8080/siri/sx)|

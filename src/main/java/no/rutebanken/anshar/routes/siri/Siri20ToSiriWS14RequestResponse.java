@@ -43,6 +43,9 @@ public class Siri20ToSiriWS14RequestResponse extends RouteBuilder {
         from("quartz2://" + subscriptionSetup.getRequestResponseRouteName() + "?fireNow=true&deleteJob=false&durableJob=true&recoverableJob=true&trigger.repeatInterval=" + heartbeatIntervalMillis)
                 .routeId(subscriptionSetup.getRequestResponseRouteName())
                 .autoStartup(false)
+                .to("direct:" + subscriptionSetup.getServiceRequestRouteName());
+
+        from("direct:" + subscriptionSetup.getServiceRequestRouteName())
                 .log("Retrieving data " + subscriptionSetup.toString())
                 .setBody(simple(siriXml))
                 .setExchangePattern(ExchangePattern.InOut) // Make sure we wait for a response

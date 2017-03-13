@@ -95,6 +95,9 @@ public class SubscriptionSetup implements Serializable {
     public String getRequestResponseRouteName() {
         return getRouteName("request_response");
     }
+    public String getServiceRequestRouteName() {
+        return getRouteName("execute_request_response");
+    }
 
     private String getRouteName(String prefix) {
         return prefix + subscriptionId;
@@ -215,7 +218,7 @@ public class SubscriptionSetup implements Serializable {
 
     public enum ServiceType {SOAP, REST}
     public enum SubscriptionType {SITUATION_EXCHANGE, VEHICLE_MONITORING, PRODUCTION_TIMETABLE, ESTIMATED_TIMETABLE}
-    public enum SubscriptionMode {SUBSCRIBE, REQUEST_RESPONSE}
+    public enum SubscriptionMode {SUBSCRIBE, REQUEST_RESPONSE, FETCHED_DELIVERY}
 
     public void setMappingAdapterPresets(SubscriptionPreset[] mappingAdapterPresets) {
         this.mappingAdapterPresets = mappingAdapterPresets;
