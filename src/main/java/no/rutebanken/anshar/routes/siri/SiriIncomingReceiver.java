@@ -54,7 +54,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
     private String incomingLogDirectory = "/tmp";
 
     @Value("${anshar.incoming.activemq.timetolive}")
-    private int timeToLive = 30000;
+    private long timeToLive;
 
     @Value("${anshar.validation.enabled}")
     private boolean validationEnabled = false;
