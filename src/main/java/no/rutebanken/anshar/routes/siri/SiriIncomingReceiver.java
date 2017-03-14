@@ -76,7 +76,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
         Namespaces ns = new Namespaces("siri", "http://www.siri.org.uk/siri")
                 .add("xsd", "http://www.w3.org/2001/XMLSchema");
 
-        String activeMQParameters = "?disableReplyTo=true";//&timeToLive="+timeToLive;
+        String activeMQParameters = "?disableReplyTo=false&timeToLive="+timeToLive;
 
         //Incoming notifications/deliveries
         from("jetty:http://0.0.0.0:" + inboundPort + "?matchOnUriPrefix=true&httpMethodRestrict=POST")
