@@ -53,6 +53,9 @@ public class SiriIncomingReceiver extends RouteBuilder {
     @Value("${anshar.incoming.logdirectory}")
     private String incomingLogDirectory = "/tmp";
 
+    @Value("${anshar.incoming.activemq.timetolive}")
+    private int timeToLive = 30000;
+
     @Value("${anshar.validation.enabled}")
     private boolean validationEnabled = false;
 
@@ -73,7 +76,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
         Namespaces ns = new Namespaces("siri", "http://www.siri.org.uk/siri")
                 .add("xsd", "http://www.w3.org/2001/XMLSchema");
 
-        String activeMQParameters = "?disableReplyTo=true";
+        String activeMQParameters = "?disableReplyTo=true&timeToLive="+timeToLive;
 
         //Incoming notifications/deliveries
         from("jetty:http://0.0.0.0:" + inboundPort + "?matchOnUriPrefix=true&httpMethodRestrict=POST")
