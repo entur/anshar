@@ -44,7 +44,7 @@
                 <th>Vendor</th>
                 <th>Last activity</th>
                 <th>Requests</th>
-                <th>Total bytes</th>
+                <th>Total bytes received</th>
             </tr>
         </thead>
         <tbody>
