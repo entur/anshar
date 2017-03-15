@@ -44,7 +44,7 @@ public class SubscriptionMonitor implements CamelContextAware {
     @Value("${anshar.inbound.url}")
     private String inboundUrl = "http://localhost:8080";
 
-    @Value("${anshar.healtcheck.interval.seconds}")
+    @Value("${anshar.healthcheck.interval.seconds}")
     private int healthCheckInterval = 30;
 
     @Autowired
