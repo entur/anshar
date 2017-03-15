@@ -198,7 +198,7 @@ public class SubscriptionManagerTest {
     }
 
     @Test
-    public void testStatObjectCounterHugeNumber() {
+    public void testStatByteCounterHugeNumber() {
         SubscriptionSetup subscription = createSubscription(1);
         assertFalse(subscriptionManager.isSubscriptionRegistered(subscription.getSubscriptionId()));
 
@@ -206,7 +206,7 @@ public class SubscriptionManagerTest {
         subscriptionManager.activatePendingSubscription(subscription.getSubscriptionId());
 
         for (int i = 0; i < 10; i++) {
-            subscriptionManager.incrementObjectCounter(subscription, Integer.MAX_VALUE);
+            subscriptionManager.incrementByteCounter(subscription, Integer.MAX_VALUE);
         }
 
         JSONObject jsonObject = subscriptionManager.buildStats();
@@ -220,8 +220,8 @@ public class SubscriptionManagerTest {
         for (Object object : subscriptions) {
             JSONObject jsonStats = (JSONObject) object;
             if (subscription.getSubscriptionId().equals(jsonStats.get("subscriptionId"))) {
-                assertNotNull(jsonStats.get("objectcount"));
-                assertTrue(jsonStats.get("objectcount").toString().length() > String.valueOf(Integer.MAX_VALUE).length());
+                assertNotNull(jsonStats.get("bytecount"));
+                assertTrue(jsonStats.get("bytecount").toString().length() > String.valueOf(Integer.MAX_VALUE).length());
                 verifiedCounter = true;
             }
         }
@@ -229,7 +229,7 @@ public class SubscriptionManagerTest {
     }
 
     @Test
-    public void testStatObjectCounter() {
+    public void testStatByteCounter() {
         SubscriptionSetup subscription = createSubscription(1);
         assertFalse(subscriptionManager.isSubscriptionRegistered(subscription.getSubscriptionId()));
 
@@ -240,7 +240,7 @@ public class SubscriptionManagerTest {
         int increment = 999;
         for (int i = 1; i < 10;i++) {
             sum += increment;
-            subscriptionManager.incrementObjectCounter(subscription, increment);
+            subscriptionManager.incrementByteCounter(subscription, increment);
         }
 
         JSONObject jsonObject = subscriptionManager.buildStats();
@@ -254,7 +254,7 @@ public class SubscriptionManagerTest {
         for (Object object : subscriptions) {
             JSONObject jsonStats = (JSONObject) object;
             if (subscription.getSubscriptionId().equals(jsonStats.get("subscriptionId"))) {
-                assertEquals("" + sum, "" + jsonStats.get("objectcount"));
+                assertEquals("" + sum, "" + jsonStats.get("bytecount"));
                 verifiedCounter = true;
             }
         }

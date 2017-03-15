@@ -255,7 +255,7 @@ public class SiriHandler {
 
                     serverSubscriptionManager.pushUpdatedSituations(addedOrUpdated, subscriptionSetup.getDatasetId());
 
-                    subscriptionManager.incrementObjectCounter(subscriptionSetup, addedOrUpdated.size());
+                    subscriptionManager.incrementByteCounter(subscriptionSetup, xml.getBytes().length);
 
                     logger.info("Active SX-elements: {}, current delivery: {}, {}", situations.getSize(), addedOrUpdated.size(), subscriptionSetup);
                 }
@@ -277,7 +277,7 @@ public class SiriHandler {
 
                     serverSubscriptionManager.pushUpdatedVehicleActivities(addedOrUpdated, subscriptionSetup.getDatasetId());
 
-                    subscriptionManager.incrementObjectCounter(subscriptionSetup, addedOrUpdated.size());
+                    subscriptionManager.incrementByteCounter(subscriptionSetup, xml.getBytes().length);
 
                     logger.info("Active VM-elements: {}, current delivery: {}, {}", vehicleActivities.getSize(), addedOrUpdated.size(), subscriptionSetup);
                 }
@@ -300,7 +300,7 @@ public class SiriHandler {
                     );
                     serverSubscriptionManager.pushUpdatedEstimatedTimetables(addedOrUpdated, subscriptionSetup.getDatasetId());
 
-                    subscriptionManager.incrementObjectCounter(subscriptionSetup, addedOrUpdated.size());
+                    subscriptionManager.incrementByteCounter(subscriptionSetup, xml.getBytes().length);
 
                     logger.info("Active ET-elements: {}, current delivery: {}, {}", estimatedTimetables.getSize(), addedOrUpdated.size(), subscriptionSetup);
                 }
@@ -316,7 +316,7 @@ public class SiriHandler {
 
                     serverSubscriptionManager.pushUpdatedProductionTimetables(addedOrUpdated, subscriptionSetup.getDatasetId());
 
-                    subscriptionManager.incrementObjectCounter(subscriptionSetup, addedOrUpdated.size());
+                    subscriptionManager.incrementByteCounter(subscriptionSetup, xml.getBytes().length);
 
                     logger.info("Active PT-elements: {}, current delivery: {}, {}", productionTimetables.getSize(), addedOrUpdated.size(), subscriptionSetup);
                 }
