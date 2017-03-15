@@ -5,6 +5,7 @@ import no.rutebanken.anshar.messages.ProductionTimetables;
 import no.rutebanken.anshar.messages.Situations;
 import no.rutebanken.anshar.messages.VehicleActivities;
 import no.rutebanken.anshar.routes.ServiceNotSupportedException;
+import no.rutebanken.anshar.routes.health.HealthManager;
 import no.rutebanken.anshar.routes.outbound.ServerSubscriptionManager;
 import no.rutebanken.anshar.routes.outbound.SiriHelper;
 import no.rutebanken.anshar.routes.siri.SiriObjectFactory;
@@ -50,6 +51,9 @@ public class SiriHandler {
     @Autowired
     private SiriObjectFactory siriObjectFactory;
 
+
+    @Autowired
+    private HealthManager healthManager;
 
     @Autowired
     private MappingAdapterPresets mappingAdapterPresets;
@@ -196,6 +200,9 @@ public class SiriHandler {
         SubscriptionSetup subscriptionSetup = subscriptionManager.get(subscriptionId);
 
         if (subscriptionSetup != null) {
+
+            healthManager.dataReceived();
+
             Siri incoming = SiriValueTransformer.parseXml(xml, subscriptionSetup.getMappingAdapters());
 
             if (incoming.getHeartbeatNotification() != null) {

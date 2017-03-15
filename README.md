@@ -17,6 +17,10 @@ anshar.inbound.url = http://mottak.rutebanken.org/anshar
 - http://<host>:<port>/ready
 ```
 
+# Healthcheck
+```
+- http://<host>:<port>/healthy
+```
 
 # Statistics
 To view status/statistics for all subscriptions.

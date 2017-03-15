@@ -1,6 +1,9 @@
 package no.rutebanken.anshar.messages.collections;
 
-import com.hazelcast.core.*;
+import com.hazelcast.core.Cluster;
+import com.hazelcast.core.DistributedObject;
+import com.hazelcast.core.IMap;
+import com.hazelcast.core.Member;
 import no.rutebanken.anshar.routes.outbound.OutboundSubscriptionSetup;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.json.simple.JSONArray;
@@ -27,29 +30,8 @@ public class ExtendedHazelcastService extends HazelCastService {
 
     private Logger logger = LoggerFactory.getLogger(ExtendedHazelcastService.class);
 
-    private static final String SERVER_START_TIME_KEY = "server.start.time";
-    private static final String NODE_LIVENESS_CHECK = "node.liveness.check";
-
     public ExtendedHazelcastService(@Autowired KubernetesService kubernetesService, @Autowired AnsharConfiguration cfg) {
         super(kubernetesService, cfg.getHazelcastManagementUrl());
-    }
-
-    public boolean isAlive() {
-        try {
-            getLockMap().put(NODE_LIVENESS_CHECK, Instant.now());
-            return getLockMap().containsKey(NODE_LIVENESS_CHECK);
-        } catch (HazelcastInstanceNotActiveException e) {
-            logger.warn("HazelcastInstance not active - ", e);
-            return false;
-        }
-    }
-
-    @Bean
-    public Instant serverStartTime() {
-        if (!getLockMap().containsKey(SERVER_START_TIME_KEY)) {
-            getLockMap().put(SERVER_START_TIME_KEY, Instant.now());
-        }
-        return getLockMap().get(SERVER_START_TIME_KEY);
     }
 
     @Bean
@@ -142,6 +124,11 @@ public class ExtendedHazelcastService extends HazelCastService {
     @Bean
     public IMap<String, Instant> getLockMap() {
         return hazelcast.getMap("anshar.locks");
+    }
+
+    @Bean
+    public IMap<Enum<HealthCheckKey>, Instant> getHealthCheckMap() {
+        return hazelcast.getMap("anshar.admin.health");
     }
 
     public String listNodes() {

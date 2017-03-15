@@ -1,6 +1,5 @@
 package no.rutebanken.anshar.routes.health;
 
-import no.rutebanken.anshar.messages.collections.ExtendedHazelcastService;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.slf4j.Logger;
@@ -18,8 +17,11 @@ public class LivenessReadinessRoute extends RouteBuilder {
     @Value("${anshar.incoming.port}")
     private String inboundPort;
 
+    @Value("${anshar.admin.health.allowed.inactivity.minutes:5}")
+    private long allowedInactivityTime;
+
     @Autowired
-    ExtendedHazelcastService extendedHazelcastService;
+    HealthManager healthManager;
 
     public static boolean triggerRestart;
 
@@ -47,7 +49,7 @@ public class LivenessReadinessRoute extends RouteBuilder {
                     .setBody(constant("Restart requested"))
                     .log("Application triggered restart")
                 .endChoice()
-                .when(p -> !extendedHazelcastService.isAlive())
+                .when(p -> !healthManager.isHazelcastAlive())
                     .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("500"))
                     .setBody(simple("Hazelcast is shut down"))
                     .log("Hazelcast is shut down")
@@ -57,5 +59,21 @@ public class LivenessReadinessRoute extends RouteBuilder {
                     .setBody(simple("OK"))
                 .end()
         ;
+        
+        from("jetty:http://0.0.0.0:" + inboundPort + "/healthy")
+                .choice()
+                .when(p -> healthManager.getSecondsSinceDataReceived() > (60 * allowedInactivityTime))
+                    .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("500"))
+                    .process(p -> {
+                        p.getOut().setBody("Server has not received data for " + healthManager.getSecondsSinceDataReceived() + " seconds.");
+                    })
+                    .log("Server is not receiving data")
+                .endChoice()
+                .otherwise()
+                    .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
+                    .setBody(simple("OK"))
+                .end()
+        ;
+
     }
 }

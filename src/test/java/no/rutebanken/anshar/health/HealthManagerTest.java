@@ -1,7 +1,8 @@
-package no.rutebanken.anshar.messages;
+package no.rutebanken.anshar.health;
 
 import no.rutebanken.anshar.App;
 import no.rutebanken.anshar.messages.collections.ExtendedHazelcastService;
+import no.rutebanken.anshar.routes.health.HealthManager;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -12,9 +13,13 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import static junit.framework.TestCase.assertFalse;
 import static junit.framework.TestCase.assertTrue;
 
+
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(webEnvironment= SpringBootTest.WebEnvironment.MOCK, classes = App.class)
-public class ExtendedHazelcastServiceTest {
+public class HealthManagerTest {
+
+    @Autowired
+    HealthManager healthManager;
 
     @Autowired
     ExtendedHazelcastService extendedHazelcastService;
@@ -25,10 +30,8 @@ public class ExtendedHazelcastServiceTest {
     @Test
     @Ignore
     public void testShutDownDiscovered() {
-        assertTrue(extendedHazelcastService.isAlive());
+        assertTrue(healthManager.isHazelcastAlive());
         extendedHazelcastService.shutdown();
-        assertFalse(extendedHazelcastService.isAlive());
+        assertFalse(healthManager.isHazelcastAlive());
     }
-
-
 }
