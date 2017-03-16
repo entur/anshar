@@ -219,21 +219,43 @@ public class SubscriptionMonitor implements CamelContextAware {
 
                             Map<String, SubscriptionSetup> pendingSubscriptions = subscriptionManager.getPendingSubscriptions();
 
+                            List<Long> visitedSubscriptionsByInternalId = new ArrayList<>();
+                            List<String> subscriptionsToRemove = new ArrayList<>();
+
                             for (SubscriptionSetup subscriptionSetup : pendingSubscriptions.values()) {
-                                if (subscriptionSetup.isActive()) {
-                                    logger.info("Healthcheck: Trigger start subscription {}", subscriptionSetup);
-                                    startSubscriptionAsync(subscriptionSetup, 0);
-                                    break;
+
+                                if (visitedSubscriptionsByInternalId.contains(subscriptionSetup.getInternalId())) {
+                                    subscriptionsToRemove.add(subscriptionSetup.getSubscriptionId());
+                                } else {
+                                    visitedSubscriptionsByInternalId.add(subscriptionSetup.getInternalId());
+
+                                    if (subscriptionSetup.isActive()) {
+                                        logger.info("Healthcheck: Trigger start subscription {}", subscriptionSetup);
+                                        startSubscriptionAsync(subscriptionSetup, 0);
+                                        break;
+                                    }
                                 }
                             }
 
                             Map<String, SubscriptionSetup> activeSubscriptions = subscriptionManager.getActiveSubscriptions();
                             for (SubscriptionSetup subscriptionSetup : activeSubscriptions.values()) {
-                                if (!subscriptionManager.isSubscriptionHealthy(subscriptionSetup.getSubscriptionId())) {
-                                    //start "cancel"-route
-                                    logger.info("Healthcheck: Trigger cancel subscription {}", subscriptionSetup);
-                                    cancelSubscription(subscriptionSetup);
+
+                                if (visitedSubscriptionsByInternalId.contains(subscriptionSetup.getInternalId())) {
+                                    subscriptionsToRemove.add(subscriptionSetup.getSubscriptionId());
+                                } else {
+                                    visitedSubscriptionsByInternalId.add(subscriptionSetup.getInternalId());
+
+                                    if (!subscriptionManager.isSubscriptionHealthy(subscriptionSetup.getSubscriptionId())) {
+                                        //start "cancel"-route
+                                        logger.info("Healthcheck: Trigger cancel subscription {}", subscriptionSetup);
+                                        cancelSubscription(subscriptionSetup);
+                                    }
                                 }
+                            }
+
+                            if (!subscriptionsToRemove.isEmpty()) {
+                                logger.warn("Found duplicate subscriptions - cleaning up");
+                                subscriptionsToRemove.forEach(id -> subscriptionManager.removeSubscription(id, true));
                             }
 
                         } else {
