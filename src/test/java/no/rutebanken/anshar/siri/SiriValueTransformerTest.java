@@ -103,12 +103,13 @@ public class SiriValueTransformerTest {
 
         String lineRefValue = "123:4";
         String blockRefValue = "";
+        String mappedLineRefValue = "012304";
 
         Siri siri = createSiriObject(lineRefValue, blockRefValue);
 
         assertEquals(lineRefValue, getLineRefFromSiriObj(siri));
         assertEquals(blockRefValue, getBlockRefFromSiriObj(siri));
-        String paddedLineRef = lineRefValue + SiriValueTransformer.SEPARATOR + "012304";
+        String paddedLineRef = lineRefValue + SiriValueTransformer.SEPARATOR + mappedLineRefValue;
 
         List<ValueAdapter> mappingAdapters = new ArrayList<>();
         mappingAdapters.add(new RuterSubstringAdapter(LineRef.class, ':', '0', 2));
@@ -124,7 +125,7 @@ public class SiriValueTransformerTest {
         assertEquals("Outbound madapters did not return original id", lineRefValue, getLineRefFromSiriObj(originalIdSiri));
 
         Siri mappedIdSiri = transformer.transform(siri, new MappingAdapterPresets().getOutboundAdapters(true));
-        assertEquals("Outbound madapters did not return mapped id", lineRefValue, getLineRefFromSiriObj(mappedIdSiri));
+        assertEquals("Outbound madapters did not return mapped id", mappedLineRefValue, getLineRefFromSiriObj(mappedIdSiri));
 
     }
 
@@ -217,6 +218,35 @@ public class SiriValueTransformerTest {
 
     }
 
+    @Test
+    public void testImmutability() throws JAXBException {
+        SiriValueTransformer transformer = new SiriValueTransformer();
+
+        String lineRefValue = "99";
+        String blockRefValue = "34";
+
+        Siri siri = createSiriObject(lineRefValue, blockRefValue);
+
+        assertEquals(lineRefValue, getLineRefFromSiriObj(siri));
+        assertEquals(blockRefValue, getBlockRefFromSiriObj(siri));
+
+        String paddedLineRef = lineRefValue + SiriValueTransformer.SEPARATOR + "0099";
+        String paddedBlockRef = blockRefValue + SiriValueTransformer.SEPARATOR + "0034";
+
+        List<ValueAdapter> mappingAdapters = new ArrayList<>();
+        mappingAdapters.add(new LeftPaddingAdapter(BlockRefStructure.class, 4, '0'));
+        mappingAdapters.add(new LeftPaddingAdapter(LineRef.class, 4, '0'));
+
+        Siri transformed = transformer.transform(siri, mappingAdapters);
+
+        assertEquals("LineRef has not been padded as expected", paddedLineRef, getLineRefFromSiriObj(transformed));
+        assertEquals("BlockRef has not been padded as expected", paddedBlockRef, getBlockRefFromSiriObj(transformed));
+
+        assertEquals("Original Lineref has been altered", lineRefValue, getLineRefFromSiriObj(siri));
+        assertEquals("Original Blockref has been altered", blockRefValue, getBlockRefFromSiriObj(siri));
+
+    }
+
     private Siri createSiriObject(String lineRefValue, String blockRefValue) {
         return createSiriObject(lineRefValue, blockRefValue, null, null);
     }
@@ -229,22 +259,29 @@ public class SiriValueTransformerTest {
         EstimatedVersionFrameStructure estimatedJourneyVersionFrame = new EstimatedVersionFrameStructure();
         EstimatedVehicleJourney estimatedVehicleJourney = new EstimatedVehicleJourney();
 
+        if (lineRefValue != null) {
             LineRef lineRef = new LineRef();
             lineRef.setValue(lineRefValue);
             estimatedVehicleJourney.setLineRef(lineRef);
+        }
 
+        if (blockRefValue != null) {
             BlockRefStructure blockRef = new BlockRefStructure();
             blockRef.setValue(blockRefValue);
             estimatedVehicleJourney.setBlockRef(blockRef);
+        }
 
+        if (originStopPointValue != null) {
+            JourneyPlaceRefStructure origin = new JourneyPlaceRefStructure();
+            origin.setValue(originStopPointValue);
+            estimatedVehicleJourney.setOriginRef(origin);
+        }
 
-        JourneyPlaceRefStructure origin = new JourneyPlaceRefStructure();
-        origin.setValue(originStopPointValue);
-        estimatedVehicleJourney.setOriginRef(origin);
-
-        DestinationRef destination = new DestinationRef();
-        destination.setValue(destinationStopPointValue);
-        estimatedVehicleJourney.setDestinationRef(destination);
+        if (destinationStopPointValue != null) {
+            DestinationRef destination = new DestinationRef();
+            destination.setValue(destinationStopPointValue);
+            estimatedVehicleJourney.setDestinationRef(destination);
+        }
 
 
         estimatedJourneyVersionFrame.getEstimatedVehicleJourneies().add(estimatedVehicleJourney);

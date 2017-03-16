@@ -1,5 +1,6 @@
 package no.rutebanken.anshar.routes.siri.transformer;
 
+import no.rutebanken.anshar.routes.siri.SiriObjectFactory;
 import no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter;
 import org.rutebanken.siri20.util.SiriXml;
 import org.slf4j.Logger;
@@ -33,18 +34,27 @@ public class SiriValueTransformer {
     }
 
     public static Siri transform(Siri siri, List<ValueAdapter> adapters) {
-
-        if (siri != null && adapters != null) {
+        if (siri == null) {
+            return null;
+        }
+        Siri transformed;
+        try {
+            transformed = SiriObjectFactory.deepCopy(siri);
+        } catch (JAXBException e) {
+            logger.warn("Unable to transform SIRI-object", e);
+            return siri;
+        }
+        if (transformed != null && adapters != null) {
             logger.info("Applying {} valueadapters {}", adapters.size(), adapters);
             adapters.forEach(a -> {
                 try {
-                    applyAdapter(siri, a);
+                    applyAdapter(transformed, a);
                 } catch (Throwable t) {
                     logger.warn("Caught exception while transforming SIRI-object.", t);
                 }
             });
         }
-        return siri;
+        return transformed;
     }
 
     /**
