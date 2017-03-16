@@ -36,7 +36,6 @@ public class SiriIncomingReceiver extends RouteBuilder {
     static final String ROUTER_QUEUE              = QUEUE_PREFIX + ".router";
     static final String VALIDATOR_QUEUE              = QUEUE_PREFIX + ".validator";
     static final String DEFAULT_PROCESSOR_QUEUE   = QUEUE_PREFIX + ".process";
-    static final String PUSH_UPDATES_QUEUE        = QUEUE_PREFIX + ".push";
     static final String SITUATION_EXCHANGE_QUEUE  = DEFAULT_PROCESSOR_QUEUE + ".sx";
     static final String VEHICLE_MONITORING_QUEUE  = DEFAULT_PROCESSOR_QUEUE + ".vm";
     static final String ESTIMATED_TIMETABLE_QUEUE = DEFAULT_PROCESSOR_QUEUE + ".et";
