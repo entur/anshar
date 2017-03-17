@@ -201,8 +201,6 @@ public class SiriHandler {
 
         if (subscriptionSetup != null) {
 
-            healthManager.dataReceived();
-
             Siri incoming = SiriValueTransformer.parseXml(xml, subscriptionSetup.getMappingAdapters());
 
             if (incoming.getHeartbeatNotification() != null) {
@@ -236,6 +234,7 @@ public class SiriHandler {
 
             } else if (incoming.getServiceDelivery() != null) {
                 subscriptionManager.touchSubscription(subscriptionId);
+                healthManager.dataReceived();
 
                 if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE)) {
                     List<SituationExchangeDeliveryStructure> situationExchangeDeliveries = incoming.getServiceDelivery().getSituationExchangeDeliveries();

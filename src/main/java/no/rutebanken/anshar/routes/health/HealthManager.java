@@ -56,6 +56,8 @@ public class HealthManager {
         Instant lastReceivedData = healthCheckMap.get(HealthCheckKey.HEALTH_CHECK_INCOMING_DATA);
         long lastReceivedMillis = lastReceivedData.toEpochMilli();
 
-        return (Instant.now().toEpochMilli() - lastReceivedMillis)/(1000);
+        long minutes = (Instant.now().toEpochMilli() - lastReceivedMillis)/(1000);
+        logger.info("Last received data: {}, {} minutes ago", lastReceivedData, minutes);
+        return minutes;
     }
 }
