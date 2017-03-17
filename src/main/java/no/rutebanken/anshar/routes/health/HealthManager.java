@@ -25,7 +25,9 @@ public class HealthManager {
     @PostConstruct
     private void initialize() {
         if (!healthCheckMap.containsKey(HealthCheckKey.HEALTH_CHECK_INCOMING_DATA)) {
-            healthCheckMap.put(HealthCheckKey.HEALTH_CHECK_INCOMING_DATA, Instant.now());
+            Instant now = Instant.now();
+            logger.info("Last received data: Set to {}", now);
+            healthCheckMap.put(HealthCheckKey.HEALTH_CHECK_INCOMING_DATA, now);
         }
     }
 
@@ -57,7 +59,7 @@ public class HealthManager {
         long lastReceivedMillis = lastReceivedData.toEpochMilli();
 
         long minutes = (Instant.now().toEpochMilli() - lastReceivedMillis)/(1000);
-        logger.info("Last received data: {}, {} minutes ago", lastReceivedData, minutes);
+        logger.info("Last received data: {}, {} seconds ago", lastReceivedData, minutes);
         return minutes;
     }
 }

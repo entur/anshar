@@ -59,10 +59,12 @@ public class LivenessReadinessRoute extends RouteBuilder {
                     .setBody(simple("OK"))
                 .end()
         ;
-        
+        final long allowedInactivitySeconds = 60 * allowedInactivityTime;
+        logger.info("Allowed inactivity set to {} seconds.", allowedInactivitySeconds);
+
         from("jetty:http://0.0.0.0:" + inboundPort + "/healthy")
                 .choice()
-                .when(p -> healthManager.getSecondsSinceDataReceived() > (60 * allowedInactivityTime))
+                .when(p -> healthManager.getSecondsSinceDataReceived() > allowedInactivitySeconds)
                     .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("500"))
                     .process(p -> {
                         p.getOut().setBody("Server has not received data for " + healthManager.getSecondsSinceDataReceived() + " seconds.");
@@ -70,8 +72,8 @@ public class LivenessReadinessRoute extends RouteBuilder {
                     .log("Server is not receiving data")
                 .endChoice()
                 .otherwise()
-                    .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
-                    .setBody(simple("OK"))
+                .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
+                .setBody(simple("OK"))
                 .end()
         ;
 
