@@ -138,6 +138,9 @@ public class Situations implements SiriRepository<PtSituationElement> {
             if (expiration >= 0) { //expiration < 0 => already expired
                 situations.put(key, situation, expiration, TimeUnit.MILLISECONDS);
                 changes.add(key);
+            } else if (situations.containsKey(key)) {
+                // Situation is no longer valid
+                situations.remove(key);
             }
 
         });
