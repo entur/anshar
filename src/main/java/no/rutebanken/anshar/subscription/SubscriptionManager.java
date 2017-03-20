@@ -7,6 +7,7 @@ import no.rutebanken.anshar.messages.EstimatedTimetables;
 import no.rutebanken.anshar.messages.ProductionTimetables;
 import no.rutebanken.anshar.messages.Situations;
 import no.rutebanken.anshar.messages.VehicleActivities;
+import no.rutebanken.anshar.routes.health.HealthManager;
 import no.rutebanken.anshar.routes.siri.SiriObjectFactory;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -54,6 +55,9 @@ public class SubscriptionManager {
 
     @Autowired
     private SiriObjectFactory siriObjectFactory;
+
+    @Autowired
+    private HealthManager healthManager;
 
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneId.systemDefault());
 
@@ -280,6 +284,7 @@ public class SubscriptionManager {
         result.put("subscriptions", stats);
 
         result.put("serverStarted", formatTimestamp(siriObjectFactory.serverStartTime));
+        result.put("secondsSinceDataReceived", healthManager.getSecondsSinceDataReceived());
         JSONObject count = new JSONObject();
         count.put("sx", sx.getSize());
         count.put("et", et.getSize());

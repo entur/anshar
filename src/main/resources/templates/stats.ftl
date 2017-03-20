@@ -31,6 +31,7 @@
 <div class="jumbotron text-center">
     <h2>Anshar status/statistics</h2>
     <small>Server started ${body.serverStarted}</small>
+    <small>(${body.secondsSinceDataReceived}s)</small>
 </div>
 <div class="container">
 
