@@ -21,7 +21,11 @@ public class Siri20ToSiriRS20RequestResponse extends RouteBuilder {
 
     public Siri20ToSiriRS20RequestResponse(SubscriptionSetup subscriptionSetup) {
 
-        this.request = SiriObjectFactory.createServiceRequest(subscriptionSetup);
+        if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.FETCHED_DELIVERY) {
+            this.request = SiriObjectFactory.createDataSupplyRequest(subscriptionSetup);
+        } else {
+            this.request = SiriObjectFactory.createServiceRequest(subscriptionSetup);
+        }
 
         this.subscriptionSetup = subscriptionSetup;
     }

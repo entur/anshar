@@ -100,6 +100,22 @@ public class SiriObjectFactory {
         return siri;
     }
 
+
+    public static Siri createDataSupplyRequest(SubscriptionSetup subscriptionSetup) {
+        Siri siri = createSiriObject();
+
+        DataSupplyRequestStructure request = new DataSupplyRequestStructure();
+        request.setRequestTimestamp(ZonedDateTime.now());
+        MessageRefStructure notificationRef = new MessageRefStructure();
+        notificationRef.setValue(subscriptionSetup.getRequestorRef());
+        request.setNotificationRef(notificationRef);
+        request.setAllData(Boolean.TRUE);
+
+        siri.setDataSupplyRequest(request);
+
+        return siri;
+    }
+
     public static Siri createCheckStatusRequest(SubscriptionSetup subscriptionSetup) {
         Siri siri = createSiriObject();
 

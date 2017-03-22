@@ -149,10 +149,9 @@ public class SubscriptionMonitor implements CamelContextAware {
                         subscriptionSetup.setSubscriptionMode(SubscriptionSetup.SubscriptionMode.SUBSCRIBE);
                         camelContext.addRoutes(getRouteBuilder(subscriptionSetup));
 
-                        subscriptionSetup.setSubscriptionMode(SubscriptionSetup.SubscriptionMode.REQUEST_RESPONSE);
+                        subscriptionSetup.setSubscriptionMode(SubscriptionSetup.SubscriptionMode.FETCHED_DELIVERY);
                         camelContext.addRoutes(getRouteBuilder(subscriptionSetup));
 
-                        subscriptionSetup.setSubscriptionMode(SubscriptionSetup.SubscriptionMode.FETCHED_DELIVERY);
                     } else {
 
                         RouteBuilder routeBuilder = getRouteBuilder(subscriptionSetup);
