@@ -68,6 +68,17 @@ public class HealthManager {
         return true;
     }
 
+    public long getSecondsSinceDataReceived() {
+        Instant lastReceivedData = healthCheckMap.get(HealthCheckKey.HEALTH_CHECK_INCOMING_DATA);
+        if (lastReceivedData != null) {
+            long lastReceivedMillis = lastReceivedData.toEpochMilli();
+
+            long seconds = (Instant.now().toEpochMilli() - lastReceivedMillis) / (1000);
+            return seconds;
+        }
+        return -1;
+    }
+
     public boolean isHealthCheckRunning() {
         Instant lastHealthCheck = healthCheckMap.get(HealthCheckKey.ANSHAR_HEALTHCHECK_KEY);
         if (lastHealthCheck != null) {
