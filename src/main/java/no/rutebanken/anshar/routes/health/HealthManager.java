@@ -12,7 +12,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import java.time.Instant;
 
 @Service
@@ -31,15 +30,6 @@ public class HealthManager {
 
     @Value("${anshar.healthcheck.interval.seconds}")
     private int healthCheckInterval = 30;
-
-    @PostConstruct
-    private void initialize() {
-        if (!healthCheckMap.containsKey(HealthCheckKey.HEALTH_CHECK_INCOMING_DATA)) {
-            Instant now = Instant.now();
-            logger.info("Last received data: Set to {}", now);
-            healthCheckMap.put(HealthCheckKey.HEALTH_CHECK_INCOMING_DATA, now);
-        }
-    }
 
     public boolean isHazelcastAlive() {
         try {
@@ -66,21 +56,28 @@ public class HealthManager {
 
     public boolean isReceivingData() {
         Instant lastReceivedData = healthCheckMap.get(HealthCheckKey.HEALTH_CHECK_INCOMING_DATA);
-        long lastReceivedMillis = lastReceivedData.toEpochMilli();
+        if (lastReceivedData != null) {
+            long lastReceivedMillis = lastReceivedData.toEpochMilli();
 
-        long seconds = (Instant.now().toEpochMilli() - lastReceivedMillis)/(1000);
-        logger.info("Last received data: {}, {} seconds ago", lastReceivedData, seconds);
-        return seconds > allowedInactivityTime;
+            long seconds = (Instant.now().toEpochMilli() - lastReceivedMillis) / (1000);
+            if (seconds > allowedInactivityTime) {
+                logger.warn("Last received data: {}, {} seconds ago", lastReceivedData, seconds);
+                return false;
+            }
+        }
+        return true;
     }
 
     public boolean isHealthCheckRunning() {
         Instant lastHealthCheck = healthCheckMap.get(HealthCheckKey.ANSHAR_HEALTHCHECK_KEY);
-        long lastHealthCheckMillis = lastHealthCheck.toEpochMilli();
+        if (lastHealthCheck != null) {
+            long lastHealthCheckMillis = lastHealthCheck.toEpochMilli();
 
-        long seconds = (Instant.now().toEpochMilli() - lastHealthCheckMillis)/(1000);
-        if (seconds > healthCheckInterval*3) {
-            logger.warn("Last healthCheck: {}, {} seconds ago", lastHealthCheckMillis, seconds);
-            return false;
+            long seconds = (Instant.now().toEpochMilli() - lastHealthCheckMillis) / (1000);
+            if (seconds > healthCheckInterval * 3) {
+                logger.warn("Last healthCheck: {}, {} seconds ago", lastHealthCheckMillis, seconds);
+                return false;
+            }
         }
         return true;
     }

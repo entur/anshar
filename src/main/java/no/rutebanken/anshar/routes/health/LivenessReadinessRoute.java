@@ -52,7 +52,7 @@ public class LivenessReadinessRoute extends RouteBuilder {
                     .setBody(simple("Hazelcast is shut down"))
                     .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("500"))
                 .endChoice()
-                .when(p -> healthManager.isHealthCheckRunning())
+                .when(p -> !healthManager.isHealthCheckRunning())
                     .log("HealthCheck has stopped")
                     .setBody(simple("HealthCheck has stopped"))
                     .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("500"))
@@ -65,7 +65,7 @@ public class LivenessReadinessRoute extends RouteBuilder {
 
         from("jetty:http://0.0.0.0:" + inboundPort + "/healthy")
                 .choice()
-                .when(p -> healthManager.isReceivingData())
+                .when(p -> !healthManager.isReceivingData())
                     .process(p -> {
                         p.getOut().setBody("Server has not received data for " + healthManager.isReceivingData() + " seconds.");
                     })
