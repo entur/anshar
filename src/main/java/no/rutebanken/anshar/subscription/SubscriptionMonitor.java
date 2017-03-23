@@ -2,6 +2,7 @@ package no.rutebanken.anshar.subscription;
 
 import com.google.common.base.Preconditions;
 import com.hazelcast.core.IMap;
+import no.rutebanken.anshar.messages.collections.HealthCheckKey;
 import no.rutebanken.anshar.routes.siri.*;
 import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
@@ -39,8 +40,6 @@ public class SubscriptionMonitor implements CamelContextAware {
     @Autowired
     private MappingAdapterPresets mappingAdapterPresets;
 
-    private final String ANSHAR_HEALTHCHECK_KEY = "anshar.healthcheck";
-
     @Value("${anshar.inbound.url}")
     private String inboundUrl = "http://localhost:8080";
 
@@ -48,8 +47,8 @@ public class SubscriptionMonitor implements CamelContextAware {
     private int healthCheckInterval = 30;
 
     @Autowired
-    @Qualifier("getLockMap")
-    private IMap<String, Instant> lockMap;
+    @Qualifier("getHealthCheckMap")
+    private IMap<Enum<HealthCheckKey>, Instant> healthCheckMap;
 
     @Autowired
     private Config config;
@@ -204,16 +203,16 @@ public class SubscriptionMonitor implements CamelContextAware {
 
         executor.scheduleAtFixedRate(() -> {
                 // tryLock returns immediately - does not wait for lock to be released
-                boolean locked = lockMap.tryLock(ANSHAR_HEALTHCHECK_KEY);
+                boolean locked = healthCheckMap.tryLock(HealthCheckKey.ANSHAR_HEALTHCHECK_KEY);
 
                 if (!camelContext.getRoutes().isEmpty() && locked) {
                     logger.debug("Healthcheck: Got lock");
                     try {
-                        Instant instant = lockMap.get(ANSHAR_HEALTHCHECK_KEY);
+                        Instant instant = healthCheckMap.get(HealthCheckKey.ANSHAR_HEALTHCHECK_KEY);
                         if (instant == null || instant.isBefore(Instant.now().minusSeconds(healthCheckInterval))) {
-                            lockMap.put(ANSHAR_HEALTHCHECK_KEY, Instant.now());
+                            healthCheckMap.put(HealthCheckKey.ANSHAR_HEALTHCHECK_KEY, Instant.now());
                             logger.info("Healthcheck: Checking health {}, {} routes",
-                                    lockMap.get(ANSHAR_HEALTHCHECK_KEY).atZone(ZoneId.systemDefault()),
+                                    healthCheckMap.get(HealthCheckKey.ANSHAR_HEALTHCHECK_KEY).atZone(ZoneId.systemDefault()),
                                     camelContext.getRoutes().size());
 
                             Map<String, SubscriptionSetup> pendingSubscriptions = subscriptionManager.getPendingSubscriptions();
@@ -263,7 +262,7 @@ public class SubscriptionMonitor implements CamelContextAware {
                     } catch (Exception e) {
                         logger.error("Healthcheck: Caught exception during healthcheck.", e);
                     } finally {
-                        lockMap.unlock(ANSHAR_HEALTHCHECK_KEY);
+                        healthCheckMap.unlock(HealthCheckKey.ANSHAR_HEALTHCHECK_KEY);
                         logger.debug("Healthcheck: Lock released");
                     }
                 } else {

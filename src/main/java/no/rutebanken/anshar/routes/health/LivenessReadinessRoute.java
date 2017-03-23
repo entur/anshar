@@ -17,8 +17,6 @@ public class LivenessReadinessRoute extends RouteBuilder {
     @Value("${anshar.incoming.port}")
     private String inboundPort;
 
-    @Value("${anshar.admin.health.allowed.inactivity.minutes:5}")
-    private long allowedInactivityTime;
 
     @Autowired
     HealthManager healthManager;
@@ -45,35 +43,38 @@ public class LivenessReadinessRoute extends RouteBuilder {
                 // Ex: wget --post-data='{"source":"otp", "message":"Downloaded file is empty or not present. This makes OTP fail! Please check logs"}' http://hubot/hubot/say/
                 .choice()
                 .when(p -> triggerRestart)
-                    .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("500"))
-                    .setBody(constant("Restart requested"))
                     .log("Application triggered restart")
+                    .setBody(constant("Restart requested"))
+                    .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("500"))
                 .endChoice()
                 .when(p -> !healthManager.isHazelcastAlive())
-                    .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("500"))
-                    .setBody(simple("Hazelcast is shut down"))
                     .log("Hazelcast is shut down")
+                    .setBody(simple("Hazelcast is shut down"))
+                    .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("500"))
+                .endChoice()
+                .when(p -> healthManager.isHealthCheckRunning())
+                    .log("HealthCheck has stopped")
+                    .setBody(simple("HealthCheck has stopped"))
+                    .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("500"))
                 .endChoice()
                 .otherwise()
-                    .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
                     .setBody(simple("OK"))
+                    .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
                 .end()
         ;
-        final long allowedInactivitySeconds = 60 * allowedInactivityTime;
-        logger.info("Allowed inactivity set to {} seconds.", allowedInactivitySeconds);
 
         from("jetty:http://0.0.0.0:" + inboundPort + "/healthy")
                 .choice()
-                .when(p -> healthManager.getSecondsSinceDataReceived() > allowedInactivitySeconds)
+                .when(p -> healthManager.isReceivingData())
                     .process(p -> {
-                        p.getOut().setBody("Server has not received data for " + healthManager.getSecondsSinceDataReceived() + " seconds.");
+                        p.getOut().setBody("Server has not received data for " + healthManager.isReceivingData() + " seconds.");
                     })
                     .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("500"))
                     .log("Server is not receiving data")
                 .endChoice()
                 .otherwise()
-                .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
-                .setBody(simple("OK"))
+                    .setBody(simple("OK"))
+                    .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
                 .end()
         ;
 

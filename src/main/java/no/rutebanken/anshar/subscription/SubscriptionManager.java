@@ -284,7 +284,7 @@ public class SubscriptionManager {
         result.put("subscriptions", stats);
 
         result.put("serverStarted", formatTimestamp(siriObjectFactory.serverStartTime));
-        result.put("secondsSinceDataReceived", healthManager.getSecondsSinceDataReceived());
+        result.put("secondsSinceDataReceived", healthManager.isReceivingData());
         JSONObject count = new JSONObject();
         count.put("sx", sx.getSize());
         count.put("et", et.getSize());
