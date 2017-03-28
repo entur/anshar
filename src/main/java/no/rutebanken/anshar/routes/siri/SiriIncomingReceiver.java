@@ -4,6 +4,7 @@ import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.camel.Exchange;
+import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.builder.xml.Namespaces;
 import org.rutebanken.siri20.util.SiriXml;
@@ -74,6 +75,11 @@ public class SiriIncomingReceiver extends RouteBuilder {
                 .maximumRedeliveries(10)
                 .redeliveryDelay(10000)
                 .useExponentialBackOff();
+
+        errorHandler(loggingErrorHandler()
+                        .log(logger)
+                        .level(LoggingLevel.INFO)
+        );
 
         Namespaces ns = new Namespaces("siri", "http://www.siri.org.uk/siri")
                 .add("xsd", "http://www.w3.org/2001/XMLSchema");
