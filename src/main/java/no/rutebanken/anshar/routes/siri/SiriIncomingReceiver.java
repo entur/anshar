@@ -55,6 +55,9 @@ public class SiriIncomingReceiver extends RouteBuilder {
     @Value("${anshar.incoming.activemq.timetolive}")
     private long timeToLive;
 
+    @Value("${anshar.incoming.activemq.concurrentConsumers}")
+    private long concurrentConsumers;
+
     @Value("${anshar.validation.enabled}")
     private boolean validationEnabled = false;
 
@@ -76,6 +79,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                 .add("xsd", "http://www.w3.org/2001/XMLSchema");
 
         String activeMQParameters = "?disableReplyTo=true&timeToLive="+timeToLive;
+        String activeMqConsumerParameters = "?asyncConsumer=true&concurrentConsumers="+concurrentConsumers;
 
         //Incoming notifications/deliveries
         from("jetty:http://0.0.0.0:" + inboundPort + "?matchOnUriPrefix=true&httpMethodRestrict=POST")
@@ -144,7 +148,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
         ;
 
 
-        from("activemq:queue:" + TRANSFORM_QUEUE + "?asyncConsumer=true")
+        from("activemq:queue:" + TRANSFORM_QUEUE + activeMqConsumerParameters)
                 .to("xslt:xsl/siri_soap_raw.xsl?saxon=true&allowStAX=false") // Extract SOAP version and convert to raw SIRI
                 .to("xslt:xsl/siri_14_20.xsl?saxon=true&allowStAX=false") // Convert from v1.4 to 2.0
                 .to("file:" + incomingLogDirectory + "/validator/")
@@ -184,7 +188,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                 })
         ;
 
-        from("activemq:queue:" + VALIDATOR_QUEUE + "?asyncConsumer=true")
+        from("activemq:queue:" + VALIDATOR_QUEUE + activeMqConsumerParameters)
                 .process(p -> {
                     logger.info("XMLValidation - start");
                     SiriValidator.Version siriVersion = SiriValidator.Version.VERSION_2_0;
@@ -213,7 +217,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
 
 
 
-        from("activemq:queue:" + ROUTER_QUEUE + "?asyncConsumer=true")
+        from("activemq:queue:" + ROUTER_QUEUE + activeMqConsumerParameters)
                 .choice()
                 .when().xpath("/siri:Siri/siri:HeartbeatNotification", ns)
                     .to("activemq:queue:" + HEARTBEAT_QUEUE + activeMQParameters)
@@ -243,7 +247,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
         ;
 
 
-        from("activemq:queue:" + DEFAULT_PROCESSOR_QUEUE + "?asyncConsumer=true")
+        from("activemq:queue:" + DEFAULT_PROCESSOR_QUEUE + activeMqConsumerParameters)
                 .to("log:processor:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .process(p -> {
                     String path = p.getIn().getHeader("CamelHttpPath", String.class);
@@ -268,7 +272,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                 })
         ;
 
-        from("activemq:queue:" + HEARTBEAT_QUEUE + "?asyncConsumer=true")
+        from("activemq:queue:" + HEARTBEAT_QUEUE + activeMqConsumerParameters)
                 .process(p -> {
                     String subscriptionId = getSubscriptionIdFromPath(p.getIn().getHeader("CamelHttpPath", String.class));
 
@@ -279,7 +283,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
         ;
 
 
-        from("activemq:queue:" + FETCHED_DELIVERY_QUEUE + "?asyncConsumer=true")
+        from("activemq:queue:" + FETCHED_DELIVERY_QUEUE + activeMqConsumerParameters)
                 .log("Processing fetched delivery")
                 .process(p -> {
                     String routeName = null;
@@ -300,7 +304,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                 .endChoice()
         ;
 
-        from("activemq:queue:" + SITUATION_EXCHANGE_QUEUE + "?asyncConsumer=true")
+        from("activemq:queue:" + SITUATION_EXCHANGE_QUEUE + activeMqConsumerParameters)
                 .log("Processing SX")
                 .process(p -> {
                     String subscriptionId = getSubscriptionIdFromPath(p.getIn().getHeader("CamelHttpPath", String.class));
@@ -312,7 +316,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                 //.to("websocket://siri_sx?sendToAll=true")
         ;
 
-        from("activemq:queue:" + VEHICLE_MONITORING_QUEUE + "?asyncConsumer=true")
+        from("activemq:queue:" + VEHICLE_MONITORING_QUEUE + activeMqConsumerParameters)
                 .log("Processing VM")
                 .process(p -> {
 
@@ -325,7 +329,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                 //.to("websocket://siri_vm?sendToAll=true")
         ;
 
-        from("activemq:queue:" + ESTIMATED_TIMETABLE_QUEUE + "?asyncConsumer=true")
+        from("activemq:queue:" + ESTIMATED_TIMETABLE_QUEUE + activeMqConsumerParameters)
                 .log("Processing ET")
                 .process(p -> {
                     String subscriptionId = getSubscriptionIdFromPath(p.getIn().getHeader("CamelHttpPath", String.class));
@@ -339,7 +343,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
         ;
 
 
-        from("activemq:queue:" + PRODUCTION_TIMETABLE_QUEUE + "?asyncConsumer=true")
+        from("activemq:queue:" + PRODUCTION_TIMETABLE_QUEUE + activeMqConsumerParameters)
                 .log("Processing PT")
                 .process(p -> {
                     String subscriptionId = getSubscriptionIdFromPath(p.getIn().getHeader("CamelHttpPath", String.class));
