@@ -2,6 +2,7 @@ package no.rutebanken.anshar.routes.outbound;
 
 import com.hazelcast.core.IMap;
 import no.rutebanken.anshar.routes.siri.SiriObjectFactory;
+import no.rutebanken.anshar.routes.siri.handlers.IdMappingPolicy;
 import no.rutebanken.anshar.subscription.MappingAdapterPresets;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.json.simple.JSONArray;
@@ -90,7 +91,7 @@ public class ServerSubscriptionManager extends CamelRouteManager {
                 type,
                 activeMqTopicPrefix + type.name().toLowerCase(),
                 activeMqTopicTimeToLive,
-                mappingAdapterPresets.getOutboundAdapters(true));
+                mappingAdapterPresets.getOutboundAdapters(IdMappingPolicy.OTP_FRIENDLY_ID));
     }
 
     @PostConstruct
@@ -151,9 +152,9 @@ public class ServerSubscriptionManager extends CamelRouteManager {
         return stats;
     }
 
-    public void handleSubscriptionRequest( SubscriptionRequest subscriptionRequest, String datasetId, boolean useMappedId) {
+    public void handleSubscriptionRequest( SubscriptionRequest subscriptionRequest, String datasetId, IdMappingPolicy idMappingPolicy) {
 
-        OutboundSubscriptionSetup subscription = createSubscription(subscriptionRequest, datasetId, useMappedId);
+        OutboundSubscriptionSetup subscription = createSubscription(subscriptionRequest, datasetId, idMappingPolicy);
 
         boolean hasError = false;
         String errorText = null;
@@ -188,7 +189,7 @@ public class ServerSubscriptionManager extends CamelRouteManager {
 
 
 
-    private OutboundSubscriptionSetup createSubscription(SubscriptionRequest subscriptionRequest, String datasetId, boolean useMappedId) {
+    private OutboundSubscriptionSetup createSubscription(SubscriptionRequest subscriptionRequest, String datasetId, IdMappingPolicy idMappingPolicy) {
 
         OutboundSubscriptionSetup setup = new OutboundSubscriptionSetup(
                 subscriptionRequest.getRequestTimestamp(),
@@ -199,7 +200,7 @@ public class ServerSubscriptionManager extends CamelRouteManager {
                 getChangeBeforeUpdates(subscriptionRequest),
                 SubscriptionSetup.ServiceType.REST,
                 siriHelper.getFilter(subscriptionRequest),
-                mappingAdapterPresets.getOutboundAdapters(useMappedId),
+                mappingAdapterPresets.getOutboundAdapters(idMappingPolicy),
                 findSubscriptionIdentifier(subscriptionRequest),
                 subscriptionRequest.getRequestorRef().getValue(),
                 findInitialTerminationTime(subscriptionRequest),

@@ -12,17 +12,8 @@
 - *NOTE:* For periodic requests (currently within 5 minutes), RequestorRef may be reused to only get "changes since last request" - see requestorId below.
 
 # SIRI common
-- Anshar maps ID's to Rutebanken's own id-set. To obtain the original ID, an extension should be added. 
-
-```
-<Siri>
-    ...
-    <Extensions  xmlns="http://www.siri.org.uk/siri">
-        <IdMapping useOriginalId="true" />
-    </Extensions>
-</Siri>
-```
-- An alternative to the approach above is to add a query-parameter to the service/subscribe-url - i.e. `?useOriginalId=true`
+- To obtain the original ID a query-parameter can be added to the service/subscribe-url - i.e. `?useOriginalId=true`
+- To obtain a OTP-friendly ID a query-parameter can be added to the service/subscribe-url - i.e. `?useOtpId=true`
 
 
 # REST API

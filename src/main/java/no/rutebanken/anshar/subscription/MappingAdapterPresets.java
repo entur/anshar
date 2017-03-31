@@ -1,5 +1,6 @@
 package no.rutebanken.anshar.subscription;
 
+import no.rutebanken.anshar.routes.siri.handlers.IdMappingPolicy;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.routes.siri.transformer.impl.*;
 import org.springframework.stereotype.Component;
@@ -12,14 +13,14 @@ import java.util.List;
 @Component
 public class MappingAdapterPresets {
 
-    public List<ValueAdapter> getOutboundAdapters(boolean mapped) {
+    public List<ValueAdapter> getOutboundAdapters(IdMappingPolicy idMappingPolicy) {
         List<ValueAdapter> adapters = new ArrayList<>();
-        adapters.add(new OutboundIdAdapter(LineRef.class, mapped));
-        adapters.add(new OutboundIdAdapter(StopPointRef.class, mapped));
-        adapters.add(new OutboundIdAdapter(StopPlaceRef.class, mapped));
-        adapters.add(new OutboundIdAdapter(JourneyPlaceRefStructure.class, mapped));
-        adapters.add(new OutboundIdAdapter(DestinationRef.class, mapped));
-        adapters.add(new OutboundIdAdapter(CourseOfJourneyRefStructure.class, mapped));
+        adapters.add(new OutboundIdAdapter(LineRef.class, idMappingPolicy));
+        adapters.add(new OutboundIdAdapter(StopPointRef.class, idMappingPolicy));
+        adapters.add(new OutboundIdAdapter(StopPlaceRef.class, idMappingPolicy));
+        adapters.add(new OutboundIdAdapter(JourneyPlaceRefStructure.class, idMappingPolicy));
+        adapters.add(new OutboundIdAdapter(DestinationRef.class, idMappingPolicy));
+        adapters.add(new OutboundIdAdapter(CourseOfJourneyRefStructure.class, idMappingPolicy));
         return adapters;
     }
 
@@ -86,8 +87,8 @@ public class MappingAdapterPresets {
 
     public List<ValueAdapter> createIdPrefixAdapters(String datasetId) {
          List<ValueAdapter> adapters = new ArrayList<>();
-        adapters.add(new PrefixAdapter(LineRef.class, datasetId + ".Line."));
-        adapters.add(new PrefixAdapter(CourseOfJourneyRefStructure.class, datasetId + ".VehicleJourney."));
+        adapters.add(new PrefixAdapter(LineRef.class, datasetId + ":Line:"));
+        adapters.add(new PrefixAdapter(CourseOfJourneyRefStructure.class, datasetId + ":VehicleJourney:"));
         return adapters;
     }
 

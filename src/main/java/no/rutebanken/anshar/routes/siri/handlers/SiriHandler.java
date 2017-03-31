@@ -18,7 +18,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.w3c.dom.Element;
 import uk.org.siri.siri20.*;
 
 import javax.xml.bind.JAXBException;
@@ -75,21 +74,17 @@ public class SiriHandler {
      * @param subscriptionId SubscriptionId
      * @param xml SIRI-request as XML
      * @param datasetId Optional datasetId
-     * @param useMappedId Optional override-parameter. If <code>null</code> it will be calculated from SIRI-XML Extensions
+     * @param idMappingPolicy Defines outbound idmapping-policy
      * @return
      */
-    public Siri handleIncomingSiri(String subscriptionId, String xml, String datasetId, Boolean useMappedId) {
+    public Siri handleIncomingSiri(String subscriptionId, String xml, String datasetId, IdMappingPolicy idMappingPolicy) {
         try {
             if (subscriptionId != null) {
                 return processSiriClientRequest(subscriptionId, xml);
             } else {
                 Siri incoming = SiriValueTransformer.parseXml(xml);
 
-                if (useMappedId != null) {
-                    return processSiriServerRequest(incoming, datasetId, useMappedId);
-                } else {
-                    return processSiriServerRequest(incoming, datasetId, useMappedId(incoming));
-                }
+                return processSiriServerRequest(incoming, datasetId, idMappingPolicy);
             }
         } catch (JAXBException e) {
             logger.warn("Caught exception when parsing incoming XML", e);
@@ -103,11 +98,11 @@ public class SiriHandler {
      * @param incoming
      * @throws JAXBException
      */
-    private Siri processSiriServerRequest(Siri incoming, String datasetId, boolean useMappedId) throws JAXBException {
+    private Siri processSiriServerRequest(Siri incoming, String datasetId, IdMappingPolicy idMappingPolicy) throws JAXBException {
 
         if (incoming.getSubscriptionRequest() != null) {
-            logger.info("Handling subscriptionrequest requesting {} ids...", (useMappedId ? "mapped": "original"));
-            serverSubscriptionManager.handleSubscriptionRequest(incoming.getSubscriptionRequest(), datasetId, useMappedId);
+            logger.info("Handling subscriptionrequest with ID-policy {}.",  idMappingPolicy);
+            serverSubscriptionManager.handleSubscriptionRequest(incoming.getSubscriptionRequest(), datasetId, idMappingPolicy);
 
         } else if (incoming.getTerminateSubscriptionRequest() != null) {
             logger.info("Handling terminateSubscriptionrequest...");
@@ -117,7 +112,7 @@ public class SiriHandler {
             logger.info("Handling checkStatusRequest...");
             return serverSubscriptionManager.handleCheckStatusRequest(incoming.getCheckStatusRequest());
         } else if (incoming.getServiceRequest() != null) {
-            logger.info("Handling serviceRequest requesting {} ids...", (useMappedId ? "mapped": "original"));
+            logger.info("Handling serviceRequest with ID-policy {}.", idMappingPolicy);
             ServiceRequest serviceRequest = incoming.getServiceRequest();
             String requestorRef = null;
 
@@ -160,28 +155,11 @@ public class SiriHandler {
             }
 
             if (serviceResponse != null) {
-                return SiriValueTransformer.transform(serviceResponse, mappingAdapterPresets.getOutboundAdapters(useMappedId));
+                return SiriValueTransformer.transform(serviceResponse, mappingAdapterPresets.getOutboundAdapters(idMappingPolicy));
             }
         }
 
         return null;
-    }
-
-    private boolean useMappedId(Siri siri) {
-        boolean useMappedId = true;
-        Extensions extensions = siri.getExtensions();
-        if (extensions != null && extensions.getAnies() != null) {
-            for (Element element : extensions.getAnies()) {
-                if ("IdMapping".equalsIgnoreCase(element.getLocalName())) {
-                    String nsrAttr = element.getAttribute("useOriginalId");
-                    if (nsrAttr != null) {
-                        boolean useOriginalId = Boolean.valueOf(nsrAttr);
-                        useMappedId = !useOriginalId;
-                    }
-                }
-            }
-        }
-        return useMappedId;
     }
 
     private boolean hasValues(List list) {
@@ -391,4 +369,16 @@ public class SiriHandler {
         return null;
     }
 
+    public static IdMappingPolicy getIdMappingPolicy(String query) {
+        IdMappingPolicy idMappingPolicy = IdMappingPolicy.DEFAULT;
+        if (query != null) {
+            if (query.contains("useOriginalId=true")) {
+                idMappingPolicy = IdMappingPolicy.ORIGINAL_ID;
+            }
+            if (query.contains("useOtpId=true")) {
+                idMappingPolicy = IdMappingPolicy.OTP_FRIENDLY_ID;
+            }
+        }
+        return idMappingPolicy;
+    }
 }

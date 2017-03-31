@@ -100,7 +100,7 @@ public class StopPlaceUpdaterService {
 
                 StringTokenizer tokenizer = new StringTokenizer(line, ",");
                 String id = tokenizer.nextToken();
-                String generatedId = tokenizer.nextToken().replaceAll(":", "."); //Converting to OTP naming convention
+                String generatedId = tokenizer.nextToken();
 
                 if (tmpStopPlaceMappings.containsKey(id)) {
                     duplicates.increment();

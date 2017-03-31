@@ -1,16 +1,17 @@
 package no.rutebanken.anshar.routes.siri.transformer.impl;
 
 
+import no.rutebanken.anshar.routes.siri.handlers.IdMappingPolicy;
 import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 
 public class OutboundIdAdapter extends ValueAdapter {
 
-    private boolean mapped;
+    private IdMappingPolicy idMappingPolicy;
 
-    public OutboundIdAdapter(Class clazz, boolean mapped) {
+    public OutboundIdAdapter(Class clazz, IdMappingPolicy idMappingPolicy) {
         super(clazz);
-        this.mapped = mapped;
+        this.idMappingPolicy = idMappingPolicy;
     }
 
     public String apply(String text) {
@@ -18,10 +19,12 @@ public class OutboundIdAdapter extends ValueAdapter {
             return text;
         }
         if (text.contains(SiriValueTransformer.SEPARATOR)) {
-            if (mapped) {
+            if (idMappingPolicy == IdMappingPolicy.DEFAULT) {
                 text = getMappedId(text);
-            } else {
+            } else if (idMappingPolicy == IdMappingPolicy.ORIGINAL_ID) {
                 text = getOriginalId(text);
+            } else if (idMappingPolicy == IdMappingPolicy.OTP_FRIENDLY_ID) {
+                text = getOtpFriendly(text);
             }
         }
         return text;
@@ -35,6 +38,10 @@ public class OutboundIdAdapter extends ValueAdapter {
         return text.substring(text.indexOf(SiriValueTransformer.SEPARATOR)+1);
     }
 
+    public static String getOtpFriendly(String text) {
+        return text.substring(text.indexOf(SiriValueTransformer.SEPARATOR)+1).replace(":", ".");
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -43,7 +50,7 @@ public class OutboundIdAdapter extends ValueAdapter {
         OutboundIdAdapter that = (OutboundIdAdapter) o;
 
         if (!super.getClassToApply().equals(that.getClassToApply())) return false;
-        return mapped == that.mapped;
+        return idMappingPolicy == that.idMappingPolicy;
 
     }
 }

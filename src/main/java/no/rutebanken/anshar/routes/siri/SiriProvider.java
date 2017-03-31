@@ -4,6 +4,7 @@ import no.rutebanken.anshar.messages.EstimatedTimetables;
 import no.rutebanken.anshar.messages.ProductionTimetables;
 import no.rutebanken.anshar.messages.Situations;
 import no.rutebanken.anshar.messages.VehicleActivities;
+import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
 import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.subscription.MappingAdapterPresets;
@@ -72,8 +73,7 @@ public class SiriProvider extends RouteBuilder {
 
                     Siri response = siriObjectFactory.createSXServiceDelivery(situations.getAllUpdates(requestorId, datasetId));
 
-                    boolean useMappedId = useMappedId(originalId);
-                    List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(useMappedId);
+                    List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(SiriHandler.getIdMappingPolicy(request.getQueryString()));
                     if ("test".equals(originalId)) {
                         outboundAdapters = null;
                     }
@@ -104,9 +104,8 @@ public class SiriProvider extends RouteBuilder {
 
                     Siri response = siriObjectFactory.createVMServiceDelivery(vehicleActivities.getAllUpdates(requestorId, datasetId));
 
-                    boolean useMappedId = useMappedId(originalId);
 
-                    List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(useMappedId);
+                    List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(SiriHandler.getIdMappingPolicy(request.getQueryString()));
                     if ("test".equals(originalId)) {
                         outboundAdapters = null;
                     }
@@ -138,8 +137,7 @@ public class SiriProvider extends RouteBuilder {
 
                     Siri response = siriObjectFactory.createETServiceDelivery(estimatedTimetables.getAllUpdates(requestorId, datasetId));
 
-                    boolean useMappedId = useMappedId(originalId);
-                    List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(useMappedId);
+                    List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(SiriHandler.getIdMappingPolicy(request.getQueryString()));
                     if ("test".equals(originalId)) {
                         outboundAdapters = null;
                     }
@@ -171,8 +169,7 @@ public class SiriProvider extends RouteBuilder {
 
                     Siri response = siriObjectFactory.createPTServiceDelivery(productionTimetables.getAllUpdates(requestorId, datasetId));
 
-                    boolean useMappedId = useMappedId(originalId);
-                    List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(useMappedId);
+                    List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(SiriHandler.getIdMappingPolicy(request.getQueryString()));
                     if ("test".equals(originalId)) {
                         outboundAdapters = null;
                     }
@@ -193,13 +190,4 @@ public class SiriProvider extends RouteBuilder {
 
     }
 
-    // Mapped ID is default, but original ID may be returned by using optional parameter
-    private boolean useMappedId(String originalId) {
-        boolean useMappedId = true;
-        if (originalId != null && Boolean.valueOf(originalId)) {
-            useMappedId = !Boolean.valueOf(originalId);
-        }
-        logger.info("Requested {} ids...", (useMappedId ? "mapped": "original"));
-        return useMappedId;
-    }
 }

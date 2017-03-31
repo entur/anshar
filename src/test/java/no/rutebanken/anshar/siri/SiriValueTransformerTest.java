@@ -1,5 +1,6 @@
 package no.rutebanken.anshar.siri;
 
+import no.rutebanken.anshar.routes.siri.handlers.IdMappingPolicy;
 import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.routes.siri.transformer.impl.LeftPaddingAdapter;
@@ -103,7 +104,7 @@ public class SiriValueTransformerTest {
 
         String lineRefValue = "123:4";
         String blockRefValue = "";
-        String mappedLineRefValue = "012304";
+        String mappedLineRefValue = "TEST:Line:012304";
 
         Siri siri = createSiriObject(lineRefValue, blockRefValue);
 
@@ -114,18 +115,24 @@ public class SiriValueTransformerTest {
         List<ValueAdapter> mappingAdapters = new ArrayList<>();
         mappingAdapters.add(new RuterSubstringAdapter(LineRef.class, ':', '0', 2));
         mappingAdapters.add(new LeftPaddingAdapter(LineRef.class, 6, '0'));
+        mappingAdapters.addAll(new MappingAdapterPresets().createIdPrefixAdapters("TEST"));
 
         siri = transformer.transform(siri, mappingAdapters);
 
         assertEquals("LineRef has not been padded as expected", paddedLineRef, getLineRefFromSiriObj(siri));
         assertEquals("BlockRef should not be padded", blockRefValue, getBlockRefFromSiriObj(siri));
 
+        Siri mappedIdSiri = transformer.transform(siri, new MappingAdapterPresets().getOutboundAdapters(IdMappingPolicy.DEFAULT));
+        assertEquals("Outbound adapters did not return mapped id", mappedLineRefValue, getLineRefFromSiriObj(mappedIdSiri));
 
-        Siri originalIdSiri = transformer.transform(siri, new MappingAdapterPresets().getOutboundAdapters(false));
-        assertEquals("Outbound madapters did not return original id", lineRefValue, getLineRefFromSiriObj(originalIdSiri));
+        Siri originalIdSiri = transformer.transform(siri, new MappingAdapterPresets().getOutboundAdapters(IdMappingPolicy.ORIGINAL_ID));
+        assertEquals("Outbound adapters did not return original id", lineRefValue, getLineRefFromSiriObj(originalIdSiri));
 
-        Siri mappedIdSiri = transformer.transform(siri, new MappingAdapterPresets().getOutboundAdapters(true));
-        assertEquals("Outbound madapters did not return mapped id", mappedLineRefValue, getLineRefFromSiriObj(mappedIdSiri));
+        // Create LineRef as expected by OTP
+        String otpFriendlyLineRefValue = mappedLineRefValue.replaceAll(":", ".");
+
+        Siri otpFriendlyIdSiri = transformer.transform(siri, new MappingAdapterPresets().getOutboundAdapters(IdMappingPolicy.OTP_FRIENDLY_ID));
+        assertEquals("Outbound adapters did not return OTP-friendly id", otpFriendlyLineRefValue, getLineRefFromSiriObj(otpFriendlyIdSiri));
 
     }
 

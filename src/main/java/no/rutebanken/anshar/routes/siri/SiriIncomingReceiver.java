@@ -103,13 +103,9 @@ public class SiriIncomingReceiver extends RouteBuilder {
                                         //e.g. "/anshar/services/akt" resolves "akt"
                             datasetId = path.substring(path.indexOf(pathPattern) + pathPattern.length());
                         }
-                        Boolean useMappedId = null;
                         String query = p.getIn().getHeader("CamelHttpQuery", String.class);
-                        if (query != null && query.contains("useOriginalId")) {
-                            useMappedId = !(query.contains("useOriginalId=true"));
-                        }
 
-                        Siri response = handler.handleIncomingSiri(null, p.getIn().getBody(String.class), datasetId, useMappedId);
+                        Siri response = handler.handleIncomingSiri(null, p.getIn().getBody(String.class), datasetId, handler.getIdMappingPolicy(query));
                         if (response != null) {
                             logger.info("Found ServiceRequest-response, streaming response");
                             HttpServletResponse out = p.getOut().getBody(HttpServletResponse.class);
@@ -267,13 +263,10 @@ public class SiriIncomingReceiver extends RouteBuilder {
                         datasetId = path.substring(path.indexOf(pathPattern) + pathPattern.length());
                     }
 
-                    Boolean useMappedId = null;
                     String query = p.getIn().getHeader("CamelHttpQuery", String.class);
-                    if (query != null && query.contains("useOriginalId")) {
-                        useMappedId = !(query.contains("useOriginalId=true"));
-                    }
+
                     String xml = p.getIn().getBody(String.class);
-                    handler.handleIncomingSiri(subscriptionId, xml, datasetId, useMappedId);
+                    handler.handleIncomingSiri(subscriptionId, xml, datasetId, handler.getIdMappingPolicy(query));
 
                 })
         ;
