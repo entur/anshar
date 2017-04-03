@@ -2,7 +2,7 @@ package no.rutebanken.anshar.routes.outbound;
 
 import com.hazelcast.core.IMap;
 import no.rutebanken.anshar.routes.siri.SiriObjectFactory;
-import no.rutebanken.anshar.routes.siri.handlers.IdMappingPolicy;
+import no.rutebanken.anshar.routes.siri.handlers.OutboundIdMappingPolicy;
 import no.rutebanken.anshar.subscription.MappingAdapterPresets;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.json.simple.JSONArray;
@@ -69,9 +69,14 @@ public class ServerSubscriptionManager extends CamelRouteManager {
     @Value("${anshar.outbound.activemq.topic.timeToLive.millisec}")
     private int activeMqTopicTimeToLive = 30000;
 
+    @Value("${anshar.outbound.activemq.topic.id.mapping.policy}")
+    private OutboundIdMappingPolicy outboundIdMappingPolicy;
+
+    @Value("${anshar.outbound.activemq.topic.enabled}")
+    private boolean activeMqTopicEnabled;
+
     @Autowired
     private SiriHelper siriHelper;
-
     private OutboundSubscriptionSetup activeMQ_SX;
     private OutboundSubscriptionSetup activeMQ_VM;
     private OutboundSubscriptionSetup activeMQ_ET;
@@ -91,7 +96,7 @@ public class ServerSubscriptionManager extends CamelRouteManager {
                 type,
                 activeMqTopicPrefix + type.name().toLowerCase(),
                 activeMqTopicTimeToLive,
-                mappingAdapterPresets.getOutboundAdapters(IdMappingPolicy.OTP_FRIENDLY_ID));
+                mappingAdapterPresets.getOutboundAdapters(outboundIdMappingPolicy));
     }
 
     @PostConstruct
@@ -152,9 +157,9 @@ public class ServerSubscriptionManager extends CamelRouteManager {
         return stats;
     }
 
-    public void handleSubscriptionRequest( SubscriptionRequest subscriptionRequest, String datasetId, IdMappingPolicy idMappingPolicy) {
+    public void handleSubscriptionRequest( SubscriptionRequest subscriptionRequest, String datasetId, OutboundIdMappingPolicy outboundIdMappingPolicy) {
 
-        OutboundSubscriptionSetup subscription = createSubscription(subscriptionRequest, datasetId, idMappingPolicy);
+        OutboundSubscriptionSetup subscription = createSubscription(subscriptionRequest, datasetId, outboundIdMappingPolicy);
 
         boolean hasError = false;
         String errorText = null;
@@ -189,7 +194,7 @@ public class ServerSubscriptionManager extends CamelRouteManager {
 
 
 
-    private OutboundSubscriptionSetup createSubscription(SubscriptionRequest subscriptionRequest, String datasetId, IdMappingPolicy idMappingPolicy) {
+    private OutboundSubscriptionSetup createSubscription(SubscriptionRequest subscriptionRequest, String datasetId, OutboundIdMappingPolicy outboundIdMappingPolicy) {
 
         OutboundSubscriptionSetup setup = new OutboundSubscriptionSetup(
                 subscriptionRequest.getRequestTimestamp(),
@@ -200,7 +205,7 @@ public class ServerSubscriptionManager extends CamelRouteManager {
                 getChangeBeforeUpdates(subscriptionRequest),
                 SubscriptionSetup.ServiceType.REST,
                 siriHelper.getFilter(subscriptionRequest),
-                mappingAdapterPresets.getOutboundAdapters(idMappingPolicy),
+                mappingAdapterPresets.getOutboundAdapters(outboundIdMappingPolicy),
                 findSubscriptionIdentifier(subscriptionRequest),
                 subscriptionRequest.getRequestorRef().getValue(),
                 findInitialTerminationTime(subscriptionRequest),
@@ -349,7 +354,9 @@ public class ServerSubscriptionManager extends CamelRouteManager {
         }
         Siri delivery = siriObjectFactory.createVMServiceDelivery(addedOrUpdated);
 
-        pushSiriData(delivery, activeMQ_VM);
+        if (activeMqTopicEnabled) {
+            pushSiriData(delivery, activeMQ_VM);
+        }
 
         subscriptions.values().stream().filter(subscriptionRequest ->
                         (subscriptionRequest.getSubscriptionMode().equals(SubscriptionSetup.SubscriptionMode.SUBSCRIBE) &
@@ -371,7 +378,9 @@ public class ServerSubscriptionManager extends CamelRouteManager {
         }
         Siri delivery = siriObjectFactory.createSXServiceDelivery(addedOrUpdated);
 
-        pushSiriData(delivery, activeMQ_SX);
+        if (activeMqTopicEnabled) {
+            pushSiriData(delivery, activeMQ_SX);
+        }
 
         subscriptions.values().stream().filter(subscriptionRequest ->
                         (subscriptionRequest.getSubscriptionMode().equals(SubscriptionSetup.SubscriptionMode.SUBSCRIBE) &
@@ -391,7 +400,9 @@ public class ServerSubscriptionManager extends CamelRouteManager {
 
         Siri delivery = siriObjectFactory.createPTServiceDelivery(addedOrUpdated);
 
-        pushSiriData(delivery, activeMQ_PT);
+        if (activeMqTopicEnabled) {
+            pushSiriData(delivery, activeMQ_PT);
+        }
 
         subscriptions.values().stream().filter(subscriptionRequest ->
                         (subscriptionRequest.getSubscriptionMode().equals(SubscriptionSetup.SubscriptionMode.SUBSCRIBE) &
@@ -411,7 +422,9 @@ public class ServerSubscriptionManager extends CamelRouteManager {
 
         Siri delivery = siriObjectFactory.createETServiceDelivery(addedOrUpdated);
 
-        pushSiriData(delivery, activeMQ_ET);
+        if (activeMqTopicEnabled) {
+            pushSiriData(delivery, activeMQ_ET);
+        }
 
         subscriptions.values().stream().filter(subscriptionRequest ->
                         (subscriptionRequest.getSubscriptionMode().equals(SubscriptionSetup.SubscriptionMode.SUBSCRIBE) &

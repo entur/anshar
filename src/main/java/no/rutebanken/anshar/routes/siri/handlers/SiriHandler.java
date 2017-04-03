@@ -74,17 +74,17 @@ public class SiriHandler {
      * @param subscriptionId SubscriptionId
      * @param xml SIRI-request as XML
      * @param datasetId Optional datasetId
-     * @param idMappingPolicy Defines outbound idmapping-policy
+     * @param outboundIdMappingPolicy Defines outbound idmapping-policy
      * @return
      */
-    public Siri handleIncomingSiri(String subscriptionId, String xml, String datasetId, IdMappingPolicy idMappingPolicy) {
+    public Siri handleIncomingSiri(String subscriptionId, String xml, String datasetId, OutboundIdMappingPolicy outboundIdMappingPolicy) {
         try {
             if (subscriptionId != null) {
                 return processSiriClientRequest(subscriptionId, xml);
             } else {
                 Siri incoming = SiriValueTransformer.parseXml(xml);
 
-                return processSiriServerRequest(incoming, datasetId, idMappingPolicy);
+                return processSiriServerRequest(incoming, datasetId, outboundIdMappingPolicy);
             }
         } catch (JAXBException e) {
             logger.warn("Caught exception when parsing incoming XML", e);
@@ -98,11 +98,11 @@ public class SiriHandler {
      * @param incoming
      * @throws JAXBException
      */
-    private Siri processSiriServerRequest(Siri incoming, String datasetId, IdMappingPolicy idMappingPolicy) throws JAXBException {
+    private Siri processSiriServerRequest(Siri incoming, String datasetId, OutboundIdMappingPolicy outboundIdMappingPolicy) throws JAXBException {
 
         if (incoming.getSubscriptionRequest() != null) {
-            logger.info("Handling subscriptionrequest with ID-policy {}.",  idMappingPolicy);
-            serverSubscriptionManager.handleSubscriptionRequest(incoming.getSubscriptionRequest(), datasetId, idMappingPolicy);
+            logger.info("Handling subscriptionrequest with ID-policy {}.", outboundIdMappingPolicy);
+            serverSubscriptionManager.handleSubscriptionRequest(incoming.getSubscriptionRequest(), datasetId, outboundIdMappingPolicy);
 
         } else if (incoming.getTerminateSubscriptionRequest() != null) {
             logger.info("Handling terminateSubscriptionrequest...");
@@ -112,7 +112,7 @@ public class SiriHandler {
             logger.info("Handling checkStatusRequest...");
             return serverSubscriptionManager.handleCheckStatusRequest(incoming.getCheckStatusRequest());
         } else if (incoming.getServiceRequest() != null) {
-            logger.info("Handling serviceRequest with ID-policy {}.", idMappingPolicy);
+            logger.info("Handling serviceRequest with ID-policy {}.", outboundIdMappingPolicy);
             ServiceRequest serviceRequest = incoming.getServiceRequest();
             String requestorRef = null;
 
@@ -155,7 +155,7 @@ public class SiriHandler {
             }
 
             if (serviceResponse != null) {
-                return SiriValueTransformer.transform(serviceResponse, mappingAdapterPresets.getOutboundAdapters(idMappingPolicy));
+                return SiriValueTransformer.transform(serviceResponse, mappingAdapterPresets.getOutboundAdapters(outboundIdMappingPolicy));
             }
         }
 
@@ -369,16 +369,16 @@ public class SiriHandler {
         return null;
     }
 
-    public static IdMappingPolicy getIdMappingPolicy(String query) {
-        IdMappingPolicy idMappingPolicy = IdMappingPolicy.DEFAULT;
+    public static OutboundIdMappingPolicy getIdMappingPolicy(String query) {
+        OutboundIdMappingPolicy outboundIdMappingPolicy = OutboundIdMappingPolicy.DEFAULT;
         if (query != null) {
             if (query.contains("useOriginalId=true")) {
-                idMappingPolicy = IdMappingPolicy.ORIGINAL_ID;
+                outboundIdMappingPolicy = OutboundIdMappingPolicy.ORIGINAL_ID;
             }
             if (query.contains("useOtpId=true")) {
-                idMappingPolicy = IdMappingPolicy.OTP_FRIENDLY_ID;
+                outboundIdMappingPolicy = OutboundIdMappingPolicy.OTP_FRIENDLY_ID;
             }
         }
-        return idMappingPolicy;
+        return outboundIdMappingPolicy;
     }
 }

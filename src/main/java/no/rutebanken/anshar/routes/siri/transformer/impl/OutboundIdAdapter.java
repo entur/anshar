@@ -1,17 +1,17 @@
 package no.rutebanken.anshar.routes.siri.transformer.impl;
 
 
-import no.rutebanken.anshar.routes.siri.handlers.IdMappingPolicy;
+import no.rutebanken.anshar.routes.siri.handlers.OutboundIdMappingPolicy;
 import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 
 public class OutboundIdAdapter extends ValueAdapter {
 
-    private IdMappingPolicy idMappingPolicy;
+    private OutboundIdMappingPolicy outboundIdMappingPolicy;
 
-    public OutboundIdAdapter(Class clazz, IdMappingPolicy idMappingPolicy) {
+    public OutboundIdAdapter(Class clazz, OutboundIdMappingPolicy outboundIdMappingPolicy) {
         super(clazz);
-        this.idMappingPolicy = idMappingPolicy;
+        this.outboundIdMappingPolicy = outboundIdMappingPolicy;
     }
 
     public String apply(String text) {
@@ -19,11 +19,11 @@ public class OutboundIdAdapter extends ValueAdapter {
             return text;
         }
         if (text.contains(SiriValueTransformer.SEPARATOR)) {
-            if (idMappingPolicy == IdMappingPolicy.DEFAULT) {
+            if (outboundIdMappingPolicy == OutboundIdMappingPolicy.DEFAULT) {
                 text = getMappedId(text);
-            } else if (idMappingPolicy == IdMappingPolicy.ORIGINAL_ID) {
+            } else if (outboundIdMappingPolicy == OutboundIdMappingPolicy.ORIGINAL_ID) {
                 text = getOriginalId(text);
-            } else if (idMappingPolicy == IdMappingPolicy.OTP_FRIENDLY_ID) {
+            } else if (outboundIdMappingPolicy == OutboundIdMappingPolicy.OTP_FRIENDLY_ID) {
                 text = getOtpFriendly(text);
             }
         }
@@ -50,7 +50,7 @@ public class OutboundIdAdapter extends ValueAdapter {
         OutboundIdAdapter that = (OutboundIdAdapter) o;
 
         if (!super.getClassToApply().equals(that.getClassToApply())) return false;
-        return idMappingPolicy == that.idMappingPolicy;
+        return outboundIdMappingPolicy == that.outboundIdMappingPolicy;
 
     }
 }

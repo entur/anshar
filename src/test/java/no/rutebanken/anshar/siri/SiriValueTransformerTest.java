@@ -1,6 +1,6 @@
 package no.rutebanken.anshar.siri;
 
-import no.rutebanken.anshar.routes.siri.handlers.IdMappingPolicy;
+import no.rutebanken.anshar.routes.siri.handlers.OutboundIdMappingPolicy;
 import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.routes.siri.transformer.impl.LeftPaddingAdapter;
@@ -122,16 +122,16 @@ public class SiriValueTransformerTest {
         assertEquals("LineRef has not been padded as expected", paddedLineRef, getLineRefFromSiriObj(siri));
         assertEquals("BlockRef should not be padded", blockRefValue, getBlockRefFromSiriObj(siri));
 
-        Siri mappedIdSiri = transformer.transform(siri, new MappingAdapterPresets().getOutboundAdapters(IdMappingPolicy.DEFAULT));
+        Siri mappedIdSiri = transformer.transform(siri, new MappingAdapterPresets().getOutboundAdapters(OutboundIdMappingPolicy.DEFAULT));
         assertEquals("Outbound adapters did not return mapped id", mappedLineRefValue, getLineRefFromSiriObj(mappedIdSiri));
 
-        Siri originalIdSiri = transformer.transform(siri, new MappingAdapterPresets().getOutboundAdapters(IdMappingPolicy.ORIGINAL_ID));
+        Siri originalIdSiri = transformer.transform(siri, new MappingAdapterPresets().getOutboundAdapters(OutboundIdMappingPolicy.ORIGINAL_ID));
         assertEquals("Outbound adapters did not return original id", lineRefValue, getLineRefFromSiriObj(originalIdSiri));
 
         // Create LineRef as expected by OTP
         String otpFriendlyLineRefValue = mappedLineRefValue.replaceAll(":", ".");
 
-        Siri otpFriendlyIdSiri = transformer.transform(siri, new MappingAdapterPresets().getOutboundAdapters(IdMappingPolicy.OTP_FRIENDLY_ID));
+        Siri otpFriendlyIdSiri = transformer.transform(siri, new MappingAdapterPresets().getOutboundAdapters(OutboundIdMappingPolicy.OTP_FRIENDLY_ID));
         assertEquals("Outbound adapters did not return OTP-friendly id", otpFriendlyLineRefValue, getLineRefFromSiriObj(otpFriendlyIdSiri));
 
     }

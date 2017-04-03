@@ -1,6 +1,6 @@
 package no.rutebanken.anshar.siri.transformer;
 
-import no.rutebanken.anshar.routes.siri.handlers.IdMappingPolicy;
+import no.rutebanken.anshar.routes.siri.handlers.OutboundIdMappingPolicy;
 import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
 import no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter;
 import org.junit.Test;
@@ -13,12 +13,12 @@ public class OutboundIdAdapterTest {
 
     @Test
     public void testEmptyString() throws Exception {
-        OutboundIdAdapter adapter = new OutboundIdAdapter(LineRef.class, IdMappingPolicy.ORIGINAL_ID);
+        OutboundIdAdapter adapter = new OutboundIdAdapter(LineRef.class, OutboundIdMappingPolicy.ORIGINAL_ID);
         assertEquals("", adapter.apply(""));
     }
     @Test
     public void testGetOriginalValueString() throws Exception {
-        OutboundIdAdapter adapter = new OutboundIdAdapter(LineRef.class,IdMappingPolicy.ORIGINAL_ID);
+        OutboundIdAdapter adapter = new OutboundIdAdapter(LineRef.class, OutboundIdMappingPolicy.ORIGINAL_ID);
         String originalId = "1234";
         String mappedId = "ATB:Line:1234";
         String completeValue = originalId + SiriValueTransformer.SEPARATOR + mappedId;
@@ -28,7 +28,7 @@ public class OutboundIdAdapterTest {
 
     @Test
     public void testGetMappedValueString() throws Exception {
-        OutboundIdAdapter adapter = new OutboundIdAdapter(LineRef.class, IdMappingPolicy.DEFAULT);
+        OutboundIdAdapter adapter = new OutboundIdAdapter(LineRef.class, OutboundIdMappingPolicy.DEFAULT);
         String originalId = "1234";
         String mappedId = "ATB:Line:1234";
         String completeValue = originalId + SiriValueTransformer.SEPARATOR + mappedId;
@@ -38,7 +38,7 @@ public class OutboundIdAdapterTest {
 
     @Test
     public void testGetOtpFriendly() throws Exception {
-        OutboundIdAdapter adapter = new OutboundIdAdapter(LineRef.class, IdMappingPolicy.OTP_FRIENDLY_ID);
+        OutboundIdAdapter adapter = new OutboundIdAdapter(LineRef.class, OutboundIdMappingPolicy.OTP_FRIENDLY_ID);
         String originalId = "1234";
         String mappedId = "ATB:Line:1234";
         String otpSpecificId = mappedId.replaceAll(":", ".");
@@ -50,7 +50,7 @@ public class OutboundIdAdapterTest {
 
     @Test
     public void testPrefixNullString() throws Exception {
-        OutboundIdAdapter adapter = new OutboundIdAdapter(LineRef.class,IdMappingPolicy.DEFAULT);
+        OutboundIdAdapter adapter = new OutboundIdAdapter(LineRef.class, OutboundIdMappingPolicy.DEFAULT);
         assertNull(adapter.apply(null));
     }
 }
