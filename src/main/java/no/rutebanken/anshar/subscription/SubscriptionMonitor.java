@@ -12,6 +12,7 @@ import org.apache.camel.ProducerTemplate;
 import org.apache.camel.Route;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.RouteDefinition;
+import org.apache.camel.spring.SpringCamelContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -202,6 +203,12 @@ public class SubscriptionMonitor implements CamelContextAware {
         ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 
         executor.scheduleAtFixedRate(() -> {
+
+                if (!((SpringCamelContext) camelContext).isStarted()) {
+                    logger.info("CamelContext has not yet started.");
+                    return;
+                }
+
                 // tryLock returns immediately - does not wait for lock to be released
                 boolean locked = healthCheckMap.tryLock(HealthCheckKey.ANSHAR_HEALTHCHECK_KEY);
 
