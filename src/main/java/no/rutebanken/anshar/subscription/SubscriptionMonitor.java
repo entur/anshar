@@ -308,6 +308,16 @@ public class SubscriptionMonitor implements CamelContextAware {
 
             // If request/response-routes lose its connection, it will not be reestablished - needs to be restarted
             Route route = camelContext.getRoute(subscriptionSetup.getRequestResponseRouteName());
+
+            if (route == null) {
+                boolean removed = camelContext.removeRoute(subscriptionSetup.getRequestResponseRouteName());
+                logger.info("Route for subscription {} not found in CamelContext - successfully removed: {}.", subscriptionSetup, removed);
+                camelContext.addRoutes(getRouteBuilder(subscriptionSetup));
+                logger.info("Route for subscription {} added.", subscriptionSetup);
+                route = camelContext.getRoute(subscriptionSetup.getRequestResponseRouteName());
+                logger.info("Route for subscription {} is now {}.", subscriptionSetup, route);
+            }
+
             if (route != null) {
                 logger.info("Starting route for subscription {}", subscriptionSetup);
                 route.getServices().forEach(service -> {
@@ -317,6 +327,8 @@ public class SubscriptionMonitor implements CamelContextAware {
                         logger.warn("Starting route-service failed", e);
                     }
                 });
+            } else {
+                logger.warn("Route for subscription {} could not be found - is NOT started.", subscriptionSetup);
             }
         }
     }
