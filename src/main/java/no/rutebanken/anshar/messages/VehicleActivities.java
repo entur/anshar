@@ -109,7 +109,7 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
             return ZonedDateTime.now().until(validUntil, ChronoUnit.MILLIS);
         }
 
-        return 0;
+        return -1;
     }
 
     public Collection<VehicleActivityStructure> addAll(String datasetId, List<VehicleActivityStructure> vmList) {
@@ -118,36 +118,39 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
         Counter invalidLocationCounter = new CounterImpl(0);
         Counter notMeaningfulCounter = new CounterImpl(0);
         Counter outdatedCounter = new CounterImpl(0);
-        vmList.forEach(activity -> {
-            boolean locationValid = isLocationValid(activity);
-            boolean activityMeaningful = isActivityMeaningful(activity);
+        vmList.stream()
+                .filter(activity -> activity.getMonitoredVehicleJourney() != null)
+                .filter(activity -> activity.getMonitoredVehicleJourney().getVehicleRef() != null)
+                .forEach(activity -> {
+                    boolean locationValid = isLocationValid(activity);
+                    boolean activityMeaningful = isActivityMeaningful(activity);
 
-            if (locationValid && activityMeaningful) {
-                String key = createKey(datasetId, activity);
+                    if (locationValid && activityMeaningful) {
+                        String key = createKey(datasetId, activity.getMonitoredVehicleJourney().getVehicleRef());
 
-                VehicleActivityStructure existing = vehicleActivities.get(key);
+                        VehicleActivityStructure existing = vehicleActivities.get(key);
 
-                boolean keep = (existing == null); //No existing data i.e. keep
+                        boolean keep = (existing == null); //No existing data i.e. keep
 
-                if (existing != null &&
-                        (activity.getRecordedAtTime() != null && existing.getRecordedAtTime() != null)) {
-                    //Newer data has already been processed
-                    keep = activity.getRecordedAtTime().isAfter(existing.getRecordedAtTime());
-                }
+                        if (existing != null &&
+                                (activity.getRecordedAtTime() != null && existing.getRecordedAtTime() != null)) {
+                            //Newer data has already been processed
+                            keep = activity.getRecordedAtTime().isAfter(existing.getRecordedAtTime());
+                        }
 
-                long expiration = getExpiration(activity);
+                        long expiration = getExpiration(activity);
 
-                if (expiration >= 0 && keep) {
-                    changes.add(key);
-                    vehicleActivities.put(key, activity, expiration, TimeUnit.MILLISECONDS);
-                } else {
-                    outdatedCounter.increment();
-                }
-            } else {
-                if (!locationValid) {invalidLocationCounter.increment();}
-                if (!activityMeaningful) {notMeaningfulCounter.increment();}
-            }
-        });
+                        if (expiration >= 0 && keep) {
+                            changes.add(key);
+                            vehicleActivities.put(key, activity, expiration, TimeUnit.MILLISECONDS);
+                        } else {
+                            outdatedCounter.increment();
+                        }
+                    } else {
+                        if (!locationValid) {invalidLocationCounter.increment();}
+                        if (!activityMeaningful) {notMeaningfulCounter.increment();}
+                    }
+                });
 
         logger.info("Updated {} :: Ignored elements - Missing location:{}, Missing values: {}, Skipped: {}", changes.size(), invalidLocationCounter.getValue(), notMeaningfulCounter.getValue(), outdatedCounter.getValue());
 
@@ -165,13 +168,15 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
     }
 
     public VehicleActivityStructure add(String datasetId, VehicleActivityStructure activity) {
-        if (activity == null) {
+        if (activity == null ||
+                activity.getMonitoredVehicleJourney() == null ||
+                activity.getMonitoredVehicleJourney().getVehicleRef() == null) {
             return null;
         }
         List<VehicleActivityStructure> activities = new ArrayList<>();
         activities.add(activity);
         addAll(datasetId, activities);
-        return vehicleActivities.get(createKey(datasetId, activity));
+        return vehicleActivities.get(createKey(datasetId, activity.getMonitoredVehicleJourney().getVehicleRef()));
     }
 
     /*
@@ -237,23 +242,16 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
         return keep;
     }
 
-    private String createKey(String datasetId, VehicleActivityStructure activity) {
+    /**
+     * Creates unique key - assumes that any operator has a set of unique VehicleRefs
+     * @param datasetId
+     * @param vehicleRef
+     * @return
+     */
+    private String createKey(String datasetId, VehicleRef vehicleRef) {
         StringBuffer key = new StringBuffer();
-        key.append(datasetId).append(":");
+        key.append(datasetId).append(":").append(vehicleRef.getValue());
 
-        if (activity.getItemIdentifier() != null) {
-            // Identifier already exists
-            return key.append(activity.getItemIdentifier()).toString();
-        }
-
-        //Create identifier based on other information
-        key.append((activity.getMonitoredVehicleJourney().getLineRef() != null ? activity.getMonitoredVehicleJourney().getLineRef().getValue() : "null"))
-                .append(":")
-                .append((activity.getMonitoredVehicleJourney().getVehicleRef() != null ? activity.getMonitoredVehicleJourney().getVehicleRef().getValue() :"null"))
-                .append(":")
-                .append((activity.getMonitoredVehicleJourney().getDirectionRef() != null ? activity.getMonitoredVehicleJourney().getDirectionRef().getValue() :"null"))
-                .append(":")
-                .append((activity.getMonitoredVehicleJourney().getOriginAimedDepartureTime() != null ? activity.getMonitoredVehicleJourney().getOriginAimedDepartureTime().toLocalDateTime().toString() :"null"));
         return key.toString();
     }
 }
