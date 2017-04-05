@@ -62,6 +62,9 @@ public class MappingAdapterPresets {
             case BRAKAR:
                 adapters.add(new LeftPaddingAdapter(StopPointRef.class, 10, '0'));
                 break;
+            case TROMS:
+                adapters.add(new LeftPaddingAdapter(StopPointRef.class, 10, '0'));
+                break;
             case SKYSS:
                 break;
             case BANENOR:

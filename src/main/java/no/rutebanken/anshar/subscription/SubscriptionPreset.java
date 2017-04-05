@@ -8,5 +8,6 @@ public enum SubscriptionPreset {
     SKYSS,
     BRAKAR,
     BYBANEN,
-    BANENOR
+    BANENOR,
+    TROMS
 }

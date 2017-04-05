@@ -385,6 +385,46 @@ anshar:
       idMappingPrefixes: NSB
       active: true
     -
+      internalId: 22
+      vendor: tromset
+      datasetId: TRO
+      serviceType: REST
+      subscriptionType: ESTIMATED_TIMETABLE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 60
+      operatorNamespace: http://www.siri.org.uk/siri
+      urlMap:
+        SUBSCRIBE: troms.tmix.se/siri/1.4/et
+        DELETE_SUBSCRIPTION: troms.tmix.se/siri/1.4/et
+      version: 1.4
+      subscriptionId: ${random.uuid}
+      requestorRef: RutebankenDEV_${random.uuid}
+      durationOfSubscriptionHours: 168
+      mappingAdapterPresets: TROMS
+      filterPresets:
+      idMappingPrefixes: TRO
+      active: false
+    -
+      internalId: 23
+      vendor: tromssx
+      datasetId: TRO
+      serviceType: REST
+      subscriptionType: SITUATION_EXCHANGE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 60
+      operatorNamespace: http://www.siri.org.uk/siri
+      urlMap:
+        SUBSCRIBE: troms.tmix.se/siri/1.4/sx
+        DELETE_SUBSCRIPTION: troms.tmix.se/siri/1.4/sx
+      version: 1.4
+      subscriptionId: ${random.uuid}
+      requestorRef: RutebankenDEV_${random.uuid}
+      durationOfSubscriptionHours: 168
+      mappingAdapterPresets: TROMS
+      filterPresets:
+      idMappingPrefixes: TRO
+      active: false
+    -
       internalId: 100
       vendor: internRuterVm
       datasetId: RUT
