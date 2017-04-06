@@ -16,6 +16,7 @@ import java.net.ConnectException;
 import java.net.SocketException;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class CamelRouteManager implements CamelContextAware {
@@ -97,8 +98,13 @@ public class CamelRouteManager implements CamelContextAware {
     }
 
     private boolean stopAndRemoveSiriPushRoute(String routeId) throws Exception {
-        camelContext.stopRoute(routeId);
-        camelContext.removeRoute(routeId);
+        int timeout = 30000;
+        if (!camelContext.stopRoute(routeId, timeout, TimeUnit.MILLISECONDS, true)) {
+            logger.warn("Route {} could not be stopped - aborted after {} ms", routeId, timeout);
+        }
+        if (!camelContext.removeRoute(routeId)) {
+            logger.warn("Route {} could not be removed.");
+        }
         logger.trace("Route removed - CamelContext now has {} routes", camelContext.getRoutes().size());
         return true;
     }

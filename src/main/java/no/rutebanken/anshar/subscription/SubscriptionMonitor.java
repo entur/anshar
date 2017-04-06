@@ -3,6 +3,7 @@ package no.rutebanken.anshar.subscription;
 import com.google.common.base.Preconditions;
 import com.hazelcast.core.IMap;
 import no.rutebanken.anshar.messages.collections.HealthCheckKey;
+import no.rutebanken.anshar.routes.health.LivenessReadinessRoute;
 import no.rutebanken.anshar.routes.siri.*;
 import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
@@ -11,6 +12,7 @@ import org.apache.camel.CamelContextAware;
 import org.apache.camel.ProducerTemplate;
 import org.apache.camel.Route;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.component.direct.DirectConsumerNotAvailableException;
 import org.apache.camel.model.RouteDefinition;
 import org.apache.camel.spring.SpringCamelContext;
 import org.slf4j.Logger;
@@ -372,6 +374,9 @@ public class SubscriptionMonitor implements CamelContextAware {
                     logger.info("Trigger route - Route added - CamelContext now has {} routes", camelContext.getRoutes().size());
 
                     executeRoute(triggerRouteBuilder.getRouteName());
+                } catch (DirectConsumerNotAvailableException e) {
+                    logger.warn("Route does not exist - triggering restart.", e);
+                    LivenessReadinessRoute.triggerRestart = true;
                 } catch (Exception e) {
                     if (e.getCause() instanceof SocketException) {
                         logger.info("Recipient is unreachable - ignoring");
