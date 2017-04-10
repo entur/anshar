@@ -35,7 +35,7 @@ public class SingletonRoutePolicyFactory implements RoutePolicyFactory {
         hazelcastRoutePolicy.setLockMapName("ansharRouteLockMap");
         hazelcastRoutePolicy.setLockKey(key);
         hazelcastRoutePolicy.setLockValue("lockValue");
-        hazelcastRoutePolicy.setShouldStopConsumer(true);
+        hazelcastRoutePolicy.setShouldStopConsumer(false);
 
         log.info("RoutePolicy: Created HazelcastPolicy for key {}", key);
         return hazelcastRoutePolicy;
@@ -43,7 +43,6 @@ public class SingletonRoutePolicyFactory implements RoutePolicyFactory {
 
     @Override
     public RoutePolicy createRoutePolicy(CamelContext camelContext, String routeId, RouteDefinition routeDefinition) {
-        log.info("RoutePolicy: Create RoutePolicy {}", routeId);
         try {
             if (!ignorePolicy && SINGLETON_ROUTE_DEFINITION_GROUP_NAME.equals(routeDefinition.getGroup())) {
                 return build(routeId);

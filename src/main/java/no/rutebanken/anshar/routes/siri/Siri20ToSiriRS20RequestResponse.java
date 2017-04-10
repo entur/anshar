@@ -9,8 +9,6 @@ import org.apache.camel.component.http4.HttpMethods;
 import org.rutebanken.siri20.util.SiriXml;
 import uk.org.siri.siri20.Siri;
 
-import java.time.ZonedDateTime;
-
 public class Siri20ToSiriRS20RequestResponse extends BaseRouteBuilder {
     private final Siri request;
     private final SubscriptionSetup subscriptionSetup;
@@ -36,18 +34,16 @@ public class Siri20ToSiriRS20RequestResponse extends BaseRouteBuilder {
 
         String httpOptions = "?httpClient.socketTimeout=" + timeout + "&httpClient.connectTimeout=" + timeout;
 
-        singletonFrom("quartz2://monitor_" + subscriptionSetup.getRequestResponseRouteName() + "?fireNow=true&deleteJob=false&durableJob=true&recoverableJob=true&trigger.repeatInterval=" + heartbeatIntervalMillis)
+        singletonFrom("quartz2://anshar/monitor_" + subscriptionSetup.getRequestResponseRouteName() + "?fireNow=true&trigger.repeatInterval=" + heartbeatIntervalMillis,
+                "monitor_" + subscriptionSetup.getRequestResponseRouteName())
                 .choice()
-                    .when(p -> requestData(subscriptionSetup.getSubscriptionId()))
+                .when(p -> requestData(subscriptionSetup.getSubscriptionId(), p.getFromRouteId()))
                     .to("direct:" + subscriptionSetup.getServiceRequestRouteName())
                 .endChoice()
         ;
 
         from("direct:" + subscriptionSetup.getServiceRequestRouteName())
                 .log("Retrieving data " + subscriptionSetup.toString())
-                .process(p -> {
-                    System.out.println("Running " + ZonedDateTime.now());
-                })
                 .setBody(simple(siriXml))
                 .setExchangePattern(ExchangePattern.InOut) // Make sure we wait for a response
                 .setHeader("SOAPAction", simple(getSoapAction(subscriptionSetup))) // extract and compute SOAPAction (Microsoft requirement)

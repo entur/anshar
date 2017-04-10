@@ -11,7 +11,6 @@ import org.apache.camel.http.common.HttpMethods;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.ZonedDateTime;
 import java.util.Map;
 
 import static no.rutebanken.anshar.routes.siri.RouteHelper.getCamelUrl;
@@ -40,9 +39,7 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
 
         //Start subscription
         from("direct:" + subscriptionSetup.getStartSubscriptionRouteName())
-                .process(p -> {
-                    System.err.println("Starting " + subscriptionSetup.getStartSubscriptionRouteName() + " " + ZonedDateTime.now());
-                })
+                .log("Starting subscription " + subscriptionSetup.toString())
                 .bean(helper, "marshalSiriSubscriptionRequest", false)
                 .setExchangePattern(ExchangePattern.InOut) // Make sure we wait for a response
                 .setHeader("operatorNamespace", constant(subscriptionSetup.getOperatorNamespace())) // Need to make SOAP request with endpoint specific element namespace
@@ -84,10 +81,8 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
 
         //Cancel subscription
         from("direct:" + subscriptionSetup.getCancelSubscriptionRouteName())
+                .log("Cancelling subscription " + subscriptionSetup.toString())
                 .bean(helper, "marshalSiriTerminateSubscriptionRequest", false)
-                .process(p -> {
-                    System.err.println("Cancelling " + subscriptionSetup.getStartSubscriptionRouteName() + " " + ZonedDateTime.now());
-                })
                 .setExchangePattern(ExchangePattern.InOut) // Make sure we wait for a response
                 .setProperty(Exchange.LOG_DEBUG_BODY_STREAMS, constant("true"))
                 .removeHeaders("CamelHttp*") // Remove any incoming HTTP headers as they interfere with the outgoing definition

@@ -43,9 +43,7 @@ public class Siri20ToSiriWS14Subscription extends SiriSubscriptionRouteBuilder {
 
         //Start subscription
         from("direct:" + subscriptionSetup.getStartSubscriptionRouteName())
-                .process(p -> {
-                    System.out.println("Starting " + subscriptionSetup.getStartSubscriptionRouteName());
-                })
+                .log("Starting subscription " + subscriptionSetup.toString())
                 .bean(helper, "marshalSiriSubscriptionRequest", false)
                 .setExchangePattern(ExchangePattern.InOut) // Make sure we wait for a response
                 .setHeader("SOAPAction", constant(RequestType.SUBSCRIBE))
@@ -71,6 +69,7 @@ public class Siri20ToSiriWS14Subscription extends SiriSubscriptionRouteBuilder {
 
         //Cancel subscription
         from("direct:" + subscriptionSetup.getCancelSubscriptionRouteName())
+                .log("Cancelling subscription " + subscriptionSetup.toString())
                 .bean(helper, "marshalSiriTerminateSubscriptionRequest", false)
                 .setExchangePattern(ExchangePattern.InOut) // Make sure we wait for a response
                 .setProperty(Exchange.LOG_DEBUG_BODY_STREAMS, constant("true"))

@@ -61,10 +61,9 @@ public class SubscriptionMonitor implements CamelContextAware {
     }
 
     @PostConstruct
-    List<RouteBuilder> createSubscriptions() {
+    void createSubscriptions() {
         camelContext.setUseMDCLogging(true);
 
-        List<RouteBuilder> builders = new ArrayList<>();
         if (config != null) {
             List<SubscriptionSetup> subscriptionSetups = config.getSubscriptions();
             logger.info("Initializing {} subscriptions", subscriptionSetups.size());
@@ -114,7 +113,7 @@ public class SubscriptionMonitor implements CamelContextAware {
 //                        actualSubscriptionSetups.add(subscriptionSetup);
 //                        subscriptionIds.add(subscriptionSetup.getSubscriptionId());
 //                    } else {
-                        logger.info("Subscription with internalId={} already registered - ignoring. {}", subscriptionSetup.getInternalId(), subscriptionSetup);
+                        logger.info("Subscription with internalId={} already registered - keep existing. {}", subscriptionSetup.getInternalId(), subscriptionSetup);
                         actualSubscriptionSetups.add(existingSubscription);
                         subscriptionIds.add(existingSubscription.getSubscriptionId());
 //                    }
@@ -164,7 +163,6 @@ public class SubscriptionMonitor implements CamelContextAware {
             logger.error("Subscriptions not configured correctly - no subscriptions will be started");
         }
 
-        return builders;
     }
 
     private RouteBuilder getRouteBuilder(SubscriptionSetup subscriptionSetup) {

@@ -3,6 +3,7 @@ package no.rutebanken.anshar.routes;
 import no.rutebanken.anshar.subscription.RequestType;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
+import org.apache.camel.component.hazelcast.policy.HazelcastRoutePolicy;
 import org.apache.camel.model.RouteDefinition;
 import org.apache.camel.spring.SpringRouteBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,15 +35,21 @@ public abstract class BaseRouteBuilder extends SpringRouteBuilder {
     /**
      * Create a new singleton route definition from URI. Only one such route should be active throughout the cluster at any time.
      */
-    protected RouteDefinition singletonFrom(String uri) {
-        return this.from(uri).group(SINGLETON_ROUTE_DEFINITION_GROUP_NAME);
+    protected RouteDefinition singletonFrom(String uri, String routeId) {
+        return this.from(uri)
+                .group(SINGLETON_ROUTE_DEFINITION_GROUP_NAME)
+                .routeId(routeId)
+                .autoStartup(true);
     }
 
 
-    protected boolean requestData(String subscriptionId) {
+    protected boolean requestData(String subscriptionId, String fromRouteId) {
         SubscriptionSetup subscriptionSetup = subscriptionManager.get(subscriptionId);
-        log.info("Is active: {}, is activated {}", subscriptionSetup.isActive(), subscriptionManager.isActiveSubscription(subscriptionId));
-        return (subscriptionSetup.isActive() && subscriptionManager.isActiveSubscription(subscriptionId));
+
+        boolean isLeader = ((HazelcastRoutePolicy) (getContext().getRoute(fromRouteId).getRouteContext().getRoutePolicyList().get(0))).isLeader();
+        log.info("isActive: {}, isActivated {}, isLeader {}", subscriptionSetup.isActive(), subscriptionManager.isActiveSubscription(subscriptionId), isLeader);
+
+        return (isLeader & subscriptionSetup.isActive() && subscriptionManager.isActiveSubscription(subscriptionId));
     }
 
 

@@ -29,7 +29,8 @@ public abstract class SiriSubscriptionRouteBuilder extends BaseRouteBuilder {
 
     void initTriggerRoutes() {
 
-        singletonFrom("quartz2://monitor_" + subscriptionSetup.getSubscriptionId() + "?fireNow=true&deleteJob=false&durableJob=true&recoverableJob=true&trigger.repeatInterval=" + 5000)
+        singletonFrom("quartz2://anshar/monitor_" + subscriptionSetup.getSubscriptionId() + "?fireNow=true&trigger.repeatInterval=" + 5000,
+                "monitor_" + subscriptionSetup.getSubscriptionId())
                 .choice()
                 .when(p -> shouldBeStarted())
                     .to("direct:" + subscriptionSetup.getStartSubscriptionRouteName()) // Start subscription
