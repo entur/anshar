@@ -1,9 +1,6 @@
 package no.rutebanken.anshar.messages.collections;
 
-import com.hazelcast.core.Cluster;
-import com.hazelcast.core.DistributedObject;
-import com.hazelcast.core.IMap;
-import com.hazelcast.core.Member;
+import com.hazelcast.core.*;
 import no.rutebanken.anshar.routes.outbound.OutboundSubscriptionSetup;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.json.simple.JSONArray;
@@ -32,6 +29,10 @@ public class ExtendedHazelcastService extends HazelCastService {
 
     public ExtendedHazelcastService(@Autowired KubernetesService kubernetesService, @Autowired AnsharConfiguration cfg) {
         super(kubernetesService, cfg.getHazelcastManagementUrl());
+    }
+
+    public HazelcastInstance getHazelcastInstance() {
+        return hazelcast;
     }
 
     @Bean
