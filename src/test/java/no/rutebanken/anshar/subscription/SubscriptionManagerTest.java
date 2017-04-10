@@ -37,6 +37,7 @@ public class SubscriptionManagerTest {
         String subscriptionId = UUID.randomUUID().toString();
         subscriptionManager.addSubscription(subscriptionId, subscriptionSoonToExpire);
         subscriptionManager.activatePendingSubscription(subscriptionId);
+        subscriptionManager.touchSubscription(subscriptionId);
 
         assertTrue(subscriptionManager.isSubscriptionHealthy(subscriptionId));
 
@@ -52,6 +53,7 @@ public class SubscriptionManagerTest {
         String subscriptionId = UUID.randomUUID().toString();;
         subscriptionManager.addSubscription(subscriptionId, activeSubscription);
         subscriptionManager.activatePendingSubscription(subscriptionId);
+        subscriptionManager.touchSubscription(subscriptionId);
 
         assertTrue(subscriptionManager.isSubscriptionHealthy(subscriptionId));
 
@@ -68,6 +70,7 @@ public class SubscriptionManagerTest {
         subscriptionManager.addPendingSubscription(subscriptionId, pendingSubscription);
 
         subscriptionManager.activatePendingSubscription(subscriptionId);
+        subscriptionManager.touchSubscription(subscriptionId);
 
         assertTrue(subscriptionManager.isSubscriptionHealthy(subscriptionId));
 
@@ -164,8 +167,8 @@ public class SubscriptionManagerTest {
         subscriptionManager.touchSubscription(subscription.getSubscriptionId());
 
         assertTrue("Subscription not marked as registered", subscriptionManager.isSubscriptionRegistered(subscription.getSubscriptionId()));
-        assertTrue("Subscription not marked as active", subscriptionManager.isActiveSubscription(subscription.getSubscriptionId()));
-        assertFalse("Subscription marked as pending", subscriptionManager.isPendingSubscription(subscription.getSubscriptionId()));
+        assertTrue("Subscription marked as pending", subscriptionManager.isPendingSubscription(subscription.getSubscriptionId()));
+        assertFalse("Subscription marked as active", subscriptionManager.isActiveSubscription(subscription.getSubscriptionId()));
     }
 
     @Test

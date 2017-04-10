@@ -3,18 +3,12 @@ package no.rutebanken.anshar.subscription;
 import com.google.common.base.Preconditions;
 import com.hazelcast.core.IMap;
 import no.rutebanken.anshar.messages.collections.HealthCheckKey;
-import no.rutebanken.anshar.routes.health.LivenessReadinessRoute;
 import no.rutebanken.anshar.routes.siri.*;
 import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import org.apache.camel.CamelContext;
 import org.apache.camel.CamelContextAware;
-import org.apache.camel.ProducerTemplate;
-import org.apache.camel.Route;
 import org.apache.camel.builder.RouteBuilder;
-import org.apache.camel.component.direct.DirectConsumerNotAvailableException;
-import org.apache.camel.model.RouteDefinition;
-import org.apache.camel.spring.SpringCamelContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,13 +18,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import java.net.SocketException;
 import java.time.Instant;
-import java.time.ZoneId;
 import java.util.*;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 @Service
 @Configuration
@@ -166,7 +155,11 @@ public class SubscriptionMonitor implements CamelContextAware {
                 }
             }
 
-            startPeriodicHealthcheckService(actualSubscriptionSetups);
+            for (SubscriptionSetup subscriptionSetup : actualSubscriptionSetups) {
+                if (!subscriptionManager.isSubscriptionRegistered(subscriptionSetup.getSubscriptionId())) {
+                    subscriptionManager.addPendingSubscription(subscriptionSetup.getSubscriptionId(), subscriptionSetup);
+                }
+            }
         } else {
             logger.error("Subscriptions not configured correctly - no subscriptions will be started");
         }
@@ -179,239 +172,21 @@ public class SubscriptionMonitor implements CamelContextAware {
         if (subscriptionSetup.getVersion().equals("1.4")) {
             if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.SUBSCRIBE) {
                 if (subscriptionSetup.getServiceType() == SubscriptionSetup.ServiceType.SOAP) {
-                    route = new Siri20ToSiriWS14Subscription(handler, subscriptionSetup);
+                    route = new Siri20ToSiriWS14Subscription(handler, subscriptionSetup, subscriptionManager);
                 } else {
-                    route = new Siri20ToSiriRS14Subscription(handler, subscriptionSetup);
+                    route = new Siri20ToSiriRS14Subscription(handler, subscriptionSetup, subscriptionManager);
                 }
             } else {
-                route = new Siri20ToSiriWS14RequestResponse(subscriptionSetup);
+                route = new Siri20ToSiriWS14RequestResponse(subscriptionSetup, subscriptionManager);
             }
         } else {
             if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.SUBSCRIBE) {
-                route = new Siri20ToSiriRS20Subscription(handler, subscriptionSetup);
+                route = new Siri20ToSiriRS20Subscription(handler, subscriptionSetup, subscriptionManager);
             } else {
-                route = new Siri20ToSiriRS20RequestResponse(subscriptionSetup);
+                route = new Siri20ToSiriRS20RequestResponse(subscriptionSetup, subscriptionManager);
             }
         }
         return route;
-    }
-
-    private void startPeriodicHealthcheckService(final List<SubscriptionSetup> subscriptionSetups) {
-        for (SubscriptionSetup subscriptionSetup : subscriptionSetups) {
-            if (!subscriptionManager.isSubscriptionRegistered(subscriptionSetup.getSubscriptionId())) {
-                subscriptionManager.addPendingSubscription(subscriptionSetup.getSubscriptionId(), subscriptionSetup);
-            }
-        }
-        ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-
-        executor.scheduleAtFixedRate(() -> {
-
-                if (!((SpringCamelContext) camelContext).isStarted()) {
-                    logger.info("CamelContext has not yet started.");
-                    return;
-                }
-
-                // tryLock returns immediately - does not wait for lock to be released
-                boolean locked = healthCheckMap.tryLock(HealthCheckKey.ANSHAR_HEALTHCHECK_KEY);
-
-                if (!camelContext.getRoutes().isEmpty() && locked) {
-                    logger.debug("Healthcheck: Got lock");
-                    try {
-                        Instant instant = healthCheckMap.get(HealthCheckKey.ANSHAR_HEALTHCHECK_KEY);
-                        if (instant == null || instant.isBefore(Instant.now().minusSeconds(healthCheckInterval))) {
-                            healthCheckMap.put(HealthCheckKey.ANSHAR_HEALTHCHECK_KEY, Instant.now());
-                            logger.info("Healthcheck: Checking health {}, {} routes",
-                                    healthCheckMap.get(HealthCheckKey.ANSHAR_HEALTHCHECK_KEY).atZone(ZoneId.systemDefault()),
-                                    camelContext.getRoutes().size());
-
-                            Map<String, SubscriptionSetup> pendingSubscriptions = subscriptionManager.getPendingSubscriptions();
-
-                            List<Long> visitedSubscriptionsByInternalId = new ArrayList<>();
-                            List<String> subscriptionsToRemove = new ArrayList<>();
-
-                            for (SubscriptionSetup subscriptionSetup : pendingSubscriptions.values()) {
-
-                                if (visitedSubscriptionsByInternalId.contains(subscriptionSetup.getInternalId())) {
-                                    subscriptionsToRemove.add(subscriptionSetup.getSubscriptionId());
-                                } else {
-                                    visitedSubscriptionsByInternalId.add(subscriptionSetup.getInternalId());
-
-                                    if (subscriptionSetup.isActive()) {
-                                        logger.info("Healthcheck: Trigger start subscription {}", subscriptionSetup);
-                                        startSubscriptionAsync(subscriptionSetup, 0);
-                                        break;
-                                    }
-                                }
-                            }
-
-                            Map<String, SubscriptionSetup> activeSubscriptions = subscriptionManager.getActiveSubscriptions();
-                            for (SubscriptionSetup subscriptionSetup : activeSubscriptions.values()) {
-
-                                if (visitedSubscriptionsByInternalId.contains(subscriptionSetup.getInternalId())) {
-                                    subscriptionsToRemove.add(subscriptionSetup.getSubscriptionId());
-                                } else {
-                                    visitedSubscriptionsByInternalId.add(subscriptionSetup.getInternalId());
-
-                                    if (!subscriptionManager.isSubscriptionHealthy(subscriptionSetup.getSubscriptionId())) {
-                                        //start "cancel"-route
-                                        logger.info("Healthcheck: Trigger cancel subscription {}", subscriptionSetup);
-                                        cancelSubscription(subscriptionSetup);
-                                    }
-                                }
-                            }
-
-                            if (!subscriptionsToRemove.isEmpty()) {
-                                logger.warn("Found duplicate subscriptions - cleaning up");
-                                subscriptionsToRemove.forEach(id -> subscriptionManager.removeSubscription(id, true));
-                            }
-
-                        } else {
-                            logger.debug("Healthcheck: Healthcheck has already been handled recently [{}]", instant);
-                        }
-                    } catch (Exception e) {
-                        logger.error("Healthcheck: Caught exception during healthcheck.", e);
-                    } finally {
-                        healthCheckMap.unlock(HealthCheckKey.ANSHAR_HEALTHCHECK_KEY);
-                        logger.debug("Healthcheck: Lock released");
-                    }
-                } else {
-                    logger.debug("Healthcheck: Already locked - skipping");
-                }
-            },
-                5000, 5000, TimeUnit.MILLISECONDS);
-    }
-
-    private void startSubscriptionAsync(SubscriptionSetup subscriptionSetup, int delay) {
-        ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-        executor.schedule(() -> {
-            try {
-                startSubscription(subscriptionSetup);
-            } catch (Exception e) {
-                logger.warn("Caught exception when starting route", e);
-            }
-        }, delay, TimeUnit.MILLISECONDS);
-    }
-
-
-    public void startSubscription(final SubscriptionSetup subscriptionSetup) throws Exception {
-        logger.info("Starting subscription {}", subscriptionSetup);
-        subscriptionManager.activatePendingSubscription(subscriptionSetup.getSubscriptionId());
-        if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.SUBSCRIBE) {
-            triggerRoute(subscriptionSetup.getStartSubscriptionRouteName());
-
-            camelContext.startRoute(subscriptionSetup.getCheckStatusRouteName());
-        } if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.FETCHED_DELIVERY) {
-            triggerRoute(subscriptionSetup.getStartSubscriptionRouteName());
-
-            camelContext.startRoute(subscriptionSetup.getCheckStatusRouteName());
-            camelContext.startRoute(subscriptionSetup.getServiceRequestRouteName());
-        } else {
-            camelContext.startRoute(subscriptionSetup.getRequestResponseRouteName());
-
-            // If request/response-routes lose its connection, it will not be reestablished - needs to be restarted
-            Route route = camelContext.getRoute(subscriptionSetup.getRequestResponseRouteName());
-
-            if (route == null) {
-                boolean removed = camelContext.removeRoute(subscriptionSetup.getRequestResponseRouteName());
-                logger.info("Route for subscription {} not found in CamelContext - successfully removed: {}.", subscriptionSetup, removed);
-                camelContext.addRoutes(getRouteBuilder(subscriptionSetup));
-                logger.info("Route for subscription {} added.", subscriptionSetup);
-                route = camelContext.getRoute(subscriptionSetup.getRequestResponseRouteName());
-                logger.info("Route for subscription {} is now {}.", subscriptionSetup, route);
-            }
-
-            if (route != null) {
-                logger.info("Starting route for subscription {}", subscriptionSetup);
-                route.getServices().forEach(service -> {
-                    try {
-                        service.start();
-                    } catch (Exception e) {
-                        logger.warn("Starting route-service failed", e);
-                    }
-                });
-            } else {
-                logger.warn("Route for subscription {} could not be found - is NOT started.", subscriptionSetup);
-            }
-        }
-    }
-
-    public void cancelSubscription(final SubscriptionSetup subscriptionSetup) throws Exception {
-        logger.info("Cancelling subscription {}", subscriptionSetup);
-        subscriptionManager.removeSubscription(subscriptionSetup.getSubscriptionId());
-
-        if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.SUBSCRIBE) {
-            triggerRoute(subscriptionSetup.getCancelSubscriptionRouteName());
-            camelContext.stopRoute(subscriptionSetup.getCheckStatusRouteName());
-        } else {
-            camelContext.stopRoute(subscriptionSetup.getRequestResponseRouteName());
-
-            // If request/response-routes lose its connection, it will not be reestablished - needs to be restarted
-            Route route = camelContext.getRoute(subscriptionSetup.getRequestResponseRouteName());
-            if (route != null) {
-                logger.info("Stopping route for subscription {}", subscriptionSetup);
-                route.getServices().forEach(service -> {
-                    try {
-                        service.stop();
-                    } catch (Exception e) {
-                        logger.warn("Restarting route failed", e);
-                    }
-                });
-            }
-        }
-    }
-
-
-    private void triggerRoute(final String routeName) {
-        Thread r = new Thread() {
-            @Override
-            public void run() {
-                String routeId = "";
-                try {
-                    logger.info("Trigger route - start {}", routeName);
-                    TriggerRouteBuilder triggerRouteBuilder = new TriggerRouteBuilder(routeName);
-
-                    routeId = addRoute(triggerRouteBuilder);
-                    logger.info("Trigger route - Route added - CamelContext now has {} routes", camelContext.getRoutes().size());
-
-                    executeRoute(triggerRouteBuilder.getRouteName());
-                } catch (DirectConsumerNotAvailableException e) {
-                    logger.warn("Route does not exist - triggering restart.", e);
-                    LivenessReadinessRoute.triggerRestart = true;
-                } catch (Exception e) {
-                    if (e.getCause() instanceof SocketException) {
-                        logger.info("Recipient is unreachable - ignoring");
-                    } else {
-                        logger.warn("Exception caught when triggering route ", e);
-                    }
-                } finally {
-                    try {
-                        boolean removed = stopAndRemoveRoute(routeId);
-                        logger.info("Route removed [{}] - CamelContext now has {} routes", removed, camelContext.getRoutes().size());
-                    } catch (Exception e) {
-                        logger.warn("Exception caught when removing route ", e);
-                    }
-                }
-                logger.info("Trigger route - done {}", routeName);
-            }
-        };
-
-        r.start();
-    }
-
-    private String addRoute(TriggerRouteBuilder route) throws Exception {
-        camelContext.addRoutes(route);
-        logger.trace("Route added - CamelContext now has {} routes", camelContext.getRoutes().size());
-        return route.getDefinition().getId();
-    }
-
-    private void executeRoute(String routeName) {
-        ProducerTemplate template = camelContext.createProducerTemplate();
-        template.sendBody(routeName, "");
-    }
-
-    private boolean stopAndRemoveRoute(String routeId) throws Exception {
-        camelContext.stopRoute(routeId);
-        return camelContext.removeRoute(routeId);
     }
 
     private boolean isValid(SubscriptionSetup s) {
@@ -453,34 +228,5 @@ public class SubscriptionMonitor implements CamelContextAware {
         }
 
         return true;
-    }
-
-}
-
-class TriggerRouteBuilder extends RouteBuilder {
-
-    private final String routeToTrigger;
-    private String routeName;
-    private RouteDefinition definition;
-
-    public TriggerRouteBuilder(String routeToTrigger) {
-        this.routeToTrigger = routeToTrigger;
-    }
-
-    @Override
-    public void configure() throws Exception {
-        routeName = String.format("direct:%s", UUID.randomUUID().toString());
-        definition = from(routeName)
-                .routeId(routeName)
-                .log("Triggering route: " + routeToTrigger)
-                .to("direct:" + routeToTrigger);
-    }
-
-    public RouteDefinition getDefinition() {
-        return definition;
-    }
-
-    public String getRouteName() {
-        return routeName;
     }
 }

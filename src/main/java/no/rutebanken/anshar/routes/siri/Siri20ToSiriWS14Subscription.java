@@ -3,6 +3,7 @@ package no.rutebanken.anshar.routes.siri;
 import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
 import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
 import no.rutebanken.anshar.subscription.RequestType;
+import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
@@ -19,7 +20,8 @@ public class Siri20ToSiriWS14Subscription extends SiriSubscriptionRouteBuilder {
 
     private SiriHandler handler;
 
-    public Siri20ToSiriWS14Subscription(SiriHandler handler, SubscriptionSetup subscriptionSetup) {
+    public Siri20ToSiriWS14Subscription(SiriHandler handler, SubscriptionSetup subscriptionSetup, SubscriptionManager subscriptionManager) {
+        super(subscriptionManager);
         this.handler = handler;
         this.subscriptionSetup = subscriptionSetup;
 
@@ -40,7 +42,10 @@ public class Siri20ToSiriWS14Subscription extends SiriSubscriptionRouteBuilder {
         RouteHelper helper = new RouteHelper(subscriptionSetup, customNamespacePrefixMapper);
 
         //Start subscription
-        from("direct:delayedStart" + subscriptionSetup.getSubscriptionId())
+        from("direct:" + subscriptionSetup.getStartSubscriptionRouteName())
+                .process(p -> {
+                    System.out.println("Starting " + subscriptionSetup.getStartSubscriptionRouteName());
+                })
                 .bean(helper, "marshalSiriSubscriptionRequest", false)
                 .setExchangePattern(ExchangePattern.InOut) // Make sure we wait for a response
                 .setHeader("SOAPAction", constant(RequestType.SUBSCRIBE))
@@ -65,7 +70,7 @@ public class Siri20ToSiriWS14Subscription extends SiriSubscriptionRouteBuilder {
         ;
 
         //Cancel subscription
-        from("direct:delayedCancel" + subscriptionSetup.getSubscriptionId())
+        from("direct:" + subscriptionSetup.getCancelSubscriptionRouteName())
                 .bean(helper, "marshalSiriTerminateSubscriptionRequest", false)
                 .setExchangePattern(ExchangePattern.InOut) // Make sure we wait for a response
                 .setProperty(Exchange.LOG_DEBUG_BODY_STREAMS, constant("true"))

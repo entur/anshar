@@ -2,9 +2,11 @@ package no.rutebanken.anshar.routes.siri;
 
 import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
 import no.rutebanken.anshar.subscription.RequestType;
+import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
+import org.apache.camel.component.http4.HttpMethods;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,7 +19,8 @@ public class Siri20ToSiriRS14Subscription extends SiriSubscriptionRouteBuilder {
 
     private SiriHandler handler;
 
-    public Siri20ToSiriRS14Subscription(SiriHandler handler, SubscriptionSetup subscriptionSetup) {
+    public Siri20ToSiriRS14Subscription(SiriHandler handler, SubscriptionSetup subscriptionSetup, SubscriptionManager subscriptionManager) {
+        super(subscriptionManager);
         this.handler = handler;
         this.subscriptionSetup = subscriptionSetup;
     }
@@ -31,7 +34,10 @@ public class Siri20ToSiriRS14Subscription extends SiriSubscriptionRouteBuilder {
         RouteHelper helper = new RouteHelper(subscriptionSetup, customNamespacePrefixMapper);
 
         //Start subscription
-        from("direct:delayedStart" + subscriptionSetup.getSubscriptionId())
+        from("direct:" + subscriptionSetup.getStartSubscriptionRouteName())
+                .process(p -> {
+                    System.out.println("Starting " + subscriptionSetup.getStartSubscriptionRouteName());
+                })
                 .bean(helper, "marshalSiriSubscriptionRequest", false)
                 .setExchangePattern(ExchangePattern.InOut) // Make sure we wait for a response
                 .setHeader("SOAPAction", constant("Subscribe"))
@@ -40,7 +46,7 @@ public class Siri20ToSiriRS14Subscription extends SiriSubscriptionRouteBuilder {
                 .to("log:sent:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .removeHeaders("CamelHttp*") // Remove any incoming HTTP headers as they interfere with the outgoing definition
                 .setHeader(Exchange.CONTENT_TYPE, constant("text/xml;charset=UTF-8")) // Necessary when talking to Microsoft web services
-                .setHeader(Exchange.HTTP_METHOD, constant(org.apache.camel.component.http4.HttpMethods.POST))
+                .setHeader(Exchange.HTTP_METHOD, constant(HttpMethods.POST))
                 .to(getCamelUrl(urlMap.get(RequestType.SUBSCRIBE)) + getTimeout())
                 .to("log:received:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .process(p -> {
@@ -59,7 +65,7 @@ public class Siri20ToSiriRS14Subscription extends SiriSubscriptionRouteBuilder {
         ;
 
         //Cancel subscription
-        from("direct:delayedCancel" + subscriptionSetup.getSubscriptionId())
+        from("direct:" + subscriptionSetup.getCancelSubscriptionRouteName())
                 .bean(helper, "marshalSiriTerminateSubscriptionRequest", false)
                 .setExchangePattern(ExchangePattern.InOut) // Make sure we wait for a response
                 .setProperty(Exchange.LOG_DEBUG_BODY_STREAMS, constant("true"))

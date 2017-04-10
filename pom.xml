@@ -20,7 +20,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- versions for use in mvn plugins as we cannot inherit them from a BOM -->
-        <fabric8.version>2.2.84</fabric8.version>
+        <fabric8.version>2.2.207</fabric8.version>
         <docker.maven.plugin.version>0.13.9</docker.maven.plugin.version>
         <spring-boot-plugin.version>1.4.2.RELEASE</spring-boot-plugin.version>
         <spring-boot.version>1.4.2.RELEASE</spring-boot.version>
@@ -128,6 +128,10 @@
         <dependency>
             <groupId>org.apache.camel</groupId>
             <artifactId>camel-spring</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.camel</groupId>
+            <artifactId>camel-hazelcast</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.camel</groupId>

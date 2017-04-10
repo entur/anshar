@@ -3,8 +3,6 @@ package no.rutebanken.anshar.routes.admin;
 import no.rutebanken.anshar.messages.collections.ExtendedHazelcastService;
 import no.rutebanken.anshar.routes.outbound.ServerSubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
-import no.rutebanken.anshar.subscription.SubscriptionMonitor;
-import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.camel.builder.RouteBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,10 +30,6 @@ public class AdministrationRoute extends RouteBuilder {
     @Autowired
     private ServerSubscriptionManager serverSubscriptionManager;
 
-    @Autowired
-    private SubscriptionMonitor subscriptionMonitor;
-
-
     @Override
     public void configure() throws Exception {
 
@@ -47,27 +41,19 @@ public class AdministrationRoute extends RouteBuilder {
                 .to("freemarker:templates/stats.ftl")
         ;
 
-        //Restart subscription
+        //Stop subscription
         from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/stop?httpMethodRestrict=PUT")
                 .process(p -> {
                     HttpServletRequest request = p.getIn().getBody(HttpServletRequest.class);
                     String subscriptionId = request.getParameter("subscriptionId");
                     if (subscriptionId != null &&
                             !subscriptionId.isEmpty()) {
-
-                        SubscriptionSetup subscriptionSetup = subscriptionManager.get(subscriptionId);
-                        if (subscriptionSetup != null) {
-                            subscriptionSetup.setActive(false);
-                            subscriptionManager.getActiveSubscriptions().put(subscriptionId, subscriptionSetup);
-
-                            subscriptionMonitor.cancelSubscription(subscriptionSetup);
-                            logger.info("Handled request to cancel subscription ", subscriptionSetup);
-                        }
+                        subscriptionManager.stopSubscription(subscriptionId);
                     }
 
                 })
         ;
-        //Restart subscription
+        //Start subscription
         from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/start?httpMethodRestrict=PUT")
                 .process(p -> {
                     HttpServletRequest request = p.getIn().getBody(HttpServletRequest.class);
@@ -75,13 +61,7 @@ public class AdministrationRoute extends RouteBuilder {
                     if (subscriptionId != null &&
                             !subscriptionId.isEmpty()) {
 
-                        SubscriptionSetup subscriptionSetup = subscriptionManager.get(subscriptionId);
-                        if (subscriptionSetup != null) {
-
-                            subscriptionSetup.setActive(true);
-                            subscriptionManager.addPendingSubscription(subscriptionId, subscriptionSetup);
-                            logger.info("Handled request to start subscription ", subscriptionSetup);
-                        }
+                       subscriptionManager.startSubscription(subscriptionId);
                     }
 
                 })

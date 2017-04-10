@@ -245,7 +245,6 @@ public class SiriIncomingReceiver extends RouteBuilder {
                 .otherwise()
                     .to("activemq:queue:" + DEFAULT_PROCESSOR_QUEUE + activeMQParameters)
                 .end()
-                .routeId("anshar.activemq.route")
         ;
 
 

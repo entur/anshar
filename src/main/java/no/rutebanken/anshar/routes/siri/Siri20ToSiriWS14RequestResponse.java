@@ -1,25 +1,19 @@
 package no.rutebanken.anshar.routes.siri;
 
-import no.rutebanken.anshar.routes.ServiceNotSupportedException;
-import no.rutebanken.anshar.subscription.RequestType;
+import no.rutebanken.anshar.routes.BaseRouteBuilder;
+import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
-import org.apache.camel.builder.RouteBuilder;
-import org.apache.camel.builder.xml.Namespaces;
 import org.rutebanken.siri20.util.SiriXml;
 import uk.org.siri.siri20.Siri;
 
-import java.util.Map;
-
-import static no.rutebanken.anshar.routes.siri.RouteHelper.getCamelUrl;
-
-public class Siri20ToSiriWS14RequestResponse extends RouteBuilder {
+public class Siri20ToSiriWS14RequestResponse extends BaseRouteBuilder {
     private final Siri request;
     private final SubscriptionSetup subscriptionSetup;
 
-    public Siri20ToSiriWS14RequestResponse(SubscriptionSetup subscriptionSetup) {
-
+    public Siri20ToSiriWS14RequestResponse(SubscriptionSetup subscriptionSetup, SubscriptionManager subscriptionManager) {
+        super(subscriptionManager);
         this.request = SiriObjectFactory.createServiceRequest(subscriptionSetup);
 
         this.subscriptionSetup = subscriptionSetup;
@@ -29,27 +23,24 @@ public class Siri20ToSiriWS14RequestResponse extends RouteBuilder {
     public void configure() throws Exception {
         String siriXml = SiriXml.toXml(request);
 
-        Map<RequestType, String> urlMap = subscriptionSetup.getUrlMap();
-
-        Namespaces ns = new Namespaces("siri", "http://www.siri.org.uk/siri")
-                .add("xsd", "http://www.w3.org/2001/XMLSchema");
-
         long heartbeatIntervalMillis = subscriptionSetup.getHeartbeatInterval().toMillis();
 
         int timeout = (int) heartbeatIntervalMillis / 2;
 
         String httpOptions = "?httpClient.socketTimeout=" + timeout + "&httpClient.connectTimeout=" + timeout;
 
-        from("quartz2://" + subscriptionSetup.getRequestResponseRouteName() + "?fireNow=true&deleteJob=false&durableJob=true&recoverableJob=true&trigger.repeatInterval=" + heartbeatIntervalMillis)
-                .routeId(subscriptionSetup.getRequestResponseRouteName())
-                .autoStartup(false)
-                .to("direct:" + subscriptionSetup.getServiceRequestRouteName());
+        singletonFrom("quartz2://monitor_" + subscriptionSetup.getRequestResponseRouteName() + "?fireNow=true&deleteJob=false&durableJob=true&recoverableJob=true&trigger.repeatInterval=" + heartbeatIntervalMillis)
+                .choice()
+                .when(p -> requestData(subscriptionSetup.getSubscriptionId()))
+                    .to("direct:" + subscriptionSetup.getServiceRequestRouteName())
+                .endChoice()
+        ;
 
         from("direct:" + subscriptionSetup.getServiceRequestRouteName())
                 .log("Retrieving data " + subscriptionSetup.toString())
                 .setBody(simple(siriXml))
                 .setExchangePattern(ExchangePattern.InOut) // Make sure we wait for a response
-                .setHeader("SOAPAction", ns.xpath("concat('Get',substring-before(/siri:Siri/siri:ServiceRequest/*[@version]/local-name(),'Request'))", String.class)) // extract and compute SOAPAction (Microsoft requirement)
+                .setHeader("SOAPAction", simple(getSoapAction(subscriptionSetup))) // extract and compute SOAPAction (Microsoft requirement)
                 .setHeader("operatorNamespace", constant(subscriptionSetup.getOperatorNamespace())) // Need to make SOAP request with endpoint specific element namespace
                 .to("xslt:xsl/siri_20_14.xsl") // Convert SIRI raw request to SOAP version
                 .to("xslt:xsl/siri_raw_soap.xsl") // Convert SIRI raw request to SOAP version
@@ -57,16 +48,7 @@ public class Siri20ToSiriWS14RequestResponse extends RouteBuilder {
                 .setHeader(Exchange.CONTENT_TYPE, constant("text/xml;charset=UTF-8")) // Necessary when talking to Microsoft web services
                 .setHeader(Exchange.HTTP_METHOD, constant(org.apache.camel.component.http4.HttpMethods.POST))
                         // Header routing
-                .choice()
-                .when(header("SOAPAction").isEqualTo("GetVehicleMonitoring"))
-                .to(getCamelUrl(urlMap.get(RequestType.GET_VEHICLE_MONITORING)) + httpOptions)
-                .when(header("SOAPAction").isEqualTo("GetSituationExchange"))
-                .to(getCamelUrl(urlMap.get(RequestType.GET_SITUATION_EXCHANGE)) + httpOptions)
-                .when(header("SOAPAction").isEqualTo("GetEstimatedTimetable"))
-                .to(getCamelUrl(urlMap.get(RequestType.GET_ESTIMATED_TIMETABLE)) + httpOptions)
-                .otherwise()
-                .throwException(new ServiceNotSupportedException())
-                .end()
+                .to(getRequestUrl(subscriptionSetup) + httpOptions)
                 .to("xslt:xsl/siri_soap_raw.xsl?saxon=true&allowStAX=false") // Extract SOAP version and convert to raw SIRI
                     .to("xslt:xsl/siri_14_20.xsl?saxon=true&allowStAX=false") // Convert from v1.4 to 2.0
                     .setHeader("CamelHttpPath", constant("/appContext" + subscriptionSetup.buildUrl(false)))

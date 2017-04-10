@@ -22,7 +22,6 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -115,11 +114,6 @@ public class SubscriptionManager {
 
         boolean success = (setup != null);
 
-        if (!success) {
-            // Handling race conditions caused by async responses
-            success = activatePendingSubscription(subscriptionId);
-        }
-
         logger.trace("Touched subscription {}, success:{}", setup, success);
         if (success) {
             lastActivity.put(subscriptionId, Instant.now());
@@ -139,7 +133,7 @@ public class SubscriptionManager {
     public boolean touchSubscription(String subscriptionId, ZonedDateTime serviceStartedTime) {
         SubscriptionSetup setup = activeSubscriptions.get(subscriptionId);
         if (setup != null && serviceStartedTime != null) {
-            if (lastActivity.get(subscriptionId).isAfter(serviceStartedTime.toInstant())) {
+            if (lastActivity.get(subscriptionId) == null || lastActivity.get(subscriptionId).isAfter(serviceStartedTime.toInstant())) {
                 return touchSubscription(subscriptionId);
             } else {
                 logger.info("Remote service has been restarted, reestablishing subscription [{}]", subscriptionId);
@@ -179,16 +173,15 @@ public class SubscriptionManager {
         }
     }
 
-    public void addPendingSubscription(String subscriptionId, SubscriptionSetup subscriptionSetup) {
+    protected void addPendingSubscription(String subscriptionId, SubscriptionSetup subscriptionSetup) {
         activatedTimestamp.remove(subscriptionId);
         activeSubscriptions.remove(subscriptionId);
         pendingSubscriptions.put(subscriptionId, subscriptionSetup);
-//        lastActivity.put(subscriptionId, Instant.now());
 
         logger.info("Added pending subscription {}", subscriptionSetup.toString());
     }
 
-    public boolean isPendingSubscription(String subscriptionId) {
+    boolean isPendingSubscription(String subscriptionId) {
         return pendingSubscriptions.containsKey(subscriptionId);
     }
     public boolean isActiveSubscription(String subscriptionId) {
@@ -329,13 +322,13 @@ public class SubscriptionManager {
         return "";
     }
 
-    public Map<String, SubscriptionSetup> getActiveSubscriptions() {
-        return activeSubscriptions;
-    }
-
-    public Map<String, SubscriptionSetup> getPendingSubscriptions() {
-        return pendingSubscriptions;
-    }
+//    private Map<String, SubscriptionSetup> getActiveSubscriptions() {
+//        return activeSubscriptions;
+//    }
+//
+//    public Map<String, SubscriptionSetup> getPendingSubscriptions() {
+//        return pendingSubscriptions;
+//    }
 
     public SubscriptionSetup getSubscriptionById(long internalId) {
         for (SubscriptionSetup setup : activeSubscriptions.values()) {
@@ -349,5 +342,28 @@ public class SubscriptionManager {
             }
         }
         return null;
+    }
+
+    public void stopSubscription(String subscriptionId) {
+
+        SubscriptionSetup subscriptionSetup = get(subscriptionId);
+        if (subscriptionSetup != null) {
+            subscriptionSetup.setActive(false);
+            activeSubscriptions.put(subscriptionId, subscriptionSetup);
+
+            removeSubscription(subscriptionId);
+            logger.info("Handled request to cancel subscription ", subscriptionSetup);
+        }
+    }
+
+    public void startSubscription(String subscriptionId) {
+        SubscriptionSetup subscriptionSetup = get(subscriptionId);
+        if (subscriptionSetup != null) {
+
+            subscriptionSetup.setActive(true);
+            addPendingSubscription(subscriptionId, subscriptionSetup);
+            activatePendingSubscription(subscriptionId);
+            logger.info("Handled request to start subscription ", subscriptionSetup);
+        }
     }
 }
