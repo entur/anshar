@@ -5,9 +5,12 @@ import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.camel.component.hazelcast.policy.HazelcastRoutePolicy;
 import org.apache.camel.model.RouteDefinition;
+import org.apache.camel.spi.RouteContext;
+import org.apache.camel.spi.RoutePolicy;
 import org.apache.camel.spring.SpringRouteBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.List;
 import java.util.Map;
 
 import static no.rutebanken.anshar.routes.Constants.SINGLETON_ROUTE_DEFINITION_GROUP_NAME;
@@ -46,12 +49,24 @@ public abstract class BaseRouteBuilder extends SpringRouteBuilder {
     protected boolean requestData(String subscriptionId, String fromRouteId) {
         SubscriptionSetup subscriptionSetup = subscriptionManager.get(subscriptionId);
 
-        boolean isLeader = ((HazelcastRoutePolicy) (getContext().getRoute(fromRouteId).getRouteContext().getRoutePolicyList().get(0))).isLeader();
+        boolean isLeader = isLeader(fromRouteId);
         log.info("isActive: {}, isActivated {}, isLeader {}", subscriptionSetup.isActive(), subscriptionManager.isActiveSubscription(subscriptionId), isLeader);
 
         return (isLeader & subscriptionSetup.isActive() && subscriptionManager.isActiveSubscription(subscriptionId));
     }
 
+    protected boolean isLeader(String routeId) {
+        RouteContext routeContext = getContext().getRoute(routeId).getRouteContext();
+        List<RoutePolicy> routePolicyList = routeContext.getRoutePolicyList();
+        if (routePolicyList != null) {
+            for (RoutePolicy routePolicy : routePolicyList) {
+                if (routePolicy instanceof HazelcastRoutePolicy) {
+                    return ((HazelcastRoutePolicy) (routePolicy)).isLeader();
+                }
+            }
+        }
+        return false;
+    }
 
 
     protected String getRequestUrl(SubscriptionSetup subscriptionSetup) throws ServiceNotSupportedException {

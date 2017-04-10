@@ -32,10 +32,10 @@ public abstract class SiriSubscriptionRouteBuilder extends BaseRouteBuilder {
         singletonFrom("quartz2://anshar/monitor_" + subscriptionSetup.getSubscriptionId() + "?fireNow=true&trigger.repeatInterval=" + 5000,
                 "monitor_" + subscriptionSetup.getSubscriptionId())
                 .choice()
-                .when(p -> shouldBeStarted())
+                .when(p -> shouldBeStarted(p.getFromRouteId()))
                     .to("direct:" + subscriptionSetup.getStartSubscriptionRouteName()) // Start subscription
                     .process(p -> hasBeenStarted = true)
-                .when(p -> shouldBeCancelled())
+                .when(p -> shouldBeCancelled(p.getFromRouteId()))
                     .to("direct:" + subscriptionSetup.getCancelSubscriptionRouteName()) // Cancel
                     .process(p -> hasBeenStarted = false)
                 .end()
@@ -43,13 +43,19 @@ public abstract class SiriSubscriptionRouteBuilder extends BaseRouteBuilder {
 
     }
 
-    private boolean shouldBeStarted() {
+    private boolean shouldBeStarted(String routeId) {
+        if (!isLeader(routeId)) {
+            return false;
+        }
         boolean isActive = subscriptionManager.get(subscriptionSetup.getSubscriptionId()).isActive();
 
         boolean shouldBeStarted = (isActive & !hasBeenStarted);
         return shouldBeStarted;
     }
-    private boolean shouldBeCancelled() {
+    private boolean shouldBeCancelled(String routeId) {
+        if (!isLeader(routeId)) {
+            return false;
+        }
         boolean isActive = subscriptionManager.get(subscriptionSetup.getSubscriptionId()).isActive();
         boolean isHealthy = subscriptionManager.isSubscriptionHealthy(subscriptionSetup.getSubscriptionId());
 
