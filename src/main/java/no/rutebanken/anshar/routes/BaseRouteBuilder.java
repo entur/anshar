@@ -41,6 +41,7 @@ public abstract class BaseRouteBuilder extends SpringRouteBuilder {
 
     protected boolean requestData(String subscriptionId) {
         SubscriptionSetup subscriptionSetup = subscriptionManager.get(subscriptionId);
+        log.info("Is active: {}, is activated {}", subscriptionSetup.isActive(), subscriptionManager.isActiveSubscription(subscriptionId));
         return (subscriptionSetup.isActive() && subscriptionManager.isActiveSubscription(subscriptionId));
     }
 
