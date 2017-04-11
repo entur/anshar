@@ -76,7 +76,7 @@ public class ExtendedHazelcastService extends HazelCastService {
     }
 
     @Bean
-    public IMap<String,SubscriptionSetup> getActiveSubscriptionsMap() {
+    public IMap<String,SubscriptionSetup> getSubscriptionsMap() {
         return hazelcast.getMap("anshar.subscriptions.active");
     }
 
