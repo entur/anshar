@@ -29,13 +29,15 @@ public class Siri20ToSiriWS14RequestResponse extends BaseRouteBuilder {
 
         String httpOptions = "?httpClient.socketTimeout=" + timeout + "&httpClient.connectTimeout=" + timeout;
 
-        singletonFrom("quartz2://anshar/monitor_" + subscriptionSetup.getRequestResponseRouteName() + "?fireNow=true&trigger.repeatInterval=" + heartbeatIntervalMillis,
-                "monitor_" + subscriptionSetup.getRequestResponseRouteName())
-                .choice()
-                        .when(p -> requestData(subscriptionSetup.getSubscriptionId(), p.getFromRouteId()))
-                        .to("direct:" + subscriptionSetup.getServiceRequestRouteName())
-                .endChoice()
-        ;
+        if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.REQUEST_RESPONSE) {
+            singletonFrom("quartz2://anshar/monitor_" + subscriptionSetup.getRequestResponseRouteName() + "?fireNow=true&trigger.repeatInterval=" + heartbeatIntervalMillis,
+                    "monitor_" + subscriptionSetup.getRequestResponseRouteName())
+                    .choice()
+                    .when(p -> requestData(subscriptionSetup.getSubscriptionId(), p.getFromRouteId()))
+                    .to("direct:" + subscriptionSetup.getServiceRequestRouteName())
+                    .endChoice()
+            ;
+        }
 
         from("direct:" + subscriptionSetup.getServiceRequestRouteName())
                 .log("Retrieving data " + subscriptionSetup.toString())
