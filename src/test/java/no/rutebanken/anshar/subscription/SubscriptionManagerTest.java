@@ -66,8 +66,9 @@ public class SubscriptionManagerTest {
     public void pendingSubscriptionIsHealthy() throws InterruptedException {
         long subscriptionDurationSec = 1;
         SubscriptionSetup pendingSubscription = createSubscription(subscriptionDurationSec, Duration.ofMillis(150));
+        pendingSubscription.setActive(false);
         String subscriptionId = UUID.randomUUID().toString();;
-        subscriptionManager.addPendingSubscription(subscriptionId, pendingSubscription);
+        subscriptionManager.addSubscription(subscriptionId, pendingSubscription);
 
         subscriptionManager.activatePendingSubscription(subscriptionId);
         subscriptionManager.touchSubscription(subscriptionId);
@@ -84,8 +85,9 @@ public class SubscriptionManagerTest {
 
         long subscriptionDurationSec = 1;
         SubscriptionSetup pendingSubscription = createSubscription(subscriptionDurationSec, Duration.ofMillis(150));
+        pendingSubscription.setActive(false);
         String subscriptionId = UUID.randomUUID().toString();;
-        subscriptionManager.addPendingSubscription(subscriptionId, pendingSubscription);
+        subscriptionManager.addSubscription(subscriptionId, pendingSubscription);
 
         assertTrue(subscriptionManager.isSubscriptionHealthy(subscriptionId));
 
@@ -121,7 +123,6 @@ public class SubscriptionManagerTest {
 
         assertTrue("Subscription not marked as registered", subscriptionManager.isSubscriptionRegistered(subscription.getSubscriptionId()));
         assertTrue("Subscription not marked as active", subscriptionManager.isActiveSubscription(subscription.getSubscriptionId()));
-        assertFalse("Subscription marked as pending", subscriptionManager.isPendingSubscription(subscription.getSubscriptionId()));
 
 
         assertNotNull("Subscription not found", subscriptionManager.get(subscription.getSubscriptionId()));
@@ -131,13 +132,13 @@ public class SubscriptionManagerTest {
     public void testAddAndActivatePendingSubscription() {
         SubscriptionSetup subscription = createSubscription(1);
         assertFalse("Unknown subscription has been found",subscriptionManager.isSubscriptionRegistered(subscription.getSubscriptionId()));
+        subscription.setActive(false);
 
-        subscriptionManager.addPendingSubscription(subscription.getSubscriptionId(), subscription);
+        subscriptionManager.addSubscription(subscription.getSubscriptionId(), subscription);
 
         assertNotNull("Pending subscription not found", subscriptionManager.get(subscription.getSubscriptionId()));
 
         assertTrue("Subscription not marked as registered", subscriptionManager.isSubscriptionRegistered(subscription.getSubscriptionId()));
-        assertTrue("Subscription not marked as pending", subscriptionManager.isPendingSubscription(subscription.getSubscriptionId()));
         assertFalse("Subscription marked as active", subscriptionManager.isActiveSubscription(subscription.getSubscriptionId()));
         assertTrue("Subscription not healthy", subscriptionManager.isSubscriptionHealthy(subscription.getSubscriptionId()));
 
@@ -148,18 +149,17 @@ public class SubscriptionManagerTest {
 
         assertTrue("Subscription not marked as registered", subscriptionManager.isSubscriptionRegistered(subscription.getSubscriptionId()));
         assertTrue("Subscription not marked as active", subscriptionManager.isActiveSubscription(subscription.getSubscriptionId()));
-        assertFalse("Subscription marked as pending", subscriptionManager.isPendingSubscription(subscription.getSubscriptionId()));
     }
 
     @Test
     public void testAddAndTouchPendingSubscription() {
         SubscriptionSetup subscription = createSubscription(1);
+        subscription.setActive(false);
         assertFalse(subscriptionManager.isSubscriptionRegistered(subscription.getSubscriptionId()));
 
-        subscriptionManager.addPendingSubscription(subscription.getSubscriptionId(), subscription);
+        subscriptionManager.addSubscription(subscription.getSubscriptionId(), subscription);
 
         assertTrue("Subscription not marked as registered", subscriptionManager.isSubscriptionRegistered(subscription.getSubscriptionId()));
-        assertTrue("Subscription not marked as pending", subscriptionManager.isPendingSubscription(subscription.getSubscriptionId()));
         assertFalse("Subscription marked as active", subscriptionManager.isActiveSubscription(subscription.getSubscriptionId()));
 
         assertTrue("Subscription not healthy", subscriptionManager.isSubscriptionHealthy(subscription.getSubscriptionId()));
@@ -167,7 +167,6 @@ public class SubscriptionManagerTest {
         subscriptionManager.touchSubscription(subscription.getSubscriptionId());
 
         assertTrue("Subscription not marked as registered", subscriptionManager.isSubscriptionRegistered(subscription.getSubscriptionId()));
-        assertTrue("Subscription marked as pending", subscriptionManager.isPendingSubscription(subscription.getSubscriptionId()));
         assertFalse("Subscription marked as active", subscriptionManager.isActiveSubscription(subscription.getSubscriptionId()));
     }
 
@@ -180,7 +179,6 @@ public class SubscriptionManagerTest {
         subscriptionManager.activatePendingSubscription(subscription.getSubscriptionId());
 
         assertTrue("Subscription not registered", subscriptionManager.isSubscriptionRegistered(subscription.getSubscriptionId()));
-        assertFalse("Subscription marked as pending", subscriptionManager.isPendingSubscription(subscription.getSubscriptionId()));
         assertTrue("Subscription not marked as active", subscriptionManager.isActiveSubscription(subscription.getSubscriptionId()));
 
         subscriptionManager.removeSubscription(subscription.getSubscriptionId());
@@ -197,7 +195,6 @@ public class SubscriptionManagerTest {
 
         subscriptionManager.removeSubscription(subscription.getSubscriptionId(), true);
         assertFalse("Removed subscription marked as active", subscriptionManager.isActiveSubscription(subscription.getSubscriptionId()));
-        assertFalse("Removed subscription marked as pending", subscriptionManager.isPendingSubscription(subscription.getSubscriptionId()));
     }
 
     @Test
