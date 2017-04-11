@@ -51,7 +51,7 @@ public class Siri20ToSiriRS20RequestResponse extends BaseRouteBuilder {
                 .removeHeaders("CamelHttp*") // Remove any incoming HTTP headers as they interfere with the outgoing definition
                 .setHeader(Exchange.CONTENT_TYPE, constant("text/xml;charset=UTF-8")) // Necessary when talking to Microsoft web services
                 .setHeader(Exchange.HTTP_METHOD, constant(HttpMethods.POST))
-                        // Header routing
+                .to("log:request:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .to(getRequestUrl(subscriptionSetup) + httpOptions)
                 .setHeader("CamelHttpPath", constant("/appContext" + subscriptionSetup.buildUrl(false)))
                 .log("Got response " + subscriptionSetup.toString())
