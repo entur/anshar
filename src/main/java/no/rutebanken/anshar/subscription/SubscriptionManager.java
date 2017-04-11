@@ -181,6 +181,10 @@ public class SubscriptionManager {
         return false;
     }
 
+    public boolean isNewSubscription(String subscriptionId) {
+        return lastActivity.get(subscriptionId) == null;
+    }
+
     public Boolean isSubscriptionHealthy(String subscriptionId) {
         Instant instant = lastActivity.get(subscriptionId);
 
