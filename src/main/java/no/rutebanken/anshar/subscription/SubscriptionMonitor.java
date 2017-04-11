@@ -103,20 +103,26 @@ public class SubscriptionMonitor implements CamelContextAware {
                 SubscriptionSetup existingSubscription = subscriptionManager.getSubscriptionById(subscriptionSetup.getInternalId());
 
                 if (existingSubscription != null) {
-//                    if (!existingSubscription.equals(subscriptionSetup)) {
-//                        logger.info("Subscription with internalId={} is updated - reinitializing. {}", subscriptionSetup.getInternalId(), subscriptionSetup);
-//
-//                        // Keeping subscription active/inactive
-//                        subscriptionSetup.setActive(existingSubscription.isActive());
-//                        subscriptionManager.removeSubscription(existingSubscription.getSubscriptionId(), true);
-//
-//                        actualSubscriptionSetups.add(subscriptionSetup);
-//                        subscriptionIds.add(subscriptionSetup.getSubscriptionId());
-//                    } else {
+                    if (!existingSubscription.equals(subscriptionSetup)) {
+                        logger.info("Subscription with internalId={} is updated - reinitializing. {}", subscriptionSetup.getInternalId(), subscriptionSetup);
+
+                        subscriptionSetup.setSubscriptionId(existingSubscription.getSubscriptionId());
+
+                        // Keeping subscription active/inactive
+                        subscriptionSetup.setActive(existingSubscription.isActive());
+                        subscriptionManager.addSubscription(existingSubscription.getSubscriptionId(), subscriptionSetup);
+
+                        if (existingSubscription.isActive()) {
+                            subscriptionManager.activatePendingSubscription(existingSubscription.getSubscriptionId());
+                        }
+
+                        actualSubscriptionSetups.add(subscriptionSetup);
+                        subscriptionIds.add(subscriptionSetup.getSubscriptionId());
+                    } else {
                         logger.info("Subscription with internalId={} already registered - keep existing. {}", subscriptionSetup.getInternalId(), subscriptionSetup);
                         actualSubscriptionSetups.add(existingSubscription);
                         subscriptionIds.add(existingSubscription.getSubscriptionId());
-//                    }
+                    }
                 } else {
                     actualSubscriptionSetups.add(subscriptionSetup);
                     subscriptionIds.add(subscriptionSetup.getSubscriptionId());
@@ -156,7 +162,7 @@ public class SubscriptionMonitor implements CamelContextAware {
 
             for (SubscriptionSetup subscriptionSetup : actualSubscriptionSetups) {
                 if (!subscriptionManager.isSubscriptionRegistered(subscriptionSetup.getSubscriptionId())) {
-                    subscriptionManager.addPendingSubscription(subscriptionSetup.getSubscriptionId(), subscriptionSetup);
+                    subscriptionManager.addSubscription(subscriptionSetup.getSubscriptionId(), subscriptionSetup);
                 }
             }
         } else {
