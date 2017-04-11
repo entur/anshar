@@ -430,17 +430,16 @@ anshar:
       datasetId: RUT
       serviceType: REST
       subscriptionType: VEHICLE_MONITORING
-      subscriptionMode: REQUEST_RESPONSE
+      subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 60
       operatorNamespace: http://www.siri.org.uk/siri
       urlMap:
-        GET_VEHICLE_MONITORING: mottak-beta.rutebanken.org/anshar/services
         SUBSCRIBE: mottak-beta.rutebanken.org/anshar/subscribe/RUT?useOriginalId=true
         DELETE_SUBSCRIPTION: mottak-beta.rutebanken.org/anshar/subscribe/RUT
       version: 2.0
       subscriptionId: vm-replication
       requestorRef: vm-requestorref
-      durationOfSubscriptionHours: 4
+      durationOfSubscriptionHours: 24
       mappingAdapterPresets: RUTER
       filterPresets:
       idMappingPrefixes: RUT,OPP,BRA,OST
@@ -460,7 +459,7 @@ anshar:
       version: 2.0
       subscriptionId: et-replication
       requestorRef: et-requestorref
-      durationOfSubscriptionHours: 2
+      durationOfSubscriptionHours: 24
       mappingAdapterPresets: RUTER
       filterPresets:
       idMappingPrefixes: RUT,OPP,BRA,OST
