@@ -8,7 +8,7 @@ import java.util.List;
 
 @ConfigurationProperties(locations = "classpath:subscriptions.yml", prefix = "anshar", ignoreInvalidFields=false)
 @Configuration
-public class Config {
+public class SubscriptionConfig {
 
     private List<SubscriptionSetup> subscriptions;
 

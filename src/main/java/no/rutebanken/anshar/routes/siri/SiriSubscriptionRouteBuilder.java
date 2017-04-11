@@ -29,19 +29,19 @@ public abstract class SiriSubscriptionRouteBuilder extends BaseRouteBuilder {
 
     void initTriggerRoutes() {
         if (!subscriptionManager.isNewSubscription(subscriptionSetup.getSubscriptionId())) {
-            logger.info("Subscription is NOT new - flagging as already started {}", subscriptionSetup);
-            hasBeenStarted = true;
+            logger.info("Subscription is NOT new - flagging as already started if active {}", subscriptionSetup);
+            hasBeenStarted = subscriptionManager.isActiveSubscription(subscriptionSetup.getSubscriptionId());
         }
 
         singletonFrom("quartz2://anshar/monitor_" + subscriptionSetup.getSubscriptionId() + "?fireNow=true&trigger.repeatInterval=" + 5000,
                 "monitor_" + subscriptionSetup.getSubscriptionId())
                 .choice()
                 .when(p -> shouldBeStarted(p.getFromRouteId()))
-                    .to("direct:" + subscriptionSetup.getStartSubscriptionRouteName()) // Start subscription
                     .process(p -> hasBeenStarted = true)
+                    .to("direct:" + subscriptionSetup.getStartSubscriptionRouteName()) // Start subscription
                 .when(p -> shouldBeCancelled(p.getFromRouteId()))
-                    .to("direct:" + subscriptionSetup.getCancelSubscriptionRouteName()) // Cancel
                     .process(p -> hasBeenStarted = false)
+                    .to("direct:" + subscriptionSetup.getCancelSubscriptionRouteName()) // Cancel
                 .end()
         ;
 
@@ -51,7 +51,7 @@ public abstract class SiriSubscriptionRouteBuilder extends BaseRouteBuilder {
         if (!isLeader(routeId)) {
             return false;
         }
-        boolean isActive = subscriptionManager.get(subscriptionSetup.getSubscriptionId()).isActive();
+        boolean isActive = subscriptionManager.isActiveSubscription(subscriptionSetup.getSubscriptionId());
 
         boolean shouldBeStarted = (isActive & !hasBeenStarted);
         return shouldBeStarted;
@@ -60,7 +60,7 @@ public abstract class SiriSubscriptionRouteBuilder extends BaseRouteBuilder {
         if (!isLeader(routeId)) {
             return false;
         }
-        boolean isActive = subscriptionManager.get(subscriptionSetup.getSubscriptionId()).isActive();
+        boolean isActive = subscriptionManager.isActiveSubscription(subscriptionSetup.getSubscriptionId());
         boolean isHealthy = subscriptionManager.isSubscriptionHealthy(subscriptionSetup.getSubscriptionId());
 
         boolean shouldBeCancelled = (hasBeenStarted & !isActive) | (hasBeenStarted & isActive & !isHealthy);

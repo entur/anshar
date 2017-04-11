@@ -23,8 +23,8 @@ import java.util.*;
 
 @Service
 @Configuration
-public class SubscriptionMonitor implements CamelContextAware {
-    private Logger logger = LoggerFactory.getLogger(SubscriptionMonitor.class);
+public class SubscriptionInitializer implements CamelContextAware {
+    private Logger logger = LoggerFactory.getLogger(SubscriptionInitializer.class);
 
     @Autowired
     private SubscriptionManager subscriptionManager;
@@ -43,7 +43,7 @@ public class SubscriptionMonitor implements CamelContextAware {
     private IMap<Enum<HealthCheckKey>, Instant> healthCheckMap;
 
     @Autowired
-    private Config config;
+    private SubscriptionConfig subscriptionConfig;
 
     @Autowired
     SiriHandler handler;
@@ -64,8 +64,8 @@ public class SubscriptionMonitor implements CamelContextAware {
     void createSubscriptions() {
         camelContext.setUseMDCLogging(true);
 
-        if (config != null) {
-            List<SubscriptionSetup> subscriptionSetups = config.getSubscriptions();
+        if (subscriptionConfig != null) {
+            List<SubscriptionSetup> subscriptionSetups = subscriptionConfig.getSubscriptions();
             logger.info("Initializing {} subscriptions", subscriptionSetups.size());
             Set<String> subscriptionIds = new HashSet<>();
 
