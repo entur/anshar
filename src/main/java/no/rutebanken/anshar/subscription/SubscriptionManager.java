@@ -173,6 +173,7 @@ public class SubscriptionManager {
             // Subscriptions are inserted as immutable - need to replace previous value
             subscriptions.put(subscriptionId, subscriptionSetup);
             lastActivity.put(subscriptionId, Instant.now());
+            activatedTimestamp.put(subscriptionId, Instant.now());
             logger.info("Pending subscription {} activated", subscriptions.get(subscriptionId));
             return true;
         }
