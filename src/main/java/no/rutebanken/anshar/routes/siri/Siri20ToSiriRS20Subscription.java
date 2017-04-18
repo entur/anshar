@@ -95,7 +95,6 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
                     logger.info("Response body [{}]", body);
                     if (body != null && !body.isEmpty()) {
                         handler.handleIncomingSiri(subscriptionSetup.getSubscriptionId(), body);
-                        subscriptionManager.removeSubscription(subscriptionSetup.getSubscriptionId());
                     }
                 });
 
