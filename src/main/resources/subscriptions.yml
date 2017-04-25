@@ -425,6 +425,66 @@ anshar:
       idMappingPrefixes: TRO
       active: true
     -
+      internalId: 24
+      vendor: mret
+      datasetId: MOR
+      serviceType: REST
+      subscriptionType: ESTIMATED_TIMETABLE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 60
+      operatorNamespace: http://www.siri.org.uk/siri
+      urlMap:
+        SUBSCRIBE: SiriET.mrfylke.pubtrans.com:8001
+        DELETE_SUBSCRIPTION: SiriET.mrfylke.pubtrans.com:8001
+      version: 1.4
+      subscriptionId: ${random.uuid}
+      requestorRef: RutebankenDEV_${random.uuid}
+      durationOfSubscriptionHours: 168
+      mappingAdapterPresets: MOR
+      filterPresets:
+      idMappingPrefixes: MOR
+      active: false
+    -
+      internalId: 25
+      vendor: mrvm
+      datasetId: MOR
+      serviceType: REST
+      subscriptionType: ESTIMATED_TIMETABLE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 60
+      operatorNamespace: http://www.siri.org.uk/siri
+      urlMap:
+        SUBSCRIBE: SiriVM.mrfylke.pubtrans.com:8003
+        DELETE_SUBSCRIPTION: SiriVM.mrfylke.pubtrans.com:8003
+      version: 1.4
+      subscriptionId: ${random.uuid}
+      requestorRef: RutebankenDEV_${random.uuid}
+      durationOfSubscriptionHours: 168
+      mappingAdapterPresets: MOR
+      filterPresets:
+      idMappingPrefixes: MOR
+      active: false
+    -
+      internalId: 26
+      vendor: mrsx
+      datasetId: MOR
+      serviceType: REST
+      subscriptionType: ESTIMATED_TIMETABLE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 60
+      operatorNamespace: http://www.siri.org.uk/siri
+      urlMap:
+        SUBSCRIBE: SiriSX.mrfylke.pubtrans.com:8002
+        DELETE_SUBSCRIPTION: SiriSX.mrfylke.pubtrans.com:8002
+      version: 1.4
+      subscriptionId: ${random.uuid}
+      requestorRef: RutebankenDEV_${random.uuid}
+      durationOfSubscriptionHours: 168
+      mappingAdapterPresets: MOR
+      filterPresets:
+      idMappingPrefixes: MOR
+      active: false
+    -
       internalId: 100
       vendor: internRuterVm
       datasetId: RUT
