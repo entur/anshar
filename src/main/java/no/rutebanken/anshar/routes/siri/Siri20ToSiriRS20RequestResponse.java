@@ -49,6 +49,7 @@ public class Siri20ToSiriRS20RequestResponse extends BaseRouteBuilder {
                 .to(getRequestUrl(subscriptionSetup) + httpOptions)
                 .setHeader("CamelHttpPath", constant("/appContext" + subscriptionSetup.buildUrl(false)))
                 .log("Got response " + subscriptionSetup.toString())
+                .to("log:response:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .to("activemq:queue:" + SiriIncomingReceiver.TRANSFORM_QUEUE + "?disableReplyTo=true&timeToLive=" + timeout)
         ;
     }
