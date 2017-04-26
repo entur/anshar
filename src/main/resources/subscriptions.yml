@@ -302,7 +302,7 @@ anshar:
       mappingAdapterPresets: BANENOR
       filterPresets:
       idMappingPrefixes: NSB,FLT
-      active: true
+      active: false
     -
       internalId: 18
       vendor: baneSx-reqres
@@ -339,11 +339,11 @@ anshar:
       version: 2.0
       subscriptionId: ${random.uuid}
       requestorRef: ${random.uuid}
-      durationOfSubscriptionHours: 2
+      durationOfSubscriptionHours: 168
       mappingAdapterPresets: BANENOR
       filterPresets:
       idMappingPrefixes: NSB,FLT
-      active: false
+      active: true
     -
       internalId: 20
       vendor: baneSx
