@@ -20,7 +20,7 @@ anshar:
       mappingAdapterPresets: KOLUMBUS
       filterPresets:
       idMappingPrefixes: KOL
-      active: true
+      active: false
     -
       internalId: 2
       vendor: kolumbusvm
@@ -39,7 +39,7 @@ anshar:
       mappingAdapterPresets: KOLUMBUS
       filterPresets:
       idMappingPrefixes: KOL
-      active: true
+      active: false
     -
       internalId: 3
       vendor: atbsx
@@ -60,7 +60,7 @@ anshar:
       mappingAdapterPresets: ATB
       filterPresets:
       idMappingPrefixes: ATB
-      active: true
+      active: false
     -
       internalId: 4
       vendor: atbvm
@@ -79,7 +79,7 @@ anshar:
       mappingAdapterPresets: ATB
       filterPresets:
       idMappingPrefixes: ATB
-      active: true
+      active: false
     -
       internalId: 5
       vendor: aktsx
@@ -99,7 +99,7 @@ anshar:
       mappingAdapterPresets: AKT
       filterPresets:
       idMappingPrefixes: AKT
-      active: true
+      active: false
     -
       internalId: 6
       vendor: aktet
@@ -119,7 +119,7 @@ anshar:
       mappingAdapterPresets: AKT
       filterPresets:
       idMappingPrefixes: AKT
-      active: true
+      active: false
     -
       internalId: 7
       vendor: rutersx
@@ -140,7 +140,7 @@ anshar:
       mappingAdapterPresets: RUTER
       filterPresets:
       idMappingPrefixes: RUT,OPP,BRA,OST
-      active: true
+      active: false
     -
       internalId: 9
       vendor: rutervm
@@ -161,7 +161,7 @@ anshar:
       mappingAdapterPresets: RUTER
       filterPresets:
       idMappingPrefixes: RUT,OPP,BRA,OST
-      active: true
+      active: false
     -
       internalId: 11
       vendor: ruteret
@@ -182,7 +182,7 @@ anshar:
       mappingAdapterPresets: RUTER
       filterPresets:
       idMappingPrefixes: RUT,OPP,BRA,OST
-      active: true
+      active: false
     -
       internalId: 12
       vendor: skysset
@@ -202,7 +202,7 @@ anshar:
       mappingAdapterPresets: SKYSS
       filterPresets:
       idMappingPrefixes: SKY
-      active: true
+      active: false
     -
       internalId: 13
       vendor: skysssx
@@ -222,7 +222,7 @@ anshar:
       mappingAdapterPresets: SKYSS
       filterPresets:
       idMappingPrefixes: SKY
-      active: true
+      active: false
     -
       internalId: 14
       vendor: brakaret
@@ -242,7 +242,7 @@ anshar:
       mappingAdapterPresets: BRAKAR
       filterPresets:
       idMappingPrefixes: BRA
-      active: true
+      active: false
     -
       internalId: 15
       vendor: brakarsx
@@ -262,7 +262,7 @@ anshar:
       mappingAdapterPresets: BRAKAR
       filterPresets:
       idMappingPrefixes: BRA
-      active: true
+      active: false
     -
       internalId: 16
       vendor: bybanenEt
@@ -282,7 +282,7 @@ anshar:
       mappingAdapterPresets: SKYSS
       filterPresets: BYBANEN
       idMappingPrefixes: SKY
-      active: true
+      active: false
 #    -
 #      internalId: 17
 #      vendor: baneEt-reqres
@@ -322,7 +322,7 @@ anshar:
       mappingAdapterPresets: BANENOR
       filterPresets:
       idMappingPrefixes: NSB,FLT
-      active: true
+      active: false
     -
       internalId: 19
       vendor: baneEt
@@ -383,7 +383,7 @@ anshar:
       mappingAdapterPresets: BANENOR
       filterPresets:
       idMappingPrefixes: NSB
-      active: true
+      active: false
     -
       internalId: 22
       vendor: tromset
@@ -403,7 +403,7 @@ anshar:
       mappingAdapterPresets: TROMS
       filterPresets:
       idMappingPrefixes: TRO
-      active: true
+      active: false
     -
       internalId: 23
       vendor: tromssx
@@ -423,7 +423,7 @@ anshar:
       mappingAdapterPresets: TROMS
       filterPresets:
       idMappingPrefixes: TRO
-      active: true
+      active: false
     -
       internalId: 24
       vendor: mret
