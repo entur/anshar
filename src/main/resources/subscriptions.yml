@@ -449,7 +449,7 @@ anshar:
       vendor: mrvm
       datasetId: MOR
       serviceType: REST
-      subscriptionType: ESTIMATED_TIMETABLE
+      subscriptionType: VEHICLE_MONITORING
       subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 60
       operatorNamespace: http://www.siri.org.uk/siri
@@ -469,7 +469,7 @@ anshar:
       vendor: mrsx
       datasetId: MOR
       serviceType: REST
-      subscriptionType: ESTIMATED_TIMETABLE
+      subscriptionType: SITUATION_EXCHANGE
       subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 60
       operatorNamespace: http://www.siri.org.uk/siri
