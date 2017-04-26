@@ -101,12 +101,13 @@ public class SiriObjectFactory {
     }
 
 
-    public static Siri createDataSupplyRequest(SubscriptionSetup subscriptionSetup) {
+    public static Siri createDataSupplyRequest(SubscriptionSetup subscriptionSetup, Boolean allData) {
         Siri siri = createSiriObject();
 
         DataSupplyRequestStructure request = new DataSupplyRequestStructure();
         request.setRequestTimestamp(ZonedDateTime.now());
         request.setConsumerRef(createRequestorRef(subscriptionSetup.getRequestorRef()));
+        request.setAllData(allData);
 
         siri.setDataSupplyRequest(request);
 

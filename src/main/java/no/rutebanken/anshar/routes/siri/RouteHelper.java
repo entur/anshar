@@ -63,6 +63,9 @@ public class RouteHelper {
         return SiriXml.toXml(siri, customNamespacePrefixMapper);
     }
 
+
+    private Boolean allData = Boolean.TRUE;
+
     /*
      * Called dynamically from camel-routes
      *
@@ -71,7 +74,8 @@ public class RouteHelper {
     public String marshalSiriRequest() throws JAXBException {
         Siri request = null;
         if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.FETCHED_DELIVERY) {
-            request = SiriObjectFactory.createDataSupplyRequest(subscriptionSetup);
+            request = SiriObjectFactory.createDataSupplyRequest(subscriptionSetup, allData);
+            allData = Boolean.FALSE;
         } else {
             request = SiriObjectFactory.createServiceRequest(subscriptionSetup);
         }
