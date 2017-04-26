@@ -25,6 +25,11 @@ public class RouteHelper {
         this.customNamespacePrefixMapper = customNamespacePrefixMapper;
     }
 
+
+    public RouteHelper(SubscriptionSetup subscriptionSetup) {
+        this.subscriptionSetup = subscriptionSetup;
+    }
+
     /*
      * Called dynamically from camel-routes
      */
@@ -57,4 +62,20 @@ public class RouteHelper {
 
         return SiriXml.toXml(siri, customNamespacePrefixMapper);
     }
+
+    /*
+     * Called dynamically from camel-routes
+     *
+     * Creates ServiceRequest or DataSupplyRequest based on subscription type
+     */
+    public String marshalSiriRequest() throws JAXBException {
+        Siri request = null;
+        if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.FETCHED_DELIVERY) {
+            request = SiriObjectFactory.createDataSupplyRequest(subscriptionSetup);
+        } else {
+            request = SiriObjectFactory.createServiceRequest(subscriptionSetup);
+        }
+        return SiriXml.toXml(request);
+    }
+
 }

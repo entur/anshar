@@ -5,27 +5,24 @@ import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
-import org.rutebanken.siri20.util.SiriXml;
-import uk.org.siri.siri20.Siri;
 
 public class Siri20ToSiriWS14RequestResponse extends BaseRouteBuilder {
-    private final Siri request;
     private final SubscriptionSetup subscriptionSetup;
 
     public Siri20ToSiriWS14RequestResponse(SubscriptionSetup subscriptionSetup, SubscriptionManager subscriptionManager) {
         super(subscriptionManager);
-        this.request = SiriObjectFactory.createServiceRequest(subscriptionSetup);
 
         this.subscriptionSetup = subscriptionSetup;
     }
 
     @Override
     public void configure() throws Exception {
-        String siriXml = SiriXml.toXml(request);
 
         long heartbeatIntervalMillis = subscriptionSetup.getHeartbeatInterval().toMillis();
 
         int timeout = (int) heartbeatIntervalMillis / 2;
+
+        RouteHelper helper = new RouteHelper(subscriptionSetup);
 
         String httpOptions = "?httpClient.socketTimeout=" + timeout + "&httpClient.connectTimeout=" + timeout;
 
@@ -41,7 +38,7 @@ public class Siri20ToSiriWS14RequestResponse extends BaseRouteBuilder {
 
         from("direct:" + subscriptionSetup.getServiceRequestRouteName())
                 .log("Retrieving data " + subscriptionSetup.toString())
-                .setBody(simple(siriXml))
+                .bean(helper, "marshalSiriRequest", false)
                 .setExchangePattern(ExchangePattern.InOut) // Make sure we wait for a response
                 .setHeader("SOAPAction", simple(getSoapAction(subscriptionSetup))) // extract and compute SOAPAction (Microsoft requirement)
                 .setHeader("operatorNamespace", constant(subscriptionSetup.getOperatorNamespace())) // Need to make SOAP request with endpoint specific element namespace
