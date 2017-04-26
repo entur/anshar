@@ -107,7 +107,6 @@ public class SiriObjectFactory {
         DataSupplyRequestStructure request = new DataSupplyRequestStructure();
         request.setRequestTimestamp(ZonedDateTime.now());
         request.setConsumerRef(createRequestorRef(subscriptionSetup.getRequestorRef()));
-        request.setAllData(Boolean.TRUE);
 
         siri.setDataSupplyRequest(request);
 
