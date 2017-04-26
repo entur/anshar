@@ -283,30 +283,30 @@ anshar:
       filterPresets: BYBANEN
       idMappingPrefixes: SKY
       active: true
-    -
-      internalId: 17
-      vendor: baneEt-reqres
-      datasetId: NSB
-      serviceType: REST
-      subscriptionType: ESTIMATED_TIMETABLE
-      subscriptionMode: REQUEST_RESPONSE
-      heartbeatIntervalSeconds: 60
-      previewIntervalSeconds: 3600
-      operatorNamespace: http://www.siri.org.uk/siri
-      urlMap:
-        GET_ESTIMATED_TIMETABLE: https4://siri.opm.jbv.no/jbv/et
-      version: 2.0
-      subscriptionId: ${random.uuid}
-      requestorRef: ${random.uuid}
-      durationOfSubscriptionHours: 2
-      mappingAdapterPresets: BANENOR
-      filterPresets:
-      idMappingPrefixes: NSB,FLT
-      active: false
+#    -
+#      internalId: 17
+#      vendor: baneEt-reqres
+#      datasetId: NSB
+#      serviceType: REST
+#      subscriptionType: ESTIMATED_TIMETABLE
+#      subscriptionMode: REQUEST_RESPONSE
+#      heartbeatIntervalSeconds: 60
+#      previewIntervalSeconds: 3600
+#      operatorNamespace: http://www.siri.org.uk/siri
+#      urlMap:
+#        GET_ESTIMATED_TIMETABLE: https4://siri.opm.jbv.no/jbv/et
+#      version: 2.0
+#      subscriptionId: ${random.uuid}
+#      requestorRef: ${random.uuid}
+#      durationOfSubscriptionHours: 2
+#      mappingAdapterPresets: BANENOR
+#      filterPresets:
+#      idMappingPrefixes: NSB,FLT
+#      active: false
     -
       internalId: 18
       vendor: baneSx-reqres
-      datasetId: NSB
+      datasetId: BNR
       serviceType: REST
       subscriptionType: SITUATION_EXCHANGE
       subscriptionMode: REQUEST_RESPONSE
@@ -326,7 +326,7 @@ anshar:
     -
       internalId: 19
       vendor: baneEt
-      datasetId: NSB
+      datasetId: BNR
       serviceType: REST
       subscriptionType: ESTIMATED_TIMETABLE
       subscriptionMode: FETCHED_DELIVERY
@@ -347,7 +347,7 @@ anshar:
     -
       internalId: 20
       vendor: baneSx
-      datasetId: NSB
+      datasetId: BNR
       serviceType: REST
       subscriptionType: SITUATION_EXCHANGE
       subscriptionMode: FETCHED_DELIVERY
@@ -355,7 +355,7 @@ anshar:
       operatorNamespace: http://www.siri.org.uk/siri
       urlMap:
         SUBSCRIBE: https4://siri-test.opm.jbv.no/jbv/sx
-        DELETE_SUBSCRIPTION: https4://siri-test.opm.jbv.no/jbv//sx
+        DELETE_SUBSCRIPTION: https4://siri-test.opm.jbv.no/jbv/sx
         GET_SITUATION_EXCHANGE: https4://siri-test.opm.jbv.no/jbv/sx
       version: 2.0
       subscriptionId: ${random.uuid}
