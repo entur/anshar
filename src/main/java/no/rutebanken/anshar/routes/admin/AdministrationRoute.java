@@ -65,14 +65,13 @@ public class AdministrationRoute extends RouteBuilder {
 
                        subscriptionManager.startSubscription(subscriptionId);
                     }
-
                 })
         ;
 
         //Return subscription status
         from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/subscriptions")
                 .process(p -> {
-                    p.getOut().setHeader(Exchange.CONTENT_TYPE, "application/json");
+                    p.getOut().setHeader(Exchange.CONTENT_TYPE, "text/html");
                     p.getOut().setBody(serverSubscriptionManager.getSubscriptionsAsJson());
                 })
                 .to("freemarker:templates/subscriptions.ftl")
@@ -80,7 +79,7 @@ public class AdministrationRoute extends RouteBuilder {
         //Return subscription status
         from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/clusterstats")
                 .process(p -> {
-                    p.getOut().setHeader(Exchange.CONTENT_TYPE, "text/html");
+                    p.getOut().setHeader(Exchange.CONTENT_TYPE, "application/json");
                     p.getOut().setBody(extendedHazelcastService.listNodes());
                 })
         ;
