@@ -3,6 +3,7 @@ package no.rutebanken.anshar.routes.admin;
 import no.rutebanken.anshar.messages.collections.ExtendedHazelcastService;
 import no.rutebanken.anshar.routes.outbound.ServerSubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
+import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +37,7 @@ public class AdministrationRoute extends RouteBuilder {
         //Return subscription status
         from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/stats")
                 .process(p-> {
+                    p.getOut().setHeader(Exchange.CONTENT_TYPE, "text/html");
                     p.getOut().setBody(subscriptionManager.buildStats());
                 })
                 .to("freemarker:templates/stats.ftl")
@@ -70,6 +72,7 @@ public class AdministrationRoute extends RouteBuilder {
         //Return subscription status
         from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/subscriptions")
                 .process(p -> {
+                    p.getOut().setHeader(Exchange.CONTENT_TYPE, "application/json");
                     p.getOut().setBody(serverSubscriptionManager.getSubscriptionsAsJson());
                 })
                 .to("freemarker:templates/subscriptions.ftl")
@@ -77,6 +80,7 @@ public class AdministrationRoute extends RouteBuilder {
         //Return subscription status
         from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/clusterstats")
                 .process(p -> {
+                    p.getOut().setHeader(Exchange.CONTENT_TYPE, "text/html");
                     p.getOut().setBody(extendedHazelcastService.listNodes());
                 })
         ;
