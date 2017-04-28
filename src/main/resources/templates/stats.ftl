@@ -17,7 +17,7 @@
     <script>
         function administerSubscription(operation,id) {
 
-            var uri = "/anshar/" + operation + "?subscriptionId="+id;
+            var uri = operation + "?subscriptionId="+id;
             var xhr = new XMLHttpRequest();
             xhr.open('PUT', uri, true);
             xhr.onreadystatechange = function() {
