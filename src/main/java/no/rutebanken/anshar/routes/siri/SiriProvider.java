@@ -86,6 +86,7 @@ public class SiriProvider extends RouteBuilder {
                         out.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
                         SiriJson.toJson(response, out.getOutputStream());
                     } else {
+                        out.setHeader(HttpHeaders.CONTENT_TYPE, "application/xml");
                         SiriXml.toXml(response, null, out.getOutputStream());
                     }
                 })
@@ -118,6 +119,7 @@ public class SiriProvider extends RouteBuilder {
                         out.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
                         SiriJson.toJson(response, out.getOutputStream());
                     } else {
+                        out.setHeader(HttpHeaders.CONTENT_TYPE, "application/xml");
                         SiriXml.toXml(response, null, out.getOutputStream());
                     }
                 })
@@ -150,6 +152,7 @@ public class SiriProvider extends RouteBuilder {
                         out.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
                         SiriJson.toJson(response, out.getOutputStream());
                     } else {
+                        out.setHeader(HttpHeaders.CONTENT_TYPE, "application/xml");
                         SiriXml.toXml(response, null, out.getOutputStream());
                     }
                 })
@@ -182,6 +185,7 @@ public class SiriProvider extends RouteBuilder {
                         out.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
                         SiriJson.toJson(response, out.getOutputStream());
                     } else {
+                        out.setHeader(HttpHeaders.CONTENT_TYPE, "application/xml");
                         SiriXml.toXml(response, null, out.getOutputStream());
                     }
                 })
