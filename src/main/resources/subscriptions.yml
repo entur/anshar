@@ -127,7 +127,7 @@ anshar:
       serviceType: REST
       subscriptionType: SITUATION_EXCHANGE
       subscriptionMode: SUBSCRIBE
-      heartbeatIntervalSeconds: 60
+      heartbeatIntervalSeconds: 600
       operatorNamespace: http://www.siri.org.uk/siri
       urlMap:
         SUBSCRIBE: sirisx.ruter.no/sx/subscribe.xml
