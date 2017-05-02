@@ -1,6 +1,8 @@
 package no.rutebanken.anshar.messages;
 
 import com.hazelcast.core.IMap;
+import org.quartz.utils.counter.Counter;
+import org.quartz.utils.counter.CounterImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -129,6 +131,7 @@ public class Situations implements SiriRepository<PtSituationElement> {
     public Collection<PtSituationElement> addAll(String datasetId, List<PtSituationElement> sxList) {
         Set<String> changes = new HashSet<>();
 
+        Counter alreadyExpiredCounter = new CounterImpl(0);
         sxList.forEach(situation -> {
             String key = createKey(datasetId, situation);
 
@@ -142,8 +145,12 @@ public class Situations implements SiriRepository<PtSituationElement> {
                 // Situation is no longer valid
                 situations.remove(key);
             }
+            if (expiration < 0) {
+                alreadyExpiredCounter.increment();
+            }
 
         });
+        logger.info("Updated {} (of {}) :: Ignored elements - Already expired: {},", changes.size(), sxList.size(), alreadyExpiredCounter.getValue());
 
         changesMap.keySet().forEach(requestor -> {
             if (lastUpdateRequested.get(requestor) != null) {
