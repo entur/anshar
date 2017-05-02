@@ -81,6 +81,9 @@ public class SubscriptionSetup implements Serializable {
     }
 
     public String buildUrl(boolean includeServerAddress) {
+        if (address.endsWith("/")) {
+            address = address.substring(0, address.length()-1);
+        }
         return (includeServerAddress ? address:"") + MessageFormat.format("/{0}/{1}/{2}/{3}", version, serviceType == ServiceType.REST ? "rs" : "ws", vendor, subscriptionId);
     }
 
