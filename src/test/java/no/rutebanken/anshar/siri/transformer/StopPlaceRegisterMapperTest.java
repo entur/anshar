@@ -29,12 +29,12 @@ public class StopPlaceRegisterMapperTest {
 
         stopPlaceMap = new HashMap<>();
         stopPlaceMap.put("1234", "NSR:QUAY:11223344");
-        stopPlaceMap.put("ABC:StopArea:1234", "NSR:QUAY:11223344");
-        stopPlaceMap.put("ABC:StopArea:2345", "NSR:QUAY:22334455");
-        stopPlaceMap.put("ABC:StopArea:3456", "NSR:QUAY:33445566");
-        stopPlaceMap.put("ABC:StopArea:4567", "NSR:QUAY:44556677");
-        stopPlaceMap.put("ABC:StopArea:5678", "NSR:QUAY:55667788");
-        stopPlaceMap.put("XYZ:StopArea:5555", "NSR:QUAY:44444444");
+        stopPlaceMap.put("ABC:Quay:1234", "NSR:QUAY:11223344");
+        stopPlaceMap.put("ABC:Quay:2345", "NSR:QUAY:22334455");
+        stopPlaceMap.put("ABC:Quay:3456", "NSR:QUAY:33445566");
+        stopPlaceMap.put("ABC:Quay:4567", "NSR:QUAY:44556677");
+        stopPlaceMap.put("ABC:Quay:5678", "NSR:QUAY:55667788");
+        stopPlaceMap.put("XYZ:Quay:5555", "NSR:QUAY:44444444");
 
         Object mappings = ApplicationContextHolder.getContext().getBean("getStopPlaceMappings");
         if (mappings instanceof Map) {
