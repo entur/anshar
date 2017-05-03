@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 import uk.org.siri.siri20.HalfOpenTimestampOutputRangeStructure;
 import uk.org.siri.siri20.PtSituationElement;
+import uk.org.siri.siri20.WorkflowStatusEnumeration;
 
 import java.time.Instant;
 import java.time.ZonedDateTime;
@@ -121,6 +122,11 @@ public class Situations implements SiriRepository<PtSituationElement> {
             }
         }
 
+        if (situationElement.getProgress() != null && situationElement.getProgress() == WorkflowStatusEnumeration.CLOSED) {
+            // Situation has been closed explicitly
+            return 0;
+        }
+
         if (expiry != null) {
             return ZonedDateTime.now().until(expiry, ChronoUnit.MILLIS);
         } else {
@@ -138,7 +144,7 @@ public class Situations implements SiriRepository<PtSituationElement> {
             //TODO: Determine if newer situation has already been handled
 
             long expiration = getExpiration(situation);
-            if (expiration >= 0) { //expiration < 0 => already expired
+            if (expiration > 0) { //expiration < 0 => already expired
                 situations.put(key, situation, expiration, TimeUnit.MILLISECONDS);
                 changes.add(key);
             } else if (situations.containsKey(key)) {
