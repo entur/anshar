@@ -11,7 +11,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import uk.org.siri.siri20.HalfOpenTimestampOutputRangeStructure;
 import uk.org.siri.siri20.PtSituationElement;
 import uk.org.siri.siri20.SituationNumber;
-import uk.org.siri.siri20.WorkflowStatusEnumeration;
 
 import java.time.ZonedDateTime;
 
@@ -43,27 +42,6 @@ public class SituationsTest {
 
         assertEquals("Situation not added", previousSize + 1, situations.getAll().size());
     }
-
-
-    @Test
-    public void testAddClosedSituation() {
-        int previousSize = situations.getAll().size();
-
-
-        PtSituationElement element = createPtSituationElement("atb", "1234", ZonedDateTime.now().minusDays(1), ZonedDateTime.now().plusHours(4));
-
-        situations.add("test", element);
-
-        assertEquals("Situation not added", previousSize + 1, situations.getAll().size());
-
-        PtSituationElement element2 = createPtSituationElement("atb", "1234", ZonedDateTime.now().minusDays(1), ZonedDateTime.now().plusHours(4));
-        element2.setProgress(WorkflowStatusEnumeration.CLOSED);
-
-        situations.add("test", element2);
-
-        assertEquals("Situation should have been removed", previousSize, situations.getAll().size());
-    }
-
     @Test
     public void testAddNullSituation() {
         int previousSize = situations.getAll().size();
