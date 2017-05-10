@@ -16,6 +16,7 @@ import uk.org.siri.siri20.VehicleActivityStructure.MonitoredVehicleJourney;
 
 import javax.xml.datatype.Duration;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.time.DateTimeException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -236,8 +237,15 @@ public class SiriVmMqttRoute extends RouteBuilder implements CamelContextAware {
         return date;
     }
 
-    private String getStopIndex(MonitoredVehicleJourney monitoredVehicleJourney) {
-        return monitoredVehicleJourney.getMonitoredCall().getVisitNumber().toString();
+    private long getStopIndex(MonitoredVehicleJourney monitoredVehicleJourney) {
+        MonitoredCallStructure monitoredCall = monitoredVehicleJourney.getMonitoredCall();
+        if (monitoredCall != null) {
+            BigInteger visitNumber = monitoredCall.getVisitNumber();
+            if (visitNumber != null) {
+                return visitNumber.longValue();
+            }
+        }
+        return 0;
     }
 
     @Override
