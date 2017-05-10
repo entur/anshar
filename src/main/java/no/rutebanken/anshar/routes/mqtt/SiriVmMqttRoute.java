@@ -1,6 +1,5 @@
 package no.rutebanken.anshar.routes.mqtt;
 
-import javafx.util.Pair;
 import no.rutebanken.anshar.routes.Constants;
 import org.apache.camel.CamelContext;
 import org.apache.camel.CamelContextAware;
@@ -28,6 +27,10 @@ public class SiriVmMqttRoute extends RouteBuilder implements CamelContextAware {
 
     private static final String UNKNOWN = "XXX";
     private static final String ZERO = "0";
+    private static final String SLASH = "/";
+    private static final String JOURNEY_DELIM = " -> ";
+    private static final String DATE_FORMAT = "yyyy-MM-dd";
+    private static final String ODAY_FORMAT = "hhmm";
 
     @Value("${anshar.mqtt.enabled:false}")
     private boolean mqttEnabled;
@@ -73,14 +76,22 @@ public class SiriVmMqttRoute extends RouteBuilder implements CamelContextAware {
         if (vehicleId == null) {
             return;
         }
+        String mode = getMode(monitoredVehicleJourney);
+        String line = getLine(monitoredVehicleJourney);
+        String direction = getDirection(monitoredVehicleJourney);
+        String startTime = getStartTime(monitoredVehicleJourney);
+        long stopIndex = getStopIndex(monitoredVehicleJourney);
+        String departureName = getDepartureName(monitoredVehicleJourney);
+        String operator = getOperator(monitoredVehicleJourney);
 
         BigDecimal lat = getLatitude(monitoredVehicleJourney);
         BigDecimal lng = getLongitude(monitoredVehicleJourney);
+        String geoHash = "";
 
         JSONObject vp = new JSONObject();
         vp.put("desi", getDesignation(monitoredVehicleJourney));
-        vp.put("dir",  getDirection(monitoredVehicleJourney));
-        vp.put("oper", getOperator(monitoredVehicleJourney));
+        vp.put("dir", direction);
+        vp.put("oper", operator);
         vp.put("veh", vehicleId);
         vp.put("tst", getTimestamp(monitoredVehicleJourney));
         vp.put("tsi", getTsi(monitoredVehicleJourney));
@@ -89,21 +100,61 @@ public class SiriVmMqttRoute extends RouteBuilder implements CamelContextAware {
         if (lat != null && lng != null) {
             vp.put("lat", lat.doubleValue());
             vp.put("long", lng.doubleValue());
+            geoHash = getGeoHash(lat.doubleValue(), lng.doubleValue());
         }
         vp.put("dl", getDelay(monitoredVehicleJourney));
         //vp.put("odo": odometer); UNKNOWN
         vp.put("oday", getDepartureDay(monitoredVehicleJourney));
-        vp.put("jrn", getJourney(monitoredVehicleJourney));
-        vp.put("line", getLine(monitoredVehicleJourney));
-        vp.put("start", getStartTime(monitoredVehicleJourney));
-        vp.put("stop_index", getStopIndex(monitoredVehicleJourney));
+        vp.put("jrn", getJourney(monitoredVehicleJourney, departureName));
+        vp.put("line", line);
+        vp.put("start", startTime);
+        vp.put("stop_index", stopIndex);
         vp.put("source", "rutebanken");
+
+        StringBuilder topic = new StringBuilder("/hfp/journey/");
+        topic.append(mode).append(SLASH)
+                .append(vehicleId).append(SLASH)
+                .append(line).append(SLASH)
+                .append(direction).append(SLASH)
+                .append(departureName).append(SLASH)
+                .append(startTime).append(SLASH)
+                .append(stopIndex).append(SLASH)
+                .append(geoHash);
 
         try {
             template.sendBody(Constants.MQTT_ROUTE_ID, vp.toString());
         } catch (Exception e) {
             //TODO logger.warn("Could not parse", e);
         }
+    }
+
+    private String getMode(MonitoredVehicleJourney monitoredVehicleJourney) {
+        if (getOperator(monitoredVehicleJourney).equals("Sporvognsdrift")) {
+            return "tram";
+        }
+        return "bus";
+    }
+
+    private String digit(double x, int i) {
+        return "" + Math.floor((int)(x * Math.pow(10, i))) % 10;
+    }
+
+    private String digits(double latitude, double longitude) {
+        int j;
+        StringBuilder results = new StringBuilder(SLASH);
+        for (int i = j = 1; j <= 3; i = ++j) {
+            results.append(digit(latitude, i)).append(digit(longitude, i)).append(SLASH);
+        }
+        return results.toString();
+    };
+
+    private String getGeoHash(double latitude, double longitude) {
+        StringBuilder geohash = new StringBuilder();
+        geohash.append(Math.floor(latitude));
+        geohash.append(";");
+        geohash.append(Math.floor(longitude));
+        geohash.append(digits(latitude, longitude));
+        return geohash.toString();
     }
 
     private String getDesignation(MonitoredVehicleJourney monitoredVehicleJourney) {
@@ -187,7 +238,7 @@ public class SiriVmMqttRoute extends RouteBuilder implements CamelContextAware {
         String date = UNKNOWN;
         if (originAimedDepartureTime != null) {
             try {
-                date = originAimedDepartureTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                date = originAimedDepartureTime.format(DateTimeFormatter.ofPattern(DATE_FORMAT));
             } catch (DateTimeException exception) {
                 //TODO logger.warn("Could not format " + originAimedDepartureTime, e);
             }
@@ -195,8 +246,20 @@ public class SiriVmMqttRoute extends RouteBuilder implements CamelContextAware {
         return date;
     }
 
-    private String getJourney(MonitoredVehicleJourney monitoredVehicleJourney) {
-        String origin = UNKNOWN, departure = UNKNOWN;
+    private String getDepartureName(MonitoredVehicleJourney monitoredVehicleJourney) {
+        String departureName = UNKNOWN;
+        List<NaturalLanguageStringStructure> destinationNames = monitoredVehicleJourney.getDestinationNames();
+        if (destinationNames != null && destinationNames.size() > 0) {
+            NaturalLanguageStringStructure destinationName = destinationNames.get(0);
+            if (destinationName != null) {
+                departureName = destinationName.getValue();
+            }
+        }
+        return departureName;
+    }
+
+    private String getJourney(MonitoredVehicleJourney monitoredVehicleJourney, String departure) {
+        String origin = UNKNOWN;
 
         List<NaturalLanguagePlaceNameStructure> originNames = monitoredVehicleJourney.getOriginNames();
         if (originNames != null && originNames.size() > 0) {
@@ -205,14 +268,7 @@ public class SiriVmMqttRoute extends RouteBuilder implements CamelContextAware {
                 origin = originName.getValue();
             }
         }
-        List<NaturalLanguageStringStructure> destinationNames = monitoredVehicleJourney.getDestinationNames();
-        if (destinationNames != null && destinationNames.size() > 0) {
-            NaturalLanguageStringStructure destinationName = destinationNames.get(0);
-            if (destinationName != null) {
-                departure = destinationName.getValue();
-            }
-        }
-        return origin.concat(" -> ").concat(departure);
+        return origin.concat(JOURNEY_DELIM).concat(departure);
     }
 
     private String getLine(MonitoredVehicleJourney monitoredVehicleJourney) {
@@ -229,7 +285,7 @@ public class SiriVmMqttRoute extends RouteBuilder implements CamelContextAware {
         String date = UNKNOWN;
         if (originAimedDepartureTime != null) {
             try {
-                date = originAimedDepartureTime.format(DateTimeFormatter.ofPattern("hhmm"));
+                date = originAimedDepartureTime.format(DateTimeFormatter.ofPattern(ODAY_FORMAT));
             } catch (DateTimeException exception) {
                 //TODO logger.warn("Could not format " + originAimedDepartureTime, e);
             }
