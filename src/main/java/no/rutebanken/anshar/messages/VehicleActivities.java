@@ -1,6 +1,8 @@
 package no.rutebanken.anshar.messages;
 
 import com.hazelcast.core.IMap;
+import no.rutebanken.anshar.routes.Constants;
+import org.apache.camel.ProducerTemplate;
 import org.quartz.utils.counter.Counter;
 import org.quartz.utils.counter.CounterImpl;
 import org.slf4j.Logger;
@@ -12,12 +14,13 @@ import uk.org.siri.siri20.*;
 
 import java.time.Instant;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Repository
-public class VehicleActivities implements SiriRepository<VehicleActivityStructure> {
+public class VehicleActivities extends SiriRepository<VehicleActivityStructure> {
     private Logger logger = LoggerFactory.getLogger(VehicleActivities.class);
 
     @Autowired
@@ -143,6 +146,7 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
                         if (expiration >= 0 && keep) {
                             changes.add(key);
                             vehicleActivities.put(key, activity, expiration, TimeUnit.MILLISECONDS);
+                            pushToMqttRoute(datasetId, activity);
                         } else {
                             outdatedCounter.increment();
                         }
@@ -165,6 +169,38 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
         });
 
         return vehicleActivities.getAll(changes).values();
+    }
+
+    private void pushToMqttRoute(String datasetId, VehicleActivityStructure activity) {
+        ProducerTemplate template = camelContext.createProducerTemplate();
+        VehicleActivityStructure.MonitoredVehicleJourney monitoredVehicleJourney = activity.getMonitoredVehicleJourney();
+        String direction = monitoredVehicleJourney.getDirectionRef().getValue();
+        String departureDay = monitoredVehicleJourney.getOriginAimedDepartureTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        String departureTime = monitoredVehicleJourney.getOriginAimedDepartureTime().format(DateTimeFormatter.ofPattern("HHmm"));
+        String lineRef = monitoredVehicleJourney.getLineRef().getValue();
+        String stopIndex = monitoredVehicleJourney.getMonitoredCall().getVisitNumber().toString();
+        String json = "{" +
+                "    \"VP\": {" +
+                "        \"desi\": \"E\"," +
+                "        \"dir\": \"" + direction + "\"," +
+                "        \"dl\": 0," +
+                "        \"hdg\": 179," +
+                "        \"jrn\": \"XXX\"," +
+                "        \"lat\": " + monitoredVehicleJourney.getVehicleLocation().getLatitude().doubleValue() + "," +
+                "        \"long\": " + monitoredVehicleJourney.getVehicleLocation().getLongitude().doubleValue() + "," +
+                "        \"line\": \"" + lineRef + "\"," +
+                "        \"oday\": \"" + departureDay + "\"," +
+                "        \"oper\": \"" + datasetId + "\"," +
+                "        \"source\": \"rutebanken\"," +
+                "        \"spd\": 5.28," +
+                "        \"start\": \"" + departureTime + "\"," +
+                "        \"stop_index\": " + stopIndex + "," +
+                "        \"tsi\": 1493710213," +
+                "        \"tst\": \"2017-30-02T09:30:13.000Z\"," +
+                "        \"veh\": \"2\"" +
+                "    }" +
+                "}";
+        template.sendBody(Constants.MQTT_ROUTE_ID, json);
     }
 
     public VehicleActivityStructure add(String datasetId, VehicleActivityStructure activity) {

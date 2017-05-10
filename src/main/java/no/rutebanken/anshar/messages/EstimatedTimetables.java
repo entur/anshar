@@ -18,7 +18,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Repository
-public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJourney> {
+public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney> {
     private Logger logger = LoggerFactory.getLogger(EstimatedTimetables.class);
 
     @Autowired
