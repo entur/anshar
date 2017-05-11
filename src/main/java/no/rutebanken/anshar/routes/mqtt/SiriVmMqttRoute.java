@@ -97,7 +97,7 @@ public class SiriVmMqttRoute extends RouteBuilder implements CamelContextAware {
         return camelContext;
     }
 
-    private Pair<String, String> getMessage(String datasetId, VehicleActivityStructure activity) {
+    public Pair<String, String> getMessage(String datasetId, VehicleActivityStructure activity) {
         VehicleActivityStructure.MonitoredVehicleJourney monitoredVehicleJourney = activity.getMonitoredVehicleJourney();
         if (monitoredVehicleJourney == null) {
             throw new NullPointerException("VehicleActivityStructure.MonitoredVehicleJourney is null");
