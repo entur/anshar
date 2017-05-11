@@ -1,11 +1,15 @@
 package no.rutebanken.anshar.routes.mqtt;
 
+import javafx.util.Pair;
 import no.rutebanken.anshar.routes.Constants;
+import no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter;
 import org.apache.camel.CamelContext;
 import org.apache.camel.CamelContextAware;
 import org.apache.camel.ProducerTemplate;
 import org.apache.camel.builder.RouteBuilder;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
@@ -14,7 +18,6 @@ import uk.org.siri.siri20.*;
 import uk.org.siri.siri20.VehicleActivityStructure.MonitoredVehicleJourney;
 
 import javax.xml.datatype.Duration;
-import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.DateTimeException;
 import java.time.ZonedDateTime;
@@ -24,22 +27,27 @@ import java.util.List;
 @Configuration
 @Component
 public class SiriVmMqttRoute extends RouteBuilder implements CamelContextAware {
+    private Logger logger = LoggerFactory.getLogger(SiriVmMqttRoute.class);
 
-    private static final String UNKNOWN = "XXX";
+    private static final String URI = "direct:" + Constants.MQTT_ROUTE_ID;
+    private static final String TOPIC_PREFIX = "/hfp/journey/";
+
     private static final String ZERO = "0";
     private static final String SLASH = "/";
     private static final String JOURNEY_DELIM = " -> ";
     private static final String DATE_FORMAT = "yyyy-MM-dd";
     private static final String ODAY_FORMAT = "hhmm";
 
+    private static final String RUTEBANKEN = "rutebanken";
+
     @Value("${anshar.mqtt.enabled:false}")
     private boolean mqttEnabled;
 
+    @Value("${anshar.mqtt.subscribe:false}")
+    private boolean mqttSubscribe;
+
     @Value("${anshar.mqtt.host}")
     private String host;
-
-    @Value("${anshar.mqtt.topic}")
-    private String topic;
 
     @Value("${anshar.mqtt.username}")
     private String username;
@@ -54,9 +62,11 @@ public class SiriVmMqttRoute extends RouteBuilder implements CamelContextAware {
     public void configure() throws Exception {
 
         if (mqttEnabled) {
-            from("direct:mqtt-forwarder")
-                .routeId(Constants.MQTT_ROUTE_ID)
-                .to("mqtt:realtime?host=" + host + "&userName=" + username + "&password=" + password);
+            from(URI).to("mqtt:realtime?host=" + host + "&userName=" + username + "&password=" + password);
+        }
+
+        if (mqttSubscribe) {
+            from("mqtt:realtime?host=" + host + "&subscribeTopicName=#").to("log:response:" + getClass().getSimpleName() + "?showAll=true&multiline=true");
         }
     }
 
@@ -66,16 +76,28 @@ public class SiriVmMqttRoute extends RouteBuilder implements CamelContextAware {
             return;
         }
 
-        ProducerTemplate template = camelContext.createProducerTemplate();
+        try {
+            Pair<String, String> message = getMessage(datasetId, activity);
+            ProducerTemplate template = camelContext.createProducerTemplate();
+            template.sendBodyAndHeader(URI, message.getValue(), "CamelMQTTPublishTopic", message.getKey());
+        } catch (NullPointerException e) {
+            logger.warn("Incomplete Siri data", e);
+        } catch (Exception e) {
+            logger.warn("Could not parse", e);
+        }
+    }
+
+    private Pair<String, String> getMessage(String datasetId, VehicleActivityStructure activity) {
         VehicleActivityStructure.MonitoredVehicleJourney monitoredVehicleJourney = activity.getMonitoredVehicleJourney();
         if (monitoredVehicleJourney == null) {
-            return;
+            throw new NullPointerException("VehicleActivityStructure.MonitoredVehicleJourney is null");
         }
 
         String vehicleId = getVehicleId(datasetId, monitoredVehicleJourney);
         if (vehicleId == null) {
-            return;
+            throw new NullPointerException("VehicleActivityStructure.MonitoredVehicleJourney.VehicleRef is null");
         }
+
         String mode = getMode(monitoredVehicleJourney);
         String line = getLine(monitoredVehicleJourney);
         String direction = getDirection(monitoredVehicleJourney);
@@ -84,48 +106,42 @@ public class SiriVmMqttRoute extends RouteBuilder implements CamelContextAware {
         String departureName = getDepartureName(monitoredVehicleJourney);
         String operator = getOperator(monitoredVehicleJourney);
 
-        BigDecimal lat = getLatitude(monitoredVehicleJourney);
-        BigDecimal lng = getLongitude(monitoredVehicleJourney);
-        String geoHash = "";
+        double lat = getLatitude(monitoredVehicleJourney);
+        double lng = getLongitude(monitoredVehicleJourney);
+        String geoHash = getGeoHash(lat, lng);;
 
         JSONObject vp = new JSONObject();
-        vp.put("desi", getDesignation(monitoredVehicleJourney));
-        vp.put("dir", direction);
-        vp.put("oper", operator);
-        vp.put("veh", vehicleId);
-        vp.put("tst", getTimestamp(monitoredVehicleJourney));
-        vp.put("tsi", getTsi(monitoredVehicleJourney));
-        //vp.put("hdg", 9); UNKNOWN
-        //vp.put("spd", 28); UNKNOWN
-        if (lat != null && lng != null) {
-            vp.put("lat", lat.doubleValue());
-            vp.put("long", lng.doubleValue());
-            geoHash = getGeoHash(lat.doubleValue(), lng.doubleValue());
-        }
-        vp.put("dl", getDelay(monitoredVehicleJourney));
-        //vp.put("odo": odometer); UNKNOWN
-        vp.put("oday", getDepartureDay(monitoredVehicleJourney));
-        vp.put("jrn", getJourney(monitoredVehicleJourney, departureName));
-        vp.put("line", line);
-        vp.put("start", startTime);
-        vp.put("stop_index", stopIndex);
-        vp.put("source", "rutebanken");
+        vp.put(VehiclePosition.DESIGNATION, getDesignation(monitoredVehicleJourney));
+        vp.put(VehiclePosition.DIRECTION, direction);
+        vp.put(VehiclePosition.OPERATOR, operator);
+        vp.put(VehiclePosition.VEHICLE_ID, vehicleId);
+        vp.put(VehiclePosition.TIMESTAMP, getTimestamp(activity));
+        vp.put(VehiclePosition.TSI, getTsi(activity));
+        //vp.put("hdg", 9); VehiclePosition.UNKNOWN
+        //vp.put("spd", 28); VehiclePosition.UNKNOWN
+        vp.put(VehiclePosition.LATITUDE, lat);
+        vp.put(VehiclePosition.LONGITUDE, lng);
 
-        StringBuilder topic = new StringBuilder("/hfp/journey/");
-        topic.append(mode).append(SLASH)
+        vp.put(VehiclePosition.DELAY, getDelay(monitoredVehicleJourney));
+        //vp.put("odo": odometer); VehiclePosition.UNKNOWN
+        vp.put(VehiclePosition.ODAY, getDepartureDay(monitoredVehicleJourney));
+        vp.put(VehiclePosition.JOURNEY, getJourney(monitoredVehicleJourney, departureName));
+        vp.put(VehiclePosition.LINE, line);
+        vp.put(VehiclePosition.STARTTIME, startTime);
+        vp.put(VehiclePosition.STOP_INDEX, stopIndex);
+        vp.put(VehiclePosition.SOURCE, RUTEBANKEN);
+
+        String topic = new StringBuilder(TOPIC_PREFIX)
+                .append(mode).append(SLASH)
                 .append(vehicleId).append(SLASH)
                 .append(line).append(SLASH)
                 .append(direction).append(SLASH)
                 .append(departureName).append(SLASH)
                 .append(startTime).append(SLASH)
                 .append(stopIndex).append(SLASH)
-                .append(geoHash);
-
-        try {
-            template.sendBody(Constants.MQTT_ROUTE_ID, vp.toString());
-        } catch (Exception e) {
-            //TODO logger.warn("Could not parse", e);
-        }
+                .append(geoHash).toString();
+        JSONObject message = new JSONObject().put(VehiclePosition.ROOT, vp);
+        return new Pair<>(topic, message.toString());
     }
 
     private String getMode(MonitoredVehicleJourney monitoredVehicleJourney) {
@@ -136,7 +152,7 @@ public class SiriVmMqttRoute extends RouteBuilder implements CamelContextAware {
     }
 
     private String digit(double x, int i) {
-        return "" + Math.floor((int)(x * Math.pow(10, i))) % 10;
+        return "" + (int) (Math.floor(x * Math.pow(10, i)) % 10);
     }
 
     private String digits(double latitude, double longitude) {
@@ -165,7 +181,7 @@ public class SiriVmMqttRoute extends RouteBuilder implements CamelContextAware {
                 return publishedLine.getValue();
             }
         }
-        return UNKNOWN;
+        return VehiclePosition.UNKNOWN;
     }
 
     private String getDirection(MonitoredVehicleJourney monitoredVehicleJourney) {
@@ -181,7 +197,7 @@ public class SiriVmMqttRoute extends RouteBuilder implements CamelContextAware {
         if (operatorRef != null) {
             return operatorRef.getValue();
         }
-        return UNKNOWN;
+        return VehiclePosition.UNKNOWN;
     }
 
     private String getVehicleId(String datasetId, MonitoredVehicleJourney monitoredVehicleJourney) {
@@ -192,36 +208,36 @@ public class SiriVmMqttRoute extends RouteBuilder implements CamelContextAware {
         return null;
     }
 
-    private String getTimestamp(MonitoredVehicleJourney monitoredVehicleJourney) {
-        ZonedDateTime locationRecordedAtTime = monitoredVehicleJourney.getLocationRecordedAtTime();
+    private String getTimestamp(VehicleActivityStructure monitoredVehicleJourney) {
+        ZonedDateTime locationRecordedAtTime = monitoredVehicleJourney.getRecordedAtTime();
         if (locationRecordedAtTime != null) {
-            return locationRecordedAtTime.toString();
+            return DateTimeFormatter.ISO_INSTANT.format(locationRecordedAtTime);
         }
-        return UNKNOWN;
+        return VehiclePosition.UNKNOWN;
     }
 
-    private long getTsi(MonitoredVehicleJourney monitoredVehicleJourney) {
-        ZonedDateTime locationRecordedAtTime = monitoredVehicleJourney.getLocationRecordedAtTime();
+    private long getTsi(VehicleActivityStructure monitoredVehicleJourney) {
+        ZonedDateTime locationRecordedAtTime = monitoredVehicleJourney.getRecordedAtTime();
         if (locationRecordedAtTime != null) {
             return locationRecordedAtTime.toEpochSecond();
         }
         return 0;
     }
 
-    private BigDecimal getLatitude(MonitoredVehicleJourney monitoredVehicleJourney) {
+    private double getLatitude(MonitoredVehicleJourney monitoredVehicleJourney) {
         LocationStructure vehicleLocation = monitoredVehicleJourney.getVehicleLocation();
         if (vehicleLocation != null) {
-            return vehicleLocation.getLatitude();
+            return vehicleLocation.getLatitude().doubleValue();
         }
-        return null;
+        return 0.0;
     }
 
-    private BigDecimal getLongitude(MonitoredVehicleJourney monitoredVehicleJourney) {
+    private double getLongitude(MonitoredVehicleJourney monitoredVehicleJourney) {
         LocationStructure vehicleLocation = monitoredVehicleJourney.getVehicleLocation();
         if (vehicleLocation != null) {
-            return vehicleLocation.getLongitude();
+            return vehicleLocation.getLongitude().doubleValue();
         }
-        return null;
+        return 0.0;
     }
 
     private int getDelay(MonitoredVehicleJourney monitoredVehicleJourney) {
@@ -235,19 +251,19 @@ public class SiriVmMqttRoute extends RouteBuilder implements CamelContextAware {
     private String getDepartureDay(MonitoredVehicleJourney monitoredVehicleJourney) {
         ZonedDateTime originAimedDepartureTime = monitoredVehicleJourney.getOriginAimedDepartureTime();
 
-        String date = UNKNOWN;
+        String date = VehiclePosition.UNKNOWN;
         if (originAimedDepartureTime != null) {
             try {
                 date = originAimedDepartureTime.format(DateTimeFormatter.ofPattern(DATE_FORMAT));
             } catch (DateTimeException exception) {
-                //TODO logger.warn("Could not format " + originAimedDepartureTime, e);
+                logger.warn("Could not format " + originAimedDepartureTime + " to " + DATE_FORMAT, exception);
             }
         }
         return date;
     }
 
     private String getDepartureName(MonitoredVehicleJourney monitoredVehicleJourney) {
-        String departureName = UNKNOWN;
+        String departureName = VehiclePosition.UNKNOWN;
         List<NaturalLanguageStringStructure> destinationNames = monitoredVehicleJourney.getDestinationNames();
         if (destinationNames != null && destinationNames.size() > 0) {
             NaturalLanguageStringStructure destinationName = destinationNames.get(0);
@@ -259,7 +275,7 @@ public class SiriVmMqttRoute extends RouteBuilder implements CamelContextAware {
     }
 
     private String getJourney(MonitoredVehicleJourney monitoredVehicleJourney, String departure) {
-        String origin = UNKNOWN;
+        String origin = VehiclePosition.UNKNOWN;
 
         List<NaturalLanguagePlaceNameStructure> originNames = monitoredVehicleJourney.getOriginNames();
         if (originNames != null && originNames.size() > 0) {
@@ -274,20 +290,20 @@ public class SiriVmMqttRoute extends RouteBuilder implements CamelContextAware {
     private String getLine(MonitoredVehicleJourney monitoredVehicleJourney) {
         LineRef lineRef = monitoredVehicleJourney.getLineRef();
         if (lineRef != null) {
-            return lineRef.getValue();
+            return OutboundIdAdapter.getMappedId(lineRef.getValue());
         }
-        return UNKNOWN;
+        return VehiclePosition.UNKNOWN;
     }
 
     private String getStartTime(MonitoredVehicleJourney monitoredVehicleJourney) {
         ZonedDateTime originAimedDepartureTime = monitoredVehicleJourney.getOriginAimedDepartureTime();
 
-        String date = UNKNOWN;
+        String date = VehiclePosition.UNKNOWN;
         if (originAimedDepartureTime != null) {
             try {
                 date = originAimedDepartureTime.format(DateTimeFormatter.ofPattern(ODAY_FORMAT));
             } catch (DateTimeException exception) {
-                //TODO logger.warn("Could not format " + originAimedDepartureTime, e);
+                logger.warn("Could not format " + originAimedDepartureTime + " to " + ODAY_FORMAT, exception);
             }
         }
         return date;
