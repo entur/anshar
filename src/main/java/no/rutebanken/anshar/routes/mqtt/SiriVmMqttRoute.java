@@ -173,7 +173,7 @@ public class SiriVmMqttRoute extends RouteBuilder implements CamelContextAware {
      */
 
     private String getMode(MonitoredVehicleJourney monitoredVehicleJourney) {
-        if (getOperator(monitoredVehicleJourney).equals("Sporvognsdrift")) {
+        if ("Sporvognsdrift".equals(getOperator(monitoredVehicleJourney))) {
             return "tram";
         }
         return "bus";
@@ -181,7 +181,7 @@ public class SiriVmMqttRoute extends RouteBuilder implements CamelContextAware {
 
     private String getVehicleId(String datasetId, MonitoredVehicleJourney monitoredVehicleJourney) {
         VehicleRef vehicleRef = monitoredVehicleJourney.getVehicleRef();
-        if (vehicleRef != null) {
+        if (vehicleRef != null && vehicleRef.getValue() != null) {
             return datasetId + vehicleRef.getValue();
         }
         return null;
@@ -189,7 +189,7 @@ public class SiriVmMqttRoute extends RouteBuilder implements CamelContextAware {
 
     private String getRoute(MonitoredVehicleJourney monitoredVehicleJourney) {
         LineRef lineRef = monitoredVehicleJourney.getLineRef();
-        if (lineRef != null) {
+        if (lineRef != null && lineRef.getValue() != null) {
             return OutboundIdAdapter.getMappedId(lineRef.getValue());
         }
         return VehiclePosition.UNKNOWN;
@@ -197,7 +197,7 @@ public class SiriVmMqttRoute extends RouteBuilder implements CamelContextAware {
 
     private String getDirection(MonitoredVehicleJourney monitoredVehicleJourney) {
         DirectionRefStructure directionRef = monitoredVehicleJourney.getDirectionRef();
-        if (directionRef != null) {
+        if (directionRef != null && directionRef.getValue() != null) {
             return directionRef.getValue();
         }
         return ZERO;
@@ -208,7 +208,7 @@ public class SiriVmMqttRoute extends RouteBuilder implements CamelContextAware {
         List<NaturalLanguageStringStructure> destinationNames = monitoredVehicleJourney.getDestinationNames();
         if (destinationNames.size() > 0) {
             NaturalLanguageStringStructure destinationName = destinationNames.get(0);
-            if (destinationName != null) {
+            if (destinationName != null && destinationName.getValue() != null) {
                 departureName = destinationName.getValue();
             }
         }
@@ -233,7 +233,7 @@ public class SiriVmMqttRoute extends RouteBuilder implements CamelContextAware {
         OnwardCallsStructure onwardCalls = monitoredVehicleJourney.getOnwardCalls();
         if (onwardCalls != null && onwardCalls.getOnwardCalls().size() > 0) {
             StopPointRef stopPointRef = onwardCalls.getOnwardCalls().get(0).getStopPointRef();
-            if (stopPointRef != null) {
+            if (stopPointRef != null && stopPointRef.getValue() != null) {
                 return OutboundIdAdapter.getMappedId(stopPointRef.getValue());
             }
         }
@@ -273,7 +273,7 @@ public class SiriVmMqttRoute extends RouteBuilder implements CamelContextAware {
         List<NaturalLanguageStringStructure> publishedLineNames = monitoredVehicleJourney.getPublishedLineNames();
         if (publishedLineNames != null && publishedLineNames.size() > 0) {
             NaturalLanguageStringStructure publishedLine = publishedLineNames.get(0);
-            if (publishedLine != null) {
+            if (publishedLine != null && publishedLine.getValue() != null) {
                 return publishedLine.getValue();
             }
         }
@@ -282,7 +282,7 @@ public class SiriVmMqttRoute extends RouteBuilder implements CamelContextAware {
 
     private String getOperator(MonitoredVehicleJourney monitoredVehicleJourney) {
         OperatorRefStructure operatorRef = monitoredVehicleJourney.getOperatorRef();
-        if (operatorRef != null) {
+        if (operatorRef != null && operatorRef.getValue() != null) {
             return operatorRef.getValue();
         }
         return VehiclePosition.UNKNOWN;
@@ -332,7 +332,7 @@ public class SiriVmMqttRoute extends RouteBuilder implements CamelContextAware {
         List<NaturalLanguagePlaceNameStructure> originNames = monitoredVehicleJourney.getOriginNames();
         if (originNames != null && originNames.size() > 0) {
             NaturalLanguagePlaceNameStructure originName = originNames.get(0);
-            if (originName != null) {
+            if (originName != null && originName.getValue() != null) {
                 origin = originName.getValue();
             }
         }
