@@ -99,16 +99,16 @@ public class SiriVmMqttRoute extends RouteBuilder implements CamelContextAware {
         }
 
         String mode = getMode(monitoredVehicleJourney);
-        String line = getLine(monitoredVehicleJourney);
+        String route = getRoute(monitoredVehicleJourney);
         String direction = getDirection(monitoredVehicleJourney);
         String startTime = getStartTime(monitoredVehicleJourney);
         long stopIndex = getStopIndex(monitoredVehicleJourney);
-        String departureName = getDepartureName(monitoredVehicleJourney);
+        String headSign = getHeadSign(monitoredVehicleJourney);
+        String nextStop = getNextStop(monitoredVehicleJourney);
         String operator = getOperator(monitoredVehicleJourney);
 
         double lat = getLatitude(monitoredVehicleJourney);
         double lng = getLongitude(monitoredVehicleJourney);
-        String geoHash = getGeoHash(lat, lng);;
 
         JSONObject vp = new JSONObject();
         vp.put(VehiclePosition.DESIGNATION, getDesignation(monitoredVehicleJourney));
@@ -117,31 +117,39 @@ public class SiriVmMqttRoute extends RouteBuilder implements CamelContextAware {
         vp.put(VehiclePosition.VEHICLE_ID, vehicleId);
         vp.put(VehiclePosition.TIMESTAMP, getTimestamp(activity));
         vp.put(VehiclePosition.TSI, getTsi(activity));
-        //vp.put("hdg", 9); VehiclePosition.UNKNOWN
-        //vp.put("spd", 28); VehiclePosition.UNKNOWN
+        //vp.put(VehiclePosition.HEADING, 9);
+        //vp.put(VehiclePosition.SPEED, 28);
         vp.put(VehiclePosition.LATITUDE, lat);
         vp.put(VehiclePosition.LONGITUDE, lng);
-
         vp.put(VehiclePosition.DELAY, getDelay(monitoredVehicleJourney));
-        //vp.put("odo": odometer); VehiclePosition.UNKNOWN
+        //vp.put(VehiclePosition.ODOMETER: odometer);
         vp.put(VehiclePosition.ODAY, getDepartureDay(monitoredVehicleJourney));
-        vp.put(VehiclePosition.JOURNEY, getJourney(monitoredVehicleJourney, departureName));
-        vp.put(VehiclePosition.LINE, line);
+        vp.put(VehiclePosition.JOURNEY, getJourney(monitoredVehicleJourney, headSign));
+        vp.put(VehiclePosition.LINE, route);
         vp.put(VehiclePosition.STARTTIME, startTime);
         vp.put(VehiclePosition.STOP_INDEX, stopIndex);
         vp.put(VehiclePosition.SOURCE, RUTEBANKEN);
 
-        String topic = new StringBuilder(TOPIC_PREFIX)
-                .append(mode).append(SLASH)
-                .append(vehicleId).append(SLASH)
-                .append(line).append(SLASH)
-                .append(direction).append(SLASH)
-                .append(departureName).append(SLASH)
-                .append(startTime).append(SLASH)
-                .append(stopIndex).append(SLASH)
-                .append(geoHash).toString();
+        String topic = getTopic(mode, vehicleId, route, direction, headSign, startTime, nextStop, lat, lng);
         JSONObject message = new JSONObject().put(VehiclePosition.ROOT, vp);
         return new Pair<>(topic, message.toString());
+    }
+
+    /**
+     * Formats topic to string
+     * - hfp/journey/<mode>/<vehicleId>/<route>/<direction>/<headsign>/<start_time>/<next_stop>/<geohash>;
+     */
+    private String getTopic(String mode, String vehicleId, String route, String direction, String headSign,
+                            String startTime, String nextStop, double lat, double lng) {
+        return new StringBuilder(TOPIC_PREFIX)
+                    .append(mode).append(SLASH)
+                    .append(vehicleId).append(SLASH)
+                    .append(route).append(SLASH)
+                    .append(direction).append(SLASH)
+                    .append(headSign).append(SLASH)
+                    .append(startTime).append(SLASH)
+                    .append(nextStop).append(SLASH)
+                    .append(getGeoHash(lat, lng)).toString();
     }
 
     private String getMode(MonitoredVehicleJourney monitoredVehicleJourney) {
@@ -262,7 +270,7 @@ public class SiriVmMqttRoute extends RouteBuilder implements CamelContextAware {
         return date;
     }
 
-    private String getDepartureName(MonitoredVehicleJourney monitoredVehicleJourney) {
+    private String getHeadSign(MonitoredVehicleJourney monitoredVehicleJourney) {
         String departureName = VehiclePosition.UNKNOWN;
         List<NaturalLanguageStringStructure> destinationNames = monitoredVehicleJourney.getDestinationNames();
         if (destinationNames != null && destinationNames.size() > 0) {
@@ -274,7 +282,18 @@ public class SiriVmMqttRoute extends RouteBuilder implements CamelContextAware {
         return departureName;
     }
 
-    private String getJourney(MonitoredVehicleJourney monitoredVehicleJourney, String departure) {
+    private String getNextStop(MonitoredVehicleJourney monitoredVehicleJourney) {
+        OnwardCallsStructure onwardCalls = monitoredVehicleJourney.getOnwardCalls();
+        if (onwardCalls != null && onwardCalls.getOnwardCalls().size() > 0) {
+            StopPointRef stopPointRef = onwardCalls.getOnwardCalls().get(0).getStopPointRef();
+            if (stopPointRef != null) {
+                return OutboundIdAdapter.getMappedId(stopPointRef.getValue());
+            }
+        }
+        return VehiclePosition.UNKNOWN;
+    }
+
+    private String getJourney(MonitoredVehicleJourney monitoredVehicleJourney, String headSign) {
         String origin = VehiclePosition.UNKNOWN;
 
         List<NaturalLanguagePlaceNameStructure> originNames = monitoredVehicleJourney.getOriginNames();
@@ -284,10 +303,10 @@ public class SiriVmMqttRoute extends RouteBuilder implements CamelContextAware {
                 origin = originName.getValue();
             }
         }
-        return origin.concat(JOURNEY_DELIM).concat(departure);
+        return origin.concat(JOURNEY_DELIM).concat(headSign);
     }
 
-    private String getLine(MonitoredVehicleJourney monitoredVehicleJourney) {
+    private String getRoute(MonitoredVehicleJourney monitoredVehicleJourney) {
         LineRef lineRef = monitoredVehicleJourney.getLineRef();
         if (lineRef != null) {
             return OutboundIdAdapter.getMappedId(lineRef.getValue());

@@ -12,9 +12,12 @@ public interface VehiclePosition {
     String VEHICLE_ID = "veh";
     String TIMESTAMP = "tst";
     String TSI = "tsi";
+    String HEADING = "hdg";
+    String SPEED = "spd";
     String LATITUDE = "lat";
     String LONGITUDE = "long";
     String DELAY = "dl";
+    String ODOMETER = "odo";
     String ODAY = "oday";
     String JOURNEY = "jrn";
     String LINE = "line";
