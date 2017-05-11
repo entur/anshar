@@ -87,6 +87,16 @@ public class SiriVmMqttRoute extends RouteBuilder implements CamelContextAware {
         }
     }
 
+    @Override
+    public void setCamelContext(CamelContext camelContext) {
+        this.camelContext = camelContext;
+    }
+
+    @Override
+    public CamelContext getCamelContext() {
+        return camelContext;
+    }
+
     private Pair<String, String> getMessage(String datasetId, VehicleActivityStructure activity) {
         VehicleActivityStructure.MonitoredVehicleJourney monitoredVehicleJourney = activity.getMonitoredVehicleJourney();
         if (monitoredVehicleJourney == null) {
@@ -337,15 +347,5 @@ public class SiriVmMqttRoute extends RouteBuilder implements CamelContextAware {
             }
         }
         return 0;
-    }
-
-    @Override
-    public void setCamelContext(CamelContext camelContext) {
-        this.camelContext = camelContext;
-    }
-
-    @Override
-    public CamelContext getCamelContext() {
-        return camelContext;
     }
 }
