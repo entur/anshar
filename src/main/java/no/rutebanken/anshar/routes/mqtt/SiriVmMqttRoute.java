@@ -117,12 +117,12 @@ public class SiriVmMqttRoute extends RouteBuilder implements CamelContextAware {
         vehiclePosition.put(VehiclePosition.VEHICLE_ID, vehicleId);
         vehiclePosition.put(VehiclePosition.TIMESTAMP, getTimestamp(activity));
         vehiclePosition.put(VehiclePosition.TSI, getTsi(activity));
-        //vp.put(VehiclePosition.HEADING, 9);
-        //vp.put(VehiclePosition.SPEED, 28);
+        //vehiclePosition.put(VehiclePosition.HEADING, 9);
+        //vehiclePosition.put(VehiclePosition.SPEED, 28);
         vehiclePosition.put(VehiclePosition.LATITUDE, lat);
         vehiclePosition.put(VehiclePosition.LONGITUDE, lng);
         vehiclePosition.put(VehiclePosition.DELAY, getDelay(monitoredVehicleJourney));
-        //vp.put(VehiclePosition.ODOMETER: odometer);
+        //vehiclePosition.put(VehiclePosition.ODOMETER: odometer);
         vehiclePosition.put(VehiclePosition.ODAY, getDepartureDay(monitoredVehicleJourney));
         vehiclePosition.put(VehiclePosition.JOURNEY, getJourney(monitoredVehicleJourney, headSign));
         vehiclePosition.put(VehiclePosition.LINE, route);
