@@ -26,7 +26,7 @@ public class SiriVmMqttRouteTest {
 
         VehicleActivityStructure vehicle = createVehicle(dateTime, "veh123", "RUT:Line:7890", "Nettbus",
                 1, "NSR:Quay:6201", 59.10234567, 10.98765421, 123, "Helsfyr T",
-                "hest", "Nydalen T", 18);
+                "7890", "Nydalen T", 18);
 
         String datasetId = "RUT";
         Pair<String, String> message = new SiriVmMqttRoute().getMessage(datasetId, vehicle);
