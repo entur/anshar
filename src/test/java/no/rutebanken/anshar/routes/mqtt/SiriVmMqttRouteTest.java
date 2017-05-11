@@ -63,6 +63,60 @@ public class SiriVmMqttRouteTest {
         assertEquals("rutebanken", obj.get(VehiclePosition.SOURCE));
     }
 
+    @Test(expected=NullPointerException.class)
+    public void testNullVehicleId() {
+        ZonedDateTime dateTime = ZonedDateTime.of(2017, 12, 24, 9, 37, 4, 0, ZoneId.of("GMT"));
+
+        VehicleActivityStructure activity = new VehicleActivityStructure();
+        VehicleActivityStructure.MonitoredVehicleJourney vehicle = new VehicleActivityStructure.MonitoredVehicleJourney();
+        activity.setMonitoredVehicleJourney(vehicle);
+            Pair<String, String> message = new SiriVmMqttRoute().getMessage("RUT", activity);
+    }
+
+    @Test
+    public void testNullTopic() {
+        ZonedDateTime dateTime = ZonedDateTime.of(2017, 12, 24, 12, 34, 4, 0, ZoneId.of("GMT"));
+        VehicleActivityStructure vehicle = createVehicle(dateTime, "nullveh", null, null, 2, null,
+                59.10234567, 10.98765421, 123, null, null, null, 1);
+
+        String datasetId = "RUT";
+        Pair<String, String> message = new SiriVmMqttRoute().getMessage(datasetId, vehicle);
+        String topic = message.getKey();
+
+        assertEquals("/hfp/journey/bus/RUTnullveh/XXX/2/XXX/1234/XXX/59;10/19/08/27/", topic);
+    }
+
+    @Test
+    public void testNullMessage() {
+        ZonedDateTime dateTime = ZonedDateTime.of(2017, 12, 24, 12, 34, 40, 0, ZoneId.of("GMT"));
+        VehicleActivityStructure vehicle = createVehicle(dateTime, "nullveh", null, null, 2, null,
+                59.10234567, 10.98765421, -12, null, null, null, 1);
+
+        String datasetId = "RUT";
+        Pair<String, String> message = new SiriVmMqttRoute().getMessage(datasetId, vehicle);
+
+        String msg = message.getValue();
+
+        JSONObject obj = new JSONObject(msg).getJSONObject(VehiclePosition.ROOT);
+
+        assertEquals("XXX", obj.get(VehiclePosition.DESIGNATION));
+        assertEquals("2", obj.get(VehiclePosition.DIRECTION));
+        assertEquals("XXX", obj.get(VehiclePosition.OPERATOR));
+        assertEquals("RUTnullveh", obj.get(VehiclePosition.VEHICLE_ID));
+        assertEquals("2017-12-24T12:34:40Z", obj.get(VehiclePosition.TIMESTAMP));
+        assertEquals(1514118880, obj.get(VehiclePosition.TSI));
+        assertEquals(59.10234567, obj.get(VehiclePosition.LATITUDE));
+        assertEquals(10.98765421, obj.get(VehiclePosition.LONGITUDE));
+        assertEquals(-12, obj.get(VehiclePosition.DELAY));
+        assertEquals("2017-12-24", obj.get(VehiclePosition.ODAY));
+        assertEquals("XXX -> XXX", obj.get(VehiclePosition.JOURNEY));
+        assertEquals("XXX", obj.get(VehiclePosition.LINE));
+        assertEquals("1234", obj.get(VehiclePosition.STARTTIME));
+        assertEquals(1, obj.get(VehiclePosition.STOP_INDEX));
+        assertEquals("rutebanken", obj.get(VehiclePosition.SOURCE));
+    }
+
+
     private VehicleActivityStructure createVehicle(ZonedDateTime dateTime, String vehicleRef, String line,
                                                    String operator, int direction,
                                                    String nextStop, // -> onwardscalls[0]
