@@ -258,9 +258,9 @@ public class SiriVmMqttRoute extends RouteBuilder implements CamelContextAware {
 
     private String getGeoHash(double latitude, double longitude) {
         StringBuilder geohash = new StringBuilder();
-        geohash.append(Math.floor(latitude));
+        geohash.append((int)latitude);
         geohash.append(";");
-        geohash.append(Math.floor(longitude));
+        geohash.append((int)longitude);
         geohash.append(digits(latitude, longitude));
         return geohash.toString();
     }
