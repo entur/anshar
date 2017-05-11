@@ -32,7 +32,7 @@ public class SiriVmMqttRouteTest {
         Pair<String, String> message = new SiriVmMqttRoute().getMessage(datasetId, vehicle);
         String topic = message.getKey();
 
-        assertEquals("/hfp/journey/bus/RUTveh123/RUT:Line:7890/1/Helsfyr T/1023/NSR:Quay:6201/59;10/91/08/27/", topic);
+        assertEquals("/hfp/journey/bus/RUTveh123/RUT:Line:7890/1/Helsfyr T/1023/NSR:Quay:6201/59;10/19/08/27/", topic);
     }
 
     private VehicleActivityStructure createVehicle(ZonedDateTime dateTime, String vehicleRef, String line,
