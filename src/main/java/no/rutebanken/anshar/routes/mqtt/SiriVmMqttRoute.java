@@ -206,7 +206,7 @@ public class SiriVmMqttRoute extends RouteBuilder implements CamelContextAware {
     private String getHeadSign(MonitoredVehicleJourney monitoredVehicleJourney) {
         String departureName = VehiclePosition.UNKNOWN;
         List<NaturalLanguageStringStructure> destinationNames = monitoredVehicleJourney.getDestinationNames();
-        if (destinationNames != null && destinationNames.size() > 0) {
+        if (destinationNames.size() > 0) {
             NaturalLanguageStringStructure destinationName = destinationNames.get(0);
             if (destinationName != null) {
                 departureName = destinationName.getValue();
