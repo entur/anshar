@@ -110,28 +110,28 @@ public class SiriVmMqttRoute extends RouteBuilder implements CamelContextAware {
         double lat = getLatitude(monitoredVehicleJourney);
         double lng = getLongitude(monitoredVehicleJourney);
 
-        JSONObject vp = new JSONObject();
-        vp.put(VehiclePosition.DESIGNATION, getDesignation(monitoredVehicleJourney));
-        vp.put(VehiclePosition.DIRECTION, direction);
-        vp.put(VehiclePosition.OPERATOR, operator);
-        vp.put(VehiclePosition.VEHICLE_ID, vehicleId);
-        vp.put(VehiclePosition.TIMESTAMP, getTimestamp(activity));
-        vp.put(VehiclePosition.TSI, getTsi(activity));
+        JSONObject vehiclePosition = new JSONObject();
+        vehiclePosition.put(VehiclePosition.DESIGNATION, getDesignation(monitoredVehicleJourney));
+        vehiclePosition.put(VehiclePosition.DIRECTION, direction);
+        vehiclePosition.put(VehiclePosition.OPERATOR, operator);
+        vehiclePosition.put(VehiclePosition.VEHICLE_ID, vehicleId);
+        vehiclePosition.put(VehiclePosition.TIMESTAMP, getTimestamp(activity));
+        vehiclePosition.put(VehiclePosition.TSI, getTsi(activity));
         //vp.put(VehiclePosition.HEADING, 9);
         //vp.put(VehiclePosition.SPEED, 28);
-        vp.put(VehiclePosition.LATITUDE, lat);
-        vp.put(VehiclePosition.LONGITUDE, lng);
-        vp.put(VehiclePosition.DELAY, getDelay(monitoredVehicleJourney));
+        vehiclePosition.put(VehiclePosition.LATITUDE, lat);
+        vehiclePosition.put(VehiclePosition.LONGITUDE, lng);
+        vehiclePosition.put(VehiclePosition.DELAY, getDelay(monitoredVehicleJourney));
         //vp.put(VehiclePosition.ODOMETER: odometer);
-        vp.put(VehiclePosition.ODAY, getDepartureDay(monitoredVehicleJourney));
-        vp.put(VehiclePosition.JOURNEY, getJourney(monitoredVehicleJourney, headSign));
-        vp.put(VehiclePosition.LINE, route);
-        vp.put(VehiclePosition.STARTTIME, startTime);
-        vp.put(VehiclePosition.STOP_INDEX, stopIndex);
-        vp.put(VehiclePosition.SOURCE, RUTEBANKEN);
+        vehiclePosition.put(VehiclePosition.ODAY, getDepartureDay(monitoredVehicleJourney));
+        vehiclePosition.put(VehiclePosition.JOURNEY, getJourney(monitoredVehicleJourney, headSign));
+        vehiclePosition.put(VehiclePosition.LINE, route);
+        vehiclePosition.put(VehiclePosition.STARTTIME, startTime);
+        vehiclePosition.put(VehiclePosition.STOP_INDEX, stopIndex);
+        vehiclePosition.put(VehiclePosition.SOURCE, RUTEBANKEN);
 
         String topic = getTopic(mode, vehicleId, route, direction, headSign, startTime, nextStop, lat, lng);
-        JSONObject message = new JSONObject().put(VehiclePosition.ROOT, vp);
+        JSONObject message = new JSONObject().put(VehiclePosition.ROOT, vehiclePosition);
         return new Pair<>(topic, message.toString());
     }
 
