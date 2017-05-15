@@ -27,10 +27,12 @@ anshar:
       datasetId: KOL
       serviceType: SOAP
       subscriptionType: VEHICLE_MONITORING
-      subscriptionMode: REQUEST_RESPONSE
+      subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 60
       operatorNamespace: http://www.siri.org.uk/siri
       urlMap:
+        SUBSCRIBE: sis.kolumbus.no:90/VMWS/VMService.svc
+        DELETE_SUBSCRIPTION: sis.kolumbus.no:90/VMWS/VMService.svc
         GET_VEHICLE_MONITORING: sis.kolumbus.no:90/VMWS/VMService.svc
       version: 1.4
       subscriptionId: ${random.uuid}
