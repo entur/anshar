@@ -221,6 +221,9 @@ public class SiriObjectFactory {
         vmSubscriptionReq.setInitialTerminationTime(ZonedDateTime.now().plusSeconds(subscriptionDuration.getSeconds()));
         vmSubscriptionReq.setSubscriberRef(request.getRequestorRef());
 
+        //Requesting updates every second
+        vmSubscriptionReq.setUpdateInterval(createDataTypeFactory().newDuration(1000L));
+
         request.getVehicleMonitoringSubscriptionRequests().add(vmSubscriptionReq);
 
         return request;
