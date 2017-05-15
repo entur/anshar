@@ -362,7 +362,7 @@ anshar:
       subscriptionId: nsb-sx-test-feed
       requestorRef: ${random.uuid}
       durationOfSubscriptionHours: 2
-      mappingAdapterPresets: BANENOR
+      mappingAdapterPresets: NSB
       filterPresets:
       idMappingPrefixes: NSB
       active: true

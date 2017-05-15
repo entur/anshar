@@ -73,6 +73,10 @@ public class MappingAdapterPresets {
                 adapters.add(new BaneNorIdReplacer(JourneyPlaceRefStructure.class));
                 adapters.add(new BaneNorIdReplacer(DestinationRef.class));
                 break;
+            case NSB:
+                adapters.add(new LeftPaddingAdapter(StopPointRef.class, 9, '0'));
+                adapters.add(new BaneNorIdReplacer(StopPointRef.class));
+                break;
             case MOR:
                 break;
         }
