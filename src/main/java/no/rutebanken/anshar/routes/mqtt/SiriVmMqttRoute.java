@@ -64,7 +64,7 @@ public class SiriVmMqttRoute extends RouteBuilder implements CamelContextAware {
         if (mqttEnabled) {
             from(URI)
                 .to("log:mqtt:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
-                .to("mqtt:realtime?host=" + host + "&userName=" + username + "&password=" + password);
+                .to("mqtt:realtime?host=" + host + "&userName=" + username + "&password=" + password + "&byDefaultRetain=true");
         }
 
         if (mqttSubscribe) {
