@@ -27,7 +27,7 @@ anshar:
       datasetId: KOL
       serviceType: SOAP
       subscriptionType: VEHICLE_MONITORING
-      subscriptionMode: SUBSCRIBE
+      subscriptionMode: REQUEST_RESPONSE
       heartbeatIntervalSeconds: 60
       operatorNamespace: http://www.siri.org.uk/siri
       urlMap:
