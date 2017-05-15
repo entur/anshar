@@ -116,13 +116,12 @@ public class SiriVmMqttRoute extends RouteBuilder implements CamelContextAware {
         String direction = getDirection(monitoredVehicleJourney);
         String headSign = getHeadSign(monitoredVehicleJourney);
         String startTime = getStartTime(monitoredVehicleJourney);
-        String nextStop = getNextStop(monitoredVehicleJourney);
         double lat = getLatitude(monitoredVehicleJourney);
         double lng = getLongitude(monitoredVehicleJourney);
         String timestamp = getTimestamp(activity);
         long tsi = getTsi(activity);
 
-        String topic = getTopic(mode, vehicleId, route, direction, headSign, startTime, nextStop, lat, lng);
+        String topic = getTopic(mode, vehicleId, route, direction, headSign, startTime);
         String message = getMessage(monitoredVehicleJourney, vehicleId, timestamp, tsi, route, direction, headSign, startTime, lat, lng);
 
         return new Pair<>(topic, message);
@@ -130,10 +129,10 @@ public class SiriVmMqttRoute extends RouteBuilder implements CamelContextAware {
 
     /**
      * Formats topic to string
-     * - hfp/journey/<mode>/<vehicleId>/<route>/<direction>/<headsign>/<start_time>/<next_stop>/<geohash>;
+     * - hfp/journey/<mode>/<vehicleId>/<route>/<direction>/<headsign>/<start_time>;
      */
     private String getTopic(String mode, String vehicleId, String route, String direction, String headSign,
-                            String startTime, String nextStop, double lat, double lng) {
+                            String startTime) {
         return new StringBuilder(TOPIC_PREFIX)
                     .append(mode).append(SLASH)
                     .append(vehicleId).append(SLASH)
@@ -141,8 +140,7 @@ public class SiriVmMqttRoute extends RouteBuilder implements CamelContextAware {
                     .append(direction).append(SLASH)
                     .append(headSign).append(SLASH)
                     .append(startTime).append(SLASH)
-                    .append(nextStop).append(SLASH)
-                    .append(getGeoHash(lat, lng)).toString();
+                .toString();
     }
 
     private String getMessage(MonitoredVehicleJourney monitoredVehicleJourney, String vehicleId, String timeStamp,
