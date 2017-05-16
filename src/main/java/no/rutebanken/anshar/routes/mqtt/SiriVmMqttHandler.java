@@ -109,7 +109,7 @@ public class SiriVmMqttHandler {
                 if (publishCounter.incrementAndGet() % 500 == 0) {
                     long minutesSinceStart = (System.currentTimeMillis() - podStartTime)/60000;
                     double messagesPerMinute = publishCounter.get() / minutesSinceStart;
-                    logger.info("[{}] Published {} updates, total size {} bytes ({} per minute), last message:[{}]", clientId, publishCounter.get(), readableFileSize(publishedSizeCounter.longValue()), Math.round(messagesPerMinute*10)/10 , content);
+                    logger.info("[{}] Published {} updates ({} per minute), total size {}, last message:[{}]", clientId, publishCounter.get(), readableFileSize(publishedSizeCounter.longValue()), Math.round(messagesPerMinute*10)/10 , content);
                 }
             }
         } catch (MqttException e) {
