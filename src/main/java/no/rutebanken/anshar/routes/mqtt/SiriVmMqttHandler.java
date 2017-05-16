@@ -97,7 +97,7 @@ public class SiriVmMqttHandler {
             if (mqttClient.isConnected()) {
                 mqttClient.publish(topic, new MqttMessage(content.getBytes()));
                 if (publishCounter.incrementAndGet() % 500 == 0) {
-                    logger.info("This pod has published {} locations to MQTT since startup, last message:[{}]", publishCounter.get(), content);
+                    logger.info("This pod has published {} updates to MQTT since startup, last message:[{}]", publishCounter.get(), content);
                 }
             }
         } catch (MqttException e) {
