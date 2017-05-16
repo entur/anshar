@@ -63,6 +63,7 @@ public class SiriVmMqttHandler {
     private long lastConnectionAttempt;
 
     private final AtomicInteger publishCounter = new AtomicInteger(0);
+    private Long publishedSizeCounter = new Long(0);
     private int connectionTimeout = 10;;
 
     @PostConstruct
@@ -96,8 +97,9 @@ public class SiriVmMqttHandler {
         try {
             if (mqttClient.isConnected()) {
                 mqttClient.publish(topic, new MqttMessage(content.getBytes()));
+                publishedSizeCounter += content.length();
                 if (publishCounter.incrementAndGet() % 500 == 0) {
-                    logger.info("This pod has published {} updates to MQTT since startup, last message:[{}]", publishCounter.get(), content);
+                    logger.info("This pod has published {} updates, with total size {} bytes, to MQTT since startup, last message:[{}]", publishCounter.get(), publishedSizeCounter.longValue(), content);
                 }
             }
         } catch (MqttException e) {
@@ -105,13 +107,16 @@ public class SiriVmMqttHandler {
         }
     }
 
-    private void connect() {
+    private synchronized void connect() {
+        if (mqttClient.isConnected()) {
+            logger.info("Already connected to mqtt - ignoring connect-request");
+            return;
+        }
 
         MqttConnectOptions connOpts = new MqttConnectOptions();
         connOpts.setUserName(username);
         connOpts.setPassword(password.toCharArray());
         connOpts.setConnectionTimeout(connectionTimeout);
-        connOpts.setAutomaticReconnect(true);
         connOpts.setMaxInflight(32000); //Half of the mqtt-specification
         connOpts.setCleanSession(false);
         try {
