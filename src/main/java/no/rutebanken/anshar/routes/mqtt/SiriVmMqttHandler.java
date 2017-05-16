@@ -23,6 +23,7 @@ import java.time.DateTimeException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Configuration
@@ -69,7 +70,9 @@ public class SiriVmMqttHandler {
     @PostConstruct
     private void initialize() {
         try {
-            mqttClient = new MqttClient(host, "Anshar", null);
+            String clientId = UUID.randomUUID().toString();
+            mqttClient = new MqttClient(host, clientId, null);
+            logger.info("Initializing MQTT-client with clientId {}", clientId);
         } catch (MqttException e) {
             throw new ExceptionInInitializerError(e);
         }
