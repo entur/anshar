@@ -23,6 +23,7 @@ import java.time.DateTimeException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Configuration
 @Component
@@ -61,6 +62,7 @@ public class SiriVmMqttHandler {
 
     private long lastConnectionAttempt;
 
+    private final AtomicInteger publishCounter = new AtomicInteger(0);
 
     @PostConstruct
     private void initialize() {
@@ -75,6 +77,7 @@ public class SiriVmMqttHandler {
     private void disconnect() {
         if (mqttClient.isConnected()) {
             try {
+                logger.info("Disconnecting from MQTT on address {}", host);
                 mqttClient.disconnectForcibly();
             } catch (MqttException e) {
                 //Disconnect failed - ignore
@@ -92,6 +95,9 @@ public class SiriVmMqttHandler {
         try {
             if (mqttClient.isConnected()) {
                 mqttClient.publish(topic, new MqttMessage(content.getBytes()));
+                if (publishCounter.incrementAndGet() % 500 == 0) {
+                    logger.info("Published {} locations to MQTT since startup, last message:[{}]", publishCounter.get(), content);
+                }
             }
         } catch (MqttException e) {
             logger.info("Unable to publish to MQTT", e);
