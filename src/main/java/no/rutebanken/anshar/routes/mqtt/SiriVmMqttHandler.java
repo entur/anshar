@@ -1,5 +1,6 @@
 package no.rutebanken.anshar.routes.mqtt;
 
+import com.hazelcast.core.IMap;
 import javafx.util.Pair;
 import no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter;
 import org.eclipse.paho.client.mqttv3.MqttClient;
@@ -9,6 +10,7 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
@@ -25,11 +27,15 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Configuration
 @Component
 public class SiriVmMqttHandler {
+
+    private static final String MQTT_COUNTER_KEY = "Anshar.MQTT.message.count";
+    private static final String MQTT_SIZE_KEY = "Anshar.MQTT.message.size";
+    private static final String MQTT_START_TIME_KEY = "Anshar.MQTT.start.time";
+
     private Logger logger = LoggerFactory.getLogger(SiriVmMqttHandler.class);
 
     private static final String TOPIC_PREFIX = "/hfp/journey/";
@@ -60,21 +66,30 @@ public class SiriVmMqttHandler {
     @Value("${anshar.mqtt.reconnectInterval.millis:30000}")
     private long reconnectInterval;
 
+    @Autowired
+    private IMap<String, Integer> hitcount;
+
     private MqttClient mqttClient;
 
     private long lastConnectionAttempt;
 
-    private final AtomicInteger publishCounter = new AtomicInteger(0);
-    private static final long podStartTime = System.currentTimeMillis();
+    private static long startTime = System.currentTimeMillis();
     private static final String clientId = UUID.randomUUID().toString();
-    private Long publishedSizeCounter = new Long(0);
 
-    private int connectionTimeout = 10;;
+    private int connectionTimeout = 10;
 
     @PostConstruct
     private void initialize() {
         try {
             mqttClient = new MqttClient(host, clientId, null);
+
+            if (!hitcount.containsKey(MQTT_START_TIME_KEY)) {
+                startTime = System.currentTimeMillis();
+                hitcount.put(MQTT_START_TIME_KEY, new Integer((int) startTime));
+            } else {
+                startTime = hitcount.get(MQTT_START_TIME_KEY);
+            }
+
             logger.info("Initializing MQTT-client with clientId {}", clientId);
         } catch (MqttException e) {
             throw new ExceptionInInitializerError(e);
@@ -105,11 +120,15 @@ public class SiriVmMqttHandler {
                 MqttMessage message = new MqttMessage(content.getBytes());
                 message.setQos(1);
                 mqttClient.publish(topic, message);
-                publishedSizeCounter += content.length();
-                if (publishCounter.incrementAndGet() % 500 == 0) {
-                    long minutesSinceStart = (System.currentTimeMillis() - podStartTime)/60000;
-                    double messagesPerMinute = publishCounter.get() / minutesSinceStart;
-                    logger.info("[{}] Published {} updates ({} per minute), total size {}, last message:[{}]", clientId, publishCounter.get(), readableFileSize(publishedSizeCounter.longValue()), Math.round(messagesPerMinute*10)/10 , content);
+
+                Integer publishedCount = hitcount.merge(MQTT_COUNTER_KEY, 1, Integer::sum);
+                Integer publishedSize = hitcount.merge(MQTT_SIZE_KEY, content.length(), Integer::sum);
+
+                if (publishedCount != null && publishedCount % 1000 == 0) {
+                    long secondsSinceStart = (System.currentTimeMillis() - startTime)/1000;
+                    double messagesPerSec = publishedCount / secondsSinceStart;
+                    logger.info("MQTT: Published {} updates ({} per second), total size {}, last message:[{}]",
+                            publishedCount, Math.round(messagesPerSec), readableFileSize(publishedSize.longValue()), content);
                 }
             }
         } catch (MqttException e) {
