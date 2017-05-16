@@ -19,6 +19,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.xml.datatype.Duration;
 import java.math.BigInteger;
+import java.text.DecimalFormat;
 import java.time.DateTimeException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -64,13 +65,15 @@ public class SiriVmMqttHandler {
     private long lastConnectionAttempt;
 
     private final AtomicInteger publishCounter = new AtomicInteger(0);
+    private static final long podStartTime = System.currentTimeMillis();
+    private static final String clientId = UUID.randomUUID().toString();
     private Long publishedSizeCounter = new Long(0);
+
     private int connectionTimeout = 10;;
 
     @PostConstruct
     private void initialize() {
         try {
-            String clientId = UUID.randomUUID().toString();
             mqttClient = new MqttClient(host, clientId, null);
             logger.info("Initializing MQTT-client with clientId {}", clientId);
         } catch (MqttException e) {
@@ -99,10 +102,14 @@ public class SiriVmMqttHandler {
 
         try {
             if (mqttClient.isConnected()) {
-                mqttClient.publish(topic, new MqttMessage(content.getBytes()));
+                MqttMessage message = new MqttMessage(content.getBytes());
+                message.setQos(1);
+                mqttClient.publish(topic, message);
                 publishedSizeCounter += content.length();
                 if (publishCounter.incrementAndGet() % 500 == 0) {
-                    logger.info("This pod has published {} updates, with total size {} bytes, to MQTT since startup, last message:[{}]", publishCounter.get(), publishedSizeCounter.longValue(), content);
+                    long minutesSinceStart = (System.currentTimeMillis() - podStartTime)/60000;
+                    double messagesPerMinute = publishCounter.get() / minutesSinceStart;
+                    logger.info("[{}] Published {} updates, total size {} bytes ({} per minute), last message:[{}]", clientId, publishCounter.get(), readableFileSize(publishedSizeCounter.longValue()), Math.round(messagesPerMinute*10)/10 , content);
                 }
             }
         } catch (MqttException e) {
@@ -416,5 +423,12 @@ public class SiriVmMqttHandler {
             results.append(digit(latitude, i)).append(digit(longitude, i)).append(SLASH);
         }
         return results.toString();
+    }
+
+    private static String readableFileSize(long size) {
+        if(size <= 0) return "0";
+        final String[] units = new String[] { "B", "kB", "MB", "GB", "TB" };
+        int digitGroups = (int) (Math.log10(size)/Math.log10(1024));
+        return new DecimalFormat("#,##0.#").format(size/Math.pow(1024, digitGroups)) + " " + units[digitGroups];
     }
 }
