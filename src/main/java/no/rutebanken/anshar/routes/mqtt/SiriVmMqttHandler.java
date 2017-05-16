@@ -112,6 +112,7 @@ public class SiriVmMqttHandler {
         connOpts.setPassword(password.toCharArray());
         connOpts.setConnectionTimeout(connectionTimeout);
         connOpts.setAutomaticReconnect(true);
+        connOpts.setMaxInflight(32000); //Half of the mqtt-specification
         connOpts.setCleanSession(false);
         try {
             lastConnectionAttempt = System.currentTimeMillis();
@@ -119,7 +120,7 @@ public class SiriVmMqttHandler {
             mqttClient.connect(connOpts);
             logger.info("Connected to MQTT on address {} with user {}", host, username);
         } catch (MqttException e) {
-            logger.warn("Failed to connect to MQTT on address {} with user {}", host, username);
+            logger.warn("Failed to connect to MQTT ", e);
         }
     }
 
