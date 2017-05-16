@@ -34,7 +34,7 @@ public class SiriVmMqttHandler {
 
     private static final String MQTT_COUNTER_KEY = "Anshar.MQTT.message.count";
     private static final String MQTT_SIZE_KEY = "Anshar.MQTT.message.size";
-    private static final String MQTT_START_TIME_KEY = "Anshar.MQTT.start.time";
+    private static final String MQTT_START_TIME_IN_SECONDS_KEY = "Anshar.MQTT.start.time";
 
     private Logger logger = LoggerFactory.getLogger(SiriVmMqttHandler.class);
 
@@ -73,7 +73,7 @@ public class SiriVmMqttHandler {
 
     private long lastConnectionAttempt;
 
-    private static long startTime = System.currentTimeMillis();
+    private static int startTime = (int) (System.currentTimeMillis() / 1000);
     private static final String clientId = UUID.randomUUID().toString();
 
     private int connectionTimeout = 10;
@@ -83,11 +83,10 @@ public class SiriVmMqttHandler {
         try {
             mqttClient = new MqttClient(host, clientId, null);
 
-            if (!hitcount.containsKey(MQTT_START_TIME_KEY)) {
-                startTime = System.currentTimeMillis();
-                hitcount.put(MQTT_START_TIME_KEY, new Integer((int) startTime));
+            if (!hitcount.containsKey(MQTT_START_TIME_IN_SECONDS_KEY)) {
+                hitcount.put(MQTT_START_TIME_IN_SECONDS_KEY, startTime);
             } else {
-                startTime = hitcount.get(MQTT_START_TIME_KEY);
+                startTime = hitcount.get(MQTT_START_TIME_IN_SECONDS_KEY);
             }
 
             logger.info("Initializing MQTT-client with clientId {}", clientId);
@@ -125,7 +124,7 @@ public class SiriVmMqttHandler {
                 Integer publishedSize = hitcount.merge(MQTT_SIZE_KEY, content.length(), Integer::sum);
 
                 if (publishedCount != null && publishedCount % 1000 == 0) {
-                    long secondsSinceStart = (System.currentTimeMillis() - startTime)/1000;
+                    long secondsSinceStart = (System.currentTimeMillis()/1000) - startTime;
                     double messagesPerSec = publishedCount / secondsSinceStart;
                     logger.info("MQTT: Published {} updates ({} per second), total size {}, last message:[{}]",
                             publishedCount, Math.round(messagesPerSec), readableFileSize(publishedSize.longValue()), content);
