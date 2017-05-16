@@ -1,22 +1,22 @@
 package no.rutebanken.anshar.routes.mqtt;
 
 import javafx.util.Pair;
-import no.rutebanken.anshar.routes.Constants;
 import no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter;
-import org.apache.camel.CamelContext;
-import org.apache.camel.CamelContextAware;
-import org.apache.camel.ProducerTemplate;
-import org.apache.camel.builder.RouteBuilder;
+import org.eclipse.paho.client.mqttv3.MqttClient;
+import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
+import org.eclipse.paho.client.mqttv3.MqttException;
+import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 import uk.org.siri.siri20.*;
 import uk.org.siri.siri20.VehicleActivityStructure.MonitoredVehicleJourney;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.xml.datatype.Duration;
 import java.math.BigInteger;
 import java.time.DateTimeException;
@@ -26,10 +26,9 @@ import java.util.List;
 
 @Configuration
 @Component
-public class SiriVmMqttRoute extends RouteBuilder implements CamelContextAware {
-    private Logger logger = LoggerFactory.getLogger(SiriVmMqttRoute.class);
+public class SiriVmMqttHandler {
+    private Logger logger = LoggerFactory.getLogger(SiriVmMqttHandler.class);
 
-    private static final String URI = "direct:" + Constants.MQTT_ROUTE_ID;
     private static final String TOPIC_PREFIX = "/hfp/journey/";
 
     private static final String ZERO = "0";
@@ -55,49 +54,80 @@ public class SiriVmMqttRoute extends RouteBuilder implements CamelContextAware {
     @Value("${anshar.mqtt.password}")
     private String password;
 
-    @Autowired
-    private CamelContext camelContext;
+    @Value("${anshar.mqtt.reconnectInterval.millis:30000}")
+    private long reconnectInterval;
 
-    @Override
-    public void configure() throws Exception {
+    private MqttClient mqttClient;
 
-        if (mqttEnabled) {
-            from(URI)
-                .to("log:mqtt:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
-                .to("mqtt:realtime?host=" + host + "&userName=" + username + "&password=" + password + "&byDefaultRetain=true");
-        }
+    private long lastConnectionAttempt;
 
-        if (mqttSubscribe) {
-            from("mqtt:realtime?host=" + host + "&subscribeTopicName=#")
-                .to("log:response:" + getClass().getSimpleName() + "?showAll=true&multiline=true");
+
+    @PostConstruct
+    private void initialize() {
+        try {
+            mqttClient = new MqttClient(host, "Anshar", null);
+        } catch (MqttException e) {
+            throw new ExceptionInInitializerError(e);
         }
     }
 
+    @PreDestroy
+    private void disconnect() {
+        if (mqttClient.isConnected()) {
+            try {
+                mqttClient.disconnectForcibly();
+            } catch (MqttException e) {
+                //Disconnect failed - ignore
+            }
+        }
+    }
 
-    public void pushToMqttRoute(String datasetId, VehicleActivityStructure activity) {
+    public void publishMessage(String topic, String content) {
+
+        if (!mqttClient.isConnected() &&
+                (System.currentTimeMillis() - lastConnectionAttempt) > reconnectInterval) {
+            connect();
+        }
+
+        try {
+            if (mqttClient.isConnected()) {
+                mqttClient.publish(topic, new MqttMessage(content.getBytes()));
+            }
+        } catch (MqttException e) {
+            logger.info("Unable to publish to MQTT", e);
+        }
+    }
+
+    private void connect() {
+
+        MqttConnectOptions connOpts = new MqttConnectOptions();
+        connOpts.setUserName(username);
+        connOpts.setPassword(password.toCharArray());
+        connOpts.setConnectionTimeout(5);
+        connOpts.setCleanSession(true);
+        try {
+            lastConnectionAttempt = System.currentTimeMillis();
+            mqttClient.connect(connOpts);
+            logger.info("Connected to MQTT on address {} with user {}", host, username);
+        } catch (MqttException e) {
+            logger.warn("Failed to connect to MQTT on address {} with user {}", host, username);
+        }
+    }
+
+    public void pushToMqtt(String datasetId, VehicleActivityStructure activity) {
         if (!mqttEnabled) {
             return;
         }
 
         try {
             Pair<String, String> message = getMessage(datasetId, activity);
-            ProducerTemplate template = camelContext.createProducerTemplate();
-            template.sendBodyAndHeader(URI, message.getValue(), "CamelMQTTPublishTopic", message.getKey());
+            publishMessage(message.getKey(), message.getValue());
+
         } catch (NullPointerException e) {
             logger.warn("Incomplete Siri data", e);
         } catch (Exception e) {
             logger.warn("Could not parse", e);
         }
-    }
-
-    @Override
-    public void setCamelContext(CamelContext camelContext) {
-        this.camelContext = camelContext;
-    }
-
-    @Override
-    public CamelContext getCamelContext() {
-        return camelContext;
     }
 
     public Pair<String, String> getMessage(String datasetId, VehicleActivityStructure activity) {

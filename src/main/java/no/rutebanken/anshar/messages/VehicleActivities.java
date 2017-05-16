@@ -1,7 +1,7 @@
 package no.rutebanken.anshar.messages;
 
 import com.hazelcast.core.IMap;
-import no.rutebanken.anshar.routes.mqtt.SiriVmMqttRoute;
+import no.rutebanken.anshar.routes.mqtt.SiriVmMqttHandler;
 import org.quartz.utils.counter.Counter;
 import org.quartz.utils.counter.CounterImpl;
 import org.slf4j.Logger;
@@ -34,7 +34,7 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
     private IMap<String, Instant> lastUpdateRequested;
 
     @Autowired
-    private SiriVmMqttRoute siriVmMqttRoute;
+    private SiriVmMqttHandler siriVmMqttHandler;
 
     /**
      * @return All vehicle activities
@@ -147,7 +147,7 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
                         if (expiration >= 0 && keep) {
                             changes.add(key);
                             vehicleActivities.put(key, activity, expiration, TimeUnit.MILLISECONDS);
-                            siriVmMqttRoute.pushToMqttRoute(datasetId, activity);
+                            siriVmMqttHandler.pushToMqtt(datasetId, activity);
                         } else {
                             outdatedCounter.increment();
                         }

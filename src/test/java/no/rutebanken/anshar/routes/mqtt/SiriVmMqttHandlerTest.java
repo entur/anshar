@@ -15,7 +15,7 @@ import java.util.Calendar;
 
 import static org.junit.Assert.assertEquals;
 
-public class SiriVmMqttRouteTest {
+public class SiriVmMqttHandlerTest {
 
     @Test
     public void testTopicFormat() {
@@ -27,7 +27,7 @@ public class SiriVmMqttRouteTest {
                 "7890", "not used in this test", 1);
 
         String datasetId = "RUT";
-        Pair<String, String> message = new SiriVmMqttRoute().getMessage(datasetId, vehicle);
+        Pair<String, String> message = new SiriVmMqttHandler().getMessage(datasetId, vehicle);
         String topic = message.getKey();
 
         assertEquals("/hfp/journey/bus/RUTveh123/RUT:Line:7890/1/DesttNNx tehd/1011/NSR:Quay:4321/59;10/19/08/27/", topic);
@@ -41,7 +41,7 @@ public class SiriVmMqttRouteTest {
                 "37", "Nydalen T", 18);
 
         String datasetId = "RUT";
-        Pair<String, String> message = new SiriVmMqttRoute().getMessage(datasetId, vehicle);
+        Pair<String, String> message = new SiriVmMqttHandler().getMessage(datasetId, vehicle);
         String msg = message.getValue();
 
         JSONObject obj = new JSONObject(msg).getJSONObject(VehiclePosition.ROOT);
@@ -70,7 +70,7 @@ public class SiriVmMqttRouteTest {
         VehicleActivityStructure activity = new VehicleActivityStructure();
         VehicleActivityStructure.MonitoredVehicleJourney vehicle = new VehicleActivityStructure.MonitoredVehicleJourney();
         activity.setMonitoredVehicleJourney(vehicle);
-            Pair<String, String> message = new SiriVmMqttRoute().getMessage("RUT", activity);
+            Pair<String, String> message = new SiriVmMqttHandler().getMessage("RUT", activity);
     }
 
     @Test
@@ -80,7 +80,7 @@ public class SiriVmMqttRouteTest {
                 59.10234567, 10.98765421, 123, null, null, null, 1);
 
         String datasetId = "RUT";
-        Pair<String, String> message = new SiriVmMqttRoute().getMessage(datasetId, vehicle);
+        Pair<String, String> message = new SiriVmMqttHandler().getMessage(datasetId, vehicle);
         String topic = message.getKey();
 
         assertEquals("/hfp/journey/bus/RUTnullveh/XXX/2/XXX/1234/XXX/59;10/19/08/27/", topic);
@@ -93,7 +93,7 @@ public class SiriVmMqttRouteTest {
                 59.10234567, 10.98765421, -12, null, null, null, 1);
 
         String datasetId = "RUT";
-        Pair<String, String> message = new SiriVmMqttRoute().getMessage(datasetId, vehicle);
+        Pair<String, String> message = new SiriVmMqttHandler().getMessage(datasetId, vehicle);
 
         String msg = message.getValue();
 
