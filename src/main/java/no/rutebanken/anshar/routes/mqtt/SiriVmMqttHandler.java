@@ -63,6 +63,7 @@ public class SiriVmMqttHandler {
     private long lastConnectionAttempt;
 
     private final AtomicInteger publishCounter = new AtomicInteger(0);
+    private int connectionTimeout = 10;;
 
     @PostConstruct
     private void initialize() {
@@ -109,10 +110,11 @@ public class SiriVmMqttHandler {
         MqttConnectOptions connOpts = new MqttConnectOptions();
         connOpts.setUserName(username);
         connOpts.setPassword(password.toCharArray());
-        connOpts.setConnectionTimeout(5);
+        connOpts.setConnectionTimeout(connectionTimeout);
         connOpts.setCleanSession(true);
         try {
             lastConnectionAttempt = System.currentTimeMillis();
+            logger.info("Connecting to MQTT on address {} using {) seconds timeout", host, connectionTimeout);
             mqttClient.connect(connOpts);
             logger.info("Connected to MQTT on address {} with user {}", host, username);
         } catch (MqttException e) {
