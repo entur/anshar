@@ -97,7 +97,7 @@ public class SiriVmMqttHandler {
             if (mqttClient.isConnected()) {
                 mqttClient.publish(topic, new MqttMessage(content.getBytes()));
                 if (publishCounter.incrementAndGet() % 500 == 0) {
-                    logger.info("Published {} locations to MQTT since startup, last message:[{}]", publishCounter.get(), content);
+                    logger.info("This pod has published {} locations to MQTT since startup, last message:[{}]", publishCounter.get(), content);
                 }
             }
         } catch (MqttException e) {
@@ -111,10 +111,11 @@ public class SiriVmMqttHandler {
         connOpts.setUserName(username);
         connOpts.setPassword(password.toCharArray());
         connOpts.setConnectionTimeout(connectionTimeout);
-        connOpts.setCleanSession(true);
+        connOpts.setAutomaticReconnect(true);
+        connOpts.setCleanSession(false);
         try {
             lastConnectionAttempt = System.currentTimeMillis();
-            logger.info("Connecting to MQTT on address {} using {) seconds timeout", host, connectionTimeout);
+            logger.info("Connecting to MQTT on address {} using {} seconds timeout", host, connectionTimeout);
             mqttClient.connect(connOpts);
             logger.info("Connected to MQTT on address {} with user {}", host, username);
         } catch (MqttException e) {
