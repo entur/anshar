@@ -73,7 +73,6 @@ public class SiriVmMqttHandler {
 
     private long lastConnectionAttempt;
 
-    private static int startTime = (int) (System.currentTimeMillis() / 1000);
     private static final String clientId = UUID.randomUUID().toString();
 
     private int connectionTimeout = 10;
@@ -82,12 +81,6 @@ public class SiriVmMqttHandler {
     private void initialize() {
         try {
             mqttClient = new MqttClient(host, clientId, null);
-
-            if (!hitcount.containsKey(MQTT_START_TIME_IN_SECONDS_KEY)) {
-                hitcount.put(MQTT_START_TIME_IN_SECONDS_KEY, startTime);
-            } else {
-                startTime = hitcount.get(MQTT_START_TIME_IN_SECONDS_KEY);
-            }
 
             logger.info("Initializing MQTT-client with clientId {}", clientId);
         } catch (MqttException e) {
@@ -124,10 +117,8 @@ public class SiriVmMqttHandler {
                 Integer publishedSize = hitcount.merge(MQTT_SIZE_KEY, content.length(), Integer::sum);
 
                 if (publishedCount != null && publishedCount % 1000 == 0) {
-                    long secondsSinceStart = (System.currentTimeMillis()/1000) - startTime;
-                    double messagesPerSec = publishedCount / secondsSinceStart;
-                    logger.info("MQTT: Published {} updates ({} per second), total size {}, last message:[{}]",
-                            publishedCount, Math.round(messagesPerSec), readableFileSize(publishedSize.longValue()), content);
+                    logger.info("MQTT: Published {} updates, total size {}, last message:[{}]",
+                            publishedCount, readableFileSize(publishedSize.longValue()), content);
                 }
             }
         } catch (MqttException e) {
