@@ -175,6 +175,7 @@ public class SiriHandlerTest {
                 SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
                 "http://localhost",
                 Duration.ofMinutes(1),
+                Duration.ofSeconds(1),
                 "http://www.kolumbus.no/siri",
                 new HashMap<>(),
                 "1.4",

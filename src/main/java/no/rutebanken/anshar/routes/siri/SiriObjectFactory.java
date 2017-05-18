@@ -51,7 +51,8 @@ public class SiriObjectFactory {
                     subscriptionSetup.getHeartbeatInterval().toString(),
                     subscriptionSetup.buildUrl(),
                     subscriptionSetup.getDurationOfSubscription(),
-                    subscriptionSetup.getFilterMap());
+                    subscriptionSetup.getFilterMap(),
+                    (subscriptionSetup.getUpdateInterval() != null ? subscriptionSetup.getUpdateInterval().toString():null));
         }
         if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE)) {
             request = createEstimatedTimetableSubscriptionRequest(subscriptionSetup.getRequestorRef(),subscriptionSetup.getSubscriptionId(),
@@ -191,7 +192,7 @@ public class SiriObjectFactory {
         return request;
     }
 
-    private static SubscriptionRequest createVehicleMonitoringSubscriptionRequest(String requestorRef, String subscriptionId, String heartbeatInterval, String address, Duration subscriptionDuration, Map<Class, Set<Object>> filterMap) {
+    private static SubscriptionRequest createVehicleMonitoringSubscriptionRequest(String requestorRef, String subscriptionId, String heartbeatInterval, String address, Duration subscriptionDuration, Map<Class, Set<Object>> filterMap, String updateInterval) {
         SubscriptionRequest request = createSubscriptionRequest(requestorRef,heartbeatInterval, address);
 
         VehicleMonitoringRequestStructure vmRequest = new VehicleMonitoringRequestStructure();
@@ -221,8 +222,10 @@ public class SiriObjectFactory {
         vmSubscriptionReq.setInitialTerminationTime(ZonedDateTime.now().plusSeconds(subscriptionDuration.getSeconds()));
         vmSubscriptionReq.setSubscriberRef(request.getRequestorRef());
 
-        //Requesting updates every second
-        vmSubscriptionReq.setUpdateInterval(createDataTypeFactory().newDuration(1000L));
+        if (updateInterval != null && !updateInterval.isEmpty()) {
+            //Requesting updates every second
+            vmSubscriptionReq.setUpdateInterval(createDataTypeFactory().newDuration(updateInterval));
+        }
 
         request.getVehicleMonitoringSubscriptionRequests().add(vmSubscriptionReq);
 

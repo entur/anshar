@@ -66,6 +66,7 @@
                     <tr><th>Servicetype</th><td>${item.serviceType}</td></tr>
                     <tr><th>Heartbeat interval</th><td>${item.heartbeatInterval}</td></tr>
                     <tr><th>Preview interval</th><td>${item.previewInterval}</td></tr>
+                    <tr><th>Update interval</th><td>${item.updateInterval}</td></tr>
                     <tr><th>Duration</th><td>${item.durationOfSubscription}</td></tr>
                     <tr><th>Type</th><td>${item.subscriptionType}</td></tr>
                     <tr><th>Id</th><td>${item.subscriptionId}</td></tr>

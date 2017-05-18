@@ -151,6 +151,7 @@ anshar:
       subscriptionType: VEHICLE_MONITORING
       subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 60
+      updateIntervalSeconds: 1
       operatorNamespace: http://www.siri.org.uk/siri
       urlMap:
         SUBSCRIBE: 193.69.85.197:8080/RutebankenDEV/vm/subscribe.xml
@@ -433,6 +434,7 @@ anshar:
       serviceType: REST
       subscriptionType: VEHICLE_MONITORING
       subscriptionMode: SUBSCRIBE
+      updateIntervalSeconds: 1
       heartbeatIntervalSeconds: 60
       operatorNamespace: http://www.siri.org.uk/siri
       urlMap:
@@ -474,6 +476,7 @@ anshar:
       subscriptionType: VEHICLE_MONITORING
       subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 60
+      updateIntervalSeconds: 1
       operatorNamespace: http://www.siri.org.uk/siri
       urlMap:
 #        GET_VEHICLE_MONITORING: https4://api.rutebanken.org/anshar/1.0/anshar/services/RUT?useOriginalId=true
