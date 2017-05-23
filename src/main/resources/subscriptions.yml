@@ -273,7 +273,7 @@ anshar:
       serviceType: REST
       subscriptionType: ESTIMATED_TIMETABLE
       subscriptionMode: SUBSCRIBE
-      heartbeatIntervalSeconds: 6000
+      heartbeatIntervalSeconds: 60
       operatorNamespace: http://www.siri.org.uk/siri
       urlMap:
         SUBSCRIBE: 62.97.192.2:8080/SIRIProducer/SiriProducerHttp
