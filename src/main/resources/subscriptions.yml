@@ -280,7 +280,7 @@ anshar:
         DELETE_SUBSCRIPTION: 62.97.192.2:8080/SIRIProducer/SiriProducerHttp
       version: 2.0
       subscriptionId: ${random.uuid}
-      requestorRef: RutebankenDEV
+      requestorRef: SKYSS
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: SKYSS
       filterPresets: BYBANEN
