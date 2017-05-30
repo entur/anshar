@@ -479,9 +479,9 @@ anshar:
       updateIntervalSeconds: 1
       operatorNamespace: http://www.siri.org.uk/siri
       urlMap:
-#        GET_VEHICLE_MONITORING: https4://api.rutebanken.org/anshar/1.0/anshar/services/RUT?useOriginalId=true
-        SUBSCRIBE: https4://api.rutebanken.org/anshar/1.0/anshar/subscribe/RUT?useOriginalId=true
-        DELETE_SUBSCRIPTION: https4://api.rutebanken.org/anshar/1.0/anshar/subscribe/RUT
+#        GET_VEHICLE_MONITORING: https4://api.entur.org/anshar/1.0/anshar/services/RUT?useOriginalId=true
+        SUBSCRIBE: https4://api.entur.org/anshar/1.0/anshar/subscribe/RUT?useOriginalId=true
+        DELETE_SUBSCRIPTION: https4://api.entur.org/anshar/1.0/anshar/subscribe/RUT
       version: 2.0
       subscriptionId: vm-replication
       requestorRef: vm-requestorref
@@ -500,8 +500,8 @@ anshar:
       heartbeatIntervalSeconds: 60
       operatorNamespace: http://www.siri.org.uk/siri
       urlMap:
-        SUBSCRIBE: https4://api.rutebanken.org/anshar/1.0/anshar/subscribe/RUT?useOriginalId=true
-        DELETE_SUBSCRIPTION: https4://api.rutebanken.org/anshar/1.0/anshar/subscribe/RUT
+        SUBSCRIBE: https4://api.entur.org/anshar/1.0/anshar/subscribe/RUT?useOriginalId=true
+        DELETE_SUBSCRIPTION: https4://api.entur.org/anshar/1.0/anshar/subscribe/RUT
       version: 2.0
       subscriptionId: et-replication
       requestorRef: et-requestorref
