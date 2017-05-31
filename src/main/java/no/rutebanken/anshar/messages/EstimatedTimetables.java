@@ -53,7 +53,6 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
 
         if (requestorId != null) {
 
-            System.out.println("Returning max " + maxSize + " to requestorRef " + requestorId);
             // Get all relevant ids
             Set<String> allIds = new HashSet<>();
             Set<String> idSet = changesMap.getOrDefault(requestorId, allIds);
@@ -74,7 +73,7 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
             collectedIds.forEach(id -> idSet.remove(id));
 
 
-            System.out.println("Returning  " + collectedIds.size() + ", " + idSet.size() + " left");
+            logger.info("Returning {}, {} left for requestorRef {}", collectedIds.size(), idSet.size(), requestorId);
 
             Boolean isMoreData = !idSet.isEmpty();
 

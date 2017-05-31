@@ -88,8 +88,6 @@ public class EstimatedTimetablesTest {
         // Verify that no more updates exist
         assertEquals(0, estimatedTimetables.getAllUpdates(requestorId, null).size());
 
-        System.out.println("requestorId:" +requestorId);
-
         estimatedTimetables.add("test", createEstimatedVehicleJourney("1234-partialupdate", "4321", 0, 30, ZonedDateTime.now().plusHours(1), true));
         estimatedTimetables.add("test", createEstimatedVehicleJourney("2345-partialupdate", "4321", 0, 30, ZonedDateTime.now().plusHours(1), true));
         estimatedTimetables.add("test", createEstimatedVehicleJourney("3456-partialupdate", "4321", 0, 30, ZonedDateTime.now().plusHours(1), true));
