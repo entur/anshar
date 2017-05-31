@@ -417,8 +417,8 @@ anshar:
       heartbeatIntervalSeconds: 60
       operatorNamespace: http://www.siri.org.uk/siri
       urlMap:
-        SUBSCRIBE: SiriET.mrfylke.pubtrans.com:8001
-        DELETE_SUBSCRIPTION: SiriET.mrfylke.pubtrans.com:8001
+        SUBSCRIBE: Siri.mrfylke.pubtrans.com:8001/SubscriptionManager
+        DELETE_SUBSCRIPTION: SiriET.mrfylke.pubtrans.com:8001/SubscriptionManager
       version: 1.4
       subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV_${random.uuid}
@@ -438,8 +438,8 @@ anshar:
       heartbeatIntervalSeconds: 60
       operatorNamespace: http://www.siri.org.uk/siri
       urlMap:
-        SUBSCRIBE: SiriVM.mrfylke.pubtrans.com:8003
-        DELETE_SUBSCRIPTION: SiriVM.mrfylke.pubtrans.com:8003
+        SUBSCRIBE: Siri.mrfylke.pubtrans.com:8001/SubscriptionManager
+        DELETE_SUBSCRIPTION: Siri.mrfylke.pubtrans.com:8001/SubscriptionManager
       version: 1.4
       subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV_${random.uuid}
@@ -458,8 +458,8 @@ anshar:
       heartbeatIntervalSeconds: 60
       operatorNamespace: http://www.siri.org.uk/siri
       urlMap:
-        SUBSCRIBE: SiriSX.mrfylke.pubtrans.com:8002
-        DELETE_SUBSCRIPTION: SiriSX.mrfylke.pubtrans.com:8002
+        SUBSCRIBE: Siri.mrfylke.pubtrans.com:8001/SubscriptionManager
+        DELETE_SUBSCRIPTION: Siri.mrfylke.pubtrans.com:8001/SubscriptionManager
       version: 1.4
       subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV_${random.uuid}
