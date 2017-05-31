@@ -50,10 +50,10 @@ public class Siri20ToSiriWS14Subscription extends SiriSubscriptionRouteBuilder {
                 .setHeader("operatorNamespace", constant(subscriptionSetup.getOperatorNamespace())) // Need to make SOAP request with endpoint specific element namespace
                 .to("xslt:xsl/siri_20_14.xsl") // Convert from SIRI 2.0 to SIRI 1.4
                 .to("xslt:xsl/siri_raw_soap.xsl") // Convert SIRI raw request to SOAP version
-                .to("log:sent:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .removeHeaders("CamelHttp*") // Remove any incoming HTTP headers as they interfere with the outgoing definition
                 .setHeader(Exchange.CONTENT_TYPE, constant("text/xml;charset=UTF-8")) // Necessary when talking to Microsoft web services
                 .setHeader(Exchange.HTTP_METHOD, constant(HttpMethods.POST))
+                .to("log:sent:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .to(getCamelUrl(urlMap.get(RequestType.SUBSCRIBE)) + getTimeout())
                 .choice().when(simple("${in.body} != null"))
                 .to("xslt:xsl/siri_soap_raw.xsl?saxon=true&allowStAX=false") // Extract SOAP version and convert to raw SIRI
@@ -77,10 +77,10 @@ public class Siri20ToSiriWS14Subscription extends SiriSubscriptionRouteBuilder {
                 .setHeader("operatorNamespace", constant(subscriptionSetup.getOperatorNamespace())) // Need to make SOAP request with endpoint specific element namespace
                 .to("xslt:xsl/siri_20_14.xsl") // Convert from SIRI 2.0 to SIRI 1.4
                 .to("xslt:xsl/siri_raw_soap.xsl") // Convert SIRI raw request to SOAP version
-                .to("log:sent:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .removeHeaders("CamelHttp*") // Remove any incoming HTTP headers as they interfere with the outgoing definition
                 .setHeader(Exchange.CONTENT_TYPE, constant("text/xml;charset=UTF-8")) // Necessary when talking to Microsoft web services
                 .setHeader(Exchange.HTTP_METHOD, constant(org.apache.camel.component.http4.HttpMethods.POST))
+                .to("log:sent:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .to(getCamelUrl(urlMap.get(RequestType.DELETE_SUBSCRIPTION)) + getTimeout())
                 .choice().when(simple("${in.body} != null"))
                 .to("xslt:xsl/siri_soap_raw.xsl?saxon=true&allowStAX=false") // Extract SOAP version and convert to raw SIRI
