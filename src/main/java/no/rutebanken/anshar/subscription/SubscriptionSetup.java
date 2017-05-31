@@ -18,6 +18,7 @@ public class SubscriptionSetup implements Serializable {
     private SubscriptionType subscriptionType;
     private String address;
     private Duration heartbeatInterval;
+    private Duration updateInterval;
     private Duration previewInterval;
     private String operatorNamespace;
     private Map<RequestType, String> urlMap;
@@ -54,13 +55,14 @@ public class SubscriptionSetup implements Serializable {
      * @param durationOfSubscription Initial duration of subscription
      * @param active Activates/deactivates subscription
      */
-    public SubscriptionSetup(SubscriptionType subscriptionType, SubscriptionMode subscriptionMode, String address, Duration heartbeatInterval, String operatorNamespace, Map<RequestType, String> urlMap,
+    public SubscriptionSetup(SubscriptionType subscriptionType, SubscriptionMode subscriptionMode, String address, Duration heartbeatInterval, Duration updateInterval, String operatorNamespace, Map<RequestType, String> urlMap,
                              String version, String vendor, String datasetId, ServiceType serviceType, List<ValueAdapter> mappingAdapters, Map<Class, Set<Object>> filterMap, List<String> idMappingPrefixes,
                              String subscriptionId, String requestorRef, Duration durationOfSubscription, boolean active) {
         this.subscriptionType = subscriptionType;
         this.subscriptionMode = subscriptionMode;
         this.address = address;
         this.heartbeatInterval = heartbeatInterval;
+        this.updateInterval = updateInterval;
         this.operatorNamespace = operatorNamespace;
         this.urlMap = urlMap;
         this.version = version;
@@ -177,6 +179,7 @@ public class SubscriptionSetup implements Serializable {
         obj.put("subscriptionMode", getSubscriptionMode().toString());
         obj.put("heartbeatInterval", getHeartbeatInterval().toString());
         obj.put("previewInterval", getPreviewInterval() != null ? getPreviewInterval().toString():"");
+        obj.put("updateInterval", getUpdateInterval() != null ? getUpdateInterval().toString():"");
         obj.put("durationOfSubscription", getDurationOfSubscription().toString());
         obj.put("requestorRef", getRequestorRef());
 
@@ -272,6 +275,19 @@ public class SubscriptionSetup implements Serializable {
     private void setHeartbeatInterval(Duration heartbeatInterval) {
         this.heartbeatInterval = heartbeatInterval;
     }
+
+    public Duration getUpdateInterval() {
+        return updateInterval;
+    }
+
+    public void setUpdateInterval(Duration updateInterval) {
+        this.updateInterval = updateInterval;
+    }
+
+    public void setUpdateIntervalSeconds(int seconds) {
+        setUpdateInterval(Duration.ofSeconds(seconds));
+    }
+
     public void setPreviewIntervalSeconds(int seconds) {
         setPreviewInterval(Duration.ofSeconds(seconds));
     }

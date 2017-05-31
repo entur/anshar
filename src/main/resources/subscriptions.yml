@@ -31,6 +31,8 @@ anshar:
       heartbeatIntervalSeconds: 60
       operatorNamespace: http://www.siri.org.uk/siri
       urlMap:
+        SUBSCRIBE: sis.kolumbus.no:90/VMWS/VMService.svc
+        DELETE_SUBSCRIPTION: sis.kolumbus.no:90/VMWS/VMService.svc
         GET_VEHICLE_MONITORING: sis.kolumbus.no:90/VMWS/VMService.svc
       version: 1.4
       subscriptionId: ${random.uuid}
@@ -149,6 +151,7 @@ anshar:
       subscriptionType: VEHICLE_MONITORING
       subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 60
+      updateIntervalSeconds: 1
       operatorNamespace: http://www.siri.org.uk/siri
       urlMap:
         SUBSCRIBE: 193.69.85.197:8080/RutebankenDEV/vm/subscribe.xml
@@ -270,14 +273,14 @@ anshar:
       serviceType: REST
       subscriptionType: ESTIMATED_TIMETABLE
       subscriptionMode: SUBSCRIBE
-      heartbeatIntervalSeconds: 6000
+      heartbeatIntervalSeconds: 60
       operatorNamespace: http://www.siri.org.uk/siri
       urlMap:
         SUBSCRIBE: 62.97.192.2:8080/SIRIProducer/SiriProducerHttp
         DELETE_SUBSCRIPTION: 62.97.192.2:8080/SIRIProducer/SiriProducerHttp
       version: 2.0
       subscriptionId: ${random.uuid}
-      requestorRef: RutebankenDEV
+      requestorRef: SKYSS
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: SKYSS
       filterPresets: BYBANEN
@@ -360,7 +363,7 @@ anshar:
       subscriptionId: nsb-sx-test-feed
       requestorRef: ${random.uuid}
       durationOfSubscriptionHours: 2
-      mappingAdapterPresets: BANENOR
+      mappingAdapterPresets: NSB
       filterPresets:
       idMappingPrefixes: NSB
       active: true
@@ -414,8 +417,8 @@ anshar:
       heartbeatIntervalSeconds: 60
       operatorNamespace: http://www.siri.org.uk/siri
       urlMap:
-        SUBSCRIBE: SiriET.mrfylke.pubtrans.com:8001
-        DELETE_SUBSCRIPTION: SiriET.mrfylke.pubtrans.com:8001
+        SUBSCRIBE: Siri.mrfylke.pubtrans.com:8001/SubscriptionManager
+        DELETE_SUBSCRIPTION: SiriET.mrfylke.pubtrans.com:8001/SubscriptionManager
       version: 1.4
       subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV_${random.uuid}
@@ -431,11 +434,12 @@ anshar:
       serviceType: REST
       subscriptionType: VEHICLE_MONITORING
       subscriptionMode: SUBSCRIBE
+      updateIntervalSeconds: 1
       heartbeatIntervalSeconds: 60
       operatorNamespace: http://www.siri.org.uk/siri
       urlMap:
-        SUBSCRIBE: SiriVM.mrfylke.pubtrans.com:8003
-        DELETE_SUBSCRIPTION: SiriVM.mrfylke.pubtrans.com:8003
+        SUBSCRIBE: Siri.mrfylke.pubtrans.com:8001/SubscriptionManager
+        DELETE_SUBSCRIPTION: Siri.mrfylke.pubtrans.com:8001/SubscriptionManager
       version: 1.4
       subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV_${random.uuid}
@@ -454,8 +458,8 @@ anshar:
       heartbeatIntervalSeconds: 60
       operatorNamespace: http://www.siri.org.uk/siri
       urlMap:
-        SUBSCRIBE: SiriSX.mrfylke.pubtrans.com:8002
-        DELETE_SUBSCRIPTION: SiriSX.mrfylke.pubtrans.com:8002
+        SUBSCRIBE: Siri.mrfylke.pubtrans.com:8001/SubscriptionManager
+        DELETE_SUBSCRIPTION: Siri.mrfylke.pubtrans.com:8001/SubscriptionManager
       version: 1.4
       subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV_${random.uuid}
@@ -472,11 +476,12 @@ anshar:
       subscriptionType: VEHICLE_MONITORING
       subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 60
+      updateIntervalSeconds: 1
       operatorNamespace: http://www.siri.org.uk/siri
       urlMap:
-#        GET_VEHICLE_MONITORING: https4://api.rutebanken.org/anshar/1.0/anshar/services/RUT?useOriginalId=true
-        SUBSCRIBE: https4://api.rutebanken.org/anshar/1.0/anshar/subscribe/RUT?useOriginalId=true
-        DELETE_SUBSCRIPTION: https4://api.rutebanken.org/anshar/1.0/anshar/subscribe/RUT
+#        GET_VEHICLE_MONITORING: https4://api.entur.org/anshar/1.0/anshar/services/RUT?useOriginalId=true
+        SUBSCRIBE: https4://api.entur.org/anshar/1.0/anshar/subscribe/RUT?useOriginalId=true
+        DELETE_SUBSCRIPTION: https4://api.entur.org/anshar/1.0/anshar/subscribe/RUT
       version: 2.0
       subscriptionId: vm-replication
       requestorRef: vm-requestorref
@@ -495,8 +500,8 @@ anshar:
       heartbeatIntervalSeconds: 60
       operatorNamespace: http://www.siri.org.uk/siri
       urlMap:
-        SUBSCRIBE: https4://api.rutebanken.org/anshar/1.0/anshar/subscribe/RUT?useOriginalId=true
-        DELETE_SUBSCRIPTION: https4://api.rutebanken.org/anshar/1.0/anshar/subscribe/RUT
+        SUBSCRIBE: https4://api.entur.org/anshar/1.0/anshar/subscribe/RUT?useOriginalId=true
+        DELETE_SUBSCRIPTION: https4://api.entur.org/anshar/1.0/anshar/subscribe/RUT
       version: 2.0
       subscriptionId: et-replication
       requestorRef: et-requestorref

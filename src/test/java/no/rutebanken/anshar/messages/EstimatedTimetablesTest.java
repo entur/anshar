@@ -7,10 +7,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import uk.org.siri.siri20.EstimatedCall;
-import uk.org.siri.siri20.EstimatedVehicleJourney;
-import uk.org.siri.siri20.LineRef;
-import uk.org.siri.siri20.VehicleRef;
+import uk.org.siri.siri20.*;
 
 import java.math.BigInteger;
 import java.time.ZonedDateTime;
@@ -18,6 +15,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
+import static junit.framework.TestCase.assertFalse;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -72,6 +70,69 @@ public class EstimatedTimetablesTest {
 
         //None added
         assertEquals("Returning partial updates when nothing has changed", 0, estimatedTimetables.getAllUpdates(requestorId, null).size());
+
+        //Verify that all elements still exist
+        assertEquals(previousSize+4, estimatedTimetables.getAll().size());
+    }
+
+    @Test
+    public void testGetPartialUpdatesOnly() {
+        int previousSize = estimatedTimetables.getAll().size();
+
+        // Added 3
+        String requestorId = UUID.randomUUID().toString();
+
+        //Get all existing
+        assertEquals(previousSize, estimatedTimetables.getAllUpdates(requestorId, null).size());
+
+        // Verify that no more updates exist
+        assertEquals(0, estimatedTimetables.getAllUpdates(requestorId, null).size());
+
+        estimatedTimetables.add("test", createEstimatedVehicleJourney("1234-partialupdate", "4321", 0, 30, ZonedDateTime.now().plusHours(1), true));
+        estimatedTimetables.add("test", createEstimatedVehicleJourney("2345-partialupdate", "4321", 0, 30, ZonedDateTime.now().plusHours(1), true));
+        estimatedTimetables.add("test", createEstimatedVehicleJourney("3456-partialupdate", "4321", 0, 30, ZonedDateTime.now().plusHours(1), true));
+
+        Siri siri = estimatedTimetables.createServiceDelivery(requestorId, null, 2);
+
+        assertTrue(siri.getServiceDelivery().isMoreData());
+        assertEquals(2, siri
+                .getServiceDelivery().getEstimatedTimetableDeliveries().get(0)
+                .getEstimatedJourneyVersionFrames().get(0)
+                .getEstimatedVehicleJourneies().size());
+
+        siri = estimatedTimetables.createServiceDelivery(requestorId, null, 2);
+
+        assertFalse(siri.getServiceDelivery().isMoreData());
+        assertEquals(1, siri
+                .getServiceDelivery().getEstimatedTimetableDeliveries().get(0)
+                .getEstimatedJourneyVersionFrames().get(0)
+                .getEstimatedVehicleJourneies().size());
+
+        siri = estimatedTimetables.createServiceDelivery(requestorId, null, 2);
+
+        assertFalse(siri.getServiceDelivery().isMoreData());
+        assertEquals(0, siri
+                .getServiceDelivery().getEstimatedTimetableDeliveries().get(0)
+                .getEstimatedJourneyVersionFrames().get(0)
+                .getEstimatedVehicleJourneies().size());
+
+        estimatedTimetables.add("test", createEstimatedVehicleJourney("4567-partialupdate", "4321", 0, 30, ZonedDateTime.now().plusHours(1), true));
+
+        siri = estimatedTimetables.createServiceDelivery(requestorId, null, 2);
+
+        assertFalse(siri.getServiceDelivery().isMoreData());
+        assertEquals(1, siri
+                .getServiceDelivery().getEstimatedTimetableDeliveries().get(0)
+                .getEstimatedJourneyVersionFrames().get(0)
+                .getEstimatedVehicleJourneies().size());
+
+        siri = estimatedTimetables.createServiceDelivery(requestorId, null, 2);
+
+        assertFalse(siri.getServiceDelivery().isMoreData());
+        assertEquals(0, siri
+                .getServiceDelivery().getEstimatedTimetableDeliveries().get(0)
+                .getEstimatedJourneyVersionFrames().get(0)
+                .getEstimatedVehicleJourneies().size());
 
         //Verify that all elements still exist
         assertEquals(previousSize+4, estimatedTimetables.getAll().size());

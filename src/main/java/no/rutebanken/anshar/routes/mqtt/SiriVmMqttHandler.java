@@ -1,13 +1,12 @@
 package no.rutebanken.anshar.routes.mqtt;
 
+import com.hazelcast.core.IMap;
 import javafx.util.Pair;
-import no.rutebanken.anshar.routes.Constants;
 import no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter;
-import org.apache.camel.CamelContext;
-import org.apache.camel.CamelContextAware;
-import org.apache.camel.ProducerTemplate;
-import org.apache.camel.builder.RouteBuilder;
-import org.apache.commons.codec.net.BCodec;
+import org.eclipse.paho.client.mqttv3.MqttClient;
+import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
+import org.eclipse.paho.client.mqttv3.MqttException;
+import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,19 +17,27 @@ import org.springframework.stereotype.Component;
 import uk.org.siri.siri20.*;
 import uk.org.siri.siri20.VehicleActivityStructure.MonitoredVehicleJourney;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.xml.datatype.Duration;
 import java.math.BigInteger;
+import java.text.DecimalFormat;
 import java.time.DateTimeException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.UUID;
 
 @Configuration
 @Component
-public class SiriVmMqttRoute extends RouteBuilder implements CamelContextAware {
-    private Logger logger = LoggerFactory.getLogger(SiriVmMqttRoute.class);
+public class SiriVmMqttHandler {
 
-    private static final String URI = "direct:" + Constants.MQTT_ROUTE_ID;
+    private static final String MQTT_COUNTER_KEY = "Anshar.MQTT.message.count";
+    private static final String MQTT_SIZE_KEY = "Anshar.MQTT.message.size";
+    private static final String MQTT_START_TIME_IN_SECONDS_KEY = "Anshar.MQTT.start.time";
+
+    private Logger logger = LoggerFactory.getLogger(SiriVmMqttHandler.class);
+
     private static final String TOPIC_PREFIX = "/hfp/journey/";
 
     private static final String ZERO = "0";
@@ -60,46 +67,105 @@ public class SiriVmMqttRoute extends RouteBuilder implements CamelContextAware {
     @Value("${anshar.mqtt.password}")
     private String password;
 
+    @Value("${anshar.mqtt.reconnectInterval.millis:30000}")
+    private long reconnectInterval;
+
     @Autowired
-    private CamelContext camelContext;
+    private IMap<String, Integer> hitcount;
 
-    @Override
-    public void configure() throws Exception {
+    private MqttClient mqttClient;
 
-        if (mqttEnabled) {
-            from(URI).to("mqtt:realtime?host=" + host + "&userName=" + username + "&password=" + password);
-        }
+    private long lastConnectionAttempt;
 
-        if (mqttSubscribe) {
-            from("mqtt:realtime?host=" + host + "&subscribeTopicName=#").to("log:response:" + getClass().getSimpleName() + "?showAll=true&multiline=true");
+    private static final String clientId = UUID.randomUUID().toString();
+
+    private int connectionTimeout = 10;
+
+    @PostConstruct
+    private void initialize() {
+        try {
+            mqttClient = new MqttClient(host, clientId, null);
+
+            logger.info("Initializing MQTT-client with clientId {}", clientId);
+        } catch (MqttException e) {
+            throw new ExceptionInInitializerError(e);
         }
     }
 
+    @PreDestroy
+    private void disconnect() {
+        if (mqttClient.isConnected()) {
+            try {
+                logger.info("Disconnecting from MQTT on address {}", host);
+                mqttClient.disconnectForcibly();
+            } catch (MqttException e) {
+                //Disconnect failed - ignore
+            }
+        }
+    }
 
-    public void pushToMqttRoute(String datasetId, VehicleActivityStructure activity) {
+    public void publishMessage(String topic, String content) {
+
+        if (!mqttClient.isConnected() &&
+                (System.currentTimeMillis() - lastConnectionAttempt) > reconnectInterval) {
+            connect();
+        }
+
+        try {
+            if (mqttClient.isConnected()) {
+                MqttMessage message = new MqttMessage(content.getBytes());
+                message.setQos(1);
+                mqttClient.publish(topic, message);
+
+                Integer publishedCount = hitcount.merge(MQTT_COUNTER_KEY, 1, Integer::sum);
+                Integer publishedSize = hitcount.merge(MQTT_SIZE_KEY, content.length(), Integer::sum);
+
+                if (publishedCount != null && publishedCount % 1000 == 0) {
+                    logger.info("MQTT: Published {} updates, total size {}, last message:[{}]",
+                            publishedCount, readableFileSize(publishedSize.longValue()), content);
+                }
+            }
+        } catch (MqttException e) {
+            logger.info("Unable to publish to MQTT", e);
+        }
+    }
+
+    private synchronized void connect() {
+        if (mqttClient.isConnected()) {
+            logger.info("Already connected to mqtt - ignoring connect-request");
+            return;
+        }
+
+        MqttConnectOptions connOpts = new MqttConnectOptions();
+        connOpts.setUserName(username);
+        connOpts.setPassword(password.toCharArray());
+        connOpts.setConnectionTimeout(connectionTimeout);
+        connOpts.setMaxInflight(32000); //Half of the mqtt-specification
+        connOpts.setCleanSession(false);
+        try {
+            lastConnectionAttempt = System.currentTimeMillis();
+            logger.info("Connecting to MQTT on address {} using {} seconds timeout", host, connectionTimeout);
+            mqttClient.connect(connOpts);
+            logger.info("Connected to MQTT on address {} with user {}", host, username);
+        } catch (MqttException e) {
+            logger.warn("Failed to connect to MQTT ", e);
+        }
+    }
+
+    public void pushToMqtt(String datasetId, VehicleActivityStructure activity) {
         if (!mqttEnabled) {
             return;
         }
 
         try {
             Pair<String, String> message = getMessage(datasetId, activity);
-            ProducerTemplate template = camelContext.createProducerTemplate();
-            template.sendBodyAndHeader(URI, message.getValue(), "CamelMQTTPublishTopic", message.getKey());
+            publishMessage(message.getKey(), message.getValue());
+
         } catch (NullPointerException e) {
             logger.warn("Incomplete Siri data", e);
         } catch (Exception e) {
             logger.warn("Could not parse", e);
         }
-    }
-
-    @Override
-    public void setCamelContext(CamelContext camelContext) {
-        this.camelContext = camelContext;
-    }
-
-    @Override
-    public CamelContext getCamelContext() {
-        return camelContext;
     }
 
     public Pair<String, String> getMessage(String datasetId, VehicleActivityStructure activity) {
@@ -376,5 +442,12 @@ public class SiriVmMqttRoute extends RouteBuilder implements CamelContextAware {
             results.append(digit(latitude, i)).append(digit(longitude, i)).append(SLASH);
         }
         return results.toString();
+    }
+
+    private static String readableFileSize(long size) {
+        if(size <= 0) return "0";
+        final String[] units = new String[] { "B", "kB", "MB", "GB", "TB" };
+        int digitGroups = (int) (Math.log10(size)/Math.log10(1024));
+        return new DecimalFormat("#,##0.#").format(size/Math.pow(1024, digitGroups)) + " " + units[digitGroups];
     }
 }

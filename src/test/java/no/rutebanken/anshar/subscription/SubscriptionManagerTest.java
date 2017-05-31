@@ -278,6 +278,7 @@ public class SubscriptionManagerTest {
                 SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
                 "http://localhost",
                 heartbeatInterval,
+                Duration.ofHours(1),
                 "http://www.kolumbus.no/siri",
                 new HashMap<>(),
                 "1.4",

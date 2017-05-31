@@ -149,7 +149,8 @@ public class SiriHandler {
                 Siri siri = siriObjectFactory.createVMServiceDelivery(vehicleActivities.getAllUpdates(requestorRef, datasetId));
                 serviceResponse = SiriHelper.filterSiriPayload(siri, filterMap);
             } else if (hasValues(serviceRequest.getEstimatedTimetableRequests())) {
-                serviceResponse = siriObjectFactory.createETServiceDelivery(estimatedTimetables.getAllUpdates(requestorRef, datasetId));
+
+                serviceResponse = estimatedTimetables.createServiceDelivery(requestorRef, datasetId, 1000);
             } else if (hasValues(serviceRequest.getProductionTimetableRequests())) {
                 serviceResponse = siriObjectFactory.createPTServiceDelivery(productionTimetables.getAllUpdates(requestorRef, datasetId));
             }
