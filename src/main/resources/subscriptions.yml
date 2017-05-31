@@ -411,7 +411,7 @@ anshar:
       internalId: 24
       vendor: mret
       datasetId: MOR
-      serviceType: REST
+      serviceType: SOAP
       subscriptionType: ESTIMATED_TIMETABLE
       subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 60
@@ -431,7 +431,7 @@ anshar:
       internalId: 25
       vendor: mrvm
       datasetId: MOR
-      serviceType: REST
+      serviceType: SOAP
       subscriptionType: VEHICLE_MONITORING
       subscriptionMode: SUBSCRIBE
       updateIntervalSeconds: 1
@@ -452,7 +452,7 @@ anshar:
       internalId: 26
       vendor: mrsx
       datasetId: MOR
-      serviceType: REST
+      serviceType: SOAP
       subscriptionType: SITUATION_EXCHANGE
       subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 60
