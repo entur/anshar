@@ -7,6 +7,7 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.CamelContextAware;
 import org.apache.camel.ProducerTemplate;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.commons.codec.net.BCodec;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,6 +40,10 @@ public class SiriVmMqttRoute extends RouteBuilder implements CamelContextAware {
     private static final String ODAY_FORMAT = "hhmm";
 
     private static final String RUTEBANKEN = "rutebanken";
+    private static final String DIR_GO = "1";
+    private static final String DIR_BACK = "2";
+    private static final String GO = "go";
+    private static final String BACK = "back";
 
     @Value("${anshar.mqtt.enabled:false}")
     private boolean mqttEnabled;
@@ -198,9 +203,15 @@ public class SiriVmMqttRoute extends RouteBuilder implements CamelContextAware {
     private String getDirection(MonitoredVehicleJourney monitoredVehicleJourney) {
         DirectionRefStructure directionRef = monitoredVehicleJourney.getDirectionRef();
         if (directionRef != null && directionRef.getValue() != null) {
-            return directionRef.getValue();
+            String value = directionRef.getValue().toLowerCase();
+            if (value.equals(GO)) {
+                return DIR_GO;
+            } else if (value.equals(BACK)){
+                return DIR_BACK;
+            }
+            return value;
         }
-        return ZERO;
+        return DIR_GO;
     }
 
     private String getHeadSign(MonitoredVehicleJourney monitoredVehicleJourney) {
