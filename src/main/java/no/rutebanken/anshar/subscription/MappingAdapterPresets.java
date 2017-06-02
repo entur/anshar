@@ -32,38 +32,19 @@ public class MappingAdapterPresets {
                 adapters.add(new LeftPaddingAdapter(LineRef.class, 4, '0'));
 
                 adapters.add(new RuterSubstringAdapter(StopPointRef.class, ':', '0', 2));
-                adapters.add(new LeftPaddingAdapter(StopPointRef.class, 10, '0'));
-
-                adapters.add(new LeftPaddingAdapter(StopPlaceRef.class, 8, '0'));
-                adapters.add(new RightPaddingStopPlaceAdapter(StopPlaceRef.class, 8, "01"));
 
                 adapters.add(new RuterSubstringAdapter(JourneyPlaceRefStructure.class, ':', '0', 2));
-                adapters.add(new LeftPaddingAdapter(JourneyPlaceRefStructure.class, 10, '0'));
 
                 adapters.add(new RuterSubstringAdapter(DestinationRef.class, ':', '0', 2));
-                adapters.add(new LeftPaddingAdapter(DestinationRef.class, 10, '0'));
                 break;
             case ATB:
             case KOLUMBUS:
             case AKT:
                 adapters.add(new LeftPaddingAdapter(LineRef.class, 4, '0'));
-
-                adapters.add(new LeftPaddingAdapter(StopPointRef.class, 8, '0'));
-                adapters.add(new RightPaddingStopPlaceAdapter(StopPointRef.class, 8, "01"));
-
-                //OriginRef
-                adapters.add(new LeftPaddingAdapter(JourneyPlaceRefStructure.class, 8, '0'));
-                adapters.add(new RightPaddingStopPlaceAdapter(JourneyPlaceRefStructure.class, 8, "01"));
-
-                //DestinationRef
-                adapters.add(new LeftPaddingAdapter(DestinationRef.class, 8, '0'));
-                adapters.add(new RightPaddingStopPlaceAdapter(DestinationRef.class, 8, "01"));
                 break;
             case BRAKAR:
-                adapters.add(new LeftPaddingAdapter(StopPointRef.class, 10, '0'));
                 break;
             case TROMS:
-                adapters.add(new LeftPaddingAdapter(StopPointRef.class, 10, '0'));
                 break;
             case SKYSS:
                 break;
@@ -74,7 +55,6 @@ public class MappingAdapterPresets {
                 adapters.add(new BaneNorIdReplacer(DestinationRef.class));
                 break;
             case NSB:
-                adapters.add(new LeftPaddingAdapter(StopPointRef.class, 9, '0'));
                 adapters.add(new BaneNorIdReplacer(StopPointRef.class));
                 break;
             case MOR:
