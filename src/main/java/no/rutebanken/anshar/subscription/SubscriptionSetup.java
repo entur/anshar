@@ -37,6 +37,7 @@ public class SubscriptionSetup implements Serializable {
     private SubscriptionPreset[] filterMapPresets;
     private String addressFieldName;
     private String soapenvNamespace;
+    private Boolean incrementalUpdates;
 
     public SubscriptionSetup() {
     }
@@ -244,6 +245,14 @@ public class SubscriptionSetup implements Serializable {
 
     public void setSoapenvNamespace(String soapenvNamespace) {
         this.soapenvNamespace = soapenvNamespace;
+    }
+
+    public Boolean getIncrementalUpdates() {
+        return incrementalUpdates;
+    }
+
+    public void setIncrementalUpdates(Boolean incrementalUpdates) {
+        this.incrementalUpdates = incrementalUpdates;
     }
 
     public enum ServiceType {SOAP, REST}

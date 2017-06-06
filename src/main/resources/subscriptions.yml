@@ -275,6 +275,7 @@ anshar:
       subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 60
       operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName: Address
       urlMap:
         SUBSCRIBE: 62.97.192.2:8080/SIRIProducer/SiriProducerHttp
         DELETE_SUBSCRIPTION: 62.97.192.2:8080/SIRIProducer/SiriProducerHttp
@@ -438,6 +439,7 @@ anshar:
       operatorNamespace: http://wsdl.siri.org.uk
       addressFieldName: Address
       soapenvNamespace: http://www.w3.org/2003/05/soap-envelope
+      incrementalUpdates: true
       urlMap:
         SUBSCRIBE: siri.mrfylke.pubtrans.com:8001/SubscriptionManager
         DELETE_SUBSCRIPTION: siri.mrfylke.pubtrans.com:8001/SubscriptionManager

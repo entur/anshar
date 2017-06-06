@@ -62,7 +62,8 @@ public class SiriObjectFactory {
                     subscriptionSetup.buildUrl(),
                     subscriptionSetup.getDurationOfSubscription(),
                     subscriptionSetup.getFilterMap(),
-                    subscriptionSetup.getAddressFieldName());
+                    subscriptionSetup.getAddressFieldName(),
+                    subscriptionSetup.getIncrementalUpdates());
         }
         if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.PRODUCTION_TIMETABLE)) {
             request = createProductionTimetableSubscriptionRequest(subscriptionSetup.getRequestorRef(), subscriptionSetup.getSubscriptionId(),
@@ -237,7 +238,7 @@ public class SiriObjectFactory {
     }
 
 
-    private static SubscriptionRequest createEstimatedTimetableSubscriptionRequest(String requestorRef, String subscriptionId, Duration heartbeatInterval, String address, Duration subscriptionDuration, Map<Class, Set<Object>> filterMap, String addressFieldName) {
+    private static SubscriptionRequest createEstimatedTimetableSubscriptionRequest(String requestorRef, String subscriptionId, Duration heartbeatInterval, String address, Duration subscriptionDuration, Map<Class, Set<Object>> filterMap, String addressFieldName, Boolean incrementalUpdates) {
         SubscriptionRequest request = createSubscriptionRequest(requestorRef, heartbeatInterval, address, addressFieldName);
 
         EstimatedTimetableRequestStructure etRequest = new EstimatedTimetableRequestStructure();
@@ -266,10 +267,9 @@ public class SiriObjectFactory {
         etSubscriptionReq.setSubscriptionIdentifier(createSubscriptionIdentifier(subscriptionId));
         etSubscriptionReq.setInitialTerminationTime(ZonedDateTime.now().plusSeconds(subscriptionDuration.getSeconds()));
         etSubscriptionReq.setSubscriberRef(request.getRequestorRef());
-        etSubscriptionReq.setChangeBeforeUpdates(createDataTypeFactory().newDuration(10000));
+        etSubscriptionReq.setChangeBeforeUpdates(createDataTypeFactory().newDuration("PT10S"));
 
-        etSubscriptionReq.setIncrementalUpdates(true);
-        etSubscriptionReq.setChangeBeforeUpdates(createDataTypeFactory().newDuration(10000));
+        etSubscriptionReq.setIncrementalUpdates(incrementalUpdates);
 
         request.getEstimatedTimetableSubscriptionRequests().add(etSubscriptionReq);
 
