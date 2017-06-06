@@ -40,7 +40,7 @@
 
     <xsl:template match="*"/>
 
-    <xsl:template match="*:GetVehicleMonitoringResponse | *:GetSituationExchangeResponse | *:GetStopMonitoringResponse | *:GetEstimatedTimetableResponse | *:SubscribeResponse | *:DeleteSubscriptionResponse | *:HeartbeatNotification | *:SituationExchangeAnswer | *:VehicleMonitoringAnswer"> <!-- TODO add all conseptual types of requests -->
+    <xsl:template match="*:NotifyHeartbeat | *:GetVehicleMonitoringResponse | *:GetSituationExchangeResponse | *:GetStopMonitoringResponse | *:GetEstimatedTimetableResponse | *:SubscribeResponse | *:DeleteSubscriptionResponse | *:HeartbeatNotification | *:SituationExchangeAnswer | *:VehicleMonitoringAnswer"> <!-- TODO add all conseptual types of requests -->
         
         <xsl:choose>
             <xsl:when test="local-name()='SubscribeResponse'">
@@ -142,6 +142,17 @@
                     </xsl:attribute>
                     <xsl:element name="siril:HeartbeatNotification" > 
                         <xsl:copy-of select="*" copy-namespaces="no" />
+                    </xsl:element>
+                </xsl:element>
+            </xsl:when>
+            
+            <xsl:when test="local-name()='NotifyHeartbeat'">
+                <xsl:element name="siril:Siri">
+                    <xsl:attribute name="version">
+                        <xsl:value-of select="'2.0'"/>
+                    </xsl:attribute>
+                    <xsl:element name="siril:HeartbeatNotification" > 
+                        <xsl:copy-of select="HeartbeatNotifyInfo/*" />
                     </xsl:element>
                 </xsl:element>
             </xsl:when>

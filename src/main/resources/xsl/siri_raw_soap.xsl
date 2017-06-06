@@ -25,13 +25,18 @@
     <xsl:template match="siri:VehicleMonitoringRequest | siri:SituationExchangeRequest | siri:EstimatedTimetableRequest | siri:SubscriptionRequest | siri:TerminateSubscriptionRequest"> <!-- TODO add all conseptual types of requests -->
             <xsl:element name="soapenv:Envelope" namespace="{$soapEnvelopeNamespace}" >
 
-            <xsl:choose>
-                <xsl:when test="local-name()='SubscriptionRequest'">
-                    <xsl:element name="soapenv:Header" namespace="{$soapEnvelopeNamespace}" >
-                        <xsl:element name="wsa:Action">Subscribe</xsl:element>
-                        <xsl:element name="wsa:To" ><xsl:value-of select="$endpointUrl" /></xsl:element>
-                    </xsl:element>
-                </xsl:when>
+                <xsl:choose>
+                    <xsl:when test="local-name()='SubscriptionRequest'">
+                        <xsl:element name="soapenv:Header" namespace="{$soapEnvelopeNamespace}" >
+                            <xsl:element name="wsa:Action">Subscribe</xsl:element>
+                            <xsl:element name="wsa:To" ><xsl:value-of select="$endpointUrl" /></xsl:element>
+                        </xsl:element>
+                    </xsl:when>
+                    <xsl:when test="local-name()='TerminateSubscriptionRequest'">
+                        <xsl:element name="soapenv:Header" namespace="{$soapEnvelopeNamespace}" >
+                            <xsl:element name="wsa:Action">DeleteSubscription</xsl:element>
+                        </xsl:element>
+                    </xsl:when>
                 <xsl:otherwise>
                     <xsl:element name="soapenv:Header" namespace="{$soapEnvelopeNamespace}" />
                 </xsl:otherwise>
