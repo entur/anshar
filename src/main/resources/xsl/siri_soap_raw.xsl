@@ -40,7 +40,7 @@
 
     <xsl:template match="*"/>
 
-    <xsl:template match="*:NotifyHeartbeat | *:GetVehicleMonitoringResponse | *:GetSituationExchangeResponse | *:GetStopMonitoringResponse | *:GetEstimatedTimetableResponse | *:SubscribeResponse | *:DeleteSubscriptionResponse | *:HeartbeatNotification | *:SituationExchangeAnswer | *:VehicleMonitoringAnswer"> <!-- TODO add all conseptual types of requests -->
+    <xsl:template match="*:NotifyEstimatedTimetable | *:NotifyHeartbeat | *:GetVehicleMonitoringResponse | *:GetSituationExchangeResponse | *:GetStopMonitoringResponse | *:GetEstimatedTimetableResponse | *:SubscribeResponse | *:DeleteSubscriptionResponse | *:HeartbeatNotification | *:SituationExchangeAnswer | *:VehicleMonitoringAnswer"> <!-- TODO add all conseptual types of requests -->
         
         <xsl:choose>
             <xsl:when test="local-name()='SubscribeResponse'">
@@ -156,6 +156,21 @@
                     </xsl:element>
                 </xsl:element>
             </xsl:when>
+            
+            <xsl:when test="local-name()='NotifyEstimatedTimetable'">
+                <xsl:element name="siril:Siri">
+                    <xsl:attribute name="version">
+                        <xsl:value-of select="'2.0'"/>
+                    </xsl:attribute>
+                    <xsl:element name="siril:ServiceDelivery">
+                        <xsl:copy-of select="ServiceDeliveryInfo/siril:ResponseTimestamp" copy-namespaces="no"/>
+                        <xsl:copy-of select="ServiceDeliveryInfo/siril:ProducerRef" copy-namespaces="no"/>
+                        
+                        <xsl:copy-of select="Notification/*" />
+                    </xsl:element>
+                </xsl:element>
+            </xsl:when>
+
             <xsl:when test="local-name()='DeleteSubscriptionResponse'">
                 
                 <xsl:element name="siril:Siri">
