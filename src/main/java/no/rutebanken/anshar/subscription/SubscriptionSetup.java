@@ -35,6 +35,8 @@ public class SubscriptionSetup implements Serializable {
     private List<String> idMappingPrefixes;
     private SubscriptionPreset[] mappingAdapterPresets;
     private SubscriptionPreset[] filterMapPresets;
+    private String addressFieldName;
+    private String soapenvNamespace;
 
     public SubscriptionSetup() {
     }
@@ -228,6 +230,22 @@ public class SubscriptionSetup implements Serializable {
         return previewInterval;
     }
 
+    public String getAddressFieldName() {
+        return addressFieldName;
+    }
+
+    public void setAddressFieldName(String addressFieldName) {
+        this.addressFieldName = addressFieldName;
+    }
+
+    public String getSoapenvNamespace() {
+        return soapenvNamespace;
+    }
+
+    public void setSoapenvNamespace(String soapenvNamespace) {
+        this.soapenvNamespace = soapenvNamespace;
+    }
+
     public enum ServiceType {SOAP, REST}
     public enum SubscriptionType {SITUATION_EXCHANGE, VEHICLE_MONITORING, PRODUCTION_TIMETABLE, ESTIMATED_TIMETABLE}
     public enum SubscriptionMode {SUBSCRIBE, REQUEST_RESPONSE, FETCHED_DELIVERY}
@@ -269,7 +287,9 @@ public class SubscriptionSetup implements Serializable {
     }
 
     public void setHeartbeatIntervalSeconds(int seconds) {
-        setHeartbeatInterval(Duration.ofSeconds(seconds));
+        if (seconds > 0) {
+            setHeartbeatInterval(Duration.ofSeconds(seconds));
+        }
     }
 
     private void setHeartbeatInterval(Duration heartbeatInterval) {
