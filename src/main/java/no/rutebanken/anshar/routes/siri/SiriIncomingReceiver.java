@@ -151,6 +151,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
 
 
         from("activemq:queue:" + TRANSFORM_QUEUE + activeMqConsumerParameters)
+                .to("file:" + incomingLogDirectory + "/raw/")
                 .to("xslt:xsl/siri_soap_raw.xsl?saxon=true&allowStAX=false") // Extract SOAP version and convert to raw SIRI
                 .to("xslt:xsl/siri_14_20.xsl?saxon=true&allowStAX=false") // Convert from v1.4 to 2.0
                 .to("file:" + incomingLogDirectory + "/validator/")
