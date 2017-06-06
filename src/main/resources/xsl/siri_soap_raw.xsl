@@ -2,6 +2,7 @@
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
     xmlns:xs="http://www.w3.org/2001/XMLSchema"
     xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+    xmlns:soapenv2="http://www.w3.org/2003/05/soap-envelope"
     xmlns:siri="http://www.siri.org.uk/siri"
     xmlns:siril="http://www.siri.org.uk/siri"
     exclude-result-prefixes="xs" version="2.0">
@@ -9,7 +10,7 @@
     <xsl:output indent="yes"/>
     
     <xsl:param name="operatorNamespace"/>
-    
+
     <!-- If not SOAP-envelope - copy all as-is-->     
     <xsl:template match="/siri:Siri">
         <xsl:element name="siri:Siri">
@@ -26,6 +27,16 @@
     </xsl:template>
     
     <xsl:template match="soapenv:Header"/>
+
+    <xsl:template match="/soapenv2:Envelope">
+        <xsl:apply-templates/>
+    </xsl:template>
+
+    <xsl:template match="soapenv2:Body">
+        <xsl:apply-templates/>
+    </xsl:template>
+
+    <xsl:template match="soapenv2:Header"/>
 
     <xsl:template match="*"/>
 
