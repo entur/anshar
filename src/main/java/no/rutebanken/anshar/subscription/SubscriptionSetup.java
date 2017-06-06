@@ -179,7 +179,7 @@ public class SubscriptionSetup implements Serializable {
         obj.put("serviceType", getServiceType().toString());
         obj.put("subscriptionType", getSubscriptionType().toString());
         obj.put("subscriptionMode", getSubscriptionMode().toString());
-        obj.put("heartbeatInterval", getHeartbeatInterval().toString());
+        obj.put("heartbeatInterval", getHeartbeatInterval() != null ? getHeartbeatInterval().toString():"");
         obj.put("previewInterval", getPreviewInterval() != null ? getPreviewInterval().toString():"");
         obj.put("updateInterval", getUpdateInterval() != null ? getUpdateInterval().toString():"");
         obj.put("durationOfSubscription", getDurationOfSubscription().toString());
