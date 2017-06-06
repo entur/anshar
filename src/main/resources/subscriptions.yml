@@ -325,7 +325,7 @@ anshar:
       mappingAdapterPresets: BANENOR
       filterPresets:
       idMappingPrefixes: NSB,FLT
-      active: true
+      active: false
     -
       internalId: 19
       vendor: baneEt
@@ -462,7 +462,7 @@ anshar:
       addressFieldName: Address
       soapenvNamespace: http://www.w3.org/2003/05/soap-envelope
       urlMap:
-        SUBSCRIBE: localhost:1234
+        SUBSCRIBE: Siri.mrfylke.pubtrans.com:8001/SubscriptionManager
         DELETE_SUBSCRIPTION: Siri.mrfylke.pubtrans.com:8001/SubscriptionManager
       version: 2.0
       subscriptionId: ${random.uuid}
