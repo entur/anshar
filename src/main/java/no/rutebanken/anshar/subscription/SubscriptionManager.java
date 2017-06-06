@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -198,7 +199,13 @@ public class SubscriptionManager {
 
         SubscriptionSetup activeSubscription = subscriptions.get(subscriptionId);
         if (activeSubscription != null) {
-            long allowedInterval = activeSubscription.getHeartbeatInterval().toMillis() * HEALTHCHECK_INTERVAL_FACTOR;
+
+            Duration heartbeatInterval = activeSubscription.getHeartbeatInterval();
+            if (heartbeatInterval == null) {
+                heartbeatInterval = Duration.ofMinutes(5);
+            }
+
+            long allowedInterval = heartbeatInterval.toMillis() * HEALTHCHECK_INTERVAL_FACTOR;
             if (instant.isBefore(Instant.now().minusMillis(allowedInterval))) {
                 //Subscription exists, but there has not been any activity recently
                 return false;
