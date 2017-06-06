@@ -40,33 +40,37 @@ public class SiriObjectFactory {
 
         if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE)) {
             request = createSituationExchangeSubscriptionRequest(subscriptionSetup.getRequestorRef(),subscriptionSetup.getSubscriptionId(),
-                    subscriptionSetup.getHeartbeatInterval().toString(),
+                    subscriptionSetup.getHeartbeatInterval(),
                     subscriptionSetup.buildUrl(),
                     subscriptionSetup.getDurationOfSubscription(),
-                    subscriptionSetup.getFilterMap());
+                    subscriptionSetup.getFilterMap(),
+                    subscriptionSetup.getAddressFieldName());
         }
         if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING)) {
             request = createVehicleMonitoringSubscriptionRequest(subscriptionSetup.getRequestorRef(),
                     subscriptionSetup.getSubscriptionId(),
-                    subscriptionSetup.getHeartbeatInterval().toString(),
+                    subscriptionSetup.getHeartbeatInterval(),
                     subscriptionSetup.buildUrl(),
                     subscriptionSetup.getDurationOfSubscription(),
                     subscriptionSetup.getFilterMap(),
-                    (subscriptionSetup.getUpdateInterval() != null ? subscriptionSetup.getUpdateInterval().toString():null));
+                    (subscriptionSetup.getUpdateInterval() != null ? subscriptionSetup.getUpdateInterval().toString():null),
+                    subscriptionSetup.getAddressFieldName());
         }
         if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE)) {
             request = createEstimatedTimetableSubscriptionRequest(subscriptionSetup.getRequestorRef(),subscriptionSetup.getSubscriptionId(),
-                    subscriptionSetup.getHeartbeatInterval().toString(),
+                    subscriptionSetup.getHeartbeatInterval(),
                     subscriptionSetup.buildUrl(),
                     subscriptionSetup.getDurationOfSubscription(),
-                    subscriptionSetup.getFilterMap());
+                    subscriptionSetup.getFilterMap(),
+                    subscriptionSetup.getAddressFieldName());
         }
         if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.PRODUCTION_TIMETABLE)) {
             request = createProductionTimetableSubscriptionRequest(subscriptionSetup.getRequestorRef(), subscriptionSetup.getSubscriptionId(),
-                    subscriptionSetup.getHeartbeatInterval().toString(),
+                    subscriptionSetup.getHeartbeatInterval(),
                     subscriptionSetup.buildUrl(),
                     subscriptionSetup.getDurationOfSubscription(),
-                    subscriptionSetup.getFilterMap());
+                    subscriptionSetup.getFilterMap(),
+                    subscriptionSetup.getAddressFieldName());
         }
         siri.setSubscriptionRequest(request);
 
@@ -165,8 +169,8 @@ public class SiriObjectFactory {
         return ptRequest;
     }
 
-    private static SubscriptionRequest createSituationExchangeSubscriptionRequest(String requestorRef, String subscriptionId, String heartbeatInterval, String address, Duration subscriptionDuration, Map<Class, Set<Object>> filterMap) {
-        SubscriptionRequest request = createSubscriptionRequest(requestorRef, heartbeatInterval, address);
+    private static SubscriptionRequest createSituationExchangeSubscriptionRequest(String requestorRef, String subscriptionId, Duration heartbeatInterval, String address, Duration subscriptionDuration, Map<Class, Set<Object>> filterMap, String addressFieldName) {
+        SubscriptionRequest request = createSubscriptionRequest(requestorRef, heartbeatInterval, address, addressFieldName);
 
         SituationExchangeRequestStructure sxRequest = createSituationExchangeRequestStructure(null);
         sxRequest.setPreviewInterval(createDataTypeFactory().newDuration("P1Y"));
@@ -192,8 +196,8 @@ public class SiriObjectFactory {
         return request;
     }
 
-    private static SubscriptionRequest createVehicleMonitoringSubscriptionRequest(String requestorRef, String subscriptionId, String heartbeatInterval, String address, Duration subscriptionDuration, Map<Class, Set<Object>> filterMap, String updateInterval) {
-        SubscriptionRequest request = createSubscriptionRequest(requestorRef,heartbeatInterval, address);
+    private static SubscriptionRequest createVehicleMonitoringSubscriptionRequest(String requestorRef, String subscriptionId, Duration heartbeatInterval, String address, Duration subscriptionDuration, Map<Class, Set<Object>> filterMap, String updateInterval, String addressFieldName) {
+        SubscriptionRequest request = createSubscriptionRequest(requestorRef,heartbeatInterval, address, addressFieldName);
 
         VehicleMonitoringRequestStructure vmRequest = new VehicleMonitoringRequestStructure();
         vmRequest.setRequestTimestamp(ZonedDateTime.now());
@@ -233,8 +237,8 @@ public class SiriObjectFactory {
     }
 
 
-    private static SubscriptionRequest createEstimatedTimetableSubscriptionRequest(String requestorRef, String subscriptionId, String heartbeatInterval, String address, Duration subscriptionDuration, Map<Class, Set<Object>> filterMap) {
-        SubscriptionRequest request = createSubscriptionRequest(requestorRef, heartbeatInterval, address);
+    private static SubscriptionRequest createEstimatedTimetableSubscriptionRequest(String requestorRef, String subscriptionId, Duration heartbeatInterval, String address, Duration subscriptionDuration, Map<Class, Set<Object>> filterMap, String addressFieldName) {
+        SubscriptionRequest request = createSubscriptionRequest(requestorRef, heartbeatInterval, address, addressFieldName);
 
         EstimatedTimetableRequestStructure etRequest = new EstimatedTimetableRequestStructure();
         etRequest.setRequestTimestamp(ZonedDateTime.now());
@@ -262,7 +266,7 @@ public class SiriObjectFactory {
         etSubscriptionReq.setSubscriptionIdentifier(createSubscriptionIdentifier(subscriptionId));
         etSubscriptionReq.setInitialTerminationTime(ZonedDateTime.now().plusSeconds(subscriptionDuration.getSeconds()));
         etSubscriptionReq.setSubscriberRef(request.getRequestorRef());
-        etSubscriptionReq.setChangeBeforeUpdates(createDataTypeFactory().newDuration(heartbeatInterval));
+        etSubscriptionReq.setChangeBeforeUpdates(createDataTypeFactory().newDuration(10000));
 
         request.getEstimatedTimetableSubscriptionRequests().add(etSubscriptionReq);
 
@@ -270,8 +274,8 @@ public class SiriObjectFactory {
     }
 
 
-    private static SubscriptionRequest createProductionTimetableSubscriptionRequest(String requestorRef, String subscriptionId, String heartbeatInterval, String address, Duration subscriptionDuration, Map<Class, Set<Object>> filterMap) {
-        SubscriptionRequest request = createSubscriptionRequest(requestorRef, heartbeatInterval, address);
+    private static SubscriptionRequest createProductionTimetableSubscriptionRequest(String requestorRef, String subscriptionId, Duration heartbeatInterval, String address, Duration subscriptionDuration, Map<Class, Set<Object>> filterMap, String addressFieldName) {
+        SubscriptionRequest request = createSubscriptionRequest(requestorRef, heartbeatInterval, address, addressFieldName);
 
         ProductionTimetableRequestStructure ptRequest = new ProductionTimetableRequestStructure();
         ptRequest.setRequestTimestamp(ZonedDateTime.now());
@@ -294,17 +298,25 @@ public class SiriObjectFactory {
         return request;
     }
 
-    private static SubscriptionRequest createSubscriptionRequest(String requestorRef, String heartbeatInterval, String address) {
+    private static SubscriptionRequest createSubscriptionRequest(String requestorRef, Duration heartbeatInterval, String address, String addressFieldName) {
         SubscriptionRequest request = new SubscriptionRequest();
         request.setRequestorRef(createRequestorRef(requestorRef));
         request.setMessageIdentifier(createMessageIdentifier(UUID.randomUUID().toString()));
-        request.setConsumerAddress(address);
+
+        if (addressFieldName != null && addressFieldName.equalsIgnoreCase("Address")) {
+            request.setAddress(address);
+        } else {
+            request.setConsumerAddress(address);
+        }
+
         request.setRequestTimestamp(ZonedDateTime.now());
 
-        SubscriptionContextStructure ctx = new SubscriptionContextStructure();
-        ctx.setHeartbeatInterval(createDataTypeFactory().newDuration(heartbeatInterval));
+        if (heartbeatInterval != null) {
+            SubscriptionContextStructure ctx = new SubscriptionContextStructure();
+            ctx.setHeartbeatInterval(createDataTypeFactory().newDuration(heartbeatInterval.toString()));
 
-        request.setSubscriptionContext(ctx);
+            request.setSubscriptionContext(ctx);
+        }
         return request;
     }
 

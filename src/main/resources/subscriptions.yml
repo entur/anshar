@@ -20,7 +20,7 @@ anshar:
       mappingAdapterPresets: KOLUMBUS
       filterPresets:
       idMappingPrefixes: KOL
-      active: true
+      active: false
     -
       internalId: 2
       vendor: kolumbusvm
@@ -41,7 +41,7 @@ anshar:
       mappingAdapterPresets: KOLUMBUS
       filterPresets:
       idMappingPrefixes: KOL
-      active: true
+      active: false
     -
       internalId: 3
       vendor: atbsx
@@ -62,7 +62,7 @@ anshar:
       mappingAdapterPresets: ATB
       filterPresets:
       idMappingPrefixes: ATB
-      active: true
+      active: false
     -
       internalId: 4
       vendor: atbvm
@@ -81,7 +81,7 @@ anshar:
       mappingAdapterPresets: ATB
       filterPresets:
       idMappingPrefixes: ATB
-      active: true
+      active: false
     -
       internalId: 5
       vendor: aktsx
@@ -101,7 +101,7 @@ anshar:
       mappingAdapterPresets: AKT
       filterPresets:
       idMappingPrefixes: AKT
-      active: true
+      active: false
     -
       internalId: 6
       vendor: aktet
@@ -121,7 +121,7 @@ anshar:
       mappingAdapterPresets: AKT
       filterPresets:
       idMappingPrefixes: AKT
-      active: true
+      active: false
     -
       internalId: 7
       vendor: rutersx
@@ -142,7 +142,7 @@ anshar:
       mappingAdapterPresets: RUTER
       filterPresets:
       idMappingPrefixes: RUT,OPP,BRA,OST
-      active: true
+      active: false
     -
       internalId: 9
       vendor: rutervm
@@ -164,7 +164,7 @@ anshar:
       mappingAdapterPresets: RUTER
       filterPresets:
       idMappingPrefixes: RUT,OPP,BRA,OST
-      active: true
+      active: false
     -
       internalId: 11
       vendor: ruteret
@@ -185,7 +185,7 @@ anshar:
       mappingAdapterPresets: RUTER
       filterPresets:
       idMappingPrefixes: RUT,OPP,BRA,OST
-      active: true
+      active: false
     -
       internalId: 12
       vendor: skysset
@@ -205,7 +205,7 @@ anshar:
       mappingAdapterPresets: SKYSS
       filterPresets:
       idMappingPrefixes: SKY
-      active: true
+      active: false
     -
       internalId: 13
       vendor: skysssx
@@ -225,7 +225,7 @@ anshar:
       mappingAdapterPresets: SKYSS
       filterPresets:
       idMappingPrefixes: SKY
-      active: true
+      active: false
     -
       internalId: 14
       vendor: brakaret
@@ -245,7 +245,7 @@ anshar:
       mappingAdapterPresets: BRAKAR
       filterPresets:
       idMappingPrefixes: BRA
-      active: true
+      active: false
     -
       internalId: 15
       vendor: brakarsx
@@ -265,7 +265,7 @@ anshar:
       mappingAdapterPresets: BRAKAR
       filterPresets:
       idMappingPrefixes: BRA
-      active: true
+      active: false
     -
       internalId: 16
       vendor: bybanenEt
@@ -285,7 +285,7 @@ anshar:
       mappingAdapterPresets: SKYSS
       filterPresets: BYBANEN
       idMappingPrefixes: SKY
-      active: true
+      active: false
     -
       internalId: 17
       vendor: baneEt-reqres
@@ -346,7 +346,7 @@ anshar:
       mappingAdapterPresets: BANENOR
       filterPresets:
       idMappingPrefixes: NSB,FLT
-      active: true
+      active: false
     -
       internalId: 20
       vendor: baneSx
@@ -386,7 +386,7 @@ anshar:
       mappingAdapterPresets: NSB
       filterPresets:
       idMappingPrefixes: NSB
-      active: true
+      active: false
     -
       internalId: 22
       vendor: tromset
@@ -406,7 +406,7 @@ anshar:
       mappingAdapterPresets: TROMS
       filterPresets:
       idMappingPrefixes: TRO
-      active: true
+      active: false
     -
       internalId: 23
       vendor: tromssx
@@ -426,7 +426,7 @@ anshar:
       mappingAdapterPresets: TROMS
       filterPresets:
       idMappingPrefixes: TRO
-      active: true
+      active: false
     -
       internalId: 24
       vendor: mret
@@ -434,12 +434,14 @@ anshar:
       serviceType: SOAP
       subscriptionType: ESTIMATED_TIMETABLE
       subscriptionMode: SUBSCRIBE
-      heartbeatIntervalSeconds: 60
-      operatorNamespace: http://www.siri.org.uk/siri
+      heartbeatIntervalSeconds: -1
+      operatorNamespace: http://wsdl.siri.org.uk
+      addressFieldName: Address
+      soapenvNamespace: http://www.w3.org/2003/05/soap-envelope
       urlMap:
-        SUBSCRIBE: Siri.mrfylke.pubtrans.com:8001/SubscriptionManager
-        DELETE_SUBSCRIPTION: SiriET.mrfylke.pubtrans.com:8001/SubscriptionManager
-      version: 1.4
+        SUBSCRIBE: siri.mrfylke.pubtrans.com:8001/SubscriptionManager
+        DELETE_SUBSCRIPTION: siri.mrfylke.pubtrans.com:8001/SubscriptionManager
+      version: 2.0
       subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV_${random.uuid}
       durationOfSubscriptionHours: 168
@@ -455,12 +457,14 @@ anshar:
       subscriptionType: VEHICLE_MONITORING
       subscriptionMode: SUBSCRIBE
       updateIntervalSeconds: 1
-      heartbeatIntervalSeconds: 60
-      operatorNamespace: http://www.siri.org.uk/siri
+      heartbeatIntervalSeconds: -1
+      operatorNamespace: http://wsdl.siri.org.uk
+      addressFieldName: Address
+      soapenvNamespace: http://www.w3.org/2003/05/soap-envelope
       urlMap:
-        SUBSCRIBE: Siri.mrfylke.pubtrans.com:8001/SubscriptionManager
+        SUBSCRIBE: localhost:1234
         DELETE_SUBSCRIPTION: Siri.mrfylke.pubtrans.com:8001/SubscriptionManager
-      version: 1.4
+      version: 2.0
       subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV_${random.uuid}
       durationOfSubscriptionHours: 168
@@ -475,12 +479,14 @@ anshar:
       serviceType: SOAP
       subscriptionType: SITUATION_EXCHANGE
       subscriptionMode: SUBSCRIBE
-      heartbeatIntervalSeconds: 60
-      operatorNamespace: http://www.siri.org.uk/siri
+      heartbeatIntervalSeconds: -1
+      operatorNamespace: http://wsdl.siri.org.uk
+      addressFieldName: Address
+      soapenvNamespace: http://www.w3.org/2003/05/soap-envelope
       urlMap:
         SUBSCRIBE: Siri.mrfylke.pubtrans.com:8001/SubscriptionManager
         DELETE_SUBSCRIPTION: Siri.mrfylke.pubtrans.com:8001/SubscriptionManager
-      version: 1.4
+      version: 2.0
       subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV_${random.uuid}
       durationOfSubscriptionHours: 168
@@ -494,12 +500,12 @@ anshar:
       datasetId: RUT
       serviceType: REST
       subscriptionType: VEHICLE_MONITORING
-      subscriptionMode: SUBSCRIBE
+      subscriptionMode: REQUEST_RESPONSE
       heartbeatIntervalSeconds: 60
       updateIntervalSeconds: 1
       operatorNamespace: http://www.siri.org.uk/siri
       urlMap:
-#        GET_VEHICLE_MONITORING: https4://api.entur.org/anshar/1.0/anshar/services/RUT?useOriginalId=true
+        GET_VEHICLE_MONITORING: https4://api.entur.org/anshar/1.0/anshar/services/RUT?useOriginalId=true
         SUBSCRIBE: https4://api.entur.org/anshar/1.0/anshar/subscribe/RUT?useOriginalId=true
         DELETE_SUBSCRIPTION: https4://api.entur.org/anshar/1.0/anshar/subscribe/RUT
       version: 2.0
