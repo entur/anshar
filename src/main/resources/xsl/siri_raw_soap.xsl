@@ -90,6 +90,8 @@
                                                 </xsl:attribute>
                                                 <xsl:copy-of select="siri:EstimatedTimetableSubscriptionRequest/siri:EstimatedTimetableRequest/*" copy-namespaces="no"/>
                                             </xsl:element>
+                                            <xsl:copy-of select="siri:EstimatedTimetableSubscriptionRequest/siri:IncrementalUpdates" copy-namespaces="no"/>
+                                            <xsl:copy-of select="siri:EstimatedTimetableSubscriptionRequest/siri:ChangeBeforeUpdates" copy-namespaces="no"/>
                                         </xsl:element>
                                     </xsl:when>
                                 </xsl:choose>
