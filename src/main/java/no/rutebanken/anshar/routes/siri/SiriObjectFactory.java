@@ -268,6 +268,9 @@ public class SiriObjectFactory {
         etSubscriptionReq.setSubscriberRef(request.getRequestorRef());
         etSubscriptionReq.setChangeBeforeUpdates(createDataTypeFactory().newDuration(10000));
 
+        etSubscriptionReq.setIncrementalUpdates(true);
+        etSubscriptionReq.setChangeBeforeUpdates(createDataTypeFactory().newDuration(10000));
+
         request.getEstimatedTimetableSubscriptionRequests().add(etSubscriptionReq);
 
         return request;
