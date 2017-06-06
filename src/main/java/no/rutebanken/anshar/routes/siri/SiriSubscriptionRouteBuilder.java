@@ -7,6 +7,8 @@ import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Duration;
+
 public abstract class SiriSubscriptionRouteBuilder extends BaseRouteBuilder {
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -21,8 +23,14 @@ public abstract class SiriSubscriptionRouteBuilder extends BaseRouteBuilder {
     }
 
     String getTimeout() {
-        long heartbeatIntervalMillis = subscriptionSetup.getHeartbeatInterval().toMillis();
-        int timeout = (int) heartbeatIntervalMillis / 2;
+        int timeout;
+        Duration heartbeatInterval = subscriptionSetup.getHeartbeatInterval();
+        if (heartbeatInterval != null) {
+            long heartbeatIntervalMillis = heartbeatInterval.toMillis();
+            timeout = (int) heartbeatIntervalMillis / 2;
+        } else {
+            timeout = 30000;
+        }
 
         return "?httpClient.socketTimeout=" + timeout + "&httpClient.connectTimeout=" + timeout;
     }
