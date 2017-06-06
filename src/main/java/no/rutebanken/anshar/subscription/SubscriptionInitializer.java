@@ -207,8 +207,8 @@ public class SubscriptionInitializer implements CamelContextAware {
         Preconditions.checkNotNull(s.getRequestorRef(), "RequestorRef is not set");
         Preconditions.checkNotNull(s.getSubscriptionMode(), "SubscriptionMode is not set");
 
-        Preconditions.checkNotNull(s.getHeartbeatInterval(), "HeartbeatInterval is not set");
-        Preconditions.checkState(s.getHeartbeatInterval().toMillis() > 0, "HeartbeatInterval must be > 0");
+//        Preconditions.checkNotNull(s.getHeartbeatInterval(), "HeartbeatInterval is not set");
+//        Preconditions.checkState(s.getHeartbeatInterval().toMillis() > 0, "HeartbeatInterval must be > 0");
 
         Preconditions.checkNotNull(s.getDurationOfSubscription(), "Duration is not set");
         Preconditions.checkState(s.getDurationOfSubscription().toMillis() > 0, "Duration must be > 0");
