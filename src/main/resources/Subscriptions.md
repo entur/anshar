@@ -9,6 +9,10 @@
 |updateIntervalSeconds|Any int|Requested update-interval (only applicable when subscription is VEHICLE_MONITORING and SUBSCRIBE)|
 |previewIntervalSeconds|Any int|Requested preview interval|
 |operatorNamespace|Namespace URL|Optional namespace used in XML-marshalling data from this subscription|
+|addressFieldName| *Address* or *ConsumerAddress* (default)| XML-attribute to use for inbound URL |
+|soapenvNamespace| Namespace URL for soap-Envelope| Optional namespace used in XML-marshalling Soap-Envelope|
+|incrementalUpdates|_true_, _false_ or leave empty | _true_ and _false_ sets the attribute to specified value. If empty, the IncrementalUpdates-element is not included in the Request| 
+|overrideHttps|_true_ or _false_ (default)| if set to true, the inbound URL for this subscriptions replaces _https://..._ with _http://..._  Should only be used when dataprovider explicitly does not support *https*|
 |urlMap|List of urls| Specifies URLs to separate services, unused may be deleted. Specify https4:// for HTTPS (e.g. https4://localhost:8080/siri/sx)|
 |  SUBSCRIBE|localhost:8080/siri/service/subscribe.xml |URL to register subscription|
 |  DELETE_SUBSCRIPTION|localhost:8080/siri/service/managesubscription.xml |URL to terminate subscription|

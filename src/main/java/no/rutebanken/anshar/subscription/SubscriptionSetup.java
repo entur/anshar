@@ -38,7 +38,7 @@ public class SubscriptionSetup implements Serializable {
     private String addressFieldName;
     private String soapenvNamespace;
     private Boolean incrementalUpdates;
-    private String incomingAddressOverride;
+    private boolean overrideHttps;
 
     public SubscriptionSetup() {
     }
@@ -262,15 +262,12 @@ public class SubscriptionSetup implements Serializable {
         this.incrementalUpdates = incrementalUpdates;
     }
 
-    public String getIncomingAddressOverride() {
-        if (incomingAddressOverride != null && incomingAddressOverride.isEmpty()) {
-            return null;
-        }
-        return incomingAddressOverride;
+    public boolean getOverrideHttps() {
+        return overrideHttps;
     }
 
-    public void setIncomingAddressOverride(String incomingAddressOverride) {
-        this.incomingAddressOverride = incomingAddressOverride;
+    public void setOverrideHttps(boolean overrideHttps) {
+        this.overrideHttps = overrideHttps;
     }
 
     public enum ServiceType {SOAP, REST}

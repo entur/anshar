@@ -73,8 +73,10 @@ public class SubscriptionInitializer implements CamelContextAware {
 
             // Validation and consistency-verification
             for (SubscriptionSetup subscriptionSetup : subscriptionSetups) {
-                if (subscriptionSetup.getIncomingAddressOverride() != null) {
-                    subscriptionSetup.setAddress(subscriptionSetup.getIncomingAddressOverride());
+                if (subscriptionSetup.getOverrideHttps()) {
+                    if (inboundUrl.startsWith("https://")) {
+                        subscriptionSetup.setAddress(inboundUrl.replaceFirst("https:", "http:"));
+                    }
                 } else {
                     subscriptionSetup.setAddress(inboundUrl);
                 }
