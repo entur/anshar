@@ -565,6 +565,29 @@ anshar:
       idMappingPrefixes: MOR
       active: false
     -
+      internalId: 26
+      vendor: faraEt
+      datasetId: OST
+      serviceType: SOAP
+      subscriptionType: ESTIMATED_TIMETABLE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 60
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates: true
+      urlMap:
+        SUBSCRIBE: 95.141.66.27:8000/SIRI
+        DELETE_SUBSCRIPTION: 95.141.66.27:8000/SIRI
+      version: 2.0
+      subscriptionId: ${random.uuid}
+      requestorRef: RutebankenDEV_ET
+      durationOfSubscriptionHours: 168
+      mappingAdapterPresets:
+      filterPresets:
+      idMappingPrefixes: OST
+      active: false
+    -
       internalId: 100
       vendor: internRuterVm
       datasetId: RUT
