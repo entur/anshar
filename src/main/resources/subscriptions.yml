@@ -17,13 +17,14 @@ anshar:
         DELETE_SUBSCRIPTION: sis.kolumbus.no:90/SXWS/SXService.svc
         GET_SITUATION_EXCHANGE: sis.kolumbus.no:90/SXWS/SXService.svc
       version: 1.4
+      contentType: text/xml;charset=UTF-8
       subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: KOLUMBUS
       filterPresets:
       idMappingPrefixes: KOL
-      active: true
+      active: false
     -
       internalId: 2
       vendor: kolumbusvm
@@ -41,13 +42,14 @@ anshar:
         DELETE_SUBSCRIPTION: sis.kolumbus.no:90/VMWS/VMService.svc
         GET_VEHICLE_MONITORING: sis.kolumbus.no:90/VMWS/VMService.svc
       version: 1.4
+      contentType: text/xml;charset=UTF-8
       subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: KOLUMBUS
       filterPresets:
       idMappingPrefixes: KOL
-      active: true
+      active: false
     -
       internalId: 3
       vendor: atbsx
@@ -65,13 +67,14 @@ anshar:
         DELETE_SUBSCRIPTION: st.atb.no/SXWS/SXService.svc
         GET_SITUATION_EXCHANGE: st.atb.no/SXWS/SXService.svc
       version: 1.4
+      contentType: text/xml;charset=UTF-8
       subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: ATB
       filterPresets:
       idMappingPrefixes: ATB
-      active: true
+      active: false
     -
       internalId: 4
       vendor: atbvm
@@ -87,13 +90,14 @@ anshar:
       urlMap:
         GET_VEHICLE_MONITORING: st.atb.no/VMWS/VMService.svc
       version: 1.4
+      contentType: text/xml;charset=UTF-8
       subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: ATB
       filterPresets:
       idMappingPrefixes: ATB
-      active: true
+      active: false
     -
       internalId: 5
       vendor: aktsx
@@ -110,13 +114,14 @@ anshar:
         SUBSCRIBE: 83.145.60.18/siri/1.4/sx
         DELETE_SUBSCRIPTION: 83.145.60.18/siri/1.4/sx
       version: 1.4
+      contentType: text/xml;charset=UTF-8
       subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV_${random.uuid}
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: AKT
       filterPresets:
       idMappingPrefixes: AKT
-      active: true
+      active: false
     -
       internalId: 6
       vendor: aktet
@@ -133,13 +138,14 @@ anshar:
         SUBSCRIBE: 83.145.60.18/siri/1.4/et
         DELETE_SUBSCRIPTION: 83.145.60.18/siri/1.4/et
       version: 1.4
+      contentType: text/xml;charset=UTF-8
       subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV_${random.uuid}
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: AKT
       filterPresets:
       idMappingPrefixes: AKT
-      active: true
+      active: false
     -
       internalId: 7
       vendor: rutersx
@@ -157,13 +163,14 @@ anshar:
         DELETE_SUBSCRIPTION: sirisx.ruter.no/sx/managesubscription.xml
         CHECK_STATUS: sirisx.ruter.no/sx/checkstatus.xml
       version: 2.0
+      contentType: text/xml;charset=UTF-8
       subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: RUTER
       filterPresets:
       idMappingPrefixes: RUT,OPP,BRA,OST
-      active: true
+      active: false
     -
       internalId: 9
       vendor: rutervm
@@ -182,13 +189,14 @@ anshar:
         DELETE_SUBSCRIPTION: 193.69.85.197:8080/RutebankenDEV/vm/managesubscription.xml
         CHECK_STATUS: 193.69.85.197:8080/RutebankenDEV/vm/checkstatus.xml
       version: 2.0
+      contentType: text/xml;charset=UTF-8
       subscriptionId: 20c2e3a3-1659-41d3-b1a2-1411978b1d43
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: RUTER
       filterPresets:
       idMappingPrefixes: RUT,OPP,BRA,OST
-      active: true
+      active: false
     -
       internalId: 11
       vendor: ruteret
@@ -206,13 +214,14 @@ anshar:
         DELETE_SUBSCRIPTION: 193.69.85.197:8080/RutebankenDEV/et/managesubscription.xml
         CHECK_STATUS: 193.69.85.197:8080/RutebankenDEV/et/checkstatus.xml
       version: 2.0
+      contentType: text/xml;charset=UTF-8
       subscriptionId: 1f6a687e-58b8-4e46-a23c-98adadad78ed
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: RUTER
       filterPresets:
       idMappingPrefixes: RUT,OPP,BRA,OST
-      active: true
+      active: false
     -
       internalId: 12
       vendor: skysset
@@ -229,13 +238,14 @@ anshar:
         SUBSCRIBE: 109.70.83.57/siri/1.4/et
         DELETE_SUBSCRIPTION: 109.70.83.57/siri/1.4/et
       version: 1.4
+      contentType: text/xml;charset=UTF-8
       subscriptionId: 36916b72033769116891f1fb6a9e88ff
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: SKYSS
       filterPresets:
       idMappingPrefixes: SKY
-      active: true
+      active: false
     -
       internalId: 13
       vendor: skysssx
@@ -252,13 +262,14 @@ anshar:
         SUBSCRIBE: 109.70.83.57/siri/1.4/sx
         DELETE_SUBSCRIPTION: 109.70.83.57/siri/1.4/sx
       version: 1.4
+      contentType: text/xml;charset=UTF-8
       subscriptionId: f9ef149ec66ded94836a4da53e12169a
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: SKYSS
       filterPresets:
       idMappingPrefixes: SKY
-      active: true
+      active: false
     -
       internalId: 14
       vendor: brakaret
@@ -275,13 +286,14 @@ anshar:
         SUBSCRIBE: brakar.tmix.se/siri/1.4/et
         DELETE_SUBSCRIPTION: brakar.tmix.se/siri/1.4/et
       version: 1.4
+      contentType: text/xml;charset=UTF-8
       subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV_${random.uuid}
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: BRAKAR
       filterPresets:
       idMappingPrefixes: BRA
-      active: true
+      active: false
     -
       internalId: 15
       vendor: brakarsx
@@ -298,13 +310,14 @@ anshar:
         SUBSCRIBE: brakar.tmix.se/siri/1.4/sx
         DELETE_SUBSCRIPTION: brakar.tmix.se/siri/1.4/sx
       version: 1.4
+      contentType: text/xml;charset=UTF-8
       subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV_${random.uuid}
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: BRAKAR
       filterPresets:
       idMappingPrefixes: BRA
-      active: true
+      active: false
     -
       internalId: 16
       vendor: bybanenEt
@@ -322,13 +335,14 @@ anshar:
         SUBSCRIBE: 62.97.192.2:8080/SIRIProducer/SiriProducerHttp
         DELETE_SUBSCRIPTION: 62.97.192.2:8080/SIRIProducer/SiriProducerHttp
       version: 2.0
+      contentType: text/xml;charset=UTF-8
       subscriptionId: a14c2953-dc8b-4b5f-8c99-6b3feaf2345c
       requestorRef: SKYSS
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: SKYSS
       filterPresets: BYBANEN
       idMappingPrefixes: SKY
-      active: true
+      active: false
     -
       internalId: 17
       vendor: baneEt-reqres
@@ -345,13 +359,14 @@ anshar:
       urlMap:
         GET_ESTIMATED_TIMETABLE: https4://siri.opm.jbv.no/jbv/et
       version: 2.0
+      contentType: text/xml;charset=UTF-8
       subscriptionId: ${random.uuid}
       requestorRef: ${random.uuid}
       durationOfSubscriptionHours: 2
       mappingAdapterPresets: BANENOR
       filterPresets:
       idMappingPrefixes: NSB,FLT
-      active: true
+      active: false
     -
       internalId: 18
       vendor: baneSx-reqres
@@ -368,13 +383,14 @@ anshar:
       urlMap:
         GET_SITUATION_EXCHANGE: https4://siri.opm.jbv.no/jbv/sx
       version: 2.0
+      contentType: text/xml;charset=UTF-8
       subscriptionId: ${random.uuid}
       requestorRef: ${random.uuid}
       durationOfSubscriptionHours: 2
       mappingAdapterPresets: BANENOR
       filterPresets:
       idMappingPrefixes: NSB,FLT
-      active: true
+      active: false
     -
       internalId: 19
       vendor: baneEt
@@ -392,6 +408,7 @@ anshar:
         DELETE_SUBSCRIPTION: https4://siri-test.opm.jbv.no/jbv/et
         GET_ESTIMATED_TIMETABLE: https4://siri-test.opm.jbv.no/jbv/et
       version: 2.0
+      contentType: text/xml;charset=UTF-8
       subscriptionId: ${random.uuid}
       requestorRef: ${random.uuid}
       durationOfSubscriptionHours: 168
@@ -416,6 +433,7 @@ anshar:
         DELETE_SUBSCRIPTION: https4://siri-test.opm.jbv.no/jbv/sx
         GET_SITUATION_EXCHANGE: https4://siri-test.opm.jbv.no/jbv/sx
       version: 2.0
+      contentType: text/xml;charset=UTF-8
       subscriptionId: ${random.uuid}
       requestorRef: ${random.uuid}
       durationOfSubscriptionHours: 2
@@ -438,13 +456,14 @@ anshar:
       urlMap:
         GET_SITUATION_EXCHANGE: dummy-url
       version: 2.0
+      contentType: text/xml;charset=UTF-8
       subscriptionId: nsb-sx-test-feed
       requestorRef: ${random.uuid}
       durationOfSubscriptionHours: 2
       mappingAdapterPresets: NSB
       filterPresets:
       idMappingPrefixes: NSB
-      active: true
+      active: false
     -
       internalId: 22
       vendor: tromset
@@ -461,13 +480,14 @@ anshar:
         SUBSCRIBE: troms.tmix.se/siri/1.4/et
         DELETE_SUBSCRIPTION: troms.tmix.se/siri/1.4/et
       version: 1.4
+      contentType: text/xml;charset=UTF-8
       subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV_${random.uuid}
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: TROMS
       filterPresets:
       idMappingPrefixes: TRO
-      active: true
+      active: false
     -
       internalId: 23
       vendor: tromssx
@@ -484,13 +504,14 @@ anshar:
         SUBSCRIBE: troms.tmix.se/siri/1.4/sx
         DELETE_SUBSCRIPTION: troms.tmix.se/siri/1.4/sx
       version: 1.4
+      contentType: text/xml;charset=UTF-8
       subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV_${random.uuid}
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: TROMS
       filterPresets:
       idMappingPrefixes: TRO
-      active: true
+      active: false
     -
       internalId: 24
       vendor: mret
@@ -508,6 +529,7 @@ anshar:
         SUBSCRIBE: siri.mrfylke.pubtrans.com:8001/SubscriptionManager
         DELETE_SUBSCRIPTION: siri.mrfylke.pubtrans.com:8001/SubscriptionManager
       version: 2.0
+      contentType: application/soap+xml;charset=UTF-8
       subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV_ET
       durationOfSubscriptionHours: 168
@@ -533,6 +555,7 @@ anshar:
         SUBSCRIBE: siri.mrfylke.pubtrans.com:8001/SubscriptionManager
         DELETE_SUBSCRIPTION: siri.mrfylke.pubtrans.com:8001/SubscriptionManager
       version: 2.0
+      contentType: application/soap+xml;charset=UTF-8
       subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV_VM
       durationOfSubscriptionHours: 168
@@ -557,6 +580,7 @@ anshar:
         SUBSCRIBE: siri.mrfylke.pubtrans.com:8001/SubscriptionManager
         DELETE_SUBSCRIPTION: siri.mrfylke.pubtrans.com:8001/SubscriptionManager
       version: 2.0
+      contentType: application/soap+xml;charset=UTF-8
       subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV_SX
       durationOfSubscriptionHours: 168
@@ -573,13 +597,14 @@ anshar:
       subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 60
       operatorNamespace: http://www.siri.org.uk/siri
-      addressFieldName:
-      soapenvNamespace:
+      addressFieldName: Address
+      soapenvNamespace: http://www.w3.org/2003/05/soap-envelope
       incrementalUpdates: true
       urlMap:
         SUBSCRIBE: 95.141.66.27:8000/SIRI
         DELETE_SUBSCRIPTION: 95.141.66.27:8000/SIRI
       version: 2.0
+      contentType: text/xml;charset=UTF-8
       subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV_ET
       durationOfSubscriptionHours: 168
@@ -605,6 +630,7 @@ anshar:
         SUBSCRIBE: https4://api.entur.org/anshar/1.0/anshar/subscribe/RUT?useOriginalId=true
         DELETE_SUBSCRIPTION: https4://api.entur.org/anshar/1.0/anshar/subscribe/RUT
       version: 2.0
+      contentType: text/xml;charset=UTF-8
       subscriptionId: vm-replication
       requestorRef: vm-requestorref
       durationOfSubscriptionHours: 24
@@ -628,6 +654,7 @@ anshar:
         SUBSCRIBE: https4://api.entur.org/anshar/1.0/anshar/subscribe/RUT?useOriginalId=true
         DELETE_SUBSCRIPTION: https4://api.entur.org/anshar/1.0/anshar/subscribe/RUT
       version: 2.0
+      contentType: text/xml;charset=UTF-8
       subscriptionId: et-replication
       requestorRef: et-requestorref
       durationOfSubscriptionHours: 24

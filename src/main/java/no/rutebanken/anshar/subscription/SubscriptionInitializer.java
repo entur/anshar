@@ -210,6 +210,7 @@ public class SubscriptionInitializer implements CamelContextAware {
         Preconditions.checkNotNull(s.getSubscriptionId(), "SubscriptionId is not set");
         Preconditions.checkNotNull(s.getRequestorRef(), "RequestorRef is not set");
         Preconditions.checkNotNull(s.getSubscriptionMode(), "SubscriptionMode is not set");
+        Preconditions.checkNotNull(s.getContentType(), "ContentType is not set");
 
         Preconditions.checkNotNull(s.getDurationOfSubscription(), "Duration is not set");
         Preconditions.checkState(s.getDurationOfSubscription().toMillis() > 0, "Duration must be > 0");

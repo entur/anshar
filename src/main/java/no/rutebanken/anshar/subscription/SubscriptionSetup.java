@@ -39,6 +39,7 @@ public class SubscriptionSetup implements Serializable {
     private String soapenvNamespace;
     private Boolean incrementalUpdates;
     private boolean overrideHttps;
+    private String contentType;
 
     public SubscriptionSetup() {
     }
@@ -187,6 +188,7 @@ public class SubscriptionSetup implements Serializable {
         obj.put("durationOfSubscription", getDurationOfSubscription().toString());
         obj.put("requestorRef", getRequestorRef());
         obj.put("inboundUrl", buildUrl(true));
+        obj.put("contentType", getContentType());
 
         return obj;
     }
@@ -269,6 +271,14 @@ public class SubscriptionSetup implements Serializable {
 
     public void setOverrideHttps(boolean overrideHttps) {
         this.overrideHttps = overrideHttps;
+    }
+
+    public String getContentType() {
+        return contentType;
+    }
+
+    public void setContentType(String contentType) {
+        this.contentType = contentType;
     }
 
     public enum ServiceType {SOAP, REST}

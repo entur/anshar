@@ -65,6 +65,7 @@
                     <tr><th>Dataset ID</th><td>${item.datasetId}</td></tr>
                     <tr><th>Servicetype</th><td>${item.serviceType}</td></tr>
                     <tr><th>Inbound URL</th><td>${item.inboundUrl}</td></tr>
+                    <tr><th>Content-Type</th><td>${item.contentType}</td></tr>
                     <tr><th>Heartbeat interval</th><td>${item.heartbeatInterval}</td></tr>
                     <tr><th>Preview interval</th><td>${item.previewInterval}</td></tr>
                     <tr><th>Update interval</th><td>${item.updateInterval}</td></tr>
