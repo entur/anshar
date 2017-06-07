@@ -186,6 +186,7 @@ public class SubscriptionSetup implements Serializable {
         obj.put("updateInterval", getUpdateInterval() != null ? getUpdateInterval().toString():"");
         obj.put("durationOfSubscription", getDurationOfSubscription().toString());
         obj.put("requestorRef", getRequestorRef());
+        obj.put("inboundUrl", buildUrl(true));
 
         return obj;
     }
