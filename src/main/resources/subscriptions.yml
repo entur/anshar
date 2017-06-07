@@ -596,7 +596,7 @@ anshar:
       subscriptionType: ESTIMATED_TIMETABLE
       subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: -1
-      operatorNamespace: http://wsdl.siri.org.uk
+      operatorNamespace: http://wsdl.siri.org.uk/siri
       addressFieldName: ConsumerAddress
       soapenvNamespace: http://schemas.xmlsoap.org/soap/envelope/
       incrementalUpdates:
