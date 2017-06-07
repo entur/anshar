@@ -590,16 +590,16 @@ anshar:
       active: false
     -
       internalId: 26
-      vendor: faraEt
+      vendor: ostEt
       datasetId: OST
       serviceType: SOAP
       subscriptionType: ESTIMATED_TIMETABLE
       subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 60
-      operatorNamespace: http://www.siri.org.uk/siri
-      addressFieldName: Address
-      soapenvNamespace: http://www.w3.org/2003/05/soap-envelope
-      incrementalUpdates: true
+      operatorNamespace: http://wsdl.siri.org.uk
+      addressFieldName: ConsumerAddress
+      soapenvNamespace: http://schemas.xmlsoap.org/soap/envelope/
+      incrementalUpdates:
       urlMap:
         SUBSCRIBE: 95.141.66.27:8000/SIRI
         DELETE_SUBSCRIPTION: 95.141.66.27:8000/SIRI
