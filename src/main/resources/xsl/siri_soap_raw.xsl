@@ -156,8 +156,8 @@
                     </xsl:element>
                 </xsl:element>
             </xsl:when>
-            
-            <xsl:when test="local-name()='NotifyEstimatedTimetable'">
+
+            <xsl:when test="local-name()='NotifyEstimatedTimetable' or local-name()='NotifyVehicleMonitoring' or local-name()='NotifySituationExchange'">
                 <xsl:element name="siril:Siri">
                     <xsl:attribute name="version">
                         <xsl:value-of select="'2.0'"/>
