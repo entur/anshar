@@ -550,6 +550,7 @@ anshar:
       soapenvNamespace: http://www.w3.org/2003/05/soap-envelope
       incrementalUpdates: true
       overrideHttps: true
+      vehicleMonitoringRefValue: All
       urlMap:
         SUBSCRIBE: siri.mrfylke.pubtrans.com:8001/SubscriptionManager
         DELETE_SUBSCRIPTION: siri.mrfylke.pubtrans.com:8001/SubscriptionManager

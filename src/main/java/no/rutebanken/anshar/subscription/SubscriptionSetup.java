@@ -40,6 +40,7 @@ public class SubscriptionSetup implements Serializable {
     private Boolean incrementalUpdates;
     private boolean overrideHttps;
     private String contentType;
+    private String vehicleMonitoringRefValue;
 
     public SubscriptionSetup() {
     }
@@ -279,6 +280,14 @@ public class SubscriptionSetup implements Serializable {
 
     public void setContentType(String contentType) {
         this.contentType = contentType;
+    }
+
+    public String getVehicleMonitoringRefValue() {
+        return vehicleMonitoringRefValue;
+    }
+
+    public void setVehicleMonitoringRefValue(String vehicleMonitoringRefValue) {
+        this.vehicleMonitoringRefValue = vehicleMonitoringRefValue;
     }
 
     public enum ServiceType {SOAP, REST}

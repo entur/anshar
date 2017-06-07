@@ -56,7 +56,8 @@ public class SiriObjectFactory {
                     subscriptionSetup.getFilterMap(),
                     (subscriptionSetup.getUpdateInterval() != null ? subscriptionSetup.getUpdateInterval().toString():null),
                     subscriptionSetup.getAddressFieldName(),
-                    subscriptionSetup.getIncrementalUpdates());
+                    subscriptionSetup.getIncrementalUpdates(),
+                    subscriptionSetup.getVehicleMonitoringRefValue());
         }
         if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE)) {
             request = createEstimatedTimetableSubscriptionRequest(subscriptionSetup.getRequestorRef(),subscriptionSetup.getSubscriptionId(),
@@ -201,12 +202,18 @@ public class SiriObjectFactory {
         return request;
     }
 
-    private static SubscriptionRequest createVehicleMonitoringSubscriptionRequest(String requestorRef, String subscriptionId, Duration heartbeatInterval, String address, Duration subscriptionDuration, Map<Class, Set<Object>> filterMap, String updateInterval, String addressFieldName, Boolean incrementalUpdates) {
+    private static SubscriptionRequest createVehicleMonitoringSubscriptionRequest(String requestorRef, String subscriptionId, Duration heartbeatInterval, String address, Duration subscriptionDuration, Map<Class, Set<Object>> filterMap, String updateInterval, String addressFieldName, Boolean incrementalUpdates, String vehicleMonitoringRefValue) {
         SubscriptionRequest request = createSubscriptionRequest(requestorRef,heartbeatInterval, address, addressFieldName);
 
         VehicleMonitoringRequestStructure vmRequest = new VehicleMonitoringRequestStructure();
         vmRequest.setRequestTimestamp(ZonedDateTime.now());
         vmRequest.setVersion(SIRI_VERSION);
+
+        if (vehicleMonitoringRefValue != null) {
+            VehicleMonitoringRefStructure vehicleMonitoringRef = new VehicleMonitoringRefStructure();
+            vehicleMonitoringRef.setValue(vehicleMonitoringRefValue);
+            vmRequest.setVehicleMonitoringRef(vehicleMonitoringRef);
+        }
 
         if (filterMap != null) {
             Set lineRefs = filterMap.get(LineRef.class);
