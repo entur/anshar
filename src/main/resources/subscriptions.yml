@@ -529,7 +529,7 @@ anshar:
         DELETE_SUBSCRIPTION: siri.mrfylke.pubtrans.com:8001/SubscriptionManager
       version: 2.0
       subscriptionId: ${random.uuid}
-      requestorRef: RutebankenDEV_${random.uuid}
+      requestorRef: RutebankenDEV_ET
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: MOR
       filterPresets:
@@ -542,19 +542,19 @@ anshar:
       serviceType: SOAP
       subscriptionType: VEHICLE_MONITORING
       subscriptionMode: SUBSCRIBE
-      updateIntervalSeconds: 1
+      updateIntervalSeconds:
       heartbeatIntervalSeconds: -1
       operatorNamespace: http://wsdl.siri.org.uk
       addressFieldName: Address
       soapenvNamespace: http://www.w3.org/2003/05/soap-envelope
-      incrementalUpdates:
+      incrementalUpdates: true
       incomingAddressOverride: http://rt-test.rutebanken.org/anshar/
       urlMap:
-        SUBSCRIBE: Siri.mrfylke.pubtrans.com:8001/SubscriptionManager
-        DELETE_SUBSCRIPTION: Siri.mrfylke.pubtrans.com:8001/SubscriptionManager
+        SUBSCRIBE: siri.mrfylke.pubtrans.com:8001/SubscriptionManager
+        DELETE_SUBSCRIPTION: siri.mrfylke.pubtrans.com:8001/SubscriptionManager
       version: 2.0
       subscriptionId: ${random.uuid}
-      requestorRef: RutebankenDEV_${random.uuid}
+      requestorRef: RutebankenDEV_VM
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: MOR
       filterPresets:
@@ -571,14 +571,14 @@ anshar:
       operatorNamespace: http://wsdl.siri.org.uk
       addressFieldName: Address
       soapenvNamespace: http://www.w3.org/2003/05/soap-envelope
-      incrementalUpdates:
+      incrementalUpdates: true
       incomingAddressOverride: http://rt-test.rutebanken.org/anshar/
       urlMap:
-        SUBSCRIBE: Siri.mrfylke.pubtrans.com:8001/SubscriptionManager
-        DELETE_SUBSCRIPTION: Siri.mrfylke.pubtrans.com:8001/SubscriptionManager
+        SUBSCRIBE: siri.mrfylke.pubtrans.com:8001/SubscriptionManager
+        DELETE_SUBSCRIPTION: siri.mrfylke.pubtrans.com:8001/SubscriptionManager
       version: 2.0
       subscriptionId: ${random.uuid}
-      requestorRef: RutebankenDEV_${random.uuid}
+      requestorRef: RutebankenDEV_SX
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: MOR
       filterPresets:
