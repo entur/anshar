@@ -68,6 +68,7 @@
                                                  </xsl:attribute>
                                                  <xsl:copy-of select="siri:SituationExchangeSubscriptionRequest/siri:SituationExchangeRequest/*" copy-namespaces="no"/>
                                              </xsl:element>
+                                             <xsl:copy-of select="siri:SituationExchangeSubscriptionRequest/siri:IncrementalUpdates" copy-namespaces="no"/>
                                          </xsl:element>
                                     </xsl:when>
                                     <xsl:when test="/siri:Siri/siri:SubscriptionRequest/siri:VehicleMonitoringSubscriptionRequest">
@@ -82,6 +83,9 @@
                                                 </xsl:attribute>
                                                 <xsl:copy-of select="siri:VehicleMonitoringSubscriptionRequest/siri:VehicleMonitoringRequest/*" copy-namespaces="no"/>
                                             </xsl:element>
+                                            <xsl:copy-of select="siri:VehicleMonitoringSubscriptionRequest/siri:IncrementalUpdates" copy-namespaces="no"/>
+                                            <xsl:copy-of select="siri:VehicleMonitoringSubscriptionRequest/siri:ChangeBeforeUpdates" copy-namespaces="no"/>
+                                            <xsl:copy-of select="siri:VehicleMonitoringSubscriptionRequest/siri:UpdateInterval" copy-namespaces="no"/>
                                         </xsl:element>
                                     </xsl:when>
                                     <xsl:when test="/siri:Siri/siri:SubscriptionRequest/siri:EstimatedTimetableSubscriptionRequest">

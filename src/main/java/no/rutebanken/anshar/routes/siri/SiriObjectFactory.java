@@ -236,6 +236,7 @@ public class SiriObjectFactory {
             vmSubscriptionReq.setUpdateInterval(createDataTypeFactory().newDuration(updateInterval));
         }
         vmSubscriptionReq.setIncrementalUpdates(incrementalUpdates);
+        vmSubscriptionReq.setChangeBeforeUpdates(createDataTypeFactory().newDuration("PT10S"));
 
         request.getVehicleMonitoringSubscriptionRequests().add(vmSubscriptionReq);
 
