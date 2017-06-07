@@ -321,7 +321,7 @@ anshar:
     -
       internalId: 16
       vendor: bybanenEt
-      datasetId: BYB
+      datasetId: SKY
       serviceType: REST
       subscriptionType: ESTIMATED_TIMETABLE
       subscriptionMode: SUBSCRIBE
