@@ -544,7 +544,6 @@ anshar:
       serviceType: SOAP
       subscriptionType: VEHICLE_MONITORING
       subscriptionMode: SUBSCRIBE
-      updateIntervalSeconds:
       heartbeatIntervalSeconds: -1
       operatorNamespace: http://wsdl.siri.org.uk
       addressFieldName: Address
