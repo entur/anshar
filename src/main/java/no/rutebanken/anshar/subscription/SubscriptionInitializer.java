@@ -73,7 +73,11 @@ public class SubscriptionInitializer implements CamelContextAware {
 
             // Validation and consistency-verification
             for (SubscriptionSetup subscriptionSetup : subscriptionSetups) {
-                subscriptionSetup.setAddress(inboundUrl);
+                if (subscriptionSetup.getIncomingAddressOverride() != null) {
+                    subscriptionSetup.setAddress(subscriptionSetup.getIncomingAddressOverride());
+                } else {
+                    subscriptionSetup.setAddress(inboundUrl);
+                }
 
                 if (!isValid(subscriptionSetup)) {
                     throw new ServiceConfigurationError("Configuration is not valid for subscription " + subscriptionSetup);

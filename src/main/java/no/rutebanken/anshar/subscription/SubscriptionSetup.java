@@ -38,6 +38,7 @@ public class SubscriptionSetup implements Serializable {
     private String addressFieldName;
     private String soapenvNamespace;
     private Boolean incrementalUpdates;
+    private String incomingAddressOverride;
 
     public SubscriptionSetup() {
     }
@@ -232,6 +233,9 @@ public class SubscriptionSetup implements Serializable {
     }
 
     public String getAddressFieldName() {
+        if (addressFieldName != null && addressFieldName.isEmpty()) {
+            return null;
+        }
         return addressFieldName;
     }
 
@@ -240,6 +244,9 @@ public class SubscriptionSetup implements Serializable {
     }
 
     public String getSoapenvNamespace() {
+        if (soapenvNamespace != null && soapenvNamespace.isEmpty()) {
+            return null;
+        }
         return soapenvNamespace;
     }
 
@@ -253,6 +260,17 @@ public class SubscriptionSetup implements Serializable {
 
     public void setIncrementalUpdates(Boolean incrementalUpdates) {
         this.incrementalUpdates = incrementalUpdates;
+    }
+
+    public String getIncomingAddressOverride() {
+        if (incomingAddressOverride != null && incomingAddressOverride.isEmpty()) {
+            return null;
+        }
+        return incomingAddressOverride;
+    }
+
+    public void setIncomingAddressOverride(String incomingAddressOverride) {
+        this.incomingAddressOverride = incomingAddressOverride;
     }
 
     public enum ServiceType {SOAP, REST}

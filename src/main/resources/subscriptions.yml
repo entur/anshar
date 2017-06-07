@@ -9,6 +9,10 @@ anshar:
       subscriptionMode: REQUEST_RESPONSE
       heartbeatIntervalSeconds: 60
       operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      incomingAddressOverride:
       urlMap:
         SUBSCRIBE: sis.kolumbus.no:90/SXWS/SXService.svc
         DELETE_SUBSCRIPTION: sis.kolumbus.no:90/SXWS/SXService.svc
@@ -30,6 +34,10 @@ anshar:
       subscriptionMode: REQUEST_RESPONSE
       heartbeatIntervalSeconds: 60
       operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      incomingAddressOverride:
       urlMap:
         SUBSCRIBE: sis.kolumbus.no:90/VMWS/VMService.svc
         DELETE_SUBSCRIPTION: sis.kolumbus.no:90/VMWS/VMService.svc
@@ -51,6 +59,10 @@ anshar:
       subscriptionMode: REQUEST_RESPONSE
       heartbeatIntervalSeconds: 60
       operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      incomingAddressOverride:
       urlMap:
         SUBSCRIBE: st.atb.no/SXWS/SXService.svc
         DELETE_SUBSCRIPTION: st.atb.no/SXWS/SXService.svc
@@ -72,6 +84,10 @@ anshar:
       subscriptionMode: REQUEST_RESPONSE
       heartbeatIntervalSeconds: 60
       operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      incomingAddressOverride:
       urlMap:
         GET_VEHICLE_MONITORING: st.atb.no/VMWS/VMService.svc
       version: 1.4
@@ -91,6 +107,10 @@ anshar:
       subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 60
       operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      incomingAddressOverride:
       urlMap:
         SUBSCRIBE: 83.145.60.18/siri/1.4/sx
         DELETE_SUBSCRIPTION: 83.145.60.18/siri/1.4/sx
@@ -111,6 +131,10 @@ anshar:
       subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 60
       operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      incomingAddressOverride:
       urlMap:
         SUBSCRIBE: 83.145.60.18/siri/1.4/et
         DELETE_SUBSCRIPTION: 83.145.60.18/siri/1.4/et
@@ -131,6 +155,10 @@ anshar:
       subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 600
       operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      incomingAddressOverride:
       urlMap:
         SUBSCRIBE: sirisx.ruter.no/sx/subscribe.xml
         DELETE_SUBSCRIPTION: sirisx.ruter.no/sx/managesubscription.xml
@@ -153,6 +181,10 @@ anshar:
       heartbeatIntervalSeconds: 60
       updateIntervalSeconds: 1
       operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      incomingAddressOverride:
       urlMap:
         SUBSCRIBE: 193.69.85.197:8080/RutebankenDEV/vm/subscribe.xml
         DELETE_SUBSCRIPTION: 193.69.85.197:8080/RutebankenDEV/vm/managesubscription.xml
@@ -174,6 +206,10 @@ anshar:
       subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 60
       operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      incomingAddressOverride:
       urlMap:
         SUBSCRIBE: 193.69.85.197:8080/RutebankenDEV/et/subscribe.xml
         DELETE_SUBSCRIPTION: 193.69.85.197:8080/RutebankenDEV/et/managesubscription.xml
@@ -195,6 +231,10 @@ anshar:
       subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 60
       operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      incomingAddressOverride:
       urlMap:
         SUBSCRIBE: 109.70.83.57/siri/1.4/et
         DELETE_SUBSCRIPTION: 109.70.83.57/siri/1.4/et
@@ -215,6 +255,10 @@ anshar:
       subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 60
       operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      incomingAddressOverride:
       urlMap:
         SUBSCRIBE: 109.70.83.57/siri/1.4/sx
         DELETE_SUBSCRIPTION: 109.70.83.57/siri/1.4/sx
@@ -235,6 +279,10 @@ anshar:
       subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 60
       operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      incomingAddressOverride:
       urlMap:
         SUBSCRIBE: brakar.tmix.se/siri/1.4/et
         DELETE_SUBSCRIPTION: brakar.tmix.se/siri/1.4/et
@@ -255,6 +303,10 @@ anshar:
       subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 60
       operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      incomingAddressOverride:
       urlMap:
         SUBSCRIBE: brakar.tmix.se/siri/1.4/sx
         DELETE_SUBSCRIPTION: brakar.tmix.se/siri/1.4/sx
@@ -276,11 +328,14 @@ anshar:
       heartbeatIntervalSeconds: 60
       operatorNamespace: http://www.siri.org.uk/siri
       addressFieldName: Address
+      soapenvNamespace:
+      incrementalUpdates:
+      incomingAddressOverride: http://rt-test.rutebanken.org/anshar/
       urlMap:
         SUBSCRIBE: 62.97.192.2:8080/SIRIProducer/SiriProducerHttp
         DELETE_SUBSCRIPTION: 62.97.192.2:8080/SIRIProducer/SiriProducerHttp
       version: 2.0
-      subscriptionId: ${random.uuid}
+      subscriptionId: a14c2953-dc8b-4b5f-8c99-6b3feaf2345c
       requestorRef: SKYSS
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: SKYSS
@@ -297,6 +352,10 @@ anshar:
       heartbeatIntervalSeconds: 60
       previewIntervalSeconds: 3600
       operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      incomingAddressOverride:
       urlMap:
         GET_ESTIMATED_TIMETABLE: https4://siri.opm.jbv.no/jbv/et
       version: 2.0
@@ -317,6 +376,10 @@ anshar:
       heartbeatIntervalSeconds: 60
       previewIntervalSeconds: 3600
       operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      incomingAddressOverride:
       urlMap:
         GET_SITUATION_EXCHANGE: https4://siri.opm.jbv.no/jbv/sx
       version: 2.0
@@ -336,6 +399,10 @@ anshar:
       subscriptionMode: FETCHED_DELIVERY
       heartbeatIntervalSeconds: 60
       operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      incomingAddressOverride:
       urlMap:
         SUBSCRIBE: https4://siri-test.opm.jbv.no/jbv/et
         DELETE_SUBSCRIPTION: https4://siri-test.opm.jbv.no/jbv/et
@@ -357,6 +424,10 @@ anshar:
       subscriptionMode: FETCHED_DELIVERY
       heartbeatIntervalSeconds: 60
       operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      incomingAddressOverride:
       urlMap:
         SUBSCRIBE: https4://siri-test.opm.jbv.no/jbv/sx
         DELETE_SUBSCRIPTION: https4://siri-test.opm.jbv.no/jbv/sx
@@ -378,6 +449,10 @@ anshar:
       subscriptionMode: REQUEST_RESPONSE
       heartbeatIntervalSeconds: 6000000
       operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      incomingAddressOverride:
       urlMap:
         GET_SITUATION_EXCHANGE: dummy-url
       version: 2.0
@@ -397,6 +472,10 @@ anshar:
       subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 60
       operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      incomingAddressOverride:
       urlMap:
         SUBSCRIBE: troms.tmix.se/siri/1.4/et
         DELETE_SUBSCRIPTION: troms.tmix.se/siri/1.4/et
@@ -417,6 +496,10 @@ anshar:
       subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 60
       operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      incomingAddressOverride:
       urlMap:
         SUBSCRIBE: troms.tmix.se/siri/1.4/sx
         DELETE_SUBSCRIPTION: troms.tmix.se/siri/1.4/sx
@@ -440,6 +523,7 @@ anshar:
       addressFieldName: Address
       soapenvNamespace: http://www.w3.org/2003/05/soap-envelope
       incrementalUpdates: true
+      incomingAddressOverride: http://rt-test.rutebanken.org/anshar/
       urlMap:
         SUBSCRIBE: siri.mrfylke.pubtrans.com:8001/SubscriptionManager
         DELETE_SUBSCRIPTION: siri.mrfylke.pubtrans.com:8001/SubscriptionManager
@@ -463,6 +547,8 @@ anshar:
       operatorNamespace: http://wsdl.siri.org.uk
       addressFieldName: Address
       soapenvNamespace: http://www.w3.org/2003/05/soap-envelope
+      incrementalUpdates:
+      incomingAddressOverride: http://rt-test.rutebanken.org/anshar/
       urlMap:
         SUBSCRIBE: Siri.mrfylke.pubtrans.com:8001/SubscriptionManager
         DELETE_SUBSCRIPTION: Siri.mrfylke.pubtrans.com:8001/SubscriptionManager
@@ -485,6 +571,8 @@ anshar:
       operatorNamespace: http://wsdl.siri.org.uk
       addressFieldName: Address
       soapenvNamespace: http://www.w3.org/2003/05/soap-envelope
+      incrementalUpdates:
+      incomingAddressOverride: http://rt-test.rutebanken.org/anshar/
       urlMap:
         SUBSCRIBE: Siri.mrfylke.pubtrans.com:8001/SubscriptionManager
         DELETE_SUBSCRIPTION: Siri.mrfylke.pubtrans.com:8001/SubscriptionManager
@@ -506,6 +594,10 @@ anshar:
       heartbeatIntervalSeconds: 60
       updateIntervalSeconds: 1
       operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      incomingAddressOverride:
       urlMap:
         GET_VEHICLE_MONITORING: https4://api.entur.org/anshar/1.0/anshar/services/RUT?useOriginalId=true
         SUBSCRIBE: https4://api.entur.org/anshar/1.0/anshar/subscribe/RUT?useOriginalId=true
@@ -527,6 +619,10 @@ anshar:
       subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 60
       operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      incomingAddressOverride:
       urlMap:
         SUBSCRIBE: https4://api.entur.org/anshar/1.0/anshar/subscribe/RUT?useOriginalId=true
         DELETE_SUBSCRIPTION: https4://api.entur.org/anshar/1.0/anshar/subscribe/RUT
