@@ -589,13 +589,13 @@ anshar:
       idMappingPrefixes: MOR
       active: false
     -
-      internalId: 26
+      internalId: 27
       vendor: ostEt
       datasetId: OST
       serviceType: SOAP
       subscriptionType: ESTIMATED_TIMETABLE
       subscriptionMode: SUBSCRIBE
-      heartbeatIntervalSeconds: 60
+      heartbeatIntervalSeconds: -1
       operatorNamespace: http://wsdl.siri.org.uk
       addressFieldName: ConsumerAddress
       soapenvNamespace: http://schemas.xmlsoap.org/soap/envelope/
