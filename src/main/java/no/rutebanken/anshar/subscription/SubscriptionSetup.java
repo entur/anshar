@@ -426,10 +426,6 @@ public class SubscriptionSetup implements Serializable {
             logger.info("address does not match [{}] vs [{}]", address, that.address);
             return false;
         }
-        if (!getHeartbeatInterval().equals(that.getHeartbeatInterval())) {
-            logger.info("getHeartbeatInterval() does not match [{}] vs [{}]", getHeartbeatInterval(), that.getHeartbeatInterval());
-            return false;
-        }
         if (getOperatorNamespace() != null ? !getOperatorNamespace().equals(that.getOperatorNamespace()) : that.getOperatorNamespace() != null) {
             logger.info("getOperatorNamespace() does not match [{}] vs [{}]", getOperatorNamespace(), that.getOperatorNamespace());
             return false;
