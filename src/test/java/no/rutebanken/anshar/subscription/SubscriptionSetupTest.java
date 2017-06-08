@@ -85,13 +85,6 @@ public class SubscriptionSetupTest {
     }
 
     @Test
-    public void testEqualsUpdatedHeartbeatInterval() {
-        assertEquals(setup_1, setup_2);
-        setup_2.setHeartbeatIntervalSeconds((int) (setup_1.getHeartbeatInterval().getSeconds() + 1));
-        assertFalse(setup_1.equals(setup_2));
-    }
-
-    @Test
     public void testEqualsUpdatedNameSpace() {
         assertEquals(setup_1, setup_2);
         setup_2.setOperatorNamespace("http://other.operator.namespace");
