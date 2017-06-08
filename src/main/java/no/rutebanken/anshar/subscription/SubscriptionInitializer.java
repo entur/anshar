@@ -104,6 +104,17 @@ public class SubscriptionInitializer implements CamelContextAware {
                     }
                 }
 
+
+                if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.FETCHED_DELIVERY) {
+
+                    //Fetched delivery needs both subscribe-route and ServiceRequest-route
+                    String url = subscriptionSetup.getUrlMap().get(RequestType.SUBSCRIBE);
+
+                    subscriptionSetup.getUrlMap().putIfAbsent(RequestType.GET_ESTIMATED_TIMETABLE, url);
+                    subscriptionSetup.getUrlMap().putIfAbsent(RequestType.GET_VEHICLE_MONITORING, url);
+                    subscriptionSetup.getUrlMap().putIfAbsent(RequestType.GET_SITUATION_EXCHANGE, url);
+                }
+
                 SubscriptionSetup existingSubscription = subscriptionManager.getSubscriptionById(subscriptionSetup.getInternalId());
 
                 if (existingSubscription != null) {
@@ -138,13 +149,6 @@ public class SubscriptionInitializer implements CamelContextAware {
 
                 try {
                     if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.FETCHED_DELIVERY) {
-
-                        //Fetched delivery needs both subscribe-route and ServiceRequest-route
-                        String url = subscriptionSetup.getUrlMap().get(RequestType.SUBSCRIBE);
-
-                        subscriptionSetup.getUrlMap().putIfAbsent(RequestType.GET_ESTIMATED_TIMETABLE, url);
-                        subscriptionSetup.getUrlMap().putIfAbsent(RequestType.GET_VEHICLE_MONITORING, url);
-                        subscriptionSetup.getUrlMap().putIfAbsent(RequestType.GET_SITUATION_EXCHANGE, url);
 
                         subscriptionSetup.setSubscriptionMode(SubscriptionSetup.SubscriptionMode.SUBSCRIBE);
                         camelContext.addRoutes(getRouteBuilder(subscriptionSetup));
