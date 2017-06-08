@@ -458,10 +458,6 @@ public class SubscriptionSetup implements Serializable {
             logger.info("getDurationOfSubscription() does not match [{}] vs [{}]", getDurationOfSubscription(), that.getDurationOfSubscription());
             return false;
         }
-        if (getRequestorRef() != null ? !getRequestorRef().equals(that.getRequestorRef()) : that.getRequestorRef() != null) {
-            logger.info("getRequestorRef() does not match [{}] vs [{}]", getRequestorRef(), that.getRequestorRef());
-            return false;
-        }
         if (getSubscriptionMode() != that.getSubscriptionMode()) {
             logger.info("getSubscriptionMode() does not match [{}] vs [{}]", getSubscriptionMode(), that.getSubscriptionMode());
             return false;
