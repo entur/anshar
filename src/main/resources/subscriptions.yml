@@ -121,7 +121,7 @@ anshar:
       mappingAdapterPresets: AKT
       filterPresets:
       idMappingPrefixes: AKT
-      active: false
+      active: true
     -
       internalId: 6
       vendor: aktet
@@ -145,7 +145,7 @@ anshar:
       mappingAdapterPresets: AKT
       filterPresets:
       idMappingPrefixes: AKT
-      active: false
+      active: true
     -
       internalId: 7
       vendor: rutersx
@@ -170,7 +170,7 @@ anshar:
       mappingAdapterPresets: RUTER
       filterPresets:
       idMappingPrefixes: RUT,OPP,BRA,OST
-      active: false
+      active: true
     -
       internalId: 9
       vendor: rutervm
@@ -196,7 +196,7 @@ anshar:
       mappingAdapterPresets: RUTER
       filterPresets:
       idMappingPrefixes: RUT,OPP,BRA,OST
-      active: false
+      active: true
     -
       internalId: 11
       vendor: ruteret
@@ -221,7 +221,7 @@ anshar:
       mappingAdapterPresets: RUTER
       filterPresets:
       idMappingPrefixes: RUT,OPP,BRA,OST
-      active: false
+      active: true
     -
       internalId: 12
       vendor: skysset
@@ -245,7 +245,7 @@ anshar:
       mappingAdapterPresets: SKYSS
       filterPresets:
       idMappingPrefixes: SKY
-      active: false
+      active: true
     -
       internalId: 13
       vendor: skysssx
@@ -269,7 +269,7 @@ anshar:
       mappingAdapterPresets: SKYSS
       filterPresets:
       idMappingPrefixes: SKY
-      active: false
+      active: true
     -
       internalId: 14
       vendor: brakaret
@@ -293,7 +293,7 @@ anshar:
       mappingAdapterPresets: BRAKAR
       filterPresets:
       idMappingPrefixes: BRA
-      active: false
+      active: true
     -
       internalId: 15
       vendor: brakarsx
@@ -317,7 +317,7 @@ anshar:
       mappingAdapterPresets: BRAKAR
       filterPresets:
       idMappingPrefixes: BRA
-      active: false
+      active: true
     -
       internalId: 16
       vendor: bybanenEt
@@ -487,7 +487,7 @@ anshar:
       mappingAdapterPresets: TROMS
       filterPresets:
       idMappingPrefixes: TRO
-      active: false
+      active: true
     -
       internalId: 23
       vendor: tromssx
@@ -511,7 +511,7 @@ anshar:
       mappingAdapterPresets: TROMS
       filterPresets:
       idMappingPrefixes: TRO
-      active: false
+      active: true
     -
       internalId: 24
       vendor: mret
@@ -531,12 +531,12 @@ anshar:
       version: 2.0
       contentType: application/soap+xml;charset=UTF-8
       subscriptionId: ${random.uuid}
-      requestorRef: RutebankenDEV_ET
+      requestorRef: RutebankenDEV_ET_${random.uuid}
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: MOR
       filterPresets:
       idMappingPrefixes: MOR
-      active: false
+      active: true
     -
       internalId: 25
       vendor: mrvm
@@ -557,12 +557,12 @@ anshar:
       version: 2.0
       contentType: application/soap+xml;charset=UTF-8
       subscriptionId: ${random.uuid}
-      requestorRef: RutebankenDEV_VM
+      requestorRef: RutebankenDEV_VM_${random.uuid}
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: MOR
       filterPresets:
       idMappingPrefixes: MOR
-      active: false
+      active: true
     -
       internalId: 26
       vendor: mrsx
@@ -582,12 +582,12 @@ anshar:
       version: 2.0
       contentType: application/soap+xml;charset=UTF-8
       subscriptionId: ${random.uuid}
-      requestorRef: RutebankenDEV_SX
+      requestorRef: RutebankenDEV_SX_${random.uuid}
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: MOR
       filterPresets:
       idMappingPrefixes: MOR
-      active: false
+      active: true
     -
       internalId: 27
       vendor: ostEt
@@ -611,14 +611,14 @@ anshar:
       mappingAdapterPresets:
       filterPresets:
       idMappingPrefixes: OST
-      active: false
+      active: true
     -
       internalId: 100
       vendor: internRuterVm
       datasetId: RUT
       serviceType: REST
       subscriptionType: VEHICLE_MONITORING
-      subscriptionMode: SUBSCRIBE
+      subscriptionMode: REQUEST_RESPONSE
       heartbeatIntervalSeconds: 60
       updateIntervalSeconds: 1
       operatorNamespace: http://www.siri.org.uk/siri
@@ -637,7 +637,7 @@ anshar:
       mappingAdapterPresets: RUTER
       filterPresets:
       idMappingPrefixes: RUT,OPP,BRA,OST
-      active: true
+      active: false
     -
       internalId: 101
       vendor: internRuterEt
@@ -661,4 +661,4 @@ anshar:
       mappingAdapterPresets: RUTER
       filterPresets:
       idMappingPrefixes: RUT,OPP,BRA,OST
-      active: true
+      active: false
