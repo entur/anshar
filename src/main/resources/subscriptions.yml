@@ -618,7 +618,7 @@ anshar:
       datasetId: RUT
       serviceType: REST
       subscriptionType: VEHICLE_MONITORING
-      subscriptionMode: REQUEST_RESPONSE
+      subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 60
       updateIntervalSeconds: 1
       operatorNamespace: http://www.siri.org.uk/siri
@@ -626,7 +626,7 @@ anshar:
       soapenvNamespace:
       incrementalUpdates:
       urlMap:
-        GET_VEHICLE_MONITORING: https4://api.entur.org/anshar/1.0/anshar/services/RUT?useOriginalId=true
+#        GET_VEHICLE_MONITORING: https4://api.entur.org/anshar/1.0/anshar/services/RUT?useOriginalId=true
         SUBSCRIBE: https4://api.entur.org/anshar/1.0/anshar/subscribe/RUT?useOriginalId=true
         DELETE_SUBSCRIPTION: https4://api.entur.org/anshar/1.0/anshar/subscribe/RUT
       version: 2.0
