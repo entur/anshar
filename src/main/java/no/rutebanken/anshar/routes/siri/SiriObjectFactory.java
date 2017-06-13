@@ -66,7 +66,8 @@ public class SiriObjectFactory {
                     subscriptionSetup.getDurationOfSubscription(),
                     subscriptionSetup.getFilterMap(),
                     subscriptionSetup.getAddressFieldName(),
-                    subscriptionSetup.getIncrementalUpdates());
+                    subscriptionSetup.getIncrementalUpdates(),
+                    subscriptionSetup.getPreviewInterval());
         }
         if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.PRODUCTION_TIMETABLE)) {
             request = createProductionTimetableSubscriptionRequest(subscriptionSetup.getRequestorRef(), subscriptionSetup.getSubscriptionId(),
@@ -251,13 +252,13 @@ public class SiriObjectFactory {
     }
 
 
-    private static SubscriptionRequest createEstimatedTimetableSubscriptionRequest(String requestorRef, String subscriptionId, Duration heartbeatInterval, String address, Duration subscriptionDuration, Map<Class, Set<Object>> filterMap, String addressFieldName, Boolean incrementalUpdates) {
+    private static SubscriptionRequest createEstimatedTimetableSubscriptionRequest(String requestorRef, String subscriptionId, Duration heartbeatInterval, String address, Duration subscriptionDuration, Map<Class, Set<Object>> filterMap, String addressFieldName, Boolean incrementalUpdates, Duration previewInterval) {
         SubscriptionRequest request = createSubscriptionRequest(requestorRef, heartbeatInterval, address, addressFieldName);
 
         EstimatedTimetableRequestStructure etRequest = new EstimatedTimetableRequestStructure();
         etRequest.setRequestTimestamp(ZonedDateTime.now());
         etRequest.setVersion(SIRI_VERSION);
-        etRequest.setPreviewInterval(createDataTypeFactory().newDuration("PT24H"));
+        etRequest.setPreviewInterval(createDataTypeFactory().newDuration(previewInterval.toString()));
 
         if (filterMap != null) {
             if (filterMap.size() > 0) {
