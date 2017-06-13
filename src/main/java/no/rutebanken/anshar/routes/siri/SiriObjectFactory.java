@@ -261,6 +261,8 @@ public class SiriObjectFactory {
 
         if (previewInterval != null) {
             etRequest.setPreviewInterval(createDataTypeFactory().newDuration(previewInterval.toString()));
+        } else {
+            etRequest.setPreviewInterval(createDataTypeFactory().newDuration("PT1H"));
         }
 
         if (filterMap != null) {
