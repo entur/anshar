@@ -258,7 +258,10 @@ public class SiriObjectFactory {
         EstimatedTimetableRequestStructure etRequest = new EstimatedTimetableRequestStructure();
         etRequest.setRequestTimestamp(ZonedDateTime.now());
         etRequest.setVersion(SIRI_VERSION);
-        etRequest.setPreviewInterval(createDataTypeFactory().newDuration(previewInterval.toString()));
+
+        if (previewInterval != null) {
+            etRequest.setPreviewInterval(createDataTypeFactory().newDuration(previewInterval.toString()));
+        }
 
         if (filterMap != null) {
             if (filterMap.size() > 0) {
