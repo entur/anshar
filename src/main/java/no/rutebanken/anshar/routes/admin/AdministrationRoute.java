@@ -1,5 +1,9 @@
 package no.rutebanken.anshar.routes.admin;
 
+import no.rutebanken.anshar.messages.EstimatedTimetables;
+import no.rutebanken.anshar.messages.ProductionTimetables;
+import no.rutebanken.anshar.messages.Situations;
+import no.rutebanken.anshar.messages.VehicleActivities;
 import no.rutebanken.anshar.messages.collections.ExtendedHazelcastService;
 import no.rutebanken.anshar.routes.outbound.ServerSubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
@@ -30,6 +34,19 @@ public class AdministrationRoute extends RouteBuilder {
 
     @Autowired
     private ServerSubscriptionManager serverSubscriptionManager;
+
+
+    @Autowired
+    private Situations situations;
+
+    @Autowired
+    private VehicleActivities vehicleActivities;
+
+    @Autowired
+    private EstimatedTimetables estimatedTimetables;
+
+    @Autowired
+    private ProductionTimetables productionTimetables;
 
     @Override
     public void configure() throws Exception {
@@ -76,6 +93,20 @@ public class AdministrationRoute extends RouteBuilder {
                 })
                 .to("freemarker:templates/subscriptions.ftl")
         ;
+
+        //Return subscription status
+        from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/cleanup")
+                .process(p -> {
+                    p.getOut().setHeader(Exchange.CONTENT_TYPE, "text/html");
+                    p.getOut().setBody(
+                            "<br />ET: " + estimatedTimetables.cleanup() +
+                            "<br />VM: " + vehicleActivities.cleanup() +
+                            "<br />SX: " + situations.cleanup() +
+                            "<br />PT: " + productionTimetables.cleanup()
+                    );
+                })
+        ;
+
         //Return subscription status
         from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/clusterstats")
                 .process(p -> {

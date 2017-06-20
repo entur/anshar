@@ -18,6 +18,7 @@ import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @Repository
@@ -48,6 +49,21 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
 
     @Autowired
     private SiriObjectFactory siriObjectFactory;
+
+    @Override
+    public int cleanup() {
+        AtomicInteger counter = new AtomicInteger();
+        long t1 = System.currentTimeMillis();
+        timetableDeliveries.removeAll(entry -> {
+            if (getExpiration(entry.getValue()) < 0) {
+                counter.incrementAndGet();
+                return true;
+            }
+            return false;
+        });
+        logger.info("Cleanup removed {} expired elements in {} seconds.", counter.get(), (int)(System.currentTimeMillis()-t1)/1000);
+        return counter.get();
+    }
 
     public Siri createServiceDelivery(String requestorId, String datasetId, int maxSize) {
 

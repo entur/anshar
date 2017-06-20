@@ -18,4 +18,5 @@ public interface SiriRepository<T> {
 
     long getExpiration(T s);
 
+    int cleanup();
 }
