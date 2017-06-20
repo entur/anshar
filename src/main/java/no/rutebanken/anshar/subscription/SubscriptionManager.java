@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
@@ -41,6 +42,9 @@ public class SubscriptionManager {
     @Autowired
     @Qualifier("getActivatedTimestampMap")
     private IMap<String, java.time.Instant> activatedTimestamp;
+
+    @Value("${anshar.environment}")
+    private String environment;
 
     @Autowired
     private IMap<String, Integer> hitcount;
@@ -244,6 +248,7 @@ public class SubscriptionManager {
 
         result.put("subscriptions", stats);
 
+        result.put("environment", environment);
         result.put("serverStarted", formatTimestamp(siriObjectFactory.serverStartTime));
         result.put("secondsSinceDataReceived", healthManager.getSecondsSinceDataReceived());
         JSONObject count = new JSONObject();

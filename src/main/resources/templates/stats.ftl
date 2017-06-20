@@ -32,6 +32,7 @@
     <h2>Anshar status/statistics</h2>
     <small>Server started ${body.serverStarted}</small>
     <small>(${body.secondsSinceDataReceived}s)</small>
+    <br /><small>- ${body.environment} -</small>
 </div>
 <div class="container">
 
