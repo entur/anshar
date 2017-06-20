@@ -199,7 +199,7 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
             }
 
             long expiration = getExpiration(et);
-            if (expiration >= 0 && keep) {
+            if (expiration > 0 && keep) {
                 if (et.isIsCompleteStopSequence() != null && !et.isIsCompleteStopSequence()) {
                     //Not complete - merge partial update into existing
                     if (existing != null) {
@@ -263,7 +263,7 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
                         et.getEstimatedCalls().getEstimatedCalls() != null &&
                         !et.getEstimatedCalls().getEstimatedCalls().isEmpty()) {
                     changes.add(key);
-                    timetableDeliveries.put(key, et, expiration, TimeUnit.MILLISECONDS);
+                    timetableDeliveries.set(key, et, expiration, TimeUnit.MILLISECONDS);
                 }
             }
         });

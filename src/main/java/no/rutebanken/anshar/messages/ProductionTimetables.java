@@ -118,9 +118,9 @@ public class ProductionTimetables implements SiriRepository<ProductionTimetableD
 
                 long expiration = getExpiration(pt);
 
-                if (expiration >= 0) {
+                if (expiration > 0) {
                     changes.add(key);
-                    timetableDeliveries.put(key, pt, expiration, TimeUnit.MILLISECONDS);
+                    timetableDeliveries.set(key, pt, expiration, TimeUnit.MILLISECONDS);
                 }
             } else {
                 //Newer update has already been processed

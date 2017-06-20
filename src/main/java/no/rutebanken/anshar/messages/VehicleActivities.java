@@ -144,9 +144,9 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
 
                         long expiration = getExpiration(activity);
 
-                        if (expiration >= 0 && keep) {
+                        if (expiration > 0 && keep) {
                             changes.add(key);
-                            vehicleActivities.put(key, activity, expiration, TimeUnit.MILLISECONDS);
+                            vehicleActivities.set(key, activity, expiration, TimeUnit.MILLISECONDS);
                             siriVmMqttHandler.pushToMqtt(datasetId, activity);
                         } else {
                             outdatedCounter.increment();
