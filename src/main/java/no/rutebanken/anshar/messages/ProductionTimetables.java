@@ -101,7 +101,7 @@ public class ProductionTimetables implements SiriRepository<ProductionTimetableD
             return ZonedDateTime.now().until(validUntil, ChronoUnit.MILLIS);
         }
 
-        return 0;
+        return -1;
     }
 
     public Collection<ProductionTimetableDeliveryStructure> addAll(String datasetId, List<ProductionTimetableDeliveryStructure> ptList) {

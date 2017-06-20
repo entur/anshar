@@ -124,7 +124,7 @@ public class Situations implements SiriRepository<PtSituationElement> {
         if (expiry != null) {
             return ZonedDateTime.now().until(expiry, ChronoUnit.MILLIS);
         } else {
-            return 0;
+            return -1;
         }
     }
 
