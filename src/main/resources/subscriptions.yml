@@ -356,7 +356,7 @@ anshar:
       filterPresets: BYBANEN
       idMappingPrefixes: SKY
       environments: test,beta,prod
-      active: false
+      active: true
     -
       internalId: 17
       vendor: baneEt-reqres
@@ -664,7 +664,7 @@ anshar:
       filterPresets:
       idMappingPrefixes: RUT,OPP,BRA,OST
       environments: test
-      active: false
+      active: true
     -
       internalId: 101
       vendor: internRuterEt
@@ -689,4 +689,4 @@ anshar:
       filterPresets:
       idMappingPrefixes: RUT,OPP,BRA,OST
       environments: test
-      active: false
+      active: true
