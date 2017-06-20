@@ -13,7 +13,6 @@ import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Repository
 public class ProductionTimetables implements SiriRepository<ProductionTimetableDeliveryStructure> {
@@ -97,17 +96,19 @@ public class ProductionTimetables implements SiriRepository<ProductionTimetableD
 
     @Override
     public int cleanup() {
-        AtomicInteger counter = new AtomicInteger();
         long t1 = System.currentTimeMillis();
-        timetableDeliveries.removeAll(entry -> {
-            if (getExpiration(entry.getValue()) < 0) {
-                counter.incrementAndGet();
-                return true;
-            }
-            return false;
-        });
-        logger.info("Cleanup removed {} expired elements in {} seconds.", counter.get(), (int)(System.currentTimeMillis()-t1)/1000);
-        return counter.get();
+        Set<String> keysToRemove = new HashSet<>();
+        timetableDeliveries.keySet()
+                .stream()
+                .forEach(key -> {
+                    if (getExpiration(timetableDeliveries.get(key)) < 0) {
+                        keysToRemove.add(key);
+                    }
+                });
+
+        logger.info("Cleanup removed {} expired elements in {} seconds.", keysToRemove.size(), (int)(System.currentTimeMillis()-t1)/1000);
+        keysToRemove.forEach(key -> timetableDeliveries.delete(key));
+        return keysToRemove.size();
     }
     public long getExpiration(ProductionTimetableDeliveryStructure s) {
 

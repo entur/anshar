@@ -16,7 +16,6 @@ import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Repository
 public class VehicleActivities implements SiriRepository<VehicleActivityStructure> {
@@ -68,17 +67,19 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
 
     @Override
     public int cleanup() {
-        AtomicInteger counter = new AtomicInteger();
         long t1 = System.currentTimeMillis();
-        vehicleActivities.removeAll(entry -> {
-            if (getExpiration(entry.getValue()) < 0) {
-                counter.incrementAndGet();
-                return true;
-            }
-            return false;
-        });
-        logger.info("Cleanup removed {} expired elements in {} seconds.", counter.get(), (int)(System.currentTimeMillis()-t1)/1000);
-        return counter.get();
+        Set<String> keysToRemove = new HashSet<>();
+        vehicleActivities.keySet()
+                .stream()
+                .forEach(key -> {
+                    if (getExpiration(vehicleActivities.get(key)) < 0) {
+                        keysToRemove.add(key);
+                    }
+                });
+
+        logger.info("Cleanup removed {} expired elements in {} seconds.", keysToRemove.size(), (int)(System.currentTimeMillis()-t1)/1000);
+        keysToRemove.forEach(key -> vehicleActivities.delete(key));
+        return keysToRemove.size();
     }
     /**
      * @return All vehicle activities that have been updated since last request from requestor
