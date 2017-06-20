@@ -41,6 +41,7 @@ public class SubscriptionSetup implements Serializable {
     private boolean overrideHttps;
     private String contentType;
     private String vehicleMonitoringRefValue;
+    private Set<String> environments;
 
     public SubscriptionSetup() {
     }
@@ -285,6 +286,14 @@ public class SubscriptionSetup implements Serializable {
 
     public void setVehicleMonitoringRefValue(String vehicleMonitoringRefValue) {
         this.vehicleMonitoringRefValue = vehicleMonitoringRefValue;
+    }
+
+    public Collection<String> getEnvironments() {
+        return environments;
+    }
+
+    public void setEnvironments(Set<String> environments) {
+        this.environments = environments;
     }
 
     public enum ServiceType {SOAP, REST}

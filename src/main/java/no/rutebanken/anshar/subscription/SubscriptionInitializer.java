@@ -38,6 +38,9 @@ public class SubscriptionInitializer implements CamelContextAware {
     @Value("${anshar.healthcheck.interval.seconds}")
     private int healthCheckInterval = 30;
 
+    @Value("${anshar.environment}")
+    private String environment;
+
     @Autowired
     @Qualifier("getHealthCheckMap")
     private IMap<Enum<HealthCheckKey>, Instant> healthCheckMap;
@@ -63,6 +66,8 @@ public class SubscriptionInitializer implements CamelContextAware {
     @PostConstruct
     void createSubscriptions() {
         camelContext.setUseMDCLogging(true);
+
+        logger.info("Initializing subscriptions for environment: {}", environment);
 
         if (subscriptionConfig != null) {
             List<SubscriptionSetup> subscriptionSetups = subscriptionConfig.getSubscriptions();
@@ -114,6 +119,11 @@ public class SubscriptionInitializer implements CamelContextAware {
                     subscriptionSetup.getUrlMap().putIfAbsent(RequestType.GET_VEHICLE_MONITORING, url);
                     subscriptionSetup.getUrlMap().putIfAbsent(RequestType.GET_SITUATION_EXCHANGE, url);
                 }
+
+                if (subscriptionSetup.getEnvironments() != null && !subscriptionSetup.getEnvironments().contains(environment)) {
+                    subscriptionSetup.setActive(false);
+                }
+
 
                 SubscriptionSetup existingSubscription = subscriptionManager.getSubscriptionById(subscriptionSetup.getInternalId());
 

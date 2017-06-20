@@ -24,6 +24,7 @@ anshar:
       mappingAdapterPresets: KOLUMBUS
       filterPresets:
       idMappingPrefixes: KOL
+      environments: test,beta,prod
       active: true
     -
       internalId: 2
@@ -49,6 +50,7 @@ anshar:
       mappingAdapterPresets: KOLUMBUS
       filterPresets:
       idMappingPrefixes: KOL
+      environments: test,beta,prod,local
       active: true
     -
       internalId: 3
@@ -74,6 +76,7 @@ anshar:
       mappingAdapterPresets: ATB
       filterPresets:
       idMappingPrefixes: ATB
+      environments: test,beta,prod
       active: true
     -
       internalId: 4
@@ -97,6 +100,7 @@ anshar:
       mappingAdapterPresets: ATB
       filterPresets:
       idMappingPrefixes: ATB
+      environments: test,beta,prod
       active: true
     -
       internalId: 5
@@ -121,6 +125,7 @@ anshar:
       mappingAdapterPresets: AKT
       filterPresets:
       idMappingPrefixes: AKT
+      environments: test,beta,prod
       active: true
     -
       internalId: 6
@@ -145,6 +150,7 @@ anshar:
       mappingAdapterPresets: AKT
       filterPresets:
       idMappingPrefixes: AKT
+      environments: test,beta,prod
       active: true
     -
       internalId: 7
@@ -170,6 +176,7 @@ anshar:
       mappingAdapterPresets: RUTER
       filterPresets:
       idMappingPrefixes: RUT,OPP,BRA,OST
+      environments: test,beta,prod
       active: true
     -
       internalId: 9
@@ -196,6 +203,7 @@ anshar:
       mappingAdapterPresets: RUTER
       filterPresets:
       idMappingPrefixes: RUT,OPP,BRA,OST
+      environments: beta,prod
       active: true
     -
       internalId: 11
@@ -221,6 +229,7 @@ anshar:
       mappingAdapterPresets: RUTER
       filterPresets:
       idMappingPrefixes: RUT,OPP,BRA,OST
+      environments: beta,prod
       active: true
     -
       internalId: 12
@@ -245,6 +254,7 @@ anshar:
       mappingAdapterPresets: SKYSS
       filterPresets:
       idMappingPrefixes: SKY
+      environments: test,beta,prod
       active: true
     -
       internalId: 13
@@ -269,6 +279,7 @@ anshar:
       mappingAdapterPresets: SKYSS
       filterPresets:
       idMappingPrefixes: SKY
+      environments: test,beta,prod
       active: true
     -
       internalId: 14
@@ -293,6 +304,7 @@ anshar:
       mappingAdapterPresets: BRAKAR
       filterPresets:
       idMappingPrefixes: BRA
+      environments: test,beta,prod
       active: true
     -
       internalId: 15
@@ -317,6 +329,7 @@ anshar:
       mappingAdapterPresets: BRAKAR
       filterPresets:
       idMappingPrefixes: BRA
+      environments: test,beta,prod
       active: true
     -
       internalId: 16
@@ -342,6 +355,7 @@ anshar:
       mappingAdapterPresets: SKYSS
       filterPresets: BYBANEN
       idMappingPrefixes: SKY
+      environments: test,beta,prod
       active: false
     -
       internalId: 17
@@ -366,6 +380,7 @@ anshar:
       mappingAdapterPresets: BANENOR
       filterPresets:
       idMappingPrefixes: NSB,FLT
+      environments: test,beta,prod
       active: true
     -
       internalId: 18
@@ -390,6 +405,7 @@ anshar:
       mappingAdapterPresets: BANENOR
       filterPresets:
       idMappingPrefixes: NSB,FLT
+      environments: test,beta,prod
       active: true
     -
       internalId: 19
@@ -415,6 +431,7 @@ anshar:
       mappingAdapterPresets: BANENOR
       filterPresets:
       idMappingPrefixes: NSB,FLT
+      environments: test,beta,prod
       active: false
     -
       internalId: 20
@@ -440,6 +457,7 @@ anshar:
       mappingAdapterPresets: BANENOR
       filterPresets:
       idMappingPrefixes: NSB,FLT
+      environments: test,beta,prod
       active: false
     -
       internalId: 21
@@ -463,6 +481,7 @@ anshar:
       mappingAdapterPresets: NSB
       filterPresets:
       idMappingPrefixes: NSB
+      environments: test,beta,prod
       active: true
     -
       internalId: 22
@@ -487,6 +506,7 @@ anshar:
       mappingAdapterPresets: TROMS
       filterPresets:
       idMappingPrefixes: TRO
+      environments: test,beta,prod
       active: true
     -
       internalId: 23
@@ -511,6 +531,7 @@ anshar:
       mappingAdapterPresets: TROMS
       filterPresets:
       idMappingPrefixes: TRO
+      environments: test,beta,prod
       active: true
     -
       internalId: 24
@@ -536,6 +557,7 @@ anshar:
       mappingAdapterPresets: MOR
       filterPresets:
       idMappingPrefixes: MOR
+      environments: test,beta,prod
       active: true
     -
       internalId: 25
@@ -562,6 +584,7 @@ anshar:
       mappingAdapterPresets: MOR
       filterPresets:
       idMappingPrefixes: MOR
+      environments: test,beta,prod
       active: true
     -
       internalId: 26
@@ -587,6 +610,7 @@ anshar:
       mappingAdapterPresets: MOR
       filterPresets:
       idMappingPrefixes: MOR
+      environments: test,beta,prod
       active: true
     -
       internalId: 27
@@ -612,6 +636,7 @@ anshar:
       mappingAdapterPresets:
       filterPresets:
       idMappingPrefixes: OST
+      environments: test,beta,prod
       active: true
     -
       internalId: 100
@@ -638,6 +663,7 @@ anshar:
       mappingAdapterPresets: RUTER
       filterPresets:
       idMappingPrefixes: RUT,OPP,BRA,OST
+      environments: test
       active: false
     -
       internalId: 101
@@ -662,4 +688,5 @@ anshar:
       mappingAdapterPresets: RUTER
       filterPresets:
       idMappingPrefixes: RUT,OPP,BRA,OST
+      environments: test
       active: false
