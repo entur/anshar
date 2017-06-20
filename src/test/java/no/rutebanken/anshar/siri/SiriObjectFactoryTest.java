@@ -93,6 +93,62 @@ public class SiriObjectFactoryTest {
     }
 
     @Test
+    public void testCreateSubscriptionCustomAddressfield(){
+
+        SubscriptionSetup sxSubscriptionSetup = createSubscriptionSetup(SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE,
+                SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
+                UUID.randomUUID().toString());
+
+        SubscriptionSetup etSubscriptionSetup = createSubscriptionSetup(SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE,
+                SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
+                UUID.randomUUID().toString());
+
+        SubscriptionSetup vmSubscriptionSetup = createSubscriptionSetup(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING,
+                SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
+                UUID.randomUUID().toString());
+
+        SubscriptionSetup ptSubscriptionSetup = createSubscriptionSetup(SubscriptionSetup.SubscriptionType.PRODUCTION_TIMETABLE,
+                SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
+                UUID.randomUUID().toString());
+
+        Siri sxSubscriptionRequest = SiriObjectFactory.createSubscriptionRequest(sxSubscriptionSetup);
+        Siri etSubscriptionRequest = SiriObjectFactory.createSubscriptionRequest(etSubscriptionSetup);
+        Siri vmSubscriptionRequest = SiriObjectFactory.createSubscriptionRequest(vmSubscriptionSetup);
+        Siri ptSubscriptionRequest = SiriObjectFactory.createSubscriptionRequest(ptSubscriptionSetup);
+
+        assertNotNull(sxSubscriptionRequest.getSubscriptionRequest().getConsumerAddress());
+        assertNotNull(etSubscriptionRequest.getSubscriptionRequest().getConsumerAddress());
+        assertNotNull(vmSubscriptionRequest.getSubscriptionRequest().getConsumerAddress());
+        assertNotNull(ptSubscriptionRequest.getSubscriptionRequest().getConsumerAddress());
+
+        assertNull(sxSubscriptionRequest.getSubscriptionRequest().getAddress());
+        assertNull(etSubscriptionRequest.getSubscriptionRequest().getAddress());
+        assertNull(vmSubscriptionRequest.getSubscriptionRequest().getAddress());
+        assertNull(ptSubscriptionRequest.getSubscriptionRequest().getAddress());
+
+
+        ptSubscriptionSetup.setAddressFieldName("Address");
+        vmSubscriptionSetup.setAddressFieldName("Address");
+        etSubscriptionSetup.setAddressFieldName("Address");
+        sxSubscriptionSetup.setAddressFieldName("Address");
+
+        sxSubscriptionRequest = SiriObjectFactory.createSubscriptionRequest(sxSubscriptionSetup);
+        etSubscriptionRequest = SiriObjectFactory.createSubscriptionRequest(etSubscriptionSetup);
+        vmSubscriptionRequest = SiriObjectFactory.createSubscriptionRequest(vmSubscriptionSetup);
+        ptSubscriptionRequest = SiriObjectFactory.createSubscriptionRequest(ptSubscriptionSetup);
+
+        assertNotNull(sxSubscriptionRequest.getSubscriptionRequest().getAddress());
+        assertNotNull(etSubscriptionRequest.getSubscriptionRequest().getAddress());
+        assertNotNull(vmSubscriptionRequest.getSubscriptionRequest().getAddress());
+        assertNotNull(ptSubscriptionRequest.getSubscriptionRequest().getAddress());
+
+        assertNull(sxSubscriptionRequest.getSubscriptionRequest().getConsumerAddress());
+        assertNull(etSubscriptionRequest.getSubscriptionRequest().getConsumerAddress());
+        assertNull(vmSubscriptionRequest.getSubscriptionRequest().getConsumerAddress());
+        assertNull(ptSubscriptionRequest.getSubscriptionRequest().getConsumerAddress());
+    }
+
+    @Test
     public void testCreateSXServiceRequest(){
 
         SubscriptionSetup subscriptionSetup = createSubscriptionSetup(SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE,
