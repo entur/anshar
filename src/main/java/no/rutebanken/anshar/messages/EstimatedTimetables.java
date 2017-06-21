@@ -57,10 +57,13 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
         timetableDeliveries.keySet()
                 .stream()
                 .forEach(key -> {
-                    long expiration = getExpiration(timetableDeliveries.get(key));
-                    if (expiration < 0) {
-                        b.append(key + " -> " + expiration + "/n");
-                        keysToRemove.add(key);
+                    EstimatedVehicleJourney vehicleJourney = timetableDeliveries.get(key);
+                    if (vehicleJourney != null) { //Object may have expired during cleanup
+                        long expiration = getExpiration(vehicleJourney);
+                        if (expiration < 0) {
+                            b.append(key + " -> " + expiration + "/n");
+                            keysToRemove.add(key);
+                        }
                     }
                 });
 
