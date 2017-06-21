@@ -53,15 +53,18 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
     public int cleanup() {
         long t1 = System.currentTimeMillis();
         Set<String> keysToRemove = new HashSet<>();
+        StringBuffer b = new StringBuffer();
         timetableDeliveries.keySet()
                 .stream()
                 .forEach(key -> {
-                    if (getExpiration(timetableDeliveries.get(key)) < 0) {
+                    long expiration = getExpiration(timetableDeliveries.get(key));
+                    if (expiration < 0) {
+                        b.append(key + " -> " + expiration + "/n");
                         keysToRemove.add(key);
                     }
                 });
 
-        logger.info("Cleanup removed {} expired elements in {} seconds.", keysToRemove.size(), (int)(System.currentTimeMillis()-t1)/1000);
+        logger.info("Cleanup removed {} expired elements in {} seconds. /n {}", keysToRemove.size(), (int)(System.currentTimeMillis()-t1)/1000, b.toString());
         keysToRemove.forEach(key -> timetableDeliveries.delete(key));
         return keysToRemove.size();
     }
