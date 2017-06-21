@@ -37,16 +37,11 @@ public class ExtendedHazelcastService extends HazelCastService {
 
     public HazelcastInstance getHazelcastInstance() {
         if (hazelcast != null) {
-            ClientService clientService = hazelcast.getClientService();
-            if (clientService != null) {
-                Collection<Client> connectedClients = clientService.getConnectedClients();
-                if (connectedClients != null) {
-                    connectedClients.forEach(client -> logger.info("Anshar-HZ: hz-client: {}",client.getSocketAddress().getHostString()));
-                } else {
-                    logger.info("Anshar-HZ: connectedClients == null");
-                }
+            Set<Member> members = hazelcast.getCluster().getMembers();
+            if (members != null) {
+                members.forEach(m ->  logger.info("Anshar-HZ: Member: {}", m.getAddress().getHost()));
             } else {
-                logger.info("Anshar-HZ: clientService == null");
+                logger.info("Anshar-HZ: members == null");
             }
         } else {
             logger.info("Anshar-HZ: hazelcast == null");
