@@ -110,8 +110,10 @@ public class AdministrationRoute extends RouteBuilder {
         //Return subscription status
         from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/clusterstats")
                 .process(p -> {
+                    HttpServletRequest request = p.getIn().getBody(HttpServletRequest.class);
+                    String includeStats = request.getParameter("stats");
                     p.getOut().setHeader(Exchange.CONTENT_TYPE, "application/json");
-                    p.getOut().setBody(extendedHazelcastService.listNodes());
+                    p.getOut().setBody(extendedHazelcastService.listNodes((includeStats != null && Boolean.valueOf(includeStats))));
                 })
         ;
 

@@ -132,7 +132,7 @@ public class ExtendedHazelcastService extends HazelCastService {
         return hazelcast.getMap("anshar.admin.health");
     }
 
-    public String listNodes() {
+    public String listNodes(boolean includeStats) {
         JSONObject root = new JSONObject();
         JSONArray clusterMembers = new JSONArray();
         Cluster cluster = hazelcast.getCluster();
@@ -140,17 +140,22 @@ public class ExtendedHazelcastService extends HazelCastService {
             Set<Member> members = cluster.getMembers();
             if (members != null && !members.isEmpty()) {
                 for (Member member : members) {
-                    JSONObject stats = new JSONObject();
-                    Collection<DistributedObject> distributedObjects = hazelcast.getDistributedObjects();
-                    for (DistributedObject distributedObject : distributedObjects) {
-                        stats.put(distributedObject.getName(), hazelcast.getMap(distributedObject.getName()).getLocalMapStats().toJson());
-                    }
+
                     JSONObject obj = new JSONObject();
                     obj.put("uuid", member.getUuid());
                     obj.put("host", member.getAddress().getHost());
                     obj.put("port", member.getAddress().getPort());
                     obj.put("local", member.localMember());
-                    obj.put("localmapstats", stats);
+
+                    if (includeStats) {
+                        JSONObject stats = new JSONObject();
+                        Collection<DistributedObject> distributedObjects = hazelcast.getDistributedObjects();
+                        for (DistributedObject distributedObject : distributedObjects) {
+                            stats.put(distributedObject.getName(), hazelcast.getMap(distributedObject.getName()).getLocalMapStats().toJson());
+                        }
+
+                        obj.put("localmapstats", stats);
+                    }
                     clusterMembers.add(obj);
                 }
             }
