@@ -32,10 +32,25 @@ public class ExtendedHazelcastService extends HazelCastService {
         super(kubernetesService, cfg.getHazelcastManagementUrl());
         List<String> kubernetesAnsharServices = kubernetesService.findEndpoints("anshar");
 
-        logger.info("Anshar services: {}", kubernetesAnsharServices);
+        logger.info("Anshar-HZ: Anshar services: {}", kubernetesAnsharServices);
     }
 
     public HazelcastInstance getHazelcastInstance() {
+        if (hazelcast != null) {
+            ClientService clientService = hazelcast.getClientService();
+            if (clientService != null) {
+                Collection<Client> connectedClients = clientService.getConnectedClients();
+                if (connectedClients != null) {
+                    connectedClients.forEach(client -> logger.info("Anshar-HZ: hz-client: {}",client.getSocketAddress().getHostString()));
+                } else {
+                    logger.info("Anshar-HZ: connectedClients == null");
+                }
+            } else {
+                logger.info("Anshar-HZ: clientService == null");
+            }
+        } else {
+            logger.info("Anshar-HZ: hazelcast == null");
+        }
         return hazelcast;
     }
 
