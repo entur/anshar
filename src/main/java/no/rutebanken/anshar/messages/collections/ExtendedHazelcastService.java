@@ -33,7 +33,6 @@ public class ExtendedHazelcastService extends HazelCastService {
         List<String> kubernetesAnsharServices = kubernetesService.findEndpoints("anshar");
 
         logger.info("Anshar services: {}", kubernetesAnsharServices);
-        logger.info("Anshar HZ-clients ({}): {}", hazelcast.getClientService().getConnectedClients().size(), hazelcast.getClientService().getConnectedClients());
     }
 
     public HazelcastInstance getHazelcastInstance() {
