@@ -20,6 +20,7 @@ import uk.org.siri.siri20.VehicleActivityStructure;
 import java.math.BigInteger;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 @Service
@@ -29,6 +30,10 @@ public class ExtendedHazelcastService extends HazelCastService {
 
     public ExtendedHazelcastService(@Autowired KubernetesService kubernetesService, @Autowired AnsharConfiguration cfg) {
         super(kubernetesService, cfg.getHazelcastManagementUrl());
+        List<String> kubernetesAnsharServices = kubernetesService.findEndpoints("anshar");
+
+        logger.info("Anshar services: {}", kubernetesAnsharServices);
+        logger.info("Anshar HZ-clients ({}): {}", hazelcast.getClientService().getConnectedClients().size(), hazelcast.getClientService().getConnectedClients());
     }
 
     public HazelcastInstance getHazelcastInstance() {
