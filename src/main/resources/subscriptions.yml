@@ -50,7 +50,7 @@ anshar:
       mappingAdapterPresets: KOLUMBUS
       filterPresets:
       idMappingPrefixes: KOL
-      environments: test,beta,prod,local
+      environments: test,beta,prod
       active: true
     -
       internalId: 3

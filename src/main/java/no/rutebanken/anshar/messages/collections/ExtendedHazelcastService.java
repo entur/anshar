@@ -20,7 +20,6 @@ import uk.org.siri.siri20.VehicleActivityStructure;
 import java.math.BigInteger;
 import java.time.Instant;
 import java.util.Collection;
-import java.util.List;
 import java.util.Set;
 
 @Service
@@ -30,22 +29,9 @@ public class ExtendedHazelcastService extends HazelCastService {
 
     public ExtendedHazelcastService(@Autowired KubernetesService kubernetesService, @Autowired AnsharConfiguration cfg) {
         super(kubernetesService, cfg.getHazelcastManagementUrl());
-        List<String> kubernetesAnsharServices = kubernetesService.findEndpoints("anshar");
-
-        logger.info("Anshar-HZ: Anshar services: {}", kubernetesAnsharServices);
     }
 
     public HazelcastInstance getHazelcastInstance() {
-        if (hazelcast != null) {
-            Set<Member> members = hazelcast.getCluster().getMembers();
-            if (members != null) {
-                members.forEach(m ->  logger.info("Anshar-HZ: Member: {}", m.getAddress().getHost()));
-            } else {
-                logger.info("Anshar-HZ: members == null");
-            }
-        } else {
-            logger.info("Anshar-HZ: hazelcast == null");
-        }
         return hazelcast;
     }
 
@@ -92,11 +78,6 @@ public class ExtendedHazelcastService extends HazelCastService {
     @Bean
     public IMap<String,SubscriptionSetup> getSubscriptionsMap() {
         return hazelcast.getMap("anshar.subscriptions.active");
-    }
-
-    @Bean
-    public IMap<String,SubscriptionSetup> getPendingSubscriptionsMap() {
-        return hazelcast.getMap("anshar.subscriptions.pending");
     }
 
     @Bean
