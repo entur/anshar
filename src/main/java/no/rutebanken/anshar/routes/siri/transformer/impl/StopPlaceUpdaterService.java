@@ -98,10 +98,11 @@ public class StopPlaceUpdaterService {
             Map<String, String> tmpStopPlaceMappings = new HashMap<>();
             Counter duplicates = new CounterImpl(0);
 
-            URLConnection con = url.openConnection();
-            con.setReadTimeout(30000);
+            URLConnection connection = url.openConnection();
+            connection.setConnectTimeout(5000);
+            connection.setReadTimeout(30000);
 
-            BufferedReader reader = new BufferedReader(new InputStreamReader(con.getInputStream()));
+            BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 
             reader.lines().forEach(line -> {
 
