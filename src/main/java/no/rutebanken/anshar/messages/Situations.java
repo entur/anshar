@@ -111,8 +111,12 @@ public class Situations implements SiriRepository<PtSituationElement> {
         situations.keySet()
                 .stream()
                 .forEach(key -> {
-                    if (getExpiration(situations.get(key)) < 0) {
-                        keysToRemove.add(key);
+                    PtSituationElement situationElement = situations.get(key);
+                    if (situationElement != null) {
+                        long expiration = getExpiration(situationElement);
+                        if (expiration < 0) {
+                            keysToRemove.add(key);
+                        }
                     }
                 });
 

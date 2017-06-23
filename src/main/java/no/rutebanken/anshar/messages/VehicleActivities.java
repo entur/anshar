@@ -72,8 +72,12 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
         vehicleActivities.keySet()
                 .stream()
                 .forEach(key -> {
-                    if (getExpiration(vehicleActivities.get(key)) < 0) {
-                        keysToRemove.add(key);
+                    VehicleActivityStructure vehicleActivityStructure = vehicleActivities.get(key);
+                    if (vehicleActivityStructure != null) {
+                        long expiration = getExpiration(vehicleActivityStructure);
+                        if (expiration < 0) {
+                            keysToRemove.add(key);
+                        }
                     }
                 });
 
