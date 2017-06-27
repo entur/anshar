@@ -375,7 +375,7 @@ anshar:
       version: 2.0
       contentType: text/xml;charset=UTF-8
       subscriptionId: ${random.uuid}
-      requestorRef: ${random.uuid}
+      requestorRef: RutebankenDEV_${random.uuid}
       durationOfSubscriptionHours: 2
       mappingAdapterPresets: BANENOR
       filterPresets:
@@ -400,7 +400,7 @@ anshar:
       version: 2.0
       contentType: text/xml;charset=UTF-8
       subscriptionId: ${random.uuid}
-      requestorRef: ${random.uuid}
+      requestorRef: RutebankenDEV_${random.uuid}
       durationOfSubscriptionHours: 2
       mappingAdapterPresets: BANENOR
       filterPresets:
@@ -426,7 +426,7 @@ anshar:
       version: 2.0
       contentType: text/xml;charset=UTF-8
       subscriptionId: ${random.uuid}
-      requestorRef: ${random.uuid}
+      requestorRef: RutebankenDEV_${random.uuid}
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: BANENOR
       filterPresets:
@@ -452,7 +452,7 @@ anshar:
       version: 2.0
       contentType: text/xml;charset=UTF-8
       subscriptionId: ${random.uuid}
-      requestorRef: ${random.uuid}
+      requestorRef: RutebankenDEV_${random.uuid}
       durationOfSubscriptionHours: 2
       mappingAdapterPresets: BANENOR
       filterPresets:
@@ -476,7 +476,7 @@ anshar:
       version: 2.0
       contentType: text/xml;charset=UTF-8
       subscriptionId: nsb-sx-test-feed
-      requestorRef: ${random.uuid}
+      requestorRef: RutebankenDEV_${random.uuid}
       durationOfSubscriptionHours: 2
       mappingAdapterPresets: NSB
       filterPresets:
