@@ -639,6 +639,31 @@ anshar:
       environments: test,beta,prod
       active: true
     -
+      internalId: 28
+      vendor: ruter-tbane
+      datasetId: RUT
+      serviceType: REST
+      subscriptionType: ESTIMATED_TIMETABLE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 60
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: 193.69.85.208:8089
+        DELETE_SUBSCRIPTION: 193.69.85.208:8089
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: ${random.uuid}
+      requestorRef: RutebankenDEV
+      durationOfSubscriptionHours: 168
+      mappingAdapterPresets: RUTER
+      filterPresets:
+      idMappingPrefixes: RUT,OPP,BRA,OST
+      environments: test
+      active: true
+    -
       internalId: 100
       vendor: internRuterVm
       datasetId: RUT
