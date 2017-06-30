@@ -23,7 +23,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
-import java.net.ConnectException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -71,10 +70,10 @@ public class SiriIncomingReceiver extends RouteBuilder {
     @Override
     public void configure() throws Exception {
 
-        onException(ConnectException.class)
-                .maximumRedeliveries(10)
-                .redeliveryDelay(10000)
-                .useExponentialBackOff();
+//        onException(ConnectException.class)
+//                .maximumRedeliveries(10)
+//                .redeliveryDelay(10000)
+//                .useExponentialBackOff();
 
         errorHandler(loggingErrorHandler()
                         .log(logger)
