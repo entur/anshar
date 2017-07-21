@@ -7,6 +7,7 @@ import java.util.List;
 
 import javax.xml.bind.JAXBException;
 
+import org.objenesis.strategy.StdInstantiatorStrategy;
 import org.rutebanken.siri20.util.SiriXml;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +29,7 @@ public class SiriValueTransformer {
     	KryoFactory factory = new KryoFactory() {
     		  public Kryo create () {
     		    Kryo kryo = new Kryo();
+    		    kryo.setInstantiatorStrategy(new Kryo.DefaultInstantiatorStrategy(new StdInstantiatorStrategy()));
     		    // configure kryo instance, customize settings
     		    return kryo;
     		  }
