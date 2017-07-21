@@ -268,7 +268,7 @@
                 </executions>
             </plugin>
 
-          <!--    <plugin>
+              <plugin>
                 <groupId>io.fabric8</groupId>
                 <artifactId>fabric8-maven-plugin</artifactId>
                 <version>${fabric8.version}</version>
@@ -288,7 +288,7 @@
                         </goals>
                     </execution>
                 </executions>
-            </plugin>-->
+            </plugin>
 
             <plugin>
                 <groupId>org.jolokia</groupId>
