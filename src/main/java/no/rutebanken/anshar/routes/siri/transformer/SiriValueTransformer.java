@@ -1,20 +1,40 @@
 package no.rutebanken.anshar.routes.siri.transformer;
 
-import no.rutebanken.anshar.routes.siri.SiriObjectFactory;
-import no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter;
-import org.rutebanken.siri20.util.SiriXml;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import uk.org.siri.siri20.Siri;
-
-import javax.xml.bind.JAXBException;
+import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
 
+import javax.xml.bind.JAXBException;
+
+import org.rutebanken.siri20.util.SiriXml;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.pool.KryoFactory;
+import com.esotericsoftware.kryo.pool.KryoPool;
+
+import no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter;
+import uk.org.siri.siri20.Siri;
+
 public class SiriValueTransformer {
 
     public static final String SEPARATOR = "$";
+    
+    private static KryoPool kryoPool;
+    
+    static {
+    	KryoFactory factory = new KryoFactory() {
+    		  public Kryo create () {
+    		    Kryo kryo = new Kryo();
+    		    // configure kryo instance, customize settings
+    		    return kryo;
+    		  }
+    		};
+    	kryoPool = new KryoPool.Builder(factory).softReferences().build();
+
+    }
 
     private static Logger logger = LoggerFactory.getLogger(SiriValueTransformer.class);
 
@@ -25,11 +45,11 @@ public class SiriValueTransformer {
      * @return
      * @throws JAXBException
      */
-    public static Siri parseXml(String xml, List<ValueAdapter> adapters) throws JAXBException {
+    public static Siri parseXml(InputStream xml, List<ValueAdapter> adapters) throws JAXBException {
         return transform(SiriXml.parseXml(xml), adapters);
     }
 
-    public static Siri parseXml(String xml) throws JAXBException {
+    public static Siri parseXml(InputStream xml) throws JAXBException {
         return SiriXml.parseXml(xml);
     }
 
@@ -37,12 +57,18 @@ public class SiriValueTransformer {
         if (siri == null) {
             return null;
         }
+        
+        
+        
         Siri transformed;
+    	Kryo kryo = kryoPool.borrow();
         try {
-            transformed = SiriObjectFactory.deepCopy(siri);
-        } catch (JAXBException e) {
+        	transformed = kryo.copy(siri);
+        } catch (Exception e) {
             logger.warn("Unable to transform SIRI-object", e);
             return siri;
+        } finally {
+        	kryoPool.release(kryo);
         }
         if (transformed != null && adapters != null) {
             logger.info("Applying {} valueadapters {}", adapters.size(), adapters);

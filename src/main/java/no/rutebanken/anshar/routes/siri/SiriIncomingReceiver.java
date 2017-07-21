@@ -1,8 +1,16 @@
 package no.rutebanken.anshar.routes.siri;
 
-import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
-import no.rutebanken.anshar.subscription.SubscriptionManager;
-import no.rutebanken.anshar.subscription.SubscriptionSetup;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.PrintStream;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
@@ -15,16 +23,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
-import uk.org.siri.siri20.Siri;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.PrintStream;
-import java.util.HashMap;
-import java.util.Map;
+import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
+import no.rutebanken.anshar.subscription.SubscriptionManager;
+import no.rutebanken.anshar.subscription.SubscriptionSetup;
+import uk.org.siri.siri20.Siri;
 
 @Service
 @Configuration
@@ -104,7 +107,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                         }
                         String query = p.getIn().getHeader("CamelHttpQuery", String.class);
 
-                        Siri response = handler.handleIncomingSiri(null, p.getIn().getBody(String.class), datasetId, handler.getIdMappingPolicy(query));
+                        Siri response = handler.handleIncomingSiri(null, p.getIn().getBody(InputStream.class), datasetId, handler.getIdMappingPolicy(query));
                         if (response != null) {
                             logger.info("Found ServiceRequest-response, streaming response");
                             HttpServletResponse out = p.getOut().getBody(HttpServletResponse.class);
@@ -264,7 +267,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
 
                     String query = p.getIn().getHeader("CamelHttpQuery", String.class);
 
-                    String xml = p.getIn().getBody(String.class);
+                    InputStream xml = p.getIn().getBody(InputStream.class);
                     handler.handleIncomingSiri(subscriptionId, xml, datasetId, handler.getIdMappingPolicy(query));
 
                 })
@@ -274,7 +277,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                 .process(p -> {
                     String subscriptionId = getSubscriptionIdFromPath(p.getIn().getHeader("CamelHttpPath", String.class));
 
-                    String xml = p.getIn().getBody(String.class);
+                    InputStream xml = p.getIn().getBody(InputStream.class);
                     handler.handleIncomingSiri(subscriptionId, xml);
 
                 })
@@ -307,7 +310,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                 .process(p -> {
                     String subscriptionId = getSubscriptionIdFromPath(p.getIn().getHeader("CamelHttpPath", String.class));
 
-                    String xml = p.getIn().getBody(String.class);
+                    InputStream xml = p.getIn().getBody(InputStream.class);
                     handler.handleIncomingSiri(subscriptionId, xml);
 
                 })
@@ -320,7 +323,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
 
                     String subscriptionId = getSubscriptionIdFromPath(p.getIn().getHeader("CamelHttpPath", String.class));
 
-                    String xml = p.getIn().getBody(String.class);
+                    InputStream xml = p.getIn().getBody(InputStream.class);
                     handler.handleIncomingSiri(subscriptionId, xml);
 
                 })
@@ -332,7 +335,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                 .process(p -> {
                     String subscriptionId = getSubscriptionIdFromPath(p.getIn().getHeader("CamelHttpPath", String.class));
 
-                    String xml = p.getIn().getBody(String.class);
+                    InputStream xml = p.getIn().getBody(InputStream.class);
 
                     handler.handleIncomingSiri(subscriptionId, xml);
 
@@ -346,7 +349,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                 .process(p -> {
                     String subscriptionId = getSubscriptionIdFromPath(p.getIn().getHeader("CamelHttpPath", String.class));
 
-                    String xml = p.getIn().getBody(String.class);
+                    InputStream xml = p.getIn().getBody(InputStream.class);
 
                     handler.handleIncomingSiri(subscriptionId, xml);
 

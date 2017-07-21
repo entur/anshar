@@ -1,18 +1,20 @@
 package no.rutebanken.anshar.routes.siri;
 
-import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
-import no.rutebanken.anshar.subscription.RequestType;
-import no.rutebanken.anshar.subscription.SubscriptionManager;
-import no.rutebanken.anshar.subscription.SubscriptionSetup;
+import static no.rutebanken.anshar.routes.siri.RouteHelper.getCamelUrl;
+
+import java.io.InputStream;
+import java.util.Map;
+
 import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
 import org.apache.camel.component.http4.HttpMethods;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Map;
-
-import static no.rutebanken.anshar.routes.siri.RouteHelper.getCamelUrl;
+import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
+import no.rutebanken.anshar.subscription.RequestType;
+import no.rutebanken.anshar.subscription.SubscriptionManager;
+import no.rutebanken.anshar.subscription.SubscriptionSetup;
 
 public class Siri20ToSiriRS14Subscription extends SiriSubscriptionRouteBuilder {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -54,9 +56,9 @@ public class Siri20ToSiriRS14Subscription extends SiriSubscriptionRouteBuilder {
                         logger.info("SubscriptionResponse OK {}", subscriptionSetup);
                     }
 
-                    String body = p.getIn().getBody(String.class);
+                    InputStream body = p.getIn().getBody(InputStream.class);
 
-                    if (body != null && !body.isEmpty()) {
+                    if (body != null && body.available() > 0) {
                         handler.handleIncomingSiri(subscriptionSetup.getSubscriptionId(), body);
                     }
                 })
@@ -78,9 +80,9 @@ public class Siri20ToSiriRS14Subscription extends SiriSubscriptionRouteBuilder {
                 .to(getCamelUrl(urlMap.get(RequestType.DELETE_SUBSCRIPTION)) + getTimeout())
                 .to("log:received:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .process(p -> {
-                    String body = p.getIn().getBody(String.class);
+                    InputStream body = p.getIn().getBody(InputStream.class);
                     logger.info("Response body [{}]", body);
-                    if (body != null && !body.isEmpty()) {
+                    if (body != null && body.available() > 0) {
                         handler.handleIncomingSiri(subscriptionSetup.getSubscriptionId(), body);
                     }
                 })

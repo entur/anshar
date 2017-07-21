@@ -12,6 +12,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import uk.org.siri.siri20.Siri;
 
 import javax.xml.bind.JAXBException;
+
+import java.io.ByteArrayInputStream;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -52,7 +54,7 @@ public class SiriHandlerTest {
         try {
             SubscriptionSetup sxSubscription = getSxSubscription();
             subscriptionManager.addSubscription(sxSubscription.getSubscriptionId(), sxSubscription);
-            Siri siri = handler.handleIncomingSiri(sxSubscription.getSubscriptionId(), xml);
+            Siri siri = handler.handleIncomingSiri(sxSubscription.getSubscriptionId(),new ByteArrayInputStream(xml.getBytes()));
         } catch (Throwable t) {
             fail("Handling empty response caused exception");
         }
@@ -82,7 +84,7 @@ public class SiriHandlerTest {
         try {
             SubscriptionSetup etSubscription = getEtSubscription();
             subscriptionManager.addSubscription(etSubscription.getSubscriptionId(), etSubscription);
-            handler.handleIncomingSiri(etSubscription.getSubscriptionId(), xml);
+            handler.handleIncomingSiri(etSubscription.getSubscriptionId(), new ByteArrayInputStream(xml.getBytes()));
         } catch (Throwable t) {
             fail("Handling empty response caused exception");
         }
@@ -111,7 +113,7 @@ public class SiriHandlerTest {
         try {
             SubscriptionSetup vmSubscription = getVmSubscription();
             subscriptionManager.addSubscription(vmSubscription.getSubscriptionId(), vmSubscription);
-            handler.handleIncomingSiri(vmSubscription.getSubscriptionId(), xml);
+            handler.handleIncomingSiri(vmSubscription.getSubscriptionId(), new ByteArrayInputStream(xml.getBytes()));
         } catch (Throwable t) {
             fail("Handling empty response caused exception");
         }
@@ -140,7 +142,7 @@ public class SiriHandlerTest {
         try {
             SubscriptionSetup ptSubscription = getPtSubscription();
             subscriptionManager.addSubscription(ptSubscription.getSubscriptionId(), ptSubscription);
-            handler.handleIncomingSiri(ptSubscription.getSubscriptionId(), xml);
+            handler.handleIncomingSiri(ptSubscription.getSubscriptionId(), new ByteArrayInputStream(xml.getBytes()));
         } catch (Throwable t) {
             fail("Handling empty response caused exception");
         }

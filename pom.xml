@@ -193,6 +193,12 @@
             <groupId>org.apache.camel</groupId>
             <artifactId>camel-bean-validator</artifactId>
         </dependency>
+        
+            <dependency>
+        <groupId>com.esotericsoftware</groupId>
+        <artifactId>kryo-shaded</artifactId>
+        <version>4.0.0</version>
+    </dependency>
 
         <!-- testing -->
         <dependency>
@@ -262,7 +268,7 @@
                 </executions>
             </plugin>
 
-            <plugin>
+          <!--    <plugin>
                 <groupId>io.fabric8</groupId>
                 <artifactId>fabric8-maven-plugin</artifactId>
                 <version>${fabric8.version}</version>
@@ -282,7 +288,7 @@
                         </goals>
                     </execution>
                 </executions>
-            </plugin>
+            </plugin>-->
 
             <plugin>
                 <groupId>org.jolokia</groupId>

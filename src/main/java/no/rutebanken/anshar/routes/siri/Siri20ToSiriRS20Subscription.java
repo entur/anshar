@@ -1,9 +1,10 @@
 package no.rutebanken.anshar.routes.siri;
 
-import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
-import no.rutebanken.anshar.subscription.RequestType;
-import no.rutebanken.anshar.subscription.SubscriptionManager;
-import no.rutebanken.anshar.subscription.SubscriptionSetup;
+import static no.rutebanken.anshar.routes.siri.RouteHelper.getCamelUrl;
+
+import java.io.InputStream;
+import java.util.Map;
+
 import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
 import org.apache.camel.builder.xml.Namespaces;
@@ -11,9 +12,10 @@ import org.apache.camel.http.common.HttpMethods;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Map;
-
-import static no.rutebanken.anshar.routes.siri.RouteHelper.getCamelUrl;
+import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
+import no.rutebanken.anshar.subscription.RequestType;
+import no.rutebanken.anshar.subscription.SubscriptionManager;
+import no.rutebanken.anshar.subscription.SubscriptionSetup;
 
 public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
 
@@ -71,7 +73,7 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
                     String responseCode = p.getIn().getHeader("CamelHttpResponseCode", String.class);
                     if ("200" .equals(responseCode)) {
                         logger.trace("CheckStatus OK - Remote service is up [{}]", subscriptionSetup.buildUrl());
-                        handler.handleIncomingSiri(subscriptionSetup.getSubscriptionId(), p.getIn().getBody(String.class));
+                        handler.handleIncomingSiri(subscriptionSetup.getSubscriptionId(), p.getIn().getBody(InputStream.class));
                     } else {
                         logger.info("CheckStatus NOT OK - Remote service is down [{}]", subscriptionSetup.buildUrl());
                     }
@@ -91,9 +93,9 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
                 .to(getCamelUrl(urlMap.get(RequestType.DELETE_SUBSCRIPTION)) + getTimeout())
                 .to("log:received response:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .process(p -> {
-                    String body = p.getIn().getBody(String.class);
+                    InputStream body = p.getIn().getBody(InputStream.class);
                     logger.info("Response body [{}]", body);
-                    if (body != null && !body.isEmpty()) {
+                    if (body != null && body.available() >0) {
                         handler.handleIncomingSiri(subscriptionSetup.getSubscriptionId(), body);
                     }
                 });
