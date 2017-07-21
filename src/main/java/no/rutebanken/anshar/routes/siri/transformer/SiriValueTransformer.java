@@ -16,6 +16,7 @@ import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.pool.KryoFactory;
 import com.esotericsoftware.kryo.pool.KryoPool;
 
+import no.rutebanken.anshar.routes.siri.SiriObjectFactory;
 import no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter;
 import uk.org.siri.siri20.Siri;
 
@@ -23,21 +24,6 @@ public class SiriValueTransformer {
 
     public static final String SEPARATOR = "$";
     
-    private static KryoPool kryoPool;
-    
-    static {
-    	KryoFactory factory = new KryoFactory() {
-    		  public Kryo create () {
-    		    Kryo kryo = new Kryo();
-    		    kryo.setInstantiatorStrategy(new Kryo.DefaultInstantiatorStrategy(new StdInstantiatorStrategy()));
-    		    // configure kryo instance, customize settings
-    		    return kryo;
-    		  }
-    		};
-    	kryoPool = new KryoPool.Builder(factory).softReferences().build();
-
-    }
-
     private static Logger logger = LoggerFactory.getLogger(SiriValueTransformer.class);
 
     /**
@@ -63,14 +49,11 @@ public class SiriValueTransformer {
         
         
         Siri transformed;
-    	Kryo kryo = kryoPool.borrow();
         try {
-        	transformed = kryo.copy(siri);
+        	transformed = SiriObjectFactory.deepCopy(siri);
         } catch (Exception e) {
             logger.warn("Unable to transform SIRI-object", e);
             return siri;
-        } finally {
-        	kryoPool.release(kryo);
         }
         if (transformed != null && adapters != null) {
             logger.info("Applying {} valueadapters {}", adapters.size(), adapters);

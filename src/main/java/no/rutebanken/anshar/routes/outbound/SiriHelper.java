@@ -243,7 +243,7 @@ public class SiriHelper {
         Siri filtered;
         try {
             filtered = SiriObjectFactory.deepCopy(siri);
-        } catch (JAXBException e) {
+        } catch (Exception e) {
             return siri;
         }
 
