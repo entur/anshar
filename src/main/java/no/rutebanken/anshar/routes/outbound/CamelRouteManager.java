@@ -1,10 +1,10 @@
 package no.rutebanken.anshar.routes.outbound;
 
+import no.rutebanken.anshar.dataformat.SiriDataFormatHelper;
 import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
 import org.apache.camel.*;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.RouteDefinition;
-import org.rutebanken.siri20.util.SiriXml;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +22,7 @@ import java.util.concurrent.TimeUnit;
 public class CamelRouteManager implements CamelContextAware {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    protected static CamelContext camelContext;
+    protected CamelContext camelContext;
     
     @Autowired
     private SiriHelper siriHelper;
@@ -114,10 +114,8 @@ public class CamelRouteManager implements CamelContextAware {
         if (!serviceDeliveryContainsData(payload)) {
             return;
         }
-        String xml = SiriXml.toXml(payload);
-
         ProducerTemplate template = camelContext.createProducerTemplate();
-        template.sendBody(routeName, xml);
+        template.sendBody(routeName, payload);
     }
 
     private boolean serviceDeliveryContainsData(Siri payload) {
@@ -198,6 +196,7 @@ public class CamelRouteManager implements CamelContextAware {
             if (isActiveMQ) {
                 definition = from(routeName)
                         .routeId(routeName)
+                        .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
                         .to(ExchangePattern.InOnly, remoteEndPoint + options)
                         .log(LoggingLevel.INFO, "Pushed data to ActiveMQ-topic: [" + remoteEndPoint + "]");
             } else {
@@ -207,7 +206,7 @@ public class CamelRouteManager implements CamelContextAware {
                         .setHeader("SubscriptionId", constant(subscriptionRequest.getSubscriptionId()))
                         .setHeader("CamelHttpMethod", constant("POST"))
                         .setHeader(Exchange.CONTENT_TYPE, constant("application/xml"))
-                        .marshal().string("UTF-8")
+                        .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
                         .to("log:push:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                         .to(remoteEndPoint + options)
                         .to("log:push-resp:" + getClass().getSimpleName() + "?showAll=true&multiline=true")

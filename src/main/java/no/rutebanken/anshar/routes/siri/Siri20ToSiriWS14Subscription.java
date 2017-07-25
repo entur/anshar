@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
 
+import no.rutebanken.anshar.dataformat.SiriDataFormatHelper;
 import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
 import no.rutebanken.anshar.subscription.RequestType;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
@@ -42,13 +43,10 @@ public class Siri20ToSiriWS14Subscription extends SiriSubscriptionRouteBuilder {
 
         Map<RequestType, String> urlMap = subscriptionSetup.getUrlMap();
 
-        RouteHelper helper = new RouteHelper(subscriptionSetup, customNamespacePrefixMapper);
-
         //Start subscription
-
         from("direct:" + subscriptionSetup.getStartSubscriptionRouteName())
                 .log("Starting subscription " + subscriptionSetup.toString())
-                .bean(helper, "marshalSiriSubscriptionRequest", false)
+                .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
                 .setExchangePattern(ExchangePattern.InOut) // Make sure we wait for a response
                 .setHeader("SOAPAction", constant("Subscribe"))
                 .setHeader("operatorNamespace", constant(subscriptionSetup.getOperatorNamespace())) // Need to make SOAP request with endpoint specific element namespace
@@ -74,7 +72,7 @@ public class Siri20ToSiriWS14Subscription extends SiriSubscriptionRouteBuilder {
         //Cancel subscription
         from("direct:" + subscriptionSetup.getCancelSubscriptionRouteName())
                 .log("Cancelling subscription " + subscriptionSetup.toString())
-                .bean(helper, "marshalSiriTerminateSubscriptionRequest", false)
+                .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
                 .setExchangePattern(ExchangePattern.InOut) // Make sure we wait for a response
                 .setProperty(Exchange.LOG_DEBUG_BODY_STREAMS, constant("true"))
                 .setHeader("SOAPAction", constant("DeleteSubscription")) // set SOAPAction Header (Microsoft requirement)

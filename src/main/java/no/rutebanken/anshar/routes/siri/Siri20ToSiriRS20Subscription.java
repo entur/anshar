@@ -7,11 +7,11 @@ import java.util.Map;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
-import org.apache.camel.builder.xml.Namespaces;
 import org.apache.camel.http.common.HttpMethods;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import no.rutebanken.anshar.dataformat.SiriDataFormatHelper;
 import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
 import no.rutebanken.anshar.subscription.RequestType;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
@@ -34,15 +34,10 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
 
         Map<RequestType, String> urlMap = subscriptionSetup.getUrlMap();
 
-        Namespaces ns = new Namespaces("siri", "http://www.siri.org.uk/siri")
-                .add("xsd", "http://www.w3.org/2001/XMLSchema");
-
-        RouteHelper helper = new RouteHelper(subscriptionSetup, customNamespacePrefixMapper);
-
         //Start subscription
         from("direct:" + subscriptionSetup.getStartSubscriptionRouteName())
                 .log("Starting subscription " + subscriptionSetup.toString())
-                .bean(helper, "marshalSiriSubscriptionRequest", false)
+                .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
                 .setExchangePattern(ExchangePattern.InOut) // Make sure we wait for a response
                 .setHeader("operatorNamespace", constant(subscriptionSetup.getOperatorNamespace())) // Need to make SOAP request with endpoint specific element namespace
                 .removeHeaders("CamelHttp*") // Remove any incoming HTTP headers as they interfere with the outgoing definition
@@ -63,7 +58,7 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
 
         //Check status-request checks the server status - NOT the subscription
         from("direct:" + subscriptionSetup.getCheckStatusRouteName())
-                .bean(helper, "marshalSiriCheckStatusRequest", false)
+        		.marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
                 .removeHeaders("CamelHttp*") // Remove any incoming HTTP headers as they interfere with the outgoing definition
                 .setHeader(Exchange.CONTENT_TYPE, constant(subscriptionSetup.getContentType())) // Necessary when talking to Microsoft web services
                 .setHeader(Exchange.HTTP_METHOD, constant(HttpMethods.POST))
@@ -84,7 +79,7 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
         //Cancel subscription
         from("direct:" + subscriptionSetup.getCancelSubscriptionRouteName())
                 .log("Cancelling subscription " + subscriptionSetup.toString())
-                .bean(helper, "marshalSiriTerminateSubscriptionRequest", false)
+                .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
                 .setExchangePattern(ExchangePattern.InOut) // Make sure we wait for a response
                 .setProperty(Exchange.LOG_DEBUG_BODY_STREAMS, constant("true"))
                 .removeHeaders("CamelHttp*") // Remove any incoming HTTP headers as they interfere with the outgoing definition

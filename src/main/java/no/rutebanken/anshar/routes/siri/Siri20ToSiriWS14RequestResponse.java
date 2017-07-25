@@ -38,7 +38,7 @@ public class Siri20ToSiriWS14RequestResponse extends BaseRouteBuilder {
 
         from("direct:" + subscriptionSetup.getServiceRequestRouteName())
                 .log("Retrieving data " + subscriptionSetup.toString())
-                .bean(helper, "marshalSiriRequest", false)
+                .bean(helper, "createSiriDataRequest", false)
                 .setExchangePattern(ExchangePattern.InOut) // Make sure we wait for a response
                 .setHeader("SOAPAction", simple(getSoapAction(subscriptionSetup))) // extract and compute SOAPAction (Microsoft requirement)
                 .setHeader("operatorNamespace", constant(subscriptionSetup.getOperatorNamespace())) // Need to make SOAP request with endpoint specific element namespace

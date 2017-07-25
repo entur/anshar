@@ -1,21 +1,24 @@
 package no.rutebanken.anshar.routes.siri;
 
-import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
-import no.rutebanken.anshar.routes.BaseRouteBuilder;
-import no.rutebanken.anshar.subscription.SubscriptionManager;
-import no.rutebanken.anshar.subscription.SubscriptionSetup;
+import java.time.Duration;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.Duration;
+import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
+
+import no.rutebanken.anshar.routes.BaseRouteBuilder;
+import no.rutebanken.anshar.subscription.SubscriptionManager;
+import no.rutebanken.anshar.subscription.SubscriptionSetup;
 
 public abstract class SiriSubscriptionRouteBuilder extends BaseRouteBuilder {
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
-
+    
     NamespacePrefixMapper customNamespacePrefixMapper;
 
     SubscriptionSetup subscriptionSetup;
+    
     private boolean hasBeenStarted;
 
     public SiriSubscriptionRouteBuilder(SubscriptionManager subscriptionManager) {
