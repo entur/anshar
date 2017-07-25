@@ -15,6 +15,7 @@ import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.builder.xml.Namespaces;
+import org.apache.camel.builder.xml.StreamResultHandlerFactory;
 import org.rutebanken.siri20.util.SiriXml;
 import org.rutebanken.validator.SiriValidator;
 import org.slf4j.Logger;
@@ -22,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
@@ -83,6 +85,8 @@ public class SiriIncomingReceiver extends RouteBuilder {
                         .level(LoggingLevel.INFO)
         );
 
+       
+        
         Namespaces ns = new Namespaces("siri", "http://www.siri.org.uk/siri")
                 .add("xsd", "http://www.w3.org/2001/XMLSchema");
 
@@ -154,8 +158,8 @@ public class SiriIncomingReceiver extends RouteBuilder {
 
         from("activemq:queue:" + TRANSFORM_QUEUE + activeMqConsumerParameters)
                // .to("log:raw:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
-                .to("xslt:xsl/siri_soap_raw.xsl?saxon=true&allowStAX=false") // Extract SOAP version and convert to raw SIRI
-                .to("xslt:xsl/siri_14_20.xsl?saxon=true&allowStAX=false") // Convert from v1.4 to 2.0
+                .to("xslt:xsl/siri_soap_raw.xsl?saxon=true&allowStAX=false&resultHandlerFactory=#streamResultHandlerFactory") // Extract SOAP version and convert to raw SIRI
+                .to("xslt:xsl/siri_14_20.xsl?saxon=true&allowStAX=false&resultHandlerFactory=#streamResultHandlerFactory") // Convert from v1.4 to 2.0
                 //.to("file:" + incomingLogDirectory + "/validator/")
                 //.to("log:transformed:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .choice()

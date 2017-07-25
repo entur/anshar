@@ -51,11 +51,11 @@ public class Siri20ToSiriWS14RequestResponse extends BaseRouteBuilder {
                 .setHeader(Exchange.HTTP_METHOD, constant(org.apache.camel.component.http4.HttpMethods.POST))
                 .to("log:request:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .to(getRequestUrl(subscriptionSetup) + httpOptions)
-                .to("xslt:xsl/siri_soap_raw.xsl?saxon=true&allowStAX=false") // Extract SOAP version and convert to raw SIRI
-                    .to("xslt:xsl/siri_14_20.xsl?saxon=true&allowStAX=false") // Convert from v1.4 to 2.0
-                    .setHeader("CamelHttpPath", constant("/appContext" + subscriptionSetup.buildUrl(false)))
+                .to("xslt:xsl/siri_soap_raw.xsl?saxon=true&allowStAX=false&resultHandlerFactory=#streamResultHandlerFactory") // Extract SOAP version and convert to raw SIRI
+                    .to("xslt:xsl/siri_14_20.xsl?saxon=true&allowStAX=false&resultHandlerFactory=#streamResultHandlerFactory") // Convert from v1.4 to 2.0
+                .setHeader("CamelHttpPath", constant("/appContext" + subscriptionSetup.buildUrl(false)))
                 .log("Got response " + subscriptionSetup.toString())
-                .to("log:response:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
+                //.to("log:response:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .to("activemq:queue:" + SiriIncomingReceiver.TRANSFORM_QUEUE  + "?disableReplyTo=true&timeToLive="+timeout)
         ;
     }
