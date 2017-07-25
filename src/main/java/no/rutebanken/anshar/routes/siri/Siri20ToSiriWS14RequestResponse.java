@@ -23,7 +23,7 @@ public class Siri20ToSiriWS14RequestResponse extends BaseRouteBuilder {
 
         int timeout = (int) heartbeatIntervalMillis / 2;
 
-        RouteHelper helper = new RouteHelper(subscriptionSetup);
+        SiriRequestFactory helper = new SiriRequestFactory(subscriptionSetup);
 
         String httpOptions = "?httpClient.socketTimeout=" + timeout + "&httpClient.connectTimeout=" + timeout;
 

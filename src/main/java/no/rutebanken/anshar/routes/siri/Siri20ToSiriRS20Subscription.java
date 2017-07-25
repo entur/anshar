@@ -1,6 +1,6 @@
 package no.rutebanken.anshar.routes.siri;
 
-import static no.rutebanken.anshar.routes.siri.RouteHelper.getCamelUrl;
+import static no.rutebanken.anshar.routes.siri.SiriRequestFactory.getCamelUrl;
 
 import java.io.InputStream;
 import java.util.Map;
@@ -33,10 +33,12 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
     public void configure() throws Exception {
 
         Map<RequestType, String> urlMap = subscriptionSetup.getUrlMap();
+        SiriRequestFactory helper = new SiriRequestFactory(subscriptionSetup);
 
         //Start subscription
         from("direct:" + subscriptionSetup.getStartSubscriptionRouteName())
                 .log("Starting subscription " + subscriptionSetup.toString())
+                .bean(helper, "createSiriSubscriptionRequest", false)
                 .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
                 .setExchangePattern(ExchangePattern.InOut) // Make sure we wait for a response
                 .setHeader("operatorNamespace", constant(subscriptionSetup.getOperatorNamespace())) // Need to make SOAP request with endpoint specific element namespace
@@ -58,6 +60,7 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
 
         //Check status-request checks the server status - NOT the subscription
         from("direct:" + subscriptionSetup.getCheckStatusRouteName())
+        		.bean(helper, "createSiriCheckStatusRequest", false)
         		.marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
                 .removeHeaders("CamelHttp*") // Remove any incoming HTTP headers as they interfere with the outgoing definition
                 .setHeader(Exchange.CONTENT_TYPE, constant(subscriptionSetup.getContentType())) // Necessary when talking to Microsoft web services
@@ -79,6 +82,7 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
         //Cancel subscription
         from("direct:" + subscriptionSetup.getCancelSubscriptionRouteName())
                 .log("Cancelling subscription " + subscriptionSetup.toString())
+                .bean(helper, "createSiriTerminateSubscriptionRequest", false)
                 .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
                 .setExchangePattern(ExchangePattern.InOut) // Make sure we wait for a response
                 .setProperty(Exchange.LOG_DEBUG_BODY_STREAMS, constant("true"))

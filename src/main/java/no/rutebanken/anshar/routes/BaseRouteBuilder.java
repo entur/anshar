@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 import static no.rutebanken.anshar.routes.Constants.SINGLETON_ROUTE_DEFINITION_GROUP_NAME;
-import static no.rutebanken.anshar.routes.siri.RouteHelper.getCamelUrl;
+import static no.rutebanken.anshar.routes.siri.SiriRequestFactory.getCamelUrl;
 
 /**
  * Defines common route behavior.
