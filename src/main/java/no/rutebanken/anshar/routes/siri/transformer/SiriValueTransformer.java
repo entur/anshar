@@ -7,14 +7,9 @@ import java.util.List;
 
 import javax.xml.bind.JAXBException;
 
-import org.objenesis.strategy.StdInstantiatorStrategy;
 import org.rutebanken.siri20.util.SiriXml;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.esotericsoftware.kryo.Kryo;
-import com.esotericsoftware.kryo.pool.KryoFactory;
-import com.esotericsoftware.kryo.pool.KryoPool;
 
 import no.rutebanken.anshar.routes.siri.SiriObjectFactory;
 import no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter;
