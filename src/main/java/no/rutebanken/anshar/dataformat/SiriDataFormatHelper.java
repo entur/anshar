@@ -11,22 +11,23 @@ import uk.org.siri.siri20.Siri;
 public class SiriDataFormatHelper {
 	private static DataFormat siriJaxb;
 	
-	private static Object lock = new Object();
-
     public static DataFormat getSiriJaxbDataformat() {
     	return siriJaxb;
     }
     
     static {
-    	synchronized (lock) {
-			try {
-				siriJaxb = new JaxbDataFormat(JAXBContext.newInstance(Siri.class));
-			} catch (JAXBException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
+        try {
+            init();
+        } catch (Exception e) {
+            throw new InstantiationError();
+        }
     }
-    
+
+    private static void init() throws JAXBException {
+        if (siriJaxb == null) {
+			siriJaxb = new JaxbDataFormat(JAXBContext.newInstance(Siri.class));
+        }
+    }
+
 
 }
