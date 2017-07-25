@@ -1,5 +1,6 @@
 package no.rutebanken.anshar.routes.siri;
 
+import no.rutebanken.anshar.dataformat.SiriDataFormatHelper;
 import no.rutebanken.anshar.routes.BaseRouteBuilder;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
@@ -39,6 +40,7 @@ public class Siri20ToSiriWS14RequestResponse extends BaseRouteBuilder {
         from("direct:" + subscriptionSetup.getServiceRequestRouteName())
                 .log("Retrieving data " + subscriptionSetup.toString())
                 .bean(helper, "createSiriDataRequest", false)
+                .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
                 .setExchangePattern(ExchangePattern.InOut) // Make sure we wait for a response
                 .setHeader("SOAPAction", simple(getSoapAction(subscriptionSetup))) // extract and compute SOAPAction (Microsoft requirement)
                 .setHeader("operatorNamespace", constant(subscriptionSetup.getOperatorNamespace())) // Need to make SOAP request with endpoint specific element namespace
