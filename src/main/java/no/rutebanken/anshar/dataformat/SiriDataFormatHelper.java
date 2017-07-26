@@ -1,12 +1,15 @@
 package no.rutebanken.anshar.dataformat;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.xml.bind.JAXBException;
 
 import org.apache.camel.converter.jaxb.JaxbDataFormat;
 import org.apache.camel.spi.DataFormat;
 
 public class SiriDataFormatHelper {
-	private static DataFormat siriJaxb;
+	private static JaxbDataFormat siriJaxb;
 	
     public static DataFormat getSiriJaxbDataformat() {
     	return siriJaxb;
@@ -22,7 +25,10 @@ public class SiriDataFormatHelper {
 
     private static void init() throws JAXBException {
         if (siriJaxb == null) {
-			siriJaxb = new JaxbDataFormat("uk.org.siri.siri20");
+			Map<String, String> prefixMap = new HashMap<>();
+			prefixMap.put("http://www.siri.org.uk/siri", "siri");
+        	siriJaxb = new JaxbDataFormat("uk.org.siri.siri20");
+			siriJaxb.setNamespacePrefix(prefixMap );
         }
     }
 
