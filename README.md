@@ -11,18 +11,18 @@ anshar.incoming.port = 8012
 anshar.inbound.url = http://mottak.rutebanken.org/anshar
 ``` 
 
-# Liveness/readiness
+## Liveness/readiness
 ```
 - http://<host>:<port>/up
 - http://<host>:<port>/ready
 ```
 
-# Healthcheck
+## Healthcheck
 ```
 - http://<host>:<port>/healthy
 ```
 
-# Statistics
+## Statistics
 To view status/statistics for all subscriptions.
 ```
 - http://<host>:<port>/anshar/stats
@@ -32,7 +32,7 @@ To view status/statistics (JSON-format) for all clustering.
 - http://<host>:<port>/anshar/clusterstats
 ```
 
-# XML Validation
+## XML Validation
 Anshar provides a REST-api for validating SIRI-xml against the SIRI xsd.
 ```
 - http://<host>:<port>/anshar/rest/sirivalidator?version=[SIRI version]
