@@ -39,3 +39,4 @@ Anshar provides a REST-api for validating SIRI-xml against the SIRI xsd.
 [SIRI version] Possible values: 1.0, 1.3, 1.4, 2.0
 If not provided version is set to 2.0
 ```
+
