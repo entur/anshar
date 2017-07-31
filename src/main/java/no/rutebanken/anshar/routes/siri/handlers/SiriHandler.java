@@ -1,22 +1,5 @@
 package no.rutebanken.anshar.routes.siri.handlers;
 
-import java.io.InputStream;
-import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.xml.bind.JAXBException;
-
-import org.json.simple.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import no.rutebanken.anshar.messages.EstimatedTimetables;
 import no.rutebanken.anshar.messages.ProductionTimetables;
 import no.rutebanken.anshar.messages.Situations;
@@ -30,25 +13,17 @@ import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
 import no.rutebanken.anshar.subscription.MappingAdapterPresets;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
-import uk.org.siri.siri20.DataReadyRequestStructure;
-import uk.org.siri.siri20.DataReadyResponseStructure;
-import uk.org.siri.siri20.ErrorCodeStructure;
-import uk.org.siri.siri20.ErrorDescriptionStructure;
-import uk.org.siri.siri20.EstimatedTimetableDeliveryStructure;
-import uk.org.siri.siri20.EstimatedVehicleJourney;
-import uk.org.siri.siri20.LineRef;
-import uk.org.siri.siri20.ProductionTimetableDeliveryStructure;
-import uk.org.siri.siri20.PtSituationElement;
-import uk.org.siri.siri20.ServiceDeliveryErrorConditionElement;
-import uk.org.siri.siri20.ServiceRequest;
-import uk.org.siri.siri20.Siri;
-import uk.org.siri.siri20.SituationExchangeDeliveryStructure;
-import uk.org.siri.siri20.SubscriptionResponseStructure;
-import uk.org.siri.siri20.TerminateSubscriptionResponseStructure;
-import uk.org.siri.siri20.VehicleActivityStructure;
-import uk.org.siri.siri20.VehicleMonitoringDeliveryStructure;
-import uk.org.siri.siri20.VehicleMonitoringRequestStructure;
-import uk.org.siri.siri20.VehicleRef;
+import org.json.simple.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import uk.org.siri.siri20.*;
+
+import javax.xml.bind.JAXBException;
+import java.io.InputStream;
+import java.time.ZonedDateTime;
+import java.util.*;
 
 @Service
 public class SiriHandler {
@@ -258,7 +233,7 @@ public class SiriHandler {
 
                     serverSubscriptionManager.pushUpdatedSituations(addedOrUpdated, subscriptionSetup.getDatasetId());
 
-//TODO                    subscriptionManager.incrementByteCounter(subscriptionSetup, xml.getBytes().length);
+                    subscriptionManager.incrementObjectCounter(subscriptionSetup, addedOrUpdated.size());
 
                     logger.info("Active SX-elements: {}, current delivery: {}, {}", situations.getSize(), addedOrUpdated.size(), subscriptionSetup);
                 }
@@ -280,7 +255,7 @@ public class SiriHandler {
 
                     serverSubscriptionManager.pushUpdatedVehicleActivities(addedOrUpdated, subscriptionSetup.getDatasetId());
 
-//TODO                    subscriptionManager.incrementByteCounter(subscriptionSetup, xml.getBytes().length);
+                    subscriptionManager.incrementObjectCounter(subscriptionSetup, addedOrUpdated.size());
 
                     logger.info("Active VM-elements: {}, current delivery: {}, {}", vehicleActivities.getSize(), addedOrUpdated.size(), subscriptionSetup);
                 }
@@ -303,7 +278,7 @@ public class SiriHandler {
                     );
                     serverSubscriptionManager.pushUpdatedEstimatedTimetables(addedOrUpdated, subscriptionSetup.getDatasetId());
 
-//TODO                    subscriptionManager.incrementByteCounter(subscriptionSetup, xml.getBytes().length);
+                    subscriptionManager.incrementObjectCounter(subscriptionSetup, addedOrUpdated.size());
 
                     logger.info("Active ET-elements: {}, current delivery: {}, {}", estimatedTimetables.getSize(), addedOrUpdated.size(), subscriptionSetup);
                 }
@@ -319,7 +294,7 @@ public class SiriHandler {
 
                     serverSubscriptionManager.pushUpdatedProductionTimetables(addedOrUpdated, subscriptionSetup.getDatasetId());
 
- //TODO                   subscriptionManager.incrementByteCounter(subscriptionSetup, xml.getBytes().length);
+                    subscriptionManager.incrementObjectCounter(subscriptionSetup, addedOrUpdated.size());
 
                     logger.info("Active PT-elements: {}, current delivery: {}, {}", productionTimetables.getSize(), addedOrUpdated.size(), subscriptionSetup);
                 }

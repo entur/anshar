@@ -206,7 +206,7 @@ public class SubscriptionManagerTest {
         subscriptionManager.activatePendingSubscription(subscription.getSubscriptionId());
 
         for (int i = 0; i < 10; i++) {
-            subscriptionManager.incrementByteCounter(subscription, Integer.MAX_VALUE);
+            subscriptionManager.incrementObjectCounter(subscription, Integer.MAX_VALUE);
         }
 
         JSONObject jsonObject = subscriptionManager.buildStats();
@@ -240,7 +240,7 @@ public class SubscriptionManagerTest {
         int increment = 999;
         for (int i = 1; i < 10;i++) {
             sum += increment;
-            subscriptionManager.incrementByteCounter(subscription, increment);
+            subscriptionManager.incrementObjectCounter(subscription, increment);
         }
 
         JSONObject jsonObject = subscriptionManager.buildStats();

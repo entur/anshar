@@ -1,11 +1,3 @@
-<#function si num>
-    <#assign order = num?round?c?length />
-    <#assign thousands = ((order - 1) / 3)?floor />
-    <#if (thousands < 0)><#assign thousands = 0 /></#if>
-    <#assign siMap = [ {"factor": 1, "unit": ""}, {"factor": 1000, "unit": "kB"}, {"factor": 1000000, "unit": "MB"}, {"factor": 1000000000, "unit":"GB"}, {"factor": 1000000000000, "unit": "TB"} ]/>
-    <#assign siStr = (num / (siMap[thousands].factor))?string("0.#") + siMap[thousands].unit />
-    <#return siStr />
-</#function>
 <html>
 <head>
     <title>Anshar statistics</title>
@@ -46,7 +38,7 @@
                 <th>Vendor</th>
                 <th>Last activity</th>
                 <th>Requests</th>
-                <th>Total bytes received</th>
+                <th>Total objects received</th>
             </tr>
         </thead>
         <tbody>
@@ -58,7 +50,7 @@
                 <td>${item.vendor}</td>
                 <td>${item.lastActivity!""}</td>
                 <td align="right">${item.hitcount!0}</td>
-                <td align="right">${si(item.bytecount!0)}</td>
+                <td align="right">${item.objectcount!0}</td>
             </tr>
             <tr id="accordion${item?counter}" class="collapse ${item.healthy?exists?then(item.healthy?then("success","danger"), "warning")}">
             <td colspan="7">

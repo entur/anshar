@@ -175,7 +175,7 @@ public class ExtendedHazelcastService extends HazelCastService {
     }
 
     @Bean
-    public IMap<String,BigInteger> getByteCounterMap() {
-        return hazelcast.getMap("anshar.activity.bytecount");
+    public IMap<String,BigInteger> getObjectCounterMap() {
+        return hazelcast.getMap("anshar.activity.objectcount");
     }
 }

@@ -50,7 +50,7 @@ public class SubscriptionManager {
     private IMap<String, Integer> hitcount;
 
     @Autowired
-    private IMap<String, BigInteger> byteCounter;
+    private IMap<String, BigInteger> objectCounter;
 
     @Autowired
     private SiriObjectFactory siriObjectFactory;
@@ -91,7 +91,7 @@ public class SubscriptionManager {
             activatedTimestamp.remove(subscriptionId);
             lastActivity.remove(subscriptionId);
             hitcount.remove(subscriptionId);
-            byteCounter.remove(subscriptionId);
+            objectCounter.remove(subscriptionId);
         } else if (found) {
             setup.setActive(false);
             addSubscription(subscriptionId, setup);
@@ -154,12 +154,12 @@ public class SubscriptionManager {
         hitcount.put(subscriptionId, counter+1);
     }
 
-    public void incrementByteCounter(SubscriptionSetup subscriptionSetup, int size) {
+    public void incrementObjectCounter(SubscriptionSetup subscriptionSetup, int size) {
 
         String subscriptionId = subscriptionSetup.getSubscriptionId();
         if (subscriptionId != null) {
-            BigInteger counter = (byteCounter.get(subscriptionId) != null ? byteCounter.get(subscriptionId) : new BigInteger("0"));
-            byteCounter.put(subscriptionId, counter.add(BigInteger.valueOf(size)));
+            BigInteger counter = (objectCounter.get(subscriptionId) != null ? objectCounter.get(subscriptionId) : new BigInteger("0"));
+            objectCounter.put(subscriptionId, counter.add(BigInteger.valueOf(size)));
         }
     }
 
@@ -277,7 +277,7 @@ public class SubscriptionManager {
             obj.put("healthy", isSubscriptionHealthy(setup.getSubscriptionId()));
         }
         obj.put("hitcount",hitcount.get(setup.getSubscriptionId()));
-        obj.put("bytecount", byteCounter.get(setup.getSubscriptionId()));
+        obj.put("objectcount", objectCounter.get(setup.getSubscriptionId()));
 
         JSONObject urllist = new JSONObject();
         for (RequestType s : setup.getUrlMap().keySet()) {
