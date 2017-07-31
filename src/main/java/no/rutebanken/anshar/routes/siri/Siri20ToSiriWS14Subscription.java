@@ -1,23 +1,21 @@
 package no.rutebanken.anshar.routes.siri;
 
-import static no.rutebanken.anshar.routes.siri.SiriRequestFactory.getCamelUrl;
-
-import java.io.InputStream;
-import java.util.Map;
-
+import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
+import no.rutebanken.anshar.dataformat.SiriDataFormatHelper;
+import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
+import no.rutebanken.anshar.subscription.RequestType;
+import no.rutebanken.anshar.subscription.SubscriptionManager;
+import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
 import org.apache.camel.component.http4.HttpMethods;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
+import java.io.InputStream;
+import java.util.Map;
 
-import no.rutebanken.anshar.dataformat.SiriDataFormatHelper;
-import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
-import no.rutebanken.anshar.subscription.RequestType;
-import no.rutebanken.anshar.subscription.SubscriptionManager;
-import no.rutebanken.anshar.subscription.SubscriptionSetup;
+import static no.rutebanken.anshar.routes.siri.SiriRequestFactory.getCamelUrl;
 
 public class Siri20ToSiriWS14Subscription extends SiriSubscriptionRouteBuilder {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -48,7 +46,7 @@ public class Siri20ToSiriWS14Subscription extends SiriSubscriptionRouteBuilder {
         from("direct:" + subscriptionSetup.getStartSubscriptionRouteName())
                 .log("Starting subscription " + subscriptionSetup.toString())
                 .bean(helper, "createSiriSubscriptionRequest", false)
-                .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
+                .marshal(SiriDataFormatHelper.getSiriJaxbDataformat(customNamespacePrefixMapper))
                 .setExchangePattern(ExchangePattern.InOut) // Make sure we wait for a response
                 .setHeader("SOAPAction", constant("Subscribe"))
                 .setHeader("operatorNamespace", constant(subscriptionSetup.getOperatorNamespace())) // Need to make SOAP request with endpoint specific element namespace
@@ -75,7 +73,7 @@ public class Siri20ToSiriWS14Subscription extends SiriSubscriptionRouteBuilder {
         from("direct:" + subscriptionSetup.getCancelSubscriptionRouteName())
                 .log("Cancelling subscription " + subscriptionSetup.toString())
                 .bean(helper, "createSiriTerminateSubscriptionRequest", false)
-                .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
+                .marshal(SiriDataFormatHelper.getSiriJaxbDataformat(customNamespacePrefixMapper))
                 .setExchangePattern(ExchangePattern.InOut) // Make sure we wait for a response
                 .setProperty(Exchange.LOG_DEBUG_BODY_STREAMS, constant("true"))
                 .setHeader("SOAPAction", constant("DeleteSubscription")) // set SOAPAction Header (Microsoft requirement)
