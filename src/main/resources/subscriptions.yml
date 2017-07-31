@@ -651,8 +651,9 @@ anshar:
       soapenvNamespace:
       incrementalUpdates:
       urlMap:
-        SUBSCRIBE: 193.69.85.208:8089
-        DELETE_SUBSCRIPTION: 193.69.85.208:8089
+        SUBSCRIBE: 193.69.85.208:8089/RutebankenDEV/et/subscribe.xml
+        DELETE_SUBSCRIPTION: 193.69.85.208:8089/RutebankenDEV/et/managesubscription.xml
+        CHECK_STATUS: 193.69.85.208:8089/RutebankenDEV/et/checkstatus.xml
       version: 2.0
       contentType: text/xml;charset=UTF-8
       subscriptionId: ${random.uuid}
@@ -661,7 +662,7 @@ anshar:
       mappingAdapterPresets: RUTER
       filterPresets:
       idMappingPrefixes: RUT,OPP,BRA,OST
-      environments: test
+      environments: beta
       active: true
     -
       internalId: 100
