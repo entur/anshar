@@ -198,7 +198,7 @@ public class SubscriptionManagerTest {
     }
 
     @Test
-    public void testStatByteCounterHugeNumber() {
+    public void testStatsObjectCounterHugeNumber() {
         SubscriptionSetup subscription = createSubscription(1);
         assertFalse(subscriptionManager.isSubscriptionRegistered(subscription.getSubscriptionId()));
 
@@ -220,8 +220,8 @@ public class SubscriptionManagerTest {
         for (Object object : subscriptions) {
             JSONObject jsonStats = (JSONObject) object;
             if (subscription.getSubscriptionId().equals(jsonStats.get("subscriptionId"))) {
-                assertNotNull(jsonStats.get("bytecount"));
-                assertTrue(jsonStats.get("bytecount").toString().length() > String.valueOf(Integer.MAX_VALUE).length());
+                assertNotNull(jsonStats.get("objectcount"));
+                assertTrue(jsonStats.get("objectcount").toString().length() > String.valueOf(Integer.MAX_VALUE).length());
                 verifiedCounter = true;
             }
         }
@@ -254,7 +254,7 @@ public class SubscriptionManagerTest {
         for (Object object : subscriptions) {
             JSONObject jsonStats = (JSONObject) object;
             if (subscription.getSubscriptionId().equals(jsonStats.get("subscriptionId"))) {
-                assertEquals("" + sum, "" + jsonStats.get("bytecount"));
+                assertEquals("" + sum, "" + jsonStats.get("objectcount"));
                 verifiedCounter = true;
             }
         }
