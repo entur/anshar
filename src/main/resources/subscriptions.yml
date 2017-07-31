@@ -396,7 +396,7 @@ anshar:
       soapenvNamespace:
       incrementalUpdates:
       urlMap:
-        GET_SITUATION_EXCHANGE: https4://siri.opm.jbv.no/jbv/sx
+        GET_SITUATION_EXCHANGE: https4://siri-test.opm.jbv.no/jbv/sx
       version: 2.0
       contentType: text/xml;charset=UTF-8
       subscriptionId: ${random.uuid}
