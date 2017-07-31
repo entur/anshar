@@ -371,7 +371,7 @@ anshar:
       soapenvNamespace:
       incrementalUpdates:
       urlMap:
-        GET_ESTIMATED_TIMETABLE: https4://siri.opm.jbv.no/jbv/et
+        GET_ESTIMATED_TIMETABLE: https4://siri-test.opm.jbv.no/jbv/et
       version: 2.0
       contentType: text/xml;charset=UTF-8
       subscriptionId: ${random.uuid}
