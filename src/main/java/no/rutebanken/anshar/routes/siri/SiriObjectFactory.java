@@ -1,5 +1,24 @@
 package no.rutebanken.anshar.routes.siri;
 
+import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.Serializer;
+import com.esotericsoftware.kryo.io.Input;
+import com.esotericsoftware.kryo.io.Output;
+import com.esotericsoftware.kryo.pool.KryoFactory;
+import com.esotericsoftware.kryo.pool.KryoPool;
+import com.sun.org.apache.xerces.internal.dom.ElementNSImpl;
+import no.rutebanken.anshar.subscription.SubscriptionSetup;
+import org.apache.commons.lang3.NotImplementedException;
+import org.objenesis.strategy.StdInstantiatorStrategy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import uk.org.siri.siri20.*;
+
+import javax.xml.bind.JAXBException;
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -9,62 +28,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import javax.xml.bind.JAXBException;
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeFactory;
-
-import org.objenesis.strategy.StdInstantiatorStrategy;
-import org.rutebanken.siri20.util.SiriXml;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import com.esotericsoftware.kryo.Kryo;
-import com.esotericsoftware.kryo.pool.KryoFactory;
-import com.esotericsoftware.kryo.pool.KryoPool;
-
-import no.rutebanken.anshar.subscription.SubscriptionSetup;
-import uk.org.siri.siri20.CheckStatusRequestStructure;
-import uk.org.siri.siri20.CheckStatusResponseStructure;
-import uk.org.siri.siri20.DataSupplyRequestStructure;
-import uk.org.siri.siri20.EstimatedTimetableDeliveryStructure;
-import uk.org.siri.siri20.EstimatedTimetableRequestStructure;
-import uk.org.siri.siri20.EstimatedTimetableSubscriptionStructure;
-import uk.org.siri.siri20.EstimatedVehicleJourney;
-import uk.org.siri.siri20.EstimatedVersionFrameStructure;
-import uk.org.siri.siri20.HeartbeatNotificationStructure;
-import uk.org.siri.siri20.LineDirectionStructure;
-import uk.org.siri.siri20.LineRef;
-import uk.org.siri.siri20.MessageQualifierStructure;
-import uk.org.siri.siri20.OtherErrorStructure;
-import uk.org.siri.siri20.ProductionTimetableDeliveryStructure;
-import uk.org.siri.siri20.ProductionTimetableRequestStructure;
-import uk.org.siri.siri20.ProductionTimetableSubscriptionRequest;
-import uk.org.siri.siri20.PtSituationElement;
-import uk.org.siri.siri20.RequestorRef;
-import uk.org.siri.siri20.ResponseStatus;
-import uk.org.siri.siri20.ServiceDelivery;
-import uk.org.siri.siri20.ServiceDeliveryErrorConditionElement;
-import uk.org.siri.siri20.ServiceRequest;
-import uk.org.siri.siri20.Siri;
-import uk.org.siri.siri20.SituationExchangeDeliveryStructure;
-import uk.org.siri.siri20.SituationExchangeRequestStructure;
-import uk.org.siri.siri20.SituationExchangeSubscriptionStructure;
-import uk.org.siri.siri20.SubscriptionContextStructure;
-import uk.org.siri.siri20.SubscriptionQualifierStructure;
-import uk.org.siri.siri20.SubscriptionRequest;
-import uk.org.siri.siri20.SubscriptionResponseStructure;
-import uk.org.siri.siri20.TerminateSubscriptionRequestStructure;
-import uk.org.siri.siri20.TerminateSubscriptionResponseStructure;
-import uk.org.siri.siri20.TerminationResponseStatusStructure;
-import uk.org.siri.siri20.VehicleActivityStructure;
-import uk.org.siri.siri20.VehicleMonitoringDeliveryStructure;
-import uk.org.siri.siri20.VehicleMonitoringRefStructure;
-import uk.org.siri.siri20.VehicleMonitoringRequestStructure;
-import uk.org.siri.siri20.VehicleMonitoringSubscriptionStructure;
-import uk.org.siri.siri20.VehicleRef;
-
 @Service
 public class SiriObjectFactory {
 
@@ -72,12 +35,32 @@ public class SiriObjectFactory {
     private static Logger logger = LoggerFactory.getLogger(SiriObjectFactory.class);
 
     private static KryoPool kryoPool;
-    
+
     static {
     	KryoFactory factory = new KryoFactory() {
     		  public Kryo create () {
     		    Kryo kryo = new Kryo();
     		    kryo.setInstantiatorStrategy(new Kryo.DefaultInstantiatorStrategy(new StdInstantiatorStrategy()));
+    		    kryo.register(ElementNSImpl.class, new Serializer() {
+
+
+                    @Override
+                    public void write(Kryo kryo, Output output, Object object) {
+                        throw new NotImplementedException("write-method not implemented");
+                    }
+
+                    @Override
+                    public Object read(Kryo kryo, Input input, Class type) {
+                        throw new NotImplementedException("read-method not implemented");
+                    }
+
+                    @Override
+                    public Object copy(Kryo kryo, Object original) {
+
+                        ElementNSImpl element = (ElementNSImpl) ((ElementNSImpl) original).cloneNode(true);
+                        return element;
+                    }
+                });
     		    // configure kryo instance, customize settings
     		    return kryo;
     		  }
