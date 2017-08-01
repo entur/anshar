@@ -337,7 +337,6 @@ public class SiriIncomingReceiver extends RouteBuilder {
                     handler.handleIncomingSiri(subscriptionId, xml);
 
                 })
-                //.to("websocket://siri_et?sendToAll=true")
         ;
 
 
@@ -351,7 +350,6 @@ public class SiriIncomingReceiver extends RouteBuilder {
                     handler.handleIncomingSiri(subscriptionId, xml);
 
                 })
-                //.to("websocket://siri_pt?sendToAll=true")
         ;
 
     }
