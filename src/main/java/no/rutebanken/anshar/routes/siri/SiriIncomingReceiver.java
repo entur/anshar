@@ -1,21 +1,12 @@
 package no.rutebanken.anshar.routes.siri;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.io.PrintStream;
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
+import no.rutebanken.anshar.subscription.SubscriptionManager;
+import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.builder.xml.Namespaces;
-import org.apache.camel.builder.xml.StreamResultHandlerFactory;
 import org.rutebanken.siri20.util.SiriXml;
 import org.rutebanken.validator.SiriValidator;
 import org.slf4j.Logger;
@@ -23,13 +14,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
-
-import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
-import no.rutebanken.anshar.subscription.SubscriptionManager;
-import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import uk.org.siri.siri20.Siri;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.*;
+import java.net.ConnectException;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 @Configuration
@@ -75,10 +68,10 @@ public class SiriIncomingReceiver extends RouteBuilder {
     @Override
     public void configure() throws Exception {
 
-//        onException(ConnectException.class)
-//                .maximumRedeliveries(10)
-//                .redeliveryDelay(10000)
-//                .useExponentialBackOff();
+        onException(ConnectException.class)
+                .maximumRedeliveries(10)
+                .redeliveryDelay(10000)
+                .useExponentialBackOff();
 
         errorHandler(loggingErrorHandler()
                         .log(logger)
@@ -167,7 +160,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                         .to("activemq:queue:" + VALIDATOR_QUEUE + activeMQParameters)
                     .endChoice()
                 .end()
-                .to("activemq:queue:" + ROUTER_QUEUE + activeMQParameters)
+                .to("direct:" + ROUTER_QUEUE)
         ;
 
 
@@ -226,7 +219,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
 
 
 
-        from("activemq:queue:" + ROUTER_QUEUE + activeMqConsumerParameters)
+        from("direct:" + ROUTER_QUEUE)
                 .choice()
                 .when().xpath("/siri:Siri/siri:HeartbeatNotification", ns)
                     .to("activemq:queue:" + HEARTBEAT_QUEUE + activeMQParameters)
