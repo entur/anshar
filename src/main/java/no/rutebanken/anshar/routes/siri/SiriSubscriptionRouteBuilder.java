@@ -1,15 +1,13 @@
 package no.rutebanken.anshar.routes.siri;
 
-import java.time.Duration;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
-
 import no.rutebanken.anshar.routes.BaseRouteBuilder;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.time.Duration;
 
 public abstract class SiriSubscriptionRouteBuilder extends BaseRouteBuilder {
 
@@ -36,6 +34,19 @@ public abstract class SiriSubscriptionRouteBuilder extends BaseRouteBuilder {
         }
 
         return "?httpClient.socketTimeout=" + timeout + "&httpClient.connectTimeout=" + timeout;
+    }
+
+    int getTimeToLive() {
+        int timeToLive;
+        Duration heartbeatInterval = subscriptionSetup.getHeartbeatInterval();
+        if (heartbeatInterval != null) {
+            long heartbeatIntervalMillis = heartbeatInterval.toMillis();
+            timeToLive = (int) heartbeatIntervalMillis * 5;
+        } else {
+            timeToLive = 300000;
+        }
+
+        return timeToLive;
     }
 
     void initTriggerRoutes() {

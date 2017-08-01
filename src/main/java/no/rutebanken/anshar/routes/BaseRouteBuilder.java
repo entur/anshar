@@ -8,7 +8,6 @@ import org.apache.camel.model.RouteDefinition;
 import org.apache.camel.spi.RouteContext;
 import org.apache.camel.spi.RoutePolicy;
 import org.apache.camel.spring.SpringRouteBuilder;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 import java.util.Map;
@@ -21,8 +20,6 @@ import static no.rutebanken.anshar.routes.siri.SiriRequestFactory.getCamelUrl;
  */
 public abstract class BaseRouteBuilder extends SpringRouteBuilder {
 
-
-    @Autowired
     protected SubscriptionManager subscriptionManager;
 
     protected BaseRouteBuilder(SubscriptionManager subscriptionManager) {

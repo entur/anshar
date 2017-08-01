@@ -1,14 +1,12 @@
 package no.rutebanken.anshar.routes.siri;
 
 import no.rutebanken.anshar.dataformat.SiriDataFormatHelper;
-import no.rutebanken.anshar.routes.BaseRouteBuilder;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
 
-public class Siri20ToSiriWS14RequestResponse extends BaseRouteBuilder {
-    private final SubscriptionSetup subscriptionSetup;
+public class Siri20ToSiriWS14RequestResponse extends SiriSubscriptionRouteBuilder {
 
     public Siri20ToSiriWS14RequestResponse(SubscriptionSetup subscriptionSetup, SubscriptionManager subscriptionManager) {
         super(subscriptionManager);
@@ -21,11 +19,9 @@ public class Siri20ToSiriWS14RequestResponse extends BaseRouteBuilder {
 
         long heartbeatIntervalMillis = subscriptionSetup.getHeartbeatInterval().toMillis();
 
-        int timeout = (int) heartbeatIntervalMillis / 2;
-
         SiriRequestFactory helper = new SiriRequestFactory(subscriptionSetup);
 
-        String httpOptions = "?httpClient.socketTimeout=" + timeout + "&httpClient.connectTimeout=" + timeout;
+        String httpOptions = getTimeout();
 
         if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.REQUEST_RESPONSE) {
             singletonFrom("quartz2://anshar/monitor_" + subscriptionSetup.getRequestResponseRouteName() + "?fireNow=true&trigger.repeatInterval=" + heartbeatIntervalMillis,
@@ -54,7 +50,7 @@ public class Siri20ToSiriWS14RequestResponse extends BaseRouteBuilder {
                 .setHeader("CamelHttpPath", constant("/appContext" + subscriptionSetup.buildUrl(false)))
                 .log("Got response " + subscriptionSetup.toString())
                 //.to("log:response:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
-                .to("activemq:queue:" + SiriIncomingReceiver.TRANSFORM_QUEUE  + "?disableReplyTo=true&timeToLive="+timeout)
+                .to("activemq:queue:" + SiriIncomingReceiver.TRANSFORM_QUEUE  + "?disableReplyTo=true&timeToLive="+getTimeToLive())
         ;
     }
 }
