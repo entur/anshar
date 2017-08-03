@@ -1,6 +1,8 @@
 package no.rutebanken.anshar.messages.collections;
 
+import com.hazelcast.config.SerializerConfig;
 import com.hazelcast.core.*;
+import com.hazelcast.nio.serialization.ByteArraySerializer;
 import no.rutebanken.anshar.routes.outbound.OutboundSubscriptionSetup;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.json.simple.JSONArray;
@@ -17,9 +19,12 @@ import uk.org.siri.siri20.ProductionTimetableDeliveryStructure;
 import uk.org.siri.siri20.PtSituationElement;
 import uk.org.siri.siri20.VehicleActivityStructure;
 
+import java.io.*;
 import java.math.BigInteger;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 @Service
@@ -33,6 +38,58 @@ public class ExtendedHazelcastService extends HazelCastService {
 
     public HazelcastInstance getHazelcastInstance() {
         return hazelcast;
+    }
+
+    @Override
+    public List<SerializerConfig> getSerializerConfigs() {
+
+        return Arrays.asList(
+                getSerializerConfig(EstimatedVehicleJourney.class, 1),
+                getSerializerConfig(ProductionTimetableDeliveryStructure.class, 2),
+                getSerializerConfig(PtSituationElement.class, 3),
+                getSerializerConfig(VehicleActivityStructure.class, 4)
+        );
+    }
+
+    private SerializerConfig getSerializerConfig(Class clazz, int type) {
+        SerializerConfig serializerConfig = new SerializerConfig();
+        ByteArraySerializer<?> serializer = new ByteArraySerializer() {
+            @Override
+            public byte[] write(Object object) throws IOException {
+                try(ByteArrayOutputStream b = new ByteArrayOutputStream()){
+                    try(ObjectOutputStream o = new ObjectOutputStream(b)){
+                        o.writeObject(object);
+                    }
+                    return b.toByteArray();
+                }
+            }
+
+            @Override
+            public Object read(byte[] buffer) throws IOException {
+                ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(buffer);
+                ObjectInputStream in = new ObjectInputStream(byteArrayInputStream);
+                try {
+                    return in.readObject();
+                } catch (ClassNotFoundException e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+
+            @Override
+            public int getTypeId() {
+                return type;
+            }
+
+            @Override
+            public void destroy() {
+
+            }
+        };
+
+        serializerConfig.setImplementation(serializer);
+        serializerConfig.setTypeClass(clazz);
+        return serializerConfig;
     }
 
     @Bean
