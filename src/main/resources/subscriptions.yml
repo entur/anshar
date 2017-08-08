@@ -415,6 +415,7 @@ anshar:
       subscriptionType: ESTIMATED_TIMETABLE
       subscriptionMode: FETCHED_DELIVERY
       heartbeatIntervalSeconds: 60
+      previewIntervalSeconds: 60000
       operatorNamespace: http://www.siri.org.uk/siri
       addressFieldName:
       soapenvNamespace:
