@@ -58,6 +58,7 @@ public class AdministrationRoute extends RouteBuilder {
                     p.getOut().setBody(subscriptionManager.buildStats());
                 })
                 .to("freemarker:templates/stats.ftl")
+                .routeId("admin.stats")
         ;
 
         //Stop subscription
@@ -71,6 +72,7 @@ public class AdministrationRoute extends RouteBuilder {
                     }
 
                 })
+                .routeId("admin.stop")
         ;
         //Start subscription
         from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/start?httpMethodRestrict=PUT")
@@ -83,6 +85,7 @@ public class AdministrationRoute extends RouteBuilder {
                        subscriptionManager.startSubscription(subscriptionId);
                     }
                 })
+                .routeId("admin.start")
         ;
 
         //Return subscription status
@@ -92,6 +95,7 @@ public class AdministrationRoute extends RouteBuilder {
                     p.getOut().setBody(serverSubscriptionManager.getSubscriptionsAsJson());
                 })
                 .to("freemarker:templates/subscriptions.ftl")
+                .routeId("admin.subscriptions")
         ;
 
         //Return subscription status
@@ -105,6 +109,7 @@ public class AdministrationRoute extends RouteBuilder {
                             "<br />PT: " + productionTimetables.cleanup()
                     );
                 })
+                .routeId("admin.cleanup")
         ;
 
         //Return subscription status
@@ -115,6 +120,7 @@ public class AdministrationRoute extends RouteBuilder {
                     p.getOut().setHeader(Exchange.CONTENT_TYPE, "application/json");
                     p.getOut().setBody(extendedHazelcastService.listNodes((includeStats != null && Boolean.valueOf(includeStats))));
                 })
+                .routeId("admin.clusterstats")
         ;
 
     }

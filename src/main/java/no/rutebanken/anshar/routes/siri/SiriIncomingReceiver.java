@@ -146,6 +146,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                             .setBody(constant("Subscription is not valid"))
                         .endChoice()
                 .end()
+                .routeId("incoming.receive")
         ;
 
 
@@ -161,6 +162,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                     .endChoice()
                 .end()
                 .to("direct:" + ROUTER_QUEUE)
+                .routeId("incoming.transform")
         ;
 
 
@@ -188,6 +190,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                         ps.close();
                     }
                 })
+                .routeId("validate.receive")
         ;
 
         from("activemq:queue:" + VALIDATOR_QUEUE + activeMqConsumerParameters)
@@ -215,6 +218,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                     logger.info("XMLValidation - done");
 
                 })
+                .routeId("validate.process")
         ;
 
 
@@ -245,6 +249,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                 .otherwise()
                     .to("activemq:queue:" + DEFAULT_PROCESSOR_QUEUE + activeMQParameters)
                 .end()
+                .routeId("incoming.redirect")
         ;
 
 
@@ -268,6 +273,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                     handler.handleIncomingSiri(subscriptionId, xml, datasetId, handler.getIdMappingPolicy(query));
 
                 })
+                .routeId("incoming.processor.default")
         ;
 
         from("activemq:queue:" + HEARTBEAT_QUEUE + activeMqConsumerParameters)
@@ -278,6 +284,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                     handler.handleIncomingSiri(subscriptionId, xml);
 
                 })
+                .routeId("incoming.processor.heartbeat")
         ;
 
 
@@ -300,6 +307,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                 .when(header("routename").isNotNull())
                     .toD("direct:${header.routename}")
                 .endChoice()
+                .routeId("incoming.processor.fetched_delivery")
         ;
 
         from("activemq:queue:" + SITUATION_EXCHANGE_QUEUE + activeMqConsumerParameters)
@@ -311,7 +319,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                     handler.handleIncomingSiri(subscriptionId, xml);
 
                 })
-                //.to("websocket://siri_sx?sendToAll=true")
+                .routeId("incoming.processor.sx")
         ;
 
         from("activemq:queue:" + VEHICLE_MONITORING_QUEUE + activeMqConsumerParameters)
@@ -324,7 +332,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                     handler.handleIncomingSiri(subscriptionId, xml);
 
                 })
-                //.to("websocket://siri_vm?sendToAll=true")
+                .routeId("incoming.processor.vm")
         ;
 
         from("activemq:queue:" + ESTIMATED_TIMETABLE_QUEUE + activeMqConsumerParameters)
@@ -337,6 +345,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                     handler.handleIncomingSiri(subscriptionId, xml);
 
                 })
+                .routeId("incoming.processor.et")
         ;
 
 
@@ -350,6 +359,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                     handler.handleIncomingSiri(subscriptionId, xml);
 
                 })
+                .routeId("incoming.processor.pt")
         ;
 
     }

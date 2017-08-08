@@ -91,6 +91,7 @@ public class SiriProvider extends RouteBuilder {
                     }
                 })
                 .log("RequestTracer - Request done (SX)")
+                .routeId("incoming.rest.sx")
         ;
 
         from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/rest/vm?httpMethodRestrict=GET")
@@ -124,6 +125,7 @@ public class SiriProvider extends RouteBuilder {
                     }
                 })
                 .log("RequestTracer - Request done (VM)")
+                .routeId("incoming.rest.vm")
         ;
 
 
@@ -157,6 +159,7 @@ public class SiriProvider extends RouteBuilder {
                     }
                 })
                 .log("RequestTracer - Request done (ET)")
+                .routeId("incoming.rest.et")
         ;
 
 
@@ -190,6 +193,7 @@ public class SiriProvider extends RouteBuilder {
                     }
                 })
                 .log("RequestTracer - Request done (PT)")
+                .routeId("incoming.rest.pt")
         ;
 
     }

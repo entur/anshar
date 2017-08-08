@@ -1,21 +1,20 @@
 package no.rutebanken.anshar.routes.siri;
 
-import static no.rutebanken.anshar.routes.siri.SiriRequestFactory.getCamelUrl;
-
-import java.io.InputStream;
-import java.util.Map;
-
+import no.rutebanken.anshar.dataformat.SiriDataFormatHelper;
+import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
+import no.rutebanken.anshar.subscription.RequestType;
+import no.rutebanken.anshar.subscription.SubscriptionManager;
+import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
 import org.apache.camel.component.http4.HttpMethods;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import no.rutebanken.anshar.dataformat.SiriDataFormatHelper;
-import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
-import no.rutebanken.anshar.subscription.RequestType;
-import no.rutebanken.anshar.subscription.SubscriptionManager;
-import no.rutebanken.anshar.subscription.SubscriptionSetup;
+import java.io.InputStream;
+import java.util.Map;
+
+import static no.rutebanken.anshar.routes.siri.SiriRequestFactory.getCamelUrl;
 
 public class Siri20ToSiriRS14Subscription extends SiriSubscriptionRouteBuilder {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -65,6 +64,7 @@ public class Siri20ToSiriRS14Subscription extends SiriSubscriptionRouteBuilder {
                         handler.handleIncomingSiri(subscriptionSetup.getSubscriptionId(), body);
                     }
                 })
+                .routeId("start.rs.14.subscription."+subscriptionSetup.getVendor())
         ;
 
         //Cancel subscription
@@ -90,6 +90,7 @@ public class Siri20ToSiriRS14Subscription extends SiriSubscriptionRouteBuilder {
                         handler.handleIncomingSiri(subscriptionSetup.getSubscriptionId(), body);
                     }
                 })
+                .routeId("cancel.rs.14.subscription."+subscriptionSetup.getVendor())
         ;
         initTriggerRoutes();
     }

@@ -29,12 +29,14 @@ public class LivenessReadinessRoute extends RouteBuilder {
         //To avoid large stacktraces in the log when fetching data using browser
         from("jetty:http://0.0.0.0:" + inboundPort + "/favicon.ico")
                 .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("404"))
+                .routeId("health.favicon")
         ;
 
         // Application is ready to accept traffic
         from("jetty:http://0.0.0.0:" + inboundPort + "/ready")
                 .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
                 .setBody(constant("OK"))
+                .routeId("health.ready")
         ;
 
         // Application is (still) alive and well
@@ -61,6 +63,7 @@ public class LivenessReadinessRoute extends RouteBuilder {
                     .setBody(simple("OK"))
                     .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
                 .end()
+                .routeId("health.up")
         ;
 
         from("jetty:http://0.0.0.0:" + inboundPort + "/healthy")
@@ -76,6 +79,7 @@ public class LivenessReadinessRoute extends RouteBuilder {
                     .setBody(simple("OK"))
                     .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
                 .end()
+                .routeId("health.is.healthy")
         ;
 
     }

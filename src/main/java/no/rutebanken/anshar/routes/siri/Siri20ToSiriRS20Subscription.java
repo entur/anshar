@@ -1,21 +1,20 @@
 package no.rutebanken.anshar.routes.siri;
 
-import static no.rutebanken.anshar.routes.siri.SiriRequestFactory.getCamelUrl;
-
-import java.io.InputStream;
-import java.util.Map;
-
+import no.rutebanken.anshar.dataformat.SiriDataFormatHelper;
+import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
+import no.rutebanken.anshar.subscription.RequestType;
+import no.rutebanken.anshar.subscription.SubscriptionManager;
+import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
 import org.apache.camel.http.common.HttpMethods;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import no.rutebanken.anshar.dataformat.SiriDataFormatHelper;
-import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
-import no.rutebanken.anshar.subscription.RequestType;
-import no.rutebanken.anshar.subscription.SubscriptionManager;
-import no.rutebanken.anshar.subscription.SubscriptionSetup;
+import java.io.InputStream;
+import java.util.Map;
+
+import static no.rutebanken.anshar.routes.siri.SiriRequestFactory.getCamelUrl;
 
 public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
 
@@ -56,6 +55,7 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
                         subscriptionManager.activatePendingSubscription(subscriptionSetup.getSubscriptionId());
                     }
                 })
+                .routeId("start.rs.20.subscription."+subscriptionSetup.getVendor())
         ;
 
         //Check status-request checks the server status - NOT the subscription
@@ -77,6 +77,7 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
                     }
 
                 })
+                .routeId("check.status.rs.20.subscription."+subscriptionSetup.getVendor())
         ;
 
         //Cancel subscription
@@ -97,7 +98,9 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
                     if (body != null && body.available() >0) {
                         handler.handleIncomingSiri(subscriptionSetup.getSubscriptionId(), body);
                     }
-                });
+                })
+                .routeId("cancel.rs.20.subscription."+subscriptionSetup.getVendor())
+        ;
 
         initTriggerRoutes();
     }

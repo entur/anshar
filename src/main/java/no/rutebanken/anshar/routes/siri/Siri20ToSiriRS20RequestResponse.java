@@ -30,6 +30,7 @@ public class Siri20ToSiriRS20RequestResponse extends SiriSubscriptionRouteBuilde
                     .when(p -> requestData(subscriptionSetup.getSubscriptionId(), p.getFromRouteId()))
                     .to("direct:" + subscriptionSetup.getServiceRequestRouteName())
                     .endChoice()
+                    .routeId("monitor.rs.20." + subscriptionSetup.getSubscriptionType() + "." + subscriptionSetup.getVendor())
             ;
         }
 
@@ -49,6 +50,7 @@ public class Siri20ToSiriRS20RequestResponse extends SiriSubscriptionRouteBuilde
                 .log("Got response " + subscriptionSetup.toString())
                 .to("log:response:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .to("activemq:queue:" + SiriIncomingReceiver.TRANSFORM_QUEUE + "?disableReplyTo=true&timeToLive=" + getTimeToLive())
+                .routeId("request.rs.20." + subscriptionSetup.getSubscriptionType() + "." + subscriptionSetup.getVendor())
         ;
     }
 
