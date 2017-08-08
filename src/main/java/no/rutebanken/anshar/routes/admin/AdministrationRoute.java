@@ -99,20 +99,6 @@ public class AdministrationRoute extends RouteBuilder {
         ;
 
         //Return subscription status
-        from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/cleanup")
-                .process(p -> {
-                    p.getOut().setHeader(Exchange.CONTENT_TYPE, "text/html");
-                    p.getOut().setBody(
-                            "<br />ET: " + estimatedTimetables.cleanup() +
-                            "<br />VM: " + vehicleActivities.cleanup() +
-                            "<br />SX: " + situations.cleanup() +
-                            "<br />PT: " + productionTimetables.cleanup()
-                    );
-                })
-                .routeId("admin.cleanup")
-        ;
-
-        //Return subscription status
         from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/clusterstats")
                 .process(p -> {
                     HttpServletRequest request = p.getIn().getBody(HttpServletRequest.class);
