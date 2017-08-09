@@ -641,6 +641,58 @@ anshar:
       active: true
     -
       internalId: 28
+      vendor: ostVm
+      datasetId: OST
+      serviceType: SOAP
+      subscriptionType: VEHICLE_MONITORING
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: -1
+      previewIntervalSeconds: 7200
+      operatorNamespace: http://wsdl.siri.org.uk
+      addressFieldName: ConsumerAddress
+      soapenvNamespace: http://schemas.xmlsoap.org/soap/envelope/
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: 95.141.66.27:8000/SIRI
+        DELETE_SUBSCRIPTION: 95.141.66.27:8000/SIRI
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: ${random.uuid}
+      requestorRef: RutebankenDEV_VM
+      durationOfSubscriptionHours: 168
+      mappingAdapterPresets:
+      filterPresets:
+      idMappingPrefixes: OST
+      environments: test,beta,prod
+      active: true
+    -
+      internalId: 29
+      vendor: ostSX
+      datasetId: OST
+      serviceType: SOAP
+      subscriptionType: SITUATION_EXCHANGE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: -1
+      previewIntervalSeconds: 7200
+      operatorNamespace: http://wsdl.siri.org.uk
+      addressFieldName: ConsumerAddress
+      soapenvNamespace: http://schemas.xmlsoap.org/soap/envelope/
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: 95.141.66.27:8000/SIRI
+        DELETE_SUBSCRIPTION: 95.141.66.27:8000/SIRI
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: ${random.uuid}
+      requestorRef: RutebankenDEV_SX
+      durationOfSubscriptionHours: 168
+      mappingAdapterPresets:
+      filterPresets:
+      idMappingPrefixes: OST
+      environments: test,beta,prod
+      active: true
+    -
+      internalId: 30
       vendor: ruter-tbane
       datasetId: RUT
       serviceType: REST
