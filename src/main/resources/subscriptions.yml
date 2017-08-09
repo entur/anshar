@@ -622,7 +622,7 @@ anshar:
       subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: -1
       previewIntervalSeconds: 7200
-      operatorNamespace: http://wsdl.siri.org.uk/siri
+      operatorNamespace: http://wsdl.siri.org.uk
       addressFieldName: ConsumerAddress
       soapenvNamespace: http://schemas.xmlsoap.org/soap/envelope/
       incrementalUpdates:
