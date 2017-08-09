@@ -360,7 +360,7 @@ anshar:
     -
       internalId: 17
       vendor: baneEt-reqres
-      datasetId: NSB
+      datasetId: BNR
       serviceType: REST
       subscriptionType: ESTIMATED_TIMETABLE
       subscriptionMode: REQUEST_RESPONSE
