@@ -89,7 +89,8 @@ public class SiriObjectFactory {
                     subscriptionSetup.getDurationOfSubscription(),
                     subscriptionSetup.getFilterMap(),
                     subscriptionSetup.getAddressFieldName(),
-                    subscriptionSetup.getIncrementalUpdates());
+                    subscriptionSetup.getIncrementalUpdates(),
+                    subscriptionSetup.getPreviewInterval());
         }
         if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING)) {
             request = createVehicleMonitoringSubscriptionRequest(subscriptionSetup.getRequestorRef(),
@@ -218,11 +219,16 @@ public class SiriObjectFactory {
         return ptRequest;
     }
 
-    private static SubscriptionRequest createSituationExchangeSubscriptionRequest(String requestorRef, String subscriptionId, Duration heartbeatInterval, String address, Duration subscriptionDuration, Map<Class, Set<Object>> filterMap, String addressFieldName, Boolean incrementalUpdates) {
+    private static SubscriptionRequest createSituationExchangeSubscriptionRequest(String requestorRef, String subscriptionId, Duration heartbeatInterval, String address, Duration subscriptionDuration, Map<Class, Set<Object>> filterMap, String addressFieldName, Boolean incrementalUpdates, Duration previewInterval) {
         SubscriptionRequest request = createSubscriptionRequest(requestorRef, heartbeatInterval, address, addressFieldName);
 
         SituationExchangeRequestStructure sxRequest = createSituationExchangeRequestStructure(null);
-        sxRequest.setPreviewInterval(createDataTypeFactory().newDuration("P1Y"));
+
+        if (previewInterval != null) {
+            sxRequest.setPreviewInterval(createDataTypeFactory().newDuration(previewInterval.toString()));
+        } else {
+            sxRequest.setPreviewInterval(createDataTypeFactory().newDuration("PT1H"));
+        }
 
         if (filterMap != null) {
             Set<Object> vehicleRefs = filterMap.get(VehicleRef.class);
