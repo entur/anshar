@@ -11,5 +11,6 @@ public enum SubscriptionPreset {
     BANENOR,
     TROMS,
     MOR,
-    NSB
+    NSB,
+    NSR
 }

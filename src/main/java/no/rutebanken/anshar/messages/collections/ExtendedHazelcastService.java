@@ -220,6 +220,12 @@ public class ExtendedHazelcastService extends HazelCastService {
         return hazelcast.getMap("anshar.mapping.stopplaces");
     }
 
+
+    @Bean
+    public IMap<String,String> getJbvStopPlaceMappings() {
+        return hazelcast.getMap("anshar.mapping.jbvcode.stopplaces");
+    }
+
     @Bean
     public IMap<String,BigInteger> getObjectCounterMap() {
         return hazelcast.getMap("anshar.activity.objectcount");

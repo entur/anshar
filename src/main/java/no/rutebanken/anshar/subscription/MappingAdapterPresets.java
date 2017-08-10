@@ -1,6 +1,7 @@
 package no.rutebanken.anshar.subscription;
 
 import no.rutebanken.anshar.routes.siri.handlers.OutboundIdMappingPolicy;
+import no.rutebanken.anshar.routes.siri.processor.BaneNorIdPlatformPostProcessor;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.routes.siri.transformer.impl.*;
 import org.springframework.stereotype.Component;
@@ -49,13 +50,9 @@ public class MappingAdapterPresets {
             case SKYSS:
                 break;
             case BANENOR:
-                adapters.add(new BaneNorIdReplacer(StopPointRef.class));
-                adapters.add(new BaneNorIdReplacer(StopPlaceRef.class));
-                adapters.add(new BaneNorIdReplacer(JourneyPlaceRefStructure.class));
-                adapters.add(new BaneNorIdReplacer(DestinationRef.class));
+                adapters.add(new BaneNorIdPlatformPostProcessor());
                 break;
             case NSB:
-                adapters.add(new BaneNorIdReplacer(StopPointRef.class));
                 break;
             case MOR:
                 break;

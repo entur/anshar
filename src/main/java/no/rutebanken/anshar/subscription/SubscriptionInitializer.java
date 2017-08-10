@@ -21,6 +21,8 @@ import javax.annotation.PostConstruct;
 import java.time.Instant;
 import java.util.*;
 
+import static no.rutebanken.anshar.subscription.SubscriptionPreset.NSR;
+
 @Service
 @Configuration
 public class SubscriptionInitializer implements CamelContextAware {
@@ -93,19 +95,24 @@ public class SubscriptionInitializer implements CamelContextAware {
                     throw new ServiceConfigurationError("SubscriptionIds are NOT unique for ID="+subscriptionSetup.getSubscriptionId());
                 }
 
-                //Add NSR StopPlaceIdMapperAdapters
-                if (subscriptionSetup.getIdMappingPrefixes() != null && !subscriptionSetup.getIdMappingPrefixes().isEmpty()) {
-                    List<ValueAdapter> nsr = mappingAdapterPresets.createNsrIdMappingAdapters(subscriptionSetup.getIdMappingPrefixes());
-                    if (!subscriptionSetup.getMappingAdapters().containsAll(nsr )) {
-                        subscriptionSetup.getMappingAdapters().addAll(nsr);
-                    }
-                }
+                for (SubscriptionPreset preset : subscriptionSetup.mappingAdapterPresets) {
+                    if (preset == NSR) {
+                        //Add NSR StopPlaceIdMapperAdapters
+                        if (subscriptionSetup.getIdMappingPrefixes() != null && !subscriptionSetup.getIdMappingPrefixes().isEmpty()) {
 
-                //Add Chouette route_id, trip_id adapters
-                if (subscriptionSetup.getDatasetId() != null && !subscriptionSetup.getDatasetId().isEmpty()) {
-                    List<ValueAdapter> datasetPrefix = mappingAdapterPresets.createIdPrefixAdapters(subscriptionSetup.getDatasetId());
-                    if (!subscriptionSetup.getMappingAdapters().containsAll(datasetPrefix)) {
-                        subscriptionSetup.getMappingAdapters().addAll(datasetPrefix);
+                            List<ValueAdapter> nsr = mappingAdapterPresets.createNsrIdMappingAdapters(subscriptionSetup.getIdMappingPrefixes());
+                            if (!subscriptionSetup.getMappingAdapters().containsAll(nsr)) {
+                                subscriptionSetup.getMappingAdapters().addAll(nsr);
+                            }
+                        }
+
+                        //Add Chouette route_id, trip_id adapters
+                        if (subscriptionSetup.getDatasetId() != null && !subscriptionSetup.getDatasetId().isEmpty()) {
+                            List<ValueAdapter> datasetPrefix = mappingAdapterPresets.createIdPrefixAdapters(subscriptionSetup.getDatasetId());
+                            if (!subscriptionSetup.getMappingAdapters().containsAll(datasetPrefix)) {
+                                subscriptionSetup.getMappingAdapters().addAll(datasetPrefix);
+                            }
+                        }
                     }
                 }
 

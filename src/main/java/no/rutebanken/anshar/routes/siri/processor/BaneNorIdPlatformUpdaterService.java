@@ -1,8 +1,7 @@
-package no.rutebanken.anshar.routes.siri.transformer.impl;
+package no.rutebanken.anshar.routes.siri.processor;
 
 import com.hazelcast.core.IMap;
-import org.quartz.utils.counter.Counter;
-import org.quartz.utils.counter.CounterImpl;
+import no.rutebanken.anshar.routes.siri.transformer.impl.StopPlaceUpdaterService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,45 +26,39 @@ import java.util.concurrent.TimeUnit;
 
 @Component
 @Configuration
-public class StopPlaceUpdaterService {
+public class BaneNorIdPlatformUpdaterService {
     private Logger logger = LoggerFactory.getLogger(StopPlaceUpdaterService.class);
 
-    private static final String UPDATED_TIMESTAMP_KEY = "anshar.nsr.updater";
+    private static final String UPDATED_TIMESTAMP_KEY = "anshar.jbvCode.updater";
 
     @Autowired
-    @Qualifier("getStopPlaceMappings")
-    private IMap<String, String> stopPlaceMappings;
+    @Qualifier("getJbvStopPlaceMappings")
+    private IMap<String, String> jbvCodeStopPlaceMappings;
 
     @Autowired
     @Qualifier("getLockMap")
     private IMap<String, Instant> lockMap;
 
-    @Value("${anshar.mapping.stopplaces.url}")
-    private String stopPlaceMappingUrl;
+    @Value("${anshar.mapping.jbvCode.url}")
+    private String jbvCodeStopPlaceMappingUrl;
 
-    @Value("${anshar.mapping.stopplaces.update.frequency.min:60}")
+    @Value("${anshar.mapping.jbvCode.update.frequency.min:60}")
     private int updateFrequency = 60;
 
     public String get(String id) {
-        if (stopPlaceMappings.isEmpty()) {
+        if (jbvCodeStopPlaceMappings.isEmpty()) {
             updateIdMapping();
         }
-        return stopPlaceMappings.get(id);
+        return jbvCodeStopPlaceMappings.get(id);
     }
 
     @PostConstruct
     private void initialize() {
 
-        int initialDelay;
-        if (stopPlaceMappings.isEmpty()) {
-            initialDelay = 0;
-        } else {
-            initialDelay = updateFrequency;
-        }
         ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-        executor.scheduleAtFixedRate(() -> updateIdMapping(), initialDelay, updateFrequency, TimeUnit.MINUTES);
+        executor.scheduleAtFixedRate(() -> updateIdMapping(), 0, updateFrequency, TimeUnit.MINUTES);
 
-        logger.info("Initialized id_mapping-updater with url:{}, updateFrequency:{} min", stopPlaceMappingUrl, updateFrequency);
+        logger.info("Initialized id_mapping-updater with url:{}, updateFrequency:{} min", jbvCodeStopPlaceMappingUrl, updateFrequency);
     }
 
     private void updateIdMapping() {
@@ -90,13 +83,12 @@ public class StopPlaceUpdaterService {
 
     private void updateStopPlaceMapping() throws IOException {
 
-        if (stopPlaceMappingUrl != null && !stopPlaceMappingUrl.isEmpty()) {
+        if (jbvCodeStopPlaceMappingUrl != null && !jbvCodeStopPlaceMappingUrl.isEmpty()) {
 
-            logger.info("Initializing data - start. Fetching mapping-data from {}", stopPlaceMappingUrl);
-            URL url = new URL(stopPlaceMappingUrl);
+            logger.info("Initializing data - start. Fetching mapping-data from {}", jbvCodeStopPlaceMappingUrl);
+            URL url = new URL(jbvCodeStopPlaceMappingUrl);
 
             Map<String, String> tmpStopPlaceMappings = new HashMap<>();
-            Counter duplicates = new CounterImpl(0);
 
             URLConnection connection = url.openConnection();
             connection.setConnectTimeout(5000);
@@ -107,26 +99,14 @@ public class StopPlaceUpdaterService {
             reader.lines().forEach(line -> {
 
                 StringTokenizer tokenizer = new StringTokenizer(line, ",");
-                String id = tokenizer.nextToken();
+                String jbvCodePlatform = tokenizer.nextToken();
                 String generatedId = tokenizer.nextToken();
 
-                if (tmpStopPlaceMappings.containsKey(id)) {
-                    duplicates.increment();
-                }
-                tmpStopPlaceMappings.put(id, generatedId);
+                tmpStopPlaceMappings.put(jbvCodePlatform, generatedId);
             });
 
             //Adding to Hazelcast in one operation
-            long t1 = System.currentTimeMillis();
-            stopPlaceMappings.putAll(tmpStopPlaceMappings);
-            long t2 = System.currentTimeMillis();
-
-            logger.info("Initializing data - done - {} mappings, found {} duplicates. [putAll:{}ms]", stopPlaceMappings.size(), duplicates.getValue(), (t2 - t1));
+            jbvCodeStopPlaceMappings.putAll(tmpStopPlaceMappings);
         }
-    }
-
-    //Called from tests
-    public void addStopPlaceMappings(Map<String, String> stopPlaceMap) {
-        this.stopPlaceMappings.putAll(stopPlaceMap);
     }
 }

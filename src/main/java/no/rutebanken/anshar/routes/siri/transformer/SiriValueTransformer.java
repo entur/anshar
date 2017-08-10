@@ -1,19 +1,19 @@
 package no.rutebanken.anshar.routes.siri.transformer;
 
+import no.rutebanken.anshar.routes.siri.SiriObjectFactory;
+import no.rutebanken.anshar.routes.siri.processor.PostProcessor;
+import no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter;
+import org.rutebanken.siri20.util.SiriXml;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import uk.org.siri.siri20.Siri;
+
+import javax.xml.bind.JAXBException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
-
-import javax.xml.bind.JAXBException;
-
-import org.rutebanken.siri20.util.SiriXml;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import no.rutebanken.anshar.routes.siri.SiriObjectFactory;
-import no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter;
-import uk.org.siri.siri20.Siri;
+import java.util.stream.Collectors;
 
 public class SiriValueTransformer {
 
@@ -28,7 +28,7 @@ public class SiriValueTransformer {
      * @return
      * @throws JAXBException
      */
-    public static Siri parseXml(InputStream xml, List<ValueAdapter> adapters) throws JAXBException {
+    public static Siri parseXml(InputStream xml, List adapters) throws JAXBException {
         return transform(SiriXml.parseXml(xml), adapters);
     }
 
@@ -36,7 +36,7 @@ public class SiriValueTransformer {
         return SiriXml.parseXml(xml);
     }
 
-    public static Siri transform(Siri siri, List<ValueAdapter> adapters) {
+    public static Siri transform(Siri siri, List adapters) {
         if (siri == null) {
             return null;
         }
@@ -51,13 +51,32 @@ public class SiriValueTransformer {
             return siri;
         }
         if (transformed != null && adapters != null) {
-            logger.info("Applying {} valueadapters {}", adapters.size(), adapters);
-            adapters.forEach(a -> {
+            logger.trace("Applying {} valueadapters {}", adapters.size(), adapters);
+
+            List<ValueAdapter> valueAdapters = (List<ValueAdapter>) adapters
+                    .stream()
+                    .filter(valueAdapter -> !(valueAdapter instanceof PostProcessor))
+                    .collect(Collectors.toList());
+
+            List<PostProcessor> postProcessors = (List<PostProcessor>) adapters
+                    .stream()
+                    .filter(valueAdapter -> (valueAdapter instanceof PostProcessor))
+                    .collect(Collectors.toList());
+
+            valueAdapters.forEach(a -> {
                 try {
                     applyAdapter(transformed, a);
                 } catch (Throwable t) {
                     logger.warn("Caught exception while transforming SIRI-object.", t);
                 }
+            });
+
+            postProcessors.forEach(processor -> {
+                        try {
+                            processor.process(transformed);
+                        } catch (Throwable t) {
+                            logger.warn("Caught exception while transforming SIRI-object.", t);
+                        }
             });
         }
         return transformed;

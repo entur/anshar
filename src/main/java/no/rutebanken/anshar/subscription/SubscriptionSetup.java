@@ -33,7 +33,7 @@ public class SubscriptionSetup implements Serializable {
     private SubscriptionMode subscriptionMode;
     private Map<Class, Set<Object>> filterMap;
     private List<String> idMappingPrefixes;
-    private SubscriptionPreset[] mappingAdapterPresets;
+    protected SubscriptionPreset[] mappingAdapterPresets;
     private SubscriptionPreset[] filterMapPresets;
     private String addressFieldName;
     private String soapenvNamespace;
