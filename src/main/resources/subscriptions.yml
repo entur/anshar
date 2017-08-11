@@ -248,7 +248,7 @@ anshar:
         DELETE_SUBSCRIPTION: 109.70.83.57/siri/1.4/et
       version: 1.4
       contentType: text/xml;charset=UTF-8
-      subscriptionId: 36916b72033769116891f1fb6a9e88ff
+      subscriptionId: RutebankenDEV_${random.uuid}
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: NSR,SKYSS
@@ -273,7 +273,7 @@ anshar:
         DELETE_SUBSCRIPTION: 109.70.83.57/siri/1.4/sx
       version: 1.4
       contentType: text/xml;charset=UTF-8
-      subscriptionId: f9ef149ec66ded94836a4da53e12169a
+      subscriptionId: RutebankenDEV_${random.uuid}
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: NSR,SKYSS
