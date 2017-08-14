@@ -1,6 +1,7 @@
 package no.rutebanken.anshar.routes.siri;
 
 import no.rutebanken.anshar.dataformat.SiriDataFormatHelper;
+import no.rutebanken.anshar.routes.CamelConfiguration;
 import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
 import no.rutebanken.anshar.subscription.RequestType;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
@@ -22,8 +23,8 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
 
     private SiriHandler handler;
 
-    public Siri20ToSiriRS20Subscription(SiriHandler handler, SubscriptionSetup subscriptionSetup, SubscriptionManager subscriptionManager) {
-        super(subscriptionManager);
+    public Siri20ToSiriRS20Subscription(CamelConfiguration config, SiriHandler handler, SubscriptionSetup subscriptionSetup, SubscriptionManager subscriptionManager) {
+        super(config, subscriptionManager);
         this.handler = handler;
         this.subscriptionSetup = subscriptionSetup;
     }

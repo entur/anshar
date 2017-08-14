@@ -3,6 +3,7 @@ package no.rutebanken.anshar.subscription;
 import com.google.common.base.Preconditions;
 import com.hazelcast.core.IMap;
 import no.rutebanken.anshar.messages.collections.HealthCheckKey;
+import no.rutebanken.anshar.routes.CamelConfiguration;
 import no.rutebanken.anshar.routes.siri.*;
 import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
@@ -13,8 +14,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -24,7 +23,6 @@ import java.util.*;
 import static no.rutebanken.anshar.subscription.SubscriptionPreset.NSR;
 
 @Service
-@Configuration
 public class SubscriptionInitializer implements CamelContextAware {
     private Logger logger = LoggerFactory.getLogger(SubscriptionInitializer.class);
 
@@ -33,15 +31,6 @@ public class SubscriptionInitializer implements CamelContextAware {
 
     @Autowired
     private MappingAdapterPresets mappingAdapterPresets;
-
-    @Value("${anshar.inbound.url}")
-    private String inboundUrl = "http://localhost:8080";
-
-    @Value("${anshar.healthcheck.interval.seconds}")
-    private int healthCheckInterval = 30;
-
-    @Value("${anshar.environment}")
-    private String environment;
 
     @Autowired
     @Qualifier("getHealthCheckMap")
@@ -52,6 +41,9 @@ public class SubscriptionInitializer implements CamelContextAware {
 
     @Autowired
     SiriHandler handler;
+
+    @Autowired
+    CamelConfiguration camelConfiguration;
 
     private CamelContext camelContext;
 
@@ -69,7 +61,7 @@ public class SubscriptionInitializer implements CamelContextAware {
     void createSubscriptions() {
         camelContext.setUseMDCLogging(true);
 
-        logger.info("Initializing subscriptions for environment: {}", environment);
+        logger.info("Initializing subscriptions for environment: {}", camelConfiguration.getEnvironment());
 
         if (subscriptionConfig != null) {
             List<SubscriptionSetup> subscriptionSetups = subscriptionConfig.getSubscriptions();
@@ -80,10 +72,10 @@ public class SubscriptionInitializer implements CamelContextAware {
 
             // Validation and consistency-verification
             for (SubscriptionSetup subscriptionSetup : subscriptionSetups) {
-                if (subscriptionSetup.getOverrideHttps() && inboundUrl.startsWith("https://")) {
-                    subscriptionSetup.setAddress(inboundUrl.replaceFirst("https:", "http:"));
+                if (subscriptionSetup.getOverrideHttps() && camelConfiguration.getInboundUrl().startsWith("https://")) {
+                    subscriptionSetup.setAddress(camelConfiguration.getInboundUrl().replaceFirst("https:", "http:"));
                 } else {
-                    subscriptionSetup.setAddress(inboundUrl);
+                    subscriptionSetup.setAddress(camelConfiguration.getInboundUrl());
                 }
 
                 if (!isValid(subscriptionSetup)) {
@@ -127,7 +119,7 @@ public class SubscriptionInitializer implements CamelContextAware {
                     subscriptionSetup.getUrlMap().putIfAbsent(RequestType.GET_SITUATION_EXCHANGE, url);
                 }
 
-                if (subscriptionSetup.getEnvironments() != null && !subscriptionSetup.getEnvironments().contains(environment)) {
+                if (subscriptionSetup.getEnvironments() != null && !subscriptionSetup.getEnvironments().contains(camelConfiguration.getEnvironment())) {
                     subscriptionSetup.setActive(false);
                 }
 
@@ -201,22 +193,22 @@ public class SubscriptionInitializer implements CamelContextAware {
         if (subscriptionSetup.getVersion().equals("1.4")) {
             if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.SUBSCRIBE) {
                 if (subscriptionSetup.getServiceType() == SubscriptionSetup.ServiceType.SOAP) {
-                    route = new Siri20ToSiriWS14Subscription(handler, subscriptionSetup, subscriptionManager);
+                    route = new Siri20ToSiriWS14Subscription(camelConfiguration, handler, subscriptionSetup, subscriptionManager);
                 } else {
-                    route = new Siri20ToSiriRS14Subscription(handler, subscriptionSetup, subscriptionManager);
+                    route = new Siri20ToSiriRS14Subscription(camelConfiguration, handler, subscriptionSetup, subscriptionManager);
                 }
             } else {
-                route = new Siri20ToSiriWS14RequestResponse(subscriptionSetup, subscriptionManager);
+                route = new Siri20ToSiriWS14RequestResponse(camelConfiguration, subscriptionSetup, subscriptionManager);
             }
         } else {
             if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.SUBSCRIBE) {
                 if (subscriptionSetup.getServiceType() == SubscriptionSetup.ServiceType.SOAP) {
-                    route = new Siri20ToSiriWS20Subscription(handler, subscriptionSetup, subscriptionManager);
+                    route = new Siri20ToSiriWS20Subscription(camelConfiguration, handler, subscriptionSetup, subscriptionManager);
                 } else {
-                    route = new Siri20ToSiriRS20Subscription(handler, subscriptionSetup, subscriptionManager);
+                    route = new Siri20ToSiriRS20Subscription(camelConfiguration, handler, subscriptionSetup, subscriptionManager);
                 }
             } else {
-                route = new Siri20ToSiriRS20RequestResponse(subscriptionSetup, subscriptionManager);
+                route = new Siri20ToSiriRS20RequestResponse(camelConfiguration, subscriptionSetup, subscriptionManager);
             }
         }
         return route;

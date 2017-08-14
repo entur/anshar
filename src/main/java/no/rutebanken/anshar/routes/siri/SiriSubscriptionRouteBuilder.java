@@ -2,13 +2,16 @@ package no.rutebanken.anshar.routes.siri;
 
 import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
 import no.rutebanken.anshar.routes.BaseRouteBuilder;
+import no.rutebanken.anshar.routes.CamelConfiguration;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 
+@Component
 public abstract class SiriSubscriptionRouteBuilder extends BaseRouteBuilder {
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -16,11 +19,11 @@ public abstract class SiriSubscriptionRouteBuilder extends BaseRouteBuilder {
     NamespacePrefixMapper customNamespacePrefixMapper;
 
     SubscriptionSetup subscriptionSetup;
-    
+
     private boolean hasBeenStarted;
 
-    public SiriSubscriptionRouteBuilder(SubscriptionManager subscriptionManager) {
-        super(subscriptionManager);
+    public SiriSubscriptionRouteBuilder(CamelConfiguration config, SubscriptionManager subscriptionManager) {
+        super(config, subscriptionManager);
     }
 
     String getTimeout() {
@@ -36,17 +39,8 @@ public abstract class SiriSubscriptionRouteBuilder extends BaseRouteBuilder {
         return "?httpClient.socketTimeout=" + timeout + "&httpClient.connectTimeout=" + timeout;
     }
 
-    int getTimeToLive() {
-        int timeToLive;
-        Duration heartbeatInterval = subscriptionSetup.getHeartbeatInterval();
-        if (heartbeatInterval != null) {
-            long heartbeatIntervalMillis = heartbeatInterval.toMillis();
-            timeToLive = (int) heartbeatIntervalMillis * 5;
-        } else {
-            timeToLive = 300000;
-        }
-
-        return timeToLive;
+    String getTimeToLive() {
+        return config.getTimeToLive();
     }
 
     void initTriggerRoutes() {

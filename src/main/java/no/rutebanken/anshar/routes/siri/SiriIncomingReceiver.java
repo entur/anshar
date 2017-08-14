@@ -1,5 +1,6 @@
 package no.rutebanken.anshar.routes.siri;
 
+import no.rutebanken.anshar.routes.CamelConfiguration;
 import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
@@ -12,7 +13,6 @@ import org.rutebanken.validator.SiriValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 import uk.org.siri.siri20.Siri;
@@ -27,43 +27,17 @@ import java.util.Map;
 @Service
 @Configuration
 public class SiriIncomingReceiver extends RouteBuilder {
+
     private Logger logger = LoggerFactory.getLogger(this.getClass());
-
-    static final String QUEUE_PREFIX              = "anshar.siri";
-    static final String TRANSFORM_QUEUE           = QUEUE_PREFIX + ".transform";
-    static final String ROUTER_QUEUE              = QUEUE_PREFIX + ".router";
-    static final String VALIDATOR_QUEUE              = QUEUE_PREFIX + ".validator";
-    static final String DEFAULT_PROCESSOR_QUEUE   = QUEUE_PREFIX + ".process";
-    static final String SITUATION_EXCHANGE_QUEUE  = DEFAULT_PROCESSOR_QUEUE + ".sx";
-    static final String VEHICLE_MONITORING_QUEUE  = DEFAULT_PROCESSOR_QUEUE + ".vm";
-    static final String ESTIMATED_TIMETABLE_QUEUE = DEFAULT_PROCESSOR_QUEUE + ".et";
-    static final String PRODUCTION_TIMETABLE_QUEUE = DEFAULT_PROCESSOR_QUEUE + ".pt";
-    static final String HEARTBEAT_QUEUE           = DEFAULT_PROCESSOR_QUEUE + ".heartbeat";
-    static final String FETCHED_DELIVERY_QUEUE    = DEFAULT_PROCESSOR_QUEUE + ".fetched.delivery";
-
-    @Value("${anshar.incoming.port}")
-    private String inboundPort;
-
-    @Value("${anshar.inbound.pattern}")
-    private String incomingPathPattern = "/foo/bar/rest";
-
-    @Value("${anshar.incoming.logdirectory}")
-    private String incomingLogDirectory = "/tmp";
-
-    @Value("${anshar.incoming.activemq.timetolive}")
-    private long timeToLive;
-
-    @Value("${anshar.incoming.activemq.concurrentConsumers}")
-    private long concurrentConsumers;
-
-    @Value("${anshar.validation.enabled}")
-    private boolean validationEnabled = false;
 
     @Autowired
     private SubscriptionManager subscriptionManager;
 
     @Autowired
     private SiriHandler handler;
+
+    @Autowired
+    CamelConfiguration camelConfiguration;
 
     @Override
     public void configure() throws Exception {
@@ -78,16 +52,14 @@ public class SiriIncomingReceiver extends RouteBuilder {
                         .level(LoggingLevel.INFO)
         );
 
-       
-        
         Namespaces ns = new Namespaces("siri", "http://www.siri.org.uk/siri")
                 .add("xsd", "http://www.w3.org/2001/XMLSchema");
 
-        String activeMQParameters = "?disableReplyTo=true&timeToLive="+timeToLive;
-        String activeMqConsumerParameters = "?asyncConsumer=true&concurrentConsumers="+concurrentConsumers;
+        String activeMQParameters = "?disableReplyTo=true&timeToLive="+ camelConfiguration.getTimeToLive();
+        String activeMqConsumerParameters = "?asyncConsumer=true&concurrentConsumers="+ camelConfiguration.getConcurrentConsumers();
 
         //Incoming notifications/deliveries
-        from("jetty:http://0.0.0.0:" + inboundPort + "?matchOnUriPrefix=true&httpMethodRestrict=POST")
+        from("jetty:http://0.0.0.0:" + camelConfiguration.getInboundPort() + "?matchOnUriPrefix=true&httpMethodRestrict=POST")
                 .to("log:received:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .choice()
                     .when(header("CamelHttpPath").contains("/services")) //Handle synchronous response
@@ -115,7 +87,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                     })
                     .endChoice()
                     .when(header("CamelHttpPath").contains("/subscribe")) //Handle asynchronous response
-                        .to("activemq:queue:" + TRANSFORM_QUEUE + activeMQParameters)
+                        .to("activemq:queue:" + CamelConfiguration.TRANSFORM_QUEUE + activeMQParameters)
                         .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
                         .setBody(constant(null))
                     .endChoice()
@@ -135,7 +107,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                                     return existsAndIsActive;
                                 })
                                     //Valid subscription
-                                .to("activemq:queue:" + TRANSFORM_QUEUE + activeMQParameters)
+                                .to("activemq:queue:" + CamelConfiguration.TRANSFORM_QUEUE + activeMQParameters)
                                 .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
                                 .setBody(constant(null))
                             .endChoice()
@@ -155,24 +127,24 @@ public class SiriIncomingReceiver extends RouteBuilder {
 //                .routeId("admin.filelogger")
 //        ;
 
-        from("activemq:queue:" + TRANSFORM_QUEUE + activeMqConsumerParameters)
+        from("activemq:queue:" + CamelConfiguration.TRANSFORM_QUEUE + activeMqConsumerParameters)
                // .to("log:raw:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .to("xslt:xsl/siri_soap_raw.xsl?saxon=true&allowStAX=false&resultHandlerFactory=#streamResultHandlerFactory") // Extract SOAP version and convert to raw SIRI
                 .to("xslt:xsl/siri_14_20.xsl?saxon=true&allowStAX=false&resultHandlerFactory=#streamResultHandlerFactory") // Convert from v1.4 to 2.0
                 //.to("file:" + incomingLogDirectory + "/validator/")
                 //.to("log:transformed:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .choice()
-                    .when(exchange -> validationEnabled)
-                        .to("activemq:queue:" + VALIDATOR_QUEUE + activeMQParameters)
+                    .when(exchange -> camelConfiguration.isValidationEnabled())
+                        .to("activemq:queue:" + CamelConfiguration.VALIDATOR_QUEUE + activeMQParameters)
                     .endChoice()
                 .end()
-                .to("direct:" + ROUTER_QUEUE)
+                .to("direct:" + CamelConfiguration.ROUTER_QUEUE)
                 .routeId("incoming.transform")
         ;
 
 
         // Validate XML against schema only
-        from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/rest/sirivalidator?httpMethodRestrict=POST")
+        from("jetty:http://0.0.0.0:" + camelConfiguration.getInboundPort() + "/anshar/rest/sirivalidator?httpMethodRestrict=POST")
                 .process(p -> {
                     String xml = p.getIn().getBody(String.class);
                     if (xml != null) {
@@ -198,7 +170,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                 .routeId("validate.receive")
         ;
 
-        from("activemq:queue:" + VALIDATOR_QUEUE + activeMqConsumerParameters)
+        from("activemq:queue:" + CamelConfiguration.VALIDATOR_QUEUE + activeMqConsumerParameters)
                 .process(p -> {
                     logger.info("XMLValidation - start");
                     SiriValidator.Version siriVersion = SiriValidator.Version.VERSION_2_0;
@@ -228,37 +200,37 @@ public class SiriIncomingReceiver extends RouteBuilder {
 
 
 
-        from("direct:" + ROUTER_QUEUE)
+        from("direct:" + CamelConfiguration.ROUTER_QUEUE)
                 .choice()
                 .when().xpath("/siri:Siri/siri:HeartbeatNotification", ns)
-                    .to("activemq:queue:" + HEARTBEAT_QUEUE + activeMQParameters)
+                    .to("activemq:queue:" + CamelConfiguration.HEARTBEAT_QUEUE + activeMQParameters)
                 .endChoice()
                 .when().xpath("/siri:Siri/siri:CheckStatusResponse", ns)
-                    .to("activemq:queue:" + HEARTBEAT_QUEUE + activeMQParameters)
+                    .to("activemq:queue:" + CamelConfiguration.HEARTBEAT_QUEUE + activeMQParameters)
                 .endChoice()
                 .when().xpath("/siri:Siri/siri:ServiceDelivery/siri:SituationExchangeDelivery", ns)
-                    .to("activemq:queue:" + SITUATION_EXCHANGE_QUEUE + activeMQParameters)
+                    .to("activemq:queue:" + CamelConfiguration.SITUATION_EXCHANGE_QUEUE + activeMQParameters)
                 .endChoice()
                 .when().xpath("/siri:Siri/siri:ServiceDelivery/siri:VehicleMonitoringDelivery", ns)
-                    .to("activemq:queue:" + VEHICLE_MONITORING_QUEUE + activeMQParameters)
+                    .to("activemq:queue:" + CamelConfiguration.VEHICLE_MONITORING_QUEUE + activeMQParameters)
                 .endChoice()
                 .when().xpath("/siri:Siri/siri:ServiceDelivery/siri:EstimatedTimetableDelivery", ns)
-                    .to("activemq:queue:" + ESTIMATED_TIMETABLE_QUEUE + activeMQParameters)
+                    .to("activemq:queue:" + CamelConfiguration.ESTIMATED_TIMETABLE_QUEUE + activeMQParameters)
                 .endChoice()
                 .when().xpath("/siri:Siri/siri:ServiceDelivery/siri:ProductionTimetableDelivery", ns)
-                    .to("activemq:queue:" + PRODUCTION_TIMETABLE_QUEUE + activeMQParameters)
+                    .to("activemq:queue:" + CamelConfiguration.PRODUCTION_TIMETABLE_QUEUE + activeMQParameters)
                 .endChoice()
                 .when().xpath("/siri:Siri/siri:DataReadyNotification", ns)
-                    .to("activemq:queue:" + FETCHED_DELIVERY_QUEUE + activeMQParameters)
+                    .to("activemq:queue:" + CamelConfiguration.FETCHED_DELIVERY_QUEUE + activeMQParameters)
                 .endChoice()
                 .otherwise()
-                    .to("activemq:queue:" + DEFAULT_PROCESSOR_QUEUE + activeMQParameters)
+                    .to("activemq:queue:" + CamelConfiguration.DEFAULT_PROCESSOR_QUEUE + activeMQParameters)
                 .end()
                 .routeId("incoming.redirect")
         ;
 
 
-        from("activemq:queue:" + DEFAULT_PROCESSOR_QUEUE + activeMqConsumerParameters)
+        from("activemq:queue:" + CamelConfiguration.DEFAULT_PROCESSOR_QUEUE + activeMqConsumerParameters)
                 .to("log:processor:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .process(p -> {
                     String path = p.getIn().getHeader("CamelHttpPath", String.class);
@@ -281,7 +253,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                 .routeId("incoming.processor.default")
         ;
 
-        from("activemq:queue:" + HEARTBEAT_QUEUE + activeMqConsumerParameters)
+        from("activemq:queue:" + CamelConfiguration.HEARTBEAT_QUEUE + activeMqConsumerParameters)
                 .process(p -> {
                     String subscriptionId = getSubscriptionIdFromPath(p.getIn().getHeader("CamelHttpPath", String.class));
 
@@ -293,7 +265,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
         ;
 
 
-        from("activemq:queue:" + FETCHED_DELIVERY_QUEUE + activeMqConsumerParameters)
+        from("activemq:queue:" + CamelConfiguration.FETCHED_DELIVERY_QUEUE + activeMqConsumerParameters)
                 .log("Processing fetched delivery")
                 .process(p -> {
                     String routeName = null;
@@ -315,7 +287,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                 .routeId("incoming.processor.fetched_delivery")
         ;
 
-        from("activemq:queue:" + SITUATION_EXCHANGE_QUEUE + activeMqConsumerParameters)
+        from("activemq:queue:" + CamelConfiguration.SITUATION_EXCHANGE_QUEUE + activeMqConsumerParameters)
                 .log("Processing SX")
                 .process(p -> {
                     String subscriptionId = getSubscriptionIdFromPath(p.getIn().getHeader("CamelHttpPath", String.class));
@@ -327,7 +299,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                 .routeId("incoming.processor.sx")
         ;
 
-        from("activemq:queue:" + VEHICLE_MONITORING_QUEUE + activeMqConsumerParameters)
+        from("activemq:queue:" + CamelConfiguration.VEHICLE_MONITORING_QUEUE + activeMqConsumerParameters)
                 .log("Processing VM")
                 .process(p -> {
 
@@ -340,7 +312,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                 .routeId("incoming.processor.vm")
         ;
 
-        from("activemq:queue:" + ESTIMATED_TIMETABLE_QUEUE + activeMqConsumerParameters)
+        from("activemq:queue:" + CamelConfiguration.ESTIMATED_TIMETABLE_QUEUE + activeMqConsumerParameters)
                 .log("Processing ET")
                 .process(p -> {
                     String subscriptionId = getSubscriptionIdFromPath(p.getIn().getHeader("CamelHttpPath", String.class));
@@ -354,7 +326,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
         ;
 
 
-        from("activemq:queue:" + PRODUCTION_TIMETABLE_QUEUE + activeMqConsumerParameters)
+        from("activemq:queue:" + CamelConfiguration.PRODUCTION_TIMETABLE_QUEUE + activeMqConsumerParameters)
                 .log("Processing PT")
                 .process(p -> {
                     String subscriptionId = getSubscriptionIdFromPath(p.getIn().getHeader("CamelHttpPath", String.class));
@@ -386,7 +358,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
     }
 
     private String getSubscriptionIdFromPath(String path) {
-        if (incomingPathPattern.startsWith("/")) {
+        if (camelConfiguration.getIncomingPathPattern().startsWith("/")) {
             if (!path.startsWith("/")) {
                 path = "/"+path;
             }
@@ -405,7 +377,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
 
     private Map<String, String> calculatePathVariableMap(String path) {
         String[] parameters = path.split("/");
-        String[] parameterNames = incomingPathPattern.split("/");
+        String[] parameterNames = camelConfiguration.getIncomingPathPattern().split("/");
 
         Map<String, String> values = new HashMap<>();
         for (int i = 0; i < parameterNames.length; i++) {

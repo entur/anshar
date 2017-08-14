@@ -22,8 +22,11 @@ public abstract class BaseRouteBuilder extends SpringRouteBuilder {
 
     protected SubscriptionManager subscriptionManager;
 
-    protected BaseRouteBuilder(SubscriptionManager subscriptionManager) {
+    protected CamelConfiguration config;
+
+    protected BaseRouteBuilder(CamelConfiguration config, SubscriptionManager subscriptionManager) {
         this.subscriptionManager = subscriptionManager;
+        this.config = config;
     }
 
     @Override

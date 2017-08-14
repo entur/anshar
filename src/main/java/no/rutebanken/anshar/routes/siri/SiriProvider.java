@@ -4,6 +4,7 @@ import no.rutebanken.anshar.messages.EstimatedTimetables;
 import no.rutebanken.anshar.messages.ProductionTimetables;
 import no.rutebanken.anshar.messages.Situations;
 import no.rutebanken.anshar.messages.VehicleActivities;
+import no.rutebanken.anshar.routes.CamelConfiguration;
 import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
 import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
@@ -15,8 +16,6 @@ import org.rutebanken.siri20.util.SiriXml;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 import uk.org.siri.siri20.Siri;
 
@@ -25,18 +24,11 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
 @Service
-@Configuration
 public class SiriProvider extends RouteBuilder {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    @Value("${anshar.incoming.port}")
-    private String inboundPort;
-
-    @Value("${anshar.inbound.pattern}")
-    private String incomingPathPattern = "/foo/bar/rest";
-
-    @Value("${anshar.incoming.logdirectory}")
-    private String incomingLogDirectory = "/tmp";
+    @Autowired
+    private CamelConfiguration configuration;
 
     @Autowired
     private Situations situations;
@@ -61,7 +53,7 @@ public class SiriProvider extends RouteBuilder {
 
 
         // Dataproviders
-        from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/rest/sx?httpMethodRestrict=GET")
+        from("jetty:http://0.0.0.0:" + configuration.getInboundPort() + "/anshar/rest/sx?httpMethodRestrict=GET")
                 .log("RequestTracer - Incoming request (SX)")
                 .process(p -> {
                     p.getOut().setHeaders(p.getIn().getHeaders());
@@ -94,7 +86,7 @@ public class SiriProvider extends RouteBuilder {
                 .routeId("incoming.rest.sx")
         ;
 
-        from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/rest/vm?httpMethodRestrict=GET")
+        from("jetty:http://0.0.0.0:" + configuration.getInboundPort() + "/anshar/rest/vm?httpMethodRestrict=GET")
                 .log("RequestTracer - Incoming request (VM)")
                 .process(p -> {
                     p.getOut().setHeaders(p.getIn().getHeaders());
@@ -129,7 +121,7 @@ public class SiriProvider extends RouteBuilder {
         ;
 
 
-        from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/rest/et?httpMethodRestrict=GET")
+        from("jetty:http://0.0.0.0:" + configuration.getInboundPort() + "/anshar/rest/et?httpMethodRestrict=GET")
                 .log("RequestTracer - Incoming request (ET)")
                 .process(p -> {
                     p.getOut().setHeaders(p.getIn().getHeaders());
@@ -163,7 +155,7 @@ public class SiriProvider extends RouteBuilder {
         ;
 
 
-        from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/rest/pt?httpMethodRestrict=GET")
+        from("jetty:http://0.0.0.0:" + configuration.getInboundPort() + "/anshar/rest/pt?httpMethodRestrict=GET")
                 .log("RequestTracer - Incoming request (PT)")
                 .process(p -> {
                     p.getOut().setHeaders(p.getIn().getHeaders());
