@@ -1,9 +1,5 @@
 package no.rutebanken.anshar.routes.admin;
 
-import no.rutebanken.anshar.messages.EstimatedTimetables;
-import no.rutebanken.anshar.messages.ProductionTimetables;
-import no.rutebanken.anshar.messages.Situations;
-import no.rutebanken.anshar.messages.VehicleActivities;
 import no.rutebanken.anshar.messages.collections.ExtendedHazelcastService;
 import no.rutebanken.anshar.routes.outbound.ServerSubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
@@ -34,19 +30,6 @@ public class AdministrationRoute extends RouteBuilder {
 
     @Autowired
     private ServerSubscriptionManager serverSubscriptionManager;
-
-
-    @Autowired
-    private Situations situations;
-
-    @Autowired
-    private VehicleActivities vehicleActivities;
-
-    @Autowired
-    private EstimatedTimetables estimatedTimetables;
-
-    @Autowired
-    private ProductionTimetables productionTimetables;
 
     @Override
     public void configure() throws Exception {
