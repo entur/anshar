@@ -150,10 +150,10 @@ public class SiriIncomingReceiver extends RouteBuilder {
         ;
 
         //
-        from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/tmplogger")
-                .to("file:" + incomingLogDirectory + "/")
-                .routeId("admin.filelogger")
-        ;
+//        from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/tmplogger")
+//                .to("file:" + incomingLogDirectory + "/")
+//                .routeId("admin.filelogger")
+//        ;
 
         from("activemq:queue:" + TRANSFORM_QUEUE + activeMqConsumerParameters)
                // .to("log:raw:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
