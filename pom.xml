@@ -22,14 +22,17 @@
         <!-- versions for use in mvn plugins as we cannot inherit them from a BOM -->
         <fabric8.version>2.3.3</fabric8.version>
         <docker.maven.plugin.version>0.21.0</docker.maven.plugin.version>
-        <spring-boot-plugin.version>1.4.2.RELEASE</spring-boot-plugin.version>
-        <spring-boot.version>1.4.2.RELEASE</spring-boot.version>
+        <spring-boot-plugin.version>1.5.6.RELEASE</spring-boot-plugin.version>
+        <spring-boot.version>1.5.6.RELEASE</spring-boot.version>
 
         <!-- Docker & Fabric8 Configs -->
         <docker.from>eu.gcr.io/carbon-1287/java-base-image</docker.from>
         <fabric8.dockerUser>carbon-1287/</fabric8.dockerUser>
         <docker.image>eu.gcr.io/${fabric8.dockerUser}${project.artifactId}:${project.version}</docker.image>
         <docker.cleanup>none</docker.cleanup>
+
+        <!-- Holding back activemq version as newest version no long support spring wired broker config-->
+        <activemq.version>5.13.4</activemq.version>
 
         <!-- fabric8.env.AB_JOLOKIA_AUTH_OPENSHIFT>true</fabric8.env.AB_JOLOKIA_AUTH_OPENSHIFT -->
         <fabric8.label.component>${project.artifactId}</fabric8.label.component>
@@ -141,6 +144,7 @@
         <dependency>
             <groupId>org.apache.activemq</groupId>
             <artifactId>activemq-camel</artifactId>
+            <version>${activemq.version}</version>
         </dependency>
         <dependency>
             <groupId>net.sf.saxon</groupId>

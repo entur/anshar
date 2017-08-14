@@ -7,6 +7,7 @@ import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -191,7 +192,12 @@ public class SiriVmMqttHandler {
         long tsi = getTsi(activity);
 
         String topic = getTopic(mode, vehicleId, route, direction, headSign, startTime, nextStop, lat, lng);
-        String message = getMessage(monitoredVehicleJourney, vehicleId, timestamp, tsi, route, direction, headSign, startTime, lat, lng);
+        String message = null;
+        try {
+            message = getMessage(monitoredVehicleJourney, vehicleId, timestamp, tsi, route, direction, headSign, startTime, lat, lng);
+        } catch (JSONException e) {
+           logger.info("Caught exception when generating MQTT-messsage - will be ignored", e);
+        }
 
         return new Pair<>(topic, message);
     }
@@ -215,7 +221,7 @@ public class SiriVmMqttHandler {
 
     private String getMessage(MonitoredVehicleJourney monitoredVehicleJourney, String vehicleId, String timeStamp,
                               long tsi, String route, String direction, String headSign, String startTime, double lat,
-                              double lng) {
+                              double lng) throws JSONException {
         JSONObject vehiclePosition = new JSONObject();
         vehiclePosition.put(VehiclePosition.DESIGNATION, getDesignation(monitoredVehicleJourney));
         vehiclePosition.put(VehiclePosition.DIRECTION, direction);

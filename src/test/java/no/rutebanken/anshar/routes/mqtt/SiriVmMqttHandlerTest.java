@@ -1,6 +1,7 @@
 package no.rutebanken.anshar.routes.mqtt;
 
 import javafx.util.Pair;
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Test;
 import uk.org.siri.siri20.*;
@@ -34,7 +35,7 @@ public class SiriVmMqttHandlerTest {
     }
 
     @Test
-    public void testMessage() {
+    public void testMessage() throws JSONException {
         ZonedDateTime dateTime = ZonedDateTime.of(2017, 12, 24, 9, 37, 4, 0, ZoneId.of("GMT"));
         VehicleActivityStructure vehicle = createVehicle(dateTime, "78123", "RUT:Line:0037", "Nobina",
                 2, "NSR:Quay:6201", 59.10234566, 10.98765422, 203, "Helsfyr T",
@@ -87,7 +88,7 @@ public class SiriVmMqttHandlerTest {
     }
 
     @Test
-    public void testNullMessage() {
+    public void testNullMessage() throws JSONException {
         ZonedDateTime dateTime = ZonedDateTime.of(2017, 12, 24, 12, 34, 40, 0, ZoneId.of("GMT"));
         VehicleActivityStructure vehicle = createVehicle(dateTime, "nullveh", null, null, 2, null,
                 59.10234567, 10.98765421, -12, null, null, null, 1);
