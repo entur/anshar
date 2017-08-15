@@ -62,8 +62,18 @@ public class SiriProvider extends RouteBuilder {
                     String datasetId = request.getParameter("datasetId");
                     String requestorId = request.getParameter("requestorId");
                     String originalId = request.getParameter("useOriginalId");
+                    String maxSizeStr = request.getParameter("maxSize");
 
-                    Siri response = siriObjectFactory.createSXServiceDelivery(situations.getAllUpdates(requestorId, datasetId));
+                    int maxSize = 1000;
+                    if (maxSizeStr != null) {
+                        try {
+                            maxSize = Integer.parseInt(maxSizeStr);
+                        } catch (NumberFormatException nfe) {
+                            //ignore
+                        }
+                    }
+
+                    Siri response = situations.createServiceDelivery(requestorId, datasetId, maxSize);
 
                     List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(SiriHandler.getIdMappingPolicy(request.getQueryString()));
                     if ("test".equals(originalId)) {
@@ -95,9 +105,18 @@ public class SiriProvider extends RouteBuilder {
                     String datasetId = request.getParameter("datasetId");
                     String requestorId = request.getParameter("requestorId");
                     String originalId = request.getParameter("useOriginalId");
+                    String maxSizeStr = request.getParameter("maxSize");
 
-                    Siri response = siriObjectFactory.createVMServiceDelivery(vehicleActivities.getAllUpdates(requestorId, datasetId));
+                    int maxSize = 1000;
+                    if (maxSizeStr != null) {
+                        try {
+                            maxSize = Integer.parseInt(maxSizeStr);
+                        } catch (NumberFormatException nfe) {
+                            //ignore
+                        }
+                    }
 
+                    Siri response = vehicleActivities.createServiceDelivery(requestorId, datasetId, maxSize);
 
                     List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(SiriHandler.getIdMappingPolicy(request.getQueryString()));
                     if ("test".equals(originalId)) {

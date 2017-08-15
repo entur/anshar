@@ -1,6 +1,7 @@
 package no.rutebanken.anshar.messages;
 
 import com.hazelcast.core.IMap;
+import no.rutebanken.anshar.routes.siri.SiriObjectFactory;
 import org.quartz.utils.counter.Counter;
 import org.quartz.utils.counter.CounterImpl;
 import org.slf4j.Logger;
@@ -9,13 +10,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 import uk.org.siri.siri20.HalfOpenTimestampOutputRangeStructure;
+import uk.org.siri.siri20.MessageRefStructure;
 import uk.org.siri.siri20.PtSituationElement;
+import uk.org.siri.siri20.Siri;
 
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Repository
 public class Situations implements SiriRepository<PtSituationElement> {
@@ -33,6 +37,9 @@ public class Situations implements SiriRepository<PtSituationElement> {
     @Qualifier("getLastSxUpdateRequest")
     private IMap<String, Instant> lastUpdateRequested;
 
+    @Autowired
+    private SiriObjectFactory siriObjectFactory;
+
     /**
      * @return All situations
      */
@@ -42,6 +49,51 @@ public class Situations implements SiriRepository<PtSituationElement> {
 
     public int getSize() {
         return situations.size();
+    }
+
+    public Siri createServiceDelivery(String requestorId, String datasetId, int maxSize) {
+
+        if (requestorId == null) {
+            requestorId = UUID.randomUUID().toString();
+        }
+
+        // Get all relevant ids
+        Set<String> allIds = new HashSet<>();
+        Set<String> idSet = changesMap.getOrDefault(requestorId, allIds);
+
+        if (idSet == allIds) {
+            situations.keySet().forEach(key -> idSet.add(key));
+        }
+
+        lastUpdateRequested.put(requestorId, Instant.now(), 5, TimeUnit.MINUTES);
+
+        //Filter by datasetId
+        Set<String> collectedIds = idSet.stream()
+                .filter(key -> datasetId == null || key.startsWith(datasetId + ":"))
+                .limit(maxSize)
+                .collect(Collectors.toSet());
+
+        //Remove collected objects
+        collectedIds.forEach(id -> idSet.remove(id));
+
+
+        logger.info("Returning {}, {} left for requestorRef {}", collectedIds.size(), idSet.size(), requestorId);
+
+        Boolean isMoreData = !idSet.isEmpty();
+
+        //Update change-tracker
+        changesMap.put(requestorId, idSet);
+
+        Collection<PtSituationElement> values = situations.getAll(collectedIds).values();
+        Siri siri = siriObjectFactory.createSXServiceDelivery(values);
+
+        siri.getServiceDelivery().setMoreData(isMoreData);
+
+        MessageRefStructure msgRef = new MessageRefStructure();
+        msgRef.setValue(requestorId);
+        siri.getServiceDelivery().setRequestMessageRef(msgRef);
+
+        return siri;
     }
 
     /**

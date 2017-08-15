@@ -38,3 +38,9 @@
 ### useOriginalId
 - E.g. _useOriginalId=true_
 - Instructs Anshar to return datasets with the original, unaltered IDs.
+
+### maxSize
+- E.g. _maxSize=100_ (default is 1000)
+- Limits the number of elements in the returned result. _requestorId_ will be used to track changes since last request and is provided in result. An id will be created and returned if not provided.
+- If more data exists, the attribute _MoreData_ will be set to _true_ 
+ 

@@ -2,6 +2,7 @@ package no.rutebanken.anshar.messages;
 
 import com.hazelcast.core.IMap;
 import no.rutebanken.anshar.routes.mqtt.SiriVmMqttHandler;
+import no.rutebanken.anshar.routes.siri.SiriObjectFactory;
 import org.quartz.utils.counter.Counter;
 import org.quartz.utils.counter.CounterImpl;
 import org.slf4j.Logger;
@@ -16,6 +17,7 @@ import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Repository
 public class VehicleActivities implements SiriRepository<VehicleActivityStructure> {
@@ -35,6 +37,9 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
 
     @Autowired
     private SiriVmMqttHandler siriVmMqttHandler;
+
+    @Autowired
+    private SiriObjectFactory siriObjectFactory;
 
     /**
      * @return All vehicle activities
@@ -123,6 +128,51 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
         }
 
         return getAll(datasetId);
+    }
+
+    public Siri createServiceDelivery(String requestorId, String datasetId, int maxSize) {
+
+        if (requestorId == null) {
+            requestorId = UUID.randomUUID().toString();
+        }
+
+        // Get all relevant ids
+        Set<String> allIds = new HashSet<>();
+        Set<String> idSet = changesMap.getOrDefault(requestorId, allIds);
+
+        if (idSet == allIds) {
+            vehicleActivities.keySet().forEach(key -> idSet.add(key));
+        }
+
+        lastUpdateRequested.put(requestorId, Instant.now(), 5, TimeUnit.MINUTES);
+
+        //Filter by datasetId
+        Set<String> collectedIds = idSet.stream()
+                .filter(key -> datasetId == null || key.startsWith(datasetId + ":"))
+                .limit(maxSize)
+                .collect(Collectors.toSet());
+
+        //Remove collected objects
+        collectedIds.forEach(id -> idSet.remove(id));
+
+
+        logger.info("Returning {}, {} left for requestorRef {}", collectedIds.size(), idSet.size(), requestorId);
+
+        Boolean isMoreData = !idSet.isEmpty();
+
+        //Update change-tracker
+        changesMap.put(requestorId, idSet);
+
+        Collection<VehicleActivityStructure> values = vehicleActivities.getAll(collectedIds).values();
+        Siri siri = siriObjectFactory.createVMServiceDelivery(values);
+
+        siri.getServiceDelivery().setMoreData(isMoreData);
+
+        MessageRefStructure msgRef = new MessageRefStructure();
+        msgRef.setValue(requestorId);
+        siri.getServiceDelivery().setRequestMessageRef(msgRef);
+
+        return siri;
     }
 
     public long getExpiration(VehicleActivityStructure a) {
