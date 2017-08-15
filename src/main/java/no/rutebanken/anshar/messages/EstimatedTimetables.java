@@ -7,10 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
-import uk.org.siri.siri20.EstimatedCall;
-import uk.org.siri.siri20.EstimatedVehicleJourney;
-import uk.org.siri.siri20.RecordedCall;
-import uk.org.siri.siri20.Siri;
+import uk.org.siri.siri20.*;
 
 import java.math.BigInteger;
 import java.time.Instant;
@@ -74,43 +71,45 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
 
     public Siri createServiceDelivery(String requestorId, String datasetId, int maxSize) {
 
-        if (requestorId != null) {
-
-            // Get all relevant ids
-            Set<String> allIds = new HashSet<>();
-            Set<String> idSet = changesMap.getOrDefault(requestorId, allIds);
-
-            if (idSet == allIds) {
-                timetableDeliveries.keySet().forEach(key -> idSet.add(key));
-            }
-
-            lastUpdateRequested.put(requestorId, Instant.now(), 5, TimeUnit.MINUTES);
-
-            //Filter by datasetId
-            Set<String> collectedIds = idSet.stream()
-                    .filter(key -> datasetId == null || key.startsWith(datasetId + ":"))
-                    .limit(maxSize)
-                    .collect(Collectors.toSet());
-
-            //Remove collected objects
-            collectedIds.forEach(id -> idSet.remove(id));
-
-
-            logger.info("Returning {}, {} left for requestorRef {}", collectedIds.size(), idSet.size(), requestorId);
-
-            Boolean isMoreData = !idSet.isEmpty();
-
-            //Update change-tracker
-            changesMap.put(requestorId, idSet);
-
-            Collection<EstimatedVehicleJourney> values = timetableDeliveries.getAll(collectedIds).values();
-            Siri siri = siriObjectFactory.createETServiceDelivery(values);
-
-            siri.getServiceDelivery().setMoreData(isMoreData);
-            return siri;
-        } else {
-            return siriObjectFactory.createETServiceDelivery(getAll(datasetId));
+        if (requestorId == null) {
+            requestorId = UUID.randomUUID().toString();
         }
+
+        // Get all relevant ids
+        Set<String> allIds = new HashSet<>();
+        Set<String> idSet = changesMap.getOrDefault(requestorId, allIds);
+
+        if (idSet == allIds) {
+            timetableDeliveries.keySet().forEach(key -> idSet.add(key));
+        }
+
+        lastUpdateRequested.put(requestorId, Instant.now(), 5, TimeUnit.MINUTES);
+
+        //Filter by datasetId
+        Set<String> collectedIds = idSet.stream()
+                .filter(key -> datasetId == null || key.startsWith(datasetId + ":"))
+                .limit(maxSize)
+                .collect(Collectors.toSet());
+
+        //Remove collected objects
+        collectedIds.forEach(id -> idSet.remove(id));
+
+
+        logger.info("Returning {}, {} left for requestorRef {}", collectedIds.size(), idSet.size(), requestorId);
+
+        Boolean isMoreData = !idSet.isEmpty();
+
+        //Update change-tracker
+        changesMap.put(requestorId, idSet);
+
+        Collection<EstimatedVehicleJourney> values = timetableDeliveries.getAll(collectedIds).values();
+        Siri siri = siriObjectFactory.createETServiceDelivery(values);
+
+        siri.getServiceDelivery().setMoreData(isMoreData);
+        MessageRefStructure msgRef = new MessageRefStructure();
+        msgRef.setValue(requestorId);
+        siri.getServiceDelivery().setRequestMessageRef(msgRef);
+        return siri;
     }
 
     public Collection<EstimatedVehicleJourney> getAllUpdates(String requestorId, String datasetId) {

@@ -141,12 +141,7 @@ public class SiriProvider extends RouteBuilder {
                         }
                     }
 
-                    Siri response;
-                    if (requestorId != null) {
-                        response = estimatedTimetables.createServiceDelivery(requestorId, datasetId, maxSize);
-                    } else {
-                        response = siriObjectFactory.createETServiceDelivery(estimatedTimetables.getAllUpdates(requestorId, datasetId));
-                    }
+                    Siri response = estimatedTimetables.createServiceDelivery(requestorId, datasetId, maxSize);
 
                     List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(SiriHandler.getIdMappingPolicy(request.getQueryString()));
                     if ("test".equals(originalId)) {
