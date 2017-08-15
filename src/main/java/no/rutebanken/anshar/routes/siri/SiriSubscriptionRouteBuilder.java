@@ -20,7 +20,7 @@ public abstract class SiriSubscriptionRouteBuilder extends BaseRouteBuilder {
 
     SubscriptionSetup subscriptionSetup;
 
-    private boolean hasBeenStarted;
+    protected boolean hasBeenStarted;
 
     public SiriSubscriptionRouteBuilder(CamelConfiguration config, SubscriptionManager subscriptionManager) {
         super(config, subscriptionManager);
@@ -50,7 +50,7 @@ public abstract class SiriSubscriptionRouteBuilder extends BaseRouteBuilder {
         }
 
         singletonFrom("quartz2://anshar/monitor_" + subscriptionSetup.getSubscriptionId() + "?fireNow=true&trigger.repeatInterval=" + 10000,
-                "monitor_" + subscriptionSetup.getSubscriptionId())
+                "monitor.subscription." + subscriptionSetup.getVendor())
                 .choice()
                 .when(p -> shouldBeStarted(p.getFromRouteId()))
                     .process(p -> hasBeenStarted = true)

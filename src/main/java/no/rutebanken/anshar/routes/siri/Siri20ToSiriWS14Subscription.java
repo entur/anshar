@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
+import java.net.ConnectException;
 import java.util.Map;
 
 import static no.rutebanken.anshar.routes.siri.SiriRequestFactory.getCamelUrl;
@@ -57,15 +58,32 @@ public class Siri20ToSiriWS14Subscription extends SiriSubscriptionRouteBuilder {
                 .setHeader(Exchange.CONTENT_TYPE, constant(subscriptionSetup.getContentType())) // Necessary when talking to Microsoft web services
                 .setHeader(Exchange.HTTP_METHOD, constant(HttpMethods.POST))
                 .to("log:sent:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
-                .to(getCamelUrl(urlMap.get(RequestType.SUBSCRIBE)) + getTimeout())
+                .doTry()
+                    .to(getCamelUrl(urlMap.get(RequestType.SUBSCRIBE)) + getTimeout())
+                    .to("log:received response:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
+                .doCatch(ConnectException.class)
+                    .log("Caught ConnectException - subscription not started - will try again: "+ subscriptionSetup.toString())
+                    .process(p -> p.getOut().setBody(null))
+                .endDoTry()
                 .choice().when(simple("${in.body} != null"))
                 .to("xslt:xsl/siri_soap_raw.xsl?saxon=true&allowStAX=false") // Extract SOAP version and convert to raw SIRI
                 .to("xslt:xsl/siri_14_20.xsl?saxon=true&allowStAX=false") // Convert from v1.4 to 2.0
                 .end()
                 .to("log:received:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .process(p -> {
+
+                    String responseCode = p.getIn().getHeader("CamelHttpResponseCode", String.class);
+                    if ("200".equals(responseCode)) {
+                        logger.info("SubscriptionResponse OK - Async response performs actual registration");
+                        subscriptionManager.activatePendingSubscription(subscriptionSetup.getSubscriptionId());
+                    } else {
+                        hasBeenStarted = false;
+                    }
+
                     InputStream body = p.getIn().getBody(InputStream.class);
-                    handler.handleIncomingSiri(subscriptionSetup.getSubscriptionId(), body);
+                    if (body != null && body.available() > 0) {
+                        handler.handleIncomingSiri(subscriptionSetup.getSubscriptionId(), body);
+                    }
 
                 })
                 .routeId("start.ws.14.subscription."+subscriptionSetup.getVendor())

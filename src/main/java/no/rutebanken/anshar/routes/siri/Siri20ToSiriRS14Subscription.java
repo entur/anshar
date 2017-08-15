@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
+import java.net.ConnectException;
 import java.util.Map;
 
 import static no.rutebanken.anshar.routes.siri.SiriRequestFactory.getCamelUrl;
@@ -50,8 +51,13 @@ public class Siri20ToSiriRS14Subscription extends SiriSubscriptionRouteBuilder {
                 .setHeader(Exchange.CONTENT_TYPE, constant(subscriptionSetup.getContentType())) // Necessary when talking to Microsoft web services
                 .setHeader(Exchange.HTTP_METHOD, constant(HttpMethods.POST))
                 .to("log:sent:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
-                .to(getCamelUrl(urlMap.get(RequestType.SUBSCRIBE)) + getTimeout())
-                .to("log:received:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
+                .doTry()
+                    .to(getCamelUrl(urlMap.get(RequestType.SUBSCRIBE)) + getTimeout())
+                    .to("log:received response:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
+                .doCatch(ConnectException.class)
+                    .log("Caught ConnectException - subscription not started - will try again: "+ subscriptionSetup.toString())
+                    .process(p -> p.getOut().setBody(null))
+                .endDoTry()
                 .process(p -> {
 
                     String responseCode = p.getIn().getHeader("CamelHttpResponseCode", String.class);
