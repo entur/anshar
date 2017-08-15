@@ -52,7 +52,9 @@ public class MappingAdapterPresets {
             case BANENOR:
                 adapters.add(new BaneNorIdPlatformPostProcessor());
                 break;
-            case NSB:
+            case NSB://
+                adapters.add(new LeftPaddingAdapter(StopPointRef.class, 9, '0'));
+                adapters.add(new LeftPaddingAdapter(StopPlaceRef.class, 9, '0'));
                 break;
             case MOR:
                 break;
