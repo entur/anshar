@@ -130,8 +130,23 @@ public class SiriProvider extends RouteBuilder {
                     String datasetId = request.getParameter("datasetId");
                     String requestorId = request.getParameter("requestorId");
                     String originalId = request.getParameter("useOriginalId");
+                    String maxSizeStr = request.getParameter("maxSize");
 
-                    Siri response = siriObjectFactory.createETServiceDelivery(estimatedTimetables.getAllUpdates(requestorId, datasetId));
+                    int maxSize = 1000;
+                    if (maxSizeStr != null) {
+                        try {
+                            maxSize = Integer.parseInt(maxSizeStr);
+                        } catch (NumberFormatException nfe) {
+                            //ignore
+                        }
+                    }
+
+                    Siri response;
+                    if (requestorId != null) {
+                        response = estimatedTimetables.createServiceDelivery(requestorId, datasetId, maxSize);
+                    } else {
+                        response = siriObjectFactory.createETServiceDelivery(estimatedTimetables.getAllUpdates(requestorId, datasetId));
+                    }
 
                     List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(SiriHandler.getIdMappingPolicy(request.getQueryString()));
                     if ("test".equals(originalId)) {
