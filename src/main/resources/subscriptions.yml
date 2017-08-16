@@ -390,7 +390,7 @@ anshar:
       subscriptionType: SITUATION_EXCHANGE
       subscriptionMode: REQUEST_RESPONSE
       heartbeatIntervalSeconds: 60
-      previewIntervalSeconds: 3600
+      previewIntervalSeconds: 86400
       operatorNamespace: http://www.siri.org.uk/siri
       addressFieldName:
       soapenvNamespace:
@@ -415,7 +415,7 @@ anshar:
       subscriptionType: ESTIMATED_TIMETABLE
       subscriptionMode: FETCHED_DELIVERY
       heartbeatIntervalSeconds: 60
-      previewIntervalSeconds: 60000
+      previewIntervalSeconds: 86400
       operatorNamespace: http://www.siri.org.uk/siri
       addressFieldName:
       soapenvNamespace:
@@ -442,6 +442,7 @@ anshar:
       subscriptionType: SITUATION_EXCHANGE
       subscriptionMode: FETCHED_DELIVERY
       heartbeatIntervalSeconds: 60
+      previewIntervalSeconds: 86400
       operatorNamespace: http://www.siri.org.uk/siri
       addressFieldName:
       soapenvNamespace:
@@ -768,4 +769,28 @@ anshar:
       filterPresets:
       idMappingPrefixes: RUT,OPP,BRA,OST
       environments: test
+      active: true
+    -
+      internalId: 102
+      vendor: baneEt-Intern-reqres
+      datasetId: BNR
+      serviceType: REST
+      subscriptionType: ESTIMATED_TIMETABLE
+      subscriptionMode: REQUEST_RESPONSE
+      heartbeatIntervalSeconds: 20
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      urlMap:
+        GET_ESTIMATED_TIMETABLE: https4://api-test.entur.org/anshar/1.0/anshar/services/BNR?useOriginalId=true
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: et-bnr-replication
+      requestorRef: et-bnr-requestorref
+      durationOfSubscriptionHours: 24
+      mappingAdapterPresets: BANENOR
+      filterPresets:
+      idMappingPrefixes: NSB,FLT
+      environments: local
       active: true
