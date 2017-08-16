@@ -133,7 +133,7 @@ public class SiriObjectFactory {
 
         ServiceRequest request = new ServiceRequest();
         request.setRequestTimestamp(ZonedDateTime.now());
-        request.setRequestorRef(createRequestorRef());
+        request.setRequestorRef(createRequestorRef(subscriptionSetup.getRequestorRef()));
 
         if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE)) {
             request.getSituationExchangeRequests().add(createSituationExchangeRequestStructure(subscriptionSetup.getPreviewInterval()));
