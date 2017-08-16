@@ -26,12 +26,11 @@ public class Siri20ToSiriRS20RequestResponse extends SiriSubscriptionRouteBuilde
 
         if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.REQUEST_RESPONSE) {
             singletonFrom("quartz2://anshar/monitor_" + subscriptionSetup.getRequestResponseRouteName() + "?fireNow=true&trigger.repeatInterval=" + heartbeatIntervalMillis,
-                    "monitor_" + subscriptionSetup.getRequestResponseRouteName())
+                    "monitor.rs.20." + subscriptionSetup.getSubscriptionType() + "." + subscriptionSetup.getVendor())
                     .choice()
                     .when(p -> requestData(subscriptionSetup.getSubscriptionId(), p.getFromRouteId()))
                     .to("direct:" + subscriptionSetup.getServiceRequestRouteName())
                     .endChoice()
-                    .routeId("monitor.rs.20." + subscriptionSetup.getSubscriptionType() + "." + subscriptionSetup.getVendor())
             ;
         }
 
