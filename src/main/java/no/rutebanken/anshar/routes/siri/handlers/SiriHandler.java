@@ -220,16 +220,18 @@ public class SiriHandler {
                     logger.info("Got SX-delivery: Subscription [{}]", subscriptionSetup);
 
                     List<PtSituationElement> addedOrUpdated = new ArrayList<>();
-                    situationExchangeDeliveries.forEach(sx -> {
-                                if (sx.isStatus() != null && !sx.isStatus()) {
-                                    logger.info(getErrorContents(sx.getErrorCondition()));
-                                } else {
-                                    addedOrUpdated.addAll(
-                                            situations.addAll(subscriptionSetup.getDatasetId(), sx.getSituations().getPtSituationElements())
-                                    );
+                    if (situationExchangeDeliveries != null) {
+                        situationExchangeDeliveries.forEach(sx -> {
+                                    if (sx.isStatus() != null && !sx.isStatus()) {
+                                        logger.info(getErrorContents(sx.getErrorCondition()));
+                                    } else {
+                                        addedOrUpdated.addAll(
+                                                situations.addAll(subscriptionSetup.getDatasetId(), sx.getSituations().getPtSituationElements())
+                                        );
+                                    }
                                 }
-                            }
-                    );
+                        );
+                    }
 
                     serverSubscriptionManager.pushUpdatedSituations(addedOrUpdated, subscriptionSetup.getDatasetId());
 
@@ -242,16 +244,18 @@ public class SiriHandler {
                     logger.info("Got VM-delivery: Subscription [{}]", subscriptionSetup);
 
                     List<VehicleActivityStructure> addedOrUpdated = new ArrayList<>();
-                    vehicleMonitoringDeliveries.forEach(vm -> {
-                            if (vm.isStatus() != null && !vm.isStatus()) {
-                                logger.info(getErrorContents(vm.getErrorCondition()));
-                            } else {
-                                addedOrUpdated.addAll(
-                                        vehicleActivities.addAll(subscriptionSetup.getDatasetId(), vm.getVehicleActivities())
-                                );
-                            }
-                        }
-                    );
+                    if (vehicleMonitoringDeliveries != null) {
+                        vehicleMonitoringDeliveries.forEach(vm -> {
+                                    if (vm.isStatus() != null && !vm.isStatus()) {
+                                        logger.info(getErrorContents(vm.getErrorCondition()));
+                                    } else {
+                                        addedOrUpdated.addAll(
+                                                vehicleActivities.addAll(subscriptionSetup.getDatasetId(), vm.getVehicleActivities())
+                                        );
+                                    }
+                                }
+                        );
+                    }
 
                     serverSubscriptionManager.pushUpdatedVehicleActivities(addedOrUpdated, subscriptionSetup.getDatasetId());
 
@@ -264,18 +268,20 @@ public class SiriHandler {
                     logger.info("Got ET-delivery: Subscription {}", subscriptionSetup);
 
                     List<EstimatedVehicleJourney> addedOrUpdated = new ArrayList<>();
-                    estimatedTimetableDeliveries.forEach(et -> {
-                                if (et.isStatus() != null && !et.isStatus()) {
-                                    logger.info(getErrorContents(et.getErrorCondition()));
-                                } else {
-                                    et.getEstimatedJourneyVersionFrames().forEach(versionFrame -> {
-                                        addedOrUpdated.addAll(
-                                                estimatedTimetables.addAll(subscriptionSetup.getDatasetId(), versionFrame.getEstimatedVehicleJourneies())
-                                        );
-                                    });
+                    if (estimatedTimetableDeliveries != null) {
+                        estimatedTimetableDeliveries.forEach(et -> {
+                                    if (et.isStatus() != null && !et.isStatus()) {
+                                        logger.info(getErrorContents(et.getErrorCondition()));
+                                    } else {
+                                        et.getEstimatedJourneyVersionFrames().forEach(versionFrame -> {
+                                            addedOrUpdated.addAll(
+                                                    estimatedTimetables.addAll(subscriptionSetup.getDatasetId(), versionFrame.getEstimatedVehicleJourneies())
+                                            );
+                                        });
+                                    }
                                 }
-                            }
-                    );
+                        );
+                    }
                     serverSubscriptionManager.pushUpdatedEstimatedTimetables(addedOrUpdated, subscriptionSetup.getDatasetId());
 
                     subscriptionManager.incrementObjectCounter(subscriptionSetup, addedOrUpdated.size());
@@ -288,9 +294,11 @@ public class SiriHandler {
 
                     List<ProductionTimetableDeliveryStructure> addedOrUpdated = new ArrayList<>();
 
-                    addedOrUpdated.addAll(
-                        productionTimetables.addAll(subscriptionSetup.getDatasetId(), productionTimetableDeliveries)
-                    );
+                    if (productionTimetableDeliveries != null) {
+                        addedOrUpdated.addAll(
+                                productionTimetables.addAll(subscriptionSetup.getDatasetId(), productionTimetableDeliveries)
+                        );
+                    }
 
                     serverSubscriptionManager.pushUpdatedProductionTimetables(addedOrUpdated, subscriptionSetup.getDatasetId());
 
