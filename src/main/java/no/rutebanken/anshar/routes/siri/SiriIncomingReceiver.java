@@ -315,10 +315,11 @@ public class SiriIncomingReceiver extends RouteBuilder {
         from("activemq:queue:" + CamelConfiguration.ESTIMATED_TIMETABLE_QUEUE + activeMqConsumerParameters)
                 .log("Processing ET")
                 .process(p -> {
+                    logger.info("Processing ET for path: " + p.getIn().getHeader("CamelHttpPath", String.class));
+
                     String subscriptionId = getSubscriptionIdFromPath(p.getIn().getHeader("CamelHttpPath", String.class));
 
                     InputStream xml = p.getIn().getBody(InputStream.class);
-                    logger.info("Processing ET for subscription: " + subscriptionId);
                     handler.handleIncomingSiri(subscriptionId, xml);
 
                 })
