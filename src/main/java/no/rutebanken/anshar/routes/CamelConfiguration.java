@@ -75,4 +75,8 @@ public class CamelConfiguration {
     public String getInboundUrl() {
         return inboundUrl;
     }
+
+    public String getIncomingLogDirectory() {
+        return incomingLogDirectory;
+    }
 }
