@@ -240,8 +240,14 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
                         }
                         //Add or replace existing calls
                         if (updatedCallWrapper != null && updatedCallWrapper.getEstimatedCalls() != null ) {
+                            int counter = 0;
                             for (EstimatedCall call : updatedCallWrapper.getEstimatedCalls()) {
-                                int order = (call.getVisitNumber() != null ? call.getVisitNumber() : call.getOrder()).intValue();
+                                int order;
+                                if (call.getVisitNumber() != null | call.getOrder() != null) {
+                                    order = (call.getVisitNumber() != null ? call.getVisitNumber() : call.getOrder()).intValue();
+                                } else {
+                                    order = counter++;
+                                }
                                 joinedCallsMap.put(order, call);
                             }
                         }
