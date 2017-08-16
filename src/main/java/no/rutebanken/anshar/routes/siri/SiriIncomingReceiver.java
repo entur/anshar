@@ -318,7 +318,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                     String subscriptionId = getSubscriptionIdFromPath(p.getIn().getHeader("CamelHttpPath", String.class));
 
                     InputStream xml = p.getIn().getBody(InputStream.class);
-
+                    logger.info("Processing ET for subscription: " + subscriptionId);
                     handler.handleIncomingSiri(subscriptionId, xml);
 
                 })
