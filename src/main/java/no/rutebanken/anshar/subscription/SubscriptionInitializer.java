@@ -60,7 +60,6 @@ public class SubscriptionInitializer implements CamelContextAware {
     @PostConstruct
     void createSubscriptions() {
         camelContext.setUseMDCLogging(true);
-        camelContext.setStreamCaching(true);
 
         logger.info("Initializing subscriptions for environment: {}", camelConfiguration.getEnvironment());
 
