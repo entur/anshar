@@ -222,7 +222,7 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
         Set<String> changes = new HashSet<>();
 
         Counter outdatedCounter = new CounterImpl(0);
-        Set<String> outdatedDatedVehicleRef = new HashSet<>();
+        Set<String> ignoredDatedVehicleRef = new HashSet<>();
         Set<String> updatedDatedVehicleRef = new HashSet<>();
 
         etList.forEach(et -> {
@@ -364,19 +364,21 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
                     if (et.getDatedVehicleJourneyRef() != null) {
                         updatedDatedVehicleRef.add(et.getDatedVehicleJourneyRef().getValue());
                     }
+                } else if (et.getDatedVehicleJourneyRef() != null) {
+                    ignoredDatedVehicleRef.add(et.getDatedVehicleJourneyRef().getValue());
                 }
             } else {
                 if (expiration < 0) {
                     outdatedCounter.increment();
                 }
                 if (et.getDatedVehicleJourneyRef() != null) {
-                    outdatedDatedVehicleRef.add(et.getDatedVehicleJourneyRef().getValue());
+                    ignoredDatedVehicleRef.add(et.getDatedVehicleJourneyRef().getValue());
                 }
             }
         });
 
         logger.info("Updated {} (of {}) :: Ignored elements - Already expired: {}", changes.size(), etList.size(), outdatedCounter.getValue());
-        logger.info("Updated {} \n Ignored - {}", updatedDatedVehicleRef, outdatedDatedVehicleRef);
+        logger.info("Updated {} \n Ignored - {}", updatedDatedVehicleRef, ignoredDatedVehicleRef);
 
         changesMap.keySet().forEach(requestor -> {
             if (lastUpdateRequested.get(requestor) != null) {
