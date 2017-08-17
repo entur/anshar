@@ -2,6 +2,8 @@ package no.rutebanken.anshar.messages;
 
 import com.hazelcast.core.IMap;
 import no.rutebanken.anshar.routes.siri.SiriObjectFactory;
+import org.quartz.utils.counter.Counter;
+import org.quartz.utils.counter.CounterImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -201,6 +203,10 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
 
         Set<String> changes = new HashSet<>();
 
+        Counter outdatedCounter = new CounterImpl(0);
+        Set<String> outdatedDatedVehicleRef = new HashSet<>();
+        Set<String> updatedDatedVehicleRef = new HashSet<>();
+
         etList.forEach(et -> {
             String key = createKey(datasetId, et);
 
@@ -298,9 +304,22 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
                         !et.getEstimatedCalls().getEstimatedCalls().isEmpty()) {
                     changes.add(key);
                     timetableDeliveries.set(key, et, expiration, TimeUnit.MILLISECONDS);
+                    if (et.getDatedVehicleJourneyRef() != null) {
+                        updatedDatedVehicleRef.add(et.getDatedVehicleJourneyRef().getValue());
+                    }
+                }
+            } else {
+                if (expiration < 0) {
+                    outdatedCounter.increment();
+                }
+                if (et.getDatedVehicleJourneyRef() != null) {
+                    outdatedDatedVehicleRef.add(et.getDatedVehicleJourneyRef().getValue());
                 }
             }
         });
+
+        logger.info("Updated {} (of {}) :: Ignored elements - Already expired: {}", changes.size(), etList.size(), outdatedCounter.getValue());
+        logger.info("Updated {} \n Ignored - {}", updatedDatedVehicleRef, outdatedDatedVehicleRef);
 
         changesMap.keySet().forEach(requestor -> {
             if (lastUpdateRequested.get(requestor) != null) {
