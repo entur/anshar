@@ -171,6 +171,24 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
     public long getExpiration(EstimatedVehicleJourney vehicleJourney) {
         ZonedDateTime expiryTimestamp = null;
         if (vehicleJourney != null) {
+            if (vehicleJourney.getRecordedCalls() != null) {
+                List<RecordedCall> recordedCalls = vehicleJourney.getRecordedCalls().getRecordedCalls();
+                RecordedCall lastRecordedCall = recordedCalls.get(recordedCalls.size() - 1);
+
+                if (lastRecordedCall.getAimedArrivalTime() != null) {
+                    expiryTimestamp = lastRecordedCall.getAimedArrivalTime();
+                }
+                if (lastRecordedCall.getAimedDepartureTime() != null) {
+                    expiryTimestamp = lastRecordedCall.getAimedDepartureTime();
+                }
+                if (lastRecordedCall.getExpectedArrivalTime() != null) {
+                    expiryTimestamp = lastRecordedCall.getExpectedArrivalTime();
+                }
+                if (lastRecordedCall.getExpectedDepartureTime() != null) {
+                    expiryTimestamp = lastRecordedCall.getExpectedDepartureTime();
+                }
+
+            }
             if (vehicleJourney.getEstimatedCalls() != null) {
                 List<EstimatedCall> estimatedCalls = vehicleJourney.getEstimatedCalls().getEstimatedCalls();
                 EstimatedCall lastEstimatedCall = estimatedCalls.get(estimatedCalls.size() - 1);
