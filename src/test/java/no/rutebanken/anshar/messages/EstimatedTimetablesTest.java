@@ -163,6 +163,42 @@ public class EstimatedTimetablesTest {
 
     }
 
+
+    @Test
+    public void testUpdatedRecordedCallsOnly() {
+        int previousSize = estimatedTimetables.getAll().size();
+
+        ZonedDateTime departure = ZonedDateTime.now().plusHours(1);
+        EstimatedVehicleJourney estimatedVehicleJourney = createEstimatedVehicleJourney("12345", "4321", 0, 30, departure, true);
+        estimatedTimetables.add("test", estimatedVehicleJourney);
+        int expectedSize = previousSize +1;
+
+        List<EstimatedCall> estimatedCalls = estimatedVehicleJourney.getEstimatedCalls().getEstimatedCalls();
+        EstimatedCall ec = estimatedCalls.get(0);
+
+        EstimatedVehicleJourney updatedVehicleJourney = createEstimatedVehicleJourney("12345", "4321", 0, 30, departure, true);
+updatedVehicleJourney.setIsCompleteStopSequence(false);
+        RecordedCall rc = new RecordedCall();
+        rc.setStopPointRef(ec.getStopPointRef());
+        rc.setExpectedArrivalTime(ec.getExpectedArrivalTime());
+        rc.setActualArrivalTime(ec.getExpectedArrivalTime().plusSeconds(2));
+
+        updatedVehicleJourney.setRecordedCalls(new EstimatedVehicleJourney.RecordedCalls());
+        updatedVehicleJourney.getRecordedCalls().getRecordedCalls().add(rc);
+
+        updatedVehicleJourney.setEstimatedCalls(null);
+
+        estimatedTimetables.add("test", updatedVehicleJourney);
+        assertTrue("Updating Journey added element.", estimatedTimetables.getAll().size() == expectedSize);
+
+        Collection<EstimatedVehicleJourney> all = estimatedTimetables.getAll("test");
+        EstimatedVehicleJourney actualEtAdded = all.stream().filter(et -> et.getLineRef().getValue().equals("12345")).findFirst().get();
+
+        assertTrue(actualEtAdded != null);
+        assertTrue(actualEtAdded.getRecordedCalls() != null);
+        assertTrue(actualEtAdded.getEstimatedCalls().getEstimatedCalls().size() < estimatedVehicleJourney.getEstimatedCalls().getEstimatedCalls().size());
+    }
+
     @Test
     public void testUpdatedJourneyWrongOrder() {
         int previousSize = estimatedTimetables.getAll().size();
@@ -280,7 +316,10 @@ public class EstimatedTimetablesTest {
         EstimatedVehicleJourney.EstimatedCalls estimatedCalls = new EstimatedVehicleJourney.EstimatedCalls();
         for (int i = startOrder; i < callCount; i++) {
 
+            StopPointRef stopPointRef = new StopPointRef();
+            stopPointRef.setValue("NSR:TEST:"+i);
             EstimatedCall call = new EstimatedCall();
+                call.setStopPointRef(stopPointRef);
                 call.setAimedArrivalTime(time);
                 call.setExpectedArrivalTime(time);
                 call.setAimedDepartureTime(time);
