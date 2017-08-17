@@ -169,15 +169,16 @@ public class EstimatedTimetablesTest {
         int previousSize = estimatedTimetables.getAll().size();
 
         ZonedDateTime departure = ZonedDateTime.now().plusHours(1);
-        EstimatedVehicleJourney estimatedVehicleJourney = createEstimatedVehicleJourney("12345", "4321", 0, 30, departure, true);
+        EstimatedVehicleJourney estimatedVehicleJourney = createEstimatedVehicleJourney("UPDATE:Line:12345", "4321", 0, 10, departure, true);
         estimatedTimetables.add("test", estimatedVehicleJourney);
         int expectedSize = previousSize +1;
 
         List<EstimatedCall> estimatedCalls = estimatedVehicleJourney.getEstimatedCalls().getEstimatedCalls();
         EstimatedCall ec = estimatedCalls.get(0);
 
-        EstimatedVehicleJourney updatedVehicleJourney = createEstimatedVehicleJourney("12345", "4321", 0, 30, departure, true);
-updatedVehicleJourney.setIsCompleteStopSequence(false);
+        EstimatedVehicleJourney updatedVehicleJourney = createEstimatedVehicleJourney("UPDATE:Line:12345", "4321", 0, 1, departure, true);
+        updatedVehicleJourney.setIsCompleteStopSequence(false);
+
         RecordedCall rc = new RecordedCall();
         rc.setStopPointRef(ec.getStopPointRef());
         rc.setExpectedArrivalTime(ec.getExpectedArrivalTime());
@@ -192,7 +193,7 @@ updatedVehicleJourney.setIsCompleteStopSequence(false);
         assertTrue("Updating Journey added element.", estimatedTimetables.getAll().size() == expectedSize);
 
         Collection<EstimatedVehicleJourney> all = estimatedTimetables.getAll("test");
-        EstimatedVehicleJourney actualEtAdded = all.stream().filter(et -> et.getLineRef().getValue().equals("12345")).findFirst().get();
+        EstimatedVehicleJourney actualEtAdded = all.stream().filter(et -> et.getLineRef().getValue().equals("UPDATE:Line:12345")).findFirst().get();
 
         assertTrue(actualEtAdded != null);
         assertTrue(actualEtAdded.getRecordedCalls() != null);
