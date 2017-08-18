@@ -333,6 +333,11 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
                     }
                 }
 
+                if (existing.isIsCompleteStopSequence() != null) {
+                    //If updates are merged in, the journey is still complete...
+                    et.setIsCompleteStopSequence(existing.isIsCompleteStopSequence());
+                }
+
                 long expiration = getExpiration(et);
                 if (expiration > 0) {
                     //Ignoring elements without EstimatedCalls
