@@ -259,74 +259,50 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
                         }
                         EstimatedVehicleJourney.RecordedCalls updatedRecordedCallWrapper = et.getRecordedCalls();
 
+                        LinkedHashMap<String, RecordedCall> recordedCallsMap = new LinkedHashMap<>();
+                        LinkedHashMap<String, EstimatedCall> estimatedCallsMap = new LinkedHashMap<>();
 
-                        // Add Stop to RecordedCalls, remove Stop from EstimatedCalls
+                        // Merge existing and updated RecordedCalls
+                        if (existingRecordedCallWrapper != null && existingRecordedCallWrapper.getRecordedCalls() != null ) {
+                            for (RecordedCall recordedCall : existingRecordedCallWrapper.getRecordedCalls()) {
+                                if (recordedCall.getStopPointRef() != null) {
+                                    recordedCallsMap.put(recordedCall.getStopPointRef().getValue(), recordedCall);
+                                }
+                            }
+                        }
                         if (updatedRecordedCallWrapper != null && updatedRecordedCallWrapper.getRecordedCalls() != null ) {
                             for (RecordedCall recordedCall : updatedRecordedCallWrapper.getRecordedCalls()) {
                                 if (recordedCall.getStopPointRef() != null) {
-                                    existingRecordedCallWrapper.getRecordedCalls().add(recordedCall);
-
-                                    String stopPoint = recordedCall.getStopPointRef().getValue();
-                                    List<EstimatedCall> estimatedCalls = existing.getEstimatedCalls().getEstimatedCalls();
-                                    for (EstimatedCall estimatedCall : estimatedCalls) {
-                                        if (estimatedCall.getStopPointRef().getValue().endsWith(stopPoint)) {
-                                            estimatedCalls.remove(estimatedCall);
-                                            break;
-                                        }
-                                    }
+                                    recordedCallsMap.put(recordedCall.getStopPointRef().getValue(), recordedCall);
                                 }
                             }
-                            updatedRecordedCallWrapper.getRecordedCalls().clear();
-                            updatedRecordedCallWrapper.getRecordedCalls().addAll(existingRecordedCallWrapper.getRecordedCalls());
                         }
 
-                        SortedMap<Integer, EstimatedCall> joinedCallsMap = new TreeMap<>();
+                        // recordedCallsMap now contains all RecordedCalls
 
-                        //Existing calls
+                        //Keep estimatedCalls not in RecordedCalls
                         if (existingEstimatedCallWrapper != null && existingEstimatedCallWrapper.getEstimatedCalls() != null ) {
-                            int counter = 0;
                             for (EstimatedCall call : existingEstimatedCallWrapper.getEstimatedCalls()) {
-                                //Assuming that either Visitnumber or Order is always used
-                                int order;
-                                if (call.getVisitNumber() != null | call.getOrder() != null) {
-                                    order = (call.getVisitNumber() != null ? call.getVisitNumber() : call.getOrder()).intValue();
-                                } else {
-                                    order = counter++;
+                                if (!recordedCallsMap.containsKey(call.getStopPointRef().getValue())) {
+                                    estimatedCallsMap.put(call.getStopPointRef().getValue(), call);
                                 }
-                                joinedCallsMap.put(order, call);
                             }
                         }
                         //Add or replace existing calls
                         if (updatedEstimatedCallWrapper != null && updatedEstimatedCallWrapper.getEstimatedCalls() != null ) {
-                            int counter = 0;
                             for (EstimatedCall call : updatedEstimatedCallWrapper.getEstimatedCalls()) {
-                                int order;
-                                if (call.getVisitNumber() != null | call.getOrder() != null) {
-                                    order = (call.getVisitNumber() != null ? call.getVisitNumber() : call.getOrder()).intValue();
-                                } else {
-                                    order = counter++;
-                                }
-                                joinedCallsMap.put(order, call);
-                            }
-                        }
-                        //Add or replace existing calls
-                        if (updatedEstimatedCallWrapper != null && updatedEstimatedCallWrapper.getEstimatedCalls() != null ) {
-                            int counter = 0;
-                            for (EstimatedCall call : updatedEstimatedCallWrapper.getEstimatedCalls()) {
-                                int order;
-                                if (call.getVisitNumber() != null | call.getOrder() != null) {
-                                    order = (call.getVisitNumber() != null ? call.getVisitNumber() : call.getOrder()).intValue();
-                                } else {
-                                    order = counter++;
-                                }
-                                joinedCallsMap.put(order, call);
+                                estimatedCallsMap.put(call.getStopPointRef().getValue(), call);
                             }
                         }
 
-                        EstimatedVehicleJourney.EstimatedCalls joinedCalls = new EstimatedVehicleJourney.EstimatedCalls();
-                        joinedCalls.getEstimatedCalls().addAll(joinedCallsMap.values());
+                        EstimatedVehicleJourney.EstimatedCalls joinedEstimatedCalls = new EstimatedVehicleJourney.EstimatedCalls();
+                        joinedEstimatedCalls.getEstimatedCalls().addAll(estimatedCallsMap.values());
 
-                        et.setEstimatedCalls(joinedCalls);
+                        EstimatedVehicleJourney.RecordedCalls joinedRecordedCalls = new EstimatedVehicleJourney.RecordedCalls();
+                        joinedRecordedCalls.getRecordedCalls().addAll(recordedCallsMap.values());
+
+                        et.setEstimatedCalls(joinedEstimatedCalls);
+                        et.setRecordedCalls(joinedRecordedCalls);
                     }
                 }
 
