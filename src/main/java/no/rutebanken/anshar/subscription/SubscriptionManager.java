@@ -23,6 +23,8 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -323,5 +325,20 @@ public class SubscriptionManager {
             activatePendingSubscription(subscriptionId);
             logger.info("Handled request to start subscription ", subscriptionSetup);
         }
+    }
+
+    public Set<String> getAllUnhealthySubscriptions() {
+        Set<String> subscriptionIds = subscriptions.keySet()
+                .stream()
+                .filter(subscriptionId -> !isSubscriptionHealthy(subscriptionId))
+                .collect(Collectors.toSet());
+        if (subscriptionIds != null & !subscriptionIds.isEmpty()) {
+            return subscriptions.getAll(subscriptionIds)
+                    .values()
+                    .stream()
+                    .map(subscriptionSetup -> subscriptionSetup.getVendor())
+                    .collect(Collectors.toSet());
+        }
+        return new HashSet<>();
     }
 }

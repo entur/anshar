@@ -1,5 +1,6 @@
 package no.rutebanken.anshar.routes.health;
 
+import no.rutebanken.anshar.subscription.SubscriptionManager;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.slf4j.Logger;
@@ -9,6 +10,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 
+import java.text.MessageFormat;
+import java.util.Set;
+
 @Service
 @Configuration
 public class LivenessReadinessRoute extends RouteBuilder {
@@ -17,9 +21,26 @@ public class LivenessReadinessRoute extends RouteBuilder {
     @Value("${anshar.incoming.port}")
     private String inboundPort;
 
+    @Value("${anshar.healthcheck.hubot.url}")
+    private String hubotUrl;
+
+    @Value("${anshar.healthcheck.hubot.payload.source}")
+    private String hubotSource;
+
+    @Value("${anshar.healthcheck.hubot.payload.icon}")
+    private String hubotIcon;
+
+    @Value("${anshar.healthcheck.hubot.payload.message}")
+    private String hubotMessage;
+
+    @Value("${anshar.healthcheck.hubot.payload.template}")
+    private String hubotTemplate;
 
     @Autowired
     HealthManager healthManager;
+
+    @Autowired
+    SubscriptionManager subscriptionManager;
 
     public static boolean triggerRestart;
 
@@ -75,6 +96,20 @@ public class LivenessReadinessRoute extends RouteBuilder {
                     .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("500"))
                     .log("Server is not receiving data")
                 .endChoice()
+                .when(p -> getAllUnhealthySubscriptions() != null)
+                    .process(p -> {
+                        String message = MessageFormat.format(hubotMessage, getAllUnhealthySubscriptions());
+
+                        String jsonPayload = "{" + MessageFormat.format(hubotTemplate, hubotSource, hubotIcon, message) + "}";
+
+//                        p.getOut().setBody("{" + jsonPayload +"}");
+                        logger.warn("Found unhealthy subscriptions notify hubot:" + jsonPayload);
+                    })
+//                    .setHeader(Exchange.CONTENT_TYPE, constant(MediaType.JSON_UTF_8)) // Necessary when talking to Microsoft web services
+//                    .setHeader(Exchange.HTTP_METHOD, constant(HttpMethods.POST))
+//                    .to(hubotUrl)
+                    .log("Found unhealthy subscriptions")
+                .endChoice()
                 .otherwise()
                     .setBody(simple("OK"))
                     .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
@@ -82,5 +117,14 @@ public class LivenessReadinessRoute extends RouteBuilder {
                 .routeId("health.is.healthy")
         ;
 
+    }
+
+    private Set<String> getAllUnhealthySubscriptions() {
+        Set<String> unhealthySubscriptions = subscriptionManager.getAllUnhealthySubscriptions();
+        if (unhealthySubscriptions.isEmpty()) {
+
+        }
+
+        return unhealthySubscriptions;
     }
 }
