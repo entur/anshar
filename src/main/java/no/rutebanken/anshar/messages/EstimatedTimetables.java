@@ -171,7 +171,7 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
     public long getExpiration(EstimatedVehicleJourney vehicleJourney) {
         ZonedDateTime expiryTimestamp = null;
         if (vehicleJourney != null) {
-            if (vehicleJourney.getRecordedCalls() != null) {
+            if (vehicleJourney.getRecordedCalls() != null && !vehicleJourney.getRecordedCalls().getRecordedCalls().isEmpty()) {
                 List<RecordedCall> recordedCalls = vehicleJourney.getRecordedCalls().getRecordedCalls();
                 RecordedCall lastRecordedCall = recordedCalls.get(recordedCalls.size() - 1);
 
@@ -189,7 +189,7 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
                 }
 
             }
-            if (vehicleJourney.getEstimatedCalls() != null) {
+            if (vehicleJourney.getEstimatedCalls() != null && !vehicleJourney.getEstimatedCalls().getEstimatedCalls().isEmpty()) {
                 List<EstimatedCall> estimatedCalls = vehicleJourney.getEstimatedCalls().getEstimatedCalls();
                 EstimatedCall lastEstimatedCall = estimatedCalls.get(estimatedCalls.size() - 1);
 
@@ -244,8 +244,8 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
                 keep = true;
             }
 
-            long expiration = getExpiration(et);
-            if (expiration > 0 && keep) {
+
+            if (keep) {
                 if (et.isIsCompleteStopSequence() != null && !et.isIsCompleteStopSequence()) {
                     //Not complete - merge partial update into existing
                     if (existing != null) {
@@ -333,22 +333,26 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
                     }
                 }
 
-                //Ignoring elements without EstimatedCalls
-                if (et.getEstimatedCalls() != null &&
-                        et.getEstimatedCalls().getEstimatedCalls() != null &&
-                        !et.getEstimatedCalls().getEstimatedCalls().isEmpty()) {
-                    changes.add(key);
-                    timetableDeliveries.set(key, et, expiration, TimeUnit.MILLISECONDS);
-                    if (et.getDatedVehicleJourneyRef() != null) {
-                        updatedDatedVehicleRef.add(et.getDatedVehicleJourneyRef().getValue());
+                long expiration = getExpiration(et);
+                if (expiration > 0) {
+                    //Ignoring elements without EstimatedCalls
+                    if (et.getEstimatedCalls() != null &&
+                            et.getEstimatedCalls().getEstimatedCalls() != null &&
+                            !et.getEstimatedCalls().getEstimatedCalls().isEmpty()) {
+                        changes.add(key);
+                        timetableDeliveries.set(key, et, expiration, TimeUnit.MILLISECONDS);
+                        if (et.getDatedVehicleJourneyRef() != null) {
+                            updatedDatedVehicleRef.add(et.getDatedVehicleJourneyRef().getValue());
+                        }
+                    } else if (et.getDatedVehicleJourneyRef() != null) {
+                        ignoredDatedVehicleRef.add(et.getDatedVehicleJourneyRef().getValue());
                     }
-                } else if (et.getDatedVehicleJourneyRef() != null) {
-                    ignoredDatedVehicleRef.add(et.getDatedVehicleJourneyRef().getValue());
-                }
-            } else {
-                if (expiration < 0) {
+                } else {
                     outdatedCounter.increment();
                 }
+
+            } else {
+
                 if (et.getDatedVehicleJourneyRef() != null) {
                     ignoredDatedVehicleRef.add(et.getDatedVehicleJourneyRef().getValue());
                 }
