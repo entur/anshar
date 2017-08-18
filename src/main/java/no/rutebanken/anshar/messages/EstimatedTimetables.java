@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 import uk.org.siri.siri20.*;
 
-import java.math.BigInteger;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
@@ -278,8 +277,6 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
                             }
                         }
 
-                        // recordedCallsMap now contains all RecordedCalls
-
                         //Keep estimatedCalls not in RecordedCalls
                         if (existingEstimatedCallWrapper != null && existingEstimatedCallWrapper.getEstimatedCalls() != null ) {
                             for (EstimatedCall call : existingEstimatedCallWrapper.getEstimatedCalls()) {
@@ -303,33 +300,6 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
 
                         et.setEstimatedCalls(joinedEstimatedCalls);
                         et.setRecordedCalls(joinedRecordedCalls);
-                    }
-                }
-
-                if (et.isIsCompleteStopSequence() != null && et.isIsCompleteStopSequence()) {
-                    //EstimatedVehicleJourney is complete - ensure all ET-calls have order
-                    int callCounter = 1;
-                    if (et.getRecordedCalls() != null && et.getRecordedCalls().getRecordedCalls() != null) {
-                        List<RecordedCall> recordedCalls = et.getRecordedCalls().getRecordedCalls();
-                        for (int i = 0; i < recordedCalls.size(); i++) {
-                            RecordedCall call = recordedCalls.get(i);
-                            if (call.getOrder() == null) {
-                                call.setOrder(new BigInteger("" + callCounter++));
-                            } else {
-                                callCounter = call.getOrder().intValue();
-                            }
-                        }
-                    }
-                    if (et.getEstimatedCalls() != null && et.getEstimatedCalls().getEstimatedCalls() != null) {
-                        List<EstimatedCall> estimatedCalls = et.getEstimatedCalls().getEstimatedCalls();
-                        for (int i = 0; i < estimatedCalls.size(); i++) {
-                            EstimatedCall call = estimatedCalls.get(i);
-                            if (call.getOrder() == null) {
-                                call.setOrder(new BigInteger("" + callCounter++));
-                            } else {
-                                callCounter = call.getOrder().intValue();
-                            }
-                        }
                     }
                 }
 
