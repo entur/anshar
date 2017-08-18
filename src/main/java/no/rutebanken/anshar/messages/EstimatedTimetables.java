@@ -276,6 +276,8 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
                                     }
                                 }
                             }
+                            updatedRecordedCallWrapper.getRecordedCalls().clear();
+                            updatedRecordedCallWrapper.getRecordedCalls().addAll(existingRecordedCallWrapper.getRecordedCalls());
                         }
 
                         SortedMap<Integer, EstimatedCall> joinedCallsMap = new TreeMap<>();
