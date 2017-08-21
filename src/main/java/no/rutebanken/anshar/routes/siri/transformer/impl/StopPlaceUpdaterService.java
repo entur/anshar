@@ -93,10 +93,10 @@ public class StopPlaceUpdaterService {
     }
 
     private void updateStopPlaceMapping(String mappingUrl) throws IOException {
+        logger.info("Initializing data - start. Fetching mapping-data from {}", mappingUrl);
 
         if (mappingUrl != null && !mappingUrl.isEmpty()) {
 
-            logger.info("Initializing data - start. Fetching mapping-data from {}", mappingUrl);
             URL url = new URL(mappingUrl);
 
             Map<String, String> tmpStopPlaceMappings = new HashMap<>();
