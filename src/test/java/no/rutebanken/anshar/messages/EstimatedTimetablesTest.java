@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static junit.framework.TestCase.assertFalse;
+import static junit.framework.TestCase.assertNotNull;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -301,6 +302,42 @@ public class EstimatedTimetablesTest {
         }
 
         assertTrue("Did not check matching VehicleJourney", checkedMatchingJourney);
+
+    }
+
+    @Test
+    public void testCreateServiceDelivery() {
+        String datasetId = "ServiceDeliveryTest";
+        estimatedTimetables.add(datasetId, createEstimatedVehicleJourney("1234", "1", 0, 30, ZonedDateTime.now().plusHours(1), true));
+        estimatedTimetables.add(datasetId, createEstimatedVehicleJourney("2345", "2", 0, 30, ZonedDateTime.now().plusHours(1), true));
+        estimatedTimetables.add(datasetId, createEstimatedVehicleJourney("3456", "3", 0, 30, ZonedDateTime.now().plusHours(1), true));
+
+        // Added 3
+        String requestorId = UUID.randomUUID().toString();
+
+        Siri serviceDelivery_1 = estimatedTimetables.createServiceDelivery(requestorId, datasetId, 2);
+
+        assertNotNull(serviceDelivery_1);
+        assertNotNull(serviceDelivery_1.getServiceDelivery());
+        assertNotNull(serviceDelivery_1.getServiceDelivery().getEstimatedTimetableDeliveries());
+        assertTrue(serviceDelivery_1.getServiceDelivery().getEstimatedTimetableDeliveries().get(0).getEstimatedJourneyVersionFrames().get(0).getEstimatedVehicleJourneies().size() == 2);
+        assertTrue(serviceDelivery_1.getServiceDelivery().isMoreData());
+
+        Siri serviceDelivery_2 = estimatedTimetables.createServiceDelivery(requestorId, datasetId, 2);
+
+        assertNotNull(serviceDelivery_2);
+        assertNotNull(serviceDelivery_2.getServiceDelivery());
+        assertNotNull(serviceDelivery_2.getServiceDelivery().getEstimatedTimetableDeliveries());
+        assertTrue(serviceDelivery_2.getServiceDelivery().getEstimatedTimetableDeliveries().get(0).getEstimatedJourneyVersionFrames().get(0).getEstimatedVehicleJourneies().size() == 1);
+        assertFalse(serviceDelivery_2.getServiceDelivery().isMoreData());
+
+        Siri serviceDelivery_3 = estimatedTimetables.createServiceDelivery(requestorId, datasetId, 2);
+
+        assertNotNull(serviceDelivery_3);
+        assertNotNull(serviceDelivery_3.getServiceDelivery());
+        assertNotNull(serviceDelivery_3.getServiceDelivery().getEstimatedTimetableDeliveries());
+        assertTrue(serviceDelivery_3.getServiceDelivery().getEstimatedTimetableDeliveries().get(0).getEstimatedJourneyVersionFrames().get(0).getEstimatedVehicleJourneies().size() == 0);
+        assertFalse(serviceDelivery_3.getServiceDelivery().isMoreData());
 
     }
 

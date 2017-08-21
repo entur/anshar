@@ -81,7 +81,9 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
         Set<String> idSet = changesMap.getOrDefault(requestorId, allIds);
 
         if (idSet == allIds) {
-            timetableDeliveries.keySet().forEach(key -> idSet.add(key));
+            timetableDeliveries.keySet().stream()
+                    .filter(key -> datasetId == null || key.startsWith(datasetId + ":"))
+                    .forEach(key -> idSet.add(key));
         }
 
         lastUpdateRequested.put(requestorId, Instant.now(), 5, TimeUnit.MINUTES);
