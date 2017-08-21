@@ -62,7 +62,7 @@ public class MappingAdapterPresets {
 
     public List<ValueAdapter> createNsrIdMappingAdapters(List<String> idMappingPrefixes) {
         List<ValueAdapter> nsr = new ArrayList<>();
-        nsr.add(new StopPlaceRegisterMapper(StopPlaceRef.class, idMappingPrefixes));
+        nsr.add(new StopPlaceRegisterMapper(StopPlaceRef.class, idMappingPrefixes, "StopPlace"));
         nsr.add(new StopPlaceRegisterMapper(StopPointRef.class, idMappingPrefixes));
         nsr.add(new StopPlaceRegisterMapper(JourneyPlaceRefStructure.class, idMappingPrefixes));
         nsr.add(new StopPlaceRegisterMapper(DestinationRef.class, idMappingPrefixes));

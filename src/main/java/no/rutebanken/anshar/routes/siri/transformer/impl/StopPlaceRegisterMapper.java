@@ -13,10 +13,16 @@ public class StopPlaceRegisterMapper extends ValueAdapter {
     private Logger logger = LoggerFactory.getLogger(StopPlaceRegisterMapper.class);
 
     private List<String> prefixes;
+    private String datatype;
 
     public StopPlaceRegisterMapper(Class clazz, List<String> prefixes) {
+        this(clazz, prefixes, "Quay");
+    }
+
+    public StopPlaceRegisterMapper(Class clazz, List<String> prefixes, String datatype) {
         super(clazz);
         this.prefixes = prefixes;
+        this.datatype = datatype;
     }
 
 
@@ -30,15 +36,7 @@ public class StopPlaceRegisterMapper extends ValueAdapter {
             if (prefixes != null && !prefixes.isEmpty()) {
 
                 for (String prefix : prefixes) {
-                    String mappedValue = stopPlaceService.get(createCompleteId(prefix, id, "Quay"));
-                    if (mappedValue != null) {
-                        return mappedValue;
-                    }
-                }
-
-                //If no Quays matched - try StopPlace
-                for (String prefix : prefixes) {
-                    String mappedValue = stopPlaceService.get(createCompleteId(prefix, id, "StopPlace"));
+                    String mappedValue = stopPlaceService.get(createCompleteId(prefix, id, datatype));
                     if (mappedValue != null) {
                         return mappedValue;
                     }
