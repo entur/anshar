@@ -36,6 +36,9 @@ public class LivenessReadinessRoute extends RouteBuilder {
     @Value("${anshar.healthcheck.hubot.payload.template}")
     private String hubotTemplate;
 
+    @Value("${anshar.healthcheck.hubot.allowed.invalid.time.before.alarm.sec:600}")
+    private long allowedInvalidityTime;
+
     @Autowired
     HealthManager healthManager;
 
@@ -120,7 +123,7 @@ public class LivenessReadinessRoute extends RouteBuilder {
     }
 
     private Set<String> getAllUnhealthySubscriptions() {
-        Set<String> unhealthySubscriptions = subscriptionManager.getAllUnhealthySubscriptions();
+        Set<String> unhealthySubscriptions = subscriptionManager.getAllUnhealthySubscriptions(allowedInvalidityTime*1000);
         if (unhealthySubscriptions.isEmpty()) {
 
         }
