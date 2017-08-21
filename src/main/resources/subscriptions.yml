@@ -32,6 +32,32 @@ anshar:
       datasetId: KOL
       serviceType: SOAP
       subscriptionType: VEHICLE_MONITORING
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 60
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: sis.kolumbus.no:90/VMWS/VMService.svc
+        DELETE_SUBSCRIPTION: sis.kolumbus.no:90/VMWS/VMService.svc
+        GET_VEHICLE_MONITORING: sis.kolumbus.no:90/VMWS/VMService.svc
+      version: 1.4
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: ${random.uuid}
+      requestorRef: RutebankenDEV
+      durationOfSubscriptionHours: 168
+      mappingAdapterPresets: NSR,KOLUMBUS
+      filterPresets:
+      idMappingPrefixes: KOL
+      environments: test,beta,prod
+      active: false
+    -
+      internalId: 200
+      vendor: kolumbusvm_reqres
+      datasetId: KOL
+      serviceType: SOAP
+      subscriptionType: VEHICLE_MONITORING
       subscriptionMode: REQUEST_RESPONSE
       heartbeatIntervalSeconds: 60
       operatorNamespace: http://www.siri.org.uk/siri
@@ -80,6 +106,31 @@ anshar:
       active: true
     -
       internalId: 4
+      vendor: atbvm
+      datasetId: ATB
+      serviceType: SOAP
+      subscriptionType: VEHICLE_MONITORING
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 60
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: st.atb.no/VMWS/VMService.svc
+        DELETE_SUBSCRIPTION: st.atb.no/VMWS/VMService.svc
+      version: 1.4
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: ${random.uuid}
+      requestorRef: RutebankenDEV
+      durationOfSubscriptionHours: 168
+      mappingAdapterPresets: NSR,ATB
+      filterPresets:
+      idMappingPrefixes: ATB
+      environments: test,beta,prod
+      active: false
+    -
+      internalId: 400
       vendor: atbvm
       datasetId: ATB
       serviceType: SOAP
@@ -560,7 +611,7 @@ anshar:
       filterPresets:
       idMappingPrefixes: MOR
       environments: test,beta,prod
-      active: true
+      active: false
     -
       internalId: 25
       vendor: mrvm
