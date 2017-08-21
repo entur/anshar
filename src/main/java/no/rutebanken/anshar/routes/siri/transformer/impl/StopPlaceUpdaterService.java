@@ -40,6 +40,9 @@ public class StopPlaceUpdaterService {
     @Qualifier("getLockMap")
     private IMap<String, Instant> lockMap;
 
+    @Value("${anshar.mapping.quays.url}")
+    private String quayMappingUrl;
+
     @Value("${anshar.mapping.stopplaces.url}")
     private String stopPlaceMappingUrl;
 
@@ -65,7 +68,7 @@ public class StopPlaceUpdaterService {
         ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
         executor.scheduleAtFixedRate(() -> updateIdMapping(), initialDelay, updateFrequency, TimeUnit.MINUTES);
 
-        logger.info("Initialized id_mapping-updater with url:{}, updateFrequency:{} min", stopPlaceMappingUrl, updateFrequency);
+        logger.info("Initialized id_mapping-updater with url:{}, updateFrequency:{} min", quayMappingUrl, updateFrequency);
     }
 
     private void updateIdMapping() {
@@ -77,7 +80,8 @@ public class StopPlaceUpdaterService {
 
             if ((instant == null || instant.isBefore(Instant.now().minusSeconds(updateFrequency * 60)))) {
                 // Data is not initialized, or is older than allowed
-                updateStopPlaceMapping();
+                updateStopPlaceMapping(quayMappingUrl);
+                updateStopPlaceMapping(stopPlaceMappingUrl);
                 lockMap.put(UPDATED_TIMESTAMP_KEY, Instant.now());
             }
         } catch (Exception e) {
@@ -88,12 +92,12 @@ public class StopPlaceUpdaterService {
         return;
     }
 
-    private void updateStopPlaceMapping() throws IOException {
+    private void updateStopPlaceMapping(String mappingUrl) throws IOException {
 
-        if (stopPlaceMappingUrl != null && !stopPlaceMappingUrl.isEmpty()) {
+        if (mappingUrl != null && !mappingUrl.isEmpty()) {
 
-            logger.info("Initializing data - start. Fetching mapping-data from {}", stopPlaceMappingUrl);
-            URL url = new URL(stopPlaceMappingUrl);
+            logger.info("Initializing data - start. Fetching mapping-data from {}", mappingUrl);
+            URL url = new URL(mappingUrl);
 
             Map<String, String> tmpStopPlaceMappings = new HashMap<>();
             Counter duplicates = new CounterImpl(0);

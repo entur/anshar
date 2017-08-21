@@ -30,7 +30,15 @@ public class StopPlaceRegisterMapper extends ValueAdapter {
             if (prefixes != null && !prefixes.isEmpty()) {
 
                 for (String prefix : prefixes) {
-                    String mappedValue = stopPlaceService.get(createCompleteId(prefix, id));
+                    String mappedValue = stopPlaceService.get(createCompleteId(prefix, id, "Quay"));
+                    if (mappedValue != null) {
+                        return mappedValue;
+                    }
+                }
+
+                //If no Quays matched - try StopPlace
+                for (String prefix : prefixes) {
+                    String mappedValue = stopPlaceService.get(createCompleteId(prefix, id, "StopPlace"));
                     if (mappedValue != null) {
                         return mappedValue;
                     }
@@ -45,12 +53,12 @@ public class StopPlaceRegisterMapper extends ValueAdapter {
         return id;
     }
 
-    private String createCompleteId(String prefix, String id) {
-        String stopAreaPrefix = new StringBuilder().append(prefix).append(":").append("Quay").append(":").toString();
-        if (id.startsWith(stopAreaPrefix)) {
+    private String createCompleteId(String prefix, String id, String datatype) {
+        String nsrIdPrefix = new StringBuilder().append(prefix).append(":").append(datatype).append(":").toString();
+        if (id.startsWith(nsrIdPrefix)) {
             return id;
         }
-        return new StringBuilder().append(stopAreaPrefix).append(id).toString();
+        return new StringBuilder().append(nsrIdPrefix).append(id).toString();
     }
 
     @Override

@@ -49,7 +49,7 @@ anshar:
       filterPresets:
       idMappingPrefixes: KOL
       environments: test,beta,prod
-      active: false
+      active: true
     -
       internalId: 3
       vendor: atbsx
