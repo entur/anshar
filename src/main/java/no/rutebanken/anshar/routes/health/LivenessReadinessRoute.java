@@ -96,7 +96,7 @@ public class LivenessReadinessRoute extends RouteBuilder {
                     .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("500"))
                     .log("Server is not receiving data")
                 .endChoice()
-                .when(p -> getAllUnhealthySubscriptions() != null)
+                .when(p -> getAllUnhealthySubscriptions() != null && !getAllUnhealthySubscriptions().isEmpty())
                     .process(p -> {
                         String message = MessageFormat.format(hubotMessage, getAllUnhealthySubscriptions());
 
