@@ -30,12 +30,8 @@ public class MappingAdapterPresets {
         List<ValueAdapter> adapters = new ArrayList<>();
         switch (preset) {
             case RUTER:
-                adapters.add(new LeftPaddingAdapter(LineRef.class, 4, '0'));
-
                 adapters.add(new RuterSubstringAdapter(StopPointRef.class, ':', '0', 2));
-
                 adapters.add(new RuterSubstringAdapter(JourneyPlaceRefStructure.class, ':', '0', 2));
-
                 adapters.add(new RuterSubstringAdapter(DestinationRef.class, ':', '0', 2));
                 break;
             case ATB:
