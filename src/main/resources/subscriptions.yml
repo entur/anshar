@@ -542,7 +542,7 @@ anshar:
       serviceType: SOAP
       subscriptionType: ESTIMATED_TIMETABLE
       subscriptionMode: SUBSCRIBE
-      heartbeatIntervalSeconds: -1
+      heartbeatIntervalSeconds: 6000
       operatorNamespace: http://wsdl.siri.org.uk
       addressFieldName: ConsumerAddress
       soapenvNamespace: http://www.w3.org/2003/05/soap-envelope
@@ -568,7 +568,7 @@ anshar:
       serviceType: SOAP
       subscriptionType: VEHICLE_MONITORING
       subscriptionMode: SUBSCRIBE
-      heartbeatIntervalSeconds: -1
+      heartbeatIntervalSeconds: 6000
       operatorNamespace: http://wsdl.siri.org.uk
       addressFieldName: ConsumerAddress
       soapenvNamespace: http://www.w3.org/2003/05/soap-envelope
@@ -595,7 +595,7 @@ anshar:
       serviceType: SOAP
       subscriptionType: SITUATION_EXCHANGE
       subscriptionMode: SUBSCRIBE
-      heartbeatIntervalSeconds: -1
+      heartbeatIntervalSeconds: 6000
       operatorNamespace: http://wsdl.siri.org.uk
       addressFieldName: ConsumerAddress
       soapenvNamespace: http://www.w3.org/2003/05/soap-envelope
@@ -621,7 +621,7 @@ anshar:
       serviceType: SOAP
       subscriptionType: ESTIMATED_TIMETABLE
       subscriptionMode: SUBSCRIBE
-      heartbeatIntervalSeconds: -1
+      heartbeatIntervalSeconds: 6000
       previewIntervalSeconds: 7200
       operatorNamespace: http://wsdl.siri.org.uk
       addressFieldName: ConsumerAddress
@@ -647,7 +647,7 @@ anshar:
       serviceType: SOAP
       subscriptionType: VEHICLE_MONITORING
       subscriptionMode: SUBSCRIBE
-      heartbeatIntervalSeconds: -1
+      heartbeatIntervalSeconds:  6000
       previewIntervalSeconds: 7200
       operatorNamespace: http://wsdl.siri.org.uk
       addressFieldName: ConsumerAddress
@@ -673,7 +673,7 @@ anshar:
       serviceType: SOAP
       subscriptionType: SITUATION_EXCHANGE
       subscriptionMode: SUBSCRIBE
-      heartbeatIntervalSeconds: -1
+      heartbeatIntervalSeconds:  6000
       previewIntervalSeconds: 7200
       operatorNamespace: http://wsdl.siri.org.uk
       addressFieldName: ConsumerAddress
@@ -699,7 +699,7 @@ anshar:
       serviceType: REST
       subscriptionType: ESTIMATED_TIMETABLE
       subscriptionMode: SUBSCRIBE
-      heartbeatIntervalSeconds: 60
+      heartbeatIntervalSeconds: 6000
       operatorNamespace: http://www.siri.org.uk/siri
       addressFieldName:
       soapenvNamespace:

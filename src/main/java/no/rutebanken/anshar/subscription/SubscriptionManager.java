@@ -194,9 +194,9 @@ public class SubscriptionManager {
     }
 
     public Boolean isSubscriptionHealthy(String subscriptionId) {
-        return isSubscriptionHealthy(subscriptionId, null);
+        return isSubscriptionHealthy(subscriptionId, HEALTHCHECK_INTERVAL_FACTOR);
     }
-    public Boolean isSubscriptionHealthy(String subscriptionId, Long allowedIntervalOverride) {
+    public Boolean isSubscriptionHealthy(String subscriptionId, int healthCheckIntervalFactor) {
         Instant instant = lastActivity.get(subscriptionId);
 
         if (instant == null) {
@@ -209,17 +209,12 @@ public class SubscriptionManager {
         SubscriptionSetup activeSubscription = subscriptions.get(subscriptionId);
         if (activeSubscription != null) {
 
-            long allowedInterval;
-            if (allowedIntervalOverride == null) {
-                Duration heartbeatInterval = activeSubscription.getHeartbeatInterval();
-                if (heartbeatInterval == null) {
-                    heartbeatInterval = Duration.ofMinutes(5);
-                }
-
-                allowedInterval = heartbeatInterval.toMillis() * HEALTHCHECK_INTERVAL_FACTOR;
-            } else {
-                allowedInterval = allowedIntervalOverride;
+            Duration heartbeatInterval = activeSubscription.getHeartbeatInterval();
+            if (heartbeatInterval == null) {
+                heartbeatInterval = Duration.ofMinutes(5);
             }
+
+            long allowedInterval = heartbeatInterval.toMillis() * healthCheckIntervalFactor;
 
             if (instant.isBefore(Instant.now().minusMillis(allowedInterval))) {
                 //Subscription exists, but there has not been any activity recently
@@ -336,10 +331,10 @@ public class SubscriptionManager {
         }
     }
 
-    public Set<String> getAllUnhealthySubscriptions(final long allowedInvalidityTime) {
+    public Set<String> getAllUnhealthySubscriptions(int healthCheckIntervalFactor) {
         Set<String> subscriptionIds = subscriptions.keySet()
                 .stream()
-                .filter(subscriptionId -> !isSubscriptionHealthy(subscriptionId, allowedInvalidityTime))
+                .filter(subscriptionId -> !isSubscriptionHealthy(subscriptionId, healthCheckIntervalFactor))
                 .collect(Collectors.toSet());
         if (subscriptionIds != null & !subscriptionIds.isEmpty()) {
             return subscriptions.getAll(subscriptionIds)

@@ -36,8 +36,8 @@ public class LivenessReadinessRoute extends RouteBuilder {
     @Value("${anshar.healthcheck.hubot.payload.template}")
     private String hubotTemplate;
 
-    @Value("${anshar.healthcheck.hubot.allowed.invalid.time.before.alarm.sec:600}")
-    private long allowedInvalidityTime;
+    @Value("${anshar.healthcheck.hubot.interval.factor:10}")
+    private int healthCheckIntervalFactor;
 
     @Autowired
     HealthManager healthManager;
@@ -108,10 +108,9 @@ public class LivenessReadinessRoute extends RouteBuilder {
 //                        p.getOut().setBody("{" + jsonPayload +"}");
                         logger.warn("Found unhealthy subscriptions notify hubot:" + jsonPayload);
                     })
-//                    .setHeader(Exchange.CONTENT_TYPE, constant(MediaType.JSON_UTF_8)) // Necessary when talking to Microsoft web services
+//                    .setHeader(Exchange.CONTENT_TYPE, constant(MediaType.JSON_UTF_8))
 //                    .setHeader(Exchange.HTTP_METHOD, constant(HttpMethods.POST))
 //                    .to(hubotUrl)
-                    .log("Found unhealthy subscriptions")
                 .endChoice()
                 .otherwise()
                     .setBody(simple("OK"))
@@ -123,7 +122,7 @@ public class LivenessReadinessRoute extends RouteBuilder {
     }
 
     private Set<String> getAllUnhealthySubscriptions() {
-        Set<String> unhealthySubscriptions = subscriptionManager.getAllUnhealthySubscriptions(allowedInvalidityTime*1000);
+        Set<String> unhealthySubscriptions = subscriptionManager.getAllUnhealthySubscriptions(healthCheckIntervalFactor);
         if (unhealthySubscriptions.isEmpty()) {
 
         }
