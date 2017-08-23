@@ -2,6 +2,7 @@ package no.rutebanken.anshar.messages;
 
 import com.hazelcast.core.IMap;
 import no.rutebanken.anshar.routes.siri.SiriObjectFactory;
+import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
 import org.quartz.utils.counter.Counter;
 import org.quartz.utils.counter.CounterImpl;
 import org.slf4j.Logger;
@@ -267,14 +268,14 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
                         if (existingRecordedCallWrapper != null && existingRecordedCallWrapper.getRecordedCalls() != null ) {
                             for (RecordedCall recordedCall : existingRecordedCallWrapper.getRecordedCalls()) {
                                 if (recordedCall.getStopPointRef() != null) {
-                                    recordedCallsMap.put(recordedCall.getStopPointRef().getValue(), recordedCall);
+                                    recordedCallsMap.put(getOriginalId(recordedCall.getStopPointRef().getValue()), recordedCall);
                                 }
                             }
                         }
                         if (updatedRecordedCallWrapper != null && updatedRecordedCallWrapper.getRecordedCalls() != null ) {
                             for (RecordedCall recordedCall : updatedRecordedCallWrapper.getRecordedCalls()) {
                                 if (recordedCall.getStopPointRef() != null) {
-                                    recordedCallsMap.put(recordedCall.getStopPointRef().getValue(), recordedCall);
+                                    recordedCallsMap.put(getOriginalId(recordedCall.getStopPointRef().getValue()), recordedCall);
                                 }
                             }
                         }
@@ -283,14 +284,14 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
                         if (existingEstimatedCallWrapper != null && existingEstimatedCallWrapper.getEstimatedCalls() != null ) {
                             for (EstimatedCall call : existingEstimatedCallWrapper.getEstimatedCalls()) {
                                 if (!recordedCallsMap.containsKey(call.getStopPointRef().getValue())) {
-                                    estimatedCallsMap.put(call.getStopPointRef().getValue(), call);
+                                    estimatedCallsMap.put(getOriginalId(call.getStopPointRef().getValue()), call);
                                 }
                             }
                         }
                         //Add or replace existing calls
                         if (updatedEstimatedCallWrapper != null && updatedEstimatedCallWrapper.getEstimatedCalls() != null ) {
                             for (EstimatedCall call : updatedEstimatedCallWrapper.getEstimatedCalls()) {
-                                estimatedCallsMap.put(call.getStopPointRef().getValue(), call);
+                                estimatedCallsMap.put(getOriginalId(call.getStopPointRef().getValue()), call);
                             }
                         }
 
@@ -350,6 +351,13 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
         });
 
         return timetableDeliveries.getAll(changes).values();
+    }
+
+    private String getOriginalId(String stopPointRef) {
+        if (stopPointRef != null && stopPointRef.indexOf(SiriValueTransformer.SEPARATOR) > 0) {
+            return stopPointRef.substring(0, stopPointRef.indexOf(SiriValueTransformer.SEPARATOR));
+        }
+        return stopPointRef;
     }
 
 
