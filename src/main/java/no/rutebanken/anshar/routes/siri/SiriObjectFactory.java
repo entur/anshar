@@ -337,7 +337,11 @@ public class SiriObjectFactory {
         etSubscriptionReq.setSubscriptionIdentifier(createSubscriptionIdentifier(subscriptionId));
         etSubscriptionReq.setInitialTerminationTime(ZonedDateTime.now().plusSeconds(subscriptionDuration.getSeconds()));
         etSubscriptionReq.setSubscriberRef(request.getRequestorRef());
-        etSubscriptionReq.setChangeBeforeUpdates(createDataTypeFactory().newDuration(changeBeforeUpdates));
+        if (changeBeforeUpdates != null) {
+            etSubscriptionReq.setChangeBeforeUpdates(createDataTypeFactory().newDuration(changeBeforeUpdates));
+        } else {
+            etSubscriptionReq.setChangeBeforeUpdates(createDataTypeFactory().newDuration("PT1S"));
+        }
 
         etSubscriptionReq.setIncrementalUpdates(incrementalUpdates);
 
