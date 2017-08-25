@@ -384,8 +384,8 @@ anshar:
       mappingAdapterPresets: BANENOR
       filterPresets:
       idMappingPrefixes: NSB,FLT
-      environments: test,beta,prod,local
-      active: true
+      environments: test,beta,prod
+      active: false
     -
       internalId: 18
       vendor: baneSx-reqres
