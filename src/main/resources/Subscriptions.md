@@ -6,7 +6,7 @@
 |subscriptionType|VEHICLE_MONITORING, SITUATION_EXCHANGE, ESTIMATED_TIMETABLE, PRODUCTION_TIMETABLE|SIRI datatype for this subscription|
 |subscriptionMode|REQUEST_RESPONSE, SUBSCRIBE, FETCHED_DELIVERY| - REQUEST_RESPONSE: Client gets all current data at som interval - SUBSCRIBE:Pubsub-pattern - changes are pushed from server to client when they occur. - FETCHED_DELIVERY:Client is notified that data is updated, and should POST a GetServiceRequest to get updated data.|
 |heartbeatIntervalSeconds|Any int|Expected heartbeat frequency|
-|updateIntervalSeconds|Any int|Requested update-interval (only applicable when subscription is VEHICLE_MONITORING and SUBSCRIBE)|
+|updateIntervalSeconds|Any int|Indicates update-interval (only applicable when subscription is ESTIMATED_TIMETABLE/VEHICLE_MONITORING and type SUBSCRIBE)|
 |previewIntervalSeconds|Any int|Requested preview interval|
 |operatorNamespace|Namespace URL|Optional namespace used in XML-marshalling data from this subscription|
 |addressFieldName| *Address* or *ConsumerAddress* (default)| XML-attribute to use for inbound URL |
