@@ -393,7 +393,7 @@ anshar:
       serviceType: REST
       subscriptionType: ESTIMATED_TIMETABLE
       subscriptionMode: REQUEST_RESPONSE
-      heartbeatIntervalSeconds: 15
+      heartbeatIntervalSeconds: 30
       previewIntervalSeconds: 3600
       updateIntervalSeconds: 1
       operatorNamespace: http://www.siri.org.uk/siri
@@ -444,7 +444,7 @@ anshar:
       serviceType: REST
       subscriptionType: SITUATION_EXCHANGE
       subscriptionMode: REQUEST_RESPONSE
-      heartbeatIntervalSeconds: 15
+      heartbeatIntervalSeconds: 30
       previewIntervalSeconds: 3600
       operatorNamespace: http://www.siri.org.uk/siri
       addressFieldName:
