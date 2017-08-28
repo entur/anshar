@@ -362,12 +362,38 @@ anshar:
       active: true
     -
       internalId: 17
-      vendor: baneEt-reqres
+      vendor: baneEt-reqres-24h
       datasetId: BNR
       serviceType: REST
       subscriptionType: ESTIMATED_TIMETABLE
       subscriptionMode: REQUEST_RESPONSE
-      heartbeatIntervalSeconds: 60
+      heartbeatIntervalSeconds: 120
+      previewIntervalSeconds: 86400
+      updateIntervalSeconds: 1
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      urlMap:
+        GET_ESTIMATED_TIMETABLE: https4://siri.opm.jbv.no/jbv/et
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: ${random.uuid}
+      requestorRef: RutebankenDEV_${random.uuid}
+      durationOfSubscriptionHours: 2
+      mappingAdapterPresets: BANENOR
+      filterPresets:
+      idMappingPrefixes: NSB,FLT
+      environments: test,beta,prod
+      active: true
+    -
+      internalId: 171
+      vendor: baneEt-reqres-1h
+      datasetId: BNR
+      serviceType: REST
+      subscriptionType: ESTIMATED_TIMETABLE
+      subscriptionMode: REQUEST_RESPONSE
+      heartbeatIntervalSeconds: 15
       previewIntervalSeconds: 3600
       updateIntervalSeconds: 1
       operatorNamespace: http://www.siri.org.uk/siri
@@ -385,15 +411,15 @@ anshar:
       filterPresets:
       idMappingPrefixes: NSB,FLT
       environments: test,beta,prod
-      active: false
+      active: true
     -
       internalId: 18
-      vendor: baneSx-reqres
+      vendor: baneSx-reqres-24h
       datasetId: BNR
       serviceType: REST
       subscriptionType: SITUATION_EXCHANGE
       subscriptionMode: REQUEST_RESPONSE
-      heartbeatIntervalSeconds: 60
+      heartbeatIntervalSeconds: 120
       previewIntervalSeconds: 86400
       operatorNamespace: http://www.siri.org.uk/siri
       addressFieldName:
@@ -410,7 +436,32 @@ anshar:
       filterPresets:
       idMappingPrefixes: NSB,FLT
       environments: test,beta,prod
-      active: false
+      active: true
+    -
+      internalId: 181
+      vendor: baneSx-reqres-1h
+      datasetId: BNR
+      serviceType: REST
+      subscriptionType: SITUATION_EXCHANGE
+      subscriptionMode: REQUEST_RESPONSE
+      heartbeatIntervalSeconds: 15
+      previewIntervalSeconds: 3600
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      urlMap:
+        GET_SITUATION_EXCHANGE: https4://siri.opm.jbv.no/jbv/sx
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: ${random.uuid}
+      requestorRef: RutebankenDEV_${random.uuid}
+      durationOfSubscriptionHours: 2
+      mappingAdapterPresets: BANENOR
+      filterPresets:
+      idMappingPrefixes: NSB,FLT
+      environments: test,beta,prod
+      active: true
     -
       internalId: 19
       vendor: baneEt
@@ -438,7 +489,7 @@ anshar:
       filterPresets:
       idMappingPrefixes: NSB,FLT
       environments: test,beta,prod
-      active: true
+      active: false
     -
       internalId: 20
       vendor: baneSx
@@ -465,7 +516,7 @@ anshar:
       filterPresets:
       idMappingPrefixes: NSB,FLT
       environments: test,beta,prod
-      active: true
+      active: false
     -
       internalId: 21
       vendor: nsbSx
