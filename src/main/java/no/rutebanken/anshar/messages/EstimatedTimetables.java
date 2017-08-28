@@ -337,8 +337,8 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
             }
         });
 
-        logger.info("Updated {} (of {}) :: Ignored elements - Already expired: {}", changes.size(), etList.size(), outdatedCounter.getValue());
-        logger.info("Updated {} \n Ignored - {}", updatedDatedVehicleRef, ignoredDatedVehicleRef);
+        logger.info("Updated {} (of {})", changes.size(), etList.size());
+        logger.debug("Updated {} \n Ignored - {}", updatedDatedVehicleRef, ignoredDatedVehicleRef);
 
         changesMap.keySet().forEach(requestor -> {
             if (lastUpdateRequested.get(requestor) != null) {
