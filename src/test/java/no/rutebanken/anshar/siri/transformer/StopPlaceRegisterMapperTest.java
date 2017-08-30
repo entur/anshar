@@ -36,11 +36,10 @@ public class StopPlaceRegisterMapperTest {
         stopPlaceMap.put("ABC:Quay:5678", "NSR:QUAY:55667788");
         stopPlaceMap.put("XYZ:Quay:5555", "NSR:QUAY:44444444");
 
-        Object mappings = ApplicationContextHolder.getContext().getBean("getStopPlaceMappings");
-        if (mappings instanceof Map) {
-            //Manually adding custom mapping to Spring context
-            ((Map) mappings).putAll(stopPlaceMap);
-        }
+        StopPlaceUpdaterService stopPlaceService = ApplicationContextHolder.getContext().getBean(StopPlaceUpdaterService.class);
+
+        //Manually adding custom mapping to Spring context
+        stopPlaceService.addStopPlaceMappings(stopPlaceMap);
     }
 
     @Test
