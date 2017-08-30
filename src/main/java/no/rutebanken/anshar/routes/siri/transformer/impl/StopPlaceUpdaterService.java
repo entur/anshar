@@ -17,16 +17,14 @@ import java.net.URLConnection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 @Component
 @Configuration
 public class StopPlaceUpdaterService {
     private Logger logger = LoggerFactory.getLogger(StopPlaceUpdaterService.class);
 
-    private Map<String, String> stopPlaceMappings = new HashMap<>();
+    private ConcurrentMap<String, String> stopPlaceMappings = new ConcurrentHashMap<>();
 
     @Value("${anshar.mapping.quays.url}")
     private String quayMappingUrl;

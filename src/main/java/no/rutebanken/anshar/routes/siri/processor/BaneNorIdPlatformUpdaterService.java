@@ -15,16 +15,14 @@ import java.net.URLConnection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 @Component
 @Configuration
 public class BaneNorIdPlatformUpdaterService {
     private Logger logger = LoggerFactory.getLogger(BaneNorIdPlatformUpdaterService.class);
 
-    private Map<String, String> jbvCodeStopPlaceMappings = new HashMap<>();
+    private ConcurrentMap<String, String> jbvCodeStopPlaceMappings = new ConcurrentHashMap<>();
 
     @Value("${anshar.mapping.jbvCode.url}")
     private String jbvCodeStopPlaceMappingUrl;

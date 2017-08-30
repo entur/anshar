@@ -17,8 +17,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 public class SiriValueTransformer {
 
@@ -26,69 +24,7 @@ public class SiriValueTransformer {
 
     private static Logger logger = LoggerFactory.getLogger(SiriValueTransformer.class);
 
-    /**
-     *
-     * @param xml
-     * @param adapters
-     * @return
-     * @throws JAXBException
-     */
-    public static Siri parseXml(InputStream xml, List adapters) throws JAXBException {
-        return transform(SiriXml.parseXml(xml), adapters);
-    }
-
-    public static Siri parseXml(InputStream xml) throws JAXBException {
-        return SiriXml.parseXml(xml);
-    }
-
-    public static Siri transform(Siri siri, List adapters) {
-        if (siri == null) {
-            return null;
-        }
-        Siri transformed;
-        try {
-        	transformed = SiriObjectFactory.deepCopy(siri);
-        } catch (Exception e) {
-            logger.warn("Unable to transform SIRI-object", e);
-            return siri;
-        }
-        if (transformed != null && adapters != null) {
-            logger.trace("Applying {} valueadapters {}", adapters.size(), adapters);
-
-            List<ValueAdapter> valueAdapters = (List<ValueAdapter>) adapters
-                    .stream()
-                    .filter(valueAdapter -> !(valueAdapter instanceof PostProcessor))
-                    .collect(Collectors.toList());
-
-
-            List<PostProcessor> postProcessors = (List<PostProcessor>) adapters
-                    .stream()
-                    .filter(valueAdapter -> (valueAdapter instanceof PostProcessor))
-                    .collect(Collectors.toList());
-
-            valueAdapters.forEach(a -> {
-                try {
-                    AtomicInteger counter = new AtomicInteger();
-                    long t1 = System.currentTimeMillis();
-                    applyAdapter(transformed, a, counter);
-                    logger.info("Loops for adapter {}: {}, time: {}ms", a, counter.get(), (System.currentTimeMillis() - t1));
-                } catch (Throwable t) {
-                    logger.warn("Caught exception while transforming SIRI-object.", t);
-                }
-            });
-
-            postProcessors.forEach(processor -> {
-                        try {
-                            processor.process(transformed);
-                        } catch (Throwable t) {
-                            logger.warn("Caught exception while transforming SIRI-object.", t);
-                        }
-            });
-        }
-        return transformed;
-    }
-
-    static LoadingCache<Class, List<Method>> getterMethodsCache = CacheBuilder.newBuilder()
+    private static final LoadingCache<Class, List<Method>> getterMethodsCache = CacheBuilder.newBuilder()
             .build(
                     new CacheLoader<Class, List<Method>>() {
                         public List<Method> load(Class clazz) {
@@ -105,6 +41,68 @@ public class SiriValueTransformer {
                     });
 
     /**
+     *
+     * @param xml
+     * @param adapters
+     * @return
+     * @throws JAXBException
+     */
+    public static Siri parseXml(InputStream xml, List adapters) throws JAXBException {
+        return transform(SiriXml.parseXml(xml), adapters);
+    }
+
+    public static Siri parseXml(InputStream xml) throws JAXBException {
+        return SiriXml.parseXml(xml);
+    }
+
+    public static Siri transform(Siri siri, List<ValueAdapter> adapters) {
+        if (siri == null) {
+            return null;
+        }
+        Siri transformed;
+        try {
+        	transformed = SiriObjectFactory.deepCopy(siri);
+        } catch (Exception e) {
+            logger.warn("Unable to transform SIRI-object", e);
+            return siri;
+        }
+        if (transformed != null && adapters != null) {
+            logger.trace("Applying {} valueadapters {}", adapters.size(), adapters);
+
+            List<ValueAdapter> valueAdapters = new ArrayList<>();
+            for (ValueAdapter adapter : adapters) {
+                if (!(adapter instanceof PostProcessor)) {
+                    valueAdapters.add(adapter);
+                }
+            }
+
+            List<PostProcessor> postProcessors = new ArrayList<>();
+            for (ValueAdapter valueAdapter : adapters) {
+                if ((valueAdapter instanceof PostProcessor)) {
+                    postProcessors.add((PostProcessor) valueAdapter);
+                }
+            }
+
+            for (ValueAdapter a : valueAdapters) {
+                try {
+                    applyAdapter(transformed, a);
+                } catch (Throwable t) {
+                    logger.warn("Caught exception while transforming SIRI-object.", t);
+                }
+            }
+
+            for (PostProcessor processor : postProcessors) {
+                try {
+                    processor.process(transformed);
+                } catch (Throwable t) {
+                    logger.warn("Caught exception while post-processing SIRI-object.", t);
+                }
+            }
+        }
+        return transformed;
+    }
+
+    /**
      * Recursively applies ValueAdapter to all fields of the specified type within SIRI-packages.
      *
      * Uses getValue()/setValue(...) apply adapters
@@ -115,7 +113,7 @@ public class SiriValueTransformer {
      * @throws InvocationTargetException
      * @throws IllegalAccessException
      */
-    private static void applyAdapter(Object obj, ValueAdapter adapter, AtomicInteger counter) throws Throwable {
+    private static void applyAdapter(Object obj, ValueAdapter adapter) throws Throwable {
 
         //Only apply to Siri-classes
         if (obj.getClass().getName().startsWith("uk.org.siri")) {
@@ -146,7 +144,6 @@ public class SiriValueTransformer {
 
                         Method valueSetter = previousValue.getClass().getMethod("setValue", String.class);
                         valueSetter.invoke(previousValue, alteredValue);
-                        counter.incrementAndGet();
                     }
                 } else {
                     Object currentValue = method.invoke(obj);
@@ -154,10 +151,10 @@ public class SiriValueTransformer {
                         if (currentValue instanceof List) {
                             List list = (List) currentValue;
                             for (Object o : list) {
-                                applyAdapter(o, adapter, counter);
+                                applyAdapter(o, adapter);
                             }
                         } else {
-                            applyAdapter(currentValue, adapter, counter);
+                            applyAdapter(currentValue, adapter);
                         }
                     }
                 }
