@@ -1,7 +1,6 @@
 package no.rutebanken.anshar.routes.siri.processor;
 
 import com.hazelcast.core.IMap;
-import no.rutebanken.anshar.routes.siri.transformer.impl.StopPlaceUpdaterService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +26,7 @@ import java.util.concurrent.TimeUnit;
 @Component
 @Configuration
 public class BaneNorIdPlatformUpdaterService {
-    private Logger logger = LoggerFactory.getLogger(StopPlaceUpdaterService.class);
+    private Logger logger = LoggerFactory.getLogger(BaneNorIdPlatformUpdaterService.class);
 
     private static final String UPDATED_TIMESTAMP_KEY = "anshar.jbvCode.updater";
 
@@ -58,7 +57,7 @@ public class BaneNorIdPlatformUpdaterService {
         ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
         executor.scheduleAtFixedRate(() -> updateIdMapping(), 0, updateFrequency, TimeUnit.MINUTES);
 
-        logger.info("Initialized id_mapping-updater with url:{}, updateFrequency:{} min", jbvCodeStopPlaceMappingUrl, updateFrequency);
+        logger.info("Initialized jbvCode_mapping-updater with url:{}, updateFrequency:{} min", jbvCodeStopPlaceMappingUrl, updateFrequency);
     }
 
     private void updateIdMapping() {
