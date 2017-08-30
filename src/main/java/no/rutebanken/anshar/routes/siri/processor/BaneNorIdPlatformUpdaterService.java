@@ -1,10 +1,7 @@
 package no.rutebanken.anshar.routes.siri.processor;
 
-import com.hazelcast.core.IMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
@@ -15,7 +12,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
-import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
@@ -28,15 +24,7 @@ import java.util.concurrent.TimeUnit;
 public class BaneNorIdPlatformUpdaterService {
     private Logger logger = LoggerFactory.getLogger(BaneNorIdPlatformUpdaterService.class);
 
-    private static final String UPDATED_TIMESTAMP_KEY = "anshar.jbvCode.updater";
-
-    @Autowired
-    @Qualifier("getJbvStopPlaceMappings")
-    private IMap<String, String> jbvCodeStopPlaceMappings;
-
-    @Autowired
-    @Qualifier("getLockMap")
-    private IMap<String, Instant> lockMap;
+    private Map<String, String> jbvCodeStopPlaceMappings = new HashMap<>();
 
     @Value("${anshar.mapping.jbvCode.url}")
     private String jbvCodeStopPlaceMappingUrl;
@@ -53,31 +41,19 @@ public class BaneNorIdPlatformUpdaterService {
 
     @PostConstruct
     private void initialize() {
-
+        updateIdMapping();
         ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-        executor.scheduleAtFixedRate(() -> updateIdMapping(), 0, updateFrequency, TimeUnit.MINUTES);
+        executor.scheduleAtFixedRate(() -> updateIdMapping(), updateFrequency, updateFrequency, TimeUnit.MINUTES);
 
         logger.info("Initialized jbvCode_mapping-updater with url:{}, updateFrequency:{} min", jbvCodeStopPlaceMappingUrl, updateFrequency);
     }
 
     private void updateIdMapping() {
-        if (!lockMap.tryLock(UPDATED_TIMESTAMP_KEY)) {
-            return;
-        }
         try {
-            Instant instant = lockMap.get(UPDATED_TIMESTAMP_KEY);
-
-            if ((instant == null || instant.isBefore(Instant.now().minusSeconds(updateFrequency * 60)))) {
-                // Data is not initialized, or is older than allowed
-                updateStopPlaceMapping();
-                lockMap.put(UPDATED_TIMESTAMP_KEY, Instant.now());
-            }
+            updateStopPlaceMapping();
         } catch (Exception e) {
             logger.warn("Fetching data - caused exception", e);
-        } finally {
-            lockMap.unlock(UPDATED_TIMESTAMP_KEY);
         }
-        return;
     }
 
     private void updateStopPlaceMapping() throws IOException {

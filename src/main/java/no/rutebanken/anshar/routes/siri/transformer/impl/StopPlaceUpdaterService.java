@@ -1,12 +1,9 @@
 package no.rutebanken.anshar.routes.siri.transformer.impl;
 
-import com.hazelcast.core.IMap;
 import org.quartz.utils.counter.Counter;
 import org.quartz.utils.counter.CounterImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
@@ -17,7 +14,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
-import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
@@ -30,15 +26,7 @@ import java.util.concurrent.TimeUnit;
 public class StopPlaceUpdaterService {
     private Logger logger = LoggerFactory.getLogger(StopPlaceUpdaterService.class);
 
-    private static final String UPDATED_TIMESTAMP_KEY = "anshar.nsr.updater";
-
-    @Autowired
-    @Qualifier("getStopPlaceMappings")
-    private IMap<String, String> stopPlaceMappings;
-
-    @Autowired
-    @Qualifier("getLockMap")
-    private IMap<String, Instant> lockMap;
+    private Map<String, String> stopPlaceMappings = new HashMap<>();
 
     @Value("${anshar.mapping.quays.url}")
     private String quayMappingUrl;
@@ -58,38 +46,20 @@ public class StopPlaceUpdaterService {
 
     @PostConstruct
     private void initialize() {
-
-        int initialDelay;
-        if (stopPlaceMappings.isEmpty()) {
-            initialDelay = 0;
-        } else {
-            initialDelay = updateFrequency;
-        }
+        updateIdMapping();
         ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-        executor.scheduleAtFixedRate(() -> updateIdMapping(), initialDelay, updateFrequency, TimeUnit.MINUTES);
+        executor.scheduleAtFixedRate(() -> updateIdMapping(), updateFrequency, updateFrequency, TimeUnit.MINUTES);
 
         logger.info("Initialized id_mapping-updater with url:{}, updateFrequency:{} min", quayMappingUrl, updateFrequency);
     }
 
     private void updateIdMapping() {
-        if (!lockMap.tryLock(UPDATED_TIMESTAMP_KEY)) {
-            return;
-        }
         try {
-            Instant instant = lockMap.get(UPDATED_TIMESTAMP_KEY);
-
-            if ((instant == null || instant.isBefore(Instant.now().minusSeconds(updateFrequency * 60)))) {
-                // Data is not initialized, or is older than allowed
-                updateStopPlaceMapping(quayMappingUrl);
-                updateStopPlaceMapping(stopPlaceMappingUrl);
-                lockMap.put(UPDATED_TIMESTAMP_KEY, Instant.now());
-            }
-        } catch (Exception e) {
-            logger.warn("Fetching data - caused exception", e);
-        } finally {
-            lockMap.unlock(UPDATED_TIMESTAMP_KEY);
+            updateStopPlaceMapping(quayMappingUrl);
+            updateStopPlaceMapping(stopPlaceMappingUrl);
+        } catch (IOException e) {
+            logger.error("Unable to initialize data",e);
         }
-        return;
     }
 
     private void updateStopPlaceMapping(String mappingUrl) throws IOException {
