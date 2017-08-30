@@ -1,5 +1,8 @@
 package no.rutebanken.anshar.routes.siri.transformer;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import no.rutebanken.anshar.routes.siri.SiriObjectFactory;
 import no.rutebanken.anshar.routes.siri.processor.PostProcessor;
 import no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter;
@@ -12,13 +15,15 @@ import javax.xml.bind.JAXBException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 public class SiriValueTransformer {
 
     public static final String SEPARATOR = "$";
-    
+
     private static Logger logger = LoggerFactory.getLogger(SiriValueTransformer.class);
 
     /**
@@ -40,9 +45,6 @@ public class SiriValueTransformer {
         if (siri == null) {
             return null;
         }
-        
-        
-        
         Siri transformed;
         try {
         	transformed = SiriObjectFactory.deepCopy(siri);
@@ -58,6 +60,7 @@ public class SiriValueTransformer {
                     .filter(valueAdapter -> !(valueAdapter instanceof PostProcessor))
                     .collect(Collectors.toList());
 
+
             List<PostProcessor> postProcessors = (List<PostProcessor>) adapters
                     .stream()
                     .filter(valueAdapter -> (valueAdapter instanceof PostProcessor))
@@ -65,7 +68,10 @@ public class SiriValueTransformer {
 
             valueAdapters.forEach(a -> {
                 try {
-                    applyAdapter(transformed, a);
+                    AtomicInteger counter = new AtomicInteger();
+                    long t1 = System.currentTimeMillis();
+                    applyAdapter(transformed, a, counter);
+                    logger.info("Loops for adapter {}: {}, time: {}ms", a, counter.get(), (System.currentTimeMillis() - t1));
                 } catch (Throwable t) {
                     logger.warn("Caught exception while transforming SIRI-object.", t);
                 }
@@ -82,6 +88,22 @@ public class SiriValueTransformer {
         return transformed;
     }
 
+    static LoadingCache<Class, List<Method>> getterMethodsCache = CacheBuilder.newBuilder()
+            .build(
+                    new CacheLoader<Class, List<Method>>() {
+                        public List<Method> load(Class clazz) {
+                            Method[] methods = clazz.getMethods();
+                            List<Method> getterMethods = new ArrayList<>();
+                            for (Method method : methods) {
+                                if (method.getParameterCount() == 0 &&
+                                        !("void".equals(method.getReturnType().getName()))) {
+                                    getterMethods.add(method);
+                                }
+                            }
+                            return getterMethods;
+                        }
+                    });
+
     /**
      * Recursively applies ValueAdapter to all fields of the specified type within SIRI-packages.
      *
@@ -93,50 +115,49 @@ public class SiriValueTransformer {
      * @throws InvocationTargetException
      * @throws IllegalAccessException
      */
-    private static void applyAdapter(Object obj, ValueAdapter adapter) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    private static void applyAdapter(Object obj, ValueAdapter adapter, AtomicInteger counter) throws Throwable {
 
+        //Only apply to Siri-classes
         if (obj.getClass().getName().startsWith("uk.org.siri")) {
-            //Only apply to Siri-classes
 
-            Method[] methods = obj.getClass().getMethods();
-            for (Method method : methods) {
-                if (method.getParameterCount() == 0 &&
-                        !("void".equals(method.getReturnType().getName()))) {
-                    if (method.getReturnType().equals(adapter.getClassToApply())) {
-                        Object previousValue = method.invoke(obj);
-                        if (previousValue != null) {
-                            String value = (String) previousValue.getClass().getMethod("getValue").invoke(previousValue);
-                            String alteredValue;
+            List<Method> allMethods = getterMethodsCache.get(obj.getClass());
+            for (Method method : allMethods) {
+                if (method.getReturnType().equals(adapter.getClassToApply())) {
 
-                            String originalId = value;
+                    Object previousValue = method.invoke(obj);
+                    if (previousValue != null) {
+                        String value = (String) previousValue.getClass().getMethod("getValue").invoke(previousValue);
+                        String alteredValue;
 
-                            if (adapter instanceof OutboundIdAdapter) {
+                        String originalId = value;
+
+                        if (adapter instanceof OutboundIdAdapter) {
+                            alteredValue = adapter.apply(value);
+                        } else {
+                            if (value.contains(SEPARATOR)) {
+                                originalId = value.substring(0, value.indexOf(SEPARATOR));
+                                alteredValue = adapter.apply(value.substring(value.indexOf(SEPARATOR) + SEPARATOR.length()));
+                            } else {
                                 alteredValue = adapter.apply(value);
-                            } else {
-                                if (value.contains(SEPARATOR)) {
-                                    originalId = value.substring(0, value.indexOf(SEPARATOR));
-                                    alteredValue = adapter.apply(value.substring(value.indexOf(SEPARATOR)+SEPARATOR.length()));
-                                } else {
-                                    alteredValue = adapter.apply(value);
-                                }
-                                alteredValue = originalId + SEPARATOR + alteredValue;
                             }
-
-
-                            Method valueSetter = previousValue.getClass().getMethod("setValue", String.class);
-                            valueSetter.invoke(previousValue, alteredValue);
+                            alteredValue = originalId + SEPARATOR + alteredValue;
                         }
-                    } else {
-                        Object currentValue = method.invoke(obj);
-                        if (currentValue != null) {
-                            if (currentValue instanceof List) {
-                                List list = (List) currentValue;
-                                for (Object o : list) {
-                                    applyAdapter(o,  adapter);
-                                }
-                            } else {
-                                applyAdapter(currentValue, adapter);
+
+
+                        Method valueSetter = previousValue.getClass().getMethod("setValue", String.class);
+                        valueSetter.invoke(previousValue, alteredValue);
+                        counter.incrementAndGet();
+                    }
+                } else {
+                    Object currentValue = method.invoke(obj);
+                    if (currentValue != null) {
+                        if (currentValue instanceof List) {
+                            List list = (List) currentValue;
+                            for (Object o : list) {
+                                applyAdapter(o, adapter, counter);
                             }
+                        } else {
+                            applyAdapter(currentValue, adapter, counter);
                         }
                     }
                 }
