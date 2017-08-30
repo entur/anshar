@@ -319,26 +319,15 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
                             !et.getEstimatedCalls().getEstimatedCalls().isEmpty()) {
                         changes.add(key);
                         timetableDeliveries.set(key, et, expiration, TimeUnit.MILLISECONDS);
-                        if (et.getDatedVehicleJourneyRef() != null) {
-                            updatedDatedVehicleRef.add(et.getDatedVehicleJourneyRef().getValue());
-                        }
-                    } else if (et.getDatedVehicleJourneyRef() != null) {
-                        ignoredDatedVehicleRef.add(et.getDatedVehicleJourneyRef().getValue());
                     }
                 } else {
                     outdatedCounter.increment();
                 }
 
-            } else {
-
-                if (et.getDatedVehicleJourneyRef() != null) {
-                    ignoredDatedVehicleRef.add(et.getDatedVehicleJourneyRef().getValue());
-                }
             }
         });
 
         logger.info("Updated {} (of {})", changes.size(), etList.size());
-        logger.debug("Updated {} \n Ignored - {}", updatedDatedVehicleRef, ignoredDatedVehicleRef);
 
         changesMap.keySet().forEach(requestor -> {
             if (lastUpdateRequested.get(requestor) != null) {
