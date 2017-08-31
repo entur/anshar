@@ -53,9 +53,11 @@ public abstract class SiriSubscriptionRouteBuilder extends BaseRouteBuilder {
                 "monitor.subscription." + subscriptionSetup.getVendor())
                 .choice()
                 .when(p -> shouldBeStarted(p.getFromRouteId()))
+                    .log("Triggering start subscription: " + subscriptionSetup)
                     .process(p -> hasBeenStarted = true)
                     .to("direct:" + subscriptionSetup.getStartSubscriptionRouteName()) // Start subscription
                 .when(p -> shouldBeCancelled(p.getFromRouteId()))
+                    .log("Triggering cancel subscription: " + subscriptionSetup)
                     .process(p -> hasBeenStarted = false)
                     .to("direct:" + subscriptionSetup.getCancelSubscriptionRouteName()) // Cancel
                 .end()
