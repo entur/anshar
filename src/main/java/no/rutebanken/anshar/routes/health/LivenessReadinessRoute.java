@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 
 import java.text.MessageFormat;
+import java.util.HashSet;
 import java.util.Set;
 
 @Service
@@ -120,11 +121,20 @@ public class LivenessReadinessRoute extends RouteBuilder {
         ;
 
     }
+    Set<String> unhealthySubscriptionsAlreadyNotified = new HashSet<>();
 
     private Set<String> getAllUnhealthySubscriptions() {
         Set<String> unhealthySubscriptions = subscriptionManager.getAllUnhealthySubscriptions(healthCheckIntervalFactor);
-        if (unhealthySubscriptions.isEmpty()) {
 
+        if (unhealthySubscriptions.isEmpty()) {
+            //All green - clear status
+            unhealthySubscriptionsAlreadyNotified.clear();
+        } else {
+            //Avoid notifying multiple times for same subscriptions
+            unhealthySubscriptions.removeAll(unhealthySubscriptionsAlreadyNotified);
+
+            //Keep
+            unhealthySubscriptionsAlreadyNotified.addAll(unhealthySubscriptions);
         }
 
         return unhealthySubscriptions;
