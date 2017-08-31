@@ -201,7 +201,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
 
 
         from("direct:" + CamelConfiguration.ROUTER_QUEUE)
-                .to("file:" + camelConfiguration.getIncomingLogDirectory() + "?fileName=${header.CamelHttpPath}/${date:now:yyyyMMdd-hhmmss}")
+//                .to("file:" + camelConfiguration.getIncomingLogDirectory() + "?fileName=${header.CamelHttpPath}/${date:now:yyyyMMdd-hhmmss}")
                 .choice()
                 .when().xpath("/siri:Siri/siri:HeartbeatNotification", ns)
                     .to("activemq:queue:" + CamelConfiguration.HEARTBEAT_QUEUE + activeMQParameters)
