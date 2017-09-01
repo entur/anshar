@@ -250,7 +250,7 @@ anshar:
       version: 1.4
       contentType: text/xml;charset=UTF-8
       subscriptionId: RutebankenDEV_${random.uuid}
-      requestorRef: RutebankenDEV
+      requestorRef: RutebankenDEV_${random.uuid}
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: NSR,SKYSS
       filterPresets:
@@ -275,7 +275,7 @@ anshar:
       version: 1.4
       contentType: text/xml;charset=UTF-8
       subscriptionId: RutebankenDEV_${random.uuid}
-      requestorRef: RutebankenDEV
+      requestorRef: RutebankenDEV_${random.uuid}
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: NSR,SKYSS
       filterPresets:
@@ -811,23 +811,22 @@ anshar:
       datasetId: RUT
       serviceType: REST
       subscriptionType: ESTIMATED_TIMETABLE
-      subscriptionMode: SUBSCRIBE
-      heartbeatIntervalSeconds: 60
+      subscriptionMode: REQUEST_RESPONSE
+      heartbeatIntervalSeconds: 10
       updateIntervalSeconds: 1
       operatorNamespace: http://www.siri.org.uk/siri
       addressFieldName:
       soapenvNamespace:
       incrementalUpdates:
       urlMap:
-        SUBSCRIBE: https4://api.entur.org/anshar/1.0/anshar/subscribe/RUT?useOriginalId=true
-        DELETE_SUBSCRIPTION: https4://api.entur.org/anshar/1.0/anshar/subscribe/RUT
+        GET_ESTIMATED_TIMETABLE: https4://api-test.entur.org/anshar/1.0/anshar/services?useOtpId=true
       version: 2.0
       contentType: text/xml;charset=UTF-8
-      subscriptionId: et-replication
-      requestorRef: et-requestorref
+      subscriptionId: et-replication-testing
+      requestorRef: ${random.uuid}
       durationOfSubscriptionHours: 24
-      mappingAdapterPresets: NSR,RUTER
+      mappingAdapterPresets:
       filterPresets:
-      idMappingPrefixes: RUT,OPP,BRA,OST
+      idMappingPrefixes:
       environments: test
       active: true
