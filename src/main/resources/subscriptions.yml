@@ -6,7 +6,7 @@ anshar:
       datasetId: KOL
       serviceType: SOAP
       subscriptionType: SITUATION_EXCHANGE
-      subscriptionMode: REQUEST_RESPONSE
+      subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 60
       operatorNamespace: http://www.siri.org.uk/siri
       addressFieldName:
@@ -32,13 +32,12 @@ anshar:
       datasetId: KOL
       serviceType: SOAP
       subscriptionType: VEHICLE_MONITORING
-      subscriptionMode: REQUEST_RESPONSE
+      subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 60
       operatorNamespace: http://www.siri.org.uk/siri
       addressFieldName:
       soapenvNamespace:
       incrementalUpdates:
-      changeBeforeUpdatesSeconds:
       urlMap:
         SUBSCRIBE: sis.kolumbus.no:90/VMWS/VMService.svc
         DELETE_SUBSCRIPTION: sis.kolumbus.no:90/VMWS/VMService.svc
@@ -89,7 +88,6 @@ anshar:
       addressFieldName:
       soapenvNamespace:
       incrementalUpdates:
-      changeBeforeUpdates:
       urlMap:
         SUBSCRIBE: st.atb.no/VMWS/VMService.svc
         DELETE_SUBSCRIPTION: st.atb.no/VMWS/VMService.svc
@@ -684,7 +682,7 @@ anshar:
       subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 6000
       previewIntervalSeconds: 7200
-      updateIntervalSeconds:
+#      updateIntervalSeconds:
       operatorNamespace: http://wsdl.siri.org.uk
       addressFieldName: ConsumerAddress
       soapenvNamespace: http://schemas.xmlsoap.org/soap/envelope/
