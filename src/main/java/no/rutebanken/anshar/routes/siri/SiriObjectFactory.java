@@ -99,8 +99,8 @@ public class SiriObjectFactory {
                     subscriptionSetup.buildUrl(),
                     subscriptionSetup.getDurationOfSubscription(),
                     subscriptionSetup.getFilterMap(),
-                    (subscriptionSetup.getUpdateInterval() != null ? subscriptionSetup.getUpdateInterval().toString():null),
-                    (subscriptionSetup.getChangeBeforeUpdates() != null ? subscriptionSetup.getChangeBeforeUpdates().toString():null),
+                    subscriptionSetup.getUpdateInterval(),
+                    subscriptionSetup.getChangeBeforeUpdates(),
                     subscriptionSetup.getAddressFieldName(),
                     subscriptionSetup.getIncrementalUpdates(),
                     subscriptionSetup.getVehicleMonitoringRefValue());
@@ -114,7 +114,7 @@ public class SiriObjectFactory {
                     subscriptionSetup.getAddressFieldName(),
                     subscriptionSetup.getIncrementalUpdates(),
                     subscriptionSetup.getPreviewInterval(),
-                    (subscriptionSetup.getChangeBeforeUpdates() != null ? subscriptionSetup.getChangeBeforeUpdates().toString():null));
+                    subscriptionSetup.getChangeBeforeUpdates());
         }
         if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.PRODUCTION_TIMETABLE)) {
             request = createProductionTimetableSubscriptionRequest(subscriptionSetup.getRequestorRef(), subscriptionSetup.getSubscriptionId(),
@@ -253,7 +253,7 @@ public class SiriObjectFactory {
         return request;
     }
 
-    private static SubscriptionRequest createVehicleMonitoringSubscriptionRequest(String requestorRef, String subscriptionId, Duration heartbeatInterval, String address, Duration subscriptionDuration, Map<Class, Set<Object>> filterMap, String updateInterval, String changeBeforeUpdates, String addressFieldName, Boolean incrementalUpdates, String vehicleMonitoringRefValue) {
+    private static SubscriptionRequest createVehicleMonitoringSubscriptionRequest(String requestorRef, String subscriptionId, Duration heartbeatInterval, String address, Duration subscriptionDuration, Map<Class, Set<Object>> filterMap, Duration updateInterval, Duration changeBeforeUpdates, String addressFieldName, Boolean incrementalUpdates, String vehicleMonitoringRefValue) {
         SubscriptionRequest request = createSubscriptionRequest(requestorRef,heartbeatInterval, address, addressFieldName);
 
         VehicleMonitoringRequestStructure vmRequest = new VehicleMonitoringRequestStructure();
@@ -289,13 +289,13 @@ public class SiriObjectFactory {
         vmSubscriptionReq.setInitialTerminationTime(ZonedDateTime.now().plusSeconds(subscriptionDuration.getSeconds()));
         vmSubscriptionReq.setSubscriberRef(request.getRequestorRef());
 
-        if (updateInterval != null && !updateInterval.isEmpty()) {
+        if (updateInterval != null) {
             //Requesting updates every second
-            vmSubscriptionReq.setUpdateInterval(createDataTypeFactory().newDuration(updateInterval));
+            vmSubscriptionReq.setUpdateInterval(createDataTypeFactory().newDuration(updateInterval.toString()));
         }
         vmSubscriptionReq.setIncrementalUpdates(incrementalUpdates);
         if (changeBeforeUpdates != null) {
-            vmSubscriptionReq.setChangeBeforeUpdates(createDataTypeFactory().newDuration(changeBeforeUpdates));
+            vmSubscriptionReq.setChangeBeforeUpdates(createDataTypeFactory().newDuration(changeBeforeUpdates.toString()));
         }
 
         request.getVehicleMonitoringSubscriptionRequests().add(vmSubscriptionReq);
@@ -304,7 +304,7 @@ public class SiriObjectFactory {
     }
 
 
-    private static SubscriptionRequest createEstimatedTimetableSubscriptionRequest(String requestorRef, String subscriptionId, Duration heartbeatInterval, String address, Duration subscriptionDuration, Map<Class, Set<Object>> filterMap, String addressFieldName, Boolean incrementalUpdates, Duration previewInterval, String changeBeforeUpdates) {
+    private static SubscriptionRequest createEstimatedTimetableSubscriptionRequest(String requestorRef, String subscriptionId, Duration heartbeatInterval, String address, Duration subscriptionDuration, Map<Class, Set<Object>> filterMap, String addressFieldName, Boolean incrementalUpdates, Duration previewInterval, Duration changeBeforeUpdates) {
         SubscriptionRequest request = createSubscriptionRequest(requestorRef, heartbeatInterval, address, addressFieldName);
 
         EstimatedTimetableRequestStructure etRequest = new EstimatedTimetableRequestStructure();
@@ -313,8 +313,6 @@ public class SiriObjectFactory {
 
         if (previewInterval != null) {
             etRequest.setPreviewInterval(createDataTypeFactory().newDuration(previewInterval.toString()));
-        } else {
-            etRequest.setPreviewInterval(createDataTypeFactory().newDuration("PT1H"));
         }
 
         if (filterMap != null) {
@@ -339,9 +337,7 @@ public class SiriObjectFactory {
         etSubscriptionReq.setInitialTerminationTime(ZonedDateTime.now().plusSeconds(subscriptionDuration.getSeconds()));
         etSubscriptionReq.setSubscriberRef(request.getRequestorRef());
         if (changeBeforeUpdates != null) {
-            etSubscriptionReq.setChangeBeforeUpdates(createDataTypeFactory().newDuration(changeBeforeUpdates));
-        } else {
-            etSubscriptionReq.setChangeBeforeUpdates(createDataTypeFactory().newDuration("PT1S"));
+            etSubscriptionReq.setChangeBeforeUpdates(createDataTypeFactory().newDuration(changeBeforeUpdates.toString()));
         }
 
         etSubscriptionReq.setIncrementalUpdates(incrementalUpdates);

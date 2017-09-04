@@ -107,14 +107,15 @@ anshar:
       datasetId: AKT
       serviceType: REST
       subscriptionType: SITUATION_EXCHANGE
-      subscriptionMode: SUBSCRIBE
+      subscriptionMode: REQUEST_RESPONSE
       heartbeatIntervalSeconds: 60
       operatorNamespace: http://www.siri.org.uk/siri
+      previewIntervalSeconds: 86400
       addressFieldName:
       soapenvNamespace:
       incrementalUpdates:
       urlMap:
-        SUBSCRIBE: 83.145.60.18/siri/1.4/sx
+        GET_SITUATION_EXCHANGE: 83.145.60.18/siri/1.4/sx
         DELETE_SUBSCRIPTION: 83.145.60.18/siri/1.4/sx
       version: 1.4
       contentType: text/xml;charset=UTF-8
@@ -257,7 +258,7 @@ anshar:
       filterPresets:
       idMappingPrefixes: SKY
       environments: test,beta,prod
-      active: true
+      active: false
     -
       internalId: 13
       vendor: skysssx
@@ -282,7 +283,7 @@ anshar:
       filterPresets:
       idMappingPrefixes: SKY
       environments: test,beta,prod
-      active: true
+      active: false
     -
       internalId: 14
       vendor: brakaret
