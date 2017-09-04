@@ -318,6 +318,7 @@ anshar:
       subscriptionType: SITUATION_EXCHANGE
       subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 60
+      previewIntervalSeconds: 86400
       operatorNamespace: http://www.siri.org.uk/siri
       addressFieldName:
       soapenvNamespace:
