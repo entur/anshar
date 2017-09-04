@@ -8,6 +8,7 @@ anshar:
       subscriptionType: SITUATION_EXCHANGE
       subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 60
+      previewIntervalSeconds: 86400
       operatorNamespace: http://www.siri.org.uk/siri
       addressFieldName:
       soapenvNamespace:
@@ -59,6 +60,7 @@ anshar:
       subscriptionType: SITUATION_EXCHANGE
       subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 60
+      previewIntervalSeconds: 86400
       operatorNamespace: http://www.siri.org.uk/siri
       addressFieldName:
       soapenvNamespace:
@@ -107,7 +109,7 @@ anshar:
       datasetId: AKT
       serviceType: REST
       subscriptionType: SITUATION_EXCHANGE
-      subscriptionMode: REQUEST_RESPONSE
+      subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 60
       operatorNamespace: http://www.siri.org.uk/siri
       previewIntervalSeconds: 86400
@@ -115,7 +117,7 @@ anshar:
       soapenvNamespace:
       incrementalUpdates:
       urlMap:
-        GET_SITUATION_EXCHANGE: 83.145.60.18/siri/1.4/sx
+        SUBSCRIBE: 83.145.60.18/siri/1.4/sx
         DELETE_SUBSCRIPTION: 83.145.60.18/siri/1.4/sx
       version: 1.4
       contentType: text/xml;charset=UTF-8
@@ -126,7 +128,7 @@ anshar:
       filterPresets:
       idMappingPrefixes: AKT
       environments: test,beta,prod
-      active: true
+      active: false
     -
       internalId: 6
       vendor: aktet
@@ -162,6 +164,7 @@ anshar:
       subscriptionType: SITUATION_EXCHANGE
       subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 600
+      previewIntervalSeconds: 86400
       operatorNamespace: http://www.siri.org.uk/siri
       addressFieldName:
       soapenvNamespace:
@@ -666,6 +669,7 @@ anshar:
       subscriptionType: SITUATION_EXCHANGE
       subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 6000
+      previewIntervalSeconds: 86400
       operatorNamespace: http://wsdl.siri.org.uk
       addressFieldName: ConsumerAddress
       soapenvNamespace: http://www.w3.org/2003/05/soap-envelope

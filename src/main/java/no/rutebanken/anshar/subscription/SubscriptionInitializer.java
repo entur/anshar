@@ -231,11 +231,6 @@ public class SubscriptionInitializer implements CamelContextAware {
         Preconditions.checkNotNull(s.getHeartbeatInterval(), "HeartbeatInterval is not set");
         Preconditions.checkState(s.getHeartbeatInterval().toMillis() > 0, "HeartbeatInterval must be > 0");
 
-        //Type-specific requirements
-        if (SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE.equals(s.getSubscriptionType())) {
-            Preconditions.checkNotNull(s.getPreviewInterval(), "PreviewInterval is not set");
-        }
-
         Preconditions.checkNotNull(s.getUrlMap(), "UrlMap is not set");
         Map<RequestType, String> urlMap = s.getUrlMap();
         if (s.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.REQUEST_RESPONSE) {
@@ -250,6 +245,14 @@ public class SubscriptionInitializer implements CamelContextAware {
                 Preconditions.checkArgument(false, "URLs not configured correctly");
             }
         } else if (s.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.SUBSCRIBE) {
+
+            //Type-specific requirements
+            if (SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE.equals(s.getSubscriptionType())) {
+                Preconditions.checkNotNull(s.getPreviewInterval(), "PreviewInterval is not set");
+            } else if (SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE.equals(s.getSubscriptionType())) {
+                Preconditions.checkNotNull(s.getPreviewInterval(), "PreviewInterval is not set");
+            }
+
             Preconditions.checkNotNull(urlMap.get(RequestType.SUBSCRIBE), "SUBSCRIBE-url is missing. " + s);
             Preconditions.checkNotNull(urlMap.get(RequestType.DELETE_SUBSCRIPTION), "DELETE_SUBSCRIPTION-url is missing. " + s);
         }  else if (s.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.FETCHED_DELIVERY) {
