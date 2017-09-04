@@ -247,7 +247,7 @@ anshar:
       subscriptionType: ESTIMATED_TIMETABLE
       subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 180
-      changeBeforeUpdatesSeconds: 1
+      changeBeforeUpdatesSeconds: 20
       previewIntervalSeconds: 86400
       operatorNamespace: http://www.siri.org.uk/siri
       addressFieldName:
