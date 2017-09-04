@@ -267,6 +267,7 @@ anshar:
       subscriptionType: SITUATION_EXCHANGE
       subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 60
+      previewIntervalSeconds: 86400
       operatorNamespace: http://www.siri.org.uk/siri
       addressFieldName:
       soapenvNamespace:
@@ -578,6 +579,7 @@ anshar:
       subscriptionType: SITUATION_EXCHANGE
       subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 60
+      previewIntervalSeconds: 86400
       operatorNamespace: http://www.siri.org.uk/siri
       addressFieldName:
       soapenvNamespace:
@@ -691,8 +693,8 @@ anshar:
       changeBeforeUpdatesSeconds: 1
       incrementalUpdates:
       urlMap:
-        SUBSCRIBE: 95.141.66.27:8000/SIRI
-        DELETE_SUBSCRIPTION: 95.141.66.27:8000/SIRI
+        SUBSCRIBE: 92.62.36.185:8000/SIRI
+        DELETE_SUBSCRIPTION: 92.62.36.185:8000/SIRI
       version: 2.0
       contentType: text/xml;charset=UTF-8
       subscriptionId: ${random.uuid}
@@ -718,8 +720,8 @@ anshar:
       changeBeforeUpdatesSeconds: 10
       incrementalUpdates:
       urlMap:
-        SUBSCRIBE: 95.141.66.27:8000/SIRI
-        DELETE_SUBSCRIPTION: 95.141.66.27:8000/SIRI
+        SUBSCRIBE: 92.62.36.185:8000/SIRI
+        DELETE_SUBSCRIPTION: 92.62.36.185:8000/SIRI
       version: 2.0
       contentType: text/xml;charset=UTF-8
       subscriptionId: ${random.uuid}
@@ -744,8 +746,8 @@ anshar:
       soapenvNamespace: http://schemas.xmlsoap.org/soap/envelope/
       incrementalUpdates:
       urlMap:
-        SUBSCRIBE: 95.141.66.27:8000/SIRI
-        DELETE_SUBSCRIPTION: 95.141.66.27:8000/SIRI
+        SUBSCRIBE: 92.62.36.185:8000/SIRI
+        DELETE_SUBSCRIPTION: 92.62.36.185:8000/SIRI
       version: 2.0
       contentType: text/xml;charset=UTF-8
       subscriptionId: ${random.uuid}
