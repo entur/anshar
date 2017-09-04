@@ -20,6 +20,7 @@ public class SubscriptionSetup implements Serializable {
     private Duration heartbeatInterval;
     private Duration updateInterval;
     private Duration previewInterval;
+    private Duration changeBeforeUpdates;
     private String operatorNamespace;
     private Map<RequestType, String> urlMap;
     private String subscriptionId;
@@ -296,6 +297,10 @@ public class SubscriptionSetup implements Serializable {
         this.environments = environments;
     }
 
+    public Duration getChangeBeforeUpdates() {
+        return changeBeforeUpdates;
+    }
+
     public enum ServiceType {SOAP, REST}
     public enum SubscriptionType {SITUATION_EXCHANGE, VEHICLE_MONITORING, PRODUCTION_TIMETABLE, ESTIMATED_TIMETABLE}
     public enum SubscriptionMode {SUBSCRIBE, REQUEST_RESPONSE, FETCHED_DELIVERY}
@@ -367,6 +372,13 @@ public class SubscriptionSetup implements Serializable {
 
     private void setPreviewInterval(Duration previewIntervalSeconds) {
         this.previewInterval = previewIntervalSeconds;
+    }
+    public void setChangeBeforeUpdatesSeconds(int seconds) {
+        setChangeBeforeUpdates(Duration.ofSeconds(seconds));
+    }
+
+    private void setChangeBeforeUpdates(Duration changeBeforeUpdates) {
+        this.changeBeforeUpdates = changeBeforeUpdates;
     }
 
     public void setOperatorNamespace(String operatorNamespace) {
