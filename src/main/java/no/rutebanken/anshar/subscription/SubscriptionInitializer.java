@@ -231,6 +231,11 @@ public class SubscriptionInitializer implements CamelContextAware {
         Preconditions.checkNotNull(s.getHeartbeatInterval(), "HeartbeatInterval is not set");
         Preconditions.checkState(s.getHeartbeatInterval().toMillis() > 0, "HeartbeatInterval must be > 0");
 
+        //Type-specific requirements
+        if (SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE.equals(s.getSubscriptionType())) {
+            Preconditions.checkNotNull(s.getPreviewInterval(), "PreviewInterval is not set");
+        }
+
         Preconditions.checkNotNull(s.getUrlMap(), "UrlMap is not set");
         Map<RequestType, String> urlMap = s.getUrlMap();
         if (s.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.REQUEST_RESPONSE) {

@@ -136,6 +136,7 @@ anshar:
       subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 60
       changeBeforeUpdatesSeconds: 1
+      previewIntervalSeconds: 86400
       operatorNamespace: http://www.siri.org.uk/siri
       addressFieldName:
       soapenvNamespace:
@@ -215,6 +216,7 @@ anshar:
       subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 60
       changeBeforeUpdatesSeconds: 1
+      previewIntervalSeconds: 86400
       operatorNamespace: http://www.siri.org.uk/siri
       addressFieldName:
       soapenvNamespace:
@@ -242,6 +244,7 @@ anshar:
       subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 60
       changeBeforeUpdatesSeconds: 1
+      previewIntervalSeconds: 86400
       operatorNamespace: http://www.siri.org.uk/siri
       addressFieldName:
       soapenvNamespace:
@@ -294,6 +297,7 @@ anshar:
       subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 60
       changeBeforeUpdatesSeconds: 1
+      previewIntervalSeconds: 86400
       operatorNamespace: http://www.siri.org.uk/siri
       addressFieldName:
       soapenvNamespace:
@@ -346,6 +350,7 @@ anshar:
       subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 60
       changeBeforeUpdatesSeconds: 1
+      previewIntervalSeconds: 86400
       operatorNamespace: http://www.siri.org.uk/siri
       addressFieldName: Address
       soapenvNamespace:
@@ -554,6 +559,7 @@ anshar:
       subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 60
       changeBeforeUpdatesSeconds: 1
+      previewIntervalSeconds: 86400
       operatorNamespace: http://www.siri.org.uk/siri
       addressFieldName:
       soapenvNamespace:
@@ -605,6 +611,7 @@ anshar:
       subscriptionType: ESTIMATED_TIMETABLE
       subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 6000
+      previewIntervalSeconds: 86400
       changeBeforeUpdatesSeconds: 1
       operatorNamespace: http://wsdl.siri.org.uk
       addressFieldName: ConsumerAddress
@@ -767,6 +774,7 @@ anshar:
       subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 6000
       updateIntervalSeconds: 1
+      previewIntervalSeconds: 86400
       operatorNamespace: http://www.siri.org.uk/siri
       addressFieldName:
       soapenvNamespace:
@@ -820,6 +828,7 @@ anshar:
       subscriptionType: ESTIMATED_TIMETABLE
       subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 60
+      previewIntervalSeconds: 86400
       updateIntervalSeconds: 1
       operatorNamespace: http://www.siri.org.uk/siri
       addressFieldName:
