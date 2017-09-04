@@ -228,8 +228,6 @@ public class SiriObjectFactory {
 
         if (previewInterval != null) {
             sxRequest.setPreviewInterval(createDataTypeFactory().newDuration(previewInterval.toString()));
-        } else {
-            sxRequest.setPreviewInterval(createDataTypeFactory().newDuration("PT1H"));
         }
 
         if (filterMap != null) {
