@@ -814,22 +814,23 @@ anshar:
       datasetId: RUT
       serviceType: REST
       subscriptionType: ESTIMATED_TIMETABLE
-      subscriptionMode: REQUEST_RESPONSE
-      heartbeatIntervalSeconds: 10
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 60
       updateIntervalSeconds: 1
       operatorNamespace: http://www.siri.org.uk/siri
       addressFieldName:
       soapenvNamespace:
       incrementalUpdates:
       urlMap:
-        GET_ESTIMATED_TIMETABLE: https4://api-test.entur.org/anshar/1.0/anshar/services?useOtpId=true
+        SUBSCRIBE: https4://api.entur.org/anshar/1.0/anshar/subscribe/RUT?useOriginalId=true
+        DELETE_SUBSCRIPTION: https4://api.entur.org/anshar/1.0/anshar/subscribe/RUT
       version: 2.0
       contentType: text/xml;charset=UTF-8
-      subscriptionId: et-replication-testing
-      requestorRef: ${random.uuid}
+      subscriptionId: et-replication
+      requestorRef: et-requestorref
       durationOfSubscriptionHours: 24
-      mappingAdapterPresets:
+      mappingAdapterPresets: NSR,RUTER
       filterPresets:
-      idMappingPrefixes:
+      idMappingPrefixes: RUT,OPP,BRA,OST
       environments: test
       active: true
