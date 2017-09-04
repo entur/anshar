@@ -38,8 +38,10 @@ anshar:
       addressFieldName:
       soapenvNamespace:
       incrementalUpdates:
+      changeBeforeUpdatesSeconds:
       urlMap:
-        GET_VEHICLE_MONITORING: sis.kolumbus.no:90/VMWS/VMService.svc
+        SUBSCRIBE: sis.kolumbus.no:90/VMWS/VMService.svc
+        DELETE_SUBSCRIPTION: sis.kolumbus.no:90/VMWS/VMService.svc
       version: 1.4
       contentType: text/xml;charset=UTF-8
       subscriptionId: ${random.uuid}
@@ -56,7 +58,7 @@ anshar:
       datasetId: ATB
       serviceType: SOAP
       subscriptionType: SITUATION_EXCHANGE
-      subscriptionMode: REQUEST_RESPONSE
+      subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 60
       operatorNamespace: http://www.siri.org.uk/siri
       addressFieldName:
@@ -65,7 +67,6 @@ anshar:
       urlMap:
         SUBSCRIBE: st.atb.no/SXWS/SXService.svc
         DELETE_SUBSCRIPTION: st.atb.no/SXWS/SXService.svc
-        GET_SITUATION_EXCHANGE: st.atb.no/SXWS/SXService.svc
       version: 1.4
       contentType: text/xml;charset=UTF-8
       subscriptionId: ${random.uuid}
@@ -82,14 +83,16 @@ anshar:
       datasetId: ATB
       serviceType: SOAP
       subscriptionType: VEHICLE_MONITORING
-      subscriptionMode: REQUEST_RESPONSE
+      subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 60
       operatorNamespace: http://www.siri.org.uk/siri
       addressFieldName:
       soapenvNamespace:
       incrementalUpdates:
+      changeBeforeUpdates:
       urlMap:
-        GET_VEHICLE_MONITORING: st.atb.no/VMWS/VMService.svc
+        SUBSCRIBE: st.atb.no/VMWS/VMService.svc
+        DELETE_SUBSCRIPTION: st.atb.no/VMWS/VMService.svc
       version: 1.4
       contentType: text/xml;charset=UTF-8
       subscriptionId: ${random.uuid}
@@ -133,7 +136,7 @@ anshar:
       subscriptionType: ESTIMATED_TIMETABLE
       subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 60
-      updateIntervalSeconds: 1
+      changeBeforeUpdatesSeconds: 1
       operatorNamespace: http://www.siri.org.uk/siri
       addressFieldName:
       soapenvNamespace:
@@ -185,7 +188,7 @@ anshar:
       subscriptionType: VEHICLE_MONITORING
       subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 60
-      updateIntervalSeconds: 1
+      changeBeforeUpdatesSeconds: 10
       operatorNamespace: http://www.siri.org.uk/siri
       addressFieldName:
       soapenvNamespace:
@@ -212,7 +215,7 @@ anshar:
       subscriptionType: ESTIMATED_TIMETABLE
       subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 60
-      updateIntervalSeconds: 1
+      changeBeforeUpdatesSeconds: 1
       operatorNamespace: http://www.siri.org.uk/siri
       addressFieldName:
       soapenvNamespace:
@@ -239,7 +242,7 @@ anshar:
       subscriptionType: ESTIMATED_TIMETABLE
       subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 60
-      updateIntervalSeconds: 1
+      changeBeforeUpdatesSeconds: 1
       operatorNamespace: http://www.siri.org.uk/siri
       addressFieldName:
       soapenvNamespace:
@@ -290,7 +293,7 @@ anshar:
       subscriptionType: ESTIMATED_TIMETABLE
       subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 60
-      updateIntervalSeconds: 1
+      changeBeforeUpdatesSeconds: 1
       operatorNamespace: http://www.siri.org.uk/siri
       addressFieldName:
       soapenvNamespace:
@@ -341,7 +344,7 @@ anshar:
       subscriptionType: ESTIMATED_TIMETABLE
       subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 60
-      updateIntervalSeconds: 1
+      changeBeforeUpdatesSeconds: 1
       operatorNamespace: http://www.siri.org.uk/siri
       addressFieldName: Address
       soapenvNamespace:
@@ -369,7 +372,7 @@ anshar:
       subscriptionMode: REQUEST_RESPONSE
       heartbeatIntervalSeconds: 120
       previewIntervalSeconds: 86400
-      updateIntervalSeconds: 1
+      changeBeforeUpdatesSeconds: 1
       operatorNamespace: http://www.siri.org.uk/siri
       addressFieldName:
       soapenvNamespace:
@@ -395,7 +398,7 @@ anshar:
       subscriptionMode: REQUEST_RESPONSE
       heartbeatIntervalSeconds: 30
       previewIntervalSeconds: 3600
-      updateIntervalSeconds: 1
+      changeBeforeUpdatesSeconds: 1
       operatorNamespace: http://www.siri.org.uk/siri
       addressFieldName:
       soapenvNamespace:
@@ -471,7 +474,7 @@ anshar:
       subscriptionMode: FETCHED_DELIVERY
       heartbeatIntervalSeconds: 60
       previewIntervalSeconds: 86400
-      updateIntervalSeconds: 1
+      changeBeforeUpdatesSeconds: 1
       operatorNamespace: http://www.siri.org.uk/siri
       addressFieldName:
       soapenvNamespace:
@@ -549,7 +552,7 @@ anshar:
       subscriptionType: ESTIMATED_TIMETABLE
       subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 60
-      updateIntervalSeconds: 1
+      changeBeforeUpdatesSeconds: 1
       operatorNamespace: http://www.siri.org.uk/siri
       addressFieldName:
       soapenvNamespace:
@@ -600,7 +603,7 @@ anshar:
       subscriptionType: ESTIMATED_TIMETABLE
       subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 6000
-      updateIntervalSeconds: 1
+      changeBeforeUpdatesSeconds: 1
       operatorNamespace: http://wsdl.siri.org.uk
       addressFieldName: ConsumerAddress
       soapenvNamespace: http://www.w3.org/2003/05/soap-envelope
@@ -681,10 +684,11 @@ anshar:
       subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 6000
       previewIntervalSeconds: 7200
-      updateIntervalSeconds: 1
+      updateIntervalSeconds:
       operatorNamespace: http://wsdl.siri.org.uk
       addressFieldName: ConsumerAddress
       soapenvNamespace: http://schemas.xmlsoap.org/soap/envelope/
+      changeBeforeUpdatesSeconds: 1
       incrementalUpdates:
       urlMap:
         SUBSCRIBE: 95.141.66.27:8000/SIRI
@@ -711,6 +715,7 @@ anshar:
       operatorNamespace: http://wsdl.siri.org.uk
       addressFieldName: ConsumerAddress
       soapenvNamespace: http://schemas.xmlsoap.org/soap/envelope/
+      changeBeforeUpdatesSeconds: 10
       incrementalUpdates:
       urlMap:
         SUBSCRIBE: 95.141.66.27:8000/SIRI
