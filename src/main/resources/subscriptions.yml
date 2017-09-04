@@ -6,7 +6,7 @@ anshar:
       datasetId: KOL
       serviceType: SOAP
       subscriptionType: SITUATION_EXCHANGE
-      subscriptionMode: SUBSCRIBE
+      subscriptionMode: REQUEST_RESPONSE
       heartbeatIntervalSeconds: 60
       previewIntervalSeconds: 86400
       operatorNamespace: http://www.siri.org.uk/siri
@@ -14,8 +14,8 @@ anshar:
       soapenvNamespace:
       incrementalUpdates:
       urlMap:
-        SUBSCRIBE: sis.kolumbus.no:90/SXWS/SXService.svc
-        DELETE_SUBSCRIPTION: sis.kolumbus.no:90/SXWS/SXService.svc
+#        SUBSCRIBE: sis.kolumbus.no:90/SXWS/SXService.svc
+#        DELETE_SUBSCRIPTION: sis.kolumbus.no:90/SXWS/SXService.svc
         GET_SITUATION_EXCHANGE: sis.kolumbus.no:90/SXWS/SXService.svc
       version: 1.4
       contentType: text/xml;charset=UTF-8
@@ -33,15 +33,15 @@ anshar:
       datasetId: KOL
       serviceType: SOAP
       subscriptionType: VEHICLE_MONITORING
-      subscriptionMode: SUBSCRIBE
+      subscriptionMode: REQUEST_RESPONSE
       heartbeatIntervalSeconds: 60
       operatorNamespace: http://www.siri.org.uk/siri
       addressFieldName:
       soapenvNamespace:
       incrementalUpdates:
       urlMap:
-        SUBSCRIBE: sis.kolumbus.no:90/VMWS/VMService.svc
-        DELETE_SUBSCRIPTION: sis.kolumbus.no:90/VMWS/VMService.svc
+        GET_VEHICLE_MONITORING: sis.kolumbus.no:90/VMWS/VMService.svc
+#        DELETE_SUBSCRIPTION: sis.kolumbus.no:90/VMWS/VMService.svc
       version: 1.4
       contentType: text/xml;charset=UTF-8
       subscriptionId: ${random.uuid}
@@ -58,7 +58,7 @@ anshar:
       datasetId: ATB
       serviceType: SOAP
       subscriptionType: SITUATION_EXCHANGE
-      subscriptionMode: SUBSCRIBE
+      subscriptionMode: REQUEST_RESPONSE
       heartbeatIntervalSeconds: 60
       previewIntervalSeconds: 86400
       operatorNamespace: http://www.siri.org.uk/siri
@@ -66,8 +66,9 @@ anshar:
       soapenvNamespace:
       incrementalUpdates:
       urlMap:
-        SUBSCRIBE: st.atb.no/SXWS/SXService.svc
-        DELETE_SUBSCRIPTION: st.atb.no/SXWS/SXService.svc
+        GET_SITUATION_EXCHANGE: st.atb.no/SXWS/SXService.svc
+#        SUBSCRIBE: st.atb.no/SXWS/SXService.svc
+#        DELETE_SUBSCRIPTION: st.atb.no/SXWS/SXService.svc
       version: 1.4
       contentType: text/xml;charset=UTF-8
       subscriptionId: ${random.uuid}
@@ -84,15 +85,15 @@ anshar:
       datasetId: ATB
       serviceType: SOAP
       subscriptionType: VEHICLE_MONITORING
-      subscriptionMode: SUBSCRIBE
+      subscriptionMode: REQUEST_RESPONSE
       heartbeatIntervalSeconds: 60
       operatorNamespace: http://www.siri.org.uk/siri
       addressFieldName:
       soapenvNamespace:
       incrementalUpdates:
       urlMap:
-        SUBSCRIBE: st.atb.no/VMWS/VMService.svc
-        DELETE_SUBSCRIPTION: st.atb.no/VMWS/VMService.svc
+        GET_VEHICLE_MONITORING: st.atb.no/VMWS/VMService.svc
+#        DELETE_SUBSCRIPTION: st.atb.no/VMWS/VMService.svc
       version: 1.4
       contentType: text/xml;charset=UTF-8
       subscriptionId: ${random.uuid}
@@ -245,7 +246,7 @@ anshar:
       serviceType: REST
       subscriptionType: ESTIMATED_TIMETABLE
       subscriptionMode: SUBSCRIBE
-      heartbeatIntervalSeconds: 60
+      heartbeatIntervalSeconds: 180
       changeBeforeUpdatesSeconds: 1
       previewIntervalSeconds: 86400
       operatorNamespace: http://www.siri.org.uk/siri
@@ -272,7 +273,7 @@ anshar:
       serviceType: REST
       subscriptionType: SITUATION_EXCHANGE
       subscriptionMode: SUBSCRIBE
-      heartbeatIntervalSeconds: 60
+      heartbeatIntervalSeconds: 180
       previewIntervalSeconds: 86400
       operatorNamespace: http://www.siri.org.uk/siri
       addressFieldName:
@@ -351,7 +352,7 @@ anshar:
       serviceType: REST
       subscriptionType: ESTIMATED_TIMETABLE
       subscriptionMode: SUBSCRIBE
-      heartbeatIntervalSeconds: 60
+      heartbeatIntervalSeconds: 180
       changeBeforeUpdatesSeconds: 1
       previewIntervalSeconds: 86400
       operatorNamespace: http://www.siri.org.uk/siri
@@ -364,7 +365,7 @@ anshar:
         DELETE_SUBSCRIPTION: 62.97.192.2:8080/SIRIProducer/SiriProducerHttp
       version: 2.0
       contentType: text/xml;charset=UTF-8
-      subscriptionId: a14c2953-dc8b-4b5f-8c99-6b3feaf2345c
+      subscriptionId: ${random.uuid}
       requestorRef: SKYSS
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: NSR,SKYSS
