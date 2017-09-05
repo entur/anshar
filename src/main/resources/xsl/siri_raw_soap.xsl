@@ -47,12 +47,12 @@
                     <xsl:when test="local-name()='SubscriptionRequest'">
                         <xsl:element name="Subscribe" namespace="{$operatorNamespace}">
                             <xsl:element name="SubscriptionRequestInfo">
-                                <xsl:copy-of select="siri:SubscriptionContext" copy-namespaces="no"/>
                                 <xsl:copy-of select="siri:RequestTimestamp" copy-namespaces="no"/>
                                 <xsl:copy-of select="siri:RequestorRef" copy-namespaces="no"/>
                                 <xsl:copy-of select="siri:MessageIdentifier" copy-namespaces="no"/>
                                 <xsl:copy-of select="siri:ConsumerAddress" copy-namespaces="no"/>
                                 <xsl:copy-of select="siri:Address" copy-namespaces="no"/>
+                                <xsl:copy-of select="siri:SubscriptionContext" copy-namespaces="no"/>
                             </xsl:element>
                             <xsl:element name="Request">
                                 <xsl:choose>
