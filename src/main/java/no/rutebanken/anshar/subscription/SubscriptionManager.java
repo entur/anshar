@@ -334,6 +334,7 @@ public class SubscriptionManager {
     public Set<String> getAllUnhealthySubscriptions(int healthCheckIntervalFactor) {
         Set<String> subscriptionIds = subscriptions.keySet()
                 .stream()
+                .filter(subscriptionId -> isActiveSubscription(subscriptionId))
                 .filter(subscriptionId -> !isSubscriptionHealthy(subscriptionId, healthCheckIntervalFactor))
                 .collect(Collectors.toSet());
         if (subscriptionIds != null & !subscriptionIds.isEmpty()) {
