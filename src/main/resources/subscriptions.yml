@@ -265,7 +265,7 @@ anshar:
       filterPresets:
       idMappingPrefixes: SKY
       environments: test,beta,prod
-      active: false
+      active: true
     -
       internalId: 13
       vendor: skysssx
@@ -716,7 +716,7 @@ anshar:
       filterPresets:
       idMappingPrefixes: OST
       environments: test,beta,prod
-      active: false
+      active: true
     -
       internalId: 28
       vendor: ostVm
@@ -743,7 +743,7 @@ anshar:
       filterPresets:
       idMappingPrefixes: OST
       environments: test,beta,prod
-      active: false
+      active: true
     -
       internalId: 29
       vendor: ostSX
@@ -769,7 +769,7 @@ anshar:
       filterPresets:
       idMappingPrefixes: OST
       environments: test,beta,prod
-      active: false
+      active: true
     -
       internalId: 30
       vendor: ruter-tbane
@@ -785,9 +785,9 @@ anshar:
       soapenvNamespace:
       incrementalUpdates:
       urlMap:
-        SUBSCRIBE: 193.69.85.208:8089/RutebankenDEV/et/subscribe.xml
-        DELETE_SUBSCRIPTION: 193.69.85.208:8089/RutebankenDEV/et/managesubscription.xml
-        CHECK_STATUS: 193.69.85.208:8089/RutebankenDEV/et/checkstatus.xml
+        SUBSCRIBE: 193.69.85.208:8089/Rutebanken/et/subscribe.xml
+        DELETE_SUBSCRIPTION: 193.69.85.208:8089/Rutebanken/et/managesubscription.xml
+        CHECK_STATUS: 193.69.85.208:8089/Rutebanken/et/checkstatus.xml
       version: 2.0
       contentType: text/xml;charset=UTF-8
       subscriptionId: ${random.uuid}
@@ -797,7 +797,7 @@ anshar:
       filterPresets:
       idMappingPrefixes: RUT,OPP,BRA,OST
       environments: beta
-      active: true
+      active: false
     -
       internalId: 100
       vendor: internRuterVm
