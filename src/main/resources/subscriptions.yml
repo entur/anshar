@@ -540,11 +540,12 @@ anshar:
       heartbeatIntervalSeconds: 60
       operatorNamespace: http://www.siri.org.uk/siri
       addressFieldName: ConsumerAddress
+      previewIntervalSeconds: 86400
       soapenvNamespace:
       incrementalUpdates:
       urlMap:
-        SUBSCRIBE: http://linuxserver290.nsb.no:29080/subscriptions/siri2-nrp
-        DELETE_SUBSCRIPTION: http://linuxserver290.nsb.no:29080/subscriptions/siri2-nrp
+        SUBSCRIBE: linuxserver290.nsb.no:29080/subscriptions/siri2-nrp
+        DELETE_SUBSCRIPTION: linuxserver290.nsb.no:29080/subscriptions/siri2-nrp
       version: 2.0
       contentType: text/xml;charset=UTF-8
       subscriptionId: ${random.uuid}
