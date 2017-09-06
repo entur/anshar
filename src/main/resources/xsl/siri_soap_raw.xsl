@@ -49,7 +49,7 @@
 
     <xsl:template match="*"/>
 
-    <xsl:template match="*:NotifyVehicleMonitoring | *:NotifySituationExchange | *:NotifyEstimatedTimetable | *:NotifyHeartbeat | *:GetVehicleMonitoringResponse | *:GetSituationExchangeResponse | *:GetStopMonitoringResponse | *:GetEstimatedTimetableResponse | *:SubscribeResponse | *:DeleteSubscriptionResponse | *:HeartbeatNotification | *:SituationExchangeAnswer | *:VehicleMonitoringAnswer"> <!-- TODO add all conseptual types of requests -->
+    <xsl:template match="*:NotifyVehicleMonitoring | *:NotifySituationExchange | *:NotifyEstimatedTimetable | *:NotifyHeartbeat | *:GetVehicleMonitoringResponse | *:GetSituationExchangeResponse | *:GetStopMonitoringResponse | *:GetEstimatedTimetableResponse | *:SubscribeResponse | *:DeleteSubscriptionResponse | *:HeartbeatNotification | *:SituationExchangeAnswer | *:VehicleMonitoringAnswer | *:CheckStatusResponse"> <!-- TODO add all conseptual types of requests -->
         
         <xsl:choose>
             <xsl:when test="local-name()='SubscribeResponse'">
@@ -181,7 +181,7 @@
             </xsl:when>
 
             <xsl:when test="local-name()='DeleteSubscriptionResponse'">
-                
+                    
                 <xsl:element name="siril:Siri">
                     <xsl:element name="siril:TerminateSubscriptionResponse" > 
                         
@@ -208,6 +208,18 @@
                     </xsl:element>
                 </xsl:element>
             </xsl:when>
+
+            <xsl:when test="local-name()='CheckStatusResponse'">
+                <xsl:element name="siril:Siri">
+                    <xsl:attribute name="version">
+                        <xsl:value-of select="Answer/child::node()/@version"/>
+                    </xsl:attribute>
+                    <xsl:element name="siril:CheckStatusResponse" > 
+                        <xsl:copy-of select="Answer/*" copy-namespaces="no" />
+                    </xsl:element>
+                </xsl:element>
+            </xsl:when>
+            
                <xsl:otherwise>
                    <xsl:element name="siril:Siri">
                        <xsl:attribute name="version">

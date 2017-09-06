@@ -22,7 +22,7 @@
 
     <xsl:template match="*"/>
 
-    <xsl:template match="siri:VehicleMonitoringRequest | siri:SituationExchangeRequest | siri:EstimatedTimetableRequest | siri:SubscriptionRequest | siri:TerminateSubscriptionRequest"> <!-- TODO add all conseptual types of requests -->
+    <xsl:template match="siri:VehicleMonitoringRequest | siri:SituationExchangeRequest | siri:EstimatedTimetableRequest | siri:SubscriptionRequest | siri:TerminateSubscriptionRequest | siri:CheckStatusRequest"> <!-- TODO add all conseptual types of requests -->
             <xsl:element name="soapenv:Envelope" namespace="{$soapEnvelopeNamespace}" >
 
                 <xsl:choose>
@@ -123,6 +123,18 @@
                                 <xsl:copy-of select="siri:SubscriptionRef" copy-namespaces="no"/>
                             </xsl:element>
                             <xsl:element name="RequestExtension"/>
+                        </xsl:element>
+                    </xsl:when>
+                    <xsl:when test="local-name()='CheckStatusRequest'">
+                        <xsl:element name="siri:CheckStatus" namespace="{$operatorNamespace}">
+                            <xsl:element name="Request">
+                                <xsl:attribute name="version">
+                                    <xsl:value-of select="/siri:Siri/@version"/>
+                                </xsl:attribute>
+                                <xsl:copy-of select="siri:RequestTimestamp" copy-namespaces="no"/>
+                                <xsl:copy-of select="siri:RequestorRef" copy-namespaces="no"/>
+                                <xsl:copy-of select="siri:MessageIdentifier" copy-namespaces="no"/>
+                            </xsl:element>
                         </xsl:element>
                     </xsl:when>
                     <xsl:otherwise>

@@ -3,6 +3,7 @@ package no.rutebanken.anshar.routes.siri;
 import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
 import no.rutebanken.anshar.routes.BaseRouteBuilder;
 import no.rutebanken.anshar.routes.CamelConfiguration;
+import no.rutebanken.anshar.subscription.RequestType;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.slf4j.Logger;
@@ -10,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
+import java.time.Instant;
 
 @Component
 public abstract class SiriSubscriptionRouteBuilder extends BaseRouteBuilder {
@@ -21,6 +23,8 @@ public abstract class SiriSubscriptionRouteBuilder extends BaseRouteBuilder {
     SubscriptionSetup subscriptionSetup;
 
     protected boolean hasBeenStarted;
+
+    private Instant lastCheckStatus = Instant.now();
 
     public SiriSubscriptionRouteBuilder(CamelConfiguration config, SubscriptionManager subscriptionManager) {
         super(config, subscriptionManager);
@@ -59,10 +63,24 @@ public abstract class SiriSubscriptionRouteBuilder extends BaseRouteBuilder {
                 .when(p -> shouldBeCancelled(p.getFromRouteId()))
                     .log("Triggering cancel subscription: " + subscriptionSetup)
                     .process(p -> hasBeenStarted = false)
-                    .to("direct:" + subscriptionSetup.getCancelSubscriptionRouteName()) // Cancel
+                    .to("direct:" + subscriptionSetup.getCancelSubscriptionRouteName())// Start subscription
+                .when(p -> shouldCheckStatus(p.getFromRouteId()))
+                    .log("Check status: " + subscriptionSetup)
+                    .to("direct:" + subscriptionSetup.getCheckStatusRouteName()) // Check status
                 .end()
         ;
 
+    }
+
+    private boolean shouldCheckStatus(String routeId) {
+        if (!isLeader(routeId)) {
+            return false;
+        }
+        boolean isActive = subscriptionManager.isActiveSubscription(subscriptionSetup.getSubscriptionId());
+        boolean requiresCheckStatusRequest = subscriptionSetup.getUrlMap().get(RequestType.CHECK_STATUS) != null;
+        boolean isTimeToCheckStatus = lastCheckStatus.isBefore(Instant.now().minus(subscriptionSetup.getHeartbeatInterval()));
+
+        return isActive & requiresCheckStatusRequest & isTimeToCheckStatus;
     }
 
     private boolean shouldBeStarted(String routeId) {
@@ -74,6 +92,7 @@ public abstract class SiriSubscriptionRouteBuilder extends BaseRouteBuilder {
         boolean shouldBeStarted = (isActive & !hasBeenStarted);
         return shouldBeStarted;
     }
+
     private boolean shouldBeCancelled(String routeId) {
         if (!isLeader(routeId)) {
             return false;

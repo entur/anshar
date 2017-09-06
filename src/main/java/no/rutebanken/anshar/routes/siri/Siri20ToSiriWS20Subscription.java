@@ -80,6 +80,36 @@ public class Siri20ToSiriWS20Subscription extends SiriSubscriptionRouteBuilder {
                 .routeId("start.ws.20.subscription."+subscriptionSetup.getVendor())
         ;
 
+        //Check status-request checks the server status - NOT the subscription
+        from("direct:" + subscriptionSetup.getCheckStatusRouteName())
+                .bean(helper, "createSiriCheckStatusRequest", false)
+                .marshal(SiriDataFormatHelper.getSiriJaxbDataformat(customNamespacePrefixMapper))
+                .setExchangePattern(ExchangePattern.InOut) // Make sure we wait for a response
+                .setHeader("SOAPAction", constant("CheckStatus"))
+                .setHeader("operatorNamespace", constant(subscriptionSetup.getOperatorNamespace())) // Need to make SOAP request with endpoint specific element namespace
+                .setHeader("endpointUrl", constant(endpointUrl)) // Need to make SOAP request with endpoint specific element namespace
+                .setHeader("soapEnvelopeNamespace", constant(subscriptionSetup.getSoapenvNamespace())) // Need to make SOAP request with endpoint specific element namespace
+                .to("xslt:xsl/siri_raw_soap.xsl") // Convert SIRI raw request to SOAP version
+                .to("xslt:xsl/siri_14_20.xsl") // Convert SIRI raw request to SOAP version
+                .removeHeaders("CamelHttp*") // Remove any incoming HTTP headers as they interfere with the outgoing definition
+                .setHeader(Exchange.CONTENT_TYPE, constant(subscriptionSetup.getContentType())) // Necessary when talking to Microsoft web services
+                .setHeader(Exchange.HTTP_METHOD, constant(org.apache.camel.http.common.HttpMethods.POST))
+                .to("log:cs:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
+                .to(getCamelUrl(urlMap.get(RequestType.CHECK_STATUS)) + getTimeout())
+                .process(p -> {
+
+                    String responseCode = p.getIn().getHeader("CamelHttpResponseCode", String.class);
+                    if ("200" .equals(responseCode)) {
+                        logger.trace("CheckStatus OK - Remote service is up [{}]", subscriptionSetup.buildUrl());
+                        handler.handleIncomingSiri(subscriptionSetup.getSubscriptionId(), p.getIn().getBody(InputStream.class));
+                    } else {
+                        logger.info("CheckStatus NOT OK - Remote service is down [{}]", subscriptionSetup.buildUrl());
+                    }
+
+                })
+                .routeId("check.status.rs.20.subscription."+subscriptionSetup.getVendor())
+        ;
+
         //Cancel subscription
         from("direct:" + subscriptionSetup.getCancelSubscriptionRouteName())
                 .log("Cancelling subscription " + subscriptionSetup.toString())
