@@ -712,7 +712,7 @@ anshar:
       version: 2.0
       contentType: text/xml;charset=UTF-8
       subscriptionId: ${random.uuid}
-      requestorRef: RutebankenDEV_ET
+      requestorRef: Rutebanken_ET_${random.uuid}
       durationOfSubscriptionHours: 168
       mappingAdapterPresets:
       filterPresets:
@@ -740,7 +740,7 @@ anshar:
       version: 2.0
       contentType: text/xml;charset=UTF-8
       subscriptionId: ${random.uuid}
-      requestorRef: RutebankenDEV_VM
+      requestorRef: Rutebanken_VM_${random.uuid}
       durationOfSubscriptionHours: 168
       mappingAdapterPresets:
       filterPresets:
@@ -767,7 +767,7 @@ anshar:
       version: 2.0
       contentType: text/xml;charset=UTF-8
       subscriptionId: ${random.uuid}
-      requestorRef: RutebankenDEV_SX
+      requestorRef: Rutebanken_SX_${random.uuid}
       durationOfSubscriptionHours: 168
       mappingAdapterPresets:
       filterPresets:
