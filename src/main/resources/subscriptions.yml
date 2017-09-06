@@ -696,17 +696,17 @@ anshar:
       serviceType: SOAP
       subscriptionType: ESTIMATED_TIMETABLE
       subscriptionMode: SUBSCRIBE
-      heartbeatIntervalSeconds: 6000
-      previewIntervalSeconds: 7200
-#      updateIntervalSeconds:
+      heartbeatIntervalSeconds: 20
+      previewIntervalSeconds: 36000
       operatorNamespace: http://wsdl.siri.org.uk
       addressFieldName: ConsumerAddress
       soapenvNamespace: http://schemas.xmlsoap.org/soap/envelope/
-      changeBeforeUpdatesSeconds: 1
+      changeBeforeUpdatesSeconds: 10
       incrementalUpdates:
       urlMap:
         SUBSCRIBE: 92.62.36.185:8000/SIRI
         DELETE_SUBSCRIPTION: 92.62.36.185:8000/SIRI
+        CHECK_STATUS: 92.62.36.185:8000/SIRI
       version: 2.0
       contentType: text/xml;charset=UTF-8
       subscriptionId: ${random.uuid}
@@ -724,8 +724,8 @@ anshar:
       serviceType: SOAP
       subscriptionType: VEHICLE_MONITORING
       subscriptionMode: SUBSCRIBE
-      heartbeatIntervalSeconds:  6000
-      previewIntervalSeconds: 7200
+      heartbeatIntervalSeconds:  120
+      previewIntervalSeconds: 36000
       operatorNamespace: http://wsdl.siri.org.uk
       addressFieldName: ConsumerAddress
       soapenvNamespace: http://schemas.xmlsoap.org/soap/envelope/
@@ -734,6 +734,7 @@ anshar:
       urlMap:
         SUBSCRIBE: 92.62.36.185:8000/SIRI
         DELETE_SUBSCRIPTION: 92.62.36.185:8000/SIRI
+        CHECK_STATUS: 92.62.36.185:8000/SIRI
       version: 2.0
       contentType: text/xml;charset=UTF-8
       subscriptionId: ${random.uuid}
@@ -751,8 +752,8 @@ anshar:
       serviceType: SOAP
       subscriptionType: SITUATION_EXCHANGE
       subscriptionMode: SUBSCRIBE
-      heartbeatIntervalSeconds:  6000
-      previewIntervalSeconds: 7200
+      heartbeatIntervalSeconds:  120
+      previewIntervalSeconds: 36000
       operatorNamespace: http://wsdl.siri.org.uk
       addressFieldName: ConsumerAddress
       soapenvNamespace: http://schemas.xmlsoap.org/soap/envelope/
@@ -760,6 +761,7 @@ anshar:
       urlMap:
         SUBSCRIBE: 92.62.36.185:8000/SIRI
         DELETE_SUBSCRIPTION: 92.62.36.185:8000/SIRI
+        CHECK_STATUS: 92.62.36.185:8000/SIRI
       version: 2.0
       contentType: text/xml;charset=UTF-8
       subscriptionId: ${random.uuid}
