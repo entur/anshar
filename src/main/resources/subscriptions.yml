@@ -536,24 +536,25 @@ anshar:
       datasetId: NSBSX
       serviceType: REST
       subscriptionType: SITUATION_EXCHANGE
-      subscriptionMode: REQUEST_RESPONSE
-      heartbeatIntervalSeconds: 6000000
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 60
       operatorNamespace: http://www.siri.org.uk/siri
-      addressFieldName:
+      addressFieldName: ConsumerAddress
       soapenvNamespace:
       incrementalUpdates:
       urlMap:
-        GET_SITUATION_EXCHANGE: dummy-url
+        SUBSCRIBE: http://linuxserver290.nsb.no:29080/subscriptions/siri2-nrp
+        DELETE_SUBSCRIPTION: http://linuxserver290.nsb.no:29080/subscriptions/siri2-nrp
       version: 2.0
       contentType: text/xml;charset=UTF-8
-      subscriptionId: nsb-sx-test-feed
+      subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV_${random.uuid}
       durationOfSubscriptionHours: 2
       mappingAdapterPresets: NSR,NSB
       filterPresets:
       idMappingPrefixes: NSB
       environments: test,beta,prod
-      active: true
+      active: false
     -
       internalId: 22
       vendor: tromset
