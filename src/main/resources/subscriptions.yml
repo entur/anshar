@@ -796,7 +796,7 @@ anshar:
       mappingAdapterPresets: NSR,RUTER
       filterPresets:
       idMappingPrefixes: RUT,OPP,BRA,OST
-      environments: beta
+      environments: beta,prod
       active: false
     -
       internalId: 100
