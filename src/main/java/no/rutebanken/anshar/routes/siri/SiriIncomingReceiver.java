@@ -17,9 +17,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 import uk.org.siri.siri20.Siri;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.PrintStream;
 import java.net.ConnectException;
 import java.util.HashMap;
 import java.util.Map;
@@ -140,34 +142,6 @@ public class SiriIncomingReceiver extends RouteBuilder {
                 .end()
                 .to("direct:" + CamelConfiguration.ROUTER_QUEUE)
                 .routeId("incoming.transform")
-        ;
-
-
-        // Validate XML against schema only
-        from("jetty:http://0.0.0.0:" + camelConfiguration.getInboundPort() + "/anshar/rest/sirivalidator?httpMethodRestrict=POST")
-                .process(p -> {
-                    String xml = p.getIn().getBody(String.class);
-                    if (xml != null) {
-                        logger.info("XML-validator started");
-
-                        HttpServletRequest request = p.getIn().getBody(HttpServletRequest.class);
-                        String version = request.getParameter("version");
-
-                        SiriValidator.Version siriVersion = resolveSiriVersionFromString(version);
-
-                        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-                        PrintStream ps = new PrintStream(outputStream);
-                        ps.println("Validating XML as " + siriVersion);
-
-                        boolean validXml = SiriValidator.validate(xml, siriVersion, ps);
-
-                        logger.info("XML-validator - valid: " + validXml);
-
-                        p.getOut().setBody(outputStream.toString("UTF-8"));
-                        ps.close();
-                    }
-                })
-                .routeId("validate.receive")
         ;
 
         from("activemq:queue:" + CamelConfiguration.VALIDATOR_QUEUE + activeMqConsumerParameters)
