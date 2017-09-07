@@ -544,14 +544,14 @@ anshar:
       soapenvNamespace:
       incrementalUpdates:
       urlMap:
-        SUBSCRIBE: ec2-54-194-124-188.eu-west-1.compute.amazonaws.com:29080/subscriptions/siri2-nrp
-        DELETE_SUBSCRIPTION: ec2-54-194-124-188.eu-west-1.compute.amazonaws.com:29080/subscriptions/siri2-nrp
+        SUBSCRIBE: ec2-54-246-227-136.eu-west-1.compute.amazonaws.com:29080/subscriptions/siri2-nrp
+        DELETE_SUBSCRIPTION: ec2-54-246-227-136.eu-west-1.compute.amazonaws.com:29080/subscriptions/siri2-nrp
       version: 2.0
       contentType: text/xml;charset=UTF-8
       subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV_${random.uuid}
-      durationOfSubscriptionHours: 2
-      mappingAdapterPresets: NSR,NSB
+      durationOfSubscriptionHours: 24
+      mappingAdapterPresets:
       filterPresets:
       idMappingPrefixes: NSB
       environments: test,prod
