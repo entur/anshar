@@ -1,8 +1,10 @@
 package no.rutebanken.anshar.subscription;
 
+import no.rutebanken.anshar.routes.Constants;
 import no.rutebanken.anshar.routes.siri.handlers.OutboundIdMappingPolicy;
 import no.rutebanken.anshar.routes.siri.processor.BaneNorIdPlatformPostProcessor;
 import no.rutebanken.anshar.routes.siri.processor.RuterDatedVehicleRefPostProcessor;
+import no.rutebanken.anshar.routes.siri.processor.RuterOutboundDatedVehicleRefAdapter;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.routes.siri.transformer.impl.*;
 import org.springframework.stereotype.Component;
@@ -23,6 +25,9 @@ public class MappingAdapterPresets {
         adapters.add(new OutboundIdAdapter(JourneyPlaceRefStructure.class, outboundIdMappingPolicy));
         adapters.add(new OutboundIdAdapter(DestinationRef.class, outboundIdMappingPolicy));
         adapters.add(new OutboundIdAdapter(CourseOfJourneyRefStructure.class, outboundIdMappingPolicy));
+
+        //Adding postprocessor for Ruter DatedVehicleRef
+        adapters.add(new RuterOutboundDatedVehicleRefAdapter(Constants.class, outboundIdMappingPolicy));
         return adapters;
     }
 

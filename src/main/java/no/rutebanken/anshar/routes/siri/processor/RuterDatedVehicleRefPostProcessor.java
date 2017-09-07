@@ -1,5 +1,6 @@
 package no.rutebanken.anshar.routes.siri.processor;
 
+import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import uk.org.siri.siri20.EstimatedTimetableDeliveryStructure;
 import uk.org.siri.siri20.EstimatedVehicleJourney;
@@ -12,7 +13,7 @@ import java.util.StringTokenizer;
 public class RuterDatedVehicleRefPostProcessor extends ValueAdapter implements PostProcessor {
 
     private static final String DELIMITER = ":";
-    private final String SERVICE_JOURNEY_PREFIX = "RUT:ServiceJourney:";
+    static final String SERVICE_JOURNEY_PREFIX = "RUT:ServiceJourney:";
 
     @Override
     public void process(Siri siri) {
@@ -29,7 +30,8 @@ public class RuterDatedVehicleRefPostProcessor extends ValueAdapter implements P
                                     if (datedVehicleJourneyRef != null && !datedVehicleJourneyRef.startsWith(SERVICE_JOURNEY_PREFIX)) {
                                         StringTokenizer tokenizer = new StringTokenizer(datedVehicleJourneyRef, DELIMITER);
                                         String newValue = SERVICE_JOURNEY_PREFIX + tokenizer.nextToken() + "-" + tokenizer.nextToken();
-                                        estimatedVehicleJourney.getFramedVehicleJourneyRef().setDatedVehicleJourneyRef(newValue);
+                                        estimatedVehicleJourney.getFramedVehicleJourneyRef()
+                                                .setDatedVehicleJourneyRef(datedVehicleJourneyRef + SiriValueTransformer.SEPARATOR + newValue);
                                     }
                                 }
                             }
