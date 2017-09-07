@@ -2,6 +2,7 @@ package no.rutebanken.anshar.subscription;
 
 import no.rutebanken.anshar.routes.siri.handlers.OutboundIdMappingPolicy;
 import no.rutebanken.anshar.routes.siri.processor.BaneNorIdPlatformPostProcessor;
+import no.rutebanken.anshar.routes.siri.processor.RuterDatedVehicleRefPostProcessor;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.routes.siri.transformer.impl.*;
 import org.springframework.stereotype.Component;
@@ -34,6 +35,7 @@ public class MappingAdapterPresets {
                 adapters.add(new RuterSubstringAdapter(StopPointRef.class, ':', '0', 2));
                 adapters.add(new RuterSubstringAdapter(JourneyPlaceRefStructure.class, ':', '0', 2));
                 adapters.add(new RuterSubstringAdapter(DestinationRef.class, ':', '0', 2));
+                adapters.add(new RuterDatedVehicleRefPostProcessor());
                 break;
             case ATB:
             case KOLUMBUS:
