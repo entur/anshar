@@ -698,7 +698,7 @@ anshar:
       serviceType: SOAP
       subscriptionType: ESTIMATED_TIMETABLE
       subscriptionMode: SUBSCRIBE
-      heartbeatIntervalSeconds: 20
+      heartbeatIntervalSeconds: 120
       previewIntervalSeconds: 36000
       operatorNamespace: http://wsdl.siri.org.uk
       addressFieldName: ConsumerAddress
