@@ -26,7 +26,7 @@ anshar:
       filterPresets:
       idMappingPrefixes: KOL
       environments: prod #,test
-      active: false
+      active: true
     -
       internalId: 2
       vendor: kolumbusvm
@@ -51,7 +51,7 @@ anshar:
       filterPresets:
       idMappingPrefixes: KOL
       environments: prod #,test
-      active: false
+      active: true
     -
       internalId: 3
       vendor: atbsx
@@ -78,7 +78,7 @@ anshar:
       filterPresets:
       idMappingPrefixes: ATB
       environments: prod #,test
-      active: false
+      active: true
     -
       internalId: 4
       vendor: atbvm
@@ -103,7 +103,7 @@ anshar:
       filterPresets:
       idMappingPrefixes: ATB
       environments: prod #,test
-      active: false
+      active: true
     -
       internalId: 5
       vendor: aktsx
@@ -129,7 +129,7 @@ anshar:
       filterPresets:
       idMappingPrefixes: AKT
       environments: prod #,test
-      active: false
+      active: true
     -
       internalId: 6
       vendor: aktet
@@ -156,7 +156,7 @@ anshar:
       filterPresets:
       idMappingPrefixes: AKT
       environments: prod #,test
-      active: false
+      active: true
     -
       internalId: 7
       vendor: rutersx
@@ -183,7 +183,7 @@ anshar:
       filterPresets:
       idMappingPrefixes: RUT,OPP,BRA,OST
       environments: prod #,test
-      active: false
+      active: true
     -
       internalId: 9
       vendor: rutervm
@@ -210,7 +210,7 @@ anshar:
       filterPresets:
       idMappingPrefixes: RUT,OPP,BRA,OST
       environments: prod
-      active: false
+      active: true
     -
       internalId: 11
       vendor: ruteret
@@ -238,7 +238,7 @@ anshar:
       filterPresets:
       idMappingPrefixes: RUT,OPP,BRA,OST
       environments: prod
-      active: false
+      active: true
     -
       internalId: 12
       vendor: skysset
@@ -265,7 +265,7 @@ anshar:
       filterPresets:
       idMappingPrefixes: SKY
       environments: prod #,test
-      active: false
+      active: true
     -
       internalId: 13
       vendor: skysssx
@@ -291,7 +291,7 @@ anshar:
       filterPresets:
       idMappingPrefixes: SKY
       environments: prod #,test
-      active: false
+      active: true
     -
       internalId: 14
       vendor: brakaret
@@ -318,7 +318,7 @@ anshar:
       filterPresets:
       idMappingPrefixes: BRA
       environments: prod #,test
-      active: false
+      active: true
     -
       internalId: 15
       vendor: brakarsx
@@ -344,7 +344,7 @@ anshar:
       filterPresets:
       idMappingPrefixes: BRA
       environments: prod #,test
-      active: false
+      active: true
     -
       internalId: 16
       vendor: bybanenEt
@@ -372,7 +372,7 @@ anshar:
       filterPresets: BYBANEN
       idMappingPrefixes: SKY
       environments: prod #,test
-      active: false
+      active: true
     -
       internalId: 17
       vendor: baneEt-reqres-24h
@@ -398,7 +398,7 @@ anshar:
       filterPresets:
       idMappingPrefixes: NSB,FLT
       environments: prod #,test
-      active: false
+      active: true
     -
       internalId: 171
       vendor: baneEt-reqres-1h
@@ -424,7 +424,7 @@ anshar:
       filterPresets:
       idMappingPrefixes: NSB,FLT
       environments: prod #,test
-      active: false
+      active: true
     -
       internalId: 18
       vendor: baneSx-reqres-24h
@@ -449,7 +449,7 @@ anshar:
       filterPresets:
       idMappingPrefixes: NSB,FLT
       environments: prod #,test
-      active: false
+      active: true
     -
       internalId: 181
       vendor: baneSx-reqres-1h
@@ -474,7 +474,7 @@ anshar:
       filterPresets:
       idMappingPrefixes: NSB,FLT
       environments: prod #,test
-      active: false
+      active: true
     -
       internalId: 19
       vendor: baneEt
@@ -582,7 +582,7 @@ anshar:
       filterPresets:
       idMappingPrefixes: TRO
       environments: prod #,test
-      active: false
+      active: true
     -
       internalId: 23
       vendor: tromssx
@@ -608,7 +608,7 @@ anshar:
       filterPresets:
       idMappingPrefixes: TRO
       environments: prod #,test
-      active: false
+      active: true
     -
       internalId: 24
       vendor: mret
@@ -718,7 +718,7 @@ anshar:
       filterPresets:
       idMappingPrefixes: OST
       environments: prod #,test
-      active: false
+      active: true
     -
       internalId: 28
       vendor: ostVm
@@ -746,7 +746,7 @@ anshar:
       filterPresets:
       idMappingPrefixes: OST
       environments: prod #,test
-      active: false
+      active: true
     -
       internalId: 29
       vendor: ostSX
@@ -773,7 +773,7 @@ anshar:
       filterPresets:
       idMappingPrefixes: OST
       environments: prod #,test
-      active: false
+      active: true
     -
       internalId: 30
       vendor: ruter-tbane
@@ -801,7 +801,7 @@ anshar:
       filterPresets:
       idMappingPrefixes: RUT,OPP,BRA,OST
       environments: prod
-      active: false
+      active: true
     -
       internalId: 100
       vendor: internRuterVm
