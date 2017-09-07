@@ -26,7 +26,7 @@ public class RuterDatedVehicleRefPostProcessor extends ValueAdapter implements P
                             for (EstimatedVehicleJourney estimatedVehicleJourney : estimatedVersionFrameStructure.getEstimatedVehicleJourneies()) {
                                 if (estimatedVehicleJourney.getFramedVehicleJourneyRef() != null) {
                                     String datedVehicleJourneyRef = estimatedVehicleJourney.getFramedVehicleJourneyRef().getDatedVehicleJourneyRef();
-                                    if (datedVehicleJourneyRef != null) {
+                                    if (datedVehicleJourneyRef != null && !datedVehicleJourneyRef.startsWith(SERVICE_JOURNEY_PREFIX)) {
                                         StringTokenizer tokenizer = new StringTokenizer(datedVehicleJourneyRef, DELIMITER);
                                         String newValue = SERVICE_JOURNEY_PREFIX + tokenizer.nextToken() + "-" + tokenizer.nextToken();
                                         estimatedVehicleJourney.getFramedVehicleJourneyRef().setDatedVehicleJourneyRef(newValue);
