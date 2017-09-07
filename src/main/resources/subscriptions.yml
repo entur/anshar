@@ -795,7 +795,7 @@ anshar:
       version: 2.0
       contentType: text/xml;charset=UTF-8
       subscriptionId: ${random.uuid}
-      requestorRef: RutebankenDEV
+      requestorRef: Rutebanken
       durationOfSubscriptionHours: 168
       mappingAdapterPresets: NSR,RUTER
       filterPresets:
