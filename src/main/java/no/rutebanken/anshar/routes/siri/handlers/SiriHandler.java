@@ -22,7 +22,6 @@ import uk.org.siri.siri20.*;
 
 import javax.xml.bind.JAXBException;
 import java.io.InputStream;
-import java.time.ZonedDateTime;
 import java.util.*;
 
 @Service
@@ -201,16 +200,7 @@ public class SiriHandler {
                 logger.info("Subscription terminated {}", subscriptionSetup);
 
             } else if (incoming.getDataReadyNotification() != null) {
-                logger.info("DataReadyNotification:\n{}", xml);
-                //Fetched delivery
-                DataReadyRequestStructure dataReadyNotification = incoming.getDataReadyNotification();
-                //TODO: Implement this?
-
-                //
-                DataReadyResponseStructure dataReadyAcknowledgement = new DataReadyResponseStructure();
-                dataReadyAcknowledgement.setResponseTimestamp(ZonedDateTime.now());
-                dataReadyAcknowledgement.setConsumerRef(dataReadyNotification.getProducerRef());
-
+                //Handled using camel routing
             } else if (incoming.getServiceDelivery() != null) {
                 subscriptionManager.touchSubscription(subscriptionId);
                 healthManager.dataReceived();
