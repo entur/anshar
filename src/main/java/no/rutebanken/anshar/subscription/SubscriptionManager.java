@@ -42,6 +42,10 @@ public class SubscriptionManager {
     private IMap<String, java.time.Instant> lastActivity;
 
     @Autowired
+    @Qualifier("getDataReceivedMap")
+    private IMap<String, java.time.Instant> dataReceived;
+
+    @Autowired
     @Qualifier("getActivatedTimestampMap")
     private IMap<String, java.time.Instant> activatedTimestamp;
 
@@ -75,7 +79,9 @@ public class SubscriptionManager {
 
         subscriptions.put(subscriptionId, setup);
         logger.trace("Added subscription {}", setup);
-        activatedTimestamp.put(subscriptionId, Instant.now());
+        if (setup.isActive()) {
+            activatePendingSubscription(subscriptionId);
+        }
         logStats();
     }
 
@@ -182,6 +188,7 @@ public class SubscriptionManager {
             lastActivity.put(subscriptionId, Instant.now());
             activatedTimestamp.put(subscriptionId, Instant.now());
             logger.info("Pending subscription {} activated", subscriptions.get(subscriptionId));
+            dataReceived(subscriptionId);
             return true;
         }
 
@@ -331,11 +338,11 @@ public class SubscriptionManager {
         }
     }
 
-    public Set<String> getAllUnhealthySubscriptions(int healthCheckIntervalFactor) {
+    public Set<String> getAllUnhealthySubscriptions(int allowedInactivitySeconds) {
         Set<String> subscriptionIds = subscriptions.keySet()
                 .stream()
                 .filter(subscriptionId -> isActiveSubscription(subscriptionId))
-                .filter(subscriptionId -> !isSubscriptionHealthy(subscriptionId, healthCheckIntervalFactor))
+                .filter(subscriptionId -> !isSubscriptionReceivingData(subscriptionId, allowedInactivitySeconds))
                 .collect(Collectors.toSet());
         if (subscriptionIds != null & !subscriptionIds.isEmpty()) {
             return subscriptions.getAll(subscriptionIds)
@@ -345,5 +352,24 @@ public class SubscriptionManager {
                     .collect(Collectors.toSet());
         }
         return new HashSet<>();
+    }
+
+    private boolean isSubscriptionReceivingData(String subscriptionId, long allowedInactivitySeconds) {
+        if (!isActiveSubscription(subscriptionId)) {
+            return true;
+        }
+        boolean isReceiving = true;
+        Instant lastDataReceived = dataReceived.get(subscriptionId);
+        if (lastDataReceived != null) {
+            isReceiving = (Instant.now().minusSeconds(allowedInactivitySeconds).isBefore(lastDataReceived));
+        }
+        return isReceiving;
+    }
+
+    public void dataReceived(String subscriptionId) {
+        touchSubscription(subscriptionId);
+        if (isActiveSubscription(subscriptionId)) {
+            dataReceived.put(subscriptionId, Instant.now());
+        }
     }
 }

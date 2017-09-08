@@ -10,7 +10,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.text.MessageFormat;
+import java.time.LocalTime;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -37,8 +39,16 @@ public class LivenessReadinessRoute extends RouteBuilder {
     @Value("${anshar.healthcheck.hubot.payload.template}")
     private String hubotTemplate;
 
-    @Value("${anshar.healthcheck.hubot.interval.factor:10}")
-    private int healthCheckIntervalFactor;
+    @Value("${anshar.healthcheck.hubot.allowed.inactivity.minutes:10}")
+    private int allowedInactivityMinutes;
+
+    @Value("${anshar.healthcheck.hubot.start.time}")
+    private String startMonitorTimeStr;
+    private LocalTime startMonitorTime;
+
+    @Value("${anshar.healthcheck.hubot.end.time}")
+    private String endMonitorTimeStr;
+    private LocalTime endMonitorTime;
 
     @Autowired
     HealthManager healthManager;
@@ -47,6 +57,12 @@ public class LivenessReadinessRoute extends RouteBuilder {
     SubscriptionManager subscriptionManager;
 
     public static boolean triggerRestart;
+
+    @PostConstruct
+    private void init() {
+        startMonitorTime = LocalTime.parse(startMonitorTimeStr);
+        endMonitorTime = LocalTime.parse(endMonitorTimeStr);
+    }
 
     @Override
     public void configure() throws Exception {
@@ -102,16 +118,41 @@ public class LivenessReadinessRoute extends RouteBuilder {
                 .endChoice()
                 .when(p -> getAllUnhealthySubscriptions() != null && !getAllUnhealthySubscriptions().isEmpty())
                     .process(p -> {
-                        String message = MessageFormat.format(hubotMessage, getAllUnhealthySubscriptions());
+                        Set<String> unhealthySubscriptions = getAllUnhealthySubscriptions();
 
-                        String jsonPayload = "{" + MessageFormat.format(hubotTemplate, hubotSource, hubotIcon, message) + "}";
+                        if (unhealthySubscriptions.isEmpty()) {
+                            //All green - clear status
+                            unhealthySubscriptionsAlreadyNotified.clear();
+                        } else {
+                            //Avoid notifying multiple times for same subscriptions
+                            unhealthySubscriptions.removeAll(unhealthySubscriptionsAlreadyNotified);
+                            //Keep
+                            unhealthySubscriptionsAlreadyNotified.addAll(unhealthySubscriptions);
+                        }
+                        if (!unhealthySubscriptions.isEmpty()) {
+                            String message = MessageFormat.format(hubotMessage, unhealthySubscriptions);
+                            String jsonPayload = "{" + MessageFormat.format(hubotTemplate, hubotSource, hubotIcon, message) + "}";
 
-//                        p.getOut().setBody("{" + jsonPayload +"}");
-                        logger.warn("Found unhealthy subscriptions notify hubot:" + jsonPayload);
+                            if (LocalTime.now().isAfter(startMonitorTime) &&
+                                    LocalTime.now().isBefore(endMonitorTime)) {
+                                p.getOut().setBody("{" + jsonPayload +"}");
+                                p.getOut().setHeader("notify-target", "hubot");
+                                logger.warn("Healtchckeck: Subscriptions not receiving data - notifying hubot:" + jsonPayload);
+                            } else {
+                                p.getOut().setBody("Subscriptions not receiving data - NOT notifying hubot:" + jsonPayload);
+                                logger.warn("Healtchckeck: Subscriptions not receiving data - NOT notifying hubot: " + unhealthySubscriptions);
+                            }
+                        } else if (unhealthySubscriptionsAlreadyNotified.isEmpty() &&
+                                unhealthySubscriptions.isEmpty()) {
+                            //All clear
+                            logger.info("Healtchckeck: Subscriptions are back to normal");
+                        }
                     })
+                    .when(header("notify-target").isEqualTo("hubot"))
 //                    .setHeader(Exchange.CONTENT_TYPE, constant(MediaType.JSON_UTF_8))
 //                    .setHeader(Exchange.HTTP_METHOD, constant(HttpMethods.POST))
 //                    .to(hubotUrl)
+                    .endChoice()
                 .endChoice()
                 .otherwise()
                     .setBody(simple("OK"))
@@ -124,19 +165,7 @@ public class LivenessReadinessRoute extends RouteBuilder {
     Set<String> unhealthySubscriptionsAlreadyNotified = new HashSet<>();
 
     private Set<String> getAllUnhealthySubscriptions() {
-        Set<String> unhealthySubscriptions = subscriptionManager.getAllUnhealthySubscriptions(healthCheckIntervalFactor);
-
-        if (unhealthySubscriptions.isEmpty()) {
-            //All green - clear status
-            unhealthySubscriptionsAlreadyNotified.clear();
-        } else {
-            //Avoid notifying multiple times for same subscriptions
-            unhealthySubscriptions.removeAll(unhealthySubscriptionsAlreadyNotified);
-
-            //Keep
-            unhealthySubscriptionsAlreadyNotified.addAll(unhealthySubscriptions);
-        }
-
+        Set<String> unhealthySubscriptions = subscriptionManager.getAllUnhealthySubscriptions(allowedInactivityMinutes*60);
         return unhealthySubscriptions;
     }
 }

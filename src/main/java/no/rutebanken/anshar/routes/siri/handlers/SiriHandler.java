@@ -202,7 +202,7 @@ public class SiriHandler {
             } else if (incoming.getDataReadyNotification() != null) {
                 //Handled using camel routing
             } else if (incoming.getServiceDelivery() != null) {
-                subscriptionManager.touchSubscription(subscriptionId);
+                subscriptionManager.dataReceived(subscriptionId);
                 healthManager.dataReceived();
 
                 if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE)) {

@@ -131,6 +131,11 @@ public class ExtendedHazelcastService extends HazelCastService {
         return hazelcast.getMap("anshar.activity.last");
     }
 
+    @Bean
+    public IMap<String, Instant> getDataReceivedMap() {
+        return hazelcast.getMap("anshar.subscriptions.data.received");
+    }
+
 
     @Bean
     public IMap<String, Instant> getLastEtUpdateRequest() {

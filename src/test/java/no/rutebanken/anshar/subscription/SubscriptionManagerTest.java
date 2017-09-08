@@ -14,6 +14,7 @@ import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.junit.Assert.*;
@@ -266,6 +267,29 @@ public class SubscriptionManagerTest {
 
         assertFalse("Unknown subscription has been activated", subscriptionManager.activatePendingSubscription("RandomSubscriptionId"));
         assertFalse("Unknown subscription reported as registered", subscriptionManager.isSubscriptionRegistered("RandomSubscriptionId"));
+    }
+
+    @Test
+    public void testAddSubscriptionAndReceivingData() {
+        SubscriptionSetup subscription = createSubscription(1000);
+        subscription.setVendor("VIPVendor");
+        subscription.setActive(true);
+
+        String subscriptionId = subscription.getSubscriptionId();
+        subscriptionManager.addSubscription(subscriptionId, subscription);
+        assertTrue(subscriptionManager.isSubscriptionHealthy(subscriptionId));
+        subscriptionManager.dataReceived(subscriptionId);
+
+        Set<String> allUnhealthySubscriptions = subscriptionManager.getAllUnhealthySubscriptions(1);
+        assertFalse(allUnhealthySubscriptions.contains(subscription.getVendor()));
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        Set<String> allUnhealthySubscriptions_2 = subscriptionManager.getAllUnhealthySubscriptions(0);
+        assertTrue(allUnhealthySubscriptions_2.contains(subscription.getVendor()));
     }
 
     private SubscriptionSetup createSubscription(long initialDuration) {
