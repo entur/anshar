@@ -66,6 +66,7 @@ public abstract class SiriSubscriptionRouteBuilder extends BaseRouteBuilder {
                     .to("direct:" + subscriptionSetup.getCancelSubscriptionRouteName())// Start subscription
                 .when(p -> shouldCheckStatus(p.getFromRouteId()))
                     .log("Check status: " + subscriptionSetup)
+                    .process(p -> lastCheckStatus = Instant.now())
                     .to("direct:" + subscriptionSetup.getCheckStatusRouteName()) // Check status
                 .end()
         ;

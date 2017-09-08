@@ -781,7 +781,7 @@ anshar:
       serviceType: REST
       subscriptionType: ESTIMATED_TIMETABLE
       subscriptionMode: SUBSCRIBE
-      heartbeatIntervalSeconds: 6000
+      heartbeatIntervalSeconds: 180
       updateIntervalSeconds: 1
       changeBeforeUpdatesSeconds: 1
       previewIntervalSeconds: 86400
@@ -820,6 +820,7 @@ anshar:
 #        GET_VEHICLE_MONITORING: https4://api.entur.org/anshar/1.0/anshar/services/RUT?useOriginalId=true
         SUBSCRIBE: https4://api.entur.org/anshar/1.0/anshar/subscribe/RUT?useOriginalId=true
         DELETE_SUBSCRIPTION: https4://api.entur.org/anshar/1.0/anshar/subscribe/RUT
+        CHECK_STATUS: https4://api-test.entur.org/anshar/1.0/anshar/services
       version: 2.0
       contentType: text/xml;charset=UTF-8
       subscriptionId: vm-replication
