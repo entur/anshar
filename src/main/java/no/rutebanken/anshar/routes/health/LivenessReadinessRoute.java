@@ -30,11 +30,17 @@ public class LivenessReadinessRoute extends RouteBuilder {
     @Value("${anshar.healthcheck.hubot.payload.source}")
     private String hubotSource;
 
-    @Value("${anshar.healthcheck.hubot.payload.icon}")
-    private String hubotIcon;
+    @Value("${anshar.healthcheck.hubot.payload.icon.fail}")
+    private String hubotIconFail;
 
-    @Value("${anshar.healthcheck.hubot.payload.message}")
-    private String hubotMessage;
+    @Value("${anshar.healthcheck.hubot.payload.message.fail}")
+    private String hubotMessageFail;
+
+    @Value("${anshar.healthcheck.hubot.payload.icon.success}")
+    private String hubotIconSuccess;
+
+    @Value("${anshar.healthcheck.hubot.payload.message.success}")
+    private String hubotMessageSuccess;
 
     @Value("${anshar.healthcheck.hubot.payload.template}")
     private String hubotTemplate;
@@ -116,48 +122,65 @@ public class LivenessReadinessRoute extends RouteBuilder {
                     .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("500"))
                     .log("Server is not receiving data")
                 .endChoice()
+                .when(p -> getAllUnhealthySubscriptions().isEmpty() && !unhealthySubscriptionsAlreadyNotified.isEmpty())
+                    .process(p -> {
+                        unhealthySubscriptionsAlreadyNotified.clear();
+                        String message = hubotMessageSuccess;
+
+                        if (LocalTime.now().isAfter(startMonitorTime) &&
+                                LocalTime.now().isBefore(endMonitorTime)) {
+                            String jsonPayload = "{" + MessageFormat.format(hubotTemplate, hubotSource, hubotIconSuccess, message) + "}";
+                            p.getOut().setBody("{" + jsonPayload + "}");
+                            p.getOut().setHeader("notify-target", "hubot");
+                        } else {
+                            p.getOut().setBody(message);
+                            p.getOut().setHeader("notify-target", "log");
+                        }
+                    })
+                .endChoice()
                 .when(p -> getAllUnhealthySubscriptions() != null && !getAllUnhealthySubscriptions().isEmpty())
                     .process(p -> {
                         Set<String> unhealthySubscriptions = getAllUnhealthySubscriptions();
 
-                        if (unhealthySubscriptions.isEmpty()) {
-                            //All green - clear status
-                            unhealthySubscriptionsAlreadyNotified.clear();
-                        } else {
-                            //Avoid notifying multiple times for same subscriptions
-                            unhealthySubscriptions.removeAll(unhealthySubscriptionsAlreadyNotified);
-                            //Keep
-                            unhealthySubscriptionsAlreadyNotified.addAll(unhealthySubscriptions);
-                        }
+                        //Avoid notifying multiple times for same subscriptions
+                        unhealthySubscriptions.removeAll(unhealthySubscriptionsAlreadyNotified);
+                        //Keep
+                        unhealthySubscriptionsAlreadyNotified.addAll(unhealthySubscriptions);
+
                         if (!unhealthySubscriptions.isEmpty()) {
-                            String message = MessageFormat.format(hubotMessage, unhealthySubscriptions);
-                            String jsonPayload = "{" + MessageFormat.format(hubotTemplate, hubotSource, hubotIcon, message) + "}";
+                            String message = MessageFormat.format(hubotMessageFail, unhealthySubscriptions);
 
                             if (LocalTime.now().isAfter(startMonitorTime) &&
                                     LocalTime.now().isBefore(endMonitorTime)) {
+
+                                String jsonPayload = "{" + MessageFormat.format(hubotTemplate, hubotSource, hubotIconFail, message) + "}";
                                 p.getOut().setBody("{" + jsonPayload +"}");
                                 p.getOut().setHeader("notify-target", "hubot");
                                 logger.warn("Healtchckeck: Subscriptions not receiving data - notifying hubot:" + jsonPayload);
                             } else {
-                                p.getOut().setBody("Subscriptions not receiving data - NOT notifying hubot:" + jsonPayload);
+                                p.getOut().setBody("Subscriptions not receiving data - NOT notifying hubot:" + message);
+                                p.getOut().setHeader("notify-target", "log");
                                 logger.warn("Healtchckeck: Subscriptions not receiving data - NOT notifying hubot: " + unhealthySubscriptions);
                             }
-                        } else if (unhealthySubscriptionsAlreadyNotified.isEmpty() &&
-                                unhealthySubscriptions.isEmpty()) {
-                            //All clear
-                            logger.info("Healtchckeck: Subscriptions are back to normal");
                         }
                     })
-                    .when(header("notify-target").isEqualTo("hubot"))
-//                    .setHeader(Exchange.CONTENT_TYPE, constant(MediaType.JSON_UTF_8))
-//                    .setHeader(Exchange.HTTP_METHOD, constant(HttpMethods.POST))
-//                    .to(hubotUrl)
-                    .endChoice()
                 .endChoice()
                 .otherwise()
                     .setBody(simple("OK"))
                     .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
-                .end()
+                .endChoice()
+
+                .when(header("notify-target").isEqualTo("log"))
+                    .to("log:health")
+                    .process(p -> {
+                        System.out.println("eee");
+                    })
+                .endChoice()
+                .when(header("notify-target").isEqualTo("hubot"))
+//                    .setHeader(Exchange.CONTENT_TYPE, constant(MediaType.JSON_UTF_8))
+//                    .setHeader(Exchange.HTTP_METHOD, constant(HttpMethods.POST))
+//                    .to(hubotUrl)
+                .endChoice()
                 .routeId("health.is.healthy")
         ;
 
