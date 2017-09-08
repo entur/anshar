@@ -18,13 +18,15 @@ import static no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer.
 
 public class TestRuterDatedVehicleRefPostProcessor {
 
+
+    String originalDatedVehicleRef = "250:125:9-12510";
+    String targetVehicleRef = "RUT:ServiceJourney:250-125";
+    String otpTargetVehicleRef = "RUT.ServiceJourney.250-125";
+
+    String completeDatedVehicleRef = originalDatedVehicleRef + SEPARATOR + targetVehicleRef;
+
     @Test
     public void testConvertDatedVehicleRef() {
-        String originalDatedVehicleRef = "250:125:9-12510";
-        String targetVehicleRef = "RUT:ServiceJourney:250-125";
-        String otpTargetVehicleRef = "RUT.ServiceJourney.250-125";
-
-        String completeDatedVehicleRef = originalDatedVehicleRef + SEPARATOR + targetVehicleRef;
 
         Siri siri = createEtServiceDelivery(originalDatedVehicleRef);
 
@@ -34,6 +36,10 @@ public class TestRuterDatedVehicleRefPostProcessor {
                 .getEstimatedJourneyVersionFrames().get(0).getEstimatedVehicleJourneies().get(0)
                 .getFramedVehicleJourneyRef().getDatedVehicleJourneyRef());
 
+    }
+
+    @Test
+    public void testConvertDatedVehicleRefForOtp() {
 
         Siri otpSiri = createEtServiceDelivery(originalDatedVehicleRef);
 
@@ -44,6 +50,10 @@ public class TestRuterDatedVehicleRefPostProcessor {
                 .getEstimatedJourneyVersionFrames().get(0).getEstimatedVehicleJourneies().get(0)
                 .getFramedVehicleJourneyRef().getDatedVehicleJourneyRef());
 
+    }
+
+    @Test
+    public void testConvertDatedVehicleRefOriginal() {
 
         Siri originalSiri = createEtServiceDelivery(originalDatedVehicleRef);
 
@@ -51,6 +61,21 @@ public class TestRuterDatedVehicleRefPostProcessor {
         new RuterOutboundDatedVehicleRefAdapter(this.getClass(), OutboundIdMappingPolicy.ORIGINAL_ID).process(originalSiri);
 
         assertEquals(originalDatedVehicleRef, originalSiri.getServiceDelivery().getEstimatedTimetableDeliveries().get(0)
+                .getEstimatedJourneyVersionFrames().get(0).getEstimatedVehicleJourneies().get(0)
+                .getFramedVehicleJourneyRef().getDatedVehicleJourneyRef());
+
+    }
+
+
+    @Test
+    public void testConvertDatedVehicleRefDefault() {
+
+        Siri originalSiri = createEtServiceDelivery(originalDatedVehicleRef);
+
+        new RuterDatedVehicleRefPostProcessor().process(originalSiri);
+        new RuterOutboundDatedVehicleRefAdapter(this.getClass(), OutboundIdMappingPolicy.DEFAULT).process(originalSiri);
+
+        assertEquals(targetVehicleRef, originalSiri.getServiceDelivery().getEstimatedTimetableDeliveries().get(0)
                 .getEstimatedJourneyVersionFrames().get(0).getEstimatedVehicleJourneies().get(0)
                 .getFramedVehicleJourneyRef().getDatedVehicleJourneyRef());
 
