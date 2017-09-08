@@ -783,6 +783,7 @@ anshar:
       subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 6000
       updateIntervalSeconds: 1
+      changeBeforeUpdatesSeconds: 1
       previewIntervalSeconds: 86400
       operatorNamespace: http://www.siri.org.uk/siri
       addressFieldName:
