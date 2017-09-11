@@ -202,7 +202,7 @@ public class SiriHandler {
             } else if (incoming.getDataReadyNotification() != null) {
                 //Handled using camel routing
             } else if (incoming.getServiceDelivery() != null) {
-                subscriptionManager.dataReceived(subscriptionId);
+                boolean deliveryContainsData = false;
                 healthManager.dataReceived();
 
                 if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE)) {
@@ -211,6 +211,7 @@ public class SiriHandler {
 
                     List<PtSituationElement> addedOrUpdated = new ArrayList<>();
                     if (situationExchangeDeliveries != null) {
+                        deliveryContainsData = deliveryContainsData | (situationExchangeDeliveries.size() > 0);
                         situationExchangeDeliveries.forEach(sx -> {
                                     if (sx.isStatus() != null && !sx.isStatus()) {
                                         logger.info(getErrorContents(sx.getErrorCondition()));
@@ -235,6 +236,7 @@ public class SiriHandler {
 
                     List<VehicleActivityStructure> addedOrUpdated = new ArrayList<>();
                     if (vehicleMonitoringDeliveries != null) {
+                        deliveryContainsData = deliveryContainsData | (vehicleMonitoringDeliveries.size() > 0);
                         vehicleMonitoringDeliveries.forEach(vm -> {
                                     if (vm.isStatus() != null && !vm.isStatus()) {
                                         logger.info(getErrorContents(vm.getErrorCondition()));
@@ -259,6 +261,7 @@ public class SiriHandler {
 
                     List<EstimatedVehicleJourney> addedOrUpdated = new ArrayList<>();
                     if (estimatedTimetableDeliveries != null) {
+                        deliveryContainsData = deliveryContainsData | (estimatedTimetableDeliveries.size() > 0);
                         estimatedTimetableDeliveries.forEach(et -> {
                                     if (et.isStatus() != null && !et.isStatus()) {
                                         logger.info(getErrorContents(et.getErrorCondition()));
@@ -281,10 +284,10 @@ public class SiriHandler {
                 if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.PRODUCTION_TIMETABLE)) {
                     List<ProductionTimetableDeliveryStructure> productionTimetableDeliveries = incoming.getServiceDelivery().getProductionTimetableDeliveries();
                     logger.info("Got PT-delivery: Subscription [{}]", subscriptionSetup);
-
                     List<ProductionTimetableDeliveryStructure> addedOrUpdated = new ArrayList<>();
 
                     if (productionTimetableDeliveries != null) {
+                        deliveryContainsData = deliveryContainsData | (productionTimetableDeliveries.size() > 0);
                         addedOrUpdated.addAll(
                                 productionTimetables.addAll(subscriptionSetup.getDatasetId(), productionTimetableDeliveries)
                         );
@@ -295,6 +298,9 @@ public class SiriHandler {
                     subscriptionManager.incrementObjectCounter(subscriptionSetup, addedOrUpdated.size());
 
                     logger.info("Active PT-elements: {}, current delivery: {}, {}", productionTimetables.getSize(), addedOrUpdated.size(), subscriptionSetup);
+                }
+                if (deliveryContainsData) {
+                    subscriptionManager.dataReceived(subscriptionId);
                 }
             } else {
                 throw new RuntimeException(new ServiceNotSupportedException());
