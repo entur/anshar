@@ -211,7 +211,6 @@ public class SiriHandler {
 
                     List<PtSituationElement> addedOrUpdated = new ArrayList<>();
                     if (situationExchangeDeliveries != null) {
-                        deliveryContainsData = deliveryContainsData | (situationExchangeDeliveries.size() > 0);
                         situationExchangeDeliveries.forEach(sx -> {
                                     if (sx.isStatus() != null && !sx.isStatus()) {
                                         logger.info(getErrorContents(sx.getErrorCondition()));
@@ -223,6 +222,7 @@ public class SiriHandler {
                                 }
                         );
                     }
+                    deliveryContainsData = deliveryContainsData | (addedOrUpdated.size() > 0);
 
                     serverSubscriptionManager.pushUpdatedSituations(addedOrUpdated, subscriptionSetup.getDatasetId());
 
@@ -236,7 +236,6 @@ public class SiriHandler {
 
                     List<VehicleActivityStructure> addedOrUpdated = new ArrayList<>();
                     if (vehicleMonitoringDeliveries != null) {
-                        deliveryContainsData = deliveryContainsData | (vehicleMonitoringDeliveries.size() > 0);
                         vehicleMonitoringDeliveries.forEach(vm -> {
                                     if (vm.isStatus() != null && !vm.isStatus()) {
                                         logger.info(getErrorContents(vm.getErrorCondition()));
@@ -249,6 +248,7 @@ public class SiriHandler {
                         );
                     }
 
+                    deliveryContainsData = deliveryContainsData | (addedOrUpdated.size() > 0);
                     serverSubscriptionManager.pushUpdatedVehicleActivities(addedOrUpdated, subscriptionSetup.getDatasetId());
 
                     subscriptionManager.incrementObjectCounter(subscriptionSetup, addedOrUpdated.size());
@@ -261,7 +261,6 @@ public class SiriHandler {
 
                     List<EstimatedVehicleJourney> addedOrUpdated = new ArrayList<>();
                     if (estimatedTimetableDeliveries != null) {
-                        deliveryContainsData = deliveryContainsData | (estimatedTimetableDeliveries.size() > 0);
                         estimatedTimetableDeliveries.forEach(et -> {
                                     if (et.isStatus() != null && !et.isStatus()) {
                                         logger.info(getErrorContents(et.getErrorCondition()));
@@ -275,6 +274,8 @@ public class SiriHandler {
                                 }
                         );
                     }
+
+                    deliveryContainsData = deliveryContainsData | (addedOrUpdated.size() > 0);
                     serverSubscriptionManager.pushUpdatedEstimatedTimetables(addedOrUpdated, subscriptionSetup.getDatasetId());
 
                     subscriptionManager.incrementObjectCounter(subscriptionSetup, addedOrUpdated.size());
@@ -287,18 +288,20 @@ public class SiriHandler {
                     List<ProductionTimetableDeliveryStructure> addedOrUpdated = new ArrayList<>();
 
                     if (productionTimetableDeliveries != null) {
-                        deliveryContainsData = deliveryContainsData | (productionTimetableDeliveries.size() > 0);
                         addedOrUpdated.addAll(
                                 productionTimetables.addAll(subscriptionSetup.getDatasetId(), productionTimetableDeliveries)
                         );
                     }
 
+                    deliveryContainsData = deliveryContainsData | (addedOrUpdated.size() > 0);
                     serverSubscriptionManager.pushUpdatedProductionTimetables(addedOrUpdated, subscriptionSetup.getDatasetId());
 
                     subscriptionManager.incrementObjectCounter(subscriptionSetup, addedOrUpdated.size());
 
                     logger.info("Active PT-elements: {}, current delivery: {}, {}", productionTimetables.getSize(), addedOrUpdated.size(), subscriptionSetup);
                 }
+
+                subscriptionManager.touchSubscription(subscriptionId);
                 if (deliveryContainsData) {
                     subscriptionManager.dataReceived(subscriptionId);
                 }
