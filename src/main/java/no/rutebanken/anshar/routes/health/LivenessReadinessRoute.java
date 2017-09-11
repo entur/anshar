@@ -150,17 +150,18 @@ public class LivenessReadinessRoute extends RouteBuilder {
 
                         //Avoid notifying multiple times for same subscriptions
                         unhealthySubscriptions.removeAll(unhealthySubscriptionsAlreadyNotified);
+
                         //Keep
                         unhealthySubscriptionsAlreadyNotified.addAll(unhealthySubscriptions);
 
                         if (!unhealthySubscriptions.isEmpty()) {
-                            String message = MessageFormat.format(hubotMessageFail, unhealthySubscriptions);
+                            String message = MessageFormat.format(hubotMessageFail, getAllUnhealthySubscriptions());
 
                             if (LocalTime.now().isAfter(startMonitorTime) &&
                                     LocalTime.now().isBefore(endMonitorTime)) {
 
                                 String jsonPayload = "{" + MessageFormat.format(hubotTemplate, hubotSource, hubotIconFail, message) + "}";
-                                p.getOut().setBody("{" + jsonPayload +"}");
+                                p.getOut().setBody( jsonPayload );
                                 p.getOut().setHeader("notify-target", "hubot");
                             } else {
                                 p.getOut().setBody("Subscriptions not receiving data - NOT notifying hubot:" + message);
