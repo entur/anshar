@@ -221,6 +221,11 @@ public class ExtendedHazelcastService extends HazelCastService {
     }
 
     @Bean
+    public ISet<String> getUnhealthySubscriptionsSet() {
+        return hazelcast.getSet("anshar.subscriptions.unhealthy.notified");
+    }
+
+    @Bean
     public IMap<String,BigInteger> getObjectCounterMap() {
         return hazelcast.getMap("anshar.activity.objectcount");
     }

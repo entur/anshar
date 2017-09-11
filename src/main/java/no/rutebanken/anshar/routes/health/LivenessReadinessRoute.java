@@ -1,11 +1,13 @@
 package no.rutebanken.anshar.routes.health;
 
+import com.hazelcast.core.ISet;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
@@ -13,7 +15,6 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import java.text.MessageFormat;
 import java.time.LocalTime;
-import java.util.HashSet;
 import java.util.Set;
 
 @Service
@@ -55,6 +56,10 @@ public class LivenessReadinessRoute extends RouteBuilder {
     @Value("${anshar.healthcheck.hubot.end.time}")
     private String endMonitorTimeStr;
     private LocalTime endMonitorTime;
+
+    @Autowired
+    @Qualifier("getUnhealthySubscriptionsSet")
+    ISet<String> unhealthySubscriptionsAlreadyNotified;
 
     @Autowired
     HealthManager healthManager;
@@ -137,6 +142,7 @@ public class LivenessReadinessRoute extends RouteBuilder {
                             p.getOut().setHeader("notify-target", "log");
                         }
                     })
+                    .to("direct:notify.hubot")
                 .endChoice()
                 .when(p -> getAllUnhealthySubscriptions() != null && !getAllUnhealthySubscriptions().isEmpty())
                     .process(p -> {
@@ -162,27 +168,28 @@ public class LivenessReadinessRoute extends RouteBuilder {
                             }
                         }
                     })
+                    .to("direct:notify.hubot")
                 .endChoice()
                 .otherwise()
                     .setBody(simple("OK"))
                     .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
                 .endChoice()
-
+                .routeId("health.is.healthy")
+        ;
+        from("direct:notify.hubot")
+                .choice()
                 .when(header("notify-target").isEqualTo("log"))
-                    .log("Healthcheck: Subscriptions not receiving data - NOT notifying hubot: {body}")
-                    .to("log:health")
+                    .to("log:health:" + getClass().getSimpleName() + "?showAll=false&multiline=false")
                 .endChoice()
                 .when(header("notify-target").isEqualTo("hubot"))
-                    .log("Healthcheck: Subscriptions not receiving data - notifying hubot: {body}")
+                    .to("log:health:" + getClass().getSimpleName() + "?showAll=false&multiline=false")
 //                    .setHeader(Exchange.CONTENT_TYPE, constant(MediaType.JSON_UTF_8))
 //                    .setHeader(Exchange.HTTP_METHOD, constant(HttpMethods.POST))
 //                    .to(hubotUrl)
                 .endChoice()
-                .routeId("health.is.healthy")
         ;
 
     }
-    Set<String> unhealthySubscriptionsAlreadyNotified = new HashSet<>();
 
     private Set<String> getAllUnhealthySubscriptions() {
         Set<String> unhealthySubscriptions = subscriptionManager.getAllUnhealthySubscriptions(allowedInactivityMinutes*60);
