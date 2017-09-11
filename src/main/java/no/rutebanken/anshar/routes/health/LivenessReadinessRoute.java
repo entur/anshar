@@ -156,11 +156,9 @@ public class LivenessReadinessRoute extends RouteBuilder {
                                 String jsonPayload = "{" + MessageFormat.format(hubotTemplate, hubotSource, hubotIconFail, message) + "}";
                                 p.getOut().setBody("{" + jsonPayload +"}");
                                 p.getOut().setHeader("notify-target", "hubot");
-                                logger.warn("Healtchckeck: Subscriptions not receiving data - notifying hubot:" + jsonPayload);
                             } else {
                                 p.getOut().setBody("Subscriptions not receiving data - NOT notifying hubot:" + message);
                                 p.getOut().setHeader("notify-target", "log");
-                                logger.warn("Healtchckeck: Subscriptions not receiving data - NOT notifying hubot: " + unhealthySubscriptions);
                             }
                         }
                     })
@@ -171,12 +169,11 @@ public class LivenessReadinessRoute extends RouteBuilder {
                 .endChoice()
 
                 .when(header("notify-target").isEqualTo("log"))
+                    .log("Healthcheck: Subscriptions not receiving data - NOT notifying hubot: {body}")
                     .to("log:health")
-                    .process(p -> {
-                        System.out.println("eee");
-                    })
                 .endChoice()
                 .when(header("notify-target").isEqualTo("hubot"))
+                    .log("Healthcheck: Subscriptions not receiving data - notifying hubot: {body}")
 //                    .setHeader(Exchange.CONTENT_TYPE, constant(MediaType.JSON_UTF_8))
 //                    .setHeader(Exchange.HTTP_METHOD, constant(HttpMethods.POST))
 //                    .to(hubotUrl)

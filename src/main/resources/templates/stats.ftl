@@ -37,6 +37,7 @@
                 <th>Activated</th>
                 <th>Vendor</th>
                 <th>Last activity</th>
+                <th>Latest data received</th>
                 <th>Requests</th>
                 <th>Total objects received</th>
             </tr>
@@ -49,11 +50,12 @@
                 <td>${item.activated!""}</td>
                 <td>${item.vendor}</td>
                 <td>${item.lastActivity!""}</td>
+                <td>${item.lastDataReceived!""}</td>
                 <td align="right">${item.hitcount!0}</td>
                 <td align="right">${item.objectcount!0}</td>
             </tr>
             <tr id="accordion${item?counter}" class="collapse ${item.healthy?exists?then(item.healthy?then("success","danger"), "warning")}">
-            <td colspan="7">
+            <td colspan="8">
                 <table class="table table-striped">
                     <tr><th>Dataset ID</th><td>${item.datasetId}</td></tr>
                     <tr><th>Servicetype</th><td>${item.serviceType}</td></tr>
