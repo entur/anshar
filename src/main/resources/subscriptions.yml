@@ -26,7 +26,7 @@ anshar:
       filterPresets:
       idMappingPrefixes: KOL
       environments: prod #,test
-      active: true
+      active: false
     -
       internalId: 2
       vendor: kolumbusvm
@@ -344,7 +344,7 @@ anshar:
       filterPresets:
       idMappingPrefixes: BRA
       environments: prod #,test
-      active: true
+      active: false
     -
       internalId: 16
       vendor: bybanenEt
@@ -449,7 +449,7 @@ anshar:
       filterPresets:
       idMappingPrefixes: NSB,FLT
       environments: prod #,test
-      active: true
+      active: false
     -
       internalId: 181
       vendor: baneSx-reqres-1h
@@ -474,7 +474,7 @@ anshar:
       filterPresets:
       idMappingPrefixes: NSB,FLT
       environments: prod #,test
-      active: true
+      active: false
     -
       internalId: 19
       vendor: baneEt
@@ -746,7 +746,7 @@ anshar:
       filterPresets:
       idMappingPrefixes: OST
       environments: prod #,test
-      active: true
+      active: false
     -
       internalId: 29
       vendor: ostSX
@@ -802,7 +802,7 @@ anshar:
       filterPresets:
       idMappingPrefixes: RUT,OPP,BRA,OST
       environments: prod
-      active: true
+      active: false
     -
       internalId: 100
       vendor: internRuterVm
