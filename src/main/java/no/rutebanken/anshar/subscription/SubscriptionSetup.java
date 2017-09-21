@@ -306,30 +306,13 @@ public class SubscriptionSetup implements Serializable {
     public enum SubscriptionType {SITUATION_EXCHANGE, VEHICLE_MONITORING, PRODUCTION_TIMETABLE, ESTIMATED_TIMETABLE}
     public enum SubscriptionMode {SUBSCRIBE, REQUEST_RESPONSE, FETCHED_DELIVERY}
 
-//    public void setMappingAdapterPresets(SubscriptionPreset[] mappingAdapterPresets) {
-//        this.mappingAdapterPresets = mappingAdapterPresets;
-//        mappingAdapters = new ArrayList<>();
-//        for (SubscriptionPreset preset : mappingAdapterPresets) {
-//            addMappingAdapters(new MappingAdapterPresets().get(preset));
-//        }
-//    }
-//
-//    private void addMappingAdapters(List<ValueAdapter> valueAdapters) {
-//        if (mappingAdapters == null) {
-//            mappingAdapters = new ArrayList<>();
-//        }
-//        mappingAdapters.addAll(valueAdapters);
-//    }
-//
-//    private void setMappingAdapters(List<ValueAdapter> mappingAdapters) {
-//        this.mappingAdapters = mappingAdapters;
-//    }
-//
-//
-//    public void setIdMappingPrefixes(List<String> idMappingPrefixes) {
-//        this.idMappingPrefixes = idMappingPrefixes;
-//    }
+    public void setIdMappingPrefixes(List<String> idMappingPrefixes) {
+        this.idMappingPrefixes = idMappingPrefixes;
+    }
 
+    public List<String> getIdMappingPrefixes() {
+        return idMappingPrefixes;
+    }
 
     public String getMappingAdapterId() {
         return mappingAdapterId;
@@ -337,10 +320,6 @@ public class SubscriptionSetup implements Serializable {
 
     public void setMappingAdapterId(String mappingAdapterId) {
         this.mappingAdapterId = mappingAdapterId;
-    }
-
-    public List<String> getIdMappingPrefixes() {
-        return idMappingPrefixes;
     }
 
     public void setSubscriptionType(SubscriptionType subscriptionType) {
