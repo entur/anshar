@@ -7,6 +7,9 @@ import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
 
+import static no.rutebanken.anshar.routes.siri.SiriIncomingReceiver.TRANSFORM_SOAP;
+import static no.rutebanken.anshar.routes.siri.SiriIncomingReceiver.TRANSFORM_VERSION;
+
 public class Siri20ToSiriWS14RequestResponse extends SiriSubscriptionRouteBuilder {
 
     public Siri20ToSiriWS14RequestResponse(CamelConfiguration config, SubscriptionSetup subscriptionSetup, SubscriptionManager subscriptionManager) {
@@ -51,6 +54,8 @@ public class Siri20ToSiriWS14RequestResponse extends SiriSubscriptionRouteBuilde
                 .setHeader("CamelHttpPath", constant("/appContext" + subscriptionSetup.buildUrl(false)))
                 .log("Got response " + subscriptionSetup.toString())
                 //.to("log:response:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
+                .setHeader(TRANSFORM_VERSION, constant(TRANSFORM_VERSION))
+                .setHeader(TRANSFORM_SOAP, constant(TRANSFORM_SOAP))
                 .to("activemq:queue:" + CamelConfiguration.TRANSFORM_QUEUE + "?disableReplyTo=true&timeToLive="+getTimeToLive())
                 .routeId("request.ws.14." + subscriptionSetup.getSubscriptionType() + "." + subscriptionSetup.getVendor())
         ;

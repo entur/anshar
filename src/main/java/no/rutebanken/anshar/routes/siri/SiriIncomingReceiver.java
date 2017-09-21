@@ -40,8 +40,9 @@ public class SiriIncomingReceiver extends RouteBuilder {
 
     @Autowired
     CamelConfiguration camelConfiguration;
-    private String TRANSFORM_VERSION = "TRANSFORM_VERSION";
-    private String TRANSFORM_SOAP = "TRANSFORM_SOAP";
+
+    public static String TRANSFORM_VERSION = "TRANSFORM_VERSION";
+    public static String TRANSFORM_SOAP = "TRANSFORM_SOAP";
 
     @Override
     public void configure() throws Exception {
