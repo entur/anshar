@@ -59,12 +59,17 @@ public class SiriValueTransformer {
         if (siri == null) {
             return null;
         }
+        long t1 = System.currentTimeMillis();
         Siri transformed;
         try {
         	transformed = SiriObjectFactory.deepCopy(siri);
         } catch (Exception e) {
             logger.warn("Unable to transform SIRI-object", e);
             return siri;
+        } finally {
+            long t2 = System.currentTimeMillis();
+
+            System.out.println("Deepcopy took (ms) " + (t2-t1));
         }
         if (transformed != null && adapters != null) {
             logger.trace("Applying {} valueadapters {}", adapters.size(), adapters);

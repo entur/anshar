@@ -34,7 +34,7 @@ public class SubscriptionSetup implements Serializable {
     private SubscriptionMode subscriptionMode;
     private Map<Class, Set<Object>> filterMap;
     private List<String> idMappingPrefixes;
-    protected SubscriptionPreset[] mappingAdapterPresets;
+    private String mappingAdapterId;
     private SubscriptionPreset[] filterMapPresets;
     private String addressFieldName;
     private String soapenvNamespace;
@@ -56,7 +56,6 @@ public class SubscriptionSetup implements Serializable {
      * @param version SIRI-version to use
      * @param vendor Vendorname - information only
      * @param serviceType SOAP/REST
-     * @param mappingAdapters
      * @param filterMap
      * @param subscriptionId Sets the subscriptionId to use
      * @param requestorRef
@@ -307,28 +306,37 @@ public class SubscriptionSetup implements Serializable {
     public enum SubscriptionType {SITUATION_EXCHANGE, VEHICLE_MONITORING, PRODUCTION_TIMETABLE, ESTIMATED_TIMETABLE}
     public enum SubscriptionMode {SUBSCRIBE, REQUEST_RESPONSE, FETCHED_DELIVERY}
 
-    public void setMappingAdapterPresets(SubscriptionPreset[] mappingAdapterPresets) {
-        this.mappingAdapterPresets = mappingAdapterPresets;
-        mappingAdapters = new ArrayList<>();
-        for (SubscriptionPreset preset : mappingAdapterPresets) {
-            addMappingAdapters(new MappingAdapterPresets().get(preset));
-        }
+//    public void setMappingAdapterPresets(SubscriptionPreset[] mappingAdapterPresets) {
+//        this.mappingAdapterPresets = mappingAdapterPresets;
+//        mappingAdapters = new ArrayList<>();
+//        for (SubscriptionPreset preset : mappingAdapterPresets) {
+//            addMappingAdapters(new MappingAdapterPresets().get(preset));
+//        }
+//    }
+//
+//    private void addMappingAdapters(List<ValueAdapter> valueAdapters) {
+//        if (mappingAdapters == null) {
+//            mappingAdapters = new ArrayList<>();
+//        }
+//        mappingAdapters.addAll(valueAdapters);
+//    }
+//
+//    private void setMappingAdapters(List<ValueAdapter> mappingAdapters) {
+//        this.mappingAdapters = mappingAdapters;
+//    }
+//
+//
+//    public void setIdMappingPrefixes(List<String> idMappingPrefixes) {
+//        this.idMappingPrefixes = idMappingPrefixes;
+//    }
+
+
+    public String getMappingAdapterId() {
+        return mappingAdapterId;
     }
 
-    private void addMappingAdapters(List<ValueAdapter> valueAdapters) {
-        if (mappingAdapters == null) {
-            mappingAdapters = new ArrayList<>();
-        }
-        mappingAdapters.addAll(valueAdapters);
-    }
-
-    private void setMappingAdapters(List<ValueAdapter> mappingAdapters) {
-        this.mappingAdapters = mappingAdapters;
-    }
-
-
-    public void setIdMappingPrefixes(List<String> idMappingPrefixes) {
-        this.idMappingPrefixes = idMappingPrefixes;
+    public void setMappingAdapterId(String mappingAdapterId) {
+        this.mappingAdapterId = mappingAdapterId;
     }
 
     public List<String> getIdMappingPrefixes() {
@@ -485,8 +493,8 @@ public class SubscriptionSetup implements Serializable {
             logger.info("getIdMappingPrefixes() does not match [{}] vs [{}]", getIdMappingPrefixes(), that.getIdMappingPrefixes());
             return false;
         }
-        if (!Arrays.equals(mappingAdapterPresets, that.mappingAdapterPresets)) {
-            logger.info("mappingAdapterPresets does not match [{}] vs [{}]", mappingAdapterPresets, that.mappingAdapterPresets);
+        if (getMappingAdapterId() != null ? !getMappingAdapterId().equals(that.getMappingAdapterId()) : that.getMappingAdapterId() != null) {
+            logger.info("getMappingAdapterId() does not match [{}] vs [{}]", getMappingAdapterId(), that.getMappingAdapterId());
             return false;
         }
         if (!Arrays.equals(filterMapPresets, that.filterMapPresets)) {
