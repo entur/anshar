@@ -85,7 +85,11 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
                     String responseCode = p.getIn().getHeader("CamelHttpResponseCode", String.class);
                     if ("200" .equals(responseCode)) {
                         logger.trace("CheckStatus OK - Remote service is up [{}]", subscriptionSetup.buildUrl());
-                        handler.handleIncomingSiri(subscriptionSetup.getSubscriptionId(), p.getIn().getBody(InputStream.class));
+                        InputStream body = p.getIn().getBody(InputStream.class);
+                        logger.info("Response body [{}]", body);
+                        if (body != null && body.available() > 0) {
+                            handler.handleIncomingSiri(subscriptionSetup.getSubscriptionId(), body);
+                        };
                     } else {
                         logger.info("CheckStatus NOT OK - Remote service is down [{}]", subscriptionSetup.buildUrl());
                     }
