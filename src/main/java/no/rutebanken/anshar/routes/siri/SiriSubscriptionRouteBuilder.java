@@ -53,7 +53,7 @@ public abstract class SiriSubscriptionRouteBuilder extends BaseRouteBuilder {
             hasBeenStarted = subscriptionManager.isActiveSubscription(subscriptionSetup.getSubscriptionId());
         }
 
-        singletonFrom("quartz2://anshar/monitor_" + subscriptionSetup.getSubscriptionId() + "?fireNow=true&trigger.repeatInterval=" + 10000,
+        singletonFrom("quartz2://anshar/monitor_" + subscriptionSetup.getSubscriptionId() + "?fireNow=true&trigger.repeatInterval=" + 15000,
                 "monitor.subscription." + subscriptionSetup.getVendor())
                 .choice()
                 .when(p -> shouldBeStarted(p.getFromRouteId()))
