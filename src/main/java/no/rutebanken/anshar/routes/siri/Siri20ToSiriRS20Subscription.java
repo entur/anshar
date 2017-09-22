@@ -86,10 +86,9 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
                     if ("200" .equals(responseCode)) {
                         logger.trace("CheckStatus OK - Remote service is up [{}]", subscriptionSetup.buildUrl());
                         InputStream body = p.getIn().getBody(InputStream.class);
-                        logger.info("Response body [{}]", body);
                         if (body != null && body.available() > 0) {
                             handler.handleIncomingSiri(subscriptionSetup.getSubscriptionId(), body);
-                        };
+                        }
                     } else {
                         logger.info("CheckStatus NOT OK - Remote service is down [{}]", subscriptionSetup.buildUrl());
                     }
@@ -112,7 +111,6 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
                 .to("log:received response:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .process(p -> {
                     InputStream body = p.getIn().getBody(InputStream.class);
-                    logger.info("Response body [{}]", body);
                     if (body != null && body.available() >0) {
                         handler.handleIncomingSiri(subscriptionSetup.getSubscriptionId(), body);
                     }
