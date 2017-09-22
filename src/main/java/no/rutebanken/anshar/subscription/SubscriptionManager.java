@@ -188,7 +188,9 @@ public class SubscriptionManager {
             lastActivity.put(subscriptionId, Instant.now());
             activatedTimestamp.put(subscriptionId, Instant.now());
             logger.info("Pending subscription {} activated", subscriptions.get(subscriptionId));
-            dataReceived(subscriptionId);
+            if (!dataReceived.containsKey(subscriptionId)) {
+                dataReceived(subscriptionId);
+            }
             return true;
         }
 
