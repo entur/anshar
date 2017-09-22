@@ -3,21 +3,29 @@ package no.rutebanken.anshar.routes.siri.processor;
 import no.rutebanken.anshar.routes.siri.transformer.ApplicationContextHolder;
 import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.org.siri.siri20.*;
 
 import java.util.List;
 
 public class BaneNorIdPlatformPostProcessor extends ValueAdapter implements PostProcessor {
 
+    private Logger logger = LoggerFactory.getLogger(BaneNorIdPlatformPostProcessor.class);
+
     private static BaneNorIdPlatformUpdaterService stopPlaceService;
 
-    public static String getNsrId(String jbvCode, String platform) {
+    public String getNsrId(String jbvCode, String platform) {
 
         if (stopPlaceService == null) {
             stopPlaceService = ApplicationContextHolder.getContext().getBean(BaneNorIdPlatformUpdaterService.class);
         }
 
-        return stopPlaceService.get(jbvCode + ":" + platform);
+        String nsrId = stopPlaceService.get(jbvCode + ":" + platform);
+        if (nsrId == null) {
+            logger.warn("Unable to find mapped value for jbvCode/platform {}, {}", jbvCode, platform);
+        }
+        return nsrId;
     }
 
     @Override
@@ -41,9 +49,7 @@ public class BaneNorIdPlatformPostProcessor extends ValueAdapter implements Post
                                         } else if (et.getDeparturePlatformName() != null) {
                                             platform = et.getDeparturePlatformName().getValue();
                                         }
-                                        if (platform == null) {
-                                            platform = "1";
-                                        }
+
                                         String nsrId = getNsrId(stopPointRefValue, platform);
                                         if (nsrId != null) {
                                             et.getStopPointRef().setValue(stopPointRefValue + SiriValueTransformer.SEPARATOR + nsrId);
@@ -62,9 +68,7 @@ public class BaneNorIdPlatformPostProcessor extends ValueAdapter implements Post
                                         } else if (rc.getDeparturePlatformName() != null) {
                                             platform = rc.getDeparturePlatformName().getValue();
                                         }
-                                        if (platform == null) {
-                                            platform = "1";
-                                        }
+
                                         String nsrId = getNsrId(stopPointRefValue, platform);
                                         if (nsrId != null) {
                                             rc.getStopPointRef().setValue(stopPointRefValue + SiriValueTransformer.SEPARATOR + nsrId);
