@@ -48,7 +48,7 @@ public class StopPlaceUpdaterService {
         ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
         executor.scheduleAtFixedRate(() -> updateIdMapping(), updateFrequency, updateFrequency, TimeUnit.MINUTES);
 
-        logger.info("Initialized id_mapping-updater with url:{}, updateFrequency:{} min", quayMappingUrl, updateFrequency);
+        logger.info("Initialized id_mapping-updater with urls:{}, updateFrequency:{} min", new String[]{quayMappingUrl, stopPlaceMappingUrl}, updateFrequency);
     }
 
     private void updateIdMapping() {
