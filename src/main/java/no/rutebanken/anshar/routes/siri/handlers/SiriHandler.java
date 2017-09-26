@@ -192,9 +192,11 @@ public class SiriHandler {
                 subscriptionManager.touchSubscription(subscriptionId, incoming.getCheckStatusResponse().getServiceStartedTime());
             } else if (incoming.getSubscriptionResponse() != null) {
                 SubscriptionResponseStructure subscriptionResponse = incoming.getSubscriptionResponse();
-                subscriptionResponse.getResponseStatuses().forEach(responseStatus ->
-                                subscriptionManager.activatePendingSubscription(subscriptionId)
-                );
+                subscriptionResponse.getResponseStatuses().forEach(responseStatus -> {
+                    if (responseStatus.isStatus() != null && responseStatus.isStatus()) {
+                        subscriptionManager.activatePendingSubscription(subscriptionId);
+                    }
+                });
 
             } else if (incoming.getTerminateSubscriptionResponse() != null) {
                 TerminateSubscriptionResponseStructure terminateSubscriptionResponse = incoming.getTerminateSubscriptionResponse();

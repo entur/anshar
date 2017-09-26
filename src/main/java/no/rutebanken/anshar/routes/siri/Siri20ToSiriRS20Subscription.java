@@ -50,25 +50,26 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
                 .doTry()
                     .to(getCamelUrl(urlMap.get(RequestType.SUBSCRIBE)) + getTimeout())
                     .to("log:received response:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
+                    .process(p -> {
+
+                        String responseCode = p.getIn().getHeader("CamelHttpResponseCode", String.class);
+                        InputStream body = p.getIn().getBody(InputStream.class);
+                        if (body != null && body.available() > 0) {
+                            handler.handleIncomingSiri(subscriptionSetup.getSubscriptionId(), body);
+                        } else if ("200".equals(responseCode)) {
+                            logger.info("SubscriptionResponse OK - Async response performs actual registration");
+                            subscriptionManager.activatePendingSubscription(subscriptionSetup.getSubscriptionId());
+                        } else {
+                            hasBeenStarted = false;
+                        }
+
+                    })
                 .doCatch(ConnectException.class)
                     .log("Caught ConnectException - subscription not started - will try again: "+ subscriptionSetup.toString())
-                    .process(p -> p.getOut().setBody(null))
+                    .process(p -> {
+                        p.getOut().setBody(null);
+                    })
                 .endDoTry()
-                .process(p -> {
-
-                    String responseCode = p.getIn().getHeader("CamelHttpResponseCode", String.class);
-                    if ("200".equals(responseCode)) {
-                        logger.info("SubscriptionResponse OK - Async response performs actual registration");
-                        subscriptionManager.activatePendingSubscription(subscriptionSetup.getSubscriptionId());
-                    } else {
-                        hasBeenStarted = false;
-                    }
-
-                    InputStream body = p.getIn().getBody(InputStream.class);
-                    if (body != null && body.available() > 0) {
-                        handler.handleIncomingSiri(subscriptionSetup.getSubscriptionId(), body);
-                    }
-                })
                 .routeId("start.rs.20.subscription."+subscriptionSetup.getVendor())
         ;
 
