@@ -544,8 +544,8 @@ anshar:
       soapenvNamespace:
       incrementalUpdates:
       urlMap:
-        SUBSCRIBE: ec2-54-246-227-136.eu-west-1.compute.amazonaws.com:29080/subscriptions/siri2-nrp
-        DELETE_SUBSCRIPTION: ec2-54-246-227-136.eu-west-1.compute.amazonaws.com:29080/subscriptions/siri2-nrp
+        SUBSCRIBE: https4://status-siri.nsb.no/subscriptions/siri2-nrp
+        DELETE_SUBSCRIPTION: https4://status-siri.nsb.no/subscriptions/siri2-nrp
       version: 2.0
       contentType: text/xml;charset=UTF-8
       subscriptionId: ${random.uuid}
@@ -795,7 +795,7 @@ anshar:
         CHECK_STATUS: 193.69.85.208:8089/Rutebanken/et/checkstatus.xml
       version: 2.0
       contentType: text/xml;charset=UTF-8
-      subscriptionId: ${random.uuid}
+      subscriptionId: cd083467-071e-4049-af77-a49a7a3d992d
       requestorRef: Rutebanken
       durationOfSubscriptionHours: 168
       mappingAdapterId: ruter
