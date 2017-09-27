@@ -117,7 +117,7 @@ public class SubscriptionManager {
 
         boolean success = (setup != null);
 
-        logger.trace("Touched subscription {}, success:{}", setup, success);
+        logger.info("Touched subscription {}, success:{}", setup, success);
         if (success) {
             lastActivity.put(subscriptionId, Instant.now());
         }
@@ -136,12 +136,14 @@ public class SubscriptionManager {
     public boolean touchSubscription(String subscriptionId, ZonedDateTime serviceStartedTime) {
         SubscriptionSetup setup = subscriptions.get(subscriptionId);
         if (setup != null && serviceStartedTime != null) {
-            if (lastActivity.get(subscriptionId) == null || lastActivity.get(subscriptionId).isAfter(serviceStartedTime.toInstant())) {
+            Instant lastActivity = this.lastActivity.get(subscriptionId);
+            if (lastActivity == null || serviceStartedTime.toInstant().isBefore(lastActivity)) {
+                logger.info("Remote Service startTime ({}) is before lastActivity ({}) for subscription [{}]",serviceStartedTime, lastActivity, setup);
                 return touchSubscription(subscriptionId);
             } else {
-                logger.info("Remote service has been restarted, reestablishing subscription [{}]", subscriptionId);
+                logger.info("Remote service has been restarted, reestablishing subscription [{}]", setup);
                 //Setting 'last activity' to longer ago than healthcheck accepts
-                lastActivity.put(subscriptionId, Instant.now().minusSeconds((HEALTHCHECK_INTERVAL_FACTOR+1) * setup.getHeartbeatInterval().getSeconds()));
+                this.lastActivity.put(subscriptionId, Instant.now().minusSeconds((HEALTHCHECK_INTERVAL_FACTOR+1) * setup.getHeartbeatInterval().getSeconds()));
             }
         }
         return false;
