@@ -97,7 +97,7 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
         if (requestorId != null) {
 
             Set<String> idSet = changesMap.get(requestorId);
-            lastUpdateRequested.put(requestorId, Instant.now(), 1, TimeUnit.MINUTES);
+            lastUpdateRequested.put(requestorId, Instant.now(), trackingPeriodMinutes, TimeUnit.MINUTES);
             if (idSet != null) {
                 Set<String> datasetFilteredIdSet = new HashSet<>();
 
@@ -144,7 +144,7 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
             vehicleActivities.keySet().forEach(key -> idSet.add(key));
         }
 
-        lastUpdateRequested.put(requestorId, Instant.now(), 5, TimeUnit.MINUTES);
+        lastUpdateRequested.put(requestorId, Instant.now(), trackingPeriodMinutes, TimeUnit.MINUTES);
 
         //Filter by datasetId
         Set<String> collectedIds = idSet.stream()

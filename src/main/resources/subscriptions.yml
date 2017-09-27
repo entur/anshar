@@ -22,7 +22,7 @@ anshar:
       subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
-      mappingAdapterPresets: NSR,KOLUMBUS
+      mappingAdapterId: kolumbus
       filterPresets:
       idMappingPrefixes: KOL
       environments: prod #,test
@@ -47,7 +47,7 @@ anshar:
       subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
-      mappingAdapterPresets: NSR,KOLUMBUS
+      mappingAdapterId: kolumbus
       filterPresets:
       idMappingPrefixes: KOL
       environments: prod #,test
@@ -74,7 +74,7 @@ anshar:
       subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
-      mappingAdapterPresets: NSR,ATB
+      mappingAdapterId: atb
       filterPresets:
       idMappingPrefixes: ATB
       environments: prod #,test
@@ -99,7 +99,7 @@ anshar:
       subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
-      mappingAdapterPresets: NSR,ATB
+      mappingAdapterId: atb
       filterPresets:
       idMappingPrefixes: ATB
       environments: prod #,test
@@ -125,7 +125,7 @@ anshar:
       subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV_${random.uuid}
       durationOfSubscriptionHours: 168
-      mappingAdapterPresets: NSR,AKT
+      mappingAdapterId: akt
       filterPresets:
       idMappingPrefixes: AKT
       environments: prod #,test
@@ -152,7 +152,7 @@ anshar:
       subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV_${random.uuid}
       durationOfSubscriptionHours: 168
-      mappingAdapterPresets: NSR,AKT
+      mappingAdapterId: akt
       filterPresets:
       idMappingPrefixes: AKT
       environments: prod #,test
@@ -179,7 +179,7 @@ anshar:
       subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
-      mappingAdapterPresets: NSR,RUTER
+      mappingAdapterId: ruter
       filterPresets:
       idMappingPrefixes: RUT,OPP,BRA,OST
       environments: prod #,test
@@ -206,7 +206,7 @@ anshar:
       subscriptionId: 20c2e3a3-1659-41d3-b1a2-1411978b1d43
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
-      mappingAdapterPresets: NSR,RUTER
+      mappingAdapterId: ruter
       filterPresets:
       idMappingPrefixes: RUT,OPP,BRA,OST
       environments: prod
@@ -234,7 +234,7 @@ anshar:
       subscriptionId: 1f6a687e-58b8-4e46-a23c-98adadad78ed
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
-      mappingAdapterPresets: NSR,RUTER
+      mappingAdapterId: ruter
       filterPresets:
       idMappingPrefixes: RUT,OPP,BRA,OST
       environments: prod
@@ -261,7 +261,7 @@ anshar:
       subscriptionId: RutebankenDEV_${random.uuid}
       requestorRef: RutebankenDEV_${random.uuid}
       durationOfSubscriptionHours: 168
-      mappingAdapterPresets: NSR,SKYSS
+      mappingAdapterId: nsr
       filterPresets:
       idMappingPrefixes: SKY
       environments: prod #,test
@@ -287,7 +287,7 @@ anshar:
       subscriptionId: RutebankenDEV_${random.uuid}
       requestorRef: RutebankenDEV_${random.uuid}
       durationOfSubscriptionHours: 168
-      mappingAdapterPresets: NSR,SKYSS
+      mappingAdapterId: nsr
       filterPresets:
       idMappingPrefixes: SKY
       environments: prod #,test
@@ -314,7 +314,7 @@ anshar:
       subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV_${random.uuid}
       durationOfSubscriptionHours: 168
-      mappingAdapterPresets: NSR,BRAKAR
+      mappingAdapterPresets: nsr
       filterPresets:
       idMappingPrefixes: BRA
       environments: prod #,test
@@ -340,7 +340,7 @@ anshar:
       subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV_${random.uuid}
       durationOfSubscriptionHours: 168
-      mappingAdapterPresets: NSR,BRAKAR
+      mappingAdapterId: nsr
       filterPresets:
       idMappingPrefixes: BRA
       environments: prod #,test
@@ -368,7 +368,7 @@ anshar:
       subscriptionId: ${random.uuid}
       requestorRef: SKYSS
       durationOfSubscriptionHours: 168
-      mappingAdapterPresets: NSR,SKYSS
+      mappingAdapterId: nsr
       filterPresets: BYBANEN
       idMappingPrefixes: SKY
       environments: prod #,test
@@ -394,7 +394,7 @@ anshar:
       subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV_${random.uuid}
       durationOfSubscriptionHours: 2
-      mappingAdapterPresets: BANENOR
+      mappingAdapterId: banenor
       filterPresets:
       idMappingPrefixes: NSB,FLT
       environments: prod #,test
@@ -420,7 +420,7 @@ anshar:
       subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV_${random.uuid}
       durationOfSubscriptionHours: 2
-      mappingAdapterPresets: BANENOR
+      mappingAdapterId: banenor
       filterPresets:
       idMappingPrefixes: NSB,FLT
       environments: prod #,test
@@ -445,7 +445,7 @@ anshar:
       subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV_${random.uuid}
       durationOfSubscriptionHours: 2
-      mappingAdapterPresets: BANENOR
+      mappingAdapterId: banenor
       filterPresets:
       idMappingPrefixes: NSB,FLT
       environments: prod #,test
@@ -470,7 +470,7 @@ anshar:
       subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV_${random.uuid}
       durationOfSubscriptionHours: 2
-      mappingAdapterPresets: BANENOR
+      mappingAdapterId: banenor
       filterPresets:
       idMappingPrefixes: NSB,FLT
       environments: prod #,test
@@ -498,7 +498,7 @@ anshar:
       subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV_${random.uuid}
       durationOfSubscriptionHours: 168
-      mappingAdapterPresets: BANENOR
+      mappingAdapterId: banenor
       filterPresets:
       idMappingPrefixes: NSB,FLT
       environments: prod #,test
@@ -525,7 +525,7 @@ anshar:
       subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV_${random.uuid}
       durationOfSubscriptionHours: 2
-      mappingAdapterPresets: BANENOR
+      mappingAdapterId: banenor
       filterPresets:
       idMappingPrefixes: NSB,FLT
       environments: prod #,test
@@ -544,14 +544,14 @@ anshar:
       soapenvNamespace:
       incrementalUpdates:
       urlMap:
-        SUBSCRIBE: ec2-54-246-227-136.eu-west-1.compute.amazonaws.com:29080/subscriptions/siri2-nrp
-        DELETE_SUBSCRIPTION: ec2-54-246-227-136.eu-west-1.compute.amazonaws.com:29080/subscriptions/siri2-nrp
+        SUBSCRIBE: https4://status-siri.nsb.no/subscriptions/siri2-nrp
+        DELETE_SUBSCRIPTION: https4://status-siri.nsb.no/subscriptions/siri2-nrp
       version: 2.0
       contentType: text/xml;charset=UTF-8
-      subscriptionId: ${random.uuid}
-      requestorRef: RutebankenDEV_${random.uuid}
+      subscriptionId: 112de214-1468-440f-ab51-8fd0c39b0b7e
+      requestorRef: RutebankenDEV_36ed1c1b-b47a-4233-b5a2-66c58211fdac
       durationOfSubscriptionHours: 24
-      mappingAdapterPresets:
+      mappingAdapterId: banenor
       filterPresets:
       idMappingPrefixes: NSB
       environments: prod #,test
@@ -578,7 +578,7 @@ anshar:
       subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV_${random.uuid}
       durationOfSubscriptionHours: 168
-      mappingAdapterPresets: NSR,TROMS
+      mappingAdapterId: nsr
       filterPresets:
       idMappingPrefixes: TRO
       environments: prod #,test
@@ -604,7 +604,7 @@ anshar:
       subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV_${random.uuid}
       durationOfSubscriptionHours: 168
-      mappingAdapterPresets: NSR,TROMS
+      mappingAdapterId: nsr
       filterPresets:
       idMappingPrefixes: TRO
       environments: prod #,test
@@ -632,7 +632,7 @@ anshar:
       subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV_ET_${random.uuid}
       durationOfSubscriptionHours: 168
-      mappingAdapterPresets: NSR,MOR
+      mappingAdapterId: nsr
       filterPresets:
       idMappingPrefixes: MOR
       environments: prod #,test
@@ -659,7 +659,7 @@ anshar:
       subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV_VM_${random.uuid}
       durationOfSubscriptionHours: 168
-      mappingAdapterPresets: NSR,MOR
+      mappingAdapterId: nsr
       filterPresets:
       idMappingPrefixes: MOR
       environments: prod #,test
@@ -686,7 +686,7 @@ anshar:
       subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV_SX_${random.uuid}
       durationOfSubscriptionHours: 168
-      mappingAdapterPresets: NSR,MOR
+      mappingAdapterId: nsr
       filterPresets:
       idMappingPrefixes: MOR
       environments: prod #,test
@@ -714,7 +714,7 @@ anshar:
       subscriptionId: ${random.uuid}
       requestorRef: Rutebanken_ET_${random.uuid}
       durationOfSubscriptionHours: 168
-      mappingAdapterPresets:
+      mappingAdapterId: nsr
       filterPresets:
       idMappingPrefixes: OST
       environments: prod #,test
@@ -742,7 +742,7 @@ anshar:
       subscriptionId: ${random.uuid}
       requestorRef: Rutebanken_VM_${random.uuid}
       durationOfSubscriptionHours: 168
-      mappingAdapterPresets:
+      mappingAdapterId: nsr
       filterPresets:
       idMappingPrefixes: OST
       environments: prod #,test
@@ -769,7 +769,7 @@ anshar:
       subscriptionId: ${random.uuid}
       requestorRef: Rutebanken_SX_${random.uuid}
       durationOfSubscriptionHours: 168
-      mappingAdapterPresets:
+      mappingAdapterId: nsr
       filterPresets:
       idMappingPrefixes: OST
       environments: prod #,test
@@ -795,10 +795,10 @@ anshar:
         CHECK_STATUS: 193.69.85.208:8089/Rutebanken/et/checkstatus.xml
       version: 2.0
       contentType: text/xml;charset=UTF-8
-      subscriptionId: ${random.uuid}
+      subscriptionId: cd083467-071e-4049-af77-a49a7a3d992d
       requestorRef: Rutebanken
       durationOfSubscriptionHours: 168
-      mappingAdapterPresets: NSR,RUTER
+      mappingAdapterId: ruter
       filterPresets:
       idMappingPrefixes: RUT,OPP,BRA,OST
       environments: prod
@@ -825,7 +825,7 @@ anshar:
       subscriptionId: vm-replication
       requestorRef: vm-requestorref
       durationOfSubscriptionHours: 24
-      mappingAdapterPresets: NSR,RUTER
+      mappingAdapterId: ruter
       filterPresets:
       idMappingPrefixes: RUT,OPP,BRA,OST
       environments: test
@@ -852,8 +852,35 @@ anshar:
       subscriptionId: et-replication
       requestorRef: et-requestorref
       durationOfSubscriptionHours: 24
-      mappingAdapterPresets: NSR,RUTER
+      mappingAdapterId: ruter
       filterPresets:
       idMappingPrefixes: RUT,OPP,BRA,OST
       environments: test
       active: true
+    -
+      internalId: 101
+      vendor: internRutersx
+      datasetId: NSB
+      serviceType: REST
+      subscriptionType: SITUATION_EXCHANGE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 60
+      previewIntervalSeconds: 86400
+      updateIntervalSeconds: 1
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: https4://api-test.entur.org/anshar/1.0/anshar/subscribe?useOriginalId=true
+        DELETE_SUBSCRIPTION: https4://api-test.entur.org/anshar/1.0/anshar/subscribe
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: sx-replication
+      requestorRef: sx-requestorref
+      durationOfSubscriptionHours: 1
+      mappingAdapterId: banenor
+      filterPresets:
+      idMappingPrefixes: NSB
+      environments: local
+      active: false

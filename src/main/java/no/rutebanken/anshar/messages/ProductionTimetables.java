@@ -60,7 +60,7 @@ public class ProductionTimetables implements SiriRepository<ProductionTimetableD
         if (requestorId != null) {
 
             Set<String> idSet = changesMap.get(requestorId);
-            lastUpdateRequested.put(requestorId, Instant.now(), 5, TimeUnit.MINUTES);
+            lastUpdateRequested.put(requestorId, Instant.now(), trackingPeriodMinutes, TimeUnit.MINUTES);
             if (idSet != null) {
                 Set<String> datasetFilteredIdSet = new HashSet<>();
 

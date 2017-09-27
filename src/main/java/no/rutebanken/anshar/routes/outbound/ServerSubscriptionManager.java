@@ -334,17 +334,7 @@ public class ServerSubscriptionManager extends CamelRouteManager {
     }
 
     public Siri handleCheckStatusRequest(CheckStatusRequestStructure checkStatusRequest) {
-        String requestorRef = checkStatusRequest.getRequestorRef().getValue();
-
-        OutboundSubscriptionSetup request = subscriptions.get(requestorRef);
-        if (request == null) {
-
-            return siriObjectFactory.createCheckStatusResponse();
-        }
-
-        Siri checkStatusResponse = siriObjectFactory.createCheckStatusResponse();
-        pushSiriData(checkStatusResponse, request);
-        return null;
+        return siriObjectFactory.createCheckStatusResponse();
     }
 
     public void pushUpdatedVehicleActivities(List<VehicleActivityStructure> addedOrUpdated, String datasetId) {

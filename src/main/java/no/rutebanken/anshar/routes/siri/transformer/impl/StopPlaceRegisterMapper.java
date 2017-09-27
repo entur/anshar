@@ -48,6 +48,7 @@ public class StopPlaceRegisterMapper extends ValueAdapter {
                 }
             }
         }
+        logger.warn("Unable to find mapped value for id {}", id);
         return id;
     }
 

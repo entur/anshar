@@ -41,6 +41,9 @@ public class SiriIncomingReceiver extends RouteBuilder {
     @Autowired
     CamelConfiguration camelConfiguration;
 
+    public static String TRANSFORM_VERSION = "TRANSFORM_VERSION";
+    public static String TRANSFORM_SOAP = "TRANSFORM_SOAP";
+
     @Override
     public void configure() throws Exception {
 
@@ -100,12 +103,21 @@ public class SiriIncomingReceiver extends RouteBuilder {
                                     if (subscriptionId == null || subscriptionId.isEmpty()) {
                                         return false;
                                     }
-                                    boolean existsAndIsActive = (subscriptionManager.isSubscriptionRegistered(subscriptionId) &&
-                                            subscriptionManager.get(subscriptionId).isActive());
+                                    SubscriptionSetup subscriptionSetup = subscriptionManager.get(subscriptionId);
 
-                                    if (existsAndIsActive) {
-                                        subscriptionManager.touchSubscription(subscriptionId);
+                                    boolean existsAndIsActive = (subscriptionManager.isSubscriptionRegistered(subscriptionId) &&
+                                                subscriptionSetup.isActive());
+
+                                    p.getOut().setHeaders(p.getIn().getHeaders());
+
+                                    if (! "2.0".equals(subscriptionSetup.getVersion())) {
+                                        p.getOut().setHeader(TRANSFORM_VERSION, TRANSFORM_VERSION);
                                     }
+
+                                    if (subscriptionSetup.getServiceType() == SubscriptionSetup.ServiceType.SOAP) {
+                                        p.getOut().setHeader(TRANSFORM_SOAP, TRANSFORM_SOAP);
+                                    }
+
                                     return existsAndIsActive;
                                 })
                                     //Valid subscription
@@ -131,10 +143,16 @@ public class SiriIncomingReceiver extends RouteBuilder {
 
         from("activemq:queue:" + CamelConfiguration.TRANSFORM_QUEUE + activeMqConsumerParameters)
                // .to("log:raw:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
-                .to("xslt:xsl/siri_soap_raw.xsl?saxon=true&allowStAX=false&resultHandlerFactory=#streamResultHandlerFactory") // Extract SOAP version and convert to raw SIRI
-                .to("xslt:xsl/siri_14_20.xsl?saxon=true&allowStAX=false&resultHandlerFactory=#streamResultHandlerFactory") // Convert from v1.4 to 2.0
-                //.to("file:" + incomingLogDirectory + "/validator/")
-                //.to("log:transformed:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
+                .choice()
+                    .when(header(TRANSFORM_SOAP).isEqualTo(simple(TRANSFORM_SOAP)))
+                        .to("xslt:xsl/siri_soap_raw.xsl?saxon=true&allowStAX=false&resultHandlerFactory=#streamResultHandlerFactory") // Extract SOAP version and convert to raw SIRI
+                    .endChoice()
+                .end()
+                .choice()
+                    .when(header(TRANSFORM_VERSION).isEqualTo(simple(TRANSFORM_VERSION)))
+                        .to("xslt:xsl/siri_14_20.xsl?saxon=true&allowStAX=false&resultHandlerFactory=#streamResultHandlerFactory") // Convert from v1.4 to 2.0
+                    .endChoice()
+                .end()
                 .choice()
                     .when(exchange -> camelConfiguration.isValidationEnabled())
                         .to("activemq:queue:" + CamelConfiguration.VALIDATOR_QUEUE + activeMQParameters)

@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import uk.org.siri.siri20.Siri;
 
 import javax.xml.bind.JAXBException;
+import javax.xml.stream.XMLStreamException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -47,11 +48,11 @@ public class SiriValueTransformer {
      * @return
      * @throws JAXBException
      */
-    public static Siri parseXml(InputStream xml, List adapters) throws JAXBException {
+    public static Siri parseXml(InputStream xml, List adapters) throws JAXBException, XMLStreamException {
         return transform(SiriXml.parseXml(xml), adapters);
     }
 
-    public static Siri parseXml(InputStream xml) throws JAXBException {
+    public static Siri parseXml(InputStream xml) throws JAXBException, XMLStreamException {
         return SiriXml.parseXml(xml);
     }
 
@@ -59,12 +60,17 @@ public class SiriValueTransformer {
         if (siri == null) {
             return null;
         }
+        long t1 = System.currentTimeMillis();
         Siri transformed;
         try {
         	transformed = SiriObjectFactory.deepCopy(siri);
         } catch (Exception e) {
             logger.warn("Unable to transform SIRI-object", e);
             return siri;
+        } finally {
+            long t2 = System.currentTimeMillis();
+
+            System.out.println("Deepcopy took (ms) " + (t2-t1));
         }
         if (transformed != null && adapters != null) {
             logger.trace("Applying {} valueadapters {}", adapters.size(), adapters);

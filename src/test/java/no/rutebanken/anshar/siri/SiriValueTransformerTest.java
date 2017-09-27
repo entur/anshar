@@ -1,5 +1,6 @@
 package no.rutebanken.anshar.siri;
 
+import no.rutebanken.anshar.routes.siri.adapters.NsrValueAdapters;
 import no.rutebanken.anshar.routes.siri.handlers.OutboundIdMappingPolicy;
 import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
@@ -115,7 +116,7 @@ public class SiriValueTransformerTest {
         List<ValueAdapter> mappingAdapters = new ArrayList<>();
         mappingAdapters.add(new RuterSubstringAdapter(LineRef.class, ':', '0', 2));
         mappingAdapters.add(new LeftPaddingAdapter(LineRef.class, 6, '0'));
-        mappingAdapters.addAll(new MappingAdapterPresets().createIdPrefixAdapters("TEST"));
+        mappingAdapters.addAll(new NsrValueAdapters().createIdPrefixAdapters("TEST"));
 
         siri = transformer.transform(siri, mappingAdapters);
 

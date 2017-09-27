@@ -5,6 +5,7 @@ import com.hazelcast.core.IMap;
 import no.rutebanken.anshar.messages.collections.HealthCheckKey;
 import no.rutebanken.anshar.routes.CamelConfiguration;
 import no.rutebanken.anshar.routes.siri.*;
+import no.rutebanken.anshar.routes.siri.adapters.Mapping;
 import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import org.apache.camel.CamelContext;
@@ -12,18 +13,19 @@ import org.apache.camel.CamelContextAware;
 import org.apache.camel.builder.RouteBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.time.Instant;
 import java.util.*;
 
-import static no.rutebanken.anshar.subscription.SubscriptionPreset.NSR;
-
 @Service
-public class SubscriptionInitializer implements CamelContextAware {
+public class SubscriptionInitializer implements CamelContextAware, ApplicationContextAware {
     private Logger logger = LoggerFactory.getLogger(SubscriptionInitializer.class);
 
     @Autowired
@@ -47,6 +49,8 @@ public class SubscriptionInitializer implements CamelContextAware {
 
     private CamelContext camelContext;
 
+    private ApplicationContext applicationContext;
+
     @Override
     public CamelContext getCamelContext() {
         return camelContext;
@@ -60,6 +64,15 @@ public class SubscriptionInitializer implements CamelContextAware {
     @PostConstruct
     void createSubscriptions() {
         camelContext.setUseMDCLogging(true);
+
+
+        final Map<String, Object> myFoos = applicationContext.getBeansWithAnnotation(Mapping.class);
+        final Map<String, Class> mappingAdaptersById = new HashMap<>();
+        for (final Object myFoo : myFoos.values()) {
+            final Class<? extends Object> mappingAdapterClass = myFoo.getClass();
+            final Mapping annotation = mappingAdapterClass.getAnnotation(Mapping.class);
+            mappingAdaptersById.put(annotation.id(), mappingAdapterClass);
+        }
 
         logger.info("Initializing subscriptions for environment: {}", camelConfiguration.getEnvironment());
 
@@ -87,26 +100,37 @@ public class SubscriptionInitializer implements CamelContextAware {
                     throw new ServiceConfigurationError("SubscriptionIds are NOT unique for ID="+subscriptionSetup.getSubscriptionId());
                 }
 
-                for (SubscriptionPreset preset : subscriptionSetup.mappingAdapterPresets) {
-                    if (preset == NSR) {
-                        //Add NSR StopPlaceIdMapperAdapters
-                        if (subscriptionSetup.getIdMappingPrefixes() != null && !subscriptionSetup.getIdMappingPrefixes().isEmpty()) {
 
-                            List<ValueAdapter> nsr = mappingAdapterPresets.createNsrIdMappingAdapters(subscriptionSetup.getIdMappingPrefixes());
-                            if (!subscriptionSetup.getMappingAdapters().containsAll(nsr)) {
-                                subscriptionSetup.getMappingAdapters().addAll(nsr);
-                            }
-                        }
-
-                        //Add Chouette route_id, trip_id adapters
-                        if (subscriptionSetup.getDatasetId() != null && !subscriptionSetup.getDatasetId().isEmpty()) {
-                            List<ValueAdapter> datasetPrefix = mappingAdapterPresets.createIdPrefixAdapters(subscriptionSetup.getDatasetId());
-                            if (!subscriptionSetup.getMappingAdapters().containsAll(datasetPrefix)) {
-                                subscriptionSetup.getMappingAdapters().addAll(datasetPrefix);
-                            }
-                        }
+                if (mappingAdaptersById.containsKey(subscriptionSetup.getMappingAdapterId())) {
+                    Class adapterClass = mappingAdaptersById.get(subscriptionSetup.getMappingAdapterId());
+                    try {
+                        List<ValueAdapter> valueAdapters = (List<ValueAdapter>) adapterClass.getMethod("getValueAdapters", SubscriptionSetup.class).invoke(adapterClass.newInstance(), subscriptionSetup);
+                        subscriptionSetup.getMappingAdapters().addAll(valueAdapters);
+                    } catch (Exception e) {
+                        throw new ServiceConfigurationError("Invalid mappingAdapterId for subscription " + subscriptionSetup);
                     }
                 }
+
+//                for (SubscriptionPreset preset : subscriptionSetup.mappingAdapterPresets) {
+//                    if (preset == NSR) {
+//                        //Add NSR StopPlaceIdMapperAdapters
+//                        if (subscriptionSetup.getIdMappingPrefixes() != null && !subscriptionSetup.getIdMappingPrefixes().isEmpty()) {
+//
+//                            List<ValueAdapter> nsr = mappingAdapterPresets.createNsrIdMappingAdapters(subscriptionSetup.getIdMappingPrefixes());
+//                            if (!subscriptionSetup.getMappingAdapters().containsAll(nsr)) {
+//                                subscriptionSetup.getMappingAdapters().addAll(nsr);
+//                            }
+//                        }
+//
+//                        //Add Chouette route_id, trip_id adapters
+//                        if (subscriptionSetup.getDatasetId() != null && !subscriptionSetup.getDatasetId().isEmpty()) {
+//                            List<ValueAdapter> datasetPrefix = mappingAdapterPresets.createIdPrefixAdapters(subscriptionSetup.getDatasetId());
+//                            if (!subscriptionSetup.getMappingAdapters().containsAll(datasetPrefix)) {
+//                                subscriptionSetup.getMappingAdapters().addAll(datasetPrefix);
+//                            }
+//                        }
+//                    }
+//                }
 
 
                 if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.FETCHED_DELIVERY) {
@@ -263,5 +287,10 @@ public class SubscriptionInitializer implements CamelContextAware {
         }
 
         return true;
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
     }
 }

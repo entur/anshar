@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import uk.org.siri.siri20.*;
 
 import javax.xml.bind.JAXBException;
+import javax.xml.stream.XMLStreamException;
 import java.io.InputStream;
 import java.util.*;
 
@@ -86,7 +87,7 @@ public class SiriHandler {
 
                 return processSiriServerRequest(incoming, datasetId, outboundIdMappingPolicy);
             }
-        } catch (JAXBException e) {
+        } catch (JAXBException | XMLStreamException e) {
             logger.warn("Caught exception when parsing incoming XML", e);
         }
         return null;
@@ -175,7 +176,8 @@ public class SiriHandler {
      * @return
      * @throws JAXBException
      */
-    private Siri processSiriClientRequest(String subscriptionId, InputStream xml) throws JAXBException {
+    private Siri processSiriClientRequest(String subscriptionId, InputStream xml)
+            throws JAXBException, XMLStreamException {
         SubscriptionSetup subscriptionSetup = subscriptionManager.get(subscriptionId);
 
         if (subscriptionSetup != null) {
@@ -186,13 +188,15 @@ public class SiriHandler {
                 subscriptionManager.touchSubscription(subscriptionId);
                 logger.info("Heartbeat - {}", subscriptionSetup);
             } else if (incoming.getCheckStatusResponse() != null) {
-                logger.info("Incoming CheckStatusResponse [{}]", subscriptionId);
+                logger.info("Incoming CheckStatusResponse [{}], reporting ServiceStartedTime: {}", subscriptionSetup, incoming.getCheckStatusResponse().getServiceStartedTime());
                 subscriptionManager.touchSubscription(subscriptionId, incoming.getCheckStatusResponse().getServiceStartedTime());
             } else if (incoming.getSubscriptionResponse() != null) {
                 SubscriptionResponseStructure subscriptionResponse = incoming.getSubscriptionResponse();
-                subscriptionResponse.getResponseStatuses().forEach(responseStatus ->
-                                subscriptionManager.activatePendingSubscription(subscriptionId)
-                );
+                subscriptionResponse.getResponseStatuses().forEach(responseStatus -> {
+                    if (responseStatus.isStatus() != null && responseStatus.isStatus()) {
+                        subscriptionManager.activatePendingSubscription(subscriptionId);
+                    }
+                });
 
             } else if (incoming.getTerminateSubscriptionResponse() != null) {
                 TerminateSubscriptionResponseStructure terminateSubscriptionResponse = incoming.getTerminateSubscriptionResponse();

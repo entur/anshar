@@ -172,9 +172,9 @@
         </dependency>
 
         <dependency>
-            <groupId>org.rutebanken</groupId>
+            <groupId>org.entur</groupId>
             <artifactId>siri-java-model</artifactId>
-            <version>0.11-SNAPSHOT</version>
+            <version>0.13-SNAPSHOT</version>
         </dependency>
 
         <dependency>
