@@ -108,9 +108,6 @@ public class SiriIncomingReceiver extends RouteBuilder {
                                     boolean existsAndIsActive = (subscriptionManager.isSubscriptionRegistered(subscriptionId) &&
                                                 subscriptionSetup.isActive());
 
-                                        if (existsAndIsActive) {
-                                            subscriptionManager.touchSubscription(subscriptionId);
-                                        }
                                     p.getOut().setHeaders(p.getIn().getHeaders());
 
                                     if (! "2.0".equals(subscriptionSetup.getVersion())) {
