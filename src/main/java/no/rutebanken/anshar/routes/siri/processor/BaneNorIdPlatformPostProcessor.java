@@ -36,7 +36,17 @@ public class BaneNorIdPlatformPostProcessor extends ValueAdapter implements Post
     @Override
     public void process(Siri siri) {
         listUpdated = false;
-        List<EstimatedTimetableDeliveryStructure> estimatedTimetableDeliveries = siri.getServiceDelivery().getEstimatedTimetableDeliveries();
+        if (siri != null && siri.getServiceDelivery() != null) {
+            processEtDeliveries(siri.getServiceDelivery().getEstimatedTimetableDeliveries());
+        }
+        if (listUpdated) {
+            logger.warn("Unable to find mapped value for jbvCode/platforms: {}", unmappedJbvCodePlatform);
+            listUpdated = false;
+        }
+
+    }
+
+    private void processEtDeliveries(List<EstimatedTimetableDeliveryStructure> estimatedTimetableDeliveries) {
         if (estimatedTimetableDeliveries != null) {
             for (EstimatedTimetableDeliveryStructure estimatedTimetableDelivery : estimatedTimetableDeliveries) {
                 List<EstimatedVersionFrameStructure> estimatedJourneyVersionFrames = estimatedTimetableDelivery.getEstimatedJourneyVersionFrames();
@@ -87,11 +97,6 @@ public class BaneNorIdPlatformPostProcessor extends ValueAdapter implements Post
                 }
             }
         }
-        if (listUpdated) {
-            logger.warn("Unable to find mapped value for jbvCode/platforms: {}", unmappedJbvCodePlatform);
-            listUpdated = false;
-        }
-
     }
 
     @Override
