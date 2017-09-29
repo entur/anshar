@@ -305,9 +305,11 @@ public class SiriHandler {
                     logger.info("Active PT-elements: {}, current delivery: {}, {}", productionTimetables.getSize(), addedOrUpdated.size(), subscriptionSetup);
                 }
 
-                subscriptionManager.touchSubscription(subscriptionId);
+
                 if (deliveryContainsData) {
                     subscriptionManager.dataReceived(subscriptionId);
+                } else {
+                    subscriptionManager.touchSubscription(subscriptionId);
                 }
             } else {
                 throw new RuntimeException(new ServiceNotSupportedException());

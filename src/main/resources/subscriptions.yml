@@ -394,7 +394,7 @@ anshar:
       subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV_${random.uuid}
       durationOfSubscriptionHours: 2
-      mappingAdapterId: banenor
+      mappingAdapterId: banenoret
       filterPresets:
       idMappingPrefixes: NSB,FLT
       environments: prod #,test
@@ -420,7 +420,7 @@ anshar:
       subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV_${random.uuid}
       durationOfSubscriptionHours: 2
-      mappingAdapterId: banenor
+      mappingAdapterId: banenoret
       filterPresets:
       idMappingPrefixes: NSB,FLT
       environments: prod #,test
@@ -445,7 +445,7 @@ anshar:
       subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV_${random.uuid}
       durationOfSubscriptionHours: 2
-      mappingAdapterId: banenor
+      mappingAdapterId: banenorsx
       filterPresets:
       idMappingPrefixes: NSB,FLT
       environments: prod #,test
@@ -470,7 +470,7 @@ anshar:
       subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV_${random.uuid}
       durationOfSubscriptionHours: 2
-      mappingAdapterId: banenor
+      mappingAdapterId: banenorsx
       filterPresets:
       idMappingPrefixes: NSB,FLT
       environments: prod #,test
@@ -498,7 +498,7 @@ anshar:
       subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV_${random.uuid}
       durationOfSubscriptionHours: 168
-      mappingAdapterId: banenor
+      mappingAdapterId: banenoret
       filterPresets:
       idMappingPrefixes: NSB,FLT
       environments: prod #,test
@@ -525,7 +525,7 @@ anshar:
       subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV_${random.uuid}
       durationOfSubscriptionHours: 2
-      mappingAdapterId: banenor
+      mappingAdapterId: banenorsx
       filterPresets:
       idMappingPrefixes: NSB,FLT
       environments: prod #,test
@@ -551,7 +551,7 @@ anshar:
       subscriptionId: 112de214-1468-440f-ab51-8fd0c39b0b7e
       requestorRef: RutebankenDEV_36ed1c1b-b47a-4233-b5a2-66c58211fdac
       durationOfSubscriptionHours: 24
-      mappingAdapterId: banenor
+      mappingAdapterId: banenorsx
       filterPresets:
       idMappingPrefixes: NSB
       environments: prod #,test
@@ -879,7 +879,7 @@ anshar:
       subscriptionId: sx-replication
       requestorRef: sx-requestorref
       durationOfSubscriptionHours: 1
-      mappingAdapterId: banenor
+      mappingAdapterId:
       filterPresets:
       idMappingPrefixes: NSB
       environments: local
