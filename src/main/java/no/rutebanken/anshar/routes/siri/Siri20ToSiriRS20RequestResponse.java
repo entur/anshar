@@ -49,7 +49,6 @@ public class Siri20ToSiriRS20RequestResponse extends SiriSubscriptionRouteBuilde
                 .setHeader("CamelHttpPath", constant("/appContext" + subscriptionSetup.buildUrl(false)))
                 .log("Got response " + subscriptionSetup.toString())
                 .to("log:response:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
-                .to("file:/deployments/incoming/" + subscriptionSetup.getVendor())
                 .to("activemq:queue:" + CamelConfiguration.TRANSFORM_QUEUE + "?disableReplyTo=true&timeToLive=" + getTimeToLive())
                 .routeId("request.rs.20." + subscriptionSetup.getSubscriptionType() + "." + subscriptionSetup.getVendor())
         ;
