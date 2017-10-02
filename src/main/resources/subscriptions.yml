@@ -782,8 +782,8 @@ anshar:
       subscriptionType: ESTIMATED_TIMETABLE
       subscriptionMode: FETCHED_DELIVERY
       heartbeatIntervalSeconds: 180
-      updateIntervalSeconds: 1
-      changeBeforeUpdatesSeconds: 1
+      updateIntervalSeconds: 10
+      changeBeforeUpdatesSeconds: 5
       previewIntervalSeconds: 86400
       operatorNamespace: http://www.siri.org.uk/siri
       addressFieldName:
