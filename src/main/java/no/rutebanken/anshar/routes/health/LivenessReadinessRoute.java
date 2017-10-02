@@ -122,7 +122,7 @@ public class LivenessReadinessRoute extends RouteBuilder {
                 .choice()
                 .when(p -> !healthManager.isReceivingData())
                     .process(p -> {
-                        p.getOut().setBody("Server has not received data for " + healthManager.isReceivingData() + " seconds.");
+                        p.getOut().setBody("Server has not received data for " + healthManager.getSecondsSinceDataReceived() + " seconds.");
                     })
                     .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("500"))
                     .log("Server is not receiving data")
