@@ -793,6 +793,7 @@ anshar:
         SUBSCRIBE: 193.69.85.208:8089/Rutebanken/et/subscribe.xml
         DELETE_SUBSCRIPTION: 193.69.85.208:8089/Rutebanken/et/managesubscription.xml
         CHECK_STATUS: 193.69.85.208:8089/Rutebanken/et/checkstatus.xml
+        GET_ESTIMATED_TIMETABLE: 193.69.85.208:8089/Rutebanken/et/getdata.xml
       version: 2.0
       contentType: text/xml;charset=UTF-8
       subscriptionId: dca81032-b374-46d2-a37b-ebd0aa2a4515
