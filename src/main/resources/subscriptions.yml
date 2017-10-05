@@ -544,8 +544,8 @@ anshar:
       soapenvNamespace:
       incrementalUpdates:
       urlMap:
-        SUBSCRIBE: https4://status-siri.nsb.no/subscriptions/siri2-nrp
-        DELETE_SUBSCRIPTION: https4://status-siri.nsb.no/subscriptions/siri2-nrp
+        SUBSCRIBE: https4://status-siri-test.nsb.no/subscriptions/siri2-nrp
+        DELETE_SUBSCRIPTION: https4://status-siri-test.nsb.no/subscriptions/siri2-nrp
       version: 2.0
       contentType: text/xml;charset=UTF-8
       subscriptionId: 112de214-1468-440f-ab51-8fd0c39b0b7e
@@ -858,30 +858,30 @@ anshar:
       idMappingPrefixes: RUT,OPP,BRA,OST
       environments: test
       active: true
-#    -
-#      internalId: 102
-#      vendor: internRutersx
-#      datasetId: NSB
-#      serviceType: REST
-#      subscriptionType: SITUATION_EXCHANGE
-#      subscriptionMode: SUBSCRIBE
-#      heartbeatIntervalSeconds: 60
-#      previewIntervalSeconds: 86400
-#      updateIntervalSeconds: 1
-#      operatorNamespace: http://www.siri.org.uk/siri
-#      addressFieldName:
-#      soapenvNamespace:
-#      incrementalUpdates:
-#      urlMap:
-#        SUBSCRIBE: https4://api-test.entur.org/anshar/1.0/anshar/subscribe?useOriginalId=true
-#        DELETE_SUBSCRIPTION: https4://api-test.entur.org/anshar/1.0/anshar/subscribe
-#      version: 2.0
-#      contentType: text/xml;charset=UTF-8
-#      subscriptionId: sx-replication
-#      requestorRef: sx-requestorref
-#      durationOfSubscriptionHours: 1
-#      mappingAdapterId:
-#      filterPresets:
-#      idMappingPrefixes: NSB
-#      environments: local
-#      active: false
+    -
+      internalId: 102
+      vendor: internRutersx
+      datasetId: NSB
+      serviceType: REST
+      subscriptionType: SITUATION_EXCHANGE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 60
+      previewIntervalSeconds: 86400
+      updateIntervalSeconds: 1
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: https4://api-test.entur.org/anshar/1.0/anshar/subscribe?useOriginalId=true
+        DELETE_SUBSCRIPTION: https4://api-test.entur.org/anshar/1.0/anshar/subscribe
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: sx-replication
+      requestorRef: sx-requestorref
+      durationOfSubscriptionHours: 1
+      mappingAdapterId:
+      filterPresets:
+      idMappingPrefixes: NSB
+      environments: local
+      active: false
