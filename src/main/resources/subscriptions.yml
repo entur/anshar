@@ -544,8 +544,8 @@ anshar:
       soapenvNamespace:
       incrementalUpdates:
       urlMap:
-        SUBSCRIBE: https4://status-siri-test.nsb.no/subscriptions/siri2-nrp
-        DELETE_SUBSCRIPTION: https4://status-siri-test.nsb.no/subscriptions/siri2-nrp
+        SUBSCRIBE: https4://status-siri.nsb.no/subscriptions/siri2-nrp
+        DELETE_SUBSCRIPTION: https4://status-siri.nsb.no/subscriptions/siri2-nrp
       version: 2.0
       contentType: text/xml;charset=UTF-8
       subscriptionId: 112de214-1468-440f-ab51-8fd0c39b0b7e
