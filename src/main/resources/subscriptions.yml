@@ -551,7 +551,7 @@ anshar:
       subscriptionId: 112de214-1468-440f-ab51-8fd0c39b0b7e
       requestorRef: RutebankenDEV_36ed1c1b-b47a-4233-b5a2-66c58211fdac
       durationOfSubscriptionHours: 24
-      mappingAdapterId: banenorsx
+      mappingAdapterId: nsbsx
       filterPresets:
       idMappingPrefixes: NSB
       environments: prod #,test
