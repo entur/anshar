@@ -224,11 +224,11 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
         Set<String> changes = new HashSet<>();
 
         Counter outdatedCounter = new CounterImpl(0);
-        Set<String> ignoredDatedVehicleRef = new HashSet<>();
-        Set<String> updatedDatedVehicleRef = new HashSet<>();
 
         etList.forEach(et -> {
             String key = createKey(datasetId, et);
+
+            mapFutureRecordedCallsToEstimatedCalls(et);
 
             EstimatedVehicleJourney existing = timetableDeliveries.get(key);
 
@@ -340,6 +340,75 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
         });
 
         return timetableDeliveries.getAll(changes).values();
+    }
+
+
+    /**
+     * Temporary fix to handle future VehicleJourneys where all stations are put in RecordedCalls
+     *
+     * This is necessary because train-operators need to flag trains as "arrived" to keep information-displays correct.
+     *
+     * Follow up is registered in NRP-2286
+     *
+     * @param et
+     */
+    private void mapFutureRecordedCallsToEstimatedCalls(EstimatedVehicleJourney et) {
+        if (et.getRecordedCalls() != null && et.getRecordedCalls().getRecordedCalls() != null && et.getRecordedCalls().getRecordedCalls().size() > 0 &&
+                (et.getEstimatedCalls() == null || (et.getEstimatedCalls().getEstimatedCalls() != null && et.getEstimatedCalls().getEstimatedCalls().size() == 0))) {
+
+            List<RecordedCall> predictedRecordedCalls = et.getRecordedCalls().getRecordedCalls();
+            List<RecordedCall> recordedCalls = new ArrayList<>();
+            List<EstimatedCall> estimatedCalls = new ArrayList<>();
+            boolean estimatedCallsFromHere = false;
+            for (RecordedCall recordedCall : predictedRecordedCalls) {
+
+                if (estimatedCallsFromHere ||
+                        (recordedCall.getAimedDepartureTime() != null && recordedCall.getAimedDepartureTime().isAfter(ZonedDateTime.now())) ||
+                        (recordedCall.getExpectedDepartureTime() != null && recordedCall.getExpectedDepartureTime().isAfter(ZonedDateTime.now())) ||
+                        (recordedCall.getAimedArrivalTime() != null && recordedCall.getAimedArrivalTime().isAfter(ZonedDateTime.now())) ||
+                        (recordedCall.getExpectedArrivalTime() != null && recordedCall.getExpectedArrivalTime().isAfter(ZonedDateTime.now()))
+                        ) {
+
+                    //When the first estimatedCall is discovered - all remaining calls should be added as estimated
+                    estimatedCallsFromHere = true;
+
+                    EstimatedCall call = new EstimatedCall();
+
+                    call.setStopPointRef(recordedCall.getStopPointRef());
+                    call.getStopPointNames().addAll(recordedCall.getStopPointNames());
+                    call.setOrder(recordedCall.getOrder());
+                    call.setVisitNumber(recordedCall.getVisitNumber());
+
+                    call.setAimedArrivalTime(recordedCall.getAimedArrivalTime());
+                    call.setExpectedArrivalTime(recordedCall.getExpectedArrivalTime());
+                    if (call.getExpectedArrivalTime() == null) {
+                        call.setExpectedArrivalTime(recordedCall.getActualArrivalTime());
+                    }
+
+                    call.setArrivalPlatformName(recordedCall.getArrivalPlatformName());
+
+                    call.setAimedDepartureTime(recordedCall.getAimedDepartureTime());
+                    call.setExpectedDepartureTime(recordedCall.getExpectedDepartureTime());
+                    if (call.getExpectedDepartureTime() == null) {
+                        call.setExpectedDepartureTime(recordedCall.getActualDepartureTime());
+                    }
+                    call.setDeparturePlatformName(recordedCall.getDeparturePlatformName());
+
+                    estimatedCalls.add(call);
+                } else {
+                    recordedCalls.add(recordedCall);
+                }
+            }
+            if (estimatedCalls.size() > 0) {
+                logger.warn("Remapped {} RecordedCalls to {} RecordedCalls and {} EstimatedCalls for Line: {}, VehicleRef: {}",
+                        predictedRecordedCalls.size(), recordedCalls.size(), estimatedCalls.size(),
+                        (et.getLineRef() != null ? et.getLineRef().getValue():null), (et.getVehicleRef() != null ? et.getVehicleRef().getValue():null));
+            }
+            et.getRecordedCalls().getRecordedCalls().clear();
+            et.getRecordedCalls().getRecordedCalls().addAll(recordedCalls);
+            et.setEstimatedCalls(new EstimatedVehicleJourney.EstimatedCalls());
+            et.getEstimatedCalls().getEstimatedCalls().addAll(estimatedCalls);
+        }
     }
 
     private String getOriginalId(String stopPointRef) {
