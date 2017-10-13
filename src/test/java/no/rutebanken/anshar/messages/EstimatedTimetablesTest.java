@@ -341,6 +341,30 @@ public class EstimatedTimetablesTest {
 
     }
 
+    @Test
+    public void testJourneyWithFutureRecordedCalls() {
+        int callCount = 30;
+        EstimatedVehicleJourney journeyWithRecordedCallsOnly = createEstimatedVehicleJourneyWithRecordedCallsOnly("3333", "1", 0, callCount, ZonedDateTime.now().plusHours(1), true);
+        String datasetId = "recordedCallDataset";
+
+        estimatedTimetables.add(datasetId, journeyWithRecordedCallsOnly);
+
+        Siri serviceDelivery = estimatedTimetables.createServiceDelivery(datasetId + datasetId, datasetId, 2);
+        assertNotNull(serviceDelivery);
+        assertNotNull(serviceDelivery.getServiceDelivery());
+        assertNotNull(serviceDelivery.getServiceDelivery().getEstimatedTimetableDeliveries());
+        assertEquals(1, serviceDelivery.getServiceDelivery().getEstimatedTimetableDeliveries().size());
+
+        EstimatedTimetableDeliveryStructure deliveryStructure = serviceDelivery.getServiceDelivery().getEstimatedTimetableDeliveries().get(0);
+        List<EstimatedVehicleJourney> estimatedVehicleJourneies = deliveryStructure.getEstimatedJourneyVersionFrames().get(0).getEstimatedVehicleJourneies();
+        assertEquals(1, estimatedVehicleJourneies.size());
+        EstimatedVehicleJourney remappedVehicleJourney = estimatedVehicleJourneies.get(0);
+        assertNotNull(remappedVehicleJourney.getEstimatedCalls());
+        assertTrue(remappedVehicleJourney.getRecordedCalls() == null || remappedVehicleJourney.getRecordedCalls().getRecordedCalls().isEmpty());
+        List<EstimatedCall> estimatedCalls = remappedVehicleJourney.getEstimatedCalls().getEstimatedCalls();
+        assertEquals(callCount, estimatedCalls.size());
+    }
+
     private EstimatedVehicleJourney createEstimatedVehicleJourney(String lineRefValue, String vehicleRefValue, int startOrder, int callCount, ZonedDateTime time, Boolean isComplete) {
         EstimatedVehicleJourney element = new EstimatedVehicleJourney();
         LineRef lineRef = new LineRef();
@@ -355,7 +379,7 @@ public class EstimatedTimetablesTest {
         for (int i = startOrder; i < callCount; i++) {
 
             StopPointRef stopPointRef = new StopPointRef();
-            stopPointRef.setValue("NSR:TEST:"+i);
+            stopPointRef.setValue("NSR:TEST:" + i);
             EstimatedCall call = new EstimatedCall();
                 call.setStopPointRef(stopPointRef);
                 call.setAimedArrivalTime(time);
@@ -367,6 +391,38 @@ public class EstimatedTimetablesTest {
         }
 
         element.setEstimatedCalls(estimatedCalls);
+        element.setRecordedAtTime(ZonedDateTime.now());
+
+        return element;
+    }
+
+    private EstimatedVehicleJourney createEstimatedVehicleJourneyWithRecordedCallsOnly(String lineRefValue, String vehicleRefValue, int startOrder, int callCount, ZonedDateTime time, Boolean isComplete) {
+        EstimatedVehicleJourney element = new EstimatedVehicleJourney();
+        LineRef lineRef = new LineRef();
+        lineRef.setValue(lineRefValue);
+        element.setLineRef(lineRef);
+        VehicleRef vehicleRef = new VehicleRef();
+        vehicleRef.setValue(vehicleRefValue);
+        element.setVehicleRef(vehicleRef);
+        element.setIsCompleteStopSequence(isComplete);
+
+        EstimatedVehicleJourney.RecordedCalls recordedCallsCalls = new EstimatedVehicleJourney.RecordedCalls();
+        for (int i = startOrder; i < callCount; i++) {
+
+            StopPointRef stopPointRef = new StopPointRef();
+            stopPointRef.setValue("NSR:TEST:"+i);
+
+            RecordedCall call = new RecordedCall();
+                call.setStopPointRef(stopPointRef);
+                call.setAimedArrivalTime(time);
+                call.setExpectedArrivalTime(time);
+                call.setAimedDepartureTime(time);
+                call.setExpectedDepartureTime(time);
+                call.setOrder(BigInteger.valueOf(i));
+            recordedCallsCalls.getRecordedCalls().add(call);
+        }
+
+        element.setRecordedCalls(recordedCallsCalls);
         element.setRecordedAtTime(ZonedDateTime.now());
 
         return element;
