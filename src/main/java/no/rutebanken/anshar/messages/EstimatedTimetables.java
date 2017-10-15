@@ -228,9 +228,12 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
         etList.forEach(et -> {
             String key = createKey(datasetId, et);
 
-            mapFutureRecordedCallsToEstimatedCalls(et);
-
-            EstimatedVehicleJourney existing = timetableDeliveries.get(key);
+            EstimatedVehicleJourney existing = null;
+            if (!timetableDeliveries.containsKey(key)){
+                mapFutureRecordedCallsToEstimatedCalls(et);
+            } else {
+                existing = timetableDeliveries.get(key);
+            }
 
             boolean keep = false;
 
