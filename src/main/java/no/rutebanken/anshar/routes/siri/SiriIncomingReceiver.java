@@ -105,6 +105,10 @@ public class SiriIncomingReceiver extends RouteBuilder {
                                     }
                                     SubscriptionSetup subscriptionSetup = subscriptionManager.get(subscriptionId);
 
+                                    if (subscriptionSetup == null) {
+                                        return false;
+                                    }
+
                                     boolean existsAndIsActive = (subscriptionManager.isSubscriptionRegistered(subscriptionId) &&
                                                 subscriptionSetup.isActive());
 
