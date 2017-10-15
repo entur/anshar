@@ -198,7 +198,7 @@ anshar:
       soapenvNamespace:
       incrementalUpdates:
       urlMap:
-          SUBSCRIBE: 195.225.27.167:8080/RutebankenDEV/vm/subscribe.xml
+        SUBSCRIBE: 195.225.27.167:8080/RutebankenDEV/vm/subscribe.xml
         DELETE_SUBSCRIPTION: 195.225.27.167:8080/RutebankenDEV/vm/managesubscription.xml
         CHECK_STATUS: 195.225.27.167:8080/RutebankenDEV/vm/checkstatus.xml
       version: 2.0
