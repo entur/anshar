@@ -198,9 +198,9 @@ anshar:
       soapenvNamespace:
       incrementalUpdates:
       urlMap:
-        SUBSCRIBE: 193.69.85.197:8080/RutebankenDEV/vm/subscribe.xml
-        DELETE_SUBSCRIPTION: 193.69.85.197:8080/RutebankenDEV/vm/managesubscription.xml
-        CHECK_STATUS: 193.69.85.197:8080/RutebankenDEV/vm/checkstatus.xml
+          SUBSCRIBE: 195.225.27.167:8080/RutebankenDEV/vm/subscribe.xml
+        DELETE_SUBSCRIPTION: 195.225.27.167:8080/RutebankenDEV/vm/managesubscription.xml
+        CHECK_STATUS: 195.225.27.167:8080/RutebankenDEV/vm/checkstatus.xml
       version: 2.0
       contentType: text/xml;charset=UTF-8
       subscriptionId: 20c2e3a3-1659-41d3-b1a2-1411978b1d43
@@ -226,9 +226,9 @@ anshar:
       soapenvNamespace:
       incrementalUpdates:
       urlMap:
-        SUBSCRIBE: 193.69.85.197:8080/RutebankenDEV/et/subscribe.xml
-        DELETE_SUBSCRIPTION: 193.69.85.197:8080/RutebankenDEV/et/managesubscription.xml
-        CHECK_STATUS: 193.69.85.197:8080/RutebankenDEV/et/checkstatus.xml
+        SUBSCRIBE: 195.225.27.167:8080/RutebankenDEV/et/subscribe.xml
+        DELETE_SUBSCRIPTION: 195.225.27.167:8080/RutebankenDEV/et/managesubscription.xml
+        CHECK_STATUS: 195.225.27.167:8080/RutebankenDEV/et/checkstatus.xml
       version: 2.0
       contentType: text/xml;charset=UTF-8
       subscriptionId: 1f6a687e-58b8-4e46-a23c-98adadad78ed
@@ -790,10 +790,10 @@ anshar:
       soapenvNamespace:
       incrementalUpdates:
       urlMap:
-        SUBSCRIBE: 193.69.85.208:8089/Rutebanken/et/subscribe.xml
-        DELETE_SUBSCRIPTION: 193.69.85.208:8089/Rutebanken/et/managesubscription.xml
-        CHECK_STATUS: 193.69.85.208:8089/Rutebanken/et/checkstatus.xml
-        GET_ESTIMATED_TIMETABLE: 193.69.85.208:8089/Rutebanken/et/getdata.xml
+        SUBSCRIBE: 195.225.27.169:8089/Rutebanken/et/subscribe.xml
+        DELETE_SUBSCRIPTION: 195.225.27.169:8089/Rutebanken/et/managesubscription.xml
+        CHECK_STATUS: 195.225.27.169:8089/Rutebanken/et/checkstatus.xml
+        GET_ESTIMATED_TIMETABLE: 195.225.27.169:8089/Rutebanken/et/getdata.xml
       version: 2.0
       contentType: text/xml;charset=UTF-8
       subscriptionId: dca81032-b374-46d2-a37b-ebd0aa2a4515
