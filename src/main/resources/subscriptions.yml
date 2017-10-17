@@ -558,7 +558,7 @@ anshar:
       active: false
     -
       internalId: 21
-      vendor: nsbSx
+      vendor: nsbSx-test
       datasetId: NSBSX
       serviceType: REST
       subscriptionType: SITUATION_EXCHANGE
