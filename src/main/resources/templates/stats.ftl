@@ -48,7 +48,7 @@
                 <td>${item.healthy?exists?then(item.healthy?c,"")}</td>
                 <td>${item.activated!""}</td>
                 <td>${item.vendor}</td>
-                <td>${item.lastDataReceived!""}</td>
+                <td>${item.lastDataReceived!""} ${item.flagAsNotReceivingData?then("<span class=\"glyphicon glyphicon-alert\"></span>","")}</td>
                 <td align="right">${item.hitcount!0}</td>
                 <td align="right">${item.objectcount!0}</td>
             </tr>

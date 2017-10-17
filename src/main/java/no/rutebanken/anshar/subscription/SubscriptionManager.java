@@ -290,9 +290,11 @@ public class SubscriptionManager {
         if (!setup.isActive()) {
             obj.put("status", "deactivated");
             obj.put("healthy",null);
+            obj.put("flagAsNotReceivingData", false);
         } else {
             obj.put("status", "active");
             obj.put("healthy", isSubscriptionHealthy(setup.getSubscriptionId()));
+            obj.put("flagAsNotReceivingData", (dataReceived.get(setup.getSubscriptionId()) != null && (dataReceived.get(setup.getSubscriptionId())).isBefore(Instant.now().minusSeconds(1800))));
         }
         obj.put("hitcount",hitcount.get(setup.getSubscriptionId()));
         obj.put("objectcount", objectCounter.get(setup.getSubscriptionId()));

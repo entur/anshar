@@ -10,6 +10,8 @@ import java.text.MessageFormat;
 import java.time.Duration;
 import java.util.*;
 
+import static no.rutebanken.anshar.subscription.SubscriptionSetup.SubscriptionMode.REQUEST_RESPONSE;
+
 public class SubscriptionSetup implements Serializable {
 
     private Logger logger = LoggerFactory.getLogger(SubscriptionSetup.class);
@@ -188,7 +190,7 @@ public class SubscriptionSetup implements Serializable {
         obj.put("incrementalUpdates", getIncrementalUpdates() != null ? getIncrementalUpdates().toString():"");
         obj.put("durationOfSubscription", getDurationOfSubscription().toString());
         obj.put("requestorRef", getRequestorRef());
-        obj.put("inboundUrl", buildUrl(true));
+        obj.put("inboundUrl", getSubscriptionMode() != REQUEST_RESPONSE ? buildUrl(true):"");
         obj.put("contentType", getContentType());
 
         return obj;
