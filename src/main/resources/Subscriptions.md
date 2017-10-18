@@ -26,7 +26,6 @@
 |mappingAdapterPreset|RUTER, ATB, KOLUMBUS, AKT|Adapters used to convert ids to common format|
 |filterPresets|BYBANEN|Specific filters to use|
 |idMappingPrefixes|RUT, ATB, KOL, AKT, NRI+++|List of prefixes to be used when mapping ids form NSR|
-|environments| test, beta, prod, ...| Facilitates different subscriptions in different environments. If value does not match property set in environment, it will be disabled by default. |
 |active|true,false |Enables/disables subscription|
 
 Example:

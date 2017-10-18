@@ -143,11 +143,6 @@ public class SubscriptionInitializer implements CamelContextAware, ApplicationCo
                     subscriptionSetup.getUrlMap().putIfAbsent(RequestType.GET_SITUATION_EXCHANGE, url);
                 }
 
-                if (subscriptionSetup.getEnvironments() != null && !subscriptionSetup.getEnvironments().contains(camelConfiguration.getEnvironment())) {
-                    subscriptionSetup.setActive(false);
-                }
-
-
                 SubscriptionSetup existingSubscription = subscriptionManager.getSubscriptionById(subscriptionSetup.getInternalId());
 
                 if (existingSubscription != null) {

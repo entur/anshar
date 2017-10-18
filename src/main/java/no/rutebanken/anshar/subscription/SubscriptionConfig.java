@@ -7,7 +7,7 @@ import org.springframework.context.annotation.PropertySource;
 
 import java.util.List;
 
-@PropertySource(value = "classpath:subscriptions.yml", factory = YamlPropertySourceFactory.class)
+@PropertySource(value = "classpath:subscriptions-${anshar.environment}.yml", factory = YamlPropertySourceFactory.class)
 @ConfigurationProperties(prefix = "anshar", ignoreInvalidFields=false)
 @Configuration
 public class SubscriptionConfig {

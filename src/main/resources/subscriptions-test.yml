@@ -25,8 +25,7 @@ anshar:
       mappingAdapterId: kolumbus
       filterPresets:
       idMappingPrefixes: KOL
-      environments: prod #,test
-      active: false
+      active: true
     -
       internalId: 2
       vendor: kolumbusvm
@@ -50,7 +49,6 @@ anshar:
       mappingAdapterId: kolumbus
       filterPresets:
       idMappingPrefixes: KOL
-      environments: prod #,test
       active: true
     -
       internalId: 3
@@ -77,7 +75,6 @@ anshar:
       mappingAdapterId: atb
       filterPresets:
       idMappingPrefixes: ATB
-      environments: prod #,test
       active: true
     -
       internalId: 4
@@ -102,7 +99,6 @@ anshar:
       mappingAdapterId: atb
       filterPresets:
       idMappingPrefixes: ATB
-      environments: prod #,test
       active: true
     -
       internalId: 5
@@ -128,8 +124,7 @@ anshar:
       mappingAdapterId: akt
       filterPresets:
       idMappingPrefixes: AKT
-      environments: prod #,test
-      active: true
+      active: false
     -
       internalId: 6
       vendor: aktet
@@ -155,90 +150,7 @@ anshar:
       mappingAdapterId: akt
       filterPresets:
       idMappingPrefixes: AKT
-      environments: prod #,test
-      active: true
-    -
-      internalId: 7
-      vendor: rutersx
-      datasetId: RUT
-      serviceType: REST
-      subscriptionType: SITUATION_EXCHANGE
-      subscriptionMode: SUBSCRIBE
-      heartbeatIntervalSeconds: 600
-      previewIntervalSeconds: 86400
-      operatorNamespace: http://www.siri.org.uk/siri
-      addressFieldName:
-      soapenvNamespace:
-      incrementalUpdates:
-      urlMap:
-        SUBSCRIBE: sirisx.ruter.no/sx/subscribe.xml
-        DELETE_SUBSCRIPTION: sirisx.ruter.no/sx/managesubscription.xml
-        CHECK_STATUS: sirisx.ruter.no/sx/checkstatus.xml
-      version: 2.0
-      contentType: text/xml;charset=UTF-8
-      subscriptionId: ${random.uuid}
-      requestorRef: RutebankenDEV
-      durationOfSubscriptionHours: 168
-      mappingAdapterId: ruter
-      filterPresets:
-      idMappingPrefixes: RUT,OPP,BRA,OST
-      environments: prod #,test
-      active: true
-    -
-      internalId: 9
-      vendor: rutervm
-      datasetId: RUT
-      serviceType: REST
-      subscriptionType: VEHICLE_MONITORING
-      subscriptionMode: SUBSCRIBE
-      heartbeatIntervalSeconds: 60
-      changeBeforeUpdatesSeconds: 10
-      operatorNamespace: http://www.siri.org.uk/siri
-      addressFieldName:
-      soapenvNamespace:
-      incrementalUpdates:
-      urlMap:
-        SUBSCRIBE: 195.225.27.167:8080/RutebankenDEV/vm/subscribe.xml
-        DELETE_SUBSCRIPTION: 195.225.27.167:8080/RutebankenDEV/vm/managesubscription.xml
-        CHECK_STATUS: 195.225.27.167:8080/RutebankenDEV/vm/checkstatus.xml
-      version: 2.0
-      contentType: text/xml;charset=UTF-8
-      subscriptionId: 20c2e3a3-1659-41d3-b1a2-1411978b1d43
-      requestorRef: RutebankenDEV
-      durationOfSubscriptionHours: 168
-      mappingAdapterId: ruter
-      filterPresets:
-      idMappingPrefixes: RUT,OPP,BRA,OST
-      environments: prod
-      active: true
-    -
-      internalId: 11
-      vendor: ruteret
-      datasetId: RUT
-      serviceType: REST
-      subscriptionType: ESTIMATED_TIMETABLE
-      subscriptionMode: SUBSCRIBE
-      heartbeatIntervalSeconds: 60
-      changeBeforeUpdatesSeconds: 1
-      previewIntervalSeconds: 86400
-      operatorNamespace: http://www.siri.org.uk/siri
-      addressFieldName:
-      soapenvNamespace:
-      incrementalUpdates:
-      urlMap:
-        SUBSCRIBE: 195.225.27.167:8080/RutebankenDEV/et/subscribe.xml
-        DELETE_SUBSCRIPTION: 195.225.27.167:8080/RutebankenDEV/et/managesubscription.xml
-        CHECK_STATUS: 195.225.27.167:8080/RutebankenDEV/et/checkstatus.xml
-      version: 2.0
-      contentType: text/xml;charset=UTF-8
-      subscriptionId: 1f6a687e-58b8-4e46-a23c-98adadad78ed
-      requestorRef: RutebankenDEV
-      durationOfSubscriptionHours: 168
-      mappingAdapterId: ruter
-      filterPresets:
-      idMappingPrefixes: RUT,OPP,BRA,OST
-      environments: prod
-      active: true
+      active: false
     -
       internalId: 12
       vendor: skysset
@@ -264,8 +176,7 @@ anshar:
       mappingAdapterId: nsr
       filterPresets:
       idMappingPrefixes: SKY
-      environments: prod #,test
-      active: true
+      active: false
     -
       internalId: 13
       vendor: skysssx
@@ -290,8 +201,7 @@ anshar:
       mappingAdapterId: nsr
       filterPresets:
       idMappingPrefixes: SKY
-      environments: prod #,test
-      active: true
+      active: false
     -
       internalId: 14
       vendor: brakaret
@@ -317,8 +227,7 @@ anshar:
       mappingAdapterPresets: nsr
       filterPresets:
       idMappingPrefixes: BRA
-      environments: prod #,test
-      active: true
+      active: false
     -
       internalId: 15
       vendor: brakarsx
@@ -343,7 +252,6 @@ anshar:
       mappingAdapterId: nsr
       filterPresets:
       idMappingPrefixes: BRA
-      environments: prod #,test
       active: false
     -
       internalId: 16
@@ -371,8 +279,7 @@ anshar:
       mappingAdapterId: nsr
       filterPresets: BYBANEN
       idMappingPrefixes: SKY
-      environments: prod #,test
-      active: true
+      active: false
     -
       internalId: 17
       vendor: baneEt-reqres-24h
@@ -397,7 +304,6 @@ anshar:
       mappingAdapterId: banenoret
       filterPresets:
       idMappingPrefixes: NSB,FLT
-      environments: prod #,test
       active: true
     -
       internalId: 171
@@ -423,7 +329,6 @@ anshar:
       mappingAdapterId: banenoret
       filterPresets:
       idMappingPrefixes: NSB,FLT
-      environments: prod #,test
       active: true
     -
       internalId: 18
@@ -448,7 +353,6 @@ anshar:
       mappingAdapterId: banenorsx
       filterPresets:
       idMappingPrefixes: NSB,FLT
-      environments: prod #,test
       active: false
     -
       internalId: 181
@@ -473,7 +377,6 @@ anshar:
       mappingAdapterId: banenorsx
       filterPresets:
       idMappingPrefixes: NSB,FLT
-      environments: prod #,test
       active: false
     -
       internalId: 19
@@ -501,7 +404,6 @@ anshar:
       mappingAdapterId: banenoret
       filterPresets:
       idMappingPrefixes: NSB,FLT
-      environments: prod #,test
       active: false
     -
       internalId: 20
@@ -528,7 +430,6 @@ anshar:
       mappingAdapterId: banenorsx
       filterPresets:
       idMappingPrefixes: NSB,FLT
-      environments: prod #,test
       active: false
     -
       internalId: 21
@@ -544,8 +445,8 @@ anshar:
       soapenvNamespace:
       incrementalUpdates:
       urlMap:
-        SUBSCRIBE: https4://status-siri.nsb.no/subscriptions/siri2-nrp
-        DELETE_SUBSCRIPTION: https4://status-siri.nsb.no/subscriptions/siri2-nrp
+        SUBSCRIBE: https4://status-siri-test.nsb.no/subscriptions/siri2-nrp
+        DELETE_SUBSCRIPTION: https4://status-siri-test.nsb.no/subscriptions/siri2-nrp
       version: 2.0
       contentType: text/xml;charset=UTF-8
       subscriptionId: 112de214-1468-440f-ab51-8fd0c39b0b7e
@@ -554,33 +455,6 @@ anshar:
       mappingAdapterId: nsbsx
       filterPresets:
       idMappingPrefixes: NSB
-      environments: prod #,test
-      active: false
-    -
-      internalId: 21
-      vendor: nsbSx-test
-      datasetId: NSBSX
-      serviceType: REST
-      subscriptionType: SITUATION_EXCHANGE
-      subscriptionMode: SUBSCRIBE
-      heartbeatIntervalSeconds: 60
-      operatorNamespace: http://www.siri.org.uk/siri
-      addressFieldName: ConsumerAddress
-      previewIntervalSeconds: 86400
-      soapenvNamespace:
-      incrementalUpdates:
-      urlMap:
-        SUBSCRIBE: https4://status-siri-test.nsb.no/subscriptions/siri2-nrp
-        DELETE_SUBSCRIPTION: https4://status-siri-test.nsb.no/subscriptions/siri2-nrp
-      version: 2.0
-      contentType: text/xml;charset=UTF-8
-      subscriptionId: ${random.uuid}
-      requestorRef: RutebankenDEV_${random.uuid}
-      durationOfSubscriptionHours: 24
-      mappingAdapterId: nsbsx
-      filterPresets:
-      idMappingPrefixes: NSB
-      environments: prod #,test
       active: false
     -
       internalId: 22
@@ -607,8 +481,7 @@ anshar:
       mappingAdapterId: nsr
       filterPresets:
       idMappingPrefixes: TRO
-      environments: prod #,test
-      active: true
+      active: false
     -
       internalId: 23
       vendor: tromssx
@@ -633,8 +506,7 @@ anshar:
       mappingAdapterId: nsr
       filterPresets:
       idMappingPrefixes: TRO
-      environments: prod #,test
-      active: true
+      active: false
     -
       internalId: 24
       vendor: mret
@@ -661,7 +533,6 @@ anshar:
       mappingAdapterId: nsr
       filterPresets:
       idMappingPrefixes: MOR
-      environments: prod #,test
       active: false
     -
       internalId: 25
@@ -688,7 +559,6 @@ anshar:
       mappingAdapterId: nsr
       filterPresets:
       idMappingPrefixes: MOR
-      environments: prod #,test
       active: false
     -
       internalId: 26
@@ -715,7 +585,6 @@ anshar:
       mappingAdapterId: nsr
       filterPresets:
       idMappingPrefixes: MOR
-      environments: prod #,test
       active: false
     -
       internalId: 27
@@ -743,7 +612,6 @@ anshar:
       mappingAdapterId: nsr
       filterPresets:
       idMappingPrefixes: OST
-      environments: prod #,test
       active: true
     -
       internalId: 28
@@ -771,7 +639,6 @@ anshar:
       mappingAdapterId: nsr
       filterPresets:
       idMappingPrefixes: OST
-      environments: prod #,test
       active: false
     -
       internalId: 29
@@ -798,37 +665,6 @@ anshar:
       mappingAdapterId: nsr
       filterPresets:
       idMappingPrefixes: OST
-      environments: prod #,test
-      active: true
-    -
-      internalId: 30
-      vendor: ruter-tbane
-      datasetId: RUT
-      serviceType: REST
-      subscriptionType: ESTIMATED_TIMETABLE
-      subscriptionMode: FETCHED_DELIVERY
-      heartbeatIntervalSeconds: 60
-      updateIntervalSeconds: 10
-      changeBeforeUpdatesSeconds: 5
-      previewIntervalSeconds: 86400
-      operatorNamespace: http://www.siri.org.uk/siri
-      addressFieldName:
-      soapenvNamespace:
-      incrementalUpdates:
-      urlMap:
-        SUBSCRIBE: 195.225.27.169:8089/Rutebanken/et/subscribe.xml
-        DELETE_SUBSCRIPTION: 195.225.27.169:8089/Rutebanken/et/managesubscription.xml
-        CHECK_STATUS: 195.225.27.169:8089/Rutebanken/et/checkstatus.xml
-        GET_ESTIMATED_TIMETABLE: 195.225.27.169:8089/Rutebanken/et/getdata.xml
-      version: 2.0
-      contentType: text/xml;charset=UTF-8
-      subscriptionId: dca81032-b374-46d2-a37b-ebd0aa2a4515
-      requestorRef: Rutebanken
-      durationOfSubscriptionHours: 168
-      mappingAdapterId: ruter
-      filterPresets:
-      idMappingPrefixes: RUT,OPP,BRA,OST
-      environments: prod
       active: false
     -
       internalId: 100
@@ -844,7 +680,6 @@ anshar:
       soapenvNamespace:
       incrementalUpdates:
       urlMap:
-#        GET_VEHICLE_MONITORING: https4://api.entur.org/anshar/1.0/anshar/services/RUT?useOriginalId=true
         SUBSCRIBE: https4://api.entur.org/anshar/1.0/anshar/subscribe/RUT?useOriginalId=true
         DELETE_SUBSCRIPTION: https4://api.entur.org/anshar/1.0/anshar/subscribe/RUT
       version: 2.0
@@ -855,7 +690,6 @@ anshar:
       mappingAdapterId: ruter
       filterPresets:
       idMappingPrefixes: RUT,OPP,BRA,OST
-      environments: test
       active: true
     -
       internalId: 101
@@ -873,7 +707,7 @@ anshar:
       incrementalUpdates:
       urlMap:
         SUBSCRIBE: https4://api.entur.org/anshar/1.0/anshar/subscribe/RUT?useOriginalId=true
-        DELETE_SUBSCRIPTION: https4://api.entur.org/anshar/1.0/anshar/subscribe/RUT
+        DELETE_SUBSCRIPTION: https4://api.entur.org/anshar/1.0/anshar/subscribe
       version: 2.0
       contentType: text/xml;charset=UTF-8
       subscriptionId: et-replication
@@ -882,12 +716,11 @@ anshar:
       mappingAdapterId: ruter
       filterPresets:
       idMappingPrefixes: RUT,OPP,BRA,OST
-      environments: test
       active: true
     -
       internalId: 102
       vendor: internRutersx
-      datasetId: NSB
+      datasetId: RUT
       serviceType: REST
       subscriptionType: SITUATION_EXCHANGE
       subscriptionMode: SUBSCRIBE
@@ -899,15 +732,14 @@ anshar:
       soapenvNamespace:
       incrementalUpdates:
       urlMap:
-        SUBSCRIBE: https4://api-test.entur.org/anshar/1.0/anshar/subscribe?useOriginalId=true
-        DELETE_SUBSCRIPTION: https4://api-test.entur.org/anshar/1.0/anshar/subscribe
+        SUBSCRIBE: https4://api.entur.org/anshar/1.0/anshar/subscribe?useOriginalId=true
+        DELETE_SUBSCRIPTION: https4://api.entur.org/anshar/1.0/anshar/subscribe
       version: 2.0
       contentType: text/xml;charset=UTF-8
       subscriptionId: sx-replication
       requestorRef: sx-requestorref
       durationOfSubscriptionHours: 1
-      mappingAdapterId:
+      mappingAdapterId: ruter
       filterPresets:
-      idMappingPrefixes: NSB
-      environments: local
-      active: false
+      idMappingPrefixes: RUT
+      active: true
