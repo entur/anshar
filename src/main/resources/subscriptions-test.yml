@@ -434,7 +434,7 @@ anshar:
     -
       internalId: 21
       vendor: nsbSx
-      datasetId: NSBSX
+      datasetId: NSB
       serviceType: REST
       subscriptionType: SITUATION_EXCHANGE
       subscriptionMode: SUBSCRIBE
@@ -455,11 +455,11 @@ anshar:
       mappingAdapterId: nsbsx
       filterPresets:
       idMappingPrefixes: NSB
-      active: false
+      active: true
     -
       internalId: 212
       vendor: nsbSx-prod
-      datasetId: NSBSX
+      datasetId: NSB
       serviceType: REST
       subscriptionType: SITUATION_EXCHANGE
       subscriptionMode: SUBSCRIBE
@@ -667,7 +667,7 @@ anshar:
       active: false
     -
       internalId: 29
-      vendor: ostSX
+      vendor: ostSx
       datasetId: OST
       serviceType: SOAP
       subscriptionType: SITUATION_EXCHANGE
