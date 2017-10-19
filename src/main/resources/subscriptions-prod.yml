@@ -303,7 +303,7 @@ anshar:
       subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV_${random.uuid}
       durationOfSubscriptionHours: 168
-      mappingAdapterPresets: nsr
+      mappingAdapterPresets: brakar
       filterPresets:
       idMappingPrefixes: BRA
       active: true
@@ -328,10 +328,10 @@ anshar:
       subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV_${random.uuid}
       durationOfSubscriptionHours: 168
-      mappingAdapterId: nsr
+      mappingAdapterId: brakar
       filterPresets:
       idMappingPrefixes: BRA
-      active: false
+      active: true
     -
       internalId: 16
       vendor: bybanenEt
