@@ -4,6 +4,7 @@ import com.hazelcast.core.IMap;
 import no.rutebanken.anshar.routes.siri.SiriObjectFactory;
 import org.quartz.utils.counter.Counter;
 import org.quartz.utils.counter.CounterImpl;
+import org.rutebanken.siri20.util.SiriXml;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,7 @@ import uk.org.siri.siri20.MessageRefStructure;
 import uk.org.siri.siri20.PtSituationElement;
 import uk.org.siri.siri20.Siri;
 
+import javax.xml.bind.JAXBException;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
@@ -223,7 +225,13 @@ public class Situations implements SiriRepository<PtSituationElement> {
 
         });
         logger.info("Updated {} (of {}) :: Already expired: {},", changes.size(), sxList.size(), alreadyExpiredCounter.getValue());
-
+        if (changes.size() == 0) {
+            try {
+                logger.info("No situations found in xml: {}", SiriXml.toXml(new SiriObjectFactory(null).createSXServiceDelivery(sxList)));
+            } catch (JAXBException e) {
+                //Ignore
+            }
+        }
         changesMap.keySet().forEach(requestor -> {
             if (lastUpdateRequested.get(requestor) != null) {
                 Set<String> tmpChanges = changesMap.get(requestor);
