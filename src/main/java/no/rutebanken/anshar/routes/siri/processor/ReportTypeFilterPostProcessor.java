@@ -29,7 +29,7 @@ public class ReportTypeFilterPostProcessor extends ValueAdapter implements PostP
                     SituationExchangeDeliveryStructure.Situations situations = deliveryStructure.getSituations();
                     if (situations != null && situations.getPtSituationElements() != null) {
                         situations.getPtSituationElements().
-                                        removeIf(sit -> !sit.getProgress().equals(WorkflowStatusEnumeration.CLOSED) &
+                                        removeIf(sit -> !(sit.getProgress() != null && sit.getProgress().equals(WorkflowStatusEnumeration.CLOSED)) &
                                                 !reportTypeToKeep.equals(sit.getReportType()));
                         //If message is a closing message - keep regardless og ReportType
                     }

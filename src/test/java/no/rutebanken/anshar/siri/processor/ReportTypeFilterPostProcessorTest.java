@@ -6,6 +6,7 @@ import no.rutebanken.anshar.routes.siri.processor.ReportTypeFilterPostProcessor;
 import uk.org.siri.siri20.PtSituationElement;
 import uk.org.siri.siri20.Siri;
 import uk.org.siri.siri20.SituationNumber;
+import uk.org.siri.siri20.WorkflowStatusEnumeration;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -54,6 +55,7 @@ public class ReportTypeFilterPostProcessorTest extends TestCase {
         SituationNumber situationNumber = new SituationNumber();
         situationNumber.setValue("" + new Random().nextLong());
         element.setSituationNumber(situationNumber);
+        element.setProgress(WorkflowStatusEnumeration.PUBLISHED);
         element.setReportType(reportType);
         return element;
     }
