@@ -536,7 +536,7 @@ anshar:
       idMappingPrefixes: NSB
       active: true
     -
-      internalId: 21
+      internalId: 22
       vendor: nsbSx-test
       datasetId: NSB
       serviceType: REST
@@ -561,7 +561,7 @@ anshar:
       idMappingPrefixes: NSB
       active: false
     -
-      internalId: 22
+      internalId: 23
       vendor: tromset
       datasetId: TRO
       serviceType: REST
@@ -587,7 +587,7 @@ anshar:
       idMappingPrefixes: TRO
       active: true
     -
-      internalId: 23
+      internalId: 24
       vendor: tromssx
       datasetId: TRO
       serviceType: REST
@@ -612,7 +612,7 @@ anshar:
       idMappingPrefixes: TRO
       active: true
     -
-      internalId: 24
+      internalId: 25
       vendor: mret
       datasetId: MOR
       serviceType: SOAP
@@ -639,7 +639,7 @@ anshar:
       idMappingPrefixes: MOR
       active: false
     -
-      internalId: 25
+      internalId: 26
       vendor: mrvm
       datasetId: MOR
       serviceType: SOAP
@@ -665,7 +665,7 @@ anshar:
       idMappingPrefixes: MOR
       active: false
     -
-      internalId: 26
+      internalId: 27
       vendor: mrsx
       datasetId: MOR
       serviceType: SOAP
@@ -691,7 +691,7 @@ anshar:
       idMappingPrefixes: MOR
       active: false
     -
-      internalId: 27
+      internalId: 28
       vendor: ostEt
       datasetId: OST
       serviceType: SOAP
@@ -718,7 +718,7 @@ anshar:
       idMappingPrefixes: OST
       active: true
     -
-      internalId: 28
+      internalId: 29
       vendor: ostVm
       datasetId: OST
       serviceType: SOAP
@@ -745,7 +745,7 @@ anshar:
       idMappingPrefixes: OST
       active: false
     -
-      internalId: 29
+      internalId: 30
       vendor: ostSx
       datasetId: OST
       serviceType: SOAP
@@ -771,7 +771,7 @@ anshar:
       idMappingPrefixes: OST
       active: true
     -
-      internalId: 30
+      internalId: 31
       vendor: ruter-tbane
       datasetId: RUT
       serviceType: REST
