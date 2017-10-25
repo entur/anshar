@@ -218,7 +218,7 @@ public class SubscriptionManager {
         logger.trace("SubscriptionId [{}], last activity {}.", subscriptionId, instant);
 
         SubscriptionSetup activeSubscription = subscriptions.get(subscriptionId);
-        if (activeSubscription != null) {
+        if (activeSubscription != null && activeSubscription.isActive()) {
 
             Duration heartbeatInterval = activeSubscription.getHeartbeatInterval();
             if (heartbeatInterval == null) {
