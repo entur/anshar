@@ -150,6 +150,7 @@ public class SiriProvider extends RouteBuilder {
                     String requestorId = request.getParameter("requestorId");
                     String originalId = request.getParameter("useOriginalId");
                     String maxSizeStr = request.getParameter("maxSize");
+                    String lineRef = request.getParameter("lineRef");
 
                     int maxSize = 1000;
                     if (maxSizeStr != null) {
@@ -160,7 +161,12 @@ public class SiriProvider extends RouteBuilder {
                         }
                     }
 
-                    Siri response = estimatedTimetables.createServiceDelivery(requestorId, datasetId, maxSize);
+                    Siri response;
+                    if (lineRef != null) {
+                        response = estimatedTimetables.createServiceDelivery(lineRef);
+                    } else {
+                        response = estimatedTimetables.createServiceDelivery(requestorId, datasetId, maxSize);
+                    }
 
                     List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(SiriHandler.getIdMappingPolicy(request.getQueryString()));
                     if ("test".equals(originalId)) {

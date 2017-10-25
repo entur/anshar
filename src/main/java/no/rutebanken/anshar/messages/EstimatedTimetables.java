@@ -71,6 +71,39 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
         return keysToRemove.size();
     }
 
+    public Siri createServiceDelivery(String lineRef) {
+        SortedSet<EstimatedVehicleJourney> matchingKeys = new TreeSet<>((o1, o2) -> {
+            ZonedDateTime o1_firstAimedDeparture = o1.getEstimatedCalls().getEstimatedCalls().get(0).getAimedDepartureTime();
+            ZonedDateTime o2_firstAimedDeparture = o2.getEstimatedCalls().getEstimatedCalls().get(0).getAimedDepartureTime();
+            if (o1.getRecordedCalls() != null && o1.getRecordedCalls().getRecordedCalls() != null) {
+                if (o1.getRecordedCalls().getRecordedCalls().size() > 0) {
+                    o1_firstAimedDeparture = o1.getRecordedCalls().getRecordedCalls().get(0).getAimedDepartureTime();
+                }
+            }
+            if (o2.getRecordedCalls() != null && o2.getRecordedCalls().getRecordedCalls() != null) {
+                if (o2.getRecordedCalls().getRecordedCalls().size() > 0) {
+                    o2_firstAimedDeparture = o2.getRecordedCalls().getRecordedCalls().get(0).getAimedDepartureTime();
+                }
+            }
+
+            return o1_firstAimedDeparture.compareTo(o2_firstAimedDeparture);
+        });
+
+        timetableDeliveries.keySet()
+                .stream()
+                .forEach(key -> {
+                    EstimatedVehicleJourney vehicleJourney = timetableDeliveries.get(key);
+                    if (vehicleJourney != null) { //Object may have expired
+                        if (vehicleJourney.getLineRef() != null &&
+                                lineRef.equals(vehicleJourney.getLineRef().getValue())) {
+                            matchingKeys.add(vehicleJourney);
+                        }
+                    }
+                });
+
+        return siriObjectFactory.createETServiceDelivery(matchingKeys);
+    }
+
     public Siri createServiceDelivery(String requestorId, String datasetId, int maxSize) {
 
         if (requestorId == null) {
