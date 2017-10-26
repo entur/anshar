@@ -95,7 +95,9 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
                     EstimatedVehicleJourney vehicleJourney = timetableDeliveries.get(key);
                     if (vehicleJourney != null) { //Object may have expired
                         if (vehicleJourney.getLineRef() != null &&
-                                lineRef.equals(vehicleJourney.getLineRef().getValue())) {
+                                (vehicleJourney.getLineRef().getValue().toLowerCase().startsWith(lineRef.toLowerCase()) |
+                                vehicleJourney.getLineRef().getValue().toLowerCase().endsWith(lineRef.toLowerCase()))
+                                ) {
                             matchingKeys.add(vehicleJourney);
                         }
                     }
