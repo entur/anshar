@@ -713,7 +713,7 @@ anshar:
       subscriptionId: ${random.uuid}
       requestorRef: Rutebanken_ET_${random.uuid}
       durationOfSubscriptionHours: 168
-      mappingAdapterId: nsr
+      mappingAdapterId: ostfoldet
       filterPresets:
       idMappingPrefixes: OST
       active: true
