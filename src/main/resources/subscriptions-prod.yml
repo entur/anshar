@@ -303,7 +303,7 @@ anshar:
       subscriptionId: ${random.uuid}
       requestorRef: RutebankenDEV_${random.uuid}
       durationOfSubscriptionHours: 168
-      mappingAdapterPresets: brakar
+      mappingAdapterId: brakar
       filterPresets:
       idMappingPrefixes: BRA
       active: true
