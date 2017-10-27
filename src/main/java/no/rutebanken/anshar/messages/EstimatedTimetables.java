@@ -2,7 +2,6 @@ package no.rutebanken.anshar.messages;
 
 import com.hazelcast.core.IMap;
 import no.rutebanken.anshar.routes.siri.SiriObjectFactory;
-import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
 import org.quartz.utils.counter.Counter;
 import org.quartz.utils.counter.CounterImpl;
 import org.slf4j.Logger;
@@ -18,6 +17,8 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
+import static no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer.SEPARATOR;
 
 @Repository
 public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJourney> {
@@ -95,8 +96,9 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
                     EstimatedVehicleJourney vehicleJourney = timetableDeliveries.get(key);
                     if (vehicleJourney != null) { //Object may have expired
                         if (vehicleJourney.getLineRef() != null &&
-                                (vehicleJourney.getLineRef().getValue().toLowerCase().startsWith(lineRef.toLowerCase()) |
-                                vehicleJourney.getLineRef().getValue().toLowerCase().endsWith(lineRef.toLowerCase()))
+                                (vehicleJourney.getLineRef().getValue().toLowerCase().startsWith(lineRef.toLowerCase() + SEPARATOR) |
+                                vehicleJourney.getLineRef().getValue().toLowerCase().endsWith(SEPARATOR + lineRef.toLowerCase())|
+                                vehicleJourney.getLineRef().getValue().equalsIgnoreCase(lineRef))
                                 ) {
                             matchingKeys.add(vehicleJourney);
                         }
@@ -450,8 +452,8 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
     }
 
     private String getOriginalId(String stopPointRef) {
-        if (stopPointRef != null && stopPointRef.indexOf(SiriValueTransformer.SEPARATOR) > 0) {
-            return stopPointRef.substring(0, stopPointRef.indexOf(SiriValueTransformer.SEPARATOR));
+        if (stopPointRef != null && stopPointRef.indexOf(SEPARATOR) > 0) {
+            return stopPointRef.substring(0, stopPointRef.indexOf(SEPARATOR));
         }
         return stopPointRef;
     }
