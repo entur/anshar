@@ -48,7 +48,7 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
                 .setHeader(Exchange.HTTP_METHOD, constant(HttpMethods.POST))
                 .to("log:sent request:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .doTry()
-                    .to(getCamelUrl(urlMap.get(RequestType.SUBSCRIBE)) + getTimeout())
+                    .to(getCamelUrl(urlMap.get(RequestType.SUBSCRIBE), getTimeout()))
                     .to("log:received response:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                     .process(p -> {
 
@@ -80,7 +80,7 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
                 .removeHeaders("CamelHttp*") // Remove any incoming HTTP headers as they interfere with the outgoing definition
                 .setHeader(Exchange.CONTENT_TYPE, constant(subscriptionSetup.getContentType())) // Necessary when talking to Microsoft web services
                 .setHeader(Exchange.HTTP_METHOD, constant(HttpMethods.POST))
-                .to(getCamelUrl(urlMap.get(RequestType.CHECK_STATUS)) + getTimeout())
+                .to(getCamelUrl(urlMap.get(RequestType.CHECK_STATUS), getTimeout()))
                 .process(p -> {
 
                     String responseCode = p.getIn().getHeader("CamelHttpResponseCode", String.class);
@@ -108,7 +108,7 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
                 .removeHeaders("CamelHttp*") // Remove any incoming HTTP headers as they interfere with the outgoing definition
                 .setHeader(Exchange.CONTENT_TYPE, constant(subscriptionSetup.getContentType())) // Necessary when talking to Microsoft web services
                 .setHeader(Exchange.HTTP_METHOD, constant(HttpMethods.POST))
-                .to(getCamelUrl(urlMap.get(RequestType.DELETE_SUBSCRIPTION)) + getTimeout())
+                .to(getCamelUrl(urlMap.get(RequestType.DELETE_SUBSCRIPTION), getTimeout()))
                 .to("log:received response:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .process(p -> {
                     InputStream body = p.getIn().getBody(InputStream.class);
