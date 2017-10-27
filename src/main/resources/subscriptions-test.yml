@@ -452,7 +452,7 @@ anshar:
       contentType: text/xml;charset=UTF-8
       subscriptionId: ${random.uuid}
       requestorRef: ENTUR-test
-      durationOfSubscriptionHours: 24
+      durationOfSubscriptionHours: 168
       mappingAdapterId: nsbsx
       filterPresets:
       idMappingPrefixes: NSB
@@ -477,7 +477,7 @@ anshar:
       contentType: text/xml;charset=UTF-8
       subscriptionId: ${random.uuid}
       requestorRef: ENTUR-test
-      durationOfSubscriptionHours: 24
+      durationOfSubscriptionHours: 168
       mappingAdapterId: nsbsx
       filterPresets:
       idMappingPrefixes: NSB
@@ -712,7 +712,7 @@ anshar:
       contentType: text/xml;charset=UTF-8
       subscriptionId: vm-replication
       requestorRef: vm-requestorref
-      durationOfSubscriptionHours: 24
+      durationOfSubscriptionHours: 1680
       mappingAdapterId: ruter
       filterPresets:
       idMappingPrefixes: RUT,OPP,BRA,OST
@@ -738,7 +738,7 @@ anshar:
       contentType: text/xml;charset=UTF-8
       subscriptionId: et-replication
       requestorRef: et-requestorref
-      durationOfSubscriptionHours: 24
+      durationOfSubscriptionHours: 1680
       mappingAdapterId: ruter
       filterPresets:
       idMappingPrefixes: RUT,OPP,BRA,OST
@@ -764,7 +764,7 @@ anshar:
       contentType: text/xml;charset=UTF-8
       subscriptionId: sx-replication
       requestorRef: sx-requestorref
-      durationOfSubscriptionHours: 1
+      durationOfSubscriptionHours: 1680
       mappingAdapterId: ruter
       filterPresets:
       idMappingPrefixes: RUT
