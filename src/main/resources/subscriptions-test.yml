@@ -242,7 +242,8 @@ anshar:
       soapenvNamespace:
       incrementalUpdates:
       urlMap:
-        SUBSCRIBE: brakar.tmix.se/siri/1.4/sx
+#        SUBSCRIBE: brakar.tmix.se/siri/1.4/sx?channels=PublicJourneyPlanner&singleDocMode=true
+        SUBSCRIBE: brakar.tmix.se/siri/1.4/sx?channels=PublicJourneyPlanner&multiDocMode=false
         DELETE_SUBSCRIPTION: brakar.tmix.se/siri/1.4/sx
       version: 1.4
       contentType: text/xml;charset=UTF-8
