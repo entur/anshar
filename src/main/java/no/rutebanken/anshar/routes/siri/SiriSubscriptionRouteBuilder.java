@@ -48,10 +48,12 @@ public abstract class SiriSubscriptionRouteBuilder extends BaseRouteBuilder {
     }
 
     void initTriggerRoutes() {
-        if (!subscriptionManager.isNewSubscription(subscriptionSetup.getSubscriptionId())) {
-            logger.info("Subscription is NOT new - flagging as already started if active {}", subscriptionSetup);
-            hasBeenStarted = subscriptionManager.isActiveSubscription(subscriptionSetup.getSubscriptionId());
-        }
+//        if (!subscriptionManager.isNewSubscription(subscriptionSetup.getSubscriptionId())) {
+//            logger.info("Subscription is NOT new - flagging as already started if active {}", subscriptionSetup);
+//            hasBeenStarted = subscriptionManager.isActiveSubscription(subscriptionSetup.getSubscriptionId());
+//        }
+        // Assuming ALL subscriptions are hunky-dory on start-up
+        hasBeenStarted = true;
 
         singletonFrom("quartz2://anshar/monitor_" + subscriptionSetup.getSubscriptionId() + "?fireNow=true&trigger.repeatInterval=" + 15000,
                 "monitor.subscription." + subscriptionSetup.getVendor())

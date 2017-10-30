@@ -118,8 +118,8 @@ anshar:
         DELETE_SUBSCRIPTION: 83.145.60.18/siri/1.4/sx
       version: 1.4
       contentType: text/xml;charset=UTF-8
-      subscriptionId: ${random.uuid}
-      requestorRef: RutebankenDEV_${random.uuid}
+      subscriptionId: a205f6d8-3f49-472e-bc58-baeea8dcc0fa
+      requestorRef: ENTUR_DEV_f1ab987e-f706-452c-a3d7-696221727610
       durationOfSubscriptionHours: 168
       mappingAdapterId: akt
       filterPresets:
@@ -144,8 +144,8 @@ anshar:
         DELETE_SUBSCRIPTION: 83.145.60.18/siri/1.4/et
       version: 1.4
       contentType: text/xml;charset=UTF-8
-      subscriptionId: ${random.uuid}
-      requestorRef: RutebankenDEV_${random.uuid}
+      subscriptionId: 4ac2c072-a403-4c30-b67c-554eafbf8657
+      requestorRef: ENTUR_DEV_f8ab90e5-e6cf-4376-ac06-b4442dee19a3
       durationOfSubscriptionHours: 168
       mappingAdapterId: akt
       filterPresets:
@@ -170,8 +170,8 @@ anshar:
         DELETE_SUBSCRIPTION: 109.70.83.57/siri/1.4/et
       version: 1.4
       contentType: text/xml;charset=UTF-8
-      subscriptionId: RutebankenDEV_${random.uuid}
-      requestorRef: RutebankenDEV_${random.uuid}
+      subscriptionId: 77b94510-7f01-498f-b274-1407d90ec4c6
+      requestorRef: ENTUR_DEV_8a23ab6e-024d-4074-a9c6-a7cf966511f7
       durationOfSubscriptionHours: 168
       mappingAdapterId: nsr
       filterPresets:
@@ -195,8 +195,8 @@ anshar:
         DELETE_SUBSCRIPTION: 109.70.83.57/siri/1.4/sx
       version: 1.4
       contentType: text/xml;charset=UTF-8
-      subscriptionId: RutebankenDEV_${random.uuid}
-      requestorRef: RutebankenDEV_${random.uuid}
+      subscriptionId: ENTUR_DEV_9885889a-ab1a-46da-b47f-8de0e2a4f544
+      requestorRef: ENTUR_DEV_1f86344a-fbd3-4672-a39f-5f397ab5c994
       durationOfSubscriptionHours: 168
       mappingAdapterId: nsr
       filterPresets:
@@ -221,8 +221,8 @@ anshar:
         DELETE_SUBSCRIPTION: brakar.tmix.se/siri/1.4/et
       version: 1.4
       contentType: text/xml;charset=UTF-8
-      subscriptionId: ${random.uuid}
-      requestorRef: RutebankenDEV_${random.uuid}
+      subscriptionId: cd529a91-7bb2-4f45-b522-3b0e3d5ad2d1
+      requestorRef: ENTUR_DEV_89b6b808-1488-4237-a4b4-feded04a5601
       durationOfSubscriptionHours: 168
       mappingAdapterId: brakar
       filterPresets:
@@ -247,8 +247,8 @@ anshar:
         DELETE_SUBSCRIPTION: brakar.tmix.se/siri/1.4/sx
       version: 1.4
       contentType: text/xml;charset=UTF-8
-      subscriptionId: ${random.uuid}
-      requestorRef: RutebankenDEV_${random.uuid}
+      subscriptionId: 7dc5e32e-2fff-4089-9674-7abd79753c39
+      requestorRef: ENTUR_DEV_7932ae3e-d524-464f-b041-4175405eafed
       durationOfSubscriptionHours: 168
       mappingAdapterId: brakar
       filterPresets:
@@ -274,7 +274,7 @@ anshar:
         DELETE_SUBSCRIPTION: 62.97.192.2:8080/SIRIProducer/SiriProducerHttp
       version: 2.0
       contentType: text/xml;charset=UTF-8
-      subscriptionId: ${random.uuid}
+      subscriptionId: 92313221-0dee-4c0e-a796-d77bcafb283c
       requestorRef: SKYSS
       durationOfSubscriptionHours: 168
       mappingAdapterId: nsr
@@ -399,8 +399,8 @@ anshar:
         GET_ESTIMATED_TIMETABLE: https4://siri.opm.jbv.no/jbv/et
       version: 2.0
       contentType: text/xml;charset=UTF-8
-      subscriptionId: ${random.uuid}
-      requestorRef: RutebankenDEV_${random.uuid}
+      subscriptionId: 5d6bec17-acf3-4cde-9423-63afc6632308
+      requestorRef: ENTUR_DEV_32d706b6-fa7a-442d-8846-fbe1be487d2e
       durationOfSubscriptionHours: 168
       mappingAdapterId: banenoret
       filterPresets:
@@ -425,8 +425,8 @@ anshar:
         GET_SITUATION_EXCHANGE: https4://siri.opm.jbv.no/jbv/sx
       version: 2.0
       contentType: text/xml;charset=UTF-8
-      subscriptionId: ${random.uuid}
-      requestorRef: RutebankenDEV_${random.uuid}
+      subscriptionId: 09bd76d7-1bde-4402-ae04-e427036c1ce8
+      requestorRef: ENTUR_DEV_8d2a7cf6-b442-4c5c-a29c-86cddc50f97f
       durationOfSubscriptionHours: 2
       mappingAdapterId: banenorsx
       filterPresets:
@@ -450,7 +450,7 @@ anshar:
         DELETE_SUBSCRIPTION: https4://status-siri-test.nsb.no/subscriptions/siri2-nrp
       version: 2.0
       contentType: text/xml;charset=UTF-8
-      subscriptionId: ${random.uuid}
+      subscriptionId: a21dadcb-78d9-4d70-8f4f-dbf91662ea4f
       requestorRef: ENTUR-test
       durationOfSubscriptionHours: 168
       mappingAdapterId: nsbsx
@@ -475,7 +475,7 @@ anshar:
         DELETE_SUBSCRIPTION: https4://status-siri.nsb.no/subscriptions/siri2-nrp
       version: 2.0
       contentType: text/xml;charset=UTF-8
-      subscriptionId: ${random.uuid}
+      subscriptionId: b19aa241-fd7b-47ab-a54a-1a18d1d3a657
       requestorRef: ENTUR-test
       durationOfSubscriptionHours: 168
       mappingAdapterId: nsbsx
@@ -501,8 +501,8 @@ anshar:
         DELETE_SUBSCRIPTION: troms.tmix.se/siri/1.4/et
       version: 1.4
       contentType: text/xml;charset=UTF-8
-      subscriptionId: ${random.uuid}
-      requestorRef: RutebankenDEV_${random.uuid}
+      subscriptionId: 917161ce-5070-4104-9232-516561c2aabc
+      requestorRef: ENTUR_DEV_a542d45b-e4d7-410b-8f39-88c701beda23
       durationOfSubscriptionHours: 168
       mappingAdapterId: nsr
       filterPresets:
@@ -526,8 +526,8 @@ anshar:
         DELETE_SUBSCRIPTION: troms.tmix.se/siri/1.4/sx
       version: 1.4
       contentType: text/xml;charset=UTF-8
-      subscriptionId: ${random.uuid}
-      requestorRef: RutebankenDEV_${random.uuid}
+      subscriptionId: ce7bd407-31e7-40af-9391-93ef013ae803
+      requestorRef: ENTUR_DEV_4b6e7ad7-12fb-4e20-b1a3-cdce8a577279
       durationOfSubscriptionHours: 168
       mappingAdapterId: nsr
       filterPresets:
@@ -553,8 +553,8 @@ anshar:
         DELETE_SUBSCRIPTION: siri.mrfylke.pubtrans.com:8001/SubscriptionManager
       version: 2.0
       contentType: application/soap+xml;charset=UTF-8
-      subscriptionId: ${random.uuid}
-      requestorRef: RutebankenDEV_ET_${random.uuid}
+      subscriptionId: c3e405e5-4e7d-468f-9280-bb62649e50be
+      requestorRef: ENTUR_DEV_ET_bb13b4cf-acc2-43bd-b738-f70530ded312
       durationOfSubscriptionHours: 168
       mappingAdapterId: nsr
       filterPresets:
@@ -579,8 +579,8 @@ anshar:
         DELETE_SUBSCRIPTION: siri.mrfylke.pubtrans.com:8001/SubscriptionManager
       version: 2.0
       contentType: application/soap+xml;charset=UTF-8
-      subscriptionId: ${random.uuid}
-      requestorRef: RutebankenDEV_VM_${random.uuid}
+      subscriptionId: b0f418c8-1bab-4c23-a56c-20eea2d20d4c
+      requestorRef: ENTUR_DEV_VM_b1abe164-222f-4ffe-893c-f33327a42f1c
       durationOfSubscriptionHours: 168
       mappingAdapterId: nsr
       filterPresets:
@@ -605,8 +605,8 @@ anshar:
         DELETE_SUBSCRIPTION: siri.mrfylke.pubtrans.com:8001/SubscriptionManager
       version: 2.0
       contentType: application/soap+xml;charset=UTF-8
-      subscriptionId: ${random.uuid}
-      requestorRef: RutebankenDEV_SX_${random.uuid}
+      subscriptionId: 3c8d4c6b-2784-4392-a237-4ff30a199ed6
+      requestorRef: ENTUR_DEV_SX_7ec481c8-df3a-430b-9cb3-f3fa3ed604b0
       durationOfSubscriptionHours: 168
       mappingAdapterId: nsr
       filterPresets:
@@ -632,8 +632,8 @@ anshar:
         CHECK_STATUS: 92.62.36.185:8000/SIRI
       version: 2.0
       contentType: text/xml;charset=UTF-8
-      subscriptionId: ${random.uuid}
-      requestorRef: Rutebanken_ET_${random.uuid}
+      subscriptionId: 0018b198-eaf2-4dcc-8917-234ec78ef5fc
+      requestorRef: ENTUR_DEV_ET_923a1fca-97da-405a-afbe-1d6966f3c848
       durationOfSubscriptionHours: 168
       mappingAdapterId: ostfoldet
       filterPresets:
@@ -659,8 +659,8 @@ anshar:
         CHECK_STATUS: 92.62.36.185:8000/SIRI
       version: 2.0
       contentType: text/xml;charset=UTF-8
-      subscriptionId: ${random.uuid}
-      requestorRef: Rutebanken_VM_${random.uuid}
+      subscriptionId: 597fa232-88e9-44d5-a457-a94c4ac18ccd
+      requestorRef: ENTUR_DEV_VM_ce9bddc0-48a4-49bb-ad63-f05ad7e6d1a8
       durationOfSubscriptionHours: 168
       mappingAdapterId: nsr
       filterPresets:
@@ -685,8 +685,8 @@ anshar:
         CHECK_STATUS: 92.62.36.185:8000/SIRI
       version: 2.0
       contentType: text/xml;charset=UTF-8
-      subscriptionId: ${random.uuid}
-      requestorRef: Rutebanken_SX_${random.uuid}
+      subscriptionId: f791f0a2-6d2b-499e-ac49-cf2f70156bdb
+      requestorRef: ENTUR_DEV_SX_a9194bee-4e8f-4a18-a45b-fc20b88bea8f
       durationOfSubscriptionHours: 168
       mappingAdapterId: nsr
       filterPresets:
