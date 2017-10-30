@@ -87,7 +87,7 @@ public class SiriVmMqttHandler {
         try {
             mqttClient = new MqttClient(host, clientId, null);
 
-            logger.info("Initializing MQTT-client with clientId {}", clientId);
+            logger.info("Initializing MQTT-client with clientId {}, enabled: {}", clientId, mqttEnabled);
         } catch (MqttException e) {
             throw new ExceptionInInitializerError(e);
         }
