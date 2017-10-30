@@ -53,7 +53,13 @@ public abstract class SiriSubscriptionRouteBuilder extends BaseRouteBuilder {
 //            hasBeenStarted = subscriptionManager.isActiveSubscription(subscriptionSetup.getSubscriptionId());
 //        }
         // Assuming ALL subscriptions are hunky-dory on start-up
-        hasBeenStarted = subscriptionManager.isActiveSubscription(subscriptionSetup.getSubscriptionId());
+        if (subscriptionManager.get(subscriptionSetup.getSubscriptionId()) != null) {
+            // Subscription is already initialized on another pod - keep existing status
+            hasBeenStarted = subscriptionManager.isActiveSubscription(subscriptionSetup.getSubscriptionId());
+        } else {
+            // Unknown subscription or first pod to start
+            hasBeenStarted = subscriptionSetup.isActive();
+        }
 
         singletonFrom("quartz2://anshar/monitor_" + subscriptionSetup.getSubscriptionId() + "?fireNow=true&trigger.repeatInterval=" + 15000,
                 "monitor.subscription." + subscriptionSetup.getVendor())
