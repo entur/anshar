@@ -63,7 +63,7 @@ public abstract class SiriSubscriptionRouteBuilder extends BaseRouteBuilder {
                 .when(p -> shouldBeCancelled(p.getFromRouteId()))
                     .log("Triggering cancel subscription: " + subscriptionSetup)
                     .process(p -> hasBeenStarted = false)
-                    .to("direct:" + subscriptionSetup.getCancelSubscriptionRouteName())// Start subscription
+                    .to("direct:" + subscriptionSetup.getCancelSubscriptionRouteName())// Cancel subscription
                 .when(p -> shouldCheckStatus(p.getFromRouteId()))
                     .log("Check status: " + subscriptionSetup)
                     .process(p -> lastCheckStatus = Instant.now())
