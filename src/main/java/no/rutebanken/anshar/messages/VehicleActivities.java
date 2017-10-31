@@ -97,7 +97,7 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
         if (requestorId != null) {
 
             Set<String> idSet = changesMap.get(requestorId);
-            lastUpdateRequested.put(requestorId, Instant.now(), trackingPeriodMinutes, TimeUnit.MINUTES);
+            lastUpdateRequested.set(requestorId, Instant.now(), trackingPeriodMinutes, TimeUnit.MINUTES);
             if (idSet != null) {
                 Set<String> datasetFilteredIdSet = new HashSet<>();
 
@@ -116,14 +116,14 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
                     existingSet = new HashSet<>();
                 }
                 existingSet.removeAll(idSet);
-                changesMap.put(requestorId, existingSet);
+                changesMap.set(requestorId, existingSet);
 
                 logger.info("Returning {} changes to requestorRef {}", changes.size(), requestorId);
                 return changes;
             } else {
 
                 logger.info("Returning all to requestorRef {}", requestorId);
-                changesMap.put(requestorId, new HashSet<>());
+                changesMap.set(requestorId, new HashSet<>());
             }
         }
 
@@ -144,7 +144,7 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
             vehicleActivities.keySet().forEach(key -> idSet.add(key));
         }
 
-        lastUpdateRequested.put(requestorId, Instant.now(), trackingPeriodMinutes, TimeUnit.MINUTES);
+        lastUpdateRequested.set(requestorId, Instant.now(), trackingPeriodMinutes, TimeUnit.MINUTES);
 
         //Filter by datasetId
         Set<String> collectedIds = idSet.stream()
@@ -161,7 +161,7 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
         Boolean isMoreData = !idSet.isEmpty();
 
         //Update change-tracker
-        changesMap.put(requestorId, idSet);
+        changesMap.set(requestorId, idSet);
 
         Collection<VehicleActivityStructure> values = vehicleActivities.getAll(collectedIds).values();
         Siri siri = siriObjectFactory.createVMServiceDelivery(values);
@@ -232,7 +232,7 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
             if (lastUpdateRequested.get(requestor) != null) {
                 Set<String> tmpChanges = changesMap.get(requestor);
                 tmpChanges.addAll(changes);
-                changesMap.put(requestor, tmpChanges);
+                changesMap.set(requestor, tmpChanges);
             } else {
                 changesMap.remove(requestor);
             }

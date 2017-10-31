@@ -65,7 +65,7 @@ public class Situations implements SiriRepository<PtSituationElement> {
             situations.keySet().forEach(key -> idSet.add(key));
         }
 
-        lastUpdateRequested.put(requestorId, Instant.now(), trackingPeriodMinutes, TimeUnit.MINUTES);
+        lastUpdateRequested.set(requestorId, Instant.now(), trackingPeriodMinutes, TimeUnit.MINUTES);
 
         //Filter by datasetId
         Set<String> collectedIds = idSet.stream()
@@ -82,7 +82,7 @@ public class Situations implements SiriRepository<PtSituationElement> {
         Boolean isMoreData = !idSet.isEmpty();
 
         //Update change-tracker
-        changesMap.put(requestorId, idSet);
+        changesMap.set(requestorId, idSet);
 
         Collection<PtSituationElement> values = situations.getAll(collectedIds).values();
         Siri siri = siriObjectFactory.createSXServiceDelivery(values);
@@ -123,7 +123,7 @@ public class Situations implements SiriRepository<PtSituationElement> {
         if (requestorId != null) {
 
             Set<String> idSet = changesMap.get(requestorId);
-            lastUpdateRequested.put(requestorId, Instant.now(), trackingPeriodMinutes, TimeUnit.MINUTES);
+            lastUpdateRequested.set(requestorId, Instant.now(), trackingPeriodMinutes, TimeUnit.MINUTES);
             if (idSet != null) {
                 Set<String> datasetFilteredIdSet = new HashSet<>();
 
@@ -142,7 +142,7 @@ public class Situations implements SiriRepository<PtSituationElement> {
                     existingSet = new HashSet<>();
                 }
                 existingSet.removeAll(idSet);
-                changesMap.put(requestorId, existingSet);
+                changesMap.set(requestorId, existingSet);
 
 
                 logger.info("Returning {} changes to requestorRef {}", changes.size(), requestorId);
@@ -150,7 +150,7 @@ public class Situations implements SiriRepository<PtSituationElement> {
             } else {
                 logger.info("Returning all to requestorRef {}", requestorId);
             }
-            changesMap.put(requestorId, new HashSet<>());
+            changesMap.set(requestorId, new HashSet<>());
         }
 
         return getAll(datasetId);
@@ -228,7 +228,7 @@ public class Situations implements SiriRepository<PtSituationElement> {
             if (lastUpdateRequested.get(requestor) != null) {
                 Set<String> tmpChanges = changesMap.get(requestor);
                 tmpChanges.addAll(changes);
-                changesMap.put(requestor, tmpChanges);
+                changesMap.set(requestor, tmpChanges);
             } else {
                 changesMap.remove(requestor);
             }

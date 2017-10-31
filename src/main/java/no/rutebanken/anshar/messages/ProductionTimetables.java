@@ -60,7 +60,7 @@ public class ProductionTimetables implements SiriRepository<ProductionTimetableD
         if (requestorId != null) {
 
             Set<String> idSet = changesMap.get(requestorId);
-            lastUpdateRequested.put(requestorId, Instant.now(), trackingPeriodMinutes, TimeUnit.MINUTES);
+            lastUpdateRequested.set(requestorId, Instant.now(), trackingPeriodMinutes, TimeUnit.MINUTES);
             if (idSet != null) {
                 Set<String> datasetFilteredIdSet = new HashSet<>();
 
@@ -79,7 +79,7 @@ public class ProductionTimetables implements SiriRepository<ProductionTimetableD
                     existingSet = new HashSet<>();
                 }
                 existingSet.removeAll(idSet);
-                changesMap.put(requestorId, existingSet);
+                changesMap.set(requestorId, existingSet);
 
 
                 logger.info("Returning {} changes to requestorRef {}", changes.size(), requestorId);
@@ -87,7 +87,7 @@ public class ProductionTimetables implements SiriRepository<ProductionTimetableD
             } else {
 
                 logger.info("Returning all to requestorRef {}", requestorId);
-                changesMap.put(requestorId, new HashSet<>());
+                changesMap.set(requestorId, new HashSet<>());
             }
         }
 
@@ -147,7 +147,7 @@ public class ProductionTimetables implements SiriRepository<ProductionTimetableD
             if (lastUpdateRequested.get(requestor) != null) {
                 Set<String> tmpChanges = changesMap.get(requestor);
                 tmpChanges.addAll(changes);
-                changesMap.put(requestor, tmpChanges);
+                changesMap.set(requestor, tmpChanges);
             } else {
                 changesMap.remove(requestor);
             }

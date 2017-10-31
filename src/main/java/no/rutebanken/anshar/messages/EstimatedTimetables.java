@@ -124,7 +124,7 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
                     .forEach(key -> idSet.add(key));
         }
 
-        lastUpdateRequested.put(requestorId, Instant.now(), trackingPeriodMinutes, TimeUnit.MINUTES);
+        lastUpdateRequested.set(requestorId, Instant.now(), trackingPeriodMinutes, TimeUnit.MINUTES);
 
         //Filter by datasetId
         Set<String> collectedIds = idSet.stream()
@@ -141,7 +141,7 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
         Boolean isMoreData = !idSet.isEmpty();
 
         //Update change-tracker
-        changesMap.put(requestorId, idSet);
+        changesMap.set(requestorId, idSet);
 
         Collection<EstimatedVehicleJourney> values = timetableDeliveries.getAll(collectedIds).values();
         Siri siri = siriObjectFactory.createETServiceDelivery(values);
@@ -157,7 +157,7 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
         if (requestorId != null) {
 
             Set<String> idSet = changesMap.get(requestorId);
-            lastUpdateRequested.put(requestorId, Instant.now(), trackingPeriodMinutes, TimeUnit.MINUTES);
+            lastUpdateRequested.set(requestorId, Instant.now(), trackingPeriodMinutes, TimeUnit.MINUTES);
 
             if (idSet != null) {
                 Set<String> datasetFilteredIdSet = new HashSet<>();
@@ -177,7 +177,7 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
                     existingSet = new HashSet<>();
                 }
                 existingSet.removeAll(idSet);
-                changesMap.put(requestorId, existingSet);
+                changesMap.set(requestorId, existingSet);
 
 
                 logger.info("Returning {} changes to requestorRef {}", changes.size(), requestorId);
@@ -185,7 +185,7 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
             } else {
 
                 logger.info("Returning all to requestorRef {}", requestorId);
-                changesMap.put(requestorId, new HashSet<>());
+                changesMap.set(requestorId, new HashSet<>());
             }
         }
 
@@ -373,7 +373,7 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
             if (lastUpdateRequested.get(requestor) != null) {
                 Set<String> tmpChanges = changesMap.get(requestor);
                 tmpChanges.addAll(changes);
-                changesMap.put(requestor, tmpChanges);
+                changesMap.set(requestor, tmpChanges);
             } else {
                 changesMap.remove(requestor);
             }
