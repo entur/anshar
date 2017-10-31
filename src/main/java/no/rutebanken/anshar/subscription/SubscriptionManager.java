@@ -75,6 +75,22 @@ public class SubscriptionManager {
     @Autowired
     private VehicleActivities vm;
 
+    @Autowired
+    @Qualifier("getSituationChangesMap")
+    private IMap<String, Set<String>> sxChanges;
+
+    @Autowired
+    @Qualifier("getEstimatedTimetableChangesMap")
+    private IMap<String, Set<String>> etChanges;
+
+    @Autowired
+    @Qualifier("getProductionTimetableChangesMap")
+    private IMap<String, Set<String>> ptChanges;
+
+    @Autowired
+    @Qualifier("getVehicleChangesMap")
+    private IMap<String, Set<String>> vmChanges;
+
     public void addSubscription(String subscriptionId, SubscriptionSetup setup) {
 
         subscriptions.put(subscriptionId, setup);
@@ -273,6 +289,10 @@ public class SubscriptionManager {
         count.put("et", et.getSize());
         count.put("vm", vm.getSize());
         count.put("pt", pt.getSize());
+        count.put("sxChanges", sxChanges.size());
+        count.put("etChanges", etChanges.size());
+        count.put("vmChanges", vmChanges.size());
+        count.put("ptChanges", ptChanges.size());
 
         result.put("elements", count);
 

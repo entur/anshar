@@ -94,22 +94,30 @@
     </table>
     </div>
     <div class="row">
-        <label>Active elements:</label>
+
+        <div class="row">
+            <div class="col-md-2"><label>Active elements:</label></div>
+            <div class="col-md-1"><label>Clients:</label></div>
+        </div>
         <div class="row">
             <div class="col-md-1">SX</div>
             <div class="col-md-1">${body.elements.sx}</div>
+            <div class="col-md-1">${body.elements.sxChanges}</div>
         </div>
         <div class="row">
             <div class="col-md-1">VM</div>
             <div class="col-md-1">${body.elements.vm}</div>
+            <div class="col-md-1">${body.elements.vmChanges}</div>
         </div>
         <div class="row">
             <div class="col-md-1">ET</div>
             <div class="col-md-1">${body.elements.et}</div>
+            <div class="col-md-1">${body.elements.etChanges}</div>
         </div>
         <div class="row">
             <div class="col-md-1">PT</div>
             <div class="col-md-1">${body.elements.pt}</div>
+            <div class="col-md-1">${body.elements.ptChanges}</div>
         </div>
     </div>
 </div>
