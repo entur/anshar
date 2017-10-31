@@ -21,7 +21,6 @@ anshar:
       contentType: text/xml;charset=UTF-8
       subscriptionId: 5e101acc-7c91-4ab5-a2a9-bf6e5f9da40b
       requestorRef: ENTUR
-      requestorRef: ENTUR
       durationOfSubscriptionHours: 168
       mappingAdapterId: kolumbus
       filterPresets:
