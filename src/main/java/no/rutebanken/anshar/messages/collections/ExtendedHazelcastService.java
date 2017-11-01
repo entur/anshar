@@ -226,6 +226,11 @@ public class ExtendedHazelcastService extends HazelCastService {
     }
 
     @Bean
+    public IMap<String, Set<String>> getUnmappedIds() {
+        return hazelcast.getMap("anshar.mapping.unmapped");
+    }
+
+    @Bean
     public IMap<String,BigInteger> getObjectCounterMap() {
         return hazelcast.getMap("anshar.activity.objectcount");
     }

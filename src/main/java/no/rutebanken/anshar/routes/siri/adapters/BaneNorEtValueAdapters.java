@@ -17,7 +17,7 @@ public class BaneNorEtValueAdapters extends MappingAdapter {
     public List<ValueAdapter> getValueAdapters(SubscriptionSetup subscriptionSetup) {
 
         List<ValueAdapter> valueAdapters = new ArrayList<>();
-        valueAdapters.add(new BaneNorIdPlatformPostProcessor());
+        valueAdapters.add(new BaneNorIdPlatformPostProcessor(subscriptionSetup.getDatasetId()));
 
         valueAdapters.add(new OperatorFilterPostProcessor(Arrays.asList("BN")));
 

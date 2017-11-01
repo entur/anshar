@@ -1,28 +1,39 @@
 package no.rutebanken.anshar.routes.siri.transformer.impl;
 
 
+import no.rutebanken.anshar.routes.health.HealthManager;
 import no.rutebanken.anshar.routes.siri.transformer.ApplicationContextHolder;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Set;
 
 public class StopPlaceRegisterMapper extends ValueAdapter {
 
     private Logger logger = LoggerFactory.getLogger(StopPlaceRegisterMapper.class);
 
+    private static HealthManager healthManager;
+
     private List<String> prefixes;
     private String datatype;
 
-    public StopPlaceRegisterMapper(Class clazz, List<String> prefixes) {
-        this(clazz, prefixes, "Quay");
+    private Set<String> unmappedAlreadyAdded;
+
+    private String datasetId;
+
+    public StopPlaceRegisterMapper(String datasetId, Class clazz, List<String> prefixes) {
+        this(datasetId, clazz, prefixes, "Quay");
     }
 
-    public StopPlaceRegisterMapper(Class clazz, List<String> prefixes, String datatype) {
+    public StopPlaceRegisterMapper(String datasetId, Class clazz, List<String> prefixes, String datatype) {
         super(clazz);
         this.prefixes = prefixes;
         this.datatype = datatype;
+        this.datasetId = datasetId;
+        healthManager = ApplicationContextHolder.getContext().getBean(HealthManager.class);
+        unmappedAlreadyAdded = healthManager.getUnmappedIds(datasetId);
     }
 
 
@@ -32,7 +43,7 @@ public class StopPlaceRegisterMapper extends ValueAdapter {
         }
         StopPlaceUpdaterService stopPlaceService = ApplicationContextHolder.getContext().getBean(StopPlaceUpdaterService.class);
 
-        if (stopPlaceService != null){
+        if (stopPlaceService != null) {
             if (prefixes != null && !prefixes.isEmpty()) {
 
                 for (String prefix : prefixes) {
@@ -49,6 +60,10 @@ public class StopPlaceRegisterMapper extends ValueAdapter {
             }
         }
         logger.warn("Unable to find mapped value for id {}", id);
+
+        if (unmappedAlreadyAdded.add(id)) {
+            healthManager.addUnmappedId(datasetId, id);
+        }
         return id;
     }
 

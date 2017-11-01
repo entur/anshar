@@ -21,7 +21,7 @@ public class NsbValueAdapters extends MappingAdapter {
         valueAdapters.add(new LeftPaddingAdapter(StopPointRef.class, 9, '0'));
         valueAdapters.add(new LeftPaddingAdapter(StopPlaceRef.class, 9, '0'));
 
-        valueAdapters.addAll(createNsrIdMappingAdapters(subscriptionSetup.getIdMappingPrefixes()));
+        valueAdapters.addAll(createNsrIdMappingAdapters(subscriptionSetup.getDatasetId(), subscriptionSetup.getIdMappingPrefixes()));
 
         if (subscriptionSetup.getDatasetId() != null && !subscriptionSetup.getDatasetId().isEmpty()) {
             List<ValueAdapter> datasetPrefix = createIdPrefixAdapters(subscriptionSetup.getDatasetId());

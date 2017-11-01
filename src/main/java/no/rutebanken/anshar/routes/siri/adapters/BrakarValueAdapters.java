@@ -20,7 +20,7 @@ public class BrakarValueAdapters extends MappingAdapter {
                 valueAdapters.add(new LeftPaddingAdapter(StopPlaceRef.class, 10, '0'));
                 valueAdapters.add(new LeftPaddingAdapter(StopPointRef.class, 10, '0'));
 
-        valueAdapters.addAll(createNsrIdMappingAdapters(subscriptionSetup.getIdMappingPrefixes()));
+        valueAdapters.addAll(createNsrIdMappingAdapters(subscriptionSetup.getDatasetId(), subscriptionSetup.getIdMappingPrefixes()));
 
         if (subscriptionSetup.getDatasetId() != null && !subscriptionSetup.getDatasetId().isEmpty()) {
             List<ValueAdapter> datasetPrefix = createIdPrefixAdapters(subscriptionSetup.getDatasetId());

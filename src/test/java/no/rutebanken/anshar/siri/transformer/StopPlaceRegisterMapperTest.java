@@ -47,7 +47,7 @@ public class StopPlaceRegisterMapperTest {
 
         List<String> prefixes = new ArrayList<>();
 
-        StopPlaceRegisterMapper mapper = new StopPlaceRegisterMapper(JourneyPlaceRefStructure.class, prefixes);
+        StopPlaceRegisterMapper mapper = new StopPlaceRegisterMapper("TST",JourneyPlaceRefStructure.class, prefixes);
 
         assertEquals("NSR:QUAY:11223344", mapper.apply("1234"));
     }
@@ -61,7 +61,7 @@ public class StopPlaceRegisterMapperTest {
         StopPlaceUpdaterService stopPlaceService = ApplicationContextHolder.getContext().getBean(StopPlaceUpdaterService.class);
         stopPlaceService.addStopPlaceMappings(stopPlaceMap);
 
-        StopPlaceRegisterMapper mapper = new StopPlaceRegisterMapper(JourneyPlaceRefStructure.class, prefixes);
+        StopPlaceRegisterMapper mapper = new StopPlaceRegisterMapper("TST",JourneyPlaceRefStructure.class, prefixes);
 
         assertEquals("NSR:QUAY:11223344", mapper.apply("1234"));
     }
@@ -76,7 +76,7 @@ public class StopPlaceRegisterMapperTest {
         StopPlaceUpdaterService stopPlaceService = ApplicationContextHolder.getContext().getBean(StopPlaceUpdaterService.class);
         stopPlaceService.addStopPlaceMappings(stopPlaceMap);
 
-        StopPlaceRegisterMapper mapper = new StopPlaceRegisterMapper(JourneyPlaceRefStructure.class, prefixes);
+        StopPlaceRegisterMapper mapper = new StopPlaceRegisterMapper("TST",JourneyPlaceRefStructure.class, prefixes);
 
         assertEquals("NSR:QUAY:44444444", mapper.apply("5555"));
     }
@@ -87,7 +87,7 @@ public class StopPlaceRegisterMapperTest {
 
         List<String> prefixes = new ArrayList<>();
 
-        StopPlaceRegisterMapper mapper = new StopPlaceRegisterMapper(JourneyPlaceRefStructure.class, prefixes);
+        StopPlaceRegisterMapper mapper = new StopPlaceRegisterMapper("TST",JourneyPlaceRefStructure.class, prefixes);
 
         assertEquals("NSR:QUAY:11223344", mapper.apply("NSR:QUAY:11223344"));
     }

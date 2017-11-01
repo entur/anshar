@@ -21,7 +21,7 @@ public class OstfoldIdPlatformPostProcessor extends ValueAdapter implements Post
 
     private static Set<String> unmappedStopPlacePlatform = new HashSet<>();
     private static boolean listUpdated;
-    private StopPlaceRegisterMapper stopPlaceRegisterMapper = new StopPlaceRegisterMapper(StopPointRef.class, Arrays.asList("OST"));
+    private StopPlaceRegisterMapper stopPlaceRegisterMapper = new StopPlaceRegisterMapper("OST", StopPointRef.class, Arrays.asList("OST"));
 
 
     public String getNsrId(String stopPointRef, String platform) {

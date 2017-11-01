@@ -17,7 +17,7 @@ public class NsbSxValueAdapters extends MappingAdapter {
     public List<ValueAdapter> getValueAdapters(SubscriptionSetup subscriptionSetup) {
 
         List<ValueAdapter> valueAdapters = new ArrayList<>();
-        valueAdapters.add(new JbvCodeMapper(StopPointRef.class));
+        valueAdapters.add(new JbvCodeMapper(subscriptionSetup.getDatasetId(), StopPointRef.class));
         valueAdapters.add(new ReportTypeFilterPostProcessor("incident"));
 
         return valueAdapters;

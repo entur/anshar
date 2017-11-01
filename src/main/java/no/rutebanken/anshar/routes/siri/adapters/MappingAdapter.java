@@ -19,12 +19,12 @@ public abstract class MappingAdapter {
     public List<ValueAdapter> getOutboundValueAdapters(OutboundIdMappingPolicy mappingPolicy) {
         return new MappingAdapterPresets().getOutboundAdapters(mappingPolicy);
     }
-    public List<ValueAdapter> createNsrIdMappingAdapters(List<String> idMappingPrefixes) {
+    public List<ValueAdapter> createNsrIdMappingAdapters(String datasetId, List<String> idMappingPrefixes) {
         List<ValueAdapter> nsr = new ArrayList<>();
-        nsr.add(new StopPlaceRegisterMapper(StopPlaceRef.class, idMappingPrefixes, "StopPlace"));
-        nsr.add(new StopPlaceRegisterMapper(StopPointRef.class, idMappingPrefixes));
-        nsr.add(new StopPlaceRegisterMapper(JourneyPlaceRefStructure.class, idMappingPrefixes));
-        nsr.add(new StopPlaceRegisterMapper(DestinationRef.class, idMappingPrefixes));
+        nsr.add(new StopPlaceRegisterMapper(datasetId, StopPlaceRef.class, idMappingPrefixes, "StopPlace"));
+        nsr.add(new StopPlaceRegisterMapper(datasetId, StopPointRef.class, idMappingPrefixes));
+        nsr.add(new StopPlaceRegisterMapper(datasetId, JourneyPlaceRefStructure.class, idMappingPrefixes));
+        nsr.add(new StopPlaceRegisterMapper(datasetId, DestinationRef.class, idMappingPrefixes));
         return nsr;
     }
 

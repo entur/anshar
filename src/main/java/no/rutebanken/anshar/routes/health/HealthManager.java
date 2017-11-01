@@ -3,6 +3,8 @@ package no.rutebanken.anshar.routes.health;
 import com.hazelcast.core.HazelcastInstanceNotActiveException;
 import com.hazelcast.core.IMap;
 import no.rutebanken.anshar.messages.collections.HealthCheckKey;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +15,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.HashSet;
+import java.util.Set;
 
 @Service
 @Configuration
@@ -24,6 +28,9 @@ public class HealthManager {
     @Qualifier("getHealthCheckMap")
     private IMap<Enum<HealthCheckKey>, Instant> healthCheckMap;
 
+    @Autowired
+    @Qualifier("getUnmappedIds")
+    private IMap<String, Set<String>> unmappedIds;
 
     @Value("${anshar.admin.health.allowed.inactivity.seconds:999}")
     private long allowedInactivityTime;
@@ -91,5 +98,28 @@ public class HealthManager {
             }
         }
         return true;
+    }
+
+    public Set<String> getUnmappedIds(String datasetId) {
+        return unmappedIds.getOrDefault(datasetId, new HashSet<>());
+    }
+
+    public JSONObject getUnmappedIdsAsJson(String datasetId) {
+        JSONObject result = new JSONObject();
+
+        Set<String> dataSetUnmapped = getUnmappedIds(datasetId);
+        result.put("count", dataSetUnmapped.size());
+
+        JSONArray stats = new JSONArray();
+        stats.addAll(dataSetUnmapped);
+
+        result.put("unmapped", stats);
+        return result;
+    }
+
+    public void addUnmappedId(String datasetId, String id) {
+        Set<String> ids = getUnmappedIds(datasetId);
+        ids.add(id);
+        unmappedIds.set(datasetId, ids);
     }
 }

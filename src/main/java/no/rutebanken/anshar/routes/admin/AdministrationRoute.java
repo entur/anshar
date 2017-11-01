@@ -1,6 +1,7 @@
 package no.rutebanken.anshar.routes.admin;
 
 import no.rutebanken.anshar.messages.collections.ExtendedHazelcastService;
+import no.rutebanken.anshar.routes.health.HealthManager;
 import no.rutebanken.anshar.routes.outbound.ServerSubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import org.apache.camel.Exchange;
@@ -30,6 +31,9 @@ public class AdministrationRoute extends RouteBuilder {
 
     @Autowired
     private ServerSubscriptionManager serverSubscriptionManager;
+
+    @Autowired
+    private HealthManager healthManager;
 
     @Override
     public void configure() throws Exception {
@@ -90,6 +94,22 @@ public class AdministrationRoute extends RouteBuilder {
                     p.getOut().setBody(extendedHazelcastService.listNodes((includeStats != null && Boolean.valueOf(includeStats))));
                 })
                 .routeId("admin.clusterstats")
+        ;
+
+
+
+        //Return subscription status
+        from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/unmapped")
+                .process(p -> {
+                    HttpServletRequest request = p.getIn().getBody(HttpServletRequest.class);
+                    String datasetId = request.getParameter("datasetId");
+
+                    if (datasetId != null) {
+                        p.getOut().setHeader(Exchange.CONTENT_TYPE, "application/json");
+                        p.getOut().setBody(healthManager.getUnmappedIdsAsJson(datasetId));
+                    }
+                })
+                .routeId("admin.unmapped")
         ;
 
     }

@@ -1,24 +1,27 @@
 package no.rutebanken.anshar.routes.siri.processor;
 
+import no.rutebanken.anshar.routes.health.HealthManager;
 import no.rutebanken.anshar.routes.siri.transformer.ApplicationContextHolder;
 import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import uk.org.siri.siri20.*;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 public class BaneNorIdPlatformPostProcessor extends ValueAdapter implements PostProcessor {
 
-    private Logger logger = LoggerFactory.getLogger(BaneNorIdPlatformPostProcessor.class);
-
     private static BaneNorIdPlatformUpdaterService stopPlaceService;
+    private static HealthManager healthManager;
 
-    private static Set<String> unmappedJbvCodePlatform = new HashSet<>();
-    private static boolean listUpdated;
+    private Set<String> unmappedAlreadyAdded;
+    private String datasetId;
+
+    public BaneNorIdPlatformPostProcessor(String datasetId) {
+        this.datasetId = datasetId;
+        healthManager = ApplicationContextHolder.getContext().getBean(HealthManager.class);
+        unmappedAlreadyAdded = healthManager.getUnmappedIds(datasetId);
+    }
 
     public String getNsrId(String jbvCode, String platform) {
 
@@ -26,24 +29,21 @@ public class BaneNorIdPlatformPostProcessor extends ValueAdapter implements Post
             stopPlaceService = ApplicationContextHolder.getContext().getBean(BaneNorIdPlatformUpdaterService.class);
         }
 
-        String nsrId = stopPlaceService.get(jbvCode + ":" + platform);
+        String id = jbvCode + ":" + platform;
+        String nsrId = stopPlaceService.get(id);
         if (nsrId == null) {
-            listUpdated = listUpdated | unmappedJbvCodePlatform.add(jbvCode + ":" + platform);
+            if (unmappedAlreadyAdded.add(id)) {
+                healthManager.addUnmappedId(datasetId, id);
+            }
         }
         return nsrId;
     }
 
     @Override
     public void process(Siri siri) {
-        listUpdated = false;
         if (siri != null && siri.getServiceDelivery() != null) {
             processEtDeliveries(siri.getServiceDelivery().getEstimatedTimetableDeliveries());
         }
-        if (listUpdated) {
-            logger.warn("Unable to find mapped value for jbvCode/platforms: {}", unmappedJbvCodePlatform);
-            listUpdated = false;
-        }
-
     }
 
     private void processEtDeliveries(List<EstimatedTimetableDeliveryStructure> estimatedTimetableDeliveries) {

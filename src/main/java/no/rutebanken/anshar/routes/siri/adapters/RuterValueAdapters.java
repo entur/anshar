@@ -27,7 +27,7 @@ public class RuterValueAdapters extends MappingAdapter {
                 valueAdapters.add(new RuterSubstringAdapter(DestinationRef.class, ':', '0', 2));
                 valueAdapters.add(new RuterDatedVehicleRefPostProcessor());
 
-        valueAdapters.addAll(createNsrIdMappingAdapters(subscriptionSetup.getIdMappingPrefixes()));
+        valueAdapters.addAll(createNsrIdMappingAdapters(subscriptionSetup.getDatasetId(), subscriptionSetup.getIdMappingPrefixes()));
 
         if (subscriptionSetup.getDatasetId() != null && !subscriptionSetup.getDatasetId().isEmpty()) {
             List<ValueAdapter> datasetPrefix = createIdPrefixAdapters(subscriptionSetup.getDatasetId());
