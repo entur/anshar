@@ -113,7 +113,7 @@ public class HealthManager {
         JSONArray stats = new JSONArray();
         stats.addAll(dataSetUnmapped);
 
-        result.put("unmapped", stats);
+        result.put("stopIds", stats);
         return result;
     }
 
