@@ -134,7 +134,7 @@ anshar:
       subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 60
       changeBeforeUpdatesSeconds: 1
-      previewIntervalSeconds: 86400
+      previewIntervalSeconds: 10800
       operatorNamespace: http://www.siri.org.uk/siri
       addressFieldName:
       soapenvNamespace:
@@ -160,7 +160,7 @@ anshar:
       subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 180
       changeBeforeUpdatesSeconds: 20
-      previewIntervalSeconds: 86400
+      previewIntervalSeconds: 10800
       operatorNamespace: http://www.siri.org.uk/siri
       addressFieldName:
       soapenvNamespace:
@@ -211,7 +211,7 @@ anshar:
       subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 60
       changeBeforeUpdatesSeconds: 1
-      previewIntervalSeconds: 86400
+      previewIntervalSeconds: 10800
       operatorNamespace: http://www.siri.org.uk/siri
       addressFieldName:
       soapenvNamespace:
@@ -263,7 +263,7 @@ anshar:
       subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 180
       changeBeforeUpdatesSeconds: 1
-      previewIntervalSeconds: 86400
+      previewIntervalSeconds: 10800
       operatorNamespace: http://www.siri.org.uk/siri
       addressFieldName: Address
       soapenvNamespace:
@@ -491,7 +491,7 @@ anshar:
       subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 60
       changeBeforeUpdatesSeconds: 1
-      previewIntervalSeconds: 86400
+      previewIntervalSeconds: 10800
       operatorNamespace: http://www.siri.org.uk/siri
       addressFieldName:
       soapenvNamespace:
@@ -541,7 +541,7 @@ anshar:
       subscriptionType: ESTIMATED_TIMETABLE
       subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 6000
-      previewIntervalSeconds: 86400
+      previewIntervalSeconds: 10800
       changeBeforeUpdatesSeconds: 1
       operatorNamespace: http://wsdl.siri.org.uk
       addressFieldName: ConsumerAddress
@@ -620,7 +620,7 @@ anshar:
       subscriptionType: ESTIMATED_TIMETABLE
       subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 120
-      previewIntervalSeconds: 36000
+      previewIntervalSeconds: 10800
       operatorNamespace: http://wsdl.siri.org.uk
       addressFieldName: ConsumerAddress
       soapenvNamespace: http://schemas.xmlsoap.org/soap/envelope/
