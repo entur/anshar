@@ -105,10 +105,11 @@ public class AdministrationRoute extends RouteBuilder {
                     String datasetId = request.getParameter("datasetId");
 
                     if (datasetId != null) {
-                        p.getOut().setHeader(Exchange.CONTENT_TYPE, "application/json");
+                        p.getOut().setHeader(Exchange.CONTENT_TYPE, "text/html");
                         p.getOut().setBody(healthManager.getUnmappedIdsAsJson(datasetId));
                     }
                 })
+                .to("freemarker:templates/unmapped.ftl")
                 .routeId("admin.unmapped")
         ;
 
