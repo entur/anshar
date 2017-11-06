@@ -4,6 +4,7 @@ import no.rutebanken.anshar.App;
 import no.rutebanken.anshar.routes.siri.transformer.ApplicationContextHolder;
 import no.rutebanken.anshar.routes.siri.transformer.impl.StopPlaceRegisterMapper;
 import no.rutebanken.anshar.routes.siri.transformer.impl.StopPlaceUpdaterService;
+import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -47,7 +48,7 @@ public class StopPlaceRegisterMapperTest {
 
         List<String> prefixes = new ArrayList<>();
 
-        StopPlaceRegisterMapper mapper = new StopPlaceRegisterMapper("TST",JourneyPlaceRefStructure.class, prefixes);
+        StopPlaceRegisterMapper mapper = new StopPlaceRegisterMapper(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING, "TST",JourneyPlaceRefStructure.class, prefixes);
 
         assertEquals("NSR:QUAY:11223344", mapper.apply("1234"));
     }
@@ -61,7 +62,7 @@ public class StopPlaceRegisterMapperTest {
         StopPlaceUpdaterService stopPlaceService = ApplicationContextHolder.getContext().getBean(StopPlaceUpdaterService.class);
         stopPlaceService.addStopPlaceMappings(stopPlaceMap);
 
-        StopPlaceRegisterMapper mapper = new StopPlaceRegisterMapper("TST",JourneyPlaceRefStructure.class, prefixes);
+        StopPlaceRegisterMapper mapper = new StopPlaceRegisterMapper(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING, "TST",JourneyPlaceRefStructure.class, prefixes);
 
         assertEquals("NSR:QUAY:11223344", mapper.apply("1234"));
     }
@@ -76,7 +77,7 @@ public class StopPlaceRegisterMapperTest {
         StopPlaceUpdaterService stopPlaceService = ApplicationContextHolder.getContext().getBean(StopPlaceUpdaterService.class);
         stopPlaceService.addStopPlaceMappings(stopPlaceMap);
 
-        StopPlaceRegisterMapper mapper = new StopPlaceRegisterMapper("TST",JourneyPlaceRefStructure.class, prefixes);
+        StopPlaceRegisterMapper mapper = new StopPlaceRegisterMapper(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING, "TST",JourneyPlaceRefStructure.class, prefixes);
 
         assertEquals("NSR:QUAY:44444444", mapper.apply("5555"));
     }
@@ -87,7 +88,7 @@ public class StopPlaceRegisterMapperTest {
 
         List<String> prefixes = new ArrayList<>();
 
-        StopPlaceRegisterMapper mapper = new StopPlaceRegisterMapper("TST",JourneyPlaceRefStructure.class, prefixes);
+        StopPlaceRegisterMapper mapper = new StopPlaceRegisterMapper(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING, "TST",JourneyPlaceRefStructure.class, prefixes);
 
         assertEquals("NSR:QUAY:11223344", mapper.apply("NSR:QUAY:11223344"));
     }

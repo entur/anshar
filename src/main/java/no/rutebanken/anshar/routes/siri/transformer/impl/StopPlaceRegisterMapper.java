@@ -4,9 +4,11 @@ package no.rutebanken.anshar.routes.siri.transformer.impl;
 import no.rutebanken.anshar.routes.health.HealthManager;
 import no.rutebanken.anshar.routes.siri.transformer.ApplicationContextHolder;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
+import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -21,19 +23,21 @@ public class StopPlaceRegisterMapper extends ValueAdapter {
 
     private Set<String> unmappedAlreadyAdded;
 
-    private String datasetId;
+    private final String datasetId;
+    private final SubscriptionSetup.SubscriptionType type;
 
-    public StopPlaceRegisterMapper(String datasetId, Class clazz, List<String> prefixes) {
-        this(datasetId, clazz, prefixes, "Quay");
+    public StopPlaceRegisterMapper(SubscriptionSetup.SubscriptionType type, String datasetId, Class clazz, List<String> prefixes) {
+        this(type, datasetId, clazz, prefixes, "Quay");
     }
 
-    public StopPlaceRegisterMapper(String datasetId, Class clazz, List<String> prefixes, String datatype) {
+    public StopPlaceRegisterMapper(SubscriptionSetup.SubscriptionType type, String datasetId, Class clazz, List<String> prefixes, String datatype) {
         super(clazz);
+        this.type = type;
+        this.datasetId = datasetId;
         this.prefixes = prefixes;
         this.datatype = datatype;
-        this.datasetId = datasetId;
         healthManager = ApplicationContextHolder.getContext().getBean(HealthManager.class);
-        unmappedAlreadyAdded = healthManager.getUnmappedIds(datasetId);
+        unmappedAlreadyAdded = new HashSet<>();
     }
 
 
@@ -62,7 +66,7 @@ public class StopPlaceRegisterMapper extends ValueAdapter {
         logger.warn("Unable to find mapped value for id {}", id);
 
         if (unmappedAlreadyAdded.add(id)) {
-            healthManager.addUnmappedId(datasetId, id);
+            healthManager.addUnmappedId(type, datasetId, id);
         }
         return id;
     }

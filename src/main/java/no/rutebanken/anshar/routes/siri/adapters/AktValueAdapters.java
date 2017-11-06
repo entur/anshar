@@ -18,7 +18,7 @@ public class AktValueAdapters extends MappingAdapter {
         List<ValueAdapter> valueAdapters = new ArrayList<>();
         valueAdapters.add(new LeftPaddingAdapter(LineRef.class, 4, '0'));
 
-        valueAdapters.addAll(createNsrIdMappingAdapters(subscriptionSetup.getDatasetId(), subscriptionSetup.getIdMappingPrefixes()));
+        valueAdapters.addAll(createNsrIdMappingAdapters(subscriptionSetup.getSubscriptionType(), subscriptionSetup.getDatasetId(), subscriptionSetup.getIdMappingPrefixes()));
 
         if (subscriptionSetup.getDatasetId() != null && !subscriptionSetup.getDatasetId().isEmpty()) {
             List<ValueAdapter> datasetPrefix = createIdPrefixAdapters(subscriptionSetup.getDatasetId());

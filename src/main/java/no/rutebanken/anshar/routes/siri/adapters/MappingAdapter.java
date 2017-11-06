@@ -19,12 +19,12 @@ public abstract class MappingAdapter {
     public List<ValueAdapter> getOutboundValueAdapters(OutboundIdMappingPolicy mappingPolicy) {
         return new MappingAdapterPresets().getOutboundAdapters(mappingPolicy);
     }
-    public List<ValueAdapter> createNsrIdMappingAdapters(String datasetId, List<String> idMappingPrefixes) {
+    public List<ValueAdapter> createNsrIdMappingAdapters(SubscriptionSetup.SubscriptionType type, String datasetId, List<String> idMappingPrefixes) {
         List<ValueAdapter> nsr = new ArrayList<>();
-        nsr.add(new StopPlaceRegisterMapper(datasetId, StopPlaceRef.class, idMappingPrefixes, "StopPlace"));
-        nsr.add(new StopPlaceRegisterMapper(datasetId, StopPointRef.class, idMappingPrefixes));
-        nsr.add(new StopPlaceRegisterMapper(datasetId, JourneyPlaceRefStructure.class, idMappingPrefixes));
-        nsr.add(new StopPlaceRegisterMapper(datasetId, DestinationRef.class, idMappingPrefixes));
+        nsr.add(new StopPlaceRegisterMapper(type, datasetId, StopPlaceRef.class, idMappingPrefixes, "StopPlace"));
+        nsr.add(new StopPlaceRegisterMapper(type, datasetId, StopPointRef.class, idMappingPrefixes));
+        nsr.add(new StopPlaceRegisterMapper(type, datasetId, JourneyPlaceRefStructure.class, idMappingPrefixes));
+        nsr.add(new StopPlaceRegisterMapper(type, datasetId, DestinationRef.class, idMappingPrefixes));
         return nsr;
     }
 

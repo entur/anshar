@@ -5,25 +5,29 @@ import no.rutebanken.anshar.routes.health.HealthManager;
 import no.rutebanken.anshar.routes.siri.processor.BaneNorIdPlatformUpdaterService;
 import no.rutebanken.anshar.routes.siri.transformer.ApplicationContextHolder;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
+import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashSet;
 import java.util.Set;
 
 public class JbvCodeMapper extends ValueAdapter {
 
     private final String datasetId;
+    private final SubscriptionSetup.SubscriptionType type;
     private Logger logger = LoggerFactory.getLogger(JbvCodeMapper.class);
 
     private static HealthManager healthManager;
 
     private Set<String> unmappedAlreadyAdded;
 
-    public JbvCodeMapper(String datasetId, Class clazz) {
+    public JbvCodeMapper(SubscriptionSetup.SubscriptionType type, String datasetId, Class clazz) {
         super(clazz);
         this.datasetId = datasetId;
+        this.type = type;
         healthManager = ApplicationContextHolder.getContext().getBean(HealthManager.class);
-        unmappedAlreadyAdded = healthManager.getUnmappedIds(datasetId);
+        unmappedAlreadyAdded = new HashSet<>();
     }
 
 
@@ -42,7 +46,7 @@ public class JbvCodeMapper extends ValueAdapter {
         logger.warn("Unable to find mapped value for id {}", id);
 
         if (unmappedAlreadyAdded.add(id)) {
-            healthManager.addUnmappedId(datasetId, id);
+            healthManager.addUnmappedId(type, datasetId, id);
         }
         return id;
     }

@@ -22,10 +22,7 @@ import uk.org.siri.siri20.VehicleActivityStructure;
 import java.io.*;
 import java.math.BigInteger;
 import java.time.Instant;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Service
 public class ExtendedHazelcastService extends HazelCastService {
@@ -226,7 +223,7 @@ public class ExtendedHazelcastService extends HazelCastService {
     }
 
     @Bean
-    public IMap<String, Set<String>> getUnmappedIds() {
+    public IMap<String, Map<SubscriptionSetup.SubscriptionType, Set<String>>> getUnmappedIds() {
         return hazelcast.getMap("anshar.mapping.unmapped");
     }
 

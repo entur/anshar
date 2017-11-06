@@ -3,6 +3,7 @@ package no.rutebanken.anshar.routes.health;
 import com.hazelcast.core.HazelcastInstanceNotActiveException;
 import com.hazelcast.core.IMap;
 import no.rutebanken.anshar.messages.collections.HealthCheckKey;
+import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -15,7 +16,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 @Service
@@ -30,7 +33,7 @@ public class HealthManager {
 
     @Autowired
     @Qualifier("getUnmappedIds")
-    private IMap<String, Set<String>> unmappedIds;
+    private IMap<String, Map<SubscriptionSetup.SubscriptionType, Set<String>>> unmappedIds;
 
     @Value("${anshar.admin.health.allowed.inactivity.seconds:999}")
     private long allowedInactivityTime;
@@ -100,26 +103,42 @@ public class HealthManager {
         return true;
     }
 
-    public Set<String> getUnmappedIds(String datasetId) {
-        return unmappedIds.getOrDefault(datasetId, new HashSet<>());
+    public Map<SubscriptionSetup.SubscriptionType, Set<String>> getUnmappedIds(String datasetId) {
+        return unmappedIds.getOrDefault(datasetId, new HashMap<>());
     }
 
     public JSONObject getUnmappedIdsAsJson(String datasetId) {
         JSONObject result = new JSONObject();
 
-        Set<String> dataSetUnmapped = getUnmappedIds(datasetId);
-        result.put("count", dataSetUnmapped.size());
+        Map<SubscriptionSetup.SubscriptionType, Set<String>> dataSetUnmapped = getUnmappedIds(datasetId);
 
-        JSONArray stats = new JSONArray();
-        stats.addAll(dataSetUnmapped);
+        if (dataSetUnmapped != null) {
+            JSONArray typesList = new JSONArray();
+            for (SubscriptionSetup.SubscriptionType type : dataSetUnmapped.keySet()) {
+                JSONObject typeObject = new JSONObject();
+                Set<String> unmappedIdsForType = dataSetUnmapped.get(type);
 
-        result.put("stopIds", stats);
+                JSONArray unmapped = new JSONArray();
+                unmapped.addAll(unmappedIdsForType);
+
+                typeObject.put("type", type.toString());
+                typeObject.put("count", unmappedIdsForType.size());
+                typeObject.put("ids", unmapped);
+
+                typesList.add(typeObject);
+            }
+            result.put("unmapped", typesList);
+        }
         return result;
     }
 
-    public void addUnmappedId(String datasetId, String id) {
-        Set<String> ids = getUnmappedIds(datasetId);
+    public void addUnmappedId(SubscriptionSetup.SubscriptionType type, String datasetId, String id) {
+        Map<SubscriptionSetup.SubscriptionType, Set<String>> unmappedIds = getUnmappedIds(datasetId);
+
+        Set<String> ids = unmappedIds.getOrDefault(type, new HashSet<>());
         ids.add(id);
-        unmappedIds.set(datasetId, ids);
+        unmappedIds.put(type, ids);
+
+        this.unmappedIds.put(datasetId, unmappedIds);
     }
 }

@@ -4,8 +4,10 @@ import no.rutebanken.anshar.routes.health.HealthManager;
 import no.rutebanken.anshar.routes.siri.transformer.ApplicationContextHolder;
 import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
+import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import uk.org.siri.siri20.*;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -13,14 +15,16 @@ public class BaneNorIdPlatformPostProcessor extends ValueAdapter implements Post
 
     private static BaneNorIdPlatformUpdaterService stopPlaceService;
     private static HealthManager healthManager;
+    private final SubscriptionSetup.SubscriptionType type;
 
     private Set<String> unmappedAlreadyAdded;
     private String datasetId;
 
-    public BaneNorIdPlatformPostProcessor(String datasetId) {
+    public BaneNorIdPlatformPostProcessor(SubscriptionSetup.SubscriptionType type, String datasetId) {
         this.datasetId = datasetId;
+        this.type = type;
         healthManager = ApplicationContextHolder.getContext().getBean(HealthManager.class);
-        unmappedAlreadyAdded = healthManager.getUnmappedIds(datasetId);
+        unmappedAlreadyAdded = new HashSet<>();
     }
 
     public String getNsrId(String jbvCode, String platform) {
@@ -33,7 +37,7 @@ public class BaneNorIdPlatformPostProcessor extends ValueAdapter implements Post
         String nsrId = stopPlaceService.get(id);
         if (nsrId == null) {
             if (unmappedAlreadyAdded.add(id)) {
-                healthManager.addUnmappedId(datasetId, id);
+                healthManager.addUnmappedId(type, datasetId, id);
             }
         }
         return nsrId;

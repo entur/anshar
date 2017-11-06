@@ -15,7 +15,7 @@ public class OstfoldEtValueAdapters extends MappingAdapter {
     public List<ValueAdapter> getValueAdapters(SubscriptionSetup subscriptionSetup) {
 
         List<ValueAdapter> valueAdapters = new ArrayList<>();
-        valueAdapters.add(new OstfoldIdPlatformPostProcessor());
+        valueAdapters.add(new OstfoldIdPlatformPostProcessor(subscriptionSetup));
 
         return valueAdapters;
     }
