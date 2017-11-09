@@ -537,31 +537,6 @@ anshar:
       idMappingPrefixes: NSB
       active: true
     -
-      internalId: 22
-      vendor: nsbSx-test
-      datasetId: NSB
-      serviceType: REST
-      subscriptionType: SITUATION_EXCHANGE
-      subscriptionMode: SUBSCRIBE
-      heartbeatIntervalSeconds: 60
-      operatorNamespace: http://www.siri.org.uk/siri
-      addressFieldName: ConsumerAddress
-      previewIntervalSeconds: 86400
-      soapenvNamespace:
-      incrementalUpdates:
-      urlMap:
-        SUBSCRIBE: https4://status-siri-test.nsb.no/subscriptions/siri2-nrp
-        DELETE_SUBSCRIPTION: https4://status-siri-test.nsb.no/subscriptions/siri2-nrp
-      version: 2.0
-      contentType: text/xml;charset=UTF-8
-      subscriptionId: f99f7cb6-ffff-4c64-8506-4b31bfa7e51b
-      requestorRef: ENTUR
-      durationOfSubscriptionHours: 24
-      mappingAdapterId: nsbsx
-      filterPresets:
-      idMappingPrefixes: NSB
-      active: false
-    -
       internalId: 23
       vendor: tromset
       datasetId: TRO
