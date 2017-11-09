@@ -692,7 +692,7 @@ anshar:
       mappingAdapterId: ostfoldet
       filterPresets:
       idMappingPrefixes: OST
-      active: true
+      active: false
     -
       internalId: 29
       vendor: ostVm
