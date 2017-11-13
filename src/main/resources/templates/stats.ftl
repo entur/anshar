@@ -97,7 +97,7 @@
 
         <div class="row">
             <div class="col-md-2"><label>Active elements:</label></div>
-            <div class="col-md-1"><label>Clients:</label></div>
+            <div class="col-md-1"><label>Polling clients:</label></div>
         </div>
         <div class="row">
             <div class="col-md-1">SX</div>
