@@ -1,0 +1,29 @@
+anshar:
+  subscriptions:
+    -
+      internalId: 999
+      vendor: dummy
+      datasetId: BRA
+      serviceType: REST
+      subscriptionType: ESTIMATED_TIMETABLE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 6000
+      previewIntervalSeconds: 86400
+      updateIntervalSeconds: 1
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: local/siri/sx
+        DELETE_SUBSCRIPTION: local/siri/sx
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: dummy
+      requestorRef: dummy
+      durationOfSubscriptionHours: 1
+      mappingAdapterId: brakar
+      filterPresets:
+      idMappingPrefixes: BRA
+      active: false
+      
