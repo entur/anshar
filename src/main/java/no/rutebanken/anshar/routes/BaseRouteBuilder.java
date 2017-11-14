@@ -1,9 +1,9 @@
 package no.rutebanken.anshar.routes;
 
+import no.rutebanken.anshar.routes.policy.InterruptibleHazelcastRoutePolicy;
 import no.rutebanken.anshar.subscription.RequestType;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
-import org.apache.camel.component.hazelcast.policy.HazelcastRoutePolicy;
 import org.apache.camel.model.RouteDefinition;
 import org.apache.camel.spi.RouteContext;
 import org.apache.camel.spi.RoutePolicy;
@@ -60,12 +60,25 @@ public abstract class BaseRouteBuilder extends SpringRouteBuilder {
         List<RoutePolicy> routePolicyList = routeContext.getRoutePolicyList();
         if (routePolicyList != null) {
             for (RoutePolicy routePolicy : routePolicyList) {
-                if (routePolicy instanceof HazelcastRoutePolicy) {
-                    return ((HazelcastRoutePolicy) (routePolicy)).isLeader();
+                if (routePolicy instanceof InterruptibleHazelcastRoutePolicy) {
+                    return ((InterruptibleHazelcastRoutePolicy) (routePolicy)).isLeader();
                 }
             }
         }
         return false;
+    }
+
+    protected void releaseLeadership(String routeId) {
+        RouteContext routeContext = getContext().getRoute(routeId).getRouteContext();
+        List<RoutePolicy> routePolicyList = routeContext.getRoutePolicyList();
+        if (routePolicyList != null) {
+            for (RoutePolicy routePolicy : routePolicyList) {
+                if (routePolicy instanceof InterruptibleHazelcastRoutePolicy) {
+                    ((InterruptibleHazelcastRoutePolicy) routePolicy).releaseLeadership();
+                    log.info("Leadership released: {}", routeId);
+                }
+            }
+        }
     }
 
 

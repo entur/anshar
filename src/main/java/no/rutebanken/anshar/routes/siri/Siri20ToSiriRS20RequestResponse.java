@@ -7,6 +7,7 @@ import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
 import org.apache.camel.component.http4.HttpMethods;
+import org.apache.http.conn.ConnectTimeoutException;
 
 public class Siri20ToSiriRS20RequestResponse extends SiriSubscriptionRouteBuilder {
 
@@ -25,16 +26,17 @@ public class Siri20ToSiriRS20RequestResponse extends SiriSubscriptionRouteBuilde
         String httpOptions = getTimeout();
 
         if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.REQUEST_RESPONSE) {
+            String monitoringRouteId = "monitor.rs.20." + subscriptionSetup.getSubscriptionType() + "." + subscriptionSetup.getVendor();
+
             singletonFrom("quartz2://anshar/monitor_" + subscriptionSetup.getRequestResponseRouteName() + "?fireNow=true&trigger.repeatInterval=" + heartbeatIntervalMillis,
-                    "monitor.rs.20." + subscriptionSetup.getSubscriptionType() + "." + subscriptionSetup.getVendor())
+                    monitoringRouteId)
                     .choice()
                     .when(p -> requestData(subscriptionSetup.getSubscriptionId(), p.getFromRouteId()))
                     .to("direct:" + subscriptionSetup.getServiceRequestRouteName())
                     .endChoice()
             ;
-        }
 
-        from("direct:" + subscriptionSetup.getServiceRequestRouteName())
+            from("direct:" + subscriptionSetup.getServiceRequestRouteName())
                 .log("Retrieving data " + subscriptionSetup.toString())
                 .bean(helper, "createSiriDataRequest", false)
                 .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
@@ -45,13 +47,22 @@ public class Siri20ToSiriRS20RequestResponse extends SiriSubscriptionRouteBuilde
                 .setHeader(Exchange.CONTENT_TYPE, constant(subscriptionSetup.getContentType())) // Necessary when talking to Microsoft web services
                 .setHeader(Exchange.HTTP_METHOD, constant(HttpMethods.POST))
                 .to("log:request:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
-                .to(getRequestUrl(subscriptionSetup) + httpOptions)
-                .setHeader("CamelHttpPath", constant("/appContext" + subscriptionSetup.buildUrl(false)))
-                .log("Got response " + subscriptionSetup.toString())
-                .to("log:response:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
-                .to("activemq:queue:" + CamelConfiguration.TRANSFORM_QUEUE + "?disableReplyTo=true&timeToLive=" + getTimeToLive())
+                .doTry()
+                    .to(getRequestUrl(subscriptionSetup) + httpOptions)
+                    .setHeader("CamelHttpPath", constant("/appContext" + subscriptionSetup.buildUrl(false)))
+                    .log("Got response " + subscriptionSetup.toString())
+                    .to("log:response:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
+                    .to("activemq:queue:" + CamelConfiguration.TRANSFORM_QUEUE + "?disableReplyTo=true&timeToLive=" + getTimeToLive())
+                .doCatch(ConnectTimeoutException.class)
+                    .log("Connection timeout - releasing leadership: "+ subscriptionSetup.toString())
+                    .process(p -> {
+                        releaseLeadership(monitoringRouteId);
+                    })
+                .endDoTry()
                 .routeId("request.rs.20." + subscriptionSetup.getSubscriptionType() + "." + subscriptionSetup.getVendor())
-        ;
+            ;
+        }
+
     }
 
 }

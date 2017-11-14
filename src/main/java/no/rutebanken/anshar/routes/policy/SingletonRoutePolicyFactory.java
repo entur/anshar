@@ -2,7 +2,6 @@ package no.rutebanken.anshar.routes.policy;
 
 import no.rutebanken.anshar.messages.collections.ExtendedHazelcastService;
 import org.apache.camel.CamelContext;
-import org.apache.camel.component.hazelcast.policy.HazelcastRoutePolicy;
 import org.apache.camel.model.RouteDefinition;
 import org.apache.camel.spi.RoutePolicy;
 import org.apache.camel.spi.RoutePolicyFactory;
@@ -31,7 +30,7 @@ public class SingletonRoutePolicyFactory implements RoutePolicyFactory {
      * Create policy ensuring only one route with 'key' is started in cluster.
      */
     private RoutePolicy build(String key) {
-        HazelcastRoutePolicy hazelcastRoutePolicy = new HazelcastRoutePolicy(hazelcastService.getHazelcastInstance());
+        InterruptibleHazelcastRoutePolicy hazelcastRoutePolicy = new InterruptibleHazelcastRoutePolicy(hazelcastService.getHazelcastInstance());
         hazelcastRoutePolicy.setLockMapName("ansharRouteLockMap");
         hazelcastRoutePolicy.setLockKey(key);
         hazelcastRoutePolicy.setLockValue("lockValue");
