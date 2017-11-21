@@ -24,13 +24,15 @@ public class OstfoldEtValueAdapters extends MappingAdapter {
                 subscriptionSetup.getSubscriptionType(),
                 subscriptionSetup.getDatasetId(),
                 JourneyPlaceRefStructure.class,
-                subscriptionSetup.getIdMappingPrefixes()));
+                subscriptionSetup.getIdMappingPrefixes(),
+                "StopPlace"));
 
         valueAdapters.add(new StopPlaceRegisterMapper(
                 subscriptionSetup.getSubscriptionType(),
                 subscriptionSetup.getDatasetId(),
                 DestinationRef.class,
-                subscriptionSetup.getIdMappingPrefixes()));
+                subscriptionSetup.getIdMappingPrefixes(),
+                "StopPlace"));
 
         if (subscriptionSetup.getDatasetId() != null && !subscriptionSetup.getDatasetId().isEmpty()) {
             List<ValueAdapter> datasetPrefix = createIdPrefixAdapters(subscriptionSetup.getDatasetId());
