@@ -17,6 +17,8 @@ public class OstfoldEtValueAdapters extends MappingAdapter {
         List<ValueAdapter> valueAdapters = new ArrayList<>();
         valueAdapters.add(new OstfoldIdPlatformPostProcessor(subscriptionSetup));
 
+        valueAdapters.addAll(createNsrIdMappingAdapters(subscriptionSetup.getSubscriptionType(), subscriptionSetup.getDatasetId(), subscriptionSetup.getIdMappingPrefixes()));
+
         if (subscriptionSetup.getDatasetId() != null && !subscriptionSetup.getDatasetId().isEmpty()) {
             List<ValueAdapter> datasetPrefix = createIdPrefixAdapters(subscriptionSetup.getDatasetId());
             if (!subscriptionSetup.getMappingAdapters().containsAll(datasetPrefix)) {
