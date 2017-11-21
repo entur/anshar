@@ -45,7 +45,7 @@ public class OstfoldIdPlatformPostProcessor extends ValueAdapter implements Post
             processEtDeliveries(siri.getServiceDelivery().getEstimatedTimetableDeliveries());
         }
         if (listUpdated) {
-            logger.warn("Unable to find mapped value for jbvCode/platforms: {}", unmappedStopPlacePlatform);
+            logger.warn("Unable to find mapped value for stopPlace/platform: {}", unmappedStopPlacePlatform);
             listUpdated = false;
         }
 
