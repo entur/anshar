@@ -73,7 +73,7 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
     }
 
     public Siri createServiceDelivery(String lineRef) {
-        SortedSet<EstimatedVehicleJourney> matchingKeys = new TreeSet<>((o1, o2) -> {
+        SortedSet<EstimatedVehicleJourney> matchingEstimatedVehicleJourneys = new TreeSet<>((o1, o2) -> {
             ZonedDateTime o1_firstTimestamp = o1.getEstimatedCalls().getEstimatedCalls().get(0).getAimedDepartureTime();
             if (o1_firstTimestamp == null) {
                 o1_firstTimestamp = o1.getEstimatedCalls().getEstimatedCalls().get(0).getAimedArrivalTime();
@@ -109,12 +109,12 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
                                 vehicleJourney.getLineRef().getValue().toLowerCase().endsWith(SEPARATOR + lineRef.toLowerCase())|
                                 vehicleJourney.getLineRef().getValue().equalsIgnoreCase(lineRef))
                                 ) {
-                            matchingKeys.add(vehicleJourney);
+                            matchingEstimatedVehicleJourneys.add(vehicleJourney);
                         }
                     }
                 });
 
-        return siriObjectFactory.createETServiceDelivery(matchingKeys);
+        return siriObjectFactory.createETServiceDelivery(matchingEstimatedVehicleJourneys);
     }
 
     public Siri createServiceDelivery(String requestorId, String datasetId, int maxSize) {
