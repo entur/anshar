@@ -1,5 +1,6 @@
 package no.rutebanken.anshar.routes.siri.processor;
 
+import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import uk.org.siri.siri20.EstimatedTimetableDeliveryStructure;
 import uk.org.siri.siri20.EstimatedVersionFrameStructure;
@@ -50,9 +51,17 @@ public class OperatorFilterPostProcessor extends ValueAdapter implements PostPro
                                         .forEach(et -> {
                                             if (et.getLineRef() != null && et.getOperatorRef() != null) {
                                                 String lineRef = et.getLineRef().getValue();
-                                                if (lineRef != null && !lineRef.contains(":Line:")) {
+                                                if (lineRef != null) {
                                                     String operatorRef = et.getOperatorRef().getValue();
-                                                    et.getLineRef().setValue(operatorOverrideMapping.getOrDefault(operatorRef, operatorRef) + ":Line:" + lineRef);
+
+                                                    String updatedOperatorRef;
+                                                    if (lineRef.contains(":Line:")) {
+                                                        updatedOperatorRef = lineRef;
+                                                    } else {
+                                                        updatedOperatorRef = operatorOverrideMapping.getOrDefault(operatorRef, operatorRef) + ":Line:" + lineRef;
+                                                    }
+
+                                                    et.getLineRef().setValue(lineRef + SiriValueTransformer.SEPARATOR + updatedOperatorRef);
                                                 }
                                             }
                                         });
