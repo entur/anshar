@@ -5,15 +5,24 @@ import uk.org.siri.siri20.EstimatedTimetableDeliveryStructure;
 import uk.org.siri.siri20.EstimatedVersionFrameStructure;
 import uk.org.siri.siri20.Siri;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class OperatorFilterPostProcessor extends ValueAdapter implements PostProcessor {
-    private final List<String> operators;
+    private final List<String> operatorsToIgnore;
 
-    public OperatorFilterPostProcessor(List<String> operators) {
-        this.operators = operators;
+    /**
+     *
+     * @param operatorsToIgnore List of OperatorRef-values to remove
+     * @param operatorOverrideMapping Defines Operator-override if original should not be used.
+     */
+    public OperatorFilterPostProcessor(List<String> operatorsToIgnore, Map<String, String> operatorOverrideMapping) {
+        this.operatorsToIgnore = operatorsToIgnore;
+        this.operatorOverrideMapping = operatorOverrideMapping;
     }
 
+    private Map<String, String> operatorOverrideMapping = new HashMap<>();
 
     @Override
     protected String apply(String value) {
@@ -31,11 +40,22 @@ public class OperatorFilterPostProcessor extends ValueAdapter implements PostPro
                         for (EstimatedVersionFrameStructure estimatedVersionFrameStructure : estimatedJourneyVersionFrames) {
                             if (estimatedVersionFrameStructure != null) {
 
-                                estimatedVersionFrameStructure.getEstimatedVehicleJourneies()
-                                        .removeIf(et -> et.getOperatorRef() != null && operators.contains(et.getOperatorRef().getValue()));
+                                if (operatorsToIgnore != null && !operatorsToIgnore.isEmpty()) {
+                                    estimatedVersionFrameStructure.getEstimatedVehicleJourneies()
+                                            .removeIf(et -> et.getOperatorRef() != null && operatorsToIgnore.contains(et.getOperatorRef().getValue()));
+                                }
 
                                 estimatedVersionFrameStructure.getEstimatedVehicleJourneies()
-                                        .removeIf(et -> et.getOperatorRef() != null && operators.contains(et.getOperatorRef().getValue()));
+                                        .stream()
+                                        .forEach(et -> {
+                                            if (et.getLineRef() != null && et.getOperatorRef() != null) {
+                                                String lineRef = et.getLineRef().getValue();
+                                                if (lineRef != null && !lineRef.contains(":Line:")) {
+                                                    String operatorRef = et.getOperatorRef().getValue();
+                                                    et.getLineRef().setValue(operatorOverrideMapping.getOrDefault(operatorRef, operatorRef) + ":Line:" + lineRef);
+                                                }
+                                            }
+                                        });
                             }
                         }
                     }

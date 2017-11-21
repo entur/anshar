@@ -6,8 +6,9 @@ import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Mapping(id="banenoret")
 public class BaneNorEtValueAdapters extends MappingAdapter {
@@ -19,7 +20,13 @@ public class BaneNorEtValueAdapters extends MappingAdapter {
         List<ValueAdapter> valueAdapters = new ArrayList<>();
         valueAdapters.add(new BaneNorIdPlatformPostProcessor(subscriptionSetup.getSubscriptionType(), subscriptionSetup.getDatasetId()));
 
-        valueAdapters.add(new OperatorFilterPostProcessor(Arrays.asList("BN")));
+        Map<String, String> operatorOverrideMapping = new HashMap<>();
+        operatorOverrideMapping.put("NG", "NSB");
+        operatorOverrideMapping.put("FLY", "FLT");
+
+        List<String> operatorsToIgnore = new ArrayList<>();//Arrays.asList("BN", "");
+
+        valueAdapters.add(new OperatorFilterPostProcessor(operatorsToIgnore, operatorOverrideMapping));
 
         return valueAdapters;
     }
