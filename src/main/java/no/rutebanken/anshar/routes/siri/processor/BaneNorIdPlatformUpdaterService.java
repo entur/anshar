@@ -23,6 +23,8 @@ import java.util.concurrent.*;
 public class BaneNorIdPlatformUpdaterService {
     private Logger logger = LoggerFactory.getLogger(BaneNorIdPlatformUpdaterService.class);
 
+    private static final Object LOCK = new Object();
+
     private ConcurrentMap<String, String> jbvCodeStopPlaceMappings = new ConcurrentHashMap<>();
 
     @Value("${anshar.mapping.jbvCode.url}")
@@ -43,7 +45,14 @@ public class BaneNorIdPlatformUpdaterService {
 
     public String get(String id) {
         if (jbvCodeStopPlaceMappings.isEmpty()) {
-            updateIdMapping();
+            // Avoid multiple calls at the same time.
+            // Could have used a timed lock here.
+            synchronized (LOCK) {
+                // Check again.
+                if (jbvCodeStopPlaceMappings.isEmpty()) {
+                    updateIdMapping();
+                }
+            }
         }
         return jbvCodeStopPlaceMappings.get(id);
     }
@@ -62,7 +71,10 @@ public class BaneNorIdPlatformUpdaterService {
 
     private void updateIdMapping() {
         try {
-            updateStopPlaceMapping();
+            // re-entrant
+            synchronized (LOCK) {
+                updateStopPlaceMapping();
+            }
         } catch (Exception e) {
             logger.warn("Fetching data - caused exception", e);
         }
@@ -72,7 +84,7 @@ public class BaneNorIdPlatformUpdaterService {
 
         if (jbvCodeStopPlaceMappingUrl != null && !jbvCodeStopPlaceMappingUrl.isEmpty()) {
 
-            logger.info("Initializing data - start. Fetching mapping-data from {}", jbvCodeStopPlaceMappingUrl);
+            logger.info("Fetching mapping-data from {}", jbvCodeStopPlaceMappingUrl);
             URL url = new URL(jbvCodeStopPlaceMappingUrl);
 
             Map<String, String> tmpStopPlaceMappings = new HashMap<>();
