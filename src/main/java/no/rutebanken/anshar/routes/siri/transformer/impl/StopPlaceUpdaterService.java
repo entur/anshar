@@ -33,12 +33,6 @@ public class StopPlaceUpdaterService {
     @Value("${anshar.mapping.stopplaces.url}")
     private String stopPlaceMappingUrl;
 
-    @Value("${anshar.mapping.header.name:User-Agent}")
-    private String headerName;
-
-    @Value("${anshar.mapping.header.value:Anshar}")
-    private String headerValue;
-
     @Value("${anshar.mapping.stopplaces.update.frequency.min:60}")
     private int updateFrequency = 60;
 
@@ -88,10 +82,6 @@ public class StopPlaceUpdaterService {
             URLConnection connection = url.openConnection();
             connection.setConnectTimeout(connectTimeoutMs);
             connection.setReadTimeout(readTimeoutMs);
-
-            if (headerName != null && headerValue != null) {
-                connection.setRequestProperty(headerName, headerValue);
-            }
 
             BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 
