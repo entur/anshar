@@ -25,6 +25,8 @@ import java.util.concurrent.*;
 public class StopPlaceUpdaterService {
     private Logger logger = LoggerFactory.getLogger(StopPlaceUpdaterService.class);
 
+    private static final Object LOCK = new Object();
+
     private ConcurrentMap<String, String> stopPlaceMappings = new ConcurrentHashMap<>();
 
     @Value("${anshar.mapping.quays.url}")
@@ -44,7 +46,14 @@ public class StopPlaceUpdaterService {
 
     public String get(String id) {
         if (stopPlaceMappings.isEmpty()) {
-            updateIdMapping();
+            // Avoid multiple calls at the same time.
+            // Could have used a timed lock here.
+            synchronized (LOCK) {
+                // Check again.
+                if (stopPlaceMappings.isEmpty()) {
+                    updateIdMapping();
+                }
+            }
         }
         return stopPlaceMappings.get(id);
     }
@@ -62,8 +71,11 @@ public class StopPlaceUpdaterService {
 
     private void updateIdMapping() {
         try {
-            updateStopPlaceMapping(quayMappingUrl);
-            updateStopPlaceMapping(stopPlaceMappingUrl);
+            // re-entrant
+            synchronized (LOCK) {
+                updateStopPlaceMapping(quayMappingUrl);
+                updateStopPlaceMapping(stopPlaceMappingUrl);
+            }
         } catch (IOException e) {
             logger.error("Unable to initialize data",e);
         }
