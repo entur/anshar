@@ -14,6 +14,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 import java.util.StringTokenizer;
 import java.util.concurrent.*;
 
@@ -49,9 +50,12 @@ public class BaneNorIdPlatformUpdaterService {
     private void initialize() {
         updateIdMapping();
         ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-        executor.scheduleAtFixedRate(() -> updateIdMapping(), updateFrequency, updateFrequency, TimeUnit.MINUTES);
 
-        logger.info("Initialized jbvCode_mapping-updater with url:{}, updateFrequency:{} min", jbvCodeStopPlaceMappingUrl, updateFrequency);
+        int initialDelay = updateFrequency + new Random().nextInt(10);
+        executor.scheduleAtFixedRate(() -> updateIdMapping(), initialDelay, updateFrequency, TimeUnit.MINUTES);
+
+
+        logger.info("Initialized jbvCode_mapping-updater with url:{}, updateFrequency:{} min, initialDelay:{} min", jbvCodeStopPlaceMappingUrl, updateFrequency, initialDelay);
     }
 
     private void updateIdMapping() {
