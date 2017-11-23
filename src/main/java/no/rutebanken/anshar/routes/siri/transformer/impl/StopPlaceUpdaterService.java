@@ -1,5 +1,6 @@
 package no.rutebanken.anshar.routes.siri.transformer.impl;
 
+import com.google.common.base.Strings;
 import org.quartz.utils.counter.Counter;
 import org.quartz.utils.counter.CounterImpl;
 import org.slf4j.Logger;
@@ -27,11 +28,6 @@ import java.util.concurrent.*;
 public class StopPlaceUpdaterService {
     private Logger logger = LoggerFactory.getLogger(StopPlaceUpdaterService.class);
 
-    /**
-     * It could be possible to use the pod name.
-     */
-    private static final String USER_AGENT = "anshar";
-
     private ConcurrentMap<String, String> stopPlaceMappings = new ConcurrentHashMap<>();
 
     @Value("${anshar.mapping.quays.url}")
@@ -49,6 +45,10 @@ public class StopPlaceUpdaterService {
     @Value("${anshar.mapping.stopplaces.update.timeout.connect.ms:5000}")
     private int connectTimeoutMs = 5000;
 
+    private static final String HOSTNAME = System.getenv("HOSTNAME");
+
+    private final String userAgent = Strings.isNullOrEmpty(HOSTNAME) ? "anshar" : HOSTNAME;
+
     public String get(String id) {
         if (stopPlaceMappings.isEmpty()) {
             updateIdMapping();
@@ -58,6 +58,7 @@ public class StopPlaceUpdaterService {
 
     @PostConstruct
     private void initialize() {
+
         updateIdMapping();
         ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 
@@ -87,7 +88,7 @@ public class StopPlaceUpdaterService {
             Counter duplicates = new CounterImpl(0);
 
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestProperty("User-Agent", USER_AGENT);
+            connection.setRequestProperty("User-Agent", userAgent);
 
             connection.setConnectTimeout(connectTimeoutMs);
             connection.setReadTimeout(readTimeoutMs);
