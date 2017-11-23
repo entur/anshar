@@ -45,9 +45,8 @@ public class StopPlaceUpdaterService {
     @Value("${anshar.mapping.stopplaces.update.timeout.connect.ms:5000}")
     private int connectTimeoutMs = 5000;
 
-    private static final String HOSTNAME = System.getenv("HOSTNAME");
-
-    private final String userAgent = Strings.isNullOrEmpty(HOSTNAME) ? "anshar" : HOSTNAME;
+    @Value("${HOSTNAME:anshar}")
+    private String userAgent;
 
     public String get(String id) {
         if (stopPlaceMappings.isEmpty()) {
@@ -87,7 +86,7 @@ public class StopPlaceUpdaterService {
             Map<String, String> tmpStopPlaceMappings = new HashMap<>();
             Counter duplicates = new CounterImpl(0);
 
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            URLConnection connection = url.openConnection();
             connection.setRequestProperty("User-Agent", userAgent);
 
             connection.setConnectTimeout(connectTimeoutMs);
