@@ -26,4 +26,81 @@ anshar:
       filterPresets:
       idMappingPrefixes: BRA
       active: false
+    -
+      internalId: 100
+      vendor: internVm
+      datasetId: ENT
+      serviceType: REST
+      subscriptionType: VEHICLE_MONITORING
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 60
+      updateIntervalSeconds: 1
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: https4://api.entur.org/anshar/1.0/anshar/subscribe
+        DELETE_SUBSCRIPTION: https4://api.entur.org/anshar/1.0/anshar/subscribe
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: vm-replication-stage
+      requestorRef: vm-requestorref-stage
+      durationOfSubscriptionHours: 1680
+      mappingAdapterId: entur
+      filterPresets:
+      idMappingPrefixes:
+      active: true
+    -
+      internalId: 101
+      vendor: internEt
+      datasetId: ENT
+      serviceType: REST
+      subscriptionType: ESTIMATED_TIMETABLE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 60
+      previewIntervalSeconds: 86400
+      updateIntervalSeconds: 1
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: https4://api.entur.org/anshar/1.0/anshar/subscribe
+        DELETE_SUBSCRIPTION: https4://api.entur.org/anshar/1.0/anshar/subscribe
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: et-replication-stage
+      requestorRef: et-requestorref-stage
+      durationOfSubscriptionHours: 1680
+      mappingAdapterId: entur
+      filterPresets:
+      idMappingPrefixes:
+      active: true
+    -
+      internalId: 102
+      vendor: internRutersx
+      datasetId: ENT
+      serviceType: REST
+      subscriptionType: SITUATION_EXCHANGE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 60
+      previewIntervalSeconds: 86400
+      updateIntervalSeconds: 1
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: https4://api.entur.org/anshar/1.0/anshar/subscribe
+        DELETE_SUBSCRIPTION: https4://api.entur.org/anshar/1.0/anshar/subscribe
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: sx-replication-stage
+      requestorRef: sx-requestorref-stage
+      durationOfSubscriptionHours: 1680
+      mappingAdapterId: entur
+      filterPresets:
+      idMappingPrefixes:
+      active: true
       
