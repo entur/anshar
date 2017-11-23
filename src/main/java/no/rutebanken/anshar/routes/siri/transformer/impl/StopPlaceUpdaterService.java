@@ -44,6 +44,9 @@ public class StopPlaceUpdaterService {
     @Value("${anshar.mapping.stopplaces.update.timeout.connect.ms:5000}")
     private int connectTimeoutMs = 5000;
 
+    @Value("${HOSTNAME:anshar}")
+    private String userAgent;
+
     public String get(String id) {
         if (stopPlaceMappings.isEmpty()) {
             // Avoid multiple calls at the same time.
@@ -60,6 +63,7 @@ public class StopPlaceUpdaterService {
 
     @PostConstruct
     private void initialize() {
+
         updateIdMapping();
         ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 
@@ -92,6 +96,8 @@ public class StopPlaceUpdaterService {
             Counter duplicates = new CounterImpl(0);
 
             URLConnection connection = url.openConnection();
+            connection.setRequestProperty("User-Agent", userAgent);
+
             connection.setConnectTimeout(connectTimeoutMs);
             connection.setReadTimeout(readTimeoutMs);
 
