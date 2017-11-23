@@ -12,6 +12,8 @@ import javax.annotation.PostConstruct;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.InetAddress;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.HashMap;
@@ -24,6 +26,11 @@ import java.util.concurrent.*;
 @Configuration
 public class StopPlaceUpdaterService {
     private Logger logger = LoggerFactory.getLogger(StopPlaceUpdaterService.class);
+
+    /**
+     * It could be possible to use the pod name.
+     */
+    private static final String USER_AGENT = "anshar";
 
     private ConcurrentMap<String, String> stopPlaceMappings = new ConcurrentHashMap<>();
 
@@ -79,7 +86,9 @@ public class StopPlaceUpdaterService {
             Map<String, String> tmpStopPlaceMappings = new HashMap<>();
             Counter duplicates = new CounterImpl(0);
 
-            URLConnection connection = url.openConnection();
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestProperty("User-Agent", USER_AGENT);
+
             connection.setConnectTimeout(connectTimeoutMs);
             connection.setReadTimeout(readTimeoutMs);
 
