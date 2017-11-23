@@ -38,6 +38,8 @@ public class BaneNorIdPlatformUpdaterService {
     @Value("${anshar.mapping.jbvCode.update.timeout.connect.ms:5000}")
     private int connectTimeoutMs = 5000;
 
+    @Value("${HOSTNAME:anshar}")
+    private String userAgent;
 
     public String get(String id) {
         if (jbvCodeStopPlaceMappings.isEmpty()) {
@@ -78,6 +80,7 @@ public class BaneNorIdPlatformUpdaterService {
             URLConnection connection = url.openConnection();
             connection.setConnectTimeout(connectTimeoutMs);
             connection.setReadTimeout(readTimeoutMs);
+            connection.setRequestProperty("User-Agent", userAgent);
 
             BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 
