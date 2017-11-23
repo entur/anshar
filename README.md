@@ -32,11 +32,3 @@ To view status/statistics (JSON-format) for all clustering.
 - http://<host>:<port>/anshar/clusterstats
 ```
 
-## XML Validation
-Anshar provides a REST-api for validating SIRI-xml against the SIRI xsd.
-```
-- http://<host>:<port>/anshar/rest/sirivalidator?version=[SIRI version]
-[SIRI version] Possible values: 1.0, 1.3, 1.4, 2.0
-If not provided version is set to 2.0
-```
-
