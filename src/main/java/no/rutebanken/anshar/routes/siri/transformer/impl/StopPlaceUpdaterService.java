@@ -36,6 +36,12 @@ public class StopPlaceUpdaterService {
     @Value("${anshar.mapping.stopplaces.update.frequency.min:60}")
     private int updateFrequency = 60;
 
+    @Value("${anshar.mapping.stopplaces.update.timeout.read.ms:40000}")
+    private int readTimeoutMs = 40000;
+
+    @Value("${anshar.mapping.stopplaces.update.timeout.connect.ms:5000}")
+    private int connectTimeoutMs = 5000;
+
     public String get(String id) {
         if (stopPlaceMappings.isEmpty()) {
             updateIdMapping();
@@ -74,8 +80,8 @@ public class StopPlaceUpdaterService {
             Counter duplicates = new CounterImpl(0);
 
             URLConnection connection = url.openConnection();
-            connection.setConnectTimeout(5000);
-            connection.setReadTimeout(30000);
+            connection.setConnectTimeout(connectTimeoutMs);
+            connection.setReadTimeout(readTimeoutMs);
 
             BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 
