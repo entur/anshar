@@ -30,6 +30,15 @@ public class BaneNorIdPlatformUpdaterService {
     @Value("${anshar.mapping.jbvCode.update.frequency.min:60}")
     private int updateFrequency = 60;
 
+    @Value("${anshar.mapping.jbvCode.update.timeout.read.ms:40000}")
+    private int readTimeoutMs = 40000;
+
+    @Value("${anshar.mapping.jbvCode.update.timeout.connect.ms:5000}")
+    private int connectTimeoutMs = 5000;
+
+    @Value("${HOSTNAME:anshar}")
+    private String userAgent;
+
     public String get(String id) {
         if (jbvCodeStopPlaceMappings.isEmpty()) {
             updateIdMapping();
@@ -64,8 +73,9 @@ public class BaneNorIdPlatformUpdaterService {
             Map<String, String> tmpStopPlaceMappings = new HashMap<>();
 
             URLConnection connection = url.openConnection();
-            connection.setConnectTimeout(5000);
-            connection.setReadTimeout(30000);
+            connection.setConnectTimeout(connectTimeoutMs);
+            connection.setReadTimeout(readTimeoutMs);
+            connection.setRequestProperty("User-Agent", userAgent);
 
             BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 
