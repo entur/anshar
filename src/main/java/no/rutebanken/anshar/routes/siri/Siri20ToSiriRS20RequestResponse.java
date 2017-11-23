@@ -7,7 +7,6 @@ import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
 import org.apache.camel.component.http4.HttpMethods;
-import org.apache.http.conn.ConnectTimeoutException;
 
 public class Siri20ToSiriRS20RequestResponse extends SiriSubscriptionRouteBuilder {
 
@@ -53,8 +52,8 @@ public class Siri20ToSiriRS20RequestResponse extends SiriSubscriptionRouteBuilde
                     .log("Got response " + subscriptionSetup.toString())
                     .to("log:response:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                     .to("activemq:queue:" + CamelConfiguration.TRANSFORM_QUEUE + "?disableReplyTo=true&timeToLive=" + getTimeToLive())
-                .doCatch(ConnectTimeoutException.class)
-                    .log("Connection timeout - releasing leadership: "+ subscriptionSetup.toString())
+                .doCatch(Exception.class)
+                    .log("Caught exception - releasing leadership: "+ subscriptionSetup.toString())
                     .process(p -> {
                         releaseLeadership(monitoringRouteId);
                     })

@@ -6,7 +6,6 @@ import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
-import org.apache.http.conn.ConnectTimeoutException;
 
 import static no.rutebanken.anshar.routes.siri.SiriIncomingReceiver.TRANSFORM_SOAP;
 import static no.rutebanken.anshar.routes.siri.SiriIncomingReceiver.TRANSFORM_VERSION;
@@ -59,8 +58,8 @@ public class Siri20ToSiriWS14RequestResponse extends SiriSubscriptionRouteBuilde
                         .setHeader(TRANSFORM_VERSION, constant(TRANSFORM_VERSION))
                         .setHeader(TRANSFORM_SOAP, constant(TRANSFORM_SOAP))
                         .to("activemq:queue:" + CamelConfiguration.TRANSFORM_QUEUE + "?disableReplyTo=true&timeToLive=" + getTimeToLive())
-                    .doCatch(ConnectTimeoutException.class)
-                        .log("Connection timeout - releasing leadership: " + subscriptionSetup.toString())
+                    .doCatch(Exception.class)
+                        .log("Caught exception - releasing leadership: " + subscriptionSetup.toString())
                         .process(p -> {
                             releaseLeadership(monitoringRouteId);
                         })
