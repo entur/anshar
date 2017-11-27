@@ -1,21 +1,16 @@
 package no.rutebanken.anshar.routes.siri.processor;
 
+import no.rutebanken.anshar.routes.siri.transformer.impl.StopPlaceRegisterMappingFetcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.URL;
-import java.net.URLConnection;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Random;
-import java.util.StringTokenizer;
 import java.util.concurrent.*;
 
 @Component
@@ -33,15 +28,8 @@ public class BaneNorIdPlatformUpdaterService {
     @Value("${anshar.mapping.jbvCode.update.frequency.min:60}")
     private int updateFrequency = 60;
 
-
-    @Value("${anshar.mapping.jbvCode.update.timeout.read.ms:40000}")
-    private int readTimeoutMs = 40000;
-
-    @Value("${anshar.mapping.jbvCode.update.timeout.connect.ms:5000}")
-    private int connectTimeoutMs = 5000;
-
-    @Value("${HOSTNAME:anshar}")
-    private String userAgent;
+    @Autowired
+    private StopPlaceRegisterMappingFetcher stopPlaceRegisterMappingFetcher;
 
     public String get(String id) {
         if (jbvCodeStopPlaceMappings.isEmpty()) {
@@ -63,7 +51,7 @@ public class BaneNorIdPlatformUpdaterService {
         ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 
         int initialDelay = updateFrequency + new Random().nextInt(10);
-        executor.scheduleAtFixedRate(() -> updateIdMapping(), initialDelay, updateFrequency, TimeUnit.MINUTES);
+        executor.scheduleAtFixedRate(this::updateIdMapping, initialDelay, updateFrequency, TimeUnit.MINUTES);
 
 
         logger.info("Initialized jbvCode_mapping-updater with url:{}, updateFrequency:{} min, initialDelay:{} min", jbvCodeStopPlaceMappingUrl, updateFrequency, initialDelay);
@@ -81,32 +69,9 @@ public class BaneNorIdPlatformUpdaterService {
     }
 
     private void updateStopPlaceMapping() throws IOException {
-
         if (jbvCodeStopPlaceMappingUrl != null && !jbvCodeStopPlaceMappingUrl.isEmpty()) {
-
             logger.info("Fetching mapping-data from {}", jbvCodeStopPlaceMappingUrl);
-            URL url = new URL(jbvCodeStopPlaceMappingUrl);
-
-            Map<String, String> tmpStopPlaceMappings = new HashMap<>();
-
-            URLConnection connection = url.openConnection();
-            connection.setConnectTimeout(connectTimeoutMs);
-            connection.setReadTimeout(readTimeoutMs);
-            connection.setRequestProperty("User-Agent", userAgent);
-
-            BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-
-            reader.lines().forEach(line -> {
-
-                StringTokenizer tokenizer = new StringTokenizer(line, ",");
-                String jbvCodePlatform = tokenizer.nextToken();
-                String generatedId = tokenizer.nextToken();
-
-                tmpStopPlaceMappings.put(jbvCodePlatform, generatedId);
-            });
-
-            //Adding to Hazelcast in one operation
-            jbvCodeStopPlaceMappings.putAll(tmpStopPlaceMappings);
+            jbvCodeStopPlaceMappings.putAll(stopPlaceRegisterMappingFetcher.fetchStopPlaceMapping(jbvCodeStopPlaceMappingUrl));
         }
     }
 }
