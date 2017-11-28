@@ -115,12 +115,13 @@ public class LivenessReadinessRoute extends RouteBuilder {
                         p.getOut().setBody("Server has not received data for " + healthManager.getSecondsSinceDataReceived() + " seconds.");
                     })
                     .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("500"))
-                    .log("Server is not receiving data")
+                    .log("Server reports not receiving data")
                 .endChoice()
                 .otherwise()
                     .setBody(simple("OK"))
                     .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
                 .end()
+                .routeId("health.is.healthy")
         ;
 
         from("jetty:http://0.0.0.0:" + inboundPort + "/anshardata")
@@ -173,7 +174,7 @@ public class LivenessReadinessRoute extends RouteBuilder {
                     .setBody(simple("OK"))
                     .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
                 .endChoice()
-                .routeId("health.is.healthy")
+                .routeId("health.data.received")
         ;
         from("direct:notify.hubot")
                 .choice()
@@ -191,7 +192,6 @@ public class LivenessReadinessRoute extends RouteBuilder {
     }
 
     private Set<String> getAllUnhealthySubscriptions() {
-        Set<String> unhealthySubscriptions = subscriptionManager.getAllUnhealthySubscriptions(allowedInactivityMinutes*60);
-        return unhealthySubscriptions;
+        return subscriptionManager.getAllUnhealthySubscriptions(allowedInactivityMinutes*60);
     }
 }
