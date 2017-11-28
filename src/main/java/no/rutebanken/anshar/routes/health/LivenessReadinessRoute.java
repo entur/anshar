@@ -123,7 +123,7 @@ public class LivenessReadinessRoute extends RouteBuilder {
                 .end()
         ;
 
-        from("jetty:http://0.0.0.0:" + inboundPort + "/datareceived")
+        from("jetty:http://0.0.0.0:" + inboundPort + "/anshardata")
                 .choice()
                 .when(p -> getAllUnhealthySubscriptions().isEmpty() && !unhealthySubscriptionsAlreadyNotified.isEmpty())
                     .process(p -> {
