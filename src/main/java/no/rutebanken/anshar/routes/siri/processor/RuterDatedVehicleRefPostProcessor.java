@@ -2,10 +2,7 @@ package no.rutebanken.anshar.routes.siri.processor;
 
 import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
-import uk.org.siri.siri20.EstimatedTimetableDeliveryStructure;
-import uk.org.siri.siri20.EstimatedVehicleJourney;
-import uk.org.siri.siri20.EstimatedVersionFrameStructure;
-import uk.org.siri.siri20.Siri;
+import uk.org.siri.siri20.*;
 
 import java.util.List;
 import java.util.StringTokenizer;
@@ -27,15 +24,30 @@ public class RuterDatedVehicleRefPostProcessor extends ValueAdapter implements P
                             if (estimatedVersionFrameStructure != null) {
                                 for (EstimatedVehicleJourney estimatedVehicleJourney : estimatedVersionFrameStructure.getEstimatedVehicleJourneies()) {
                                     if (estimatedVehicleJourney.getFramedVehicleJourneyRef() != null) {
-                                        String datedVehicleJourneyRef = estimatedVehicleJourney.getFramedVehicleJourneyRef().getDatedVehicleJourneyRef();
-                                        if (datedVehicleJourneyRef != null && !datedVehicleJourneyRef.startsWith(SERVICE_JOURNEY_PREFIX)) {
-                                            StringTokenizer tokenizer = new StringTokenizer(datedVehicleJourneyRef, DELIMITER);
-                                            if (tokenizer.countTokens() >= 2) {
-                                                String newValue = SERVICE_JOURNEY_PREFIX + tokenizer.nextToken() + "-" + tokenizer.nextToken();
-                                                estimatedVehicleJourney.getFramedVehicleJourneyRef()
-                                                        .setDatedVehicleJourneyRef(datedVehicleJourneyRef + SiriValueTransformer.SEPARATOR + newValue);
-                                            }
+                                        String updatedVehicleJourneyRef = createNewVehicleJourneyRef(estimatedVehicleJourney.getFramedVehicleJourneyRef().getDatedVehicleJourneyRef());
+                                        if (updatedVehicleJourneyRef != null) {
+                                            estimatedVehicleJourney.getFramedVehicleJourneyRef().setDatedVehicleJourneyRef(updatedVehicleJourneyRef);
                                         }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            List<VehicleMonitoringDeliveryStructure> vehicleMonitoringDeliveries = siri.getServiceDelivery().getVehicleMonitoringDeliveries();
+            if (vehicleMonitoringDeliveries != null) {
+                for (VehicleMonitoringDeliveryStructure vehicleMonitoringDelivery : vehicleMonitoringDeliveries) {
+                    List<VehicleActivityStructure> vehicleActivities = vehicleMonitoringDelivery.getVehicleActivities();
+                    if (vehicleActivities != null) {
+                        for (VehicleActivityStructure vehicleActivity : vehicleActivities) {
+                            VehicleActivityStructure.MonitoredVehicleJourney monitoredVehicleJourney = vehicleActivity.getMonitoredVehicleJourney();
+                            if (monitoredVehicleJourney != null) {
+                                if (monitoredVehicleJourney.getFramedVehicleJourneyRef() != null) {
+                                    String updatedVehicleJourneyRef = createNewVehicleJourneyRef(monitoredVehicleJourney.getFramedVehicleJourneyRef().getDatedVehicleJourneyRef());
+                                    if (updatedVehicleJourneyRef != null) {
+                                        monitoredVehicleJourney.getFramedVehicleJourneyRef().setDatedVehicleJourneyRef(updatedVehicleJourneyRef);
                                     }
                                 }
                             }
@@ -46,6 +58,17 @@ public class RuterDatedVehicleRefPostProcessor extends ValueAdapter implements P
         }
     }
 
+    private String createNewVehicleJourneyRef(String datedVehicleJourneyRef) {
+        String result = null;
+        if (datedVehicleJourneyRef != null && !datedVehicleJourneyRef.startsWith(SERVICE_JOURNEY_PREFIX)) {
+            StringTokenizer tokenizer = new StringTokenizer(datedVehicleJourneyRef, DELIMITER);
+            if (tokenizer.countTokens() >= 2) {
+                String newValue = SERVICE_JOURNEY_PREFIX + tokenizer.nextToken() + "-" + tokenizer.nextToken();
+                result = datedVehicleJourneyRef + SiriValueTransformer.SEPARATOR + newValue;
+            }
+        }
+        return result;
+    }
     @Override
     protected String apply(String value) {
         return null;

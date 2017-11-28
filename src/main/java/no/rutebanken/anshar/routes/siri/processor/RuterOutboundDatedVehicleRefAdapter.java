@@ -4,10 +4,7 @@ package no.rutebanken.anshar.routes.siri.processor;
 import no.rutebanken.anshar.routes.siri.handlers.OutboundIdMappingPolicy;
 import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
-import uk.org.siri.siri20.EstimatedTimetableDeliveryStructure;
-import uk.org.siri.siri20.EstimatedVehicleJourney;
-import uk.org.siri.siri20.EstimatedVersionFrameStructure;
-import uk.org.siri.siri20.Siri;
+import uk.org.siri.siri20.*;
 
 import java.util.List;
 
@@ -44,6 +41,25 @@ public class RuterOutboundDatedVehicleRefAdapter extends ValueAdapter implements
                     }
                 }
             }
+            List<VehicleMonitoringDeliveryStructure> vehicleMonitoringDeliveries = siri.getServiceDelivery().getVehicleMonitoringDeliveries();
+            if (vehicleMonitoringDeliveries != null) {
+                for (VehicleMonitoringDeliveryStructure vehicleMonitoringDelivery : vehicleMonitoringDeliveries) {
+                    List<VehicleActivityStructure> vehicleActivities = vehicleMonitoringDelivery.getVehicleActivities();
+                    if (vehicleActivities != null) {
+                        for (VehicleActivityStructure vehicleActivity : vehicleActivities) {
+                            if (vehicleActivity != null) {
+                                VehicleActivityStructure.MonitoredVehicleJourney monitoredVehicleJourney = vehicleActivity.getMonitoredVehicleJourney();
+                                if (monitoredVehicleJourney.getFramedVehicleJourneyRef() != null) {
+                                    String datedVehicleJourneyRef = monitoredVehicleJourney.getFramedVehicleJourneyRef().getDatedVehicleJourneyRef();
+                                    if (datedVehicleJourneyRef != null) {
+                                        monitoredVehicleJourney.getFramedVehicleJourneyRef().setDatedVehicleJourneyRef(apply(datedVehicleJourneyRef));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -52,12 +68,13 @@ public class RuterOutboundDatedVehicleRefAdapter extends ValueAdapter implements
             return text;
         }
         if (text.contains(SiriValueTransformer.SEPARATOR)) {
-            if (outboundIdMappingPolicy == OutboundIdMappingPolicy.DEFAULT) {
-                text = getMappedId(text);
-            } else if (outboundIdMappingPolicy == OutboundIdMappingPolicy.ORIGINAL_ID) {
-                text = getOriginalId(text);
-            } else if (outboundIdMappingPolicy == OutboundIdMappingPolicy.OTP_FRIENDLY_ID) {
-                text = getOtpFriendly(text);
+            switch (outboundIdMappingPolicy) {
+                case ORIGINAL_ID:
+                    return getOriginalId(text);
+                case OTP_FRIENDLY_ID:
+                    return getOtpFriendly(text);
+                default:
+                    return getMappedId(text);
             }
         }
         return text;
