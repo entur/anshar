@@ -27,20 +27,28 @@ public class BaneNorIdPlatformPostProcessor extends ValueAdapter implements Post
         unmappedAlreadyAdded = new HashSet<>();
     }
 
-    public String getNsrId(String jbvCode, String platform) {
+
+    private String getNsrId(String stopPointRefValue, NaturalLanguageStringStructure arrivalPlatformName, NaturalLanguageStringStructure departurePlatformName) {
+        String platform = null;
+        if (arrivalPlatformName != null) {
+            platform = arrivalPlatformName.getValue();
+        } else if (departurePlatformName != null) {
+            platform = departurePlatformName.getValue();
+        }
 
         if (stopPlaceService == null) {
             stopPlaceService = ApplicationContextHolder.getContext().getBean(BaneNorIdPlatformUpdaterService.class);
         }
 
-        String id = jbvCode + ":" + platform;
+        String id = stopPointRefValue + ":" + platform;
         String nsrId = stopPlaceService.get(id);
         if (nsrId == null) {
             if (unmappedAlreadyAdded.add(id)) {
                 healthManager.addUnmappedId(type, datasetId, id);
             }
+            return null;
         }
-        return nsrId;
+        return stopPointRefValue + SiriValueTransformer.SEPARATOR + nsrId;
     }
 
     @Override
@@ -63,16 +71,9 @@ public class BaneNorIdPlatformPostProcessor extends ValueAdapter implements Post
                                     for (EstimatedCall et : estimatedCalls.getEstimatedCalls()) {
                                         String stopPointRefValue = et.getStopPointRef().getValue();
 
-                                        String platform = null;
-                                        if (et.getArrivalPlatformName() != null) {
-                                            platform = et.getArrivalPlatformName().getValue();
-                                        } else if (et.getDeparturePlatformName() != null) {
-                                            platform = et.getDeparturePlatformName().getValue();
-                                        }
-
-                                        String nsrId = getNsrId(stopPointRefValue, platform);
-                                        if (nsrId != null) {
-                                            et.getStopPointRef().setValue(stopPointRefValue + SiriValueTransformer.SEPARATOR + nsrId);
+                                        String updatedStopPointRef = getNsrId(stopPointRefValue, et.getArrivalPlatformName(), et.getDeparturePlatformName());
+                                        if (updatedStopPointRef != null) {
+                                            et.getStopPointRef().setValue(updatedStopPointRef);
                                         }
                                     }
                                 }
@@ -82,16 +83,9 @@ public class BaneNorIdPlatformPostProcessor extends ValueAdapter implements Post
                                     for (RecordedCall rc : recordedCalls.getRecordedCalls()) {
                                         String stopPointRefValue = rc.getStopPointRef().getValue();
 
-                                        String platform = null;
-                                        if (rc.getArrivalPlatformName() != null) {
-                                            platform = rc.getArrivalPlatformName().getValue();
-                                        } else if (rc.getDeparturePlatformName() != null) {
-                                            platform = rc.getDeparturePlatformName().getValue();
-                                        }
-
-                                        String nsrId = getNsrId(stopPointRefValue, platform);
-                                        if (nsrId != null) {
-                                            rc.getStopPointRef().setValue(stopPointRefValue + SiriValueTransformer.SEPARATOR + nsrId);
+                                        String updatedStopPointRef = getNsrId(stopPointRefValue, rc.getArrivalPlatformName(), rc.getDeparturePlatformName());
+                                        if (updatedStopPointRef != null) {
+                                            rc.getStopPointRef().setValue(updatedStopPointRef);
                                         }
                                     }
                                 }
