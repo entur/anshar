@@ -96,19 +96,9 @@ public class LivenessReadinessRoute extends RouteBuilder {
                 //TODO: On error - POST to hubot
                 // Ex: wget --post-data='{"source":"otp", "message":"Downloaded file is empty or not present. This makes OTP fail! Please check logs"}' http://hubot/hubot/say/
                 .choice()
-                .when(p -> triggerRestart)
-                    .log("Application triggered restart")
-                    .setBody(constant("Restart requested"))
-                    .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("500"))
-                .endChoice()
                 .when(p -> !healthManager.isHazelcastAlive())
                     .log("Hazelcast is shut down")
                     .setBody(simple("Hazelcast is shut down"))
-                    .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("500"))
-                .endChoice()
-                .when(p -> !healthManager.isHealthCheckRunning())
-                    .log("HealthCheck has stopped")
-                    .setBody(simple("HealthCheck has stopped"))
                     .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("500"))
                 .endChoice()
                 .otherwise()
@@ -127,6 +117,14 @@ public class LivenessReadinessRoute extends RouteBuilder {
                     .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("500"))
                     .log("Server is not receiving data")
                 .endChoice()
+                .otherwise()
+                    .setBody(simple("OK"))
+                    .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
+                .end()
+        ;
+
+        from("jetty:http://0.0.0.0:" + inboundPort + "/datareceived")
+                .choice()
                 .when(p -> getAllUnhealthySubscriptions().isEmpty() && !unhealthySubscriptionsAlreadyNotified.isEmpty())
                     .process(p -> {
                         unhealthySubscriptionsAlreadyNotified.clear();

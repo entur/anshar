@@ -43,7 +43,7 @@ public class HealthManager {
 
     public boolean isHazelcastAlive() {
         try {
-            healthCheckMap.put(HealthCheckKey.NODE_LIVENESS_CHECK, Instant.now());
+            healthCheckMap.set(HealthCheckKey.NODE_LIVENESS_CHECK, Instant.now());
             return healthCheckMap.containsKey(HealthCheckKey.NODE_LIVENESS_CHECK);
         } catch (HazelcastInstanceNotActiveException e) {
             logger.warn("HazelcastInstance not active - ", e);
@@ -54,13 +54,13 @@ public class HealthManager {
     @Bean
     public Instant serverStartTime() {
         if (!healthCheckMap.containsKey(HealthCheckKey.SERVER_START_TIME)) {
-            healthCheckMap.put(HealthCheckKey.SERVER_START_TIME, Instant.now());
+            healthCheckMap.set(HealthCheckKey.SERVER_START_TIME, Instant.now());
         }
         return healthCheckMap.get(HealthCheckKey.SERVER_START_TIME);
     }
 
     public void dataReceived() {
-        healthCheckMap.put(HealthCheckKey.HEALTH_CHECK_INCOMING_DATA, Instant.now());
+        healthCheckMap.set(HealthCheckKey.HEALTH_CHECK_INCOMING_DATA, Instant.now());
     }
 
 
@@ -87,20 +87,6 @@ public class HealthManager {
             return seconds;
         }
         return -1;
-    }
-
-    public boolean isHealthCheckRunning() {
-        Instant lastHealthCheck = healthCheckMap.get(HealthCheckKey.ANSHAR_HEALTHCHECK_KEY);
-        if (lastHealthCheck != null) {
-            long lastHealthCheckMillis = lastHealthCheck.toEpochMilli();
-
-            long seconds = (Instant.now().toEpochMilli() - lastHealthCheckMillis) / (1000);
-            if (seconds > healthCheckInterval * 3) {
-                logger.warn("Last healthCheck: {}, {} seconds ago", lastHealthCheckMillis, seconds);
-                return false;
-            }
-        }
-        return true;
     }
 
     public Map<SubscriptionSetup.SubscriptionType, Set<String>> getUnmappedIds(String datasetId) {
@@ -139,6 +125,6 @@ public class HealthManager {
         ids.add(id);
         unmappedIds.put(type, ids);
 
-        this.unmappedIds.put(datasetId, unmappedIds);
+        this.unmappedIds.set(datasetId, unmappedIds);
     }
 }

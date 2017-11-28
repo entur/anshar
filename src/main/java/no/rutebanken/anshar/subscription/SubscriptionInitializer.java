@@ -1,8 +1,6 @@
 package no.rutebanken.anshar.subscription;
 
 import com.google.common.base.Preconditions;
-import com.hazelcast.core.IMap;
-import no.rutebanken.anshar.messages.collections.HealthCheckKey;
 import no.rutebanken.anshar.routes.CamelConfiguration;
 import no.rutebanken.anshar.routes.siri.*;
 import no.rutebanken.anshar.routes.siri.adapters.Mapping;
@@ -15,13 +13,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import java.time.Instant;
 import java.util.*;
 
 @Service
@@ -30,13 +26,6 @@ public class SubscriptionInitializer implements CamelContextAware, ApplicationCo
 
     @Autowired
     private SubscriptionManager subscriptionManager;
-
-    @Autowired
-    private MappingAdapterPresets mappingAdapterPresets;
-
-    @Autowired
-    @Qualifier("getHealthCheckMap")
-    private IMap<Enum<HealthCheckKey>, Instant> healthCheckMap;
 
     @Autowired
     private SubscriptionConfig subscriptionConfig;
@@ -110,28 +99,6 @@ public class SubscriptionInitializer implements CamelContextAware, ApplicationCo
                         throw new ServiceConfigurationError("Invalid mappingAdapterId for subscription " + subscriptionSetup);
                     }
                 }
-
-//                for (SubscriptionPreset preset : subscriptionSetup.mappingAdapterPresets) {
-//                    if (preset == NSR) {
-//                        //Add NSR StopPlaceIdMapperAdapters
-//                        if (subscriptionSetup.getIdMappingPrefixes() != null && !subscriptionSetup.getIdMappingPrefixes().isEmpty()) {
-//
-//                            List<ValueAdapter> nsr = mappingAdapterPresets.createNsrIdMappingAdapters(subscriptionSetup.getIdMappingPrefixes());
-//                            if (!subscriptionSetup.getMappingAdapters().containsAll(nsr)) {
-//                                subscriptionSetup.getMappingAdapters().addAll(nsr);
-//                            }
-//                        }
-//
-//                        //Add Chouette route_id, trip_id adapters
-//                        if (subscriptionSetup.getDatasetId() != null && !subscriptionSetup.getDatasetId().isEmpty()) {
-//                            List<ValueAdapter> datasetPrefix = mappingAdapterPresets.createIdPrefixAdapters(subscriptionSetup.getDatasetId());
-//                            if (!subscriptionSetup.getMappingAdapters().containsAll(datasetPrefix)) {
-//                                subscriptionSetup.getMappingAdapters().addAll(datasetPrefix);
-//                            }
-//                        }
-//                    }
-//                }
-
 
                 if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.FETCHED_DELIVERY) {
 
