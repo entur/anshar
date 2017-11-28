@@ -125,7 +125,7 @@ public class LivenessReadinessRoute extends RouteBuilder {
                     .setBody(simple("OK"))
                     .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
                 .end()
-                .routeId("anshar.is.healthy")
+                .routeId("health.healthy")
         ;
 
         from("jetty:http://0.0.0.0:" + inboundPort + "/anshardata")
