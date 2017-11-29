@@ -70,7 +70,7 @@ public class SiriValueTransformer {
         } finally {
             long t2 = System.currentTimeMillis();
 
-            System.out.println("Deepcopy took (ms) " + (t2-t1));
+            logger.info("Deepcopy took {}ms ", (t2-t1));
         }
         if (transformed != null && adapters != null) {
             logger.trace("Applying {} valueadapters {}", adapters.size(), adapters);
@@ -105,6 +105,9 @@ public class SiriValueTransformer {
                 }
             }
         }
+        long t3 = System.currentTimeMillis();
+
+        logger.info("Transformation took {}ms ", (t3-t1));
         return transformed;
     }
 
