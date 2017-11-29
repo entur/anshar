@@ -53,6 +53,10 @@ public class OutboundSubscriptionSetup implements Serializable {
         this.valueAdapters = outboundAdapters;
     }
 
+    public String createRouteId() {
+        return "outbound." + subscriptionType + "." + subscriptionId;
+    }
+
     public ZonedDateTime getRequestTimestamp() {
         return requestTimestamp;
     }

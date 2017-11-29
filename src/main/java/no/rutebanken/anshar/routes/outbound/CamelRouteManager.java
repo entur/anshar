@@ -8,15 +8,18 @@ import org.apache.camel.model.RouteDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uk.org.siri.siri20.*;
 
 import javax.xml.bind.JAXBException;
 import java.net.ConnectException;
 import java.net.SocketException;
+import java.util.HashMap;
 import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Service
 public class CamelRouteManager implements CamelContextAware {
@@ -26,6 +29,11 @@ public class CamelRouteManager implements CamelContextAware {
     
     @Autowired
     private SiriHelper siriHelper;
+
+    @Value("${anshar.outbound.maximumSizePerDelivery:1000}")
+    private int maximumSizePerDelivery;
+
+    private final Map<OutboundSubscriptionSetup, SiriPushRouteBuilder> outboundRoutes = new HashMap<>();
 
     @Override
     public CamelContext getCamelContext() {
@@ -52,63 +60,46 @@ public class CamelRouteManager implements CamelContextAware {
             return;
         }
 
-        
-        Siri filteredPayload = siriHelper.filterSiriPayload(payload, subscriptionRequest.getFilterMap());
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        executorService.submit(() -> {
+            try {
 
-        // Use original/mapped ids based on subscription
-        filteredPayload = SiriValueTransformer.transform(filteredPayload, subscriptionRequest.getValueAdapters());
+                Siri filteredPayload = siriHelper.filterSiriPayload(payload, subscriptionRequest.getFilterMap());
 
-        List<Siri> splitSiri = siriHelper.splitDeliveries(filteredPayload, 1000);
+                // Use original/mapped ids based on subscription
+                filteredPayload = SiriValueTransformer.transform(filteredPayload, subscriptionRequest.getValueAdapters());
 
-        logger.info("Object split into {} deliveries.", splitSiri.size());
+                List<Siri> splitSiri = siriHelper.splitDeliveries(filteredPayload, maximumSizePerDelivery);
 
-        for (Siri siri : splitSiri) {
-            Thread r = new Thread() {
-                String routeId = "";
-                @Override
-                public void run() {
-                    try {
+                logger.info("Object split into {} deliveries.", splitSiri.size());
 
-                        SiriPushRouteBuilder siriPushRouteBuilder = new SiriPushRouteBuilder(consumerAddress, subscriptionRequest);
-                        routeId = addSiriPushRoute(siriPushRouteBuilder);
-                        executeSiriPushRoute(siri, siriPushRouteBuilder.getRouteName());
-                    } catch (Exception e) {
-                        if (e.getCause() instanceof SocketException) {
-                            logger.info("Recipient is unreachable - ignoring");
-                        } else {
-                            logger.warn("Exception caught when pushing SIRI-data", e);
-                        }
-                    } finally {
-                        try {
-                            stopAndRemoveSiriPushRoute(routeId);
-                        } catch (Exception e) {
-                            logger.warn("Exception caught when removing route " + routeId, e);
-                        }
-                    }
+                SiriPushRouteBuilder siriPushRouteBuilder = new SiriPushRouteBuilder(consumerAddress, subscriptionRequest);
+                Route route = addSiriPushRoute(siriPushRouteBuilder);
+
+                for (Siri siri : splitSiri) {
+                    executeSiriPushRoute(siri, route.getId());
                 }
-            };
-            r.start();
-        }
+            } catch (Exception e) {
+                if (e.getCause() instanceof SocketException) {
+                    logger.info("Recipient is unreachable - ignoring");
+                } else {
+                    logger.warn("Exception caught when pushing SIRI-data", e);
+                }
+            } finally {
+                executorService.shutdown();
+            }
+
+        });
     }
 
-    private String addSiriPushRoute(SiriPushRouteBuilder route) throws Exception {
-        camelContext.addRoutes(route);
-        logger.trace("Route added - CamelContext now has {} routes", camelContext.getRoutes().size());
-        return route.getDefinition().getId();
-    }
-
-    private boolean stopAndRemoveSiriPushRoute(String routeId) throws Exception {
-        int timeout = 30000;
-        if (!camelContext.stopRoute(routeId, timeout, TimeUnit.MILLISECONDS, true)) {
-            logger.warn("Route {} could not be stopped - aborted after {} ms", routeId, timeout);
+    private Route addSiriPushRoute(SiriPushRouteBuilder route) throws Exception {
+        Route existingRoute = camelContext.getRoute(route.getRouteName());
+        if (existingRoute == null) {
+            camelContext.addRoutes(route);
+            logger.trace("Route added - CamelContext now has {} routes", camelContext.getRoutes().size());
         }
-        if (!camelContext.removeRoute(routeId)) {
-            logger.warn("Route {} could not be removed.");
-        }
-        logger.trace("Route removed - CamelContext now has {} routes", camelContext.getRoutes().size());
-        return true;
+        return existingRoute;
     }
-
 
     private void executeSiriPushRoute(Siri payload, String routeName) throws JAXBException {
         if (!serviceDeliveryContainsData(payload)) {
@@ -160,6 +151,7 @@ public class CamelRouteManager implements CamelContextAware {
         public SiriPushRouteBuilder(String remoteEndPoint, OutboundSubscriptionSetup subscriptionRequest) {
             this.remoteEndPoint=remoteEndPoint;
             this.subscriptionRequest = subscriptionRequest;
+            routeName = String.format("direct:%s", subscriptionRequest.createRouteId());
         }
 
         @Override
@@ -176,8 +168,6 @@ public class CamelRouteManager implements CamelContextAware {
             } else if (remoteEndPoint.startsWith("activemq:")) {
                 isActiveMQ = true;
             }
-
-            routeName = String.format("direct:%s", UUID.randomUUID().toString());
 
             String options;
             if (isActiveMQ) {
