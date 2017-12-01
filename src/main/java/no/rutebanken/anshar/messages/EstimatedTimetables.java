@@ -483,19 +483,23 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
         String datedVehicleJourney = element.getDatedVehicleJourneyRef() != null ? element.getDatedVehicleJourneyRef().getValue() : null;
         if (datedVehicleJourney == null && element.getFramedVehicleJourneyRef() != null) {
             String dataFrameRef = element.getFramedVehicleJourneyRef().getDataFrameRef() != null ? element.getFramedVehicleJourneyRef().getDataFrameRef().getValue():"null";
-            datedVehicleJourney = dataFrameRef + ":" + element.getFramedVehicleJourneyRef().getDatedVehicleJourneyRef();
-        }
 
-        key.append(datasetId).append(":")
-                .append((element.getOperatorRef() != null ? element.getOperatorRef().getValue() : "null"))
-                .append(":")
-                .append((element.getLineRef() != null ? element.getLineRef().getValue() : "null"))
-                .append(":")
-                .append((element.getVehicleRef() != null ? element.getVehicleRef().getValue() : "null"))
-                .append(":")
-                .append((element.getDirectionRef() != null ? element.getDirectionRef().getValue() :"null"))
-                .append(":")
-                .append(datedVehicleJourney);
+            key.append(datasetId).append(":")
+                    .append(dataFrameRef)
+                    .append(":")
+                    .append(element.getFramedVehicleJourneyRef().getDatedVehicleJourneyRef());
+        } else {
+            key.append(datasetId).append(":")
+                    .append((element.getOperatorRef() != null ? element.getOperatorRef().getValue() : "null"))
+                    .append(":")
+                    .append((element.getLineRef() != null ? element.getLineRef().getValue() : "null"))
+                    .append(":")
+                    .append((element.getVehicleRef() != null ? element.getVehicleRef().getValue() : "null"))
+                    .append(":")
+                    .append((element.getDirectionRef() != null ? element.getDirectionRef().getValue() : "null"))
+                    .append(":")
+                    .append(datedVehicleJourney);
+        }
 
         return key.toString();
     }
