@@ -64,6 +64,14 @@ public class InterruptibleHazelcastRoutePolicy extends HazelcastRoutePolicy {
 
         String lockKey = getLockKey();
 
+        LOGGER.info("Starting to acquire lock (map={}, key={}, val={}) timeout {} {}",
+                getLockMapName(),
+                lockKey,
+                getLockValue(),
+                getTryLockTimeout(),
+                getTryLockTimeoutUnit().name()
+        );
+
         boolean locked = false;
         while (isRunAllowed()) {
             try {
@@ -78,7 +86,7 @@ public class InterruptibleHazelcastRoutePolicy extends HazelcastRoutePolicy {
                         syncObject.wait();
                     }
                 } else {
-                    LOGGER.debug("Failed to acquire lock (map={}, key={}, val={}) after {} {}",
+                    LOGGER.info("Failed to acquire lock (map={}, key={}, val={}) after {} {}",
                         getLockMapName(),
                             lockKey,
                         getLockValue(),
@@ -99,6 +107,13 @@ public class InterruptibleHazelcastRoutePolicy extends HazelcastRoutePolicy {
                 setLeader(false);
             }
         }
+        LOGGER.info("Finished trying to acquire lock(map={}, key={}, val={}) timeout {} {}",
+                getLockMapName(),
+                lockKey,
+                getLockValue(),
+                getTryLockTimeout(),
+                getTryLockTimeoutUnit().name()
+        );
 
         return null;
     }
