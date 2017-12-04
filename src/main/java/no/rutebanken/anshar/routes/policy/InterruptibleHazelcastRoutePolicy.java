@@ -87,7 +87,7 @@ public class InterruptibleHazelcastRoutePolicy extends HazelcastRoutePolicy {
                         syncObject.wait();
                     }
                 } else {
-                    LOGGER.info("Failed to acquire lock (map={}, key={}, val={}) after {} {}",
+                    LOGGER.debug("Failed to acquire lock (map={}, key={}, val={}) after {} {}",
                         getLockMapName(),
                             lockKey,
                         getLockValue(),
@@ -109,6 +109,7 @@ public class InterruptibleHazelcastRoutePolicy extends HazelcastRoutePolicy {
                 if (locked) {
                     locks.remove(lockKey);
                     locks.unlock(lockKey);
+                    releaseLeadership();
                     locked = false;
                 }
                 setLeader(false);
