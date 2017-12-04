@@ -56,7 +56,7 @@ public class InterruptibleHazelcastRoutePolicy extends HazelcastRoutePolicy {
 
     public void releaseLeadership() {
         synchronized(syncObject) {
-            syncObject.notify();
+            syncObject.notifyAll();
         }
     }
 
