@@ -111,6 +111,14 @@ public class InterruptibleHazelcastRoutePolicy extends HazelcastRoutePolicy {
                     locks.unlock(lockKey);
                     releaseLeadership();
                     locked = false;
+
+                    LOGGER.info("Released lock(map={}, key={}, val={}) timeout {} {}",
+                            getLockMapName(),
+                            lockKey,
+                            getLockValue(),
+                            getTryLockTimeout(),
+                            getTryLockTimeoutUnit().name()
+                    );
                 }
                 setLeader(false);
             }
