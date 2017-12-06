@@ -1,7 +1,9 @@
 package no.rutebanken.anshar.messages;
 
 import com.hazelcast.core.IMap;
+import no.rutebanken.anshar.metrics.MetricsService;
 import no.rutebanken.anshar.routes.siri.SiriObjectFactory;
+import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.quartz.utils.counter.Counter;
 import org.quartz.utils.counter.CounterImpl;
 import org.slf4j.Logger;
@@ -34,6 +36,9 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
     @Autowired
     @Qualifier("getLastEtUpdateRequest")
     private IMap<String, Instant> lastUpdateRequested;
+
+    @Autowired
+    private MetricsService metricsService;
 
     /**
      * @return All ET-elements
@@ -297,6 +302,7 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
 
 
             if (keep) {
+
                 if (et.isIsCompleteStopSequence() != null && !et.isIsCompleteStopSequence()) {
                     //Not complete - merge partial update into existing
                     if (existing != null) {
@@ -377,6 +383,7 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
         });
 
         logger.info("Updated {} (of {})", changes.size(), etList.size());
+        metricsService.registerIncomingData(SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE, datasetId, changes.size());
 
         changesMap.keySet().forEach(requestor -> {
             if (lastUpdateRequested.get(requestor) != null) {

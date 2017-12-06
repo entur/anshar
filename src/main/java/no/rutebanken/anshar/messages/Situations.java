@@ -1,7 +1,9 @@
 package no.rutebanken.anshar.messages;
 
 import com.hazelcast.core.IMap;
+import no.rutebanken.anshar.metrics.MetricsService;
 import no.rutebanken.anshar.routes.siri.SiriObjectFactory;
+import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.quartz.utils.counter.Counter;
 import org.quartz.utils.counter.CounterImpl;
 import org.slf4j.Logger;
@@ -39,6 +41,10 @@ public class Situations implements SiriRepository<PtSituationElement> {
 
     @Autowired
     private SiriObjectFactory siriObjectFactory;
+
+
+    @Autowired
+    private MetricsService metricsService;
 
     /**
      * @return All situations
@@ -211,6 +217,8 @@ public class Situations implements SiriRepository<PtSituationElement> {
 
             long expiration = getExpiration(situation);
             if (expiration > 0) { //expiration < 0 => already expired
+
+                metricsService.registerIncomingData(SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE, datasetId, changes.size());
                 situations.set(key, situation, expiration, TimeUnit.MILLISECONDS);
                 changes.add(key);
             } else if (situations.containsKey(key)) {

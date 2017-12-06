@@ -1,8 +1,10 @@
 package no.rutebanken.anshar.messages;
 
 import com.hazelcast.core.IMap;
+import no.rutebanken.anshar.metrics.MetricsService;
 import no.rutebanken.anshar.routes.mqtt.SiriVmMqttHandler;
 import no.rutebanken.anshar.routes.siri.SiriObjectFactory;
+import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.quartz.utils.counter.Counter;
 import org.quartz.utils.counter.CounterImpl;
 import org.slf4j.Logger;
@@ -40,6 +42,9 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
 
     @Autowired
     private SiriObjectFactory siriObjectFactory;
+
+    @Autowired
+    private MetricsService metricsService;
 
     /**
      * @return All vehicle activities
@@ -214,6 +219,8 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
                         long expiration = getExpiration(activity);
 
                         if (expiration > 0 && keep) {
+
+                            metricsService.registerIncomingData(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING, datasetId, changes.size());
                             changes.add(key);
                             vehicleActivities.set(key, activity, expiration, TimeUnit.MILLISECONDS);
                             siriVmMqttHandler.pushToMqtt(datasetId, activity);

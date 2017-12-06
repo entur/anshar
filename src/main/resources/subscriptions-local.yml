@@ -275,7 +275,33 @@ anshar:
     -
       internalId: 999
       vendor: dummy
-      datasetId: BRA
+      datasetId: RUT
+      serviceType: REST
+      subscriptionType: VEHICLE_MONITORING
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 6000
+      previewIntervalSeconds: 86400
+      updateIntervalSeconds: 1
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: local/siri/sx
+        DELETE_SUBSCRIPTION: local/siri/sx
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: dummyvm
+      requestorRef: dummy
+      durationOfSubscriptionHours: 1
+      mappingAdapterId: entur
+      filterPresets:
+      idMappingPrefixes:
+      active: true
+    -
+      internalId: 9999
+      vendor: dummy
+      datasetId: RUT
       serviceType: REST
       subscriptionType: ESTIMATED_TIMETABLE
       subscriptionMode: SUBSCRIBE
@@ -291,10 +317,10 @@ anshar:
         DELETE_SUBSCRIPTION: local/siri/sx
       version: 2.0
       contentType: text/xml;charset=UTF-8
-      subscriptionId: dummy
+      subscriptionId: dummyet
       requestorRef: dummy
       durationOfSubscriptionHours: 1
-      mappingAdapterId: brakar
+      mappingAdapterId: entur
       filterPresets:
-      idMappingPrefixes: BRA
+      idMappingPrefixes:
       active: true
