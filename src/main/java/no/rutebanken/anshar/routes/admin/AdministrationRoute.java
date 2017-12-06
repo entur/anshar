@@ -102,7 +102,10 @@ public class AdministrationRoute extends RouteBuilder {
         from("jetty:http://0.0.0.0:" + inboundPort + "/anshar/unmapped")
                 .process(p -> {
                     HttpServletRequest request = p.getIn().getBody(HttpServletRequest.class);
-                    String datasetId = request.getParameter("datasetId");
+                    String datasetId = request.getParameter("agencyId");
+                    if (datasetId == null) {
+                        datasetId = request.getParameter("datasetId");
+                    }
 
                     if (datasetId != null) {
                         p.getOut().setHeader(Exchange.CONTENT_TYPE, "text/html");

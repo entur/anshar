@@ -59,7 +59,10 @@ public class SiriProvider extends RouteBuilder {
                     p.getOut().setHeaders(p.getIn().getHeaders());
 
                     HttpServletRequest request = p.getIn().getBody(HttpServletRequest.class);
-                    String datasetId = request.getParameter("datasetId");
+                    String datasetId = request.getParameter("agencyId");
+                    if (datasetId == null) {
+                        datasetId = request.getParameter("datasetId");
+                    }
                     String requestorId = request.getParameter("requestorId");
                     String originalId = request.getParameter("useOriginalId");
                     String maxSizeStr = request.getParameter("maxSize");
@@ -102,7 +105,10 @@ public class SiriProvider extends RouteBuilder {
                     p.getOut().setHeaders(p.getIn().getHeaders());
 
                     HttpServletRequest request = p.getIn().getBody(HttpServletRequest.class);
-                    String datasetId = request.getParameter("datasetId");
+                    String datasetId = request.getParameter("agencyId");
+                    if (datasetId == null) {
+                        datasetId = request.getParameter("datasetId");
+                    }
                     String requestorId = request.getParameter("requestorId");
                     String originalId = request.getParameter("useOriginalId");
                     String maxSizeStr = request.getParameter("maxSize");
@@ -146,7 +152,10 @@ public class SiriProvider extends RouteBuilder {
                     p.getOut().setHeaders(p.getIn().getHeaders());
 
                     HttpServletRequest request = p.getIn().getBody(HttpServletRequest.class);
-                    String datasetId = request.getParameter("datasetId");
+                    String datasetId = request.getParameter("agencyId");
+                    if (datasetId == null) {
+                        datasetId = request.getParameter("datasetId");
+                    }
                     String requestorId = request.getParameter("requestorId");
                     String originalId = request.getParameter("useOriginalId");
                     String maxSizeStr = request.getParameter("maxSize");
@@ -196,7 +205,10 @@ public class SiriProvider extends RouteBuilder {
                     p.getOut().setHeaders(p.getIn().getHeaders());
 
                     HttpServletRequest request = p.getIn().getBody(HttpServletRequest.class);
-                    String datasetId = request.getParameter("datasetId");
+                    String datasetId = request.getParameter("agencyId");
+                    if (datasetId == null) {
+                        datasetId = request.getParameter("datasetId");
+                    }
                     String requestorId = request.getParameter("requestorId");
                     String originalId = request.getParameter("useOriginalId");
 
