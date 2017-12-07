@@ -59,7 +59,7 @@ public class MetricsServiceImpl implements MetricsService {
 
     @Override
     public void registerIncomingData(SubscriptionSetup.SubscriptionType subscriptionType, String agencyId, int count) {
-        metrics.meter("data.from." + agencyId +".type." + subscriptionType).mark(count);
+        metrics.histogram("data.from." + agencyId +".type." + subscriptionType).update(count);
     }
 
 }
