@@ -44,7 +44,7 @@ public class MetricsServiceImpl implements MetricsService {
     @PostConstruct
     public void postConstruct() {
         logger.info("Starting graphite reporter");
-        reporter.start(1, TimeUnit.MINUTES);
+        reporter.start(10, TimeUnit.SECONDS);
     }
 
     @PreDestroy
