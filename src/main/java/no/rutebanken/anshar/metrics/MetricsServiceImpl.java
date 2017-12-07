@@ -43,7 +43,7 @@ public class MetricsServiceImpl implements MetricsService {
 
     @PostConstruct
     public void postConstruct() {
-        logger.info("Starting graphite reporter");
+//        logger.info("Starting graphite reporter");
 //        reporter.start(10, TimeUnit.SECONDS);
     }
 
@@ -59,8 +59,10 @@ public class MetricsServiceImpl implements MetricsService {
 
     @Override
     public void registerIncomingData(SubscriptionSetup.SubscriptionType subscriptionType, String agencyId, int count) {
-        metrics.histogram("data.from." + agencyId +".type." + subscriptionType).update(count);
+        String metricName = "data.from." + agencyId + ".type." + subscriptionType;
+        metrics.meter(metricName).mark(count);
         reporter.report();
+        metrics.meter(metricName).mark(-count);
     }
 
 }
