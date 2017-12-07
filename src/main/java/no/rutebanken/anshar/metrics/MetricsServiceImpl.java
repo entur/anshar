@@ -1,5 +1,6 @@
 package no.rutebanken.anshar.metrics;
 
+import com.codahale.metrics.Meter;
 import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.graphite.Graphite;
@@ -23,6 +24,8 @@ public class MetricsServiceImpl implements MetricsService {
     private final GraphiteReporter reporter;
 
     private final Graphite graphite;
+
+    private final Object LOCK = new Object();
 
     public MetricsServiceImpl(String graphiteServerDns, int graphitePort) {
 
@@ -60,9 +63,22 @@ public class MetricsServiceImpl implements MetricsService {
     @Override
     public void registerIncomingData(SubscriptionSetup.SubscriptionType subscriptionType, String agencyId, int count) {
         String metricName = "data.from." + agencyId + ".type." + subscriptionType;
-        metrics.meter(metricName).mark(count);
-        reporter.report();
-        metrics.meter(metricName).mark(-count);
+        synchronized (LOCK) {
+            Meter meter = metrics.meter(metricName);
+            //Set current value
+            meter.mark(count);
+
+            //Immediately report only the updated Meter
+            reporter.report(
+                    metrics.getGauges(),
+                    metrics.getCounters(),
+                    metrics.getHistograms(),
+                    metrics.getMeters((name, metric) -> metricName.equals(name)),
+                    metrics.getTimers());
+
+            //Reset counter
+            meter.mark(-meter.getCount());
+        }
     }
 
 }
