@@ -217,8 +217,6 @@ public class Situations implements SiriRepository<PtSituationElement> {
 
             long expiration = getExpiration(situation);
             if (expiration > 0) { //expiration < 0 => already expired
-
-                metricsService.registerIncomingData(SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE, datasetId, changes.size());
                 situations.set(key, situation, expiration, TimeUnit.MILLISECONDS);
                 changes.add(key);
             } else if (situations.containsKey(key)) {
@@ -231,6 +229,8 @@ public class Situations implements SiriRepository<PtSituationElement> {
 
         });
         logger.info("Updated {} (of {}) :: Already expired: {},", changes.size(), sxList.size(), alreadyExpiredCounter.getValue());
+
+        metricsService.registerIncomingData(SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE, datasetId, changes.size());
 
         changesMap.keySet().forEach(requestor -> {
             if (lastUpdateRequested.get(requestor) != null) {

@@ -219,8 +219,6 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
                         long expiration = getExpiration(activity);
 
                         if (expiration > 0 && keep) {
-
-                            metricsService.registerIncomingData(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING, datasetId, changes.size());
                             changes.add(key);
                             vehicleActivities.set(key, activity, expiration, TimeUnit.MILLISECONDS);
                             siriVmMqttHandler.pushToMqtt(datasetId, activity);
@@ -234,6 +232,8 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
                 });
 
         logger.info("Updated {} (of {}) :: Ignored elements - Missing location:{}, Missing values: {}, Skipped: {}", changes.size(), vmList.size(), invalidLocationCounter.getValue(), notMeaningfulCounter.getValue(), outdatedCounter.getValue());
+
+        metricsService.registerIncomingData(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING, datasetId, changes.size());
 
         changesMap.keySet().forEach(requestor -> {
             if (lastUpdateRequested.get(requestor) != null) {
