@@ -305,7 +305,7 @@ anshar:
       mappingAdapterId: banenoret
       filterPresets:
       idMappingPrefixes: NSB,FLT
-      active: true
+      active: false
     -
       internalId: 171
       vendor: baneEt-reqres-1h
@@ -330,7 +330,7 @@ anshar:
       mappingAdapterId: banenoret
       filterPresets:
       idMappingPrefixes: NSB,FLT
-      active: true
+      active: false
     -
       internalId: 18
       vendor: baneSx-reqres-24h
@@ -405,7 +405,7 @@ anshar:
       mappingAdapterId: banenoret
       filterPresets:
       idMappingPrefixes: NSB,FLT
-      active: false
+      active: true
     -
       internalId: 20
       vendor: baneSx
