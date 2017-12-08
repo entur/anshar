@@ -338,8 +338,9 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
                         //Keep estimatedCalls not in RecordedCalls
                         if (existingEstimatedCallWrapper != null && existingEstimatedCallWrapper.getEstimatedCalls() != null ) {
                             for (EstimatedCall call : existingEstimatedCallWrapper.getEstimatedCalls()) {
-                                if (!recordedCallsMap.containsKey(call.getStopPointRef().getValue())) {
-                                    estimatedCallsMap.put(getOriginalId(call.getStopPointRef().getValue()), call);
+                                String originalId = getOriginalId(call.getStopPointRef().getValue());
+                                if (!recordedCallsMap.containsKey(originalId)) {
+                                    estimatedCallsMap.put(originalId, call);
                                 }
                             }
                         }
