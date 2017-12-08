@@ -46,7 +46,7 @@ public class MetricsServiceImpl implements MetricsService {
     @PostConstruct
     public void postConstruct() {
         logger.info("Starting graphite reporter");
-//        reporter.start(1, TimeUnit.MINUTES);
+        reporter.start(10, TimeUnit.SECONDS);
     }
 
     @PreDestroy
@@ -62,17 +62,17 @@ public class MetricsServiceImpl implements MetricsService {
     @Override
     public void registerIncomingData(SubscriptionSetup.SubscriptionType subscriptionType, String agencyId, int count) {
         String counterName = "data.from." + agencyId + ".type." + subscriptionType;
-        synchronized (LOCK) {
+//        synchronized (LOCK) {
              metrics.meter(counterName).mark(count);
 
-            //Immediately report only the updated Meter
-            reporter.report(
-                    metrics.getGauges(),
-                    metrics.getCounters(),
-                    metrics.getHistograms(),
-                    metrics.getMeters((name, metric) -> counterName.equals(name)),
-                    metrics.getTimers());
-        }
+//            //Immediately report only the updated Meter
+//            reporter.report(
+//                    metrics.getGauges(),
+//                    metrics.getCounters(),
+//                    metrics.getHistograms(),
+//                    metrics.getMeters((name, metric) -> counterName.equals(name)),
+//                    metrics.getTimers());
+//        }
     }
 
 }
