@@ -47,7 +47,7 @@ public class SiriVmMqttHandler {
     private static final String DATE_FORMAT = "yyyy-MM-dd";
     private static final String ODAY_FORMAT = "hhmm";
 
-    private static final String RUTEBANKEN = "rutebanken";
+    private static final String ENTUR = "entur";
     private static final String DIR_GO = "1";
     private static final String DIR_BACK = "2";
     private static final String GO = "go";
@@ -180,6 +180,7 @@ public class SiriVmMqttHandler {
             throw new NullPointerException("VehicleActivityStructure.MonitoredVehicleJourney.VehicleRef is null");
         }
 
+        String tripId = getServiceJourney(monitoredVehicleJourney);
         String mode = getMode(monitoredVehicleJourney);
         String route = getRoute(monitoredVehicleJourney);
         String direction = getDirection(monitoredVehicleJourney);
@@ -191,10 +192,10 @@ public class SiriVmMqttHandler {
         String timestamp = getTimestamp(activity);
         long tsi = getTsi(activity);
 
-        String topic = getTopic(mode, vehicleId, route, direction, headSign, startTime, nextStop, lat, lng);
+        String topic = getTopic(mode, vehicleId, route, tripId, direction, headSign, startTime, nextStop, lat, lng);
         String message = null;
         try {
-            message = getMessage(monitoredVehicleJourney, vehicleId, timestamp, tsi, route, direction, headSign, startTime, lat, lng);
+            message = getMessage(monitoredVehicleJourney, vehicleId, timestamp, tsi, route, tripId, direction, headSign, startTime, lat, lng);
         } catch (JSONException e) {
            logger.info("Caught exception when generating MQTT-messsage - will be ignored", e);
         }
@@ -204,14 +205,15 @@ public class SiriVmMqttHandler {
 
     /**
      * Formats topic to string
-     * - hfp/journey/<mode>/<vehicleId>/<route>/<direction>/<headsign>/<start_time>/<next_stop>/<geohash>;
+     * - hfp/journey/<mode>/<vehicleId>/<route>/<trip_id>/<direction>/<headsign>/<start_time>/<next_stop>/<geohash>;
      */
-    private String getTopic(String mode, String vehicleId, String route, String direction, String headSign,
+    private String getTopic(String mode, String vehicleId, String route, String tripId, String direction, String headSign,
                             String startTime, String nextStop, double lat, double lng) {
         return new StringBuilder(TOPIC_PREFIX)
                     .append(mode).append(SLASH)
                     .append(vehicleId).append(SLASH)
                     .append(route).append(SLASH)
+                    .append(tripId).append(SLASH)
                     .append(direction).append(SLASH)
                     .append(headSign).append(SLASH)
                     .append(startTime).append(SLASH)
@@ -220,7 +222,7 @@ public class SiriVmMqttHandler {
     }
 
     private String getMessage(MonitoredVehicleJourney monitoredVehicleJourney, String vehicleId, String timeStamp,
-                              long tsi, String route, String direction, String headSign, String startTime, double lat,
+                              long tsi, String route, String tripId, String direction, String headSign, String startTime, double lat,
                               double lng) throws JSONException {
         JSONObject vehiclePosition = new JSONObject();
         vehiclePosition.put(VehiclePosition.DESIGNATION, getDesignation(monitoredVehicleJourney));
@@ -238,9 +240,10 @@ public class SiriVmMqttHandler {
         vehiclePosition.put(VehiclePosition.ODAY, getDepartureDay(monitoredVehicleJourney));
         vehiclePosition.put(VehiclePosition.JOURNEY, getJourney(monitoredVehicleJourney, headSign));
         vehiclePosition.put(VehiclePosition.LINE, route);
+        vehiclePosition.put(VehiclePosition.TRIP_ID, tripId);
         vehiclePosition.put(VehiclePosition.STARTTIME, startTime);
         vehiclePosition.put(VehiclePosition.STOP_INDEX, getStopIndex(monitoredVehicleJourney));
-        vehiclePosition.put(VehiclePosition.SOURCE, RUTEBANKEN);
+        vehiclePosition.put(VehiclePosition.SOURCE, ENTUR);
 
         return new JSONObject().put(VehiclePosition.ROOT, vehiclePosition).toString();
     }
@@ -248,6 +251,15 @@ public class SiriVmMqttHandler {
     /*
      * MQTT helper methods
      */
+
+    private String getServiceJourney(MonitoredVehicleJourney monitoredVehicleJourney) {
+        FramedVehicleJourneyRefStructure framedVehicleJourneyRef = monitoredVehicleJourney.getFramedVehicleJourneyRef();
+        if (framedVehicleJourneyRef != null && framedVehicleJourneyRef.getDatedVehicleJourneyRef() != null) {
+            return framedVehicleJourneyRef.getDatedVehicleJourneyRef();
+        }
+        return VehiclePosition.UNKNOWN;
+    }
+
 
     private String getMode(MonitoredVehicleJourney monitoredVehicleJourney) {
         if ("Sporvognsdrift".equals(getOperator(monitoredVehicleJourney))) {
@@ -259,7 +271,7 @@ public class SiriVmMqttHandler {
     private String getVehicleId(String datasetId, MonitoredVehicleJourney monitoredVehicleJourney) {
         VehicleRef vehicleRef = monitoredVehicleJourney.getVehicleRef();
         if (vehicleRef != null && vehicleRef.getValue() != null) {
-            return datasetId + vehicleRef.getValue();
+            return datasetId + ":" + vehicleRef.getValue();
         }
         return null;
     }
