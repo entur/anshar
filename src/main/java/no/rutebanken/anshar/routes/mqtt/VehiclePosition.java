@@ -23,6 +23,7 @@ public interface VehiclePosition {
     String LINE = "line";
     String STARTTIME = "start";
     String STOP_INDEX = "stop_index";
+    String TRIP_ID = "trip_id";
     String SOURCE = "source";
 
     String UNKNOWN = "XXX";
