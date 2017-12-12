@@ -255,7 +255,7 @@ public class SiriVmMqttHandler {
     private String getServiceJourney(MonitoredVehicleJourney monitoredVehicleJourney) {
         FramedVehicleJourneyRefStructure framedVehicleJourneyRef = monitoredVehicleJourney.getFramedVehicleJourneyRef();
         if (framedVehicleJourneyRef != null && framedVehicleJourneyRef.getDatedVehicleJourneyRef() != null) {
-            return framedVehicleJourneyRef.getDatedVehicleJourneyRef();
+            return OutboundIdAdapter.getMappedId(framedVehicleJourneyRef.getDatedVehicleJourneyRef());
         }
         return VehiclePosition.UNKNOWN;
     }
