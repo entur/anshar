@@ -3,6 +3,7 @@ package no.rutebanken.anshar.messages;
 import com.hazelcast.core.IMap;
 import no.rutebanken.anshar.metrics.MetricsService;
 import no.rutebanken.anshar.routes.siri.SiriObjectFactory;
+import no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.quartz.utils.counter.Counter;
 import org.quartz.utils.counter.CounterImpl;
@@ -316,34 +317,41 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
                         }
                         EstimatedVehicleJourney.RecordedCalls updatedRecordedCallWrapper = et.getRecordedCalls();
 
-                        LinkedHashMap<String, RecordedCall> recordedCallsMap = new LinkedHashMap<>();
-                        LinkedHashMap<String, EstimatedCall> estimatedCallsMap = new LinkedHashMap<>();
+                        List<RecordedCall> recordedCallsList = new ArrayList<>();
+                        List<EstimatedCall> estimatedCallsList = new ArrayList<>();
 
                         // Merge existing and updated RecordedCalls
                         if (existingRecordedCallWrapper != null && existingRecordedCallWrapper.getRecordedCalls() != null ) {
-                            for (RecordedCall recordedCall : existingRecordedCallWrapper.getRecordedCalls()) {
-                                if (recordedCall.getStopPointRef() != null) {
-                                    recordedCallsMap.put(getOriginalId(recordedCall.getStopPointRef().getValue()), recordedCall);
-                                }
-                            }
+                            recordedCallsList.addAll(existingRecordedCallWrapper.getRecordedCalls());
                         }
                         if (updatedRecordedCallWrapper != null && updatedRecordedCallWrapper.getRecordedCalls() != null ) {
-                            for (RecordedCall recordedCall : updatedRecordedCallWrapper.getRecordedCalls()) {
-                                if (recordedCall.getStopPointRef() != null) {
-                                    recordedCallsMap.put(getOriginalId(recordedCall.getStopPointRef().getValue()), recordedCall);
-                                }
-                            }
+                            recordedCallsList.addAll(updatedRecordedCallWrapper.getRecordedCalls());
                         }
 
                         //Keep estimatedCalls not in RecordedCalls
                         if (existingEstimatedCallWrapper != null && existingEstimatedCallWrapper.getEstimatedCalls() != null ) {
                             for (EstimatedCall call : existingEstimatedCallWrapper.getEstimatedCalls()) {
                                 String originalId = getOriginalId(call.getStopPointRef().getValue());
-                                if (!recordedCallsMap.containsKey(originalId)) {
-                                    estimatedCallsMap.put(originalId, call);
+
+                                if (recordedCallsList.stream().filter(rc -> originalId.equals(getOriginalId(rc.getStopPointRef().getValue())))
+                                        .findFirst().isPresent()) {
+                                    //EstimatedCall found in RecordedCalls - all previous EstimatedCalls should have been Recorded
+                                    for (int i = 0; i < estimatedCallsList.size(); i++) {
+                                        recordedCallsList.add(i, mapToRecordedCall(estimatedCallsList.get(i)));
+                                    }
+                                    estimatedCallsList.clear();
+                                } else {
+                                    estimatedCallsList.add(call);
                                 }
                             }
                         }
+
+
+                        LinkedHashMap<String, EstimatedCall> estimatedCallsMap = new LinkedHashMap<>();
+                        for (EstimatedCall call : estimatedCallsList) {
+                            estimatedCallsMap.put(getOriginalId(call.getStopPointRef().getValue()), call);
+                        }
+
                         //Add or replace existing calls
                         if (updatedEstimatedCallWrapper != null && updatedEstimatedCallWrapper.getEstimatedCalls() != null ) {
                             for (EstimatedCall call : updatedEstimatedCallWrapper.getEstimatedCalls()) {
@@ -355,7 +363,7 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
                         joinedEstimatedCalls.getEstimatedCalls().addAll(estimatedCallsMap.values());
 
                         EstimatedVehicleJourney.RecordedCalls joinedRecordedCalls = new EstimatedVehicleJourney.RecordedCalls();
-                        joinedRecordedCalls.getRecordedCalls().addAll(recordedCallsMap.values());
+                        joinedRecordedCalls.getRecordedCalls().addAll(recordedCallsList);
 
                         et.setEstimatedCalls(joinedEstimatedCalls);
                         et.setRecordedCalls(joinedRecordedCalls);
@@ -397,6 +405,31 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
         });
 
         return timetableDeliveries.getAll(changes).values();
+    }
+
+    RecordedCall mapToRecordedCall(EstimatedCall call) {
+        RecordedCall recordedCall = new RecordedCall();
+
+        recordedCall.setStopPointRef(call.getStopPointRef());
+        recordedCall.getStopPointNames().addAll(call.getStopPointNames());
+        recordedCall.setOrder(call.getOrder());
+        recordedCall.setVisitNumber(call.getVisitNumber());
+
+        recordedCall.setAimedArrivalTime(call.getAimedArrivalTime());
+        recordedCall.setExpectedArrivalTime(call.getExpectedArrivalTime());
+        if (recordedCall.getExpectedArrivalTime() == null) {
+            recordedCall.setActualArrivalTime(call.getExpectedArrivalTime());
+        }
+
+        recordedCall.setArrivalPlatformName(call.getArrivalPlatformName());
+
+        recordedCall.setAimedDepartureTime(call.getAimedDepartureTime());
+        recordedCall.setExpectedDepartureTime(call.getExpectedDepartureTime());
+        if (recordedCall.getExpectedDepartureTime() == null) {
+            recordedCall.setActualDepartureTime(call.getExpectedDepartureTime());
+        }
+        recordedCall.setDeparturePlatformName(call.getDeparturePlatformName());
+        return recordedCall;
     }
 
 
@@ -470,7 +503,7 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
 
     private String getOriginalId(String stopPointRef) {
         if (stopPointRef != null && stopPointRef.indexOf(SEPARATOR) > 0) {
-            return stopPointRef.substring(0, stopPointRef.indexOf(SEPARATOR));
+            return OutboundIdAdapter.getOriginalId(stopPointRef);
         }
         return stopPointRef;
     }

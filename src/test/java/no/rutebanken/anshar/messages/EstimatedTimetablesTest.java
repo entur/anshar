@@ -11,6 +11,7 @@ import uk.org.siri.siri20.*;
 
 import java.math.BigInteger;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -304,6 +305,58 @@ public class EstimatedTimetablesTest {
         assertTrue("Did not check matching VehicleJourney", checkedMatchingJourney);
 
     }
+
+    @Test
+    public void testPartiallyUpdatedRecordedCalls() {
+        int previousSize = estimatedTimetables.getAll().size();
+
+        ZonedDateTime departure = ZonedDateTime.now().plusHours(1);
+        //Adding ET-data with stops 0-20
+        String lineRefValue = "12345-RecordedCalls";
+        final int numberOfEstimatedCalls = 20;
+
+        EstimatedVehicleJourney estimatedVehicleJourney = createEstimatedVehicleJourney(lineRefValue, "4321", 0, numberOfEstimatedCalls, departure, true);
+        estimatedTimetables.add("test", estimatedVehicleJourney);
+        assertEquals("Adding Journey did not add element.", previousSize+1, estimatedTimetables.getAll().size());
+
+        List<EstimatedCall> estimatedCalls = new ArrayList<>(estimatedVehicleJourney.getEstimatedCalls().getEstimatedCalls());
+
+        EstimatedVehicleJourney estimatedVehicleJourneyUpdate = createEstimatedVehicleJourney(lineRefValue, "4321", 0, 0, departure, false);
+        estimatedVehicleJourneyUpdate.setEstimatedCalls(new EstimatedVehicleJourney.EstimatedCalls());
+        estimatedVehicleJourneyUpdate.setRecordedCalls(new EstimatedVehicleJourney.RecordedCalls());
+
+        // Updating journey with RecordedCalls for fourth and fifth stop
+        estimatedVehicleJourneyUpdate.getRecordedCalls().getRecordedCalls().add(estimatedTimetables.mapToRecordedCall(estimatedCalls.get(4)));
+        estimatedVehicleJourneyUpdate.getRecordedCalls().getRecordedCalls().add(estimatedTimetables.mapToRecordedCall(estimatedCalls.get(5)));
+
+        EstimatedCall e = estimatedCalls.get(6);
+        //Updating delay for first stop after RecordedCalls
+        e.setExpectedArrivalTime(e.getAimedArrivalTime().plusSeconds(99));
+        estimatedVehicleJourneyUpdate.getEstimatedCalls().getEstimatedCalls().add(e);
+
+        final int expectedNumberOfRecordedCallsAfterUpdate = 6;
+
+        estimatedTimetables.add("test", estimatedVehicleJourneyUpdate);
+
+        Collection<EstimatedVehicleJourney> all = estimatedTimetables.getAll();
+        for (EstimatedVehicleJourney vehicleJourney : all) {
+            if (lineRefValue.equals(vehicleJourney.getLineRef().getValue())) {
+
+                List<RecordedCall> recordedCallsList = vehicleJourney.getRecordedCalls().getRecordedCalls();
+                List<EstimatedCall> estimatedCallsList = vehicleJourney.getEstimatedCalls().getEstimatedCalls();
+
+                int rcSize = recordedCallsList.size();
+                int etSize = estimatedCallsList.size();
+                assertEquals("List of EstimatedCalls have not been merged as expected.", numberOfEstimatedCalls-expectedNumberOfRecordedCallsAfterUpdate, etSize);
+                assertEquals("List of RecordedCalls have not been merged as expected.", expectedNumberOfRecordedCallsAfterUpdate, rcSize);
+
+                EstimatedCall estimatedCall = estimatedCallsList.get(0);
+                assertEquals(e.getStopPointRef().getValue(), estimatedCall.getStopPointRef().getValue());
+                assertTrue(estimatedCall.getExpectedArrivalTime().minusSeconds(99).equals(estimatedCall.getAimedArrivalTime()));
+            }
+        }
+    }
+
 
     @Test
     public void testCreateServiceDelivery() {
