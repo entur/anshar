@@ -412,20 +412,25 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
 
         recordedCall.setStopPointRef(call.getStopPointRef());
         recordedCall.getStopPointNames().addAll(call.getStopPointNames());
+
         recordedCall.setOrder(call.getOrder());
         recordedCall.setVisitNumber(call.getVisitNumber());
+        recordedCall.setCancellation(call.isCancellation());
+        recordedCall.setExtraCall(call.isExtraCall());
+        recordedCall.setExtensions(call.getExtensions());
 
         recordedCall.setAimedArrivalTime(call.getAimedArrivalTime());
         recordedCall.setExpectedArrivalTime(call.getExpectedArrivalTime());
-        if (recordedCall.getExpectedArrivalTime() == null) {
+        if (recordedCall.getExpectedArrivalTime() != null) {
+            //Setting actual arrival from expected
             recordedCall.setActualArrivalTime(call.getExpectedArrivalTime());
         }
-
         recordedCall.setArrivalPlatformName(call.getArrivalPlatformName());
 
         recordedCall.setAimedDepartureTime(call.getAimedDepartureTime());
         recordedCall.setExpectedDepartureTime(call.getExpectedDepartureTime());
-        if (recordedCall.getExpectedDepartureTime() == null) {
+        if (recordedCall.getExpectedDepartureTime() != null) {
+            //Setting actual departure from expected
             recordedCall.setActualDepartureTime(call.getExpectedDepartureTime());
         }
         recordedCall.setDeparturePlatformName(call.getDeparturePlatformName());

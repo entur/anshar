@@ -307,6 +307,59 @@ public class EstimatedTimetablesTest {
     }
 
     @Test
+    public void testMapEstimatedToRecordedCall() {
+
+        StopPointRef stopPoint = new StopPointRef();
+        stopPoint.setValue("NSR:Stop:1234");
+
+        NaturalLanguageStringStructure name = new NaturalLanguageStringStructure();
+        name.setValue("Stop");
+
+        NaturalLanguageStringStructure platform = new NaturalLanguageStringStructure();
+        platform.setValue("19");
+
+        ZonedDateTime aimedArrival = ZonedDateTime.now().plusMinutes(1);
+        ZonedDateTime expectedArrival = ZonedDateTime.now().plusMinutes(2);
+        ZonedDateTime aimedDeparture = ZonedDateTime.now().plusMinutes(4);
+        ZonedDateTime expectedDeparture = ZonedDateTime.now().plusMinutes(5);
+
+        Extensions extensions = new Extensions();
+
+        EstimatedCall estimatedCall = new EstimatedCall();
+        estimatedCall.setStopPointRef(stopPoint);
+        estimatedCall.getStopPointNames().add(name);
+        estimatedCall.setAimedArrivalTime(aimedArrival);
+        estimatedCall.setExpectedArrivalTime(expectedArrival);
+        estimatedCall.setAimedDepartureTime(aimedDeparture);
+        estimatedCall.setExpectedDepartureTime(expectedDeparture);
+        estimatedCall.setArrivalPlatformName(platform);
+        estimatedCall.setDeparturePlatformName(platform);
+        estimatedCall.setCancellation(Boolean.TRUE);
+        estimatedCall.setExtraCall(Boolean.FALSE);
+        estimatedCall.setOrder(BigInteger.ONE);
+        estimatedCall.setExtensions(extensions);
+
+        RecordedCall recordedCall = estimatedTimetables.mapToRecordedCall(estimatedCall);
+
+        assertEquals(stopPoint.getValue(), recordedCall.getStopPointRef().getValue());
+        assertEquals(name.getValue(), recordedCall.getStopPointNames().get(0).getValue());
+        assertEquals(platform.getValue(), recordedCall.getArrivalPlatformName().getValue());
+        assertEquals(platform.getValue(), recordedCall.getDeparturePlatformName().getValue());
+
+        assertEquals(aimedArrival, recordedCall.getAimedArrivalTime());
+        assertEquals(expectedArrival, recordedCall.getExpectedArrivalTime());
+        assertEquals(expectedArrival, recordedCall.getActualArrivalTime()); //estimated.expected is mapped to recorded.actual
+
+        assertEquals(aimedDeparture, recordedCall.getAimedDepartureTime());
+        assertEquals(expectedDeparture, recordedCall.getExpectedDepartureTime());
+        assertEquals(expectedDeparture, recordedCall.getActualDepartureTime()); //estimated.expected is mapped to recorded.actual
+        assertEquals(estimatedCall.isCancellation(), recordedCall.isCancellation());
+        assertEquals(estimatedCall.isExtraCall(), recordedCall.isExtraCall());
+        assertEquals(estimatedCall.getOrder(), recordedCall.getOrder());
+        assertEquals(estimatedCall.getExtensions(), recordedCall.getExtensions());
+    }
+
+
     public void testPartiallyUpdatedRecordedCalls() {
         int previousSize = estimatedTimetables.getAll().size();
 
