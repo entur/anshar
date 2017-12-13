@@ -26,7 +26,7 @@ public class Siri20ToSiriWS20RequestResponse extends SiriSubscriptionRouteBuilde
 
         String httpOptions = getTimeout();
 
-        String monitoringRouteId = "monitor.ws.14." + subscriptionSetup.getSubscriptionType() + "." + subscriptionSetup.getVendor();
+        String monitoringRouteId = "monitor.ws.20." + subscriptionSetup.getSubscriptionType() + "." + subscriptionSetup.getVendor();
         boolean releaseLeadershipOnError;
         if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.REQUEST_RESPONSE |
                 subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.POLLING_FETCHED_DELIVERY) {
@@ -70,7 +70,7 @@ public class Siri20ToSiriWS20RequestResponse extends SiriSubscriptionRouteBuilde
                         }
                     })
                 .endDoTry()
-                .routeId("request.ws.14." + subscriptionSetup.getSubscriptionType() + "." + subscriptionSetup.getVendor())
+                .routeId("request.ws.20." + subscriptionSetup.getSubscriptionType() + "." + subscriptionSetup.getVendor())
         ;
 
     }
