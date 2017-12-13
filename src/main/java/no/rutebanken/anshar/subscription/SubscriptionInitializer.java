@@ -198,7 +198,11 @@ public class SubscriptionInitializer implements CamelContextAware, ApplicationCo
                     route = new Siri20ToSiriRS20Subscription(camelConfiguration, handler, subscriptionSetup, subscriptionManager);
                 }
             } else {
-                route = new Siri20ToSiriRS20RequestResponse(camelConfiguration, subscriptionSetup, subscriptionManager);
+                if (subscriptionSetup.getServiceType() == SubscriptionSetup.ServiceType.SOAP) {
+                    route = new Siri20ToSiriWS20RequestResponse(camelConfiguration, subscriptionSetup, subscriptionManager);
+                } else {
+                    route = new Siri20ToSiriRS20RequestResponse(camelConfiguration, subscriptionSetup, subscriptionManager);
+                }
             }
         }
         return route;
