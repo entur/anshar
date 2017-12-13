@@ -126,6 +126,33 @@ anshar:
       idMappingPrefixes: NSB,FLT
       active: false
     -
+      internalId: 1799
+      vendor: baneEt
+      datasetId: BNR
+      serviceType: REST
+      subscriptionType: ESTIMATED_TIMETABLE
+      subscriptionMode: POLLING_FETCHED_DELIVERY
+      heartbeatIntervalSeconds: 30
+      previewIntervalSeconds: 86400
+      changeBeforeUpdatesSeconds: 1
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      urlMap:
+        GET_ESTIMATED_TIMETABLE: https4://siri.opm.jbv.no/jbv/et
+        SUBSCRIBE: https4://siri.opm.jbv.no/jbv/et
+        DELETE_SUBSCRIPTION: https4://siri.opm.jbv.no/jbv/et
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: ${random.uuid}
+      requestorRef: ENTUR_DEV_${random.uuid}
+      durationOfSubscriptionHours: 2
+      mappingAdapterId: banenoret
+      filterPresets:
+      idMappingPrefixes: NSB,FLT
+      active: false
+    -
       internalId: 171
       vendor: baneEt-reqres-1h
       datasetId: BNR
@@ -216,7 +243,7 @@ anshar:
       version: 2.0
       contentType: text/xml;charset=UTF-8
       subscriptionId: vm-replication-req
-      requestorRef: vm-requestorref-req
+      requestorRef: vm-requestorref-req-${random.uuid}
       durationOfSubscriptionHours: 24
       mappingAdapterId: ruter
       filterPresets:
@@ -241,7 +268,7 @@ anshar:
       version: 2.0
       contentType: text/xml;charset=UTF-8
       subscriptionId: et-replication-req
-      requestorRef: et-requestorref-req
+      requestorRef: et-requestorref-req-${random.uuid}
       durationOfSubscriptionHours: 24
       mappingAdapterId: ruter
       filterPresets:
@@ -266,7 +293,7 @@ anshar:
       version: 2.0
       contentType: text/xml;charset=UTF-8
       subscriptionId: sx-replication
-      requestorRef: sx-requestorref
+      requestorRef: sx-requestorref-${random.uuid}
       durationOfSubscriptionHours: 1
       mappingAdapterId: ruter
       filterPresets:

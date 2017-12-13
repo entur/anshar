@@ -8,11 +8,10 @@ import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
 
 import static no.rutebanken.anshar.routes.siri.SiriIncomingReceiver.TRANSFORM_SOAP;
-import static no.rutebanken.anshar.routes.siri.SiriIncomingReceiver.TRANSFORM_VERSION;
 
-public class Siri20ToSiriWS14RequestResponse extends SiriSubscriptionRouteBuilder {
+public class Siri20ToSiriWS20RequestResponse extends SiriSubscriptionRouteBuilder {
 
-    public Siri20ToSiriWS14RequestResponse(CamelConfiguration config, SubscriptionSetup subscriptionSetup, SubscriptionManager subscriptionManager) {
+    public Siri20ToSiriWS20RequestResponse(CamelConfiguration config, SubscriptionSetup subscriptionSetup, SubscriptionManager subscriptionManager) {
         super(config, subscriptionManager);
 
         this.subscriptionSetup = subscriptionSetup;
@@ -51,7 +50,6 @@ public class Siri20ToSiriWS14RequestResponse extends SiriSubscriptionRouteBuilde
                 .setExchangePattern(ExchangePattern.InOut) // Make sure we wait for a response
                 .setHeader("SOAPAction", simple(getSoapAction(subscriptionSetup))) // extract and compute SOAPAction (Microsoft requirement)
                 .setHeader("operatorNamespace", constant(subscriptionSetup.getOperatorNamespace())) // Need to make SOAP request with endpoint specific element namespace
-                .to("xslt:xsl/siri_20_14.xsl") // Convert SIRI raw request to SOAP version
                 .to("xslt:xsl/siri_raw_soap.xsl") // Convert SIRI raw request to SOAP version
                 .removeHeaders("CamelHttp*") // Remove any incoming HTTP headers as they interfere with the outgoing definition
                 .setHeader(Exchange.CONTENT_TYPE, constant(subscriptionSetup.getContentType())) // Necessary when talking to Microsoft web services
@@ -62,7 +60,6 @@ public class Siri20ToSiriWS14RequestResponse extends SiriSubscriptionRouteBuilde
                     .setHeader("CamelHttpPath", constant("/appContext" + subscriptionSetup.buildUrl(false)))
                     .log("Got response " + subscriptionSetup.toString())
                     //.to("log:response:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
-                    .setHeader(TRANSFORM_VERSION, constant(TRANSFORM_VERSION))
                     .setHeader(TRANSFORM_SOAP, constant(TRANSFORM_SOAP))
                     .to("activemq:queue:" + CamelConfiguration.TRANSFORM_QUEUE + "?disableReplyTo=true&timeToLive=" + getTimeToLive())
                 .doCatch(Exception.class)

@@ -100,7 +100,8 @@ public class SubscriptionInitializer implements CamelContextAware, ApplicationCo
                     }
                 }
 
-                if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.FETCHED_DELIVERY) {
+                if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.FETCHED_DELIVERY |
+                        subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.POLLING_FETCHED_DELIVERY) {
 
                     //Fetched delivery needs both subscribe-route and ServiceRequest-route
                     String url = subscriptionSetup.getUrlMap().get(RequestType.SUBSCRIBE);
@@ -143,12 +144,15 @@ public class SubscriptionInitializer implements CamelContextAware, ApplicationCo
             for (SubscriptionSetup subscriptionSetup : actualSubscriptionSetups) {
 
                 try {
-                    if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.FETCHED_DELIVERY) {
+                    if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.FETCHED_DELIVERY |
+                            subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.POLLING_FETCHED_DELIVERY) {
+
+                        SubscriptionSetup.SubscriptionMode originalSubscriptionMode = subscriptionSetup.getSubscriptionMode();
 
                         subscriptionSetup.setSubscriptionMode(SubscriptionSetup.SubscriptionMode.SUBSCRIBE);
                         camelContext.addRoutes(getRouteBuilder(subscriptionSetup));
 
-                        subscriptionSetup.setSubscriptionMode(SubscriptionSetup.SubscriptionMode.FETCHED_DELIVERY);
+                        subscriptionSetup.setSubscriptionMode(originalSubscriptionMode);
                         camelContext.addRoutes(getRouteBuilder(subscriptionSetup));
 
                     } else {
@@ -241,7 +245,8 @@ public class SubscriptionInitializer implements CamelContextAware, ApplicationCo
 
             Preconditions.checkNotNull(urlMap.get(RequestType.SUBSCRIBE), "SUBSCRIBE-url is missing. " + s);
             Preconditions.checkNotNull(urlMap.get(RequestType.DELETE_SUBSCRIPTION), "DELETE_SUBSCRIPTION-url is missing. " + s);
-        }  else if (s.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.FETCHED_DELIVERY) {
+        }  else if (s.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.FETCHED_DELIVERY |
+                s.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.POLLING_FETCHED_DELIVERY) {
             Preconditions.checkNotNull(urlMap.get(RequestType.SUBSCRIBE), "SUBSCRIBE-url is missing. " + s);
             Preconditions.checkNotNull(urlMap.get(RequestType.DELETE_SUBSCRIPTION), "DELETE_SUBSCRIPTION-url is missing. " + s);
         } else {

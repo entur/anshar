@@ -593,8 +593,8 @@ anshar:
       datasetId: MOR
       serviceType: SOAP
       subscriptionType: ESTIMATED_TIMETABLE
-      subscriptionMode: SUBSCRIBE
-      heartbeatIntervalSeconds: 60
+      subscriptionMode: POLLING_FETCHED_DELIVERY
+      heartbeatIntervalSeconds: 30
       previewIntervalSeconds: 10800
       changeBeforeUpdatesSeconds: 1
       operatorNamespace: http://wsdl.siri.org.uk
@@ -620,8 +620,8 @@ anshar:
       datasetId: MOR
       serviceType: SOAP
       subscriptionType: VEHICLE_MONITORING
-      subscriptionMode: SUBSCRIBE
-      heartbeatIntervalSeconds: 60
+      subscriptionMode: POLLING_FETCHED_DELIVERY
+      heartbeatIntervalSeconds: 30
       operatorNamespace: http://wsdl.siri.org.uk
       addressFieldName: Address
       soapenvNamespace: http://www.w3.org/2003/05/soap-envelope
@@ -646,8 +646,8 @@ anshar:
       datasetId: MOR
       serviceType: SOAP
       subscriptionType: SITUATION_EXCHANGE
-      subscriptionMode: SUBSCRIBE
-      heartbeatIntervalSeconds: 60
+      subscriptionMode: POLLING_FETCHED_DELIVERY
+      heartbeatIntervalSeconds: 30
       previewIntervalSeconds: 86400
       operatorNamespace: http://wsdl.siri.org.uk
       addressFieldName: Address

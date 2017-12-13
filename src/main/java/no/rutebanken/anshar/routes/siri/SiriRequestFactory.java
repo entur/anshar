@@ -66,7 +66,8 @@ public class SiriRequestFactory {
 	 */
 	public Siri createSiriDataRequest() {
 		Siri request = null;
-		if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.FETCHED_DELIVERY) {
+		if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.FETCHED_DELIVERY |
+				subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.POLLING_FETCHED_DELIVERY) {
 			request = SiriObjectFactory.createDataSupplyRequest(subscriptionSetup, allData);
 			allData = Boolean.FALSE;
 		} else {
