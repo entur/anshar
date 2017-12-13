@@ -598,7 +598,7 @@ anshar:
       previewIntervalSeconds: 10800
       changeBeforeUpdatesSeconds: 1
       operatorNamespace: http://wsdl.siri.org.uk
-      addressFieldName: ConsumerAddress
+      addressFieldName: Address
       soapenvNamespace: http://www.w3.org/2003/05/soap-envelope
       incrementalUpdates: true
       overrideHttps: true
@@ -623,7 +623,7 @@ anshar:
       subscriptionMode: SUBSCRIBE
       heartbeatIntervalSeconds: 60
       operatorNamespace: http://wsdl.siri.org.uk
-      addressFieldName: ConsumerAddress
+      addressFieldName: Address
       soapenvNamespace: http://www.w3.org/2003/05/soap-envelope
       incrementalUpdates: true
       overrideHttps: true
@@ -650,7 +650,7 @@ anshar:
       heartbeatIntervalSeconds: 60
       previewIntervalSeconds: 86400
       operatorNamespace: http://wsdl.siri.org.uk
-      addressFieldName: ConsumerAddress
+      addressFieldName: Address
       soapenvNamespace: http://www.w3.org/2003/05/soap-envelope
       incrementalUpdates: true
       overrideHttps: true
