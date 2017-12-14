@@ -133,7 +133,9 @@
                                 </xsl:attribute>
                                 <xsl:copy-of select="siri:RequestTimestamp" copy-namespaces="no"/>
                                 <xsl:copy-of select="siri:ConsumerRef" copy-namespaces="no"/>
-                                <xsl:copy-of select="siri:AllData" copy-namespaces="no"/>
+                                <xsl:element name="Request">
+                                    <xsl:copy-of select="siri:AllData" copy-namespaces="no"/>
+                                </xsl:element>
                             </xsl:element>
                         </xsl:element>
                     </xsl:when>
