@@ -37,6 +37,12 @@
                             <xsl:element name="wsa:Action">DeleteSubscription</xsl:element>
                         </xsl:element>
                     </xsl:when>
+                    <xsl:when test="local-name()='DataSupplyRequest'">
+                        <xsl:element name="soapenv:Header" namespace="{$soapEnvelopeNamespace}" >
+                            <xsl:element name="wsa:Action">DataSupplyRequest</xsl:element>
+                            <xsl:element name="wsa:To" ><xsl:value-of select="$endpointUrl" /></xsl:element>
+                        </xsl:element>
+                    </xsl:when>
                 <xsl:otherwise>
                     <xsl:element name="soapenv:Header" namespace="{$soapEnvelopeNamespace}" />
                 </xsl:otherwise>
@@ -126,16 +132,16 @@
                         </xsl:element>
                     </xsl:when>
                     <xsl:when test="local-name()='DataSupplyRequest'">
-                        <xsl:element name="siri:DataSupplyRequest" namespace="{$operatorNamespace}">
-                            <xsl:element name="Request">
+                        <xsl:element name="siri:DataSupply" namespace="{$operatorNamespace}">
+                            <xsl:element name="siri:DataSupplyRequestInfo">
                                 <xsl:attribute name="version">
                                     <xsl:value-of select="/siri:Siri/@version"/>
                                 </xsl:attribute>
                                 <xsl:copy-of select="siri:RequestTimestamp" copy-namespaces="no"/>
                                 <xsl:copy-of select="siri:ConsumerRef" copy-namespaces="no"/>
-                                <xsl:element name="Request">
-                                    <xsl:copy-of select="siri:AllData" copy-namespaces="no"/>
-                                </xsl:element>
+                            </xsl:element>
+                            <xsl:element name="Request">
+                                <xsl:copy-of select="siri:AllData" copy-namespaces="no"/>
                             </xsl:element>
                         </xsl:element>
                     </xsl:when>
