@@ -99,7 +99,10 @@ public abstract class BaseRouteBuilder extends SpringRouteBuilder {
 
     protected String getSoapAction(SubscriptionSetup subscriptionSetup) throws ServiceNotSupportedException {
 
-        if (subscriptionSetup.getSubscriptionType() == SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE) {
+        if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.SUBSCRIBE &&
+                subscriptionSetup.isDataSupplyRequestForInitialDelivery()) {
+            return "DataSupplyRequest";
+        } if (subscriptionSetup.getSubscriptionType() == SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE) {
             return "GetEstimatedTimetableRequest";
         } else if (subscriptionSetup.getSubscriptionType() == SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING) {
             return "GetVehicleMonitoring";
