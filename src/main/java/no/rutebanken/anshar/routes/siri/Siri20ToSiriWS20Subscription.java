@@ -76,7 +76,6 @@ public class Siri20ToSiriWS20Subscription extends SiriSubscriptionRouteBuilder {
                     InputStream body = p.getIn().getBody(InputStream.class);
                     handler.handleIncomingSiri(subscriptionSetup.getSubscriptionId(), body);
                 })
-                .log("Requesting DataSupplyRequest: " + subscriptionSetup.isDataSupplyRequestForInitialDelivery())
                 .choice()
                 .when(p -> subscriptionSetup.isDataSupplyRequestForInitialDelivery())
                     .log("Requesting DataSupplyRequest")

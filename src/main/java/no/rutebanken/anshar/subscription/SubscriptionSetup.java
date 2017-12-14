@@ -173,6 +173,10 @@ public class SubscriptionSetup implements Serializable {
         return dataSupplyRequestForInitialDelivery;
     }
 
+    public void setDataSupplyRequestForInitialDelivery(boolean dataSupplyRequestForInitialDelivery) {
+        this.dataSupplyRequestForInitialDelivery = dataSupplyRequestForInitialDelivery;
+    }
+
     public String toString() {
         return MessageFormat.format("[vendor={0}, subscriptionId={1}, internalId={2}]", vendor, subscriptionId, internalId);
     }

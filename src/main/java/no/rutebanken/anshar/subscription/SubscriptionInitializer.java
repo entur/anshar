@@ -144,22 +144,11 @@ public class SubscriptionInitializer implements CamelContextAware, ApplicationCo
             for (SubscriptionSetup subscriptionSetup : actualSubscriptionSetups) {
 
                 try {
-                    if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.FETCHED_DELIVERY |
-                            subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.POLLING_FETCHED_DELIVERY) {
 
-                        SubscriptionSetup.SubscriptionMode originalSubscriptionMode = subscriptionSetup.getSubscriptionMode();
-
-                        subscriptionSetup.setSubscriptionMode(SubscriptionSetup.SubscriptionMode.SUBSCRIBE);
-                        camelContext.addRoutes(getRouteBuilder(subscriptionSetup));
-
-                        subscriptionSetup.setSubscriptionMode(originalSubscriptionMode);
-                        camelContext.addRoutes(getRouteBuilder(subscriptionSetup));
-
-                    } else {
-
-                        RouteBuilder routeBuilder = getRouteBuilder(subscriptionSetup);
-                        //Adding all routes to current context
-                        camelContext.addRoutes(routeBuilder);
+                    List<RouteBuilder> routeBuilder = getRouteBuilders(subscriptionSetup);
+                    //Adding all routes to current context
+                    for (RouteBuilder builder : routeBuilder) {
+                        camelContext.addRoutes(builder);
                     }
 
                 } catch (Exception e) {
@@ -178,34 +167,51 @@ public class SubscriptionInitializer implements CamelContextAware, ApplicationCo
 
     }
 
-    private RouteBuilder getRouteBuilder(SubscriptionSetup subscriptionSetup) {
-        RouteBuilder route;
+    List<RouteBuilder> getRouteBuilders(SubscriptionSetup subscriptionSetup) {
+        List<RouteBuilder> routeBuilders = new ArrayList<>();
+
+        boolean isSubscription = subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.SUBSCRIBE;
+        boolean isFetchedDelivery = subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.FETCHED_DELIVERY |
+                                subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.POLLING_FETCHED_DELIVERY;
+        boolean isSoap = subscriptionSetup.getServiceType() == SubscriptionSetup.ServiceType.SOAP;
+
         if (subscriptionSetup.getVersion().equals("1.4")) {
-            if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.SUBSCRIBE) {
-                if (subscriptionSetup.getServiceType() == SubscriptionSetup.ServiceType.SOAP) {
-                    route = new Siri20ToSiriWS14Subscription(camelConfiguration, handler, subscriptionSetup, subscriptionManager);
+            if (isSoap) {
+                if (isSubscription | isFetchedDelivery) {
+                    routeBuilders.add(new Siri20ToSiriWS14Subscription(camelConfiguration, handler, subscriptionSetup, subscriptionManager));
                 } else {
-                    route = new Siri20ToSiriRS14Subscription(camelConfiguration, handler, subscriptionSetup, subscriptionManager);
+                    routeBuilders.add(new Siri20ToSiriWS14RequestResponse(camelConfiguration, subscriptionSetup, subscriptionManager));
+                }
+                if (isFetchedDelivery) {
+                    routeBuilders.add(new Siri20ToSiriWS14RequestResponse(camelConfiguration, subscriptionSetup, subscriptionManager));
                 }
             } else {
-                route = new Siri20ToSiriWS14RequestResponse(camelConfiguration, subscriptionSetup, subscriptionManager);
+                routeBuilders.add(new Siri20ToSiriRS14Subscription(camelConfiguration, handler, subscriptionSetup, subscriptionManager));
             }
         } else {
-            if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.SUBSCRIBE) {
-                if (subscriptionSetup.getServiceType() == SubscriptionSetup.ServiceType.SOAP) {
-                    route = new Siri20ToSiriWS20Subscription(camelConfiguration, handler, subscriptionSetup, subscriptionManager);
+            if (isSoap) {
+                if (isSubscription | isFetchedDelivery) {
+                    routeBuilders.add(new Siri20ToSiriWS20Subscription(camelConfiguration, handler, subscriptionSetup, subscriptionManager));
+
+                    if (isFetchedDelivery | subscriptionSetup.isDataSupplyRequestForInitialDelivery()) {
+                        routeBuilders.add(new Siri20ToSiriWS20RequestResponse(camelConfiguration, subscriptionSetup, subscriptionManager));
+                    }
                 } else {
-                    route = new Siri20ToSiriRS20Subscription(camelConfiguration, handler, subscriptionSetup, subscriptionManager);
+                    routeBuilders.add(new Siri20ToSiriWS20RequestResponse(camelConfiguration, subscriptionSetup, subscriptionManager));
                 }
             } else {
-                if (subscriptionSetup.getServiceType() == SubscriptionSetup.ServiceType.SOAP) {
-                    route = new Siri20ToSiriWS20RequestResponse(camelConfiguration, subscriptionSetup, subscriptionManager);
+                if (isSubscription | isFetchedDelivery) {
+                    routeBuilders.add(new Siri20ToSiriRS20Subscription(camelConfiguration, handler, subscriptionSetup, subscriptionManager));
+
+                    if (isFetchedDelivery | subscriptionSetup.isDataSupplyRequestForInitialDelivery()) {
+                        routeBuilders.add(new Siri20ToSiriRS20RequestResponse(camelConfiguration, subscriptionSetup, subscriptionManager));
+                    }
                 } else {
-                    route = new Siri20ToSiriRS20RequestResponse(camelConfiguration, subscriptionSetup, subscriptionManager);
+                    routeBuilders.add(new Siri20ToSiriRS20RequestResponse(camelConfiguration, subscriptionSetup, subscriptionManager));
                 }
             }
         }
-        return route;
+        return routeBuilders;
     }
 
     private boolean isValid(SubscriptionSetup s) {
