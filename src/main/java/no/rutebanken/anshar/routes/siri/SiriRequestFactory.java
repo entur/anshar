@@ -65,13 +65,12 @@ public class SiriRequestFactory {
 	 * Creates ServiceRequest or DataSupplyRequest based on subscription type
 	 */
 	public Siri createSiriDataRequest() {
-		Siri request = null;
-		if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.FETCHED_DELIVERY |
-				subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.POLLING_FETCHED_DELIVERY) {
+		Siri request;
+		if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.REQUEST_RESPONSE) {
+			request = SiriObjectFactory.createServiceRequest(subscriptionSetup);
+		} else {
 			request = SiriObjectFactory.createDataSupplyRequest(subscriptionSetup, allData);
 			allData = Boolean.FALSE;
-		} else {
-			request = SiriObjectFactory.createServiceRequest(subscriptionSetup);
 		}
 
 		return request;

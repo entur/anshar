@@ -31,6 +31,7 @@ public class SubscriptionSetup implements Serializable {
     private Duration durationOfSubscription;
     private String requestorRef;
     private boolean active;
+    private boolean dataSupplyRequestForInitialDelivery;
     private SubscriptionMode subscriptionMode;
     private Map<Class, Set<Object>> filterMap;
     private List<String> idMappingPrefixes;
@@ -166,6 +167,10 @@ public class SubscriptionSetup implements Serializable {
 
     public void setActive(boolean active) {
         this.active = active;
+    }
+
+    public boolean isDataSupplyRequestForInitialDelivery() {
+        return dataSupplyRequestForInitialDelivery;
     }
 
     public String toString() {

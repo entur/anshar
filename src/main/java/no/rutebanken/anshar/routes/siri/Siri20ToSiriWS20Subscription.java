@@ -75,8 +75,11 @@ public class Siri20ToSiriWS20Subscription extends SiriSubscriptionRouteBuilder {
                 .process(p -> {
                     InputStream body = p.getIn().getBody(InputStream.class);
                     handler.handleIncomingSiri(subscriptionSetup.getSubscriptionId(), body);
-
                 })
+                .choice()
+                .when(p -> subscriptionSetup.isDataSupplyRequestForInitialDelivery())
+                    .to("direct:"+subscriptionSetup.getServiceRequestRouteName())
+                .endChoice()
                 .routeId("start.ws.20.subscription."+subscriptionSetup.getVendor())
         ;
 
