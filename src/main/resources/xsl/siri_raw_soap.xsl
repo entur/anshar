@@ -35,6 +35,7 @@
                     <xsl:when test="local-name()='TerminateSubscriptionRequest'">
                         <xsl:element name="soapenv:Header" namespace="{$soapEnvelopeNamespace}" >
                             <xsl:element name="wsa:Action">DeleteSubscription</xsl:element>
+                            <xsl:element name="wsa:To" ><xsl:value-of select="$endpointUrl" /></xsl:element>
                         </xsl:element>
                     </xsl:when>
                     <xsl:when test="local-name()='DataSupplyRequest'">
@@ -115,7 +116,7 @@
                         </xsl:element>
                     </xsl:when>
                     <xsl:when test="local-name()='TerminateSubscriptionRequest'">
-                        <xsl:element name="siri:DeleteSubscription" namespace="{$operatorNamespace}">
+                        <xsl:element name="DeleteSubscription" namespace="{$operatorNamespace}">
                             <xsl:element name="DeleteSubscriptionInfo">
                                 <xsl:copy-of select="siri:RequestTimestamp" copy-namespaces="no"/>
                                 <xsl:copy-of select="siri:Address" copy-namespaces="no"/>
