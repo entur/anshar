@@ -43,6 +43,12 @@ public class Siri20ToSiriWS20RequestResponse extends SiriSubscriptionRouteBuilde
             releaseLeadershipOnError = false;
         }
 
+        String endpointUrl = getRequestUrl(subscriptionSetup);
+        if (endpointUrl.startsWith("https4://")) {
+            endpointUrl = endpointUrl.replaceFirst("https4", "https");
+        } else {
+            endpointUrl = "http://" + endpointUrl;
+        }
         from("direct:" + subscriptionSetup.getServiceRequestRouteName())
                 .log("Retrieving data " + subscriptionSetup.toString())
                 .bean(helper, "createSiriDataRequest", false)
@@ -50,6 +56,7 @@ public class Siri20ToSiriWS20RequestResponse extends SiriSubscriptionRouteBuilde
                 .setExchangePattern(ExchangePattern.InOut) // Make sure we wait for a response
                 .setHeader("SOAPAction", simple(getSoapAction(subscriptionSetup))) // extract and compute SOAPAction (Microsoft requirement)
                 .setHeader("operatorNamespace", constant(subscriptionSetup.getOperatorNamespace())) // Need to make SOAP request with endpoint specific element namespace
+                .setHeader("endpointUrl", constant(endpointUrl)) // Need to make SOAP request with endpoint specific element namespace
                 .to("xslt:xsl/siri_raw_soap.xsl?saxon=true&allowStAX=false&resultHandlerFactory=#streamResultHandlerFactory") // Convert SIRI raw request to SOAP version
                 .to("xslt:xsl/siri_14_20.xsl?saxon=true&allowStAX=false&resultHandlerFactory=#streamResultHandlerFactory") // Convert SIRI raw request to SOAP version
                 .removeHeaders("CamelHttp*") // Remove any incoming HTTP headers as they interfere with the outgoing definition

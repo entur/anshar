@@ -39,7 +39,7 @@
                     </xsl:when>
                     <xsl:when test="local-name()='DataSupplyRequest'">
                         <xsl:element name="soapenv:Header" namespace="{$soapEnvelopeNamespace}" >
-                            <xsl:element name="wsa:Action">DataSupplyRequest</xsl:element>
+                            <xsl:element name="wsa:Action">DataSupply</xsl:element>
                             <xsl:element name="wsa:To" ><xsl:value-of select="$endpointUrl" /></xsl:element>
                         </xsl:element>
                     </xsl:when>
@@ -132,7 +132,7 @@
                         </xsl:element>
                     </xsl:when>
                     <xsl:when test="local-name()='DataSupplyRequest'">
-                        <xsl:element name="siri:DataSupply" namespace="{$operatorNamespace}">
+                        <xsl:element name="DataSupply">
                             <xsl:element name="siri:DataSupplyRequestInfo">
                                 <xsl:attribute name="version">
                                     <xsl:value-of select="/siri:Siri/@version"/>
