@@ -44,11 +44,15 @@ public class Siri20ToSiriWS20RequestResponse extends SiriSubscriptionRouteBuilde
         }
 
         String endpointUrl = getRequestUrl(subscriptionSetup);
+
         if (endpointUrl.startsWith("https4://")) {
             endpointUrl = endpointUrl.replaceFirst("https4", "https");
+        } else if (endpointUrl.startsWith("http4://")) {
+            endpointUrl = endpointUrl.replaceFirst("http4", "http");
         } else {
             endpointUrl = "http://" + endpointUrl;
         }
+
         from("direct:" + subscriptionSetup.getServiceRequestRouteName())
                 .log("Retrieving data " + subscriptionSetup.toString())
                 .bean(helper, "createSiriDataRequest", false)
