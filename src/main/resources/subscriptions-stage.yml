@@ -79,7 +79,7 @@ anshar:
       active: true
     -
       internalId: 102
-      vendor: internRutersx
+      vendor: internSx
       datasetId: ENT
       serviceType: REST
       subscriptionType: SITUATION_EXCHANGE
