@@ -45,7 +45,7 @@ public class Siri20ToSiriWS20Subscription extends SiriSubscriptionRouteBuilder {
 
         String endpointUrl = urlMap.get(RequestType.SUBSCRIBE);
         if (endpointUrl.startsWith("https4://")) {
-            endpointUrl.replaceFirst("https4", "https");
+            endpointUrl = endpointUrl.replaceFirst("https4", "https");
         } else {
             endpointUrl = "http://" + endpointUrl;
         }
