@@ -63,7 +63,6 @@ public class StopPlaceRegisterMapper extends ValueAdapter {
                 }
             }
         }
-        logger.info("Unable to find mapped value for id {}", id);
 
         if (unmappedAlreadyAdded.add(id)) {
             healthManager.addUnmappedId(type, datasetId, id);
