@@ -132,17 +132,15 @@
                         </xsl:element>
                     </xsl:when>
                     <xsl:when test="local-name()='DataSupplyRequest'">
-                        <xsl:element name="DataSupply">
-                            <xsl:element name="siri:DataSupplyRequestInfo">
-                                <xsl:attribute name="version">
-                                    <xsl:value-of select="/siri:Siri/@version"/>
-                                </xsl:attribute>
+                        <xsl:element name="DataSupply" namespace="{$operatorNamespace}">
+                            <xsl:element name="DataSupplyRequestInfo">
                                 <xsl:copy-of select="siri:RequestTimestamp" copy-namespaces="no"/>
                                 <xsl:copy-of select="siri:ConsumerRef" copy-namespaces="no"/>
                             </xsl:element>
                             <xsl:element name="Request">
                                 <xsl:copy-of select="siri:AllData" copy-namespaces="no"/>
                             </xsl:element>
+                            <xsl:element name="RequestExtension"/>
                         </xsl:element>
                     </xsl:when>
                     <xsl:when test="local-name()='CheckStatusRequest'">
