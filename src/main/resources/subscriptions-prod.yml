@@ -175,7 +175,7 @@ anshar:
       durationOfSubscriptionHours: 168
       mappingAdapterId: ruter
       filterPresets:
-      idMappingPrefixes: RUT,OPP,BRA,OST
+      idMappingPrefixes: RUT
       active: true
     -
       internalId: 9
@@ -201,7 +201,7 @@ anshar:
       durationOfSubscriptionHours: 168
       mappingAdapterId: ruter
       filterPresets:
-      idMappingPrefixes: RUT,OPP,BRA,OST
+      idMappingPrefixes: RUT
       active: true
     -
       internalId: 11
@@ -228,7 +228,7 @@ anshar:
       durationOfSubscriptionHours: 168
       mappingAdapterId: ruter
       filterPresets:
-      idMappingPrefixes: RUT,OPP,BRA,OST
+      idMappingPrefixes: RUT
       active: true
     -
       internalId: 12
@@ -779,5 +779,5 @@ anshar:
       durationOfSubscriptionHours: 168
       mappingAdapterId: ruter-metro
       filterPresets:
-      idMappingPrefixes: RUT,OPP,BRA,OST
+      idMappingPrefixes: RUT
       active: false
