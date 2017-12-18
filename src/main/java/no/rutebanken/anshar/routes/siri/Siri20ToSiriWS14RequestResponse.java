@@ -67,6 +67,7 @@ public class Siri20ToSiriWS14RequestResponse extends SiriSubscriptionRouteBuilde
                     .to("activemq:queue:" + CamelConfiguration.TRANSFORM_QUEUE + "?disableReplyTo=true&timeToLive=" + getTimeToLive())
                 .doCatch(Exception.class)
                     .log("Caught exception - releasing leadership: " + subscriptionSetup.toString())
+                    .to("log:response:" + getClass().getSimpleName() + "?showCaughtException=true&showAll=true&multiline=true")
                     .process(p -> {
                         if (releaseLeadershipOnError) {
                             releaseLeadership(monitoringRouteId);
