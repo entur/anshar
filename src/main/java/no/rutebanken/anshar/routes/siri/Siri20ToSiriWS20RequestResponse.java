@@ -70,10 +70,8 @@ public class Siri20ToSiriWS20RequestResponse extends SiriSubscriptionRouteBuilde
                 .doTry()
                     .to(getRequestUrl(subscriptionSetup) + httpOptions)
                     .to("log:response:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
-                    .to("xslt:xsl/siri_soap_raw.xsl?saxon=true&allowStAX=false&resultHandlerFactory=#streamResultHandlerFactory") // Extract SOAP version and convert to raw SIRI
                     .setHeader("CamelHttpPath", constant("/appContext" + subscriptionSetup.buildUrl(false)))
                     .log("Got response " + subscriptionSetup.toString())
-                    //.to("log:response:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                     .setHeader(TRANSFORM_SOAP, constant(TRANSFORM_SOAP))
                     .to("activemq:queue:" + CamelConfiguration.TRANSFORM_QUEUE + "?disableReplyTo=true&timeToLive=" + getTimeToLive())
                 .doCatch(Exception.class)
