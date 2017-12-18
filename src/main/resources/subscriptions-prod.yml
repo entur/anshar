@@ -777,7 +777,7 @@ anshar:
       subscriptionId: dca81032-b374-46d2-a37b-ebd0aa2a4515
       requestorRef: Rutebanken
       durationOfSubscriptionHours: 168
-      mappingAdapterId: ruter
+      mappingAdapterId: ruter-metro
       filterPresets:
       idMappingPrefixes: RUT,OPP,BRA,OST
       active: false
