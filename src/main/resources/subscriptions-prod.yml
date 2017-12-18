@@ -602,9 +602,11 @@ anshar:
       soapenvNamespace: http://www.w3.org/2003/05/soap-envelope
       incrementalUpdates: true
       overrideHttps: true
+      dataSupplyRequestForInitialDelivery: true
       urlMap:
         SUBSCRIBE: siri.mrfylke.pubtrans.com:8001/SubscriptionManager
         DELETE_SUBSCRIPTION: siri.mrfylke.pubtrans.com:8001/SubscriptionManager
+        GET_ESTIMATED_TIMETABLE: siriet.mrfylke.pubtrans.com:8002/EtDirectProducer
       version: 2.0
       contentType: application/soap+xml;charset=UTF-8
       subscriptionId: 2dc568de-66d9-4ad1-a90a-631e59b034d8
@@ -628,9 +630,11 @@ anshar:
       incrementalUpdates: true
       overrideHttps: true
       vehicleMonitoringRefValue: All
+      dataSupplyRequestForInitialDelivery: true
       urlMap:
         SUBSCRIBE: siri.mrfylke.pubtrans.com:8001/SubscriptionManager
         DELETE_SUBSCRIPTION: siri.mrfylke.pubtrans.com:8001/SubscriptionManager
+        GET_VEHICLE_MONITORING: sirivm.mrfylke.pubtrans.com:8003/VmDirectProducer
       version: 2.0
       contentType: application/soap+xml;charset=UTF-8
       subscriptionId: 53b90e50-6909-4ac0-a1a5-5b002ed9a81b
@@ -654,9 +658,11 @@ anshar:
       soapenvNamespace: http://www.w3.org/2003/05/soap-envelope
       incrementalUpdates: true
       overrideHttps: true
+      dataSupplyRequestForInitialDelivery: true
       urlMap:
         SUBSCRIBE: siri.mrfylke.pubtrans.com:8001/SubscriptionManager
         DELETE_SUBSCRIPTION: siri.mrfylke.pubtrans.com:8001/SubscriptionManager
+        GET_SITUATION_EXCHANGE: sirisx.mrfylke.pubtrans.com:8005/SxDirectProducer
       version: 2.0
       contentType: application/soap+xml;charset=UTF-8
       subscriptionId: 100cd5d2-2524-4c32-bc8d-80f634c7998b
