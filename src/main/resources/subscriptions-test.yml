@@ -548,7 +548,7 @@ anshar:
       soapenvNamespace: http://www.w3.org/2003/05/soap-envelope
       incrementalUpdates: true
       overrideHttps: true
-      dataSupplyRequestForInitialDelivery: true
+      dataSupplyRequestForInitialDelivery: false
       urlMap:
         SUBSCRIBE: siri.mrfylke.pubtrans.com:8001/SubscriptionManager
         DELETE_SUBSCRIPTION: siri.mrfylke.pubtrans.com:8001/SubscriptionManager
@@ -576,7 +576,7 @@ anshar:
       incrementalUpdates: true
       overrideHttps: true
       vehicleMonitoringRefValue: All
-      dataSupplyRequestForInitialDelivery: true
+      dataSupplyRequestForInitialDelivery: false
       urlMap:
         SUBSCRIBE: siri.mrfylke.pubtrans.com:8001/SubscriptionManager
         DELETE_SUBSCRIPTION: siri.mrfylke.pubtrans.com:8001/SubscriptionManager
@@ -604,7 +604,7 @@ anshar:
       soapenvNamespace: http://www.w3.org/2003/05/soap-envelope
       incrementalUpdates: true
       overrideHttps: true
-      dataSupplyRequestForInitialDelivery: true
+      dataSupplyRequestForInitialDelivery: false
       urlMap:
         SUBSCRIBE: siri.mrfylke.pubtrans.com:8001/SubscriptionManager
         DELETE_SUBSCRIPTION: siri.mrfylke.pubtrans.com:8001/SubscriptionManager
