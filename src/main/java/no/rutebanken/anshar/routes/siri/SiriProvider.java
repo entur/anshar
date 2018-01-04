@@ -67,7 +67,7 @@ public class SiriProvider extends RouteBuilder {
                     String originalId = request.getParameter("useOriginalId");
                     String maxSizeStr = request.getParameter("maxSize");
 
-                    int maxSize = 1000;
+                    int maxSize = datasetId != null ? Integer.MAX_VALUE:1000;
                     if (maxSizeStr != null) {
                         try {
                             maxSize = Integer.parseInt(maxSizeStr);
@@ -113,7 +113,7 @@ public class SiriProvider extends RouteBuilder {
                     String originalId = request.getParameter("useOriginalId");
                     String maxSizeStr = request.getParameter("maxSize");
 
-                    int maxSize = 1000;
+                    int maxSize = datasetId != null ? Integer.MAX_VALUE:1000;
                     if (maxSizeStr != null) {
                         try {
                             maxSize = Integer.parseInt(maxSizeStr);
@@ -161,7 +161,7 @@ public class SiriProvider extends RouteBuilder {
                     String maxSizeStr = request.getParameter("maxSize");
                     String lineRef = request.getParameter("lineRef");
 
-                    int maxSize = 1000;
+                    int maxSize = datasetId != null ? Integer.MAX_VALUE:1000;
                     if (maxSizeStr != null) {
                         try {
                             maxSize = Integer.parseInt(maxSizeStr);
