@@ -17,6 +17,7 @@ import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class SiriValueTransformer {
@@ -40,6 +41,8 @@ public class SiriValueTransformer {
                             return getterMethods;
                         }
                     });
+
+    private static final List<String> methodsToIgnore = Arrays.asList("getMonitoringError");
 
     /**
      *
@@ -129,6 +132,11 @@ public class SiriValueTransformer {
 
             List<Method> allMethods = getterMethodsCache.get(obj.getClass());
             for (Method method : allMethods) {
+                if (methodsToIgnore.contains(method.getName())) {
+                    continue;
+                }
+
+
                 if (method.getReturnType().equals(adapter.getClassToApply())) {
 
                     Object previousValue = method.invoke(obj);
