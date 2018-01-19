@@ -21,6 +21,8 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import static no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer.SEPARATOR;
+
 @Repository
 public class VehicleActivities implements SiriRepository<VehicleActivityStructure> {
     private Logger logger = LoggerFactory.getLogger(VehicleActivities.class);
@@ -133,6 +135,29 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
         }
 
         return getAll(datasetId);
+    }
+
+
+    public Siri createServiceDelivery(String lineRef) {
+        SortedSet<VehicleActivityStructure> matchingEstimatedVehicleJourneys = new TreeSet<>(Comparator.comparing(AbstractItemStructure::getRecordedAtTime));
+
+        vehicleActivities.keySet()
+                .stream()
+                .forEach(key -> {
+                    VehicleActivityStructure vehicleJourney = vehicleActivities.get(key);
+                    if (vehicleJourney != null && vehicleJourney.getMonitoredVehicleJourney() != null) { //Object may have expired
+                        VehicleActivityStructure.MonitoredVehicleJourney monitoredVehicleJourney = vehicleJourney.getMonitoredVehicleJourney();
+                        if (monitoredVehicleJourney.getLineRef() != null &&
+                                (monitoredVehicleJourney.getLineRef().getValue().toLowerCase().startsWith(lineRef.toLowerCase() + SEPARATOR) |
+                                        monitoredVehicleJourney.getLineRef().getValue().toLowerCase().endsWith(SEPARATOR + lineRef.toLowerCase())|
+                                        monitoredVehicleJourney.getLineRef().getValue().equalsIgnoreCase(lineRef))
+                                ) {
+                            matchingEstimatedVehicleJourneys.add(vehicleJourney);
+                        }
+                    }
+                });
+
+        return siriObjectFactory.createVMServiceDelivery(matchingEstimatedVehicleJourneys);
     }
 
     public Siri createServiceDelivery(String requestorId, String datasetId, int maxSize) {
