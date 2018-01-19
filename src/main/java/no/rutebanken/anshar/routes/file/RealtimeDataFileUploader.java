@@ -34,7 +34,7 @@ public class RealtimeDataFileUploader extends BaseRouteBuilder {
 
         if (snapshotInterval > 0) {
             log.info("Uploading snapshot every {} minutes", snapshotInterval);
-            singletonFrom("quartz2://anshar.file.et.uploader?fireNow=true&trigger.repeatInterval=" + (snapshotInterval * 60 * 1000)
+            singletonFrom("quartz2://anshar.export.snapshot?fireNow=true&trigger.repeatInterval=" + (snapshotInterval * 60 * 1000)
                     ,"anshar.export.snapshot")
                     .setHeader(TMP_FOLDER, simple("${date:now:yyMMddHHmmssSSS}"))
                     .bean(exportHelper, "exportET")
@@ -58,19 +58,19 @@ public class RealtimeDataFileUploader extends BaseRouteBuilder {
                     .setHeader(FILE_NAME, simple("${header.siriDataType}-${date:now:yyyy-MM-dd'T'HH:mm:ss.SSS}.xml"))
                     .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
                     .log("Writing file ${header." + FILE_NAME + "}")
-                    .to("file:${header." + TMP_FOLDER + "}?fileName=${header." + FILE_NAME + "}")
+                    .to("file:?fileName=${header." + TMP_FOLDER + "}${header." + FILE_NAME + "}")
                     .log("Written file ${header.CamelFileNameProduced}")
-                    .to("direct:uploadBlob")
+//                    .to("direct:anshar.export.snapshot.uploadBlob")
                     .routeId("anshar.export.snapshot.create.file")
             ;
 
 
-            from("direct:uploadBlob")
-                    .to("log:" + getClass().getName() + "?level=DEBUG&showAll=true&multiline=true")
-                    .bean("blobStoreService", "uploadBlob")
-                    .setBody(simple(""))
-                    .to("log:" + getClass().getName() + "?level=DEBUG&showAll=true&multiline=true")
-                    .routeId("blobstore-upload");
+//            from("direct:anshar.export.snapshot.uploadBlobs")
+//                    .to("log:" + getClass().getName() + "?level=DEBUG&showAll=true&multiline=true")
+//                    .bean("blobStoreService", "uploadBlob")
+//                    .setBody(simple(""))
+//                    .to("log:" + getClass().getName() + "?level=DEBUG&showAll=true&multiline=true")
+//                    .routeId("blobstore-upload");
         } else {
             log.info("Uploading snapshot disabled");
         }

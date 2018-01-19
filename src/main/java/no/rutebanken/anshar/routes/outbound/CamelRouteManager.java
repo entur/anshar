@@ -69,7 +69,14 @@ public class CamelRouteManager implements CamelContextAware {
                 // Use original/mapped ids based on subscription
                 filteredPayload = SiriValueTransformer.transform(filteredPayload, subscriptionRequest.getValueAdapters());
 
-                List<Siri> splitSiri = siriHelper.splitDeliveries(filteredPayload, maximumSizePerDelivery);
+
+                int deliverySize = this.maximumSizePerDelivery;
+                if (subscriptionRequest.getDatasetId() != null) {
+                    deliverySize = Integer.MAX_VALUE;
+                }
+
+
+                List<Siri> splitSiri = siriHelper.splitDeliveries(filteredPayload, deliverySize);
 
                 logger.info("Object split into {} deliveries.", splitSiri.size());
 

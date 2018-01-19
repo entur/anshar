@@ -141,6 +141,10 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
 
         lastUpdateRequested.set(requestorId, Instant.now(), trackingPeriodMinutes, TimeUnit.MINUTES);
 
+        if (datasetId != null) {
+            maxSize = Integer.MAX_VALUE;
+        }
+
         //Filter by datasetId
         Set<String> collectedIds = idSet.stream()
                 .filter(key -> datasetId == null || key.startsWith(datasetId + ":"))
