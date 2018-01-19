@@ -13,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import uk.org.siri.siri20.*;
 
-import javax.xml.bind.JAXBException;
 import java.util.*;
 
 @Component
@@ -409,4 +408,16 @@ public class SiriHelper {
         return siri;
     }
 
+    public Siri getAllVM() {
+        return siriObjectFactory.createVMServiceDelivery(vehicleActivities.getAll());
+    }
+    public Siri getAllSX() {
+        return siriObjectFactory.createSXServiceDelivery(situations.getAll());
+    }
+    public Siri getAllET() {
+        return siriObjectFactory.createETServiceDelivery(estimatedTimetables.getAll());
+    }
+    public Siri getAllPT() {
+        return siriObjectFactory.createPTServiceDelivery(productionTimetables.getAll());
+    }
 }
