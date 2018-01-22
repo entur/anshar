@@ -9,6 +9,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
+
 import static org.apache.camel.Exchange.FILE_NAME;
 
 @Configuration
@@ -24,6 +32,8 @@ public class RealtimeDataFileUploader extends BaseRouteBuilder {
     @Autowired
     private ExportHelper exportHelper;
     private String TMP_FOLDER = "AnsharTmpFolder";
+    final static String ZIP_FILE_PATH = "AnsharZipFilePATH";
+    final static String ZIP_FILE = "AnsharZipFile";
 
     protected RealtimeDataFileUploader(@Autowired CamelConfiguration config, @Autowired SubscriptionManager subscriptionManager) {
         super(config, subscriptionManager);
@@ -36,7 +46,9 @@ public class RealtimeDataFileUploader extends BaseRouteBuilder {
             log.info("Uploading snapshot every {} minutes", snapshotInterval);
             singletonFrom("quartz2://anshar.export.snapshot?fireNow=true&trigger.repeatInterval=" + (snapshotInterval * 60 * 1000)
                     ,"anshar.export.snapshot")
-                    .setHeader(TMP_FOLDER, simple("${date:now:yyMMddHHmmssSSS}"))
+                    .setHeader(TMP_FOLDER, simple(tmpFolder + "/${date:now:yyyyMMdd-HHmmss}/"))
+                    .setHeader(ZIP_FILE, simple("SIRI-SNAPSHOT-${date:now:yyyyMMdd-HHmmss}.zip"))
+                    .setHeader(ZIP_FILE_PATH, simple( "${header."+TMP_FOLDER+"}/${header."+ZIP_FILE+"}"))
                     .bean(exportHelper, "exportET")
                     .setHeader("siriDataType", simple("ET"))
                     .to("direct:anshar.export.snapshot.create.file")
@@ -52,27 +64,87 @@ public class RealtimeDataFileUploader extends BaseRouteBuilder {
                     .bean(exportHelper, "exportPT")
                     .setHeader("siriDataType", simple("PT"))
                     .to("direct:anshar.export.snapshot.create.file")
+
+                    .to("direct:anshar.zip.folder")
+                    .to("direct:anshar.upload.zip")
+                    .to("direct:anshar.delete.folder")
+
             ;
 
             from("direct:anshar.export.snapshot.create.file")
-                    .setHeader(FILE_NAME, simple("${header.siriDataType}-${date:now:yyyy-MM-dd'T'HH:mm:ss.SSS}.xml"))
+                    .setHeader(FILE_NAME, simple("${header.siriDataType}.xml"))
                     .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
-                    .log("Writing file ${header." + FILE_NAME + "}")
-                    .to("file:?fileName=${header." + TMP_FOLDER + "}${header." + FILE_NAME + "}")
-                    .log("Written file ${header.CamelFileNameProduced}")
-//                    .to("direct:anshar.export.snapshot.uploadBlob")
+                    .to("file:?fileName=${header." + TMP_FOLDER + "}/${header." + FILE_NAME + "}")
                     .routeId("anshar.export.snapshot.create.file")
             ;
 
 
-//            from("direct:anshar.export.snapshot.uploadBlobs")
-//                    .to("log:" + getClass().getName() + "?level=DEBUG&showAll=true&multiline=true")
-//                    .bean("blobStoreService", "uploadBlob")
-//                    .setBody(simple(""))
-//                    .to("log:" + getClass().getName() + "?level=DEBUG&showAll=true&multiline=true")
-//                    .routeId("blobstore-upload");
+            from("direct:anshar.zip.folder")
+                    .process(p -> {
+                        zipFilesInFolder((String)p.getIn().getHeader(TMP_FOLDER), (String)p.getIn().getHeader(ZIP_FILE_PATH));
+                    })
+                    .routeId("anshar.zip.folder");
+
+            from("direct:anshar.upload.zip")
+                    .to("log:" + getClass().getName() + "?level=DEBUG&showAll=true&multiline=true")
+                    .bean("blobStoreService", "uploadBlob")
+                    .setBody(simple(""))
+                    .to("log:" + getClass().getName() + "?level=DEBUG&showAll=true&multiline=true")
+                    .routeId("anshar.upload.zip");
+
+
+            from("direct:anshar.delete.folder")
+                    .process(p -> {
+                        File folder = new File((String)p.getIn().getHeader(TMP_FOLDER));
+                        Arrays.stream(folder.listFiles()).forEach(file -> file.delete());
+                        boolean deleted = folder.delete();
+                    })
+                    .routeId("anshar.delete.folder");
         } else {
             log.info("Uploading snapshot disabled");
         }
     }
+
+    public static File zipFilesInFolder(String folder, String targetFilePath) {
+        try {
+
+            FileOutputStream out = new FileOutputStream(new File(targetFilePath));
+            ZipOutputStream outZip = new ZipOutputStream(out);
+
+            File fileFolder = new File(folder);
+            Arrays.stream(fileFolder.listFiles())
+                    .filter(file -> file.getName().endsWith(".xml"))
+                    .forEach(file -> {
+                            try {
+                                addToZipFile(file, outZip);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        });
+
+            outZip.close();
+            out.close();
+
+            return new File(targetFilePath);
+        } catch (IOException ioe) {
+            throw new RuntimeException("Failed to zip files in folder: " + ioe.getMessage(), ioe);
+        }
+    }
+
+    private static void addToZipFile(File file, ZipOutputStream zos) throws IOException {
+            FileInputStream fis = new FileInputStream(file);
+            ZipEntry zipEntry = new ZipEntry(file.getName());
+            zos.putNextEntry(zipEntry);
+
+            byte[] bytes = new byte[1024];
+            int length;
+            while ((length = fis.read(bytes)) >= 0) {
+                zos.write(bytes, 0, length);
+            }
+
+            zos.closeEntry();
+            fis.close();
+    }
+
+
 }

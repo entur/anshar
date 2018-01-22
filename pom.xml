@@ -80,6 +80,25 @@
                 <artifactId>hazelcast-helper</artifactId>
                 <version>0.0.3-SNAPSHOT</version>
             </dependency>
+            <dependency>
+                <groupId>org.entur.helpers</groupId>
+                <artifactId>gcp-storage</artifactId>
+                <version>0.0.3-SNAPSHOT</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>javax.servlet</groupId>
+                        <artifactId>servlet-api</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>io.netty</groupId>
+                        <artifactId>netty-codec-http2</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.google.protobuf</groupId>
+                        <artifactId>protobuf-lite</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
             <!-- Need to add this explicitly, to avoid old dep. Problem with either maven or nexus... -->
             <dependency>
                 <groupId>io.fabric8</groupId>
@@ -100,7 +119,10 @@
             <groupId>org.entur.helpers</groupId>
             <artifactId>hazelcast-helper</artifactId>
         </dependency>
-
+        <dependency>
+            <groupId>org.entur.helpers</groupId>
+            <artifactId>gcp-storage</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.apache.camel</groupId>
             <artifactId>camel-core</artifactId>
