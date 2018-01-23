@@ -29,6 +29,9 @@ public class RealtimeDataFileUploader extends BaseRouteBuilder {
     @Value("${anshar.export.snapshot.interval.minutes:-1}")
     private int snapshotInterval;
 
+    @Value("${anshar.export.upload.enabled}")
+    private boolean uploadEnabled;
+
     @Autowired
     private ExportHelper exportHelper;
     private String TMP_FOLDER = "AnsharTmpFolder";
@@ -46,9 +49,11 @@ public class RealtimeDataFileUploader extends BaseRouteBuilder {
             log.info("Uploading snapshot every {} minutes", snapshotInterval);
             singletonFrom("quartz2://anshar.export.snapshot?fireNow=true&trigger.repeatInterval=" + (snapshotInterval * 60 * 1000)
                     ,"anshar.export.snapshot")
-                    .setHeader(TMP_FOLDER, simple(tmpFolder + "/${date:now:yyyyMMdd-HHmmss}/"))
+                    .filter(p -> isLeader("anshar.export.snapshot"))
+                    .setHeader(TMP_FOLDER, simple(tmpFolder))
                     .setHeader(ZIP_FILE, simple("SIRI-SNAPSHOT-${date:now:yyyyMMdd-HHmmss}.zip"))
                     .setHeader(ZIP_FILE_PATH, simple( "${header."+TMP_FOLDER+"}/${header."+ZIP_FILE+"}"))
+                    .log("Exporting snapshot to ${header."+ZIP_FILE+"}")
                     .bean(exportHelper, "exportET")
                     .setHeader("siriDataType", simple("ET"))
                     .to("direct:anshar.export.snapshot.create.file")
@@ -66,7 +71,10 @@ public class RealtimeDataFileUploader extends BaseRouteBuilder {
                     .to("direct:anshar.export.snapshot.create.file")
 
                     .to("direct:anshar.zip.folder")
-                    .to("direct:anshar.upload.zip")
+                    .choice()
+                        .when(p -> uploadEnabled)
+                            .to("direct:anshar.upload.zip")
+                        .end()
                     .to("direct:anshar.delete.folder")
 
             ;
@@ -96,8 +104,7 @@ public class RealtimeDataFileUploader extends BaseRouteBuilder {
             from("direct:anshar.delete.folder")
                     .process(p -> {
                         File folder = new File((String)p.getIn().getHeader(TMP_FOLDER));
-                        Arrays.stream(folder.listFiles()).forEach(file -> file.delete());
-                        boolean deleted = folder.delete();
+                        Arrays.stream(folder.listFiles(pathname -> pathname.getName().endsWith(".xml"))).forEach(file -> file.delete());
                     })
                     .routeId("anshar.delete.folder");
         } else {
