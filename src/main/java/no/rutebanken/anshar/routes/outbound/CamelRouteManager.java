@@ -104,6 +104,7 @@ public class CamelRouteManager implements CamelContextAware {
         if (existingRoute == null) {
             camelContext.addRoutes(route);
             logger.trace("Route added - CamelContext now has {} routes", camelContext.getRoutes().size());
+            existingRoute = camelContext.getRoute(route.getRouteName());
         }
         return existingRoute;
     }
