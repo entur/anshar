@@ -88,13 +88,11 @@ public class LivenessReadinessRoute extends RouteBuilder {
         from("jetty:http://0.0.0.0:" + inboundPort + "/ready")
                 .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
                 .setBody(constant("OK"))
-                .log("Server is ready")
                 .routeId("health.ready")
         ;
 
         // Application is (still) alive and well
         from("jetty:http://0.0.0.0:" + inboundPort + "/up")
-                .log("Checking if server is up")
                 //TODO: On error - POST to hubot - Ex: wget --post-data='{"source":"otp", "message":"Downloaded file is empty or not present. This makes OTP fail! Please check logs"}' http://hubot/hubot/say/
                 .choice()
                 .when(p -> !healthManager.isHazelcastAlive())
@@ -103,7 +101,6 @@ public class LivenessReadinessRoute extends RouteBuilder {
                     .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("500"))
                 .endChoice()
                 .otherwise()
-                    .log("Server is up")
                     .setBody(simple("OK"))
                     .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
                 .end()
@@ -111,7 +108,6 @@ public class LivenessReadinessRoute extends RouteBuilder {
         ;
 
         from("jetty:http://0.0.0.0:" + inboundPort + "/healthy")
-                .log("Checking if server is healthy")
                 .choice()
                 .when(p -> !healthManager.isReceivingData())
                     .process(p -> {
@@ -121,7 +117,6 @@ public class LivenessReadinessRoute extends RouteBuilder {
                     .log("Server reports not receiving data")
                 .endChoice()
                 .otherwise()
-                    .log("Server is healthy")
                     .setBody(simple("OK"))
                     .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
                 .end()
@@ -129,7 +124,6 @@ public class LivenessReadinessRoute extends RouteBuilder {
         ;
 
         from("jetty:http://0.0.0.0:" + inboundPort + "/anshardata")
-                .log("Checking if server is healthy")
                 .choice()
                 .when(p -> getAllUnhealthySubscriptions().isEmpty() && !unhealthySubscriptionsAlreadyNotified.isEmpty())
                     .process(p -> {
@@ -178,7 +172,6 @@ public class LivenessReadinessRoute extends RouteBuilder {
                     .to("direct:notify.hubot")
                 .endChoice()
                 .otherwise()
-                    .log("Server is receiving data")
                     .setBody(simple("OK"))
                     .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
                 .endChoice()
