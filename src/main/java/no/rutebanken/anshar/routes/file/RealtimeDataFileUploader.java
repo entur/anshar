@@ -29,9 +29,6 @@ public class RealtimeDataFileUploader extends BaseRouteBuilder {
     @Value("${anshar.export.snapshot.interval.minutes:-1}")
     private int snapshotInterval;
 
-    @Value("${anshar.export.upload.enabled}")
-    private boolean uploadEnabled;
-
     @Autowired
     private ExportHelper exportHelper;
     private final static String TMP_FOLDER = "AnsharTmpFolder";
