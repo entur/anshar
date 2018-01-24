@@ -34,7 +34,7 @@ public class RealtimeDataFileUploader extends BaseRouteBuilder {
 
     @Autowired
     private ExportHelper exportHelper;
-    private String TMP_FOLDER = "AnsharTmpFolder";
+    private final static String TMP_FOLDER = "AnsharTmpFolder";
     final static String ZIP_FILE_PATH = "AnsharZipFilePATH";
     final static String ZIP_FILE = "AnsharZipFile";
 
@@ -44,13 +44,14 @@ public class RealtimeDataFileUploader extends BaseRouteBuilder {
 
     @Override
     public void configure() throws Exception {
-
+snapshotInterval = 1;
         if (snapshotInterval > 0) {
             log.info("Uploading snapshot every {} minutes to folder [{}]", snapshotInterval, tmpFolder);
             singletonFrom("quartz2://anshar.export.snapshot?fireNow=true&trigger.repeatInterval=" + (snapshotInterval * 60 * 1000)
                     ,"anshar.export.snapshot")
                     .choice()
                     .when(p -> isLeader())
+                        .log("Exporting snapshot")
                         .setHeader(TMP_FOLDER, simple(tmpFolder))
                         .setHeader(ZIP_FILE, simple("SIRI-SNAPSHOT-${date:now:yyyyMMdd-HHmmss}.zip"))
                         .setHeader(ZIP_FILE_PATH, simple( "${header."+TMP_FOLDER+"}/${header."+ZIP_FILE+"}"))
@@ -72,10 +73,9 @@ public class RealtimeDataFileUploader extends BaseRouteBuilder {
                         .to("direct:anshar.export.snapshot.create.file")
 
                         .to("direct:anshar.zip.folder")
-                        .log("Created file ${header.CamelFileNameProduced}")
 //                        .to("direct:anshar.upload.zip")
 //                        .to("direct:anshar.delete.folder")
-                    .endChoice()
+                    .end()
 
             ;
 
@@ -92,6 +92,7 @@ public class RealtimeDataFileUploader extends BaseRouteBuilder {
                     .process(p -> {
                         zipFilesInFolder((String)p.getIn().getHeader(TMP_FOLDER), (String)p.getIn().getHeader(ZIP_FILE_PATH));
                     })
+                    .log("Created ZIP: ${header." + ZIP_FILE_PATH + "}")
                     .routeId("anshar.zip.folder");
 
             from("direct:anshar.upload.zip")
