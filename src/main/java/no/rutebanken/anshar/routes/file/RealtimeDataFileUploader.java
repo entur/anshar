@@ -75,7 +75,8 @@ public class RealtimeDataFileUploader extends BaseRouteBuilder {
                         .to("direct:anshar.export.snapshot.create.file")
 
                         .to("direct:anshar.export.create.zip")
-//                        .to("direct:anshar.export.upload.zip")
+                        .to("direct:anshar.export.upload.zip")
+                        .to("direct:anshar.export.delete.zip")
                     .end()
 
             ;
@@ -103,6 +104,12 @@ public class RealtimeDataFileUploader extends BaseRouteBuilder {
                     .to("log:" + getClass().getName() + "?level=DEBUG&showAll=true&multiline=true")
                     .routeId("anshar.export.upload.zip");
 
+            from("direct:anshar.export.delete.zip")
+                    .process(p -> {
+                        File folder = new File((String)p.getIn().getHeader(TMP_FOLDER));
+                        Arrays.stream(folder.listFiles(pathname -> pathname.getName().endsWith(".zip"))).forEach(file -> file.delete());
+                    })
+                    .routeId("anshar.export.delete.zip");
         } else {
             log.info("Uploading snapshot disabled");
         }

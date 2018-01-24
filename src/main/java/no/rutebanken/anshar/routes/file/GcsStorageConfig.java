@@ -1,6 +1,7 @@
 package no.rutebanken.anshar.routes.file;
 
 import com.google.cloud.storage.Storage;
+import org.rutebanken.helper.gcp.BlobStoreHelper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,8 +19,7 @@ public class GcsStorageConfig {
 
     @Bean
     public Storage storage() {
-//        return BlobStoreHelper.getStorage(credentialPath, projectId);
-        return null;
+        return BlobStoreHelper.getStorage(credentialPath, projectId);
     }
 
 
