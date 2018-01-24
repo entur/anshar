@@ -48,16 +48,16 @@ public class RealtimeDataFileUploader extends BaseRouteBuilder {
                 tmpFolder = tmpFolder.substring(0, tmpFolder.length()-1);
             }
 
-            log.info("Uploading snapshot every {} minutes to folder [{}]", snapshotInterval, tmpFolder);
+            log.info("Uploading snapshot every {} minutes", snapshotInterval);
             singletonFrom("quartz2://anshar.export.snapshot?fireNow=true&trigger.repeatInterval=" + (snapshotInterval * 60 * 1000)
                     ,"anshar.export.snapshot")
                     .choice()
                     .when(p -> isLeader())
-                        .log("Exporting snapshot")
                         .setHeader(TMP_FOLDER, simple(tmpFolder))
                         .setHeader(ZIP_FILE, simple("SIRI-SNAPSHOT-${date:now:yyyyMMdd-HHmmss}.zip"))
                         .setHeader(ZIP_FILE_PATH, simple( "${header."+TMP_FOLDER+"}/${header."+ZIP_FILE+"}"))
                         .log("Exporting snapshot to ${header."+ZIP_FILE+"}")
+
                         .bean(exportHelper, "exportET")
                         .setHeader("siriDataType", simple("ET"))
                         .to("direct:anshar.export.snapshot.create.file")
@@ -85,10 +85,8 @@ public class RealtimeDataFileUploader extends BaseRouteBuilder {
                     .setHeader(FILE_NAME, simple("${header.siriDataType}.xml"))
                     .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
                     .to("file:?fileName=${header." + TMP_FOLDER + "}/${header." + FILE_NAME + "}")
-                    .log("Created file ${header.CamelFileNameProduced}")
                     .routeId("anshar.export.snapshot.create.file")
             ;
-
 
             from("direct:anshar.export.create.zip")
                     .process(p -> {
@@ -98,10 +96,9 @@ public class RealtimeDataFileUploader extends BaseRouteBuilder {
                     .routeId("anshar.export.create.zip");
 
             from("direct:anshar.export.upload.zip")
-                    .to("log:" + getClass().getName() + "?level=DEBUG&showAll=true&multiline=true")
                     .bean("blobStoreService", "uploadBlob")
                     .setBody(simple(""))
-                    .to("log:" + getClass().getName() + "?level=DEBUG&showAll=true&multiline=true")
+                    .log("Snapshot ${header."+ZIP_FILE+"} uploaded.")
                     .routeId("anshar.export.upload.zip");
 
             from("direct:anshar.export.delete.zip")
