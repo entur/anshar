@@ -46,36 +46,36 @@ public class RealtimeDataFileUploader extends BaseRouteBuilder {
     public void configure() throws Exception {
 
         if (snapshotInterval > 0) {
-            log.info("Uploading snapshot every {} minutes", snapshotInterval);
+            log.info("Uploading snapshot every {} minutes to folder [{}]", snapshotInterval, tmpFolder);
             singletonFrom("quartz2://anshar.export.snapshot?fireNow=true&trigger.repeatInterval=" + (snapshotInterval * 60 * 1000)
                     ,"anshar.export.snapshot")
-                    .filter(p -> isLeader("anshar.export.snapshot"))
-                    .setHeader(TMP_FOLDER, simple(tmpFolder))
-                    .setHeader(ZIP_FILE, simple("SIRI-SNAPSHOT-${date:now:yyyyMMdd-HHmmss}.zip"))
-                    .setHeader(ZIP_FILE_PATH, simple( "${header."+TMP_FOLDER+"}/${header."+ZIP_FILE+"}"))
-                    .log("Exporting snapshot to ${header."+ZIP_FILE+"}")
-                    .bean(exportHelper, "exportET")
-                    .setHeader("siriDataType", simple("ET"))
-                    .to("direct:anshar.export.snapshot.create.file")
-
-                    .bean(exportHelper, "exportSX")
-                    .setHeader("siriDataType", simple("SX"))
-                    .to("direct:anshar.export.snapshot.create.file")
-
-                    .bean(exportHelper, "exportVM")
-                    .setHeader("siriDataType", simple("VM"))
-                    .to("direct:anshar.export.snapshot.create.file")
-
-                    .bean(exportHelper, "exportPT")
-                    .setHeader("siriDataType", simple("PT"))
-                    .to("direct:anshar.export.snapshot.create.file")
-
-                    .to("direct:anshar.zip.folder")
                     .choice()
-                        .when(p -> uploadEnabled)
-                            .to("direct:anshar.upload.zip")
-                        .end()
-                    .to("direct:anshar.delete.folder")
+                    .when(p -> isLeader())
+                        .setHeader(TMP_FOLDER, simple(tmpFolder))
+                        .setHeader(ZIP_FILE, simple("SIRI-SNAPSHOT-${date:now:yyyyMMdd-HHmmss}.zip"))
+                        .setHeader(ZIP_FILE_PATH, simple( "${header."+TMP_FOLDER+"}/${header."+ZIP_FILE+"}"))
+                        .log("Exporting snapshot to ${header."+ZIP_FILE+"}")
+                        .bean(exportHelper, "exportET")
+                        .setHeader("siriDataType", simple("ET"))
+                        .to("direct:anshar.export.snapshot.create.file")
+
+                        .bean(exportHelper, "exportSX")
+                        .setHeader("siriDataType", simple("SX"))
+                        .to("direct:anshar.export.snapshot.create.file")
+
+                        .bean(exportHelper, "exportVM")
+                        .setHeader("siriDataType", simple("VM"))
+                        .to("direct:anshar.export.snapshot.create.file")
+
+                        .bean(exportHelper, "exportPT")
+                        .setHeader("siriDataType", simple("PT"))
+                        .to("direct:anshar.export.snapshot.create.file")
+
+                        .to("direct:anshar.zip.folder")
+                        .log("Created file ${header.CamelFileNameProduced}")
+//                        .to("direct:anshar.upload.zip")
+//                        .to("direct:anshar.delete.folder")
+                    .endChoice()
 
             ;
 
@@ -83,6 +83,7 @@ public class RealtimeDataFileUploader extends BaseRouteBuilder {
                     .setHeader(FILE_NAME, simple("${header.siriDataType}.xml"))
                     .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
                     .to("file:?fileName=${header." + TMP_FOLDER + "}/${header." + FILE_NAME + "}")
+                    .log("Created file ${header.CamelFileNameProduced}")
                     .routeId("anshar.export.snapshot.create.file")
             ;
 
@@ -110,6 +111,12 @@ public class RealtimeDataFileUploader extends BaseRouteBuilder {
         } else {
             log.info("Uploading snapshot disabled");
         }
+    }
+
+    private boolean isLeader() {
+        boolean isLeader = isLeader("anshar.export.snapshot");
+        log.info("Is leader: {}", isLeader);
+        return isLeader;
     }
 
     public static File zipFilesInFolder(String folder, String targetFilePath) {
