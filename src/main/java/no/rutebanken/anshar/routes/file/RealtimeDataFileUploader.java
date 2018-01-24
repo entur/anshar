@@ -41,8 +41,13 @@ public class RealtimeDataFileUploader extends BaseRouteBuilder {
 
     @Override
     public void configure() throws Exception {
-snapshotInterval = 1;
+
         if (snapshotInterval > 0) {
+
+            if (tmpFolder.endsWith("/")) {
+                tmpFolder = tmpFolder.substring(0, tmpFolder.length()-1);
+            }
+
             log.info("Uploading snapshot every {} minutes to folder [{}]", snapshotInterval, tmpFolder);
             singletonFrom("quartz2://anshar.export.snapshot?fireNow=true&trigger.repeatInterval=" + (snapshotInterval * 60 * 1000)
                     ,"anshar.export.snapshot")
@@ -69,9 +74,8 @@ snapshotInterval = 1;
                         .setHeader("siriDataType", simple("PT"))
                         .to("direct:anshar.export.snapshot.create.file")
 
-                        .to("direct:anshar.zip.folder")
-//                        .to("direct:anshar.upload.zip")
-//                        .to("direct:anshar.delete.folder")
+                        .to("direct:anshar.export.create.zip")
+//                        .to("direct:anshar.export.upload.zip")
                     .end()
 
             ;
@@ -85,27 +89,20 @@ snapshotInterval = 1;
             ;
 
 
-            from("direct:anshar.zip.folder")
+            from("direct:anshar.export.create.zip")
                     .process(p -> {
                         zipFilesInFolder((String)p.getIn().getHeader(TMP_FOLDER), (String)p.getIn().getHeader(ZIP_FILE_PATH));
                     })
                     .log("Created ZIP: ${header." + ZIP_FILE_PATH + "}")
-                    .routeId("anshar.zip.folder");
+                    .routeId("anshar.export.create.zip");
 
-            from("direct:anshar.upload.zip")
+            from("direct:anshar.export.upload.zip")
                     .to("log:" + getClass().getName() + "?level=DEBUG&showAll=true&multiline=true")
                     .bean("blobStoreService", "uploadBlob")
                     .setBody(simple(""))
                     .to("log:" + getClass().getName() + "?level=DEBUG&showAll=true&multiline=true")
-                    .routeId("anshar.upload.zip");
+                    .routeId("anshar.export.upload.zip");
 
-
-            from("direct:anshar.delete.folder")
-                    .process(p -> {
-                        File folder = new File((String)p.getIn().getHeader(TMP_FOLDER));
-                        Arrays.stream(folder.listFiles(pathname -> pathname.getName().endsWith(".xml"))).forEach(file -> file.delete());
-                    })
-                    .routeId("anshar.delete.folder");
         } else {
             log.info("Uploading snapshot disabled");
         }
