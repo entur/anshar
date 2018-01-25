@@ -32,6 +32,6 @@ public class BlobStoreService {
 
 	public void uploadBlob(@Header(value = RealtimeDataFileUploader.ZIP_FILE_PATH) String path) throws FileNotFoundException {
 		File f = new File(path);
-		repository.uploadBlob(f.getName(), new BufferedInputStream(new FileInputStream(f)), false);
+		repository.uploadBlob(f.getName(), new BufferedInputStream(new FileInputStream(f)), true);
 	}
 }
