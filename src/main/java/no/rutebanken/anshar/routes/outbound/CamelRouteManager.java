@@ -159,7 +159,7 @@ public class CamelRouteManager implements CamelContextAware {
         public SiriPushRouteBuilder(String remoteEndPoint, OutboundSubscriptionSetup subscriptionRequest) {
             this.remoteEndPoint=remoteEndPoint;
             this.subscriptionRequest = subscriptionRequest;
-            routeName = String.format("direct:%s", subscriptionRequest.createRouteId());
+            routeName = String.format("seda:%s", subscriptionRequest.createRouteId());
         }
 
         @Override

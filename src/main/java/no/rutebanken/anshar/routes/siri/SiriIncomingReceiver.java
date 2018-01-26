@@ -162,7 +162,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                         .to("activemq:queue:" + CamelConfiguration.VALIDATOR_QUEUE + activeMQParameters)
                     .endChoice()
                 .end()
-                .to("direct:" + CamelConfiguration.ROUTER_QUEUE)
+                .to("seda:" + CamelConfiguration.ROUTER_QUEUE)
                 .routeId("incoming.transform")
         ;
 
@@ -196,7 +196,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
 
 
 
-        from("direct:" + CamelConfiguration.ROUTER_QUEUE)
+        from("seda:" + CamelConfiguration.ROUTER_QUEUE)
 //                .to("file:" + camelConfiguration.getIncomingLogDirectory() + "?fileName=${header.CamelHttpPath}/${date:now:yyyyMMdd-hhmmss}")
                 .choice()
                 .when().xpath("/siri:Siri/siri:HeartbeatNotification", ns)
@@ -279,7 +279,7 @@ public class SiriIncomingReceiver extends RouteBuilder {
                 })
                 .choice()
                 .when(header("routename").isNotNull())
-                    .toD("direct:${header.routename}")
+                    .toD("seda:${header.routename}")
                 .endChoice()
                 .routeId("incoming.processor.fetched_delivery")
         ;

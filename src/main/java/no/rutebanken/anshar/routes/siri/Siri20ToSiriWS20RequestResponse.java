@@ -36,7 +36,7 @@ public class Siri20ToSiriWS20RequestResponse extends SiriSubscriptionRouteBuilde
                     monitoringRouteId)
                     .choice()
                     .when(p -> requestData(subscriptionSetup.getSubscriptionId(), p.getFromRouteId()))
-                    .to("direct:" + subscriptionSetup.getServiceRequestRouteName())
+                    .to("seda:" + subscriptionSetup.getServiceRequestRouteName())
                     .endChoice()
             ;
         } else {
@@ -53,7 +53,7 @@ public class Siri20ToSiriWS20RequestResponse extends SiriSubscriptionRouteBuilde
             endpointUrl = "http://" + endpointUrl;
         }
 
-        from("direct:" + subscriptionSetup.getServiceRequestRouteName())
+        from("seda:" + subscriptionSetup.getServiceRequestRouteName())
                 .log("Retrieving data " + subscriptionSetup.toString())
                 .bean(helper, "createSiriDataRequest", false)
                 .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
