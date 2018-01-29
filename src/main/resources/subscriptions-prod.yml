@@ -471,7 +471,7 @@ anshar:
       operatorNamespace: http://www.siri.org.uk/siri
       addressFieldName:
       soapenvNamespace:
-      incrementalUpdates: true
+      incrementalUpdates: false
       urlMap:
         SUBSCRIBE: https4://siri.opm.jbv.no/jbv/et
         DELETE_SUBSCRIPTION: https4://siri.opm.jbv.no/jbv/et
