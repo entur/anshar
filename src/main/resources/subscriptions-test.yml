@@ -781,16 +781,15 @@ anshar:
       datasetId: ENT
       serviceType: REST
       subscriptionType: VEHICLE_MONITORING
-      subscriptionMode: SUBSCRIBE
-      heartbeatIntervalSeconds: 60
+      subscriptionMode: REQUEST_RESPONSE
+      heartbeatIntervalSeconds: 20
       updateIntervalSeconds: 1
       operatorNamespace: http://www.siri.org.uk/siri
       addressFieldName:
       soapenvNamespace:
       incrementalUpdates:
       urlMap:
-        SUBSCRIBE: https4://api.entur.org/anshar/1.0/anshar/subscribe
-        DELETE_SUBSCRIPTION: https4://api.entur.org/anshar/1.0/anshar/subscribe
+        GET_VEHICLE_MONITORING: https4://api.entur.org/anshar/1.0/anshar/services
       version: 2.0
       contentType: text/xml;charset=UTF-8
       subscriptionId: vm-replication-test
@@ -806,8 +805,8 @@ anshar:
       datasetId: ENT
       serviceType: REST
       subscriptionType: ESTIMATED_TIMETABLE
-      subscriptionMode: SUBSCRIBE
-      heartbeatIntervalSeconds: 60
+      subscriptionMode: REQUEST_RESPONSE
+      heartbeatIntervalSeconds: 20
       previewIntervalSeconds: 86400
       updateIntervalSeconds: 1
       operatorNamespace: http://www.siri.org.uk/siri
@@ -815,8 +814,7 @@ anshar:
       soapenvNamespace:
       incrementalUpdates:
       urlMap:
-        SUBSCRIBE: https4://api.entur.org/anshar/1.0/anshar/subscribe
-        DELETE_SUBSCRIPTION: https4://api.entur.org/anshar/1.0/anshar/subscribe
+        GET_ESTIMATED_TIMETABLE: https4://api.entur.org/anshar/1.0/anshar/services
       version: 2.0
       contentType: text/xml;charset=UTF-8
       subscriptionId: et-replication-test
@@ -832,8 +830,8 @@ anshar:
       datasetId: ENT
       serviceType: REST
       subscriptionType: SITUATION_EXCHANGE
-      subscriptionMode: SUBSCRIBE
-      heartbeatIntervalSeconds: 60
+      subscriptionMode: REQUEST_RESPONSE
+      heartbeatIntervalSeconds: 20
       previewIntervalSeconds: 86400
       updateIntervalSeconds: 1
       operatorNamespace: http://www.siri.org.uk/siri
@@ -841,8 +839,7 @@ anshar:
       soapenvNamespace:
       incrementalUpdates:
       urlMap:
-        SUBSCRIBE: https4://api.entur.org/anshar/1.0/anshar/subscribe
-        DELETE_SUBSCRIPTION: https4://api.entur.org/anshar/1.0/anshar/subscribe
+        GET_SITUATION_EXCHANGE: https4://api.entur.org/anshar/1.0/anshar/services
       version: 2.0
       contentType: text/xml;charset=UTF-8
       subscriptionId: sx-replication-test
