@@ -127,4 +127,14 @@ public class HealthManager {
 
         this.unmappedIds.set(datasetId, unmappedIds);
     }
+
+    public void removeUnmappedId(SubscriptionSetup.SubscriptionType type, String datasetId, String id) {
+        Map<SubscriptionSetup.SubscriptionType, Set<String>> unmappedIds = getUnmappedIds(datasetId);
+
+        Set<String> ids = unmappedIds.getOrDefault(type, new HashSet<>());
+        ids.remove(id);
+        unmappedIds.put(type, ids);
+
+        this.unmappedIds.set(datasetId, unmappedIds);
+    }
 }

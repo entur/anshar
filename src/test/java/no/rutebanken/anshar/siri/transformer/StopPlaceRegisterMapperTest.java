@@ -1,6 +1,7 @@
 package no.rutebanken.anshar.siri.transformer;
 
 import no.rutebanken.anshar.App;
+import no.rutebanken.anshar.routes.health.HealthManager;
 import no.rutebanken.anshar.routes.siri.transformer.ApplicationContextHolder;
 import no.rutebanken.anshar.routes.siri.transformer.impl.StopPlaceRegisterMapper;
 import no.rutebanken.anshar.routes.siri.transformer.impl.StopPlaceUpdaterService;
@@ -12,10 +13,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import uk.org.siri.siri20.JourneyPlaceRefStructure;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static junit.framework.TestCase.assertEquals;
 
@@ -91,5 +89,50 @@ public class StopPlaceRegisterMapperTest {
         StopPlaceRegisterMapper mapper = new StopPlaceRegisterMapper(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING, "TST",JourneyPlaceRefStructure.class, prefixes);
 
         assertEquals("NSR:QUAY:11223344", mapper.apply("NSR:QUAY:11223344"));
+    }
+
+    @Test
+    public void testUnmappedThenMapped() {
+
+        stopPlaceMap = new HashMap<>();
+
+        StopPlaceUpdaterService stopPlaceService = ApplicationContextHolder.getContext().getBean(StopPlaceUpdaterService.class);
+
+        //Manually adding custom mapping to Spring context
+        stopPlaceService.addStopPlaceMappings(stopPlaceMap);
+
+
+        HealthManager healthManager = ApplicationContextHolder.getContext().getBean(HealthManager.class);
+
+        List<String> prefixes = new ArrayList<>();
+
+        String datasetId = "TST_" + System.currentTimeMillis();
+        String originalId = "4321";
+        String mappedId = "NSR:QUAY:44332211";
+
+        StopPlaceRegisterMapper mapper = new StopPlaceRegisterMapper(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING, datasetId,JourneyPlaceRefStructure.class, prefixes);
+
+        assertEquals(originalId, mapper.apply(originalId));
+
+        Map<SubscriptionSetup.SubscriptionType, Set<String>> unmappedIds = healthManager.getUnmappedIds(datasetId);
+
+        assertEquals(1, unmappedIds.size());
+
+        Set<String> ids = unmappedIds.get(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING);
+        assertEquals(1, ids.size());
+        assertEquals(originalId, ids.iterator().next());
+
+
+        //Add new mapping-value
+        stopPlaceMap.put(originalId, mappedId);
+        stopPlaceService.addStopPlaceMappings(stopPlaceMap);
+
+        assertEquals(mappedId, mapper.apply(originalId));
+
+        unmappedIds = healthManager.getUnmappedIds(datasetId);
+        assertEquals(1, unmappedIds.size());
+        ids = unmappedIds.get(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING);
+        assertEquals(0, ids.size());
+
     }
 }

@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class StopPlaceRegisterMapper extends ValueAdapter {
@@ -38,6 +39,10 @@ public class StopPlaceRegisterMapper extends ValueAdapter {
         this.datatype = datatype;
         healthManager = ApplicationContextHolder.getContext().getBean(HealthManager.class);
         unmappedAlreadyAdded = new HashSet<>();
+
+        Map<SubscriptionSetup.SubscriptionType, Set<String>> unmappedIds = healthManager.getUnmappedIds(datasetId);
+        unmappedIds.values().stream().forEach(unmapped -> unmappedAlreadyAdded.addAll(unmapped));
+        logger.info("Initialized with {} already unmapped ids", unmappedAlreadyAdded.size());
     }
 
 
@@ -47,23 +52,29 @@ public class StopPlaceRegisterMapper extends ValueAdapter {
         }
         StopPlaceUpdaterService stopPlaceService = ApplicationContextHolder.getContext().getBean(StopPlaceUpdaterService.class);
 
-        if (stopPlaceService != null) {
-            if (prefixes != null && !prefixes.isEmpty()) {
+        try {
+            if (stopPlaceService != null) {
+                if (prefixes != null && !prefixes.isEmpty()) {
 
-                for (String prefix : prefixes) {
-                    String mappedValue = stopPlaceService.get(createCompleteId(prefix, id, datatype));
+                    for (String prefix : prefixes) {
+                        String mappedValue = stopPlaceService.get(createCompleteId(prefix, id, datatype));
+                        if (mappedValue != null) {
+                            return mappedValue;
+                        }
+                    }
+                } else {
+                    String mappedValue = stopPlaceService.get(id);
                     if (mappedValue != null) {
                         return mappedValue;
                     }
                 }
-            } else {
-                String mappedValue = stopPlaceService.get(id);
-                if (mappedValue != null) {
-                    return mappedValue;
-                }
+            }
+        } finally {
+            if (unmappedAlreadyAdded.contains(id)) {
+                healthManager.removeUnmappedId(type, datasetId, id);
+                unmappedAlreadyAdded.remove(id);
             }
         }
-
         if (unmappedAlreadyAdded.add(id)) {
             healthManager.addUnmappedId(type, datasetId, id);
         }
