@@ -9,6 +9,7 @@ import uk.org.siri.siri20.*;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class BaneNorIdPlatformPostProcessor extends ValueAdapter implements PostProcessor {
@@ -25,6 +26,9 @@ public class BaneNorIdPlatformPostProcessor extends ValueAdapter implements Post
         this.type = type;
         healthManager = ApplicationContextHolder.getContext().getBean(HealthManager.class);
         unmappedAlreadyAdded = new HashSet<>();
+
+        Map<SubscriptionSetup.SubscriptionType, Set<String>> unmappedIds = healthManager.getUnmappedIds(datasetId);
+        unmappedIds.values().stream().forEach(unmapped -> unmappedAlreadyAdded.addAll(unmapped));
     }
 
 
@@ -47,6 +51,9 @@ public class BaneNorIdPlatformPostProcessor extends ValueAdapter implements Post
                 healthManager.addUnmappedId(type, datasetId, id);
             }
             return null;
+        } else if (unmappedAlreadyAdded.contains(id)) {
+            healthManager.removeUnmappedId(type, datasetId, id);
+            unmappedAlreadyAdded.remove(id);
         }
         return stopPointRefValue + SiriValueTransformer.SEPARATOR + nsrId;
     }

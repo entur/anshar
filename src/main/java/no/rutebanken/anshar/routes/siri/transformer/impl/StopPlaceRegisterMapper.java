@@ -42,7 +42,6 @@ public class StopPlaceRegisterMapper extends ValueAdapter {
 
         Map<SubscriptionSetup.SubscriptionType, Set<String>> unmappedIds = healthManager.getUnmappedIds(datasetId);
         unmappedIds.values().stream().forEach(unmapped -> unmappedAlreadyAdded.addAll(unmapped));
-        logger.info("Initialized mapping for datatype '{}', dataset '{}' with {} already unmapped ids.", type, datasetId, unmappedAlreadyAdded.size());
     }
 
 
