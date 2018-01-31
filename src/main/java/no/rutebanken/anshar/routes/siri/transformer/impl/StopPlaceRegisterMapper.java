@@ -36,7 +36,6 @@ public class StopPlaceRegisterMapper extends ValueAdapter {
         this.datasetId = datasetId;
         this.prefixes = prefixes;
         this.datatype = datatype;
-        healthManager = ApplicationContextHolder.getContext().getBean(HealthManager.class);
         unmappedAlreadyAdded = new HashSet<>();
     }
 
@@ -46,6 +45,10 @@ public class StopPlaceRegisterMapper extends ValueAdapter {
             return id;
         }
         StopPlaceUpdaterService stopPlaceService = ApplicationContextHolder.getContext().getBean(StopPlaceUpdaterService.class);
+
+        if (healthManager == null) {
+            healthManager = ApplicationContextHolder.getContext().getBean(HealthManager.class);
+        }
 
         try {
             if (stopPlaceService != null) {

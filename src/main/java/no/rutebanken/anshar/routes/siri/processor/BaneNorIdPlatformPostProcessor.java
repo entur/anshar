@@ -23,7 +23,6 @@ public class BaneNorIdPlatformPostProcessor extends ValueAdapter implements Post
     public BaneNorIdPlatformPostProcessor(SubscriptionSetup.SubscriptionType type, String datasetId) {
         this.datasetId = datasetId;
         this.type = type;
-        healthManager = ApplicationContextHolder.getContext().getBean(HealthManager.class);
         unmappedAlreadyAdded = new HashSet<>();
     }
 
@@ -39,6 +38,10 @@ public class BaneNorIdPlatformPostProcessor extends ValueAdapter implements Post
         if (stopPlaceService == null) {
             stopPlaceService = ApplicationContextHolder.getContext().getBean(BaneNorIdPlatformUpdaterService.class);
         }
+        if (healthManager == null) {
+            healthManager = ApplicationContextHolder.getContext().getBean(HealthManager.class);
+        }
+
 
         String id = stopPointRefValue + ":" + platform;
         String nsrId = stopPlaceService.get(id);
