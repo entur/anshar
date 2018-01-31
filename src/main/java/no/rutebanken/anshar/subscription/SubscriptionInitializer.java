@@ -96,7 +96,7 @@ public class SubscriptionInitializer implements CamelContextAware, ApplicationCo
                         List<ValueAdapter> valueAdapters = (List<ValueAdapter>) adapterClass.getMethod("getValueAdapters", SubscriptionSetup.class).invoke(adapterClass.newInstance(), subscriptionSetup);
                         subscriptionSetup.getMappingAdapters().addAll(valueAdapters);
                     } catch (Exception e) {
-                        throw new ServiceConfigurationError("Invalid mappingAdapterId for subscription " + subscriptionSetup);
+                        throw new ServiceConfigurationError("Invalid mappingAdapterId for subscription " + subscriptionSetup, e);
                     }
                 }
 
