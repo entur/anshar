@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 public class StopPlaceRegisterMapper extends ValueAdapter {
@@ -39,9 +38,6 @@ public class StopPlaceRegisterMapper extends ValueAdapter {
         this.datatype = datatype;
         healthManager = ApplicationContextHolder.getContext().getBean(HealthManager.class);
         unmappedAlreadyAdded = new HashSet<>();
-
-        Map<SubscriptionSetup.SubscriptionType, Set<String>> unmappedIds = healthManager.getUnmappedIds(datasetId);
-        unmappedIds.values().stream().forEach(unmapped -> unmappedAlreadyAdded.addAll(unmapped));
     }
 
 
