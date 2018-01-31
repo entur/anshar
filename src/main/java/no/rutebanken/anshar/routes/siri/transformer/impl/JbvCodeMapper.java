@@ -26,7 +26,6 @@ public class JbvCodeMapper extends ValueAdapter {
         super(clazz);
         this.datasetId = datasetId;
         this.type = type;
-        healthManager = ApplicationContextHolder.getContext().getBean(HealthManager.class);
         unmappedAlreadyAdded = new HashSet<>();
     }
 
@@ -37,13 +36,23 @@ public class JbvCodeMapper extends ValueAdapter {
         }
         BaneNorIdPlatformUpdaterService jbvCodeService = ApplicationContextHolder.getContext().getBean(BaneNorIdPlatformUpdaterService.class);
 
-        if (jbvCodeService != null){
-            String mappedValue = jbvCodeService.get(id);
-            if (mappedValue != null) {
-                return mappedValue;
+        if (healthManager == null) {
+            healthManager = ApplicationContextHolder.getContext().getBean(HealthManager.class);
+        }
+        String mappedValue = null;
+        try {
+            if (jbvCodeService != null) {
+                 mappedValue = jbvCodeService.get(id);
+                if (mappedValue != null) {
+                    return mappedValue;
+                }
+            }
+        } finally {
+            if (mappedValue != null && unmappedAlreadyAdded.contains(id)) {
+                healthManager.removeUnmappedId(type, datasetId, id);
+                unmappedAlreadyAdded.remove(id);
             }
         }
-
         if (unmappedAlreadyAdded.add(id)) {
             healthManager.addUnmappedId(type, datasetId, id);
         }

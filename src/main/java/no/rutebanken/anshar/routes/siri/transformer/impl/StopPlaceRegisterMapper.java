@@ -50,29 +50,32 @@ public class StopPlaceRegisterMapper extends ValueAdapter {
             healthManager = ApplicationContextHolder.getContext().getBean(HealthManager.class);
         }
 
+        String mappedValue = null;
+
         try {
             if (stopPlaceService != null) {
                 if (prefixes != null && !prefixes.isEmpty()) {
 
                     for (String prefix : prefixes) {
-                        String mappedValue = stopPlaceService.get(createCompleteId(prefix, id, datatype));
+                        mappedValue = stopPlaceService.get(createCompleteId(prefix, id, datatype));
                         if (mappedValue != null) {
                             return mappedValue;
                         }
                     }
                 } else {
-                    String mappedValue = stopPlaceService.get(id);
+                    mappedValue = stopPlaceService.get(id);
                     if (mappedValue != null) {
                         return mappedValue;
                     }
                 }
             }
         } finally {
-            if (unmappedAlreadyAdded.contains(id)) {
+            if (mappedValue != null && unmappedAlreadyAdded.contains(id)) {
                 healthManager.removeUnmappedId(type, datasetId, id);
                 unmappedAlreadyAdded.remove(id);
             }
         }
+
         if (unmappedAlreadyAdded.add(id)) {
             healthManager.addUnmappedId(type, datasetId, id);
         }
