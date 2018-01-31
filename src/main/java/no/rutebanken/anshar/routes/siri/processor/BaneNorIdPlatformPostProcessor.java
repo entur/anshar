@@ -18,7 +18,7 @@ public class BaneNorIdPlatformPostProcessor extends ValueAdapter implements Post
     private static HealthManager healthManager;
     private final SubscriptionSetup.SubscriptionType type;
 
-    private Set<String> unmappedAlreadyAdded;
+    private static Set<String> unmappedAlreadyAdded;
     private String datasetId;
 
     public BaneNorIdPlatformPostProcessor(SubscriptionSetup.SubscriptionType type, String datasetId) {
