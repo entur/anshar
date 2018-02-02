@@ -1,6 +1,7 @@
 package no.rutebanken.anshar.routes.health;
 
 import com.hazelcast.core.ISet;
+import no.rutebanken.anshar.routes.CamelConfiguration;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
@@ -22,8 +23,9 @@ import java.util.Set;
 public class LivenessReadinessRoute extends RouteBuilder {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    @Value("${anshar.incoming.port}")
-    private String inboundPort;
+
+    @Autowired
+    private CamelConfiguration configuration;
 
     @Value("${anshar.healthcheck.hubot.url}")
     private String hubotUrl;
@@ -78,21 +80,32 @@ public class LivenessReadinessRoute extends RouteBuilder {
     @Override
     public void configure() throws Exception {
 
+        restConfiguration("jetty")
+                .port(configuration.getInboundPort());
+
+
+        rest("")
+                .get("/ready").to("direct:ready")
+                .get("/up").to("direct:up")
+                .get("/healthy").to("direct:healthy")
+                .get("/anshardata").to("direct:anshardata")
+                .get("/favicon.ico").to("direct:notfound");
+
         //To avoid large stacktraces in the log when fetching data using browser
-        from("jetty:http://0.0.0.0:" + inboundPort + "/favicon.ico")
+        from("direct:notfound")
                 .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("404"))
-                .routeId("health.favicon")
+                .routeId("health.notfound")
         ;
 
         // Application is ready to accept traffic
-        from("jetty:http://0.0.0.0:" + inboundPort + "/ready")
+        from("direct:ready")
                 .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
                 .setBody(constant("OK"))
                 .routeId("health.ready")
         ;
 
         // Application is (still) alive and well
-        from("jetty:http://0.0.0.0:" + inboundPort + "/up")
+        from("direct:up")
                 //TODO: On error - POST to hubot - Ex: wget --post-data='{"source":"otp", "message":"Downloaded file is empty or not present. This makes OTP fail! Please check logs"}' http://hubot/hubot/say/
                 .choice()
                 .when(p -> !healthManager.isHazelcastAlive())
@@ -107,7 +120,7 @@ public class LivenessReadinessRoute extends RouteBuilder {
                 .routeId("health.up")
         ;
 
-        from("jetty:http://0.0.0.0:" + inboundPort + "/healthy")
+        from("direct:healthy")
                 .choice()
                 .when(p -> !healthManager.isReceivingData())
                     .process(p -> {
@@ -123,7 +136,7 @@ public class LivenessReadinessRoute extends RouteBuilder {
                 .routeId("health.healthy")
         ;
 
-        from("jetty:http://0.0.0.0:" + inboundPort + "/anshardata")
+        from("direct:anshardata")
                 .choice()
                 .when(p -> getAllUnhealthySubscriptions().isEmpty() && !unhealthySubscriptionsAlreadyNotified.isEmpty())
                     .process(p -> {

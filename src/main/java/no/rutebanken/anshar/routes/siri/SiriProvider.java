@@ -51,9 +51,17 @@ public class SiriProvider extends RouteBuilder {
     @Override
     public void configure() throws Exception {
 
+        restConfiguration("jetty")
+                .port(configuration.getInboundPort());
+
+        rest("/anshar/rest")
+                .get("/sx").to("direct:anshar.rest.sx")
+                .get("/vm").to("direct:anshar.rest.vm")
+                .get("/et").to("direct:anshar.rest.et")
+                .get("/pt").to("direct:anshar.rest.pt");
 
         // Dataproviders
-        from("jetty:http://0.0.0.0:" + configuration.getInboundPort() + "/anshar/rest/sx?httpMethodRestrict=GET")
+        from("direct:anshar.rest.sx")
                 .log("RequestTracer - Incoming request (SX)")
                 .process(p -> {
                     p.getOut().setHeaders(p.getIn().getHeaders());
@@ -99,7 +107,7 @@ public class SiriProvider extends RouteBuilder {
                 .routeId("incoming.rest.sx")
         ;
 
-        from("jetty:http://0.0.0.0:" + configuration.getInboundPort() + "/anshar/rest/vm?httpMethodRestrict=GET")
+        from("direct:anshar.rest.vm")
                 .log("RequestTracer - Incoming request (VM)")
                 .process(p -> {
                     p.getOut().setHeaders(p.getIn().getHeaders());
@@ -153,7 +161,7 @@ public class SiriProvider extends RouteBuilder {
         ;
 
 
-        from("jetty:http://0.0.0.0:" + configuration.getInboundPort() + "/anshar/rest/et?httpMethodRestrict=GET")
+        from("direct:anshar.rest.et")
                 .log("RequestTracer - Incoming request (ET)")
                 .process(p -> {
                     p.getOut().setHeaders(p.getIn().getHeaders());
@@ -206,7 +214,7 @@ public class SiriProvider extends RouteBuilder {
         ;
 
 
-        from("jetty:http://0.0.0.0:" + configuration.getInboundPort() + "/anshar/rest/pt?httpMethodRestrict=GET")
+        from("direct:anshar.rest.pt")
                 .log("RequestTracer - Incoming request (PT)")
                 .process(p -> {
                     p.getOut().setHeaders(p.getIn().getHeaders());

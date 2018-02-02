@@ -175,7 +175,7 @@ public class ExtendedHazelcastService extends HazelCastService {
         return hazelcast.getMap("anshar.admin.health");
     }
 
-    public String listNodes(boolean includeStats) {
+    public String listNodes(Boolean includeStats) {
         JSONObject root = new JSONObject();
         JSONArray clusterMembers = new JSONArray();
         Cluster cluster = hazelcast.getCluster();
@@ -190,7 +190,7 @@ public class ExtendedHazelcastService extends HazelCastService {
                     obj.put("port", member.getAddress().getPort());
                     obj.put("local", member.localMember());
 
-                    if (includeStats) {
+                    if (includeStats != null && includeStats) {
                         JSONObject stats = new JSONObject();
                         Collection<DistributedObject> distributedObjects = hazelcast.getDistributedObjects();
                         for (DistributedObject distributedObject : distributedObjects) {

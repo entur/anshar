@@ -345,23 +345,26 @@ public class SubscriptionManager {
     }
 
     public void stopSubscription(String subscriptionId) {
+        if (subscriptionId != null) {
+            SubscriptionSetup subscriptionSetup = subscriptions.get(subscriptionId);
+            if (subscriptionSetup != null) {
+                subscriptionSetup.setActive(false);
+                subscriptions.put(subscriptionId, subscriptionSetup);
 
-        SubscriptionSetup subscriptionSetup = subscriptions.get(subscriptionId);
-        if (subscriptionSetup != null) {
-            subscriptionSetup.setActive(false);
-            subscriptions.put(subscriptionId, subscriptionSetup);
-
-            removeSubscription(subscriptionId);
-            logger.info("Handled request to cancel subscription ", subscriptionSetup);
+                removeSubscription(subscriptionId);
+                logger.info("Handled request to cancel subscription ", subscriptionSetup);
+            }
         }
     }
 
     public void startSubscription(String subscriptionId) {
-        SubscriptionSetup subscriptionSetup = subscriptions.get(subscriptionId);
-        if (subscriptionSetup != null) {
-            subscriptionSetup.setActive(true);
-            activatePendingSubscription(subscriptionId);
-            logger.info("Handled request to start subscription ", subscriptionSetup);
+        if (subscriptionId != null) {
+            SubscriptionSetup subscriptionSetup = subscriptions.get(subscriptionId);
+            if (subscriptionSetup != null) {
+                subscriptionSetup.setActive(true);
+                activatePendingSubscription(subscriptionId);
+                logger.info("Handled request to start subscription ", subscriptionSetup);
+            }
         }
     }
 

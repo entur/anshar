@@ -95,6 +95,9 @@ public class HealthManager {
 
     public JSONObject getUnmappedIdsAsJson(String datasetId) {
         JSONObject result = new JSONObject();
+        if (datasetId == null) {
+            return result;
+        }
 
         Map<SubscriptionSetup.SubscriptionType, Set<String>> dataSetUnmapped = getUnmappedIds(datasetId);
 
