@@ -386,15 +386,9 @@ public class SiriHandler {
     public static OutboundIdMappingPolicy getIdMappingPolicy(String query) {
         OutboundIdMappingPolicy outboundIdMappingPolicy = OutboundIdMappingPolicy.DEFAULT;
         if (query != null) {
-
             String useOriginalIdTrue = "useOriginalId=true";
             if (query.toUpperCase().contains(useOriginalIdTrue.toUpperCase())) {
                 outboundIdMappingPolicy = OutboundIdMappingPolicy.ORIGINAL_ID;
-            }
-
-            String useOtpIdTrue = "useOtpId=true";
-            if (query.toUpperCase().contains(useOtpIdTrue.toUpperCase())) {
-                outboundIdMappingPolicy = OutboundIdMappingPolicy.OTP_FRIENDLY_ID;
             }
         }
         return outboundIdMappingPolicy;

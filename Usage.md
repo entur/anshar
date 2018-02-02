@@ -13,8 +13,6 @@
 
 # SIRI common
 - To obtain the original ID a query-parameter can be added to the service/subscribe-url - i.e. `?useOriginalId=true`
-- To obtain a OTP-friendly ID a query-parameter can be added to the service/subscribe-url - i.e. `?useOtpId=true`
-
 
 # REST API
 

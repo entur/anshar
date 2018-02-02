@@ -20,11 +20,6 @@ public class InMemoryGcsStorageConfig {
         return getStorage();
     }
 
-    @Bean
-    public Storage otpReportStorage() {
-        return getStorage();
-    }
-
     private Storage getStorage() {
         return StorageOptions.newBuilder().setProjectId("1234").build().getService();
     }

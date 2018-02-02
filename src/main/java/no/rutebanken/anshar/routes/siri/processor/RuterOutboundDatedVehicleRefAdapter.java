@@ -71,8 +71,6 @@ public class RuterOutboundDatedVehicleRefAdapter extends ValueAdapter implements
             switch (outboundIdMappingPolicy) {
                 case ORIGINAL_ID:
                     return getOriginalId(text);
-                case OTP_FRIENDLY_ID:
-                    return getOtpFriendly(text);
                 default:
                     return getMappedId(text);
             }
@@ -86,10 +84,6 @@ public class RuterOutboundDatedVehicleRefAdapter extends ValueAdapter implements
 
     public static String getMappedId(String text) {
         return text.substring(text.indexOf(SiriValueTransformer.SEPARATOR)+1);
-    }
-
-    public static String getOtpFriendly(String text) {
-        return text.substring(text.indexOf(SiriValueTransformer.SEPARATOR)+1).replace(":", ".");
     }
 
     @Override

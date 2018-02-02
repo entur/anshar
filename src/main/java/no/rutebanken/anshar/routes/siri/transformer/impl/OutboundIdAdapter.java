@@ -23,8 +23,6 @@ public class OutboundIdAdapter extends ValueAdapter {
                 text = getMappedId(text);
             } else if (outboundIdMappingPolicy == OutboundIdMappingPolicy.ORIGINAL_ID) {
                 text = getOriginalId(text);
-            } else if (outboundIdMappingPolicy == OutboundIdMappingPolicy.OTP_FRIENDLY_ID) {
-                text = getOtpFriendly(text);
             }
         }
         return text;
@@ -36,10 +34,6 @@ public class OutboundIdAdapter extends ValueAdapter {
 
     public static String getMappedId(String text) {
         return text.substring(text.indexOf(SiriValueTransformer.SEPARATOR)+1);
-    }
-
-    public static String getOtpFriendly(String text) {
-        return text.substring(text.indexOf(SiriValueTransformer.SEPARATOR)+1).replace(":", ".");
     }
 
     @Override

@@ -129,12 +129,6 @@ public class SiriValueTransformerTest {
         Siri originalIdSiri = transformer.transform(siri, new MappingAdapterPresets().getOutboundAdapters(OutboundIdMappingPolicy.ORIGINAL_ID));
         assertEquals("Outbound adapters did not return original id", lineRefValue, getLineRefFromSiriObj(originalIdSiri));
 
-        // Create LineRef as expected by OTP
-        String otpFriendlyLineRefValue = mappedLineRefValue.replaceAll(":", ".");
-
-        Siri otpFriendlyIdSiri = transformer.transform(siri, new MappingAdapterPresets().getOutboundAdapters(OutboundIdMappingPolicy.OTP_FRIENDLY_ID));
-        assertEquals("Outbound adapters did not return OTP-friendly id", otpFriendlyLineRefValue, getLineRefFromSiriObj(otpFriendlyIdSiri));
-
     }
 
     @Test

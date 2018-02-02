@@ -37,18 +37,6 @@ public class OutboundIdAdapterTest {
     }
 
     @Test
-    public void testGetOtpFriendly() throws Exception {
-        OutboundIdAdapter adapter = new OutboundIdAdapter(LineRef.class, OutboundIdMappingPolicy.OTP_FRIENDLY_ID);
-        String originalId = "1234";
-        String mappedId = "ATB:Line:1234";
-        String otpSpecificId = mappedId.replaceAll(":", ".");
-
-        String completeValue = originalId + SiriValueTransformer.SEPARATOR + mappedId;
-        assertEquals(otpSpecificId, adapter.apply(completeValue));
-        assertEquals(otpSpecificId, OutboundIdAdapter.getOtpFriendly(completeValue));
-    }
-
-    @Test
     public void testPrefixNullString() throws Exception {
         OutboundIdAdapter adapter = new OutboundIdAdapter(LineRef.class, OutboundIdMappingPolicy.DEFAULT);
         assertNull(adapter.apply(null));

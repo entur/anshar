@@ -21,7 +21,6 @@ public class TestRuterDatedVehicleRefPostProcessor {
 
     String originalDatedVehicleRef = "250:125:9-12510";
     String targetVehicleRef = "RUT:ServiceJourney:250-125";
-    String otpTargetVehicleRef = "RUT.ServiceJourney.250-125";
 
     String completeDatedVehicleRef = originalDatedVehicleRef + SEPARATOR + targetVehicleRef;
 
@@ -33,20 +32,6 @@ public class TestRuterDatedVehicleRefPostProcessor {
         new RuterDatedVehicleRefPostProcessor().process(siri);
 
         assertEquals(completeDatedVehicleRef, siri.getServiceDelivery().getEstimatedTimetableDeliveries().get(0)
-                .getEstimatedJourneyVersionFrames().get(0).getEstimatedVehicleJourneies().get(0)
-                .getFramedVehicleJourneyRef().getDatedVehicleJourneyRef());
-
-    }
-
-    @Test
-    public void testConvertDatedVehicleRefForOtp() {
-
-        Siri otpSiri = createEtServiceDelivery(originalDatedVehicleRef);
-
-        new RuterDatedVehicleRefPostProcessor().process(otpSiri);
-        new RuterOutboundDatedVehicleRefAdapter(this.getClass(), OutboundIdMappingPolicy.OTP_FRIENDLY_ID).process(otpSiri);
-
-        assertEquals(otpTargetVehicleRef, otpSiri.getServiceDelivery().getEstimatedTimetableDeliveries().get(0)
                 .getEstimatedJourneyVersionFrames().get(0).getEstimatedVehicleJourneies().get(0)
                 .getFramedVehicleJourneyRef().getDatedVehicleJourneyRef());
 
