@@ -84,6 +84,6 @@ public class CamelConfiguration {
     }
 
     public int getDefaultMaxSize() {
-        return 2000;
+        return defaultMaxSize;
     }
 }
