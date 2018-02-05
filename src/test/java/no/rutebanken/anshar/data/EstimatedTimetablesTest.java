@@ -1,4 +1,4 @@
-package no.rutebanken.anshar.messages;
+package no.rutebanken.anshar.data;
 
 import no.rutebanken.anshar.App;
 import org.junit.Before;

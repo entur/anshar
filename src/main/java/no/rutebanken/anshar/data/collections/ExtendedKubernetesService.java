@@ -1,4 +1,4 @@
-package no.rutebanken.anshar.messages.collections;
+package no.rutebanken.anshar.data.collections;
 
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import org.rutebanken.hazelcasthelper.service.KubernetesService;

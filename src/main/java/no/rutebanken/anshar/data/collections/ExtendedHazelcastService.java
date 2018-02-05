@@ -1,4 +1,4 @@
-package no.rutebanken.anshar.messages.collections;
+package no.rutebanken.anshar.data.collections;
 
 import com.hazelcast.config.SerializerConfig;
 import com.hazelcast.core.*;

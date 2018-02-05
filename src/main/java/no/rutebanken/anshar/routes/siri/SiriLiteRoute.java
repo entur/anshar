@@ -1,10 +1,10 @@
 package no.rutebanken.anshar.routes.siri;
 
 import no.rutebanken.anshar.config.AnsharConfiguration;
-import no.rutebanken.anshar.messages.EstimatedTimetables;
-import no.rutebanken.anshar.messages.ProductionTimetables;
-import no.rutebanken.anshar.messages.Situations;
-import no.rutebanken.anshar.messages.VehicleActivities;
+import no.rutebanken.anshar.data.EstimatedTimetables;
+import no.rutebanken.anshar.data.ProductionTimetables;
+import no.rutebanken.anshar.data.Situations;
+import no.rutebanken.anshar.data.VehicleActivities;
 import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;

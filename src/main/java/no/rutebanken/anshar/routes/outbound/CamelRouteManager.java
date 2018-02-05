@@ -1,6 +1,6 @@
 package no.rutebanken.anshar.routes.outbound;
 
-import no.rutebanken.anshar.dataformat.SiriDataFormatHelper;
+import no.rutebanken.anshar.routes.dataformat.SiriDataFormatHelper;
 import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
 import org.apache.camel.*;
 import org.apache.camel.builder.RouteBuilder;

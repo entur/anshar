@@ -1,4 +1,4 @@
-package no.rutebanken.anshar.dataformat;
+package no.rutebanken.anshar.routes.dataformat;
 
 import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
 import org.apache.camel.converter.jaxb.JaxbDataFormat;

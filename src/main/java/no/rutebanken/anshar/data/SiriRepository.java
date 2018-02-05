@@ -1,4 +1,4 @@
-package no.rutebanken.anshar.messages;
+package no.rutebanken.anshar.data;
 
 import java.util.Collection;
 import java.util.List;

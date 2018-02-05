@@ -1,4 +1,4 @@
-package no.rutebanken.anshar.messages;
+package no.rutebanken.anshar.data;
 
 import com.hazelcast.core.IMap;
 import no.rutebanken.anshar.config.AnsharConfiguration;

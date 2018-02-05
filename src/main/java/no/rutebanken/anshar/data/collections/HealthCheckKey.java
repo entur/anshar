@@ -1,4 +1,4 @@
-package no.rutebanken.anshar.messages.collections;
+package no.rutebanken.anshar.data.collections;
 
 public enum HealthCheckKey {
     SERVER_START_TIME,

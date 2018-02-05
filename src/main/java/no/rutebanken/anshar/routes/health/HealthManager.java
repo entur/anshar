@@ -2,7 +2,7 @@ package no.rutebanken.anshar.routes.health;
 
 import com.hazelcast.core.HazelcastInstanceNotActiveException;
 import com.hazelcast.core.IMap;
-import no.rutebanken.anshar.messages.collections.HealthCheckKey;
+import no.rutebanken.anshar.data.collections.HealthCheckKey;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;

@@ -1,8 +1,8 @@
 package no.rutebanken.anshar.routes.file;
 
 import no.rutebanken.anshar.config.AnsharConfiguration;
-import no.rutebanken.anshar.dataformat.SiriDataFormatHelper;
 import no.rutebanken.anshar.routes.BaseRouteBuilder;
+import no.rutebanken.anshar.routes.dataformat.SiriDataFormatHelper;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;

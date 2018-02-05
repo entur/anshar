@@ -1,7 +1,7 @@
 package no.rutebanken.anshar.health;
 
 import no.rutebanken.anshar.App;
-import no.rutebanken.anshar.messages.collections.ExtendedHazelcastService;
+import no.rutebanken.anshar.data.collections.ExtendedHazelcastService;
 import no.rutebanken.anshar.routes.health.HealthManager;
 import org.junit.Ignore;
 import org.junit.Test;

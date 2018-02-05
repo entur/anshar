@@ -1,9 +1,9 @@
 package no.rutebanken.anshar.routes.siri.handlers;
 
-import no.rutebanken.anshar.messages.EstimatedTimetables;
-import no.rutebanken.anshar.messages.ProductionTimetables;
-import no.rutebanken.anshar.messages.Situations;
-import no.rutebanken.anshar.messages.VehicleActivities;
+import no.rutebanken.anshar.data.EstimatedTimetables;
+import no.rutebanken.anshar.data.ProductionTimetables;
+import no.rutebanken.anshar.data.Situations;
+import no.rutebanken.anshar.data.VehicleActivities;
 import no.rutebanken.anshar.routes.ServiceNotSupportedException;
 import no.rutebanken.anshar.routes.health.HealthManager;
 import no.rutebanken.anshar.routes.outbound.ServerSubscriptionManager;

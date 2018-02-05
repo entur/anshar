@@ -1,6 +1,6 @@
 package no.rutebanken.anshar.routes.policy;
 
-import no.rutebanken.anshar.messages.collections.ExtendedHazelcastService;
+import no.rutebanken.anshar.data.collections.ExtendedHazelcastService;
 import org.apache.camel.CamelContext;
 import org.apache.camel.model.RouteDefinition;
 import org.apache.camel.spi.RoutePolicy;
