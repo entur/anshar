@@ -3,7 +3,7 @@ package no.rutebanken.anshar.routes.file;
 import no.rutebanken.anshar.routes.outbound.SiriHelper;
 import no.rutebanken.anshar.routes.siri.handlers.OutboundIdMappingPolicy;
 import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
-import no.rutebanken.anshar.subscription.MappingAdapterPresets;
+import no.rutebanken.anshar.subscription.helpers.MappingAdapterPresets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import uk.org.siri.siri20.Siri;

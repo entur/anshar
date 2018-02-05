@@ -1,4 +1,4 @@
-package no.rutebanken.anshar.subscription;
+package no.rutebanken.anshar.subscription.helpers;
 
 import uk.org.siri.siri20.DirectionRefStructure;
 import uk.org.siri.siri20.LineDirectionStructure;

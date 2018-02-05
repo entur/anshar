@@ -1,5 +1,6 @@
 package no.rutebanken.anshar.messages.collections;
 
+import no.rutebanken.anshar.config.AnsharConfiguration;
 import org.rutebanken.hazelcasthelper.service.KubernetesService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

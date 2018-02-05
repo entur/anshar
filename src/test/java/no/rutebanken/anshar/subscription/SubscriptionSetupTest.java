@@ -1,6 +1,7 @@
 package no.rutebanken.anshar.subscription;
 
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
+import no.rutebanken.anshar.subscription.helpers.RequestType;
 import org.junit.Before;
 import org.junit.Test;
 

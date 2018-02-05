@@ -1,7 +1,7 @@
 package no.rutebanken.anshar.messages;
 
 import no.rutebanken.anshar.App;
-import no.rutebanken.anshar.routes.siri.SiriObjectFactory;
+import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

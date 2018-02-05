@@ -1,11 +1,11 @@
 package no.rutebanken.anshar.routes.siri;
 
 import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
+import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.routes.BaseRouteBuilder;
-import no.rutebanken.anshar.routes.CamelConfiguration;
-import no.rutebanken.anshar.subscription.RequestType;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
+import no.rutebanken.anshar.subscription.helpers.RequestType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -26,7 +26,7 @@ public abstract class SiriSubscriptionRouteBuilder extends BaseRouteBuilder {
 
     private Instant lastCheckStatus = Instant.now();
 
-    public SiriSubscriptionRouteBuilder(CamelConfiguration config, SubscriptionManager subscriptionManager) {
+    public SiriSubscriptionRouteBuilder(AnsharConfiguration config, SubscriptionManager subscriptionManager) {
         super(config, subscriptionManager);
     }
 

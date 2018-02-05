@@ -1,7 +1,7 @@
 package no.rutebanken.anshar.outbound;
 
 import no.rutebanken.anshar.routes.outbound.SiriHelper;
-import no.rutebanken.anshar.routes.siri.SiriObjectFactory;
+import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import org.junit.Before;
 import org.junit.Test;
 import uk.org.siri.siri20.LineRef;

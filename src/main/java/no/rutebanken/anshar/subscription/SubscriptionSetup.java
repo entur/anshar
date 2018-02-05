@@ -1,6 +1,9 @@
 package no.rutebanken.anshar.subscription;
 
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
+import no.rutebanken.anshar.subscription.helpers.FilterMapPresets;
+import no.rutebanken.anshar.subscription.helpers.RequestType;
+import no.rutebanken.anshar.subscription.helpers.SubscriptionPreset;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

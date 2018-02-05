@@ -1,7 +1,7 @@
 package no.rutebanken.anshar.routes.admin;
 
+import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.messages.collections.ExtendedHazelcastService;
-import no.rutebanken.anshar.routes.CamelConfiguration;
 import no.rutebanken.anshar.routes.health.HealthManager;
 import no.rutebanken.anshar.routes.outbound.ServerSubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
@@ -18,7 +18,7 @@ public class AdministrationRoute extends RouteBuilder {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
-    private CamelConfiguration configuration;
+    private AnsharConfiguration configuration;
 
     @Autowired
     ExtendedHazelcastService extendedHazelcastService;

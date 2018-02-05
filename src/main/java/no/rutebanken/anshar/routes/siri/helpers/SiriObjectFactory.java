@@ -1,4 +1,4 @@
-package no.rutebanken.anshar.routes.siri;
+package no.rutebanken.anshar.routes.siri.helpers;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;

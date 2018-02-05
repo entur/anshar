@@ -1,4 +1,4 @@
-package no.rutebanken.anshar.routes.siri;
+package no.rutebanken.anshar.routes.siri.helpers;
 
 import org.apache.camel.builder.xml.StreamResultHandlerFactory;
 import org.springframework.stereotype.Component;

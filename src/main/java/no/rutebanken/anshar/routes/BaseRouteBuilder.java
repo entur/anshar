@@ -1,9 +1,10 @@
 package no.rutebanken.anshar.routes;
 
+import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.routes.policy.InterruptibleHazelcastRoutePolicy;
-import no.rutebanken.anshar.subscription.RequestType;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
+import no.rutebanken.anshar.subscription.helpers.RequestType;
 import org.apache.camel.model.RouteDefinition;
 import org.apache.camel.spi.RouteContext;
 import org.apache.camel.spi.RoutePolicy;
@@ -12,8 +13,8 @@ import org.apache.camel.spring.SpringRouteBuilder;
 import java.util.List;
 import java.util.Map;
 
-import static no.rutebanken.anshar.routes.Constants.SINGLETON_ROUTE_DEFINITION_GROUP_NAME;
-import static no.rutebanken.anshar.routes.siri.SiriRequestFactory.getCamelUrl;
+import static no.rutebanken.anshar.routes.CamelRouteNames.SINGLETON_ROUTE_DEFINITION_GROUP_NAME;
+import static no.rutebanken.anshar.routes.siri.helpers.SiriRequestFactory.getCamelUrl;
 
 /**
  * Defines common route behavior.
@@ -22,9 +23,9 @@ public abstract class BaseRouteBuilder extends SpringRouteBuilder {
 
     protected SubscriptionManager subscriptionManager;
 
-    protected CamelConfiguration config;
+    protected AnsharConfiguration config;
 
-    protected BaseRouteBuilder(CamelConfiguration config, SubscriptionManager subscriptionManager) {
+    protected BaseRouteBuilder(AnsharConfiguration config, SubscriptionManager subscriptionManager) {
         this.subscriptionManager = subscriptionManager;
         this.config = config;
     }

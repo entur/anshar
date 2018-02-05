@@ -1,8 +1,8 @@
 package no.rutebanken.anshar.routes.file;
 
+import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.dataformat.SiriDataFormatHelper;
 import no.rutebanken.anshar.routes.BaseRouteBuilder;
-import no.rutebanken.anshar.routes.CamelConfiguration;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,7 +35,7 @@ public class RealtimeDataFileUploader extends BaseRouteBuilder {
     final static String ZIP_FILE_PATH = "AnsharZipFilePATH";
     final static String ZIP_FILE = "AnsharZipFile";
 
-    protected RealtimeDataFileUploader(@Autowired CamelConfiguration config, @Autowired SubscriptionManager subscriptionManager) {
+    protected RealtimeDataFileUploader(@Autowired AnsharConfiguration config, @Autowired SubscriptionManager subscriptionManager) {
         super(config, subscriptionManager);
     }
 

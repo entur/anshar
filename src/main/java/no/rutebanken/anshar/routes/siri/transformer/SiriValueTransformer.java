@@ -3,7 +3,7 @@ package no.rutebanken.anshar.routes.siri.transformer;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import no.rutebanken.anshar.routes.siri.SiriObjectFactory;
+import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.routes.siri.processor.PostProcessor;
 import no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter;
 import org.rutebanken.siri20.util.SiriXml;

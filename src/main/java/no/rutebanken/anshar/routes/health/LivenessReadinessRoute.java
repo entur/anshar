@@ -1,7 +1,7 @@
 package no.rutebanken.anshar.routes.health;
 
 import com.hazelcast.core.ISet;
-import no.rutebanken.anshar.routes.CamelConfiguration;
+import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
@@ -25,7 +25,7 @@ public class LivenessReadinessRoute extends RouteBuilder {
 
 
     @Autowired
-    private CamelConfiguration configuration;
+    private AnsharConfiguration configuration;
 
     @Value("${anshar.healthcheck.hubot.url}")
     private String hubotUrl;

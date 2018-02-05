@@ -1,11 +1,12 @@
 package no.rutebanken.anshar.subscription;
 
 import com.google.common.base.Preconditions;
-import no.rutebanken.anshar.routes.CamelConfiguration;
+import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.routes.siri.*;
 import no.rutebanken.anshar.routes.siri.adapters.Mapping;
 import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
+import no.rutebanken.anshar.subscription.helpers.RequestType;
 import org.apache.camel.CamelContext;
 import org.apache.camel.CamelContextAware;
 import org.apache.camel.builder.RouteBuilder;
@@ -34,7 +35,7 @@ public class SubscriptionInitializer implements CamelContextAware, ApplicationCo
     SiriHandler handler;
 
     @Autowired
-    CamelConfiguration camelConfiguration;
+    AnsharConfiguration configuration;
 
     private CamelContext camelContext;
 
@@ -63,7 +64,7 @@ public class SubscriptionInitializer implements CamelContextAware, ApplicationCo
             mappingAdaptersById.put(annotation.id(), mappingAdapterClass);
         }
 
-        logger.info("Initializing subscriptions for environment: {}", camelConfiguration.getEnvironment());
+        logger.info("Initializing subscriptions for environment: {}", configuration.getEnvironment());
 
         if (subscriptionConfig != null) {
             List<SubscriptionSetup> subscriptionSetups = subscriptionConfig.getSubscriptions();
@@ -74,10 +75,10 @@ public class SubscriptionInitializer implements CamelContextAware, ApplicationCo
 
             // Validation and consistency-verification
             for (SubscriptionSetup subscriptionSetup : subscriptionSetups) {
-                if (subscriptionSetup.getOverrideHttps() && camelConfiguration.getInboundUrl().startsWith("https://")) {
-                    subscriptionSetup.setAddress(camelConfiguration.getInboundUrl().replaceFirst("https:", "http:"));
+                if (subscriptionSetup.getOverrideHttps() && configuration.getInboundUrl().startsWith("https://")) {
+                    subscriptionSetup.setAddress(configuration.getInboundUrl().replaceFirst("https:", "http:"));
                 } else {
-                    subscriptionSetup.setAddress(camelConfiguration.getInboundUrl());
+                    subscriptionSetup.setAddress(configuration.getInboundUrl());
                 }
 
                 if (!isValid(subscriptionSetup)) {
@@ -179,36 +180,36 @@ public class SubscriptionInitializer implements CamelContextAware, ApplicationCo
         if (subscriptionSetup.getVersion().equals("1.4")) {
             if (isSoap) {
                 if (isSubscription | isFetchedDelivery) {
-                    routeBuilders.add(new Siri20ToSiriWS14Subscription(camelConfiguration, handler, subscriptionSetup, subscriptionManager));
+                    routeBuilders.add(new Siri20ToSiriWS14Subscription(configuration, handler, subscriptionSetup, subscriptionManager));
                 } else {
-                    routeBuilders.add(new Siri20ToSiriWS14RequestResponse(camelConfiguration, subscriptionSetup, subscriptionManager));
+                    routeBuilders.add(new Siri20ToSiriWS14RequestResponse(configuration, subscriptionSetup, subscriptionManager));
                 }
                 if (isFetchedDelivery) {
-                    routeBuilders.add(new Siri20ToSiriWS14RequestResponse(camelConfiguration, subscriptionSetup, subscriptionManager));
+                    routeBuilders.add(new Siri20ToSiriWS14RequestResponse(configuration, subscriptionSetup, subscriptionManager));
                 }
             } else {
-                routeBuilders.add(new Siri20ToSiriRS14Subscription(camelConfiguration, handler, subscriptionSetup, subscriptionManager));
+                routeBuilders.add(new Siri20ToSiriRS14Subscription(configuration, handler, subscriptionSetup, subscriptionManager));
             }
         } else {
             if (isSoap) {
                 if (isSubscription | isFetchedDelivery) {
-                    routeBuilders.add(new Siri20ToSiriWS20Subscription(camelConfiguration, handler, subscriptionSetup, subscriptionManager));
+                    routeBuilders.add(new Siri20ToSiriWS20Subscription(configuration, handler, subscriptionSetup, subscriptionManager));
 
                     if (isFetchedDelivery | subscriptionSetup.isDataSupplyRequestForInitialDelivery()) {
-                        routeBuilders.add(new Siri20ToSiriWS20RequestResponse(camelConfiguration, subscriptionSetup, subscriptionManager));
+                        routeBuilders.add(new Siri20ToSiriWS20RequestResponse(configuration, subscriptionSetup, subscriptionManager));
                     }
                 } else {
-                    routeBuilders.add(new Siri20ToSiriWS20RequestResponse(camelConfiguration, subscriptionSetup, subscriptionManager));
+                    routeBuilders.add(new Siri20ToSiriWS20RequestResponse(configuration, subscriptionSetup, subscriptionManager));
                 }
             } else {
                 if (isSubscription | isFetchedDelivery) {
-                    routeBuilders.add(new Siri20ToSiriRS20Subscription(camelConfiguration, handler, subscriptionSetup, subscriptionManager));
+                    routeBuilders.add(new Siri20ToSiriRS20Subscription(configuration, handler, subscriptionSetup, subscriptionManager));
 
                     if (isFetchedDelivery | subscriptionSetup.isDataSupplyRequestForInitialDelivery()) {
-                        routeBuilders.add(new Siri20ToSiriRS20RequestResponse(camelConfiguration, subscriptionSetup, subscriptionManager));
+                        routeBuilders.add(new Siri20ToSiriRS20RequestResponse(configuration, subscriptionSetup, subscriptionManager));
                     }
                 } else {
-                    routeBuilders.add(new Siri20ToSiriRS20RequestResponse(camelConfiguration, subscriptionSetup, subscriptionManager));
+                    routeBuilders.add(new Siri20ToSiriRS20RequestResponse(configuration, subscriptionSetup, subscriptionManager));
                 }
             }
         }

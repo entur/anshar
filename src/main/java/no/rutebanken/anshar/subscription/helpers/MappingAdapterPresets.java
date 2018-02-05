@@ -1,6 +1,5 @@
-package no.rutebanken.anshar.subscription;
+package no.rutebanken.anshar.subscription.helpers;
 
-import no.rutebanken.anshar.routes.Constants;
 import no.rutebanken.anshar.routes.siri.handlers.OutboundIdMappingPolicy;
 import no.rutebanken.anshar.routes.siri.processor.RuterOutboundDatedVehicleRefAdapter;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
@@ -25,7 +24,7 @@ public class MappingAdapterPresets {
         adapters.add(new OutboundIdAdapter(CourseOfJourneyRefStructure.class, outboundIdMappingPolicy));
 
         //Adding postprocessor for Ruter DatedVehicleRef
-        adapters.add(new RuterOutboundDatedVehicleRefAdapter(Constants.class, outboundIdMappingPolicy));
+        adapters.add(new RuterOutboundDatedVehicleRefAdapter(this.getClass(), outboundIdMappingPolicy));
         return adapters;
     }
 }

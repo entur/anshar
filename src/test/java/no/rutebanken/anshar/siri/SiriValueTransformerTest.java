@@ -6,7 +6,7 @@ import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.routes.siri.transformer.impl.LeftPaddingAdapter;
 import no.rutebanken.anshar.routes.siri.transformer.impl.RuterSubstringAdapter;
-import no.rutebanken.anshar.subscription.MappingAdapterPresets;
+import no.rutebanken.anshar.subscription.helpers.MappingAdapterPresets;
 import org.junit.Test;
 import uk.org.siri.siri20.*;
 

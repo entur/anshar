@@ -1,7 +1,7 @@
 package no.rutebanken.anshar.siri.processor;
 
 import junit.framework.TestCase;
-import no.rutebanken.anshar.routes.siri.SiriObjectFactory;
+import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.routes.siri.processor.ReportTypeFilterPostProcessor;
 import uk.org.siri.siri20.PtSituationElement;
 import uk.org.siri.siri20.Siri;

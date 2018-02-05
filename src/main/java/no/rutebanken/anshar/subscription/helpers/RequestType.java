@@ -1,4 +1,4 @@
-package no.rutebanken.anshar.subscription;
+package no.rutebanken.anshar.subscription.helpers;
 
 public enum RequestType {
     SUBSCRIBE,

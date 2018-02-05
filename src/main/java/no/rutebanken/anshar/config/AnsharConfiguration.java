@@ -1,22 +1,23 @@
-package no.rutebanken.anshar.routes;
+package no.rutebanken.anshar.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-public class CamelConfiguration {
+public class AnsharConfiguration {
 
-    private static final String QUEUE_PREFIX = "anshar.siri";
-    public static final String TRANSFORM_QUEUE = QUEUE_PREFIX + ".transform";
-    public static final String ROUTER_QUEUE = QUEUE_PREFIX + ".router";
-    public static final String VALIDATOR_QUEUE = QUEUE_PREFIX + ".validator";
-    public static final String DEFAULT_PROCESSOR_QUEUE = QUEUE_PREFIX + ".process";
-    public static final String SITUATION_EXCHANGE_QUEUE = DEFAULT_PROCESSOR_QUEUE + ".sx";
-    public static final String VEHICLE_MONITORING_QUEUE = DEFAULT_PROCESSOR_QUEUE + ".vm";
-    public static final String ESTIMATED_TIMETABLE_QUEUE = DEFAULT_PROCESSOR_QUEUE + ".et";
-    public static final String PRODUCTION_TIMETABLE_QUEUE = DEFAULT_PROCESSOR_QUEUE + ".pt";
-    public static final String HEARTBEAT_QUEUE = DEFAULT_PROCESSOR_QUEUE + ".heartbeat";
-    public static final String FETCHED_DELIVERY_QUEUE = DEFAULT_PROCESSOR_QUEUE + ".fetched.delivery";
+    @Value("${rutebanken.kubernetes.url:}")
+    private String kubernetesUrl;
+
+    @Value("${rutebanken.kubernetes.enabled:true}")
+    private boolean kubernetesEnabled;
+
+    @Value("${rutebanken.kubernetes.namespace:default}")
+    private String namespace;
+
+
+    @Value("${rutebanken.hazelcast.management.url:}")
+    private String hazelcastManagementUrl;
 
     @Value("${anshar.incoming.port}")
     private String inboundPort;
@@ -48,6 +49,22 @@ public class CamelConfiguration {
     @Value("${anshar.default.max.elements.per.delivery:1500}")
     private int defaultMaxSize;
 
+    public String getHazelcastManagementUrl() {
+        return hazelcastManagementUrl;
+    }
+
+    public String getKubernetesUrl() {
+        return kubernetesUrl;
+    }
+
+    public boolean isKubernetesEnabled() {
+        return kubernetesEnabled;
+    }
+
+    public String getNamespace() {
+        return namespace;
+    }
+
     public String getInboundPort() {
         return inboundPort;
     }
@@ -66,9 +83,6 @@ public class CamelConfiguration {
 
     public boolean isValidationEnabled() {
         return validationEnabled;
-    }
-
-    public CamelConfiguration() {
     }
 
     public String getEnvironment() {

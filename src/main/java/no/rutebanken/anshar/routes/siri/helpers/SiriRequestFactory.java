@@ -1,4 +1,4 @@
-package no.rutebanken.anshar.routes.siri;
+package no.rutebanken.anshar.routes.siri.helpers;
 
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import uk.org.siri.siri20.Siri;

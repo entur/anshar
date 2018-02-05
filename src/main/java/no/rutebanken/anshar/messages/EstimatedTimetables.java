@@ -1,9 +1,9 @@
 package no.rutebanken.anshar.messages;
 
 import com.hazelcast.core.IMap;
+import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.metrics.MetricsService;
-import no.rutebanken.anshar.routes.CamelConfiguration;
-import no.rutebanken.anshar.routes.siri.SiriObjectFactory;
+import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.quartz.utils.counter.Counter;
@@ -43,7 +43,7 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
     private MetricsService metricsService;
 
     @Autowired
-    private CamelConfiguration configuration;
+    private AnsharConfiguration configuration;
 
     /**
      * @return All ET-elements

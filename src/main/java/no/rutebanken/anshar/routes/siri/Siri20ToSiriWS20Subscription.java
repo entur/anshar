@@ -1,12 +1,13 @@
 package no.rutebanken.anshar.routes.siri;
 
 import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
+import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.dataformat.SiriDataFormatHelper;
-import no.rutebanken.anshar.routes.CamelConfiguration;
 import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
-import no.rutebanken.anshar.subscription.RequestType;
+import no.rutebanken.anshar.routes.siri.helpers.SiriRequestFactory;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
+import no.rutebanken.anshar.subscription.helpers.RequestType;
 import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
 import org.apache.camel.component.http4.HttpMethods;
@@ -16,14 +17,14 @@ import org.slf4j.LoggerFactory;
 import java.io.InputStream;
 import java.util.Map;
 
-import static no.rutebanken.anshar.routes.siri.SiriRequestFactory.getCamelUrl;
+import static no.rutebanken.anshar.routes.siri.helpers.SiriRequestFactory.getCamelUrl;
 
 public class Siri20ToSiriWS20Subscription extends SiriSubscriptionRouteBuilder {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private SiriHandler handler;
 
-    public Siri20ToSiriWS20Subscription(CamelConfiguration config, SiriHandler handler, SubscriptionSetup subscriptionSetup, SubscriptionManager subscriptionManager) {
+    public Siri20ToSiriWS20Subscription(AnsharConfiguration config, SiriHandler handler, SubscriptionSetup subscriptionSetup, SubscriptionManager subscriptionManager) {
         super(config, subscriptionManager);
         this.handler = handler;
         this.subscriptionSetup = subscriptionSetup;

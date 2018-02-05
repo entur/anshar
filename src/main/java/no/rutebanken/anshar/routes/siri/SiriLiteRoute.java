@@ -1,14 +1,15 @@
 package no.rutebanken.anshar.routes.siri;
 
+import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.messages.EstimatedTimetables;
 import no.rutebanken.anshar.messages.ProductionTimetables;
 import no.rutebanken.anshar.messages.Situations;
 import no.rutebanken.anshar.messages.VehicleActivities;
-import no.rutebanken.anshar.routes.CamelConfiguration;
 import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
+import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
-import no.rutebanken.anshar.subscription.MappingAdapterPresets;
+import no.rutebanken.anshar.subscription.helpers.MappingAdapterPresets;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.http.HttpHeaders;
 import org.rutebanken.siri20.util.SiriJson;
@@ -24,11 +25,11 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
 @Service
-public class SiriProvider extends RouteBuilder {
+public class SiriLiteRoute extends RouteBuilder {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
-    private CamelConfiguration configuration;
+    private AnsharConfiguration configuration;
 
     @Autowired
     private Situations situations;

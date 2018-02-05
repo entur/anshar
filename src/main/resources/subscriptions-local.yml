@@ -30,7 +30,7 @@ anshar:
       internalId: 2
       vendor: kolumbusvm
       datasetId: KOL
-      serviceType: SOAP
+      serviceType: REST
       subscriptionType: VEHICLE_MONITORING
       subscriptionMode: REQUEST_RESPONSE
       heartbeatIntervalSeconds: 60
@@ -39,12 +39,12 @@ anshar:
       soapenvNamespace:
       incrementalUpdates:
       urlMap:
-        GET_VEHICLE_MONITORING: sis.kolumbus.no:90/VMWS/VMService.svc
+        GET_VEHICLE_MONITORING: https4://api.entur.org/anshar/1.0/anshar/services/KOL?useOriginalId=true
 #        DELETE_SUBSCRIPTION: sis.kolumbus.no:90/VMWS/VMService.svc
-      version: 1.4
+      version: 2.0
       contentType: text/xml;charset=UTF-8
       subscriptionId: ${random.uuid}
-      requestorRef: RutebankenDEV
+      requestorRef: RutebankenTEST
       durationOfSubscriptionHours: 168
       mappingAdapterId: kolumbus
       filterPresets:
@@ -115,7 +115,7 @@ anshar:
       soapenvNamespace:
       incrementalUpdates:
       urlMap:
-        GET_ESTIMATED_TIMETABLE: https4://siri.opm.jbv.no/jbv/et
+        GET_ESTIMATED_TIMETABLE: https4://siri-test.opm.jbv.no/jbv/et
       version: 2.0
       contentType: text/xml;charset=UTF-8
       subscriptionId: ${random.uuid}
@@ -131,14 +131,14 @@ anshar:
       datasetId: BNR
       serviceType: REST
       subscriptionType: ESTIMATED_TIMETABLE
-      subscriptionMode: POLLING_FETCHED_DELIVERY
+      subscriptionMode: FETCHED_DELIVERY
       heartbeatIntervalSeconds: 30
       previewIntervalSeconds: 86400
       changeBeforeUpdatesSeconds: 1
       operatorNamespace: http://www.siri.org.uk/siri
       addressFieldName:
       soapenvNamespace:
-      incrementalUpdates:
+      incrementalUpdates: false
       urlMap:
         GET_ESTIMATED_TIMETABLE: https4://siri.opm.jbv.no/jbv/et
         SUBSCRIBE: https4://siri.opm.jbv.no/jbv/et
@@ -146,7 +146,7 @@ anshar:
       version: 2.0
       contentType: text/xml;charset=UTF-8
       subscriptionId: ${random.uuid}
-      requestorRef: ENTUR_DEV_${random.uuid}
+      requestorRef: ENTUR_DEV_32d706b6-fa7a-442d-8846-fbe1be487d2e
       durationOfSubscriptionHours: 2
       mappingAdapterId: banenoret
       filterPresets:
@@ -306,7 +306,7 @@ anshar:
       serviceType: REST
       subscriptionType: VEHICLE_MONITORING
       subscriptionMode: SUBSCRIBE
-      heartbeatIntervalSeconds: 6000
+      heartbeatIntervalSeconds: 6000000
       previewIntervalSeconds: 86400
       updateIntervalSeconds: 1
       operatorNamespace: http://www.siri.org.uk/siri
@@ -320,11 +320,11 @@ anshar:
       contentType: text/xml;charset=UTF-8
       subscriptionId: dummyvm
       requestorRef: dummy
-      durationOfSubscriptionHours: 1
+      durationOfSubscriptionHours: 10000
       mappingAdapterId: entur
       filterPresets:
       idMappingPrefixes:
-      active: true
+      active: false
     -
       internalId: 9999
       vendor: dummy
@@ -332,7 +332,33 @@ anshar:
       serviceType: REST
       subscriptionType: ESTIMATED_TIMETABLE
       subscriptionMode: SUBSCRIBE
-      heartbeatIntervalSeconds: 6000
+      heartbeatIntervalSeconds: 6000000
+      previewIntervalSeconds: 86400
+      updateIntervalSeconds: 1
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: local/siri/et
+        DELETE_SUBSCRIPTION: local/siri/et
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: dummyet
+      requestorRef: dummy
+      durationOfSubscriptionHours: 10000
+      mappingAdapterId: ruter-metro
+      filterPresets:
+      idMappingPrefixes: RUT
+      active: true
+    -
+      internalId: 99999
+      vendor: dummy
+      datasetId: RUT
+      serviceType: REST
+      subscriptionType: SITUATION_EXCHANGE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 60000
       previewIntervalSeconds: 86400
       updateIntervalSeconds: 1
       operatorNamespace: http://www.siri.org.uk/siri
@@ -344,10 +370,39 @@ anshar:
         DELETE_SUBSCRIPTION: local/siri/sx
       version: 2.0
       contentType: text/xml;charset=UTF-8
-      subscriptionId: dummyet
+      subscriptionId: dummysx
       requestorRef: dummy
-      durationOfSubscriptionHours: 1
+      durationOfSubscriptionHours: 10000
       mappingAdapterId: entur
       filterPresets:
       idMappingPrefixes:
       active: true
+    -
+      internalId: 24
+      vendor: enturet
+      datasetId: ENT
+      serviceType: REST
+      subscriptionType: ESTIMATED_TIMETABLE
+      subscriptionMode: REQUEST_RESPONSE
+      heartbeatIntervalSeconds: 20
+      previewIntervalSeconds: 10800
+      changeBeforeUpdatesSeconds: 1
+      operatorNamespace: http://wsdl.siri.org.uk
+      addressFieldName: Address
+      soapenvNamespace: http://www.w3.org/2003/05/soap-envelope
+      incrementalUpdates: true
+      overrideHttps: true
+      dataSupplyRequestForInitialDelivery: true
+      urlMap:
+#        SUBSCRIBE: localhost:8013/anshar/subscribe
+#        DELETE_SUBSCRIPTION: localhost:8013/anshar/subscribe
+        GET_ESTIMATED_TIMETABLE: https4://api.entur.org/anshar/1.0/anshar/services
+      version: 2.0
+      contentType: application/soap+xml;charset=UTF-8
+      subscriptionId: testing-${random.uuid}
+      requestorRef: testing-${random.uuid}
+      durationOfSubscriptionHours: 1
+      mappingAdapterId: entur
+      filterPresets:
+      idMappingPrefixes: ENT
+      active: false

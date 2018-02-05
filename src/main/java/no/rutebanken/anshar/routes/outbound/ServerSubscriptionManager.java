@@ -1,10 +1,10 @@
 package no.rutebanken.anshar.routes.outbound;
 
 import com.hazelcast.core.IMap;
-import no.rutebanken.anshar.routes.siri.SiriObjectFactory;
 import no.rutebanken.anshar.routes.siri.handlers.OutboundIdMappingPolicy;
-import no.rutebanken.anshar.subscription.MappingAdapterPresets;
+import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
+import no.rutebanken.anshar.subscription.helpers.MappingAdapterPresets;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
