@@ -45,6 +45,9 @@ public class CamelConfiguration {
     @Value("${anshar.environment}")
     private String environment;
 
+    @Value("${anshar.default.max.elements.per.delivery:1500}")
+    private int defaultMaxSize;
+
     public String getInboundPort() {
         return inboundPort;
     }
@@ -78,5 +81,9 @@ public class CamelConfiguration {
 
     public String getIncomingLogDirectory() {
         return incomingLogDirectory;
+    }
+
+    public int getDefaultMaxSize() {
+        return 2000;
     }
 }

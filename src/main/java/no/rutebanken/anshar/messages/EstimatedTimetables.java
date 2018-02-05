@@ -2,6 +2,7 @@ package no.rutebanken.anshar.messages;
 
 import com.hazelcast.core.IMap;
 import no.rutebanken.anshar.metrics.MetricsService;
+import no.rutebanken.anshar.routes.CamelConfiguration;
 import no.rutebanken.anshar.routes.siri.SiriObjectFactory;
 import no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
@@ -40,6 +41,9 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
 
     @Autowired
     private MetricsService metricsService;
+
+    @Autowired
+    private CamelConfiguration configuration;
 
     /**
      * @return All ET-elements
@@ -124,7 +128,7 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
     }
 
     public Siri createServiceDelivery(String requestorId, String datasetId) {
-        int maxSize = 1000;
+        int maxSize = configuration.getDefaultMaxSize();
         if (datasetId != null) {
             maxSize = Integer.MAX_VALUE;
         }
