@@ -49,6 +49,10 @@ public class ServerSubscriptionManager extends CamelRouteManager {
     private IMap<String, Instant> lockMap;
 
     @Autowired
+    @Qualifier("getFailedCountMap")
+    private IMap<String, Integer> failedPushCounterMap;
+
+    @Autowired
     private SiriObjectFactory siriObjectFactory;
 
     @Autowired
@@ -74,6 +78,9 @@ public class ServerSubscriptionManager extends CamelRouteManager {
 
     @Value("${anshar.outbound.activemq.topic.enabled}")
     private boolean activeMqTopicEnabled;
+
+    @Value("${anshar.outbound.max.fails.allowed:10}")
+    private int maxFailsAllowed;
 
     @Autowired
     private SiriHelper siriHelper;
@@ -424,5 +431,21 @@ public class ServerSubscriptionManager extends CamelRouteManager {
         ).forEach(subscription ->
                         pushSiriData(delivery, subscription)
         );
+    }
+
+    public void pushFailedForSubscription(String subscriptionId) {
+        int numberOfFails = failedPushCounterMap.getOrDefault(subscriptionId, 0);
+        numberOfFails++;
+        if (numberOfFails >= maxFailsAllowed) {
+            logger.info("Subscription {} has failed {} consecutive times - removing", subscriptionId, numberOfFails);
+            removeFailCounter(subscriptionId);
+            removeSubscription(subscriptionId);
+        } else {
+            failedPushCounterMap.set(subscriptionId, numberOfFails);
+        }
+    }
+
+    public void removeFailCounter(String subscriptionId) {
+        failedPushCounterMap.delete(subscriptionId);
     }
 }

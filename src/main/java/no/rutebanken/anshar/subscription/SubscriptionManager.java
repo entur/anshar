@@ -54,6 +54,7 @@ public class SubscriptionManager {
     private String environment;
 
     @Autowired
+    @Qualifier("getHitcountMap")
     private IMap<String, Integer> hitcount;
 
     @Autowired

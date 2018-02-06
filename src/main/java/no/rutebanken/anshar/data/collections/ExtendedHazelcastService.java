@@ -167,6 +167,11 @@ public class ExtendedHazelcastService extends HazelCastService {
     }
 
     @Bean
+    public IMap<String, Integer> getFailedCountMap() {
+        return hazelcast.getMap("anshar.activity.failedcount");
+    }
+
+    @Bean
     public IMap<String, Instant> getLockMap() {
         return hazelcast.getMap("anshar.locks");
     }
