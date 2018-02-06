@@ -21,8 +21,9 @@ public class BaneNorEtValueAdapters extends MappingAdapter {
         valueAdapters.add(new BaneNorIdPlatformPostProcessor(subscriptionSetup.getSubscriptionType(), subscriptionSetup.getDatasetId()));
 
         Map<String, String> operatorOverrideMapping = new HashMap<>();
-        operatorOverrideMapping.put("NG", "NSB");
+        operatorOverrideMapping.put("NG", "GJB");
         operatorOverrideMapping.put("FLY", "FLT");
+        operatorOverrideMapping.put("SJ", "SJV");
 
         List<String> operatorsToIgnore = new ArrayList<>();//Arrays.asList("BN", "");
 
