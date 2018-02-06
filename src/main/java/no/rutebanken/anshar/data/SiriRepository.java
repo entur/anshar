@@ -3,7 +3,7 @@ package no.rutebanken.anshar.data;
 import java.util.Collection;
 import java.util.List;
 
-public interface SiriRepository<T> {
+interface SiriRepository<T> {
 
     int trackingPeriodMinutes = 5;
 
@@ -20,6 +20,4 @@ public interface SiriRepository<T> {
     T add(String datasetId, T timetableDelivery);
 
     long getExpiration(T s);
-
-    int cleanup();
 }

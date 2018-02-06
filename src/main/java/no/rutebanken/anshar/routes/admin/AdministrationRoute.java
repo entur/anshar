@@ -21,7 +21,7 @@ public class AdministrationRoute extends RouteBuilder {
     private AnsharConfiguration configuration;
 
     @Autowired
-    ExtendedHazelcastService extendedHazelcastService;
+    private ExtendedHazelcastService extendedHazelcastService;
 
     @Autowired
     private SubscriptionManager subscriptionManager;

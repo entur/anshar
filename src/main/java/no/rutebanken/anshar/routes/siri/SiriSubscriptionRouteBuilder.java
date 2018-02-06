@@ -22,7 +22,7 @@ public abstract class SiriSubscriptionRouteBuilder extends BaseRouteBuilder {
 
     SubscriptionSetup subscriptionSetup;
 
-    protected boolean hasBeenStarted;
+    boolean hasBeenStarted;
 
     private Instant lastCheckStatus = Instant.now();
 
@@ -98,8 +98,7 @@ public abstract class SiriSubscriptionRouteBuilder extends BaseRouteBuilder {
         }
         boolean isActive = subscriptionManager.isActiveSubscription(subscriptionSetup.getSubscriptionId());
 
-        boolean shouldBeStarted = (isActive & !hasBeenStarted);
-        return shouldBeStarted;
+        return (isActive & !hasBeenStarted);
     }
 
     private boolean shouldBeCancelled(String routeId) {
@@ -109,8 +108,6 @@ public abstract class SiriSubscriptionRouteBuilder extends BaseRouteBuilder {
         boolean isActive = subscriptionManager.isActiveSubscription(subscriptionSetup.getSubscriptionId());
         boolean isHealthy = subscriptionManager.isSubscriptionHealthy(subscriptionSetup.getSubscriptionId());
 
-        boolean shouldBeCancelled = (hasBeenStarted & !isActive) | (hasBeenStarted & isActive & !isHealthy);
-
-        return shouldBeCancelled;
+        return (hasBeenStarted & !isActive) | (hasBeenStarted & isActive & !isHealthy);
     }
 }

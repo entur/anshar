@@ -18,10 +18,10 @@ public class StopPlaceRegisterMapper extends ValueAdapter {
 
     private static HealthManager healthManager;
 
-    private List<String> prefixes;
-    private String datatype;
+    private final List<String> prefixes;
+    private final String datatype;
 
-    private Set<String> unmappedAlreadyAdded;
+    private final Set<String> unmappedAlreadyAdded;
 
     private final String datasetId;
     private final SubscriptionSetup.SubscriptionType type;

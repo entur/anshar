@@ -33,7 +33,7 @@ public class RealtimeDataFileUploader extends BaseRouteBuilder {
     private ExportHelper exportHelper;
     private final static String TMP_FOLDER = "AnsharTmpFolder";
     final static String ZIP_FILE_PATH = "AnsharZipFilePATH";
-    final static String ZIP_FILE = "AnsharZipFile";
+    private final static String ZIP_FILE = "AnsharZipFile";
 
     protected RealtimeDataFileUploader(@Autowired AnsharConfiguration config, @Autowired SubscriptionManager subscriptionManager) {
         super(config, subscriptionManager);
@@ -118,7 +118,7 @@ public class RealtimeDataFileUploader extends BaseRouteBuilder {
         return isLeader;
     }
 
-    public static File zipFilesInFolder(String folder, String targetFilePath) {
+    private static void zipFilesInFolder(String folder, String targetFilePath) {
         try {
 
             FileOutputStream out = new FileOutputStream(new File(targetFilePath));
@@ -137,8 +137,6 @@ public class RealtimeDataFileUploader extends BaseRouteBuilder {
 
             outZip.close();
             out.close();
-
-            return new File(targetFilePath);
         } catch (IOException ioe) {
             throw new RuntimeException("Failed to zip files in folder: " + ioe.getMessage(), ioe);
         }

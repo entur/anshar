@@ -21,11 +21,11 @@ public class StopPlaceRegisterMappingFetcher {
 
     private static final Logger logger = LoggerFactory.getLogger(StopPlaceRegisterMappingFetcher.class);
 
-    public static final String ET_CLIENT_ID_HEADER = "ET-Client-ID";
+    private static final String ET_CLIENT_ID_HEADER = "ET-Client-ID";
 
-    public static final String ET_CLIENT_NAME_HEADER = "ET-Client-Name";
+    private static final String ET_CLIENT_NAME_HEADER = "ET-Client-Name";
 
-    public static final String ET_CLIENT_NAME = "anshar";
+    private static final String ET_CLIENT_NAME = "anshar";
 
     @Value("${anshar.mapping.stopplaces.update.frequency.min:60}")
     private int updateFrequency = 60;

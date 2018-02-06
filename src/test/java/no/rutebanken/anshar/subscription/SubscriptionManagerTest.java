@@ -3,7 +3,6 @@ package no.rutebanken.anshar.subscription;
 import no.rutebanken.anshar.App;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,11 +25,6 @@ public class SubscriptionManagerTest {
     @Autowired
     private SubscriptionManager subscriptionManager;
 
-    @Before
-    public void setUp() {
-
-    }
-
     @Test
     public void activeSubscriptionIsHealthy() throws InterruptedException {
         long subscriptionDurationSec = 1;
@@ -51,7 +45,7 @@ public class SubscriptionManagerTest {
     public void activeSubscriptionNoHeartbeat() throws InterruptedException {
         long subscriptionDurationSec = 180;
         SubscriptionSetup activeSubscription = createSubscription(subscriptionDurationSec, Duration.ofMillis(150));
-        String subscriptionId = UUID.randomUUID().toString();;
+        String subscriptionId = UUID.randomUUID().toString();
         subscriptionManager.addSubscription(subscriptionId, activeSubscription);
         subscriptionManager.activatePendingSubscription(subscriptionId);
         subscriptionManager.touchSubscription(subscriptionId);
@@ -68,7 +62,7 @@ public class SubscriptionManagerTest {
         long subscriptionDurationSec = 1;
         SubscriptionSetup pendingSubscription = createSubscription(subscriptionDurationSec, Duration.ofMillis(150));
         pendingSubscription.setActive(false);
-        String subscriptionId = UUID.randomUUID().toString();;
+        String subscriptionId = UUID.randomUUID().toString();
         subscriptionManager.addSubscription(subscriptionId, pendingSubscription);
 
         subscriptionManager.activatePendingSubscription(subscriptionId);
@@ -87,7 +81,7 @@ public class SubscriptionManagerTest {
         long subscriptionDurationSec = 1;
         SubscriptionSetup pendingSubscription = createSubscription(subscriptionDurationSec, Duration.ofMillis(150));
         pendingSubscription.setActive(false);
-        String subscriptionId = UUID.randomUUID().toString();;
+        String subscriptionId = UUID.randomUUID().toString();
         subscriptionManager.addSubscription(subscriptionId, pendingSubscription);
 
         assertTrue(subscriptionManager.isSubscriptionHealthy(subscriptionId));
@@ -297,7 +291,7 @@ public class SubscriptionManagerTest {
     }
 
     private SubscriptionSetup createSubscription(long initialDuration, Duration heartbeatInterval) {
-        SubscriptionSetup sub = new SubscriptionSetup(
+        return new SubscriptionSetup(
                 SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE,
                 SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
                 "http://localhost",
@@ -317,6 +311,5 @@ public class SubscriptionManagerTest {
                 Duration.ofSeconds(initialDuration),
                 true
         );
-        return sub;
     }
 }

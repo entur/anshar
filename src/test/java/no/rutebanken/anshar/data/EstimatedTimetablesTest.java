@@ -1,7 +1,6 @@
 package no.rutebanken.anshar.data;
 
 import no.rutebanken.anshar.App;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,12 +26,7 @@ import static org.junit.Assert.assertTrue;
 public class EstimatedTimetablesTest {
 
     @Autowired
-    EstimatedTimetables estimatedTimetables;
-
-    @Before
-    public void setup() {
-
-    }
+    private EstimatedTimetables estimatedTimetables;
 
     @Test
     public void testAddNull() {

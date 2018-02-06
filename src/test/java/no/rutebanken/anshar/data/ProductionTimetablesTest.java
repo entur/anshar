@@ -1,7 +1,6 @@
 package no.rutebanken.anshar.data;
 
 import no.rutebanken.anshar.App;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,12 +21,6 @@ public class ProductionTimetablesTest {
 
     @Autowired
     private ProductionTimetables productionTimetables;
-
-    @Before
-    public void setup() {
-
-    }
-
 
     @Test
     public void testAddNull() {

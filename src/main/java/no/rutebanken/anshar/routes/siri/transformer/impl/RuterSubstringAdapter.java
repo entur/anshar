@@ -5,8 +5,8 @@ import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 
 public class RuterSubstringAdapter extends ValueAdapter {
 
-    private String replacementChar;
-    private String valueSeparator;
+    private final String replacementChar;
+    private final String valueSeparator;
     private int lengthAfterSeparator;
 
     public String apply(String text) {

@@ -21,9 +21,9 @@ import static no.rutebanken.anshar.routes.siri.helpers.SiriRequestFactory.getCam
  */
 public abstract class BaseRouteBuilder extends SpringRouteBuilder {
 
-    protected SubscriptionManager subscriptionManager;
+    protected final SubscriptionManager subscriptionManager;
 
-    protected AnsharConfiguration config;
+    protected final AnsharConfiguration config;
 
     protected BaseRouteBuilder(AnsharConfiguration config, SubscriptionManager subscriptionManager) {
         this.subscriptionManager = subscriptionManager;

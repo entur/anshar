@@ -5,7 +5,7 @@ import uk.org.siri.siri20.Siri;
 
 public class SiriRequestFactory {
 
-	private SubscriptionSetup subscriptionSetup;
+	private final SubscriptionSetup subscriptionSetup;
 
 	public static String getCamelUrl(String url) {
 		return getCamelUrl(url, null);

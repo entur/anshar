@@ -16,11 +16,11 @@ import java.util.concurrent.*;
 @Component
 @Configuration
 public class BaneNorIdPlatformUpdaterService {
-    private Logger logger = LoggerFactory.getLogger(BaneNorIdPlatformUpdaterService.class);
+    private final Logger logger = LoggerFactory.getLogger(BaneNorIdPlatformUpdaterService.class);
 
     private static final Object LOCK = new Object();
 
-    private ConcurrentMap<String, String> jbvCodeStopPlaceMappings = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, String> jbvCodeStopPlaceMappings = new ConcurrentHashMap<>();
 
     @Value("${anshar.mapping.jbvCode.url}")
     private String jbvCodeStopPlaceMappingUrl;

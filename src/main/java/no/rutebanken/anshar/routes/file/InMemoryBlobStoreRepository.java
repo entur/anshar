@@ -12,7 +12,7 @@ import java.io.InputStream;
 @Profile("in-memory-blobstore")
 public class InMemoryBlobStoreRepository implements BlobStoreRepository {
 
-    private Logger logger = LoggerFactory.getLogger(this.getClass());
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Override
     public void uploadBlob(String objectName, InputStream inputStream, boolean makePublic) {

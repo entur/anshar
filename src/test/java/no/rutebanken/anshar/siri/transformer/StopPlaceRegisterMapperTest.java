@@ -21,7 +21,7 @@ import static junit.framework.TestCase.assertEquals;
 @SpringBootTest(webEnvironment= SpringBootTest.WebEnvironment.MOCK, classes = App.class)
 public class StopPlaceRegisterMapperTest {
 
-    Map<String, String> stopPlaceMap;
+    private Map<String, String> stopPlaceMap;
 
     @Before
     public void setUp() throws Exception {

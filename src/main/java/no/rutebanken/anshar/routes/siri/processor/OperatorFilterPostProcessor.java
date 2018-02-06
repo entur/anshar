@@ -47,7 +47,6 @@ public class OperatorFilterPostProcessor extends ValueAdapter implements PostPro
                                 }
 
                                 estimatedVersionFrameStructure.getEstimatedVehicleJourneies()
-                                        .stream()
                                         .forEach(et -> {
                                             if (et.getLineRef() != null && et.getOperatorRef() != null) {
                                                 String lineRef = et.getLineRef().getValue();

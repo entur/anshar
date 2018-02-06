@@ -20,7 +20,7 @@ public class JbvCodeMapper extends ValueAdapter {
 
     private static HealthManager healthManager;
 
-    private Set<String> unmappedAlreadyAdded;
+    private final Set<String> unmappedAlreadyAdded;
 
     public JbvCodeMapper(SubscriptionSetup.SubscriptionType type, String datasetId, Class clazz) {
         super(clazz);

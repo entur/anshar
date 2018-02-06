@@ -32,12 +32,12 @@ import java.util.UUID;
 @Configuration
 @Component
 public class SiriVmMqttHandler {
+    private final Logger logger = LoggerFactory.getLogger(SiriVmMqttHandler.class);
 
     private static final String MQTT_COUNTER_KEY = "Anshar.MQTT.message.count";
     private static final String MQTT_SIZE_KEY = "Anshar.MQTT.message.size";
     private static final String MQTT_START_TIME_IN_SECONDS_KEY = "Anshar.MQTT.start.time";
 
-    private Logger logger = LoggerFactory.getLogger(SiriVmMqttHandler.class);
 
     private static final String TOPIC_PREFIX = "/hfp/journey/";
 
@@ -80,7 +80,7 @@ public class SiriVmMqttHandler {
 
     private static final String clientId = UUID.randomUUID().toString();
 
-    private int connectionTimeout = 10;
+    private final int connectionTimeout = 10;
 
     @PostConstruct
     private void initialize() {
@@ -105,7 +105,7 @@ public class SiriVmMqttHandler {
         }
     }
 
-    public void publishMessage(String topic, String content) {
+    private void publishMessage(String topic, String content) {
 
         if (!mqttClient.isConnected() &&
                 (System.currentTimeMillis() - lastConnectionAttempt) > reconnectInterval) {

@@ -32,9 +32,9 @@ import java.util.UUID;
 public class SiriObjectFactory {
 
     private static final String SIRI_VERSION = "2.0";
-    private static Logger logger = LoggerFactory.getLogger(SiriObjectFactory.class);
+    private static final Logger logger = LoggerFactory.getLogger(SiriObjectFactory.class);
 
-    private static KryoPool kryoPool;
+    private static final KryoPool kryoPool;
 
     static {
     	KryoFactory factory = new KryoFactory() {
@@ -57,8 +57,7 @@ public class SiriObjectFactory {
                     @Override
                     public Object copy(Kryo kryo, Object original) {
 
-                        ElementNSImpl element = (ElementNSImpl) ((ElementNSImpl) original).cloneNode(true);
-                        return element;
+                        return ((ElementNSImpl) original).cloneNode(true);
                     }
                 });
     		    // configure kryo instance, customize settings
@@ -498,7 +497,7 @@ public class SiriObjectFactory {
         return siri;
     }
 
-    public static DatatypeFactory createDataTypeFactory() {
+    private static DatatypeFactory createDataTypeFactory() {
         try {
             return DatatypeFactory.newInstance();
         } catch (DatatypeConfigurationException e) {

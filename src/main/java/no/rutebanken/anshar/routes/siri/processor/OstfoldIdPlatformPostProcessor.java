@@ -15,20 +15,18 @@ import java.util.Set;
 
 public class OstfoldIdPlatformPostProcessor extends ValueAdapter implements PostProcessor {
 
-    private Logger logger = LoggerFactory.getLogger(OstfoldIdPlatformPostProcessor.class);
+    private final Logger logger = LoggerFactory.getLogger(OstfoldIdPlatformPostProcessor.class);
 
-
-
-    private static Set<String> unmappedStopPlacePlatform = new HashSet<>();
+    private final static Set<String> unmappedStopPlacePlatform = new HashSet<>();
     private static boolean listUpdated;
-    private StopPlaceRegisterMapper stopPlaceRegisterMapper;
+    private final StopPlaceRegisterMapper stopPlaceRegisterMapper;
 
     public OstfoldIdPlatformPostProcessor(SubscriptionSetup subscriptionSetup) {
         stopPlaceRegisterMapper = new StopPlaceRegisterMapper(subscriptionSetup.getSubscriptionType(),
                 subscriptionSetup.getDatasetId(), StopPointRef.class, subscriptionSetup.getIdMappingPrefixes());
     }
 
-    public String getNsrId(String stopPointRef, String platform) {
+    private String getNsrId(String stopPointRef, String platform) {
         String originalId = StringUtils.leftPad(stopPointRef, 8, '0') + StringUtils.leftPad(platform, 2, '0');
 
         String nsrId = stopPlaceRegisterMapper.apply(originalId);

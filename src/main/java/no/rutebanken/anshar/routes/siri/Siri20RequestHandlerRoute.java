@@ -31,7 +31,7 @@ import java.util.Map;
 @Configuration
 public class Siri20RequestHandlerRoute extends RouteBuilder {
 
-    private Logger logger = LoggerFactory.getLogger(this.getClass());
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
     private SubscriptionManager subscriptionManager;
@@ -40,10 +40,10 @@ public class Siri20RequestHandlerRoute extends RouteBuilder {
     private SiriHandler handler;
 
     @Autowired
-    AnsharConfiguration configuration;
+    private AnsharConfiguration configuration;
 
-    public static String TRANSFORM_VERSION = "TRANSFORM_VERSION";
-    public static String TRANSFORM_SOAP = "TRANSFORM_SOAP";
+    public static final String TRANSFORM_VERSION = "TRANSFORM_VERSION";
+    public static final String TRANSFORM_SOAP = "TRANSFORM_SOAP";
 
     @Override
     public void configure() throws Exception {
@@ -82,7 +82,7 @@ public class Siri20RequestHandlerRoute extends RouteBuilder {
                         }
                         String query = p.getIn().getHeader("CamelHttpQuery", String.class);
 
-                        Siri response = handler.handleIncomingSiri(null, p.getIn().getBody(InputStream.class), datasetId, handler.getIdMappingPolicy(query));
+                        Siri response = handler.handleIncomingSiri(null, p.getIn().getBody(InputStream.class), datasetId, SiriHandler.getIdMappingPolicy(query));
                         if (response != null) {
                             logger.info("Found ServiceRequest-response, streaming response");
                             HttpServletResponse out = p.getOut().getBody(HttpServletResponse.class);
@@ -245,7 +245,7 @@ public class Siri20RequestHandlerRoute extends RouteBuilder {
                     String query = p.getIn().getHeader("CamelHttpQuery", String.class);
 
                     InputStream xml = p.getIn().getBody(InputStream.class);
-                    handler.handleIncomingSiri(subscriptionId, xml, datasetId, handler.getIdMappingPolicy(query));
+                    handler.handleIncomingSiri(subscriptionId, xml, datasetId, SiriHandler.getIdMappingPolicy(query));
 
                 })
                 .routeId("incoming.processor.default")

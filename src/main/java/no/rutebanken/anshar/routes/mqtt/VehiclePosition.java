@@ -3,7 +3,7 @@ package no.rutebanken.anshar.routes.mqtt;
 /**
  * digitransit-ui message keys
  */
-public interface VehiclePosition {
+interface VehiclePosition {
     // digitransit-ui mapping
     String ROOT = "VP";
     String DESIGNATION = "desi";

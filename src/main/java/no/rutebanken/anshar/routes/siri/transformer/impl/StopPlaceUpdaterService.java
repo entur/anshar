@@ -17,11 +17,11 @@ import java.util.concurrent.*;
 @Configuration
 public class StopPlaceUpdaterService {
 
-    private Logger logger = LoggerFactory.getLogger(StopPlaceUpdaterService.class);
+    private final Logger logger = LoggerFactory.getLogger(StopPlaceUpdaterService.class);
 
     private static final Object LOCK = new Object();
 
-    private ConcurrentMap<String, String> stopPlaceMappings = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, String> stopPlaceMappings = new ConcurrentHashMap<>();
 
     @Autowired
     private StopPlaceRegisterMappingFetcher stopPlaceRegisterMappingFetcher;

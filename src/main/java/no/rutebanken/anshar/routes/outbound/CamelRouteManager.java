@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uk.org.siri.siri20.*;
 
-import javax.xml.bind.JAXBException;
 import java.net.ConnectException;
 import java.net.SocketException;
 import java.util.HashMap;
@@ -23,9 +22,9 @@ import java.util.concurrent.Executors;
 
 @Service
 public class CamelRouteManager implements CamelContextAware {
-    private Logger logger = LoggerFactory.getLogger(this.getClass());
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    protected CamelContext camelContext;
+    private CamelContext camelContext;
     
     @Autowired
     private SiriHelper siriHelper;
@@ -53,7 +52,7 @@ public class CamelRouteManager implements CamelContextAware {
      * @param payload
      * @param subscriptionRequest
      */
-    public void pushSiriData(Siri payload, OutboundSubscriptionSetup subscriptionRequest) {
+    void pushSiriData(Siri payload, OutboundSubscriptionSetup subscriptionRequest) {
         String consumerAddress = subscriptionRequest.getAddress();
         if (consumerAddress == null) {
             logger.info("ConsumerAddress is null - ignoring data.");
@@ -64,7 +63,7 @@ public class CamelRouteManager implements CamelContextAware {
         executorService.submit(() -> {
             try {
 
-                Siri filteredPayload = siriHelper.filterSiriPayload(payload, subscriptionRequest.getFilterMap());
+                Siri filteredPayload = SiriHelper.filterSiriPayload(payload, subscriptionRequest.getFilterMap());
 
                 // Use original/mapped ids based on subscription
                 filteredPayload = SiriValueTransformer.transform(filteredPayload, subscriptionRequest.getValueAdapters());
@@ -109,7 +108,7 @@ public class CamelRouteManager implements CamelContextAware {
         return existingRoute;
     }
 
-    private void executeSiriPushRoute(Siri payload, String routeName) throws JAXBException {
+    private void executeSiriPushRoute(Siri payload, String routeName) {
         if (!serviceDeliveryContainsData(payload)) {
             return;
         }
@@ -121,27 +120,27 @@ public class CamelRouteManager implements CamelContextAware {
         if (payload.getServiceDelivery() != null) {
             ServiceDelivery serviceDelivery = payload.getServiceDelivery();
 
-            if (siriHelper.containsValues(serviceDelivery.getSituationExchangeDeliveries())) {
+            if (SiriHelper.containsValues(serviceDelivery.getSituationExchangeDeliveries())) {
                 SituationExchangeDeliveryStructure deliveryStructure = serviceDelivery.getSituationExchangeDeliveries().get(0);
                 boolean containsSXdata = deliveryStructure.getSituations() != null &&
-                        siriHelper.containsValues(deliveryStructure.getSituations().getPtSituationElements());
+                        SiriHelper.containsValues(deliveryStructure.getSituations().getPtSituationElements());
                 logger.info("Contains SX-data: [{}]", containsSXdata);
                 return containsSXdata;
             }
 
-            if (siriHelper.containsValues(serviceDelivery.getVehicleMonitoringDeliveries())) {
+            if (SiriHelper.containsValues(serviceDelivery.getVehicleMonitoringDeliveries())) {
                 VehicleMonitoringDeliveryStructure deliveryStructure = serviceDelivery.getVehicleMonitoringDeliveries().get(0);
                 boolean containsVMdata = deliveryStructure.getVehicleActivities() != null &&
-                        siriHelper.containsValues(deliveryStructure.getVehicleActivities());
+                        SiriHelper.containsValues(deliveryStructure.getVehicleActivities());
                 logger.info("Contains VM-data: [{}]", containsVMdata);
                 return containsVMdata;
             }
 
-            if (siriHelper.containsValues(serviceDelivery.getEstimatedTimetableDeliveries())) {
+            if (SiriHelper.containsValues(serviceDelivery.getEstimatedTimetableDeliveries())) {
                 EstimatedTimetableDeliveryStructure deliveryStructure = serviceDelivery.getEstimatedTimetableDeliveries().get(0);
                 boolean containsETdata = (deliveryStructure.getEstimatedJourneyVersionFrames() != null &&
-                        siriHelper.containsValues(deliveryStructure.getEstimatedJourneyVersionFrames()) &&
-                        siriHelper.containsValues(deliveryStructure.getEstimatedJourneyVersionFrames().get(0).getEstimatedVehicleJourneies()));
+                        SiriHelper.containsValues(deliveryStructure.getEstimatedJourneyVersionFrames()) &&
+                        SiriHelper.containsValues(deliveryStructure.getEstimatedJourneyVersionFrames().get(0).getEstimatedVehicleJourneies()));
                 logger.info("Contains ET-data: [{}]", containsETdata);
                 return containsETdata;
             }
@@ -154,7 +153,7 @@ public class CamelRouteManager implements CamelContextAware {
         private final OutboundSubscriptionSetup subscriptionRequest;
         private String remoteEndPoint;
         private RouteDefinition definition;
-        private String routeName;
+        private final String routeName;
 
         public SiriPushRouteBuilder(String remoteEndPoint, OutboundSubscriptionSetup subscriptionRequest) {
             this.remoteEndPoint=remoteEndPoint;

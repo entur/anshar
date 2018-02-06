@@ -26,7 +26,7 @@ import static no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer.
 
 @Repository
 public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJourney> {
-    private Logger logger = LoggerFactory.getLogger(EstimatedTimetables.class);
+    private final Logger logger = LoggerFactory.getLogger(EstimatedTimetables.class);
 
     @Autowired
     private IMap<String, EstimatedVehicleJourney> timetableDeliveries;
@@ -59,29 +59,6 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
     @Autowired
     private SiriObjectFactory siriObjectFactory;
 
-    @Override
-    public int cleanup() {
-        long t1 = System.currentTimeMillis();
-        Set<String> keysToRemove = new HashSet<>();
-        StringBuffer b = new StringBuffer();
-        timetableDeliveries.keySet()
-                .stream()
-                .forEach(key -> {
-                    EstimatedVehicleJourney vehicleJourney = timetableDeliveries.get(key);
-                    if (vehicleJourney != null) { //Object may have expired during cleanup
-                        long expiration = getExpiration(vehicleJourney);
-                        if (expiration < 0) {
-                            b.append(key + " -> " + expiration + "/n");
-                            keysToRemove.add(key);
-                        }
-                    }
-                });
-
-        logger.info("Cleanup removed {} expired elements in {} seconds. /n {}", keysToRemove.size(), (int)(System.currentTimeMillis()-t1)/1000, b.toString());
-        keysToRemove.forEach(key -> timetableDeliveries.delete(key));
-        return keysToRemove.size();
-    }
-
     public Siri createServiceDelivery(String lineRef) {
         SortedSet<EstimatedVehicleJourney> matchingEstimatedVehicleJourneys = new TreeSet<>((o1, o2) -> {
             ZonedDateTime o1_firstTimestamp = o1.getEstimatedCalls().getEstimatedCalls().get(0).getAimedDepartureTime();
@@ -110,7 +87,6 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
         });
 
         timetableDeliveries.keySet()
-                .stream()
                 .forEach(key -> {
                     EstimatedVehicleJourney vehicleJourney = timetableDeliveries.get(key);
                     if (vehicleJourney != null) { //Object may have expired
@@ -160,7 +136,7 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
                 .collect(Collectors.toSet());
 
         //Remove collected objects
-        collectedIds.forEach(id -> idSet.remove(id));
+        collectedIds.forEach(idSet::remove);
 
 
         logger.info("Returning {}, {} left for requestorRef {}", collectedIds.size(), idSet.size(), requestorId);
@@ -190,9 +166,7 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
                 Set<String> datasetFilteredIdSet = new HashSet<>();
 
                 if (datasetId != null) {
-                    idSet.stream().filter(key -> key.startsWith(datasetId + ":")).forEach(key -> {
-                        datasetFilteredIdSet.add(key);
-                    });
+                    idSet.stream().filter(key -> key.startsWith(datasetId + ":")).forEach(key -> datasetFilteredIdSet.add(key));
                 } else {
                     datasetFilteredIdSet.addAll(idSet);
                 }
@@ -333,7 +307,7 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
                         List<EstimatedCall> estimatedCallsList = new ArrayList<>();
 
                         // Merge existing and updated RecordedCalls
-                        if (existingRecordedCallWrapper != null && existingRecordedCallWrapper.getRecordedCalls() != null ) {
+                        if (existingRecordedCallWrapper.getRecordedCalls() != null ) {
                             recordedCallsList.addAll(existingRecordedCallWrapper.getRecordedCalls());
                         }
                         if (updatedRecordedCallWrapper != null && updatedRecordedCallWrapper.getRecordedCalls() != null ) {
@@ -345,8 +319,7 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
                             for (EstimatedCall call : existingEstimatedCallWrapper.getEstimatedCalls()) {
                                 String originalId = getOriginalId(call.getStopPointRef().getValue());
 
-                                if (recordedCallsList.stream().filter(rc -> originalId.equals(getOriginalId(rc.getStopPointRef().getValue())))
-                                        .findFirst().isPresent()) {
+                                if (recordedCallsList.stream().anyMatch(rc -> originalId.equals(getOriginalId(rc.getStopPointRef().getValue())))) {
                                     //EstimatedCall found in RecordedCalls - all previous EstimatedCalls should have been Recorded
                                     for (int i = 0; i < estimatedCallsList.size(); i++) {
                                         recordedCallsList.add(i, mapToRecordedCall(estimatedCallsList.get(i)));

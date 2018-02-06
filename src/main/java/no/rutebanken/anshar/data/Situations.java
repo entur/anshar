@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 
 @Repository
 public class Situations implements SiriRepository<PtSituationElement> {
-    private Logger logger = LoggerFactory.getLogger(Situations.class);
+    private final Logger logger = LoggerFactory.getLogger(Situations.class);
 
     @Autowired
     private IMap<String,PtSituationElement> situations;
@@ -80,7 +80,7 @@ public class Situations implements SiriRepository<PtSituationElement> {
                 .collect(Collectors.toSet());
 
         //Remove collected objects
-        collectedIds.forEach(id -> idSet.remove(id));
+        collectedIds.forEach(idSet::remove);
 
 
         logger.info("Returning {}, {} left for requestorRef {}", collectedIds.size(), idSet.size(), requestorId);
@@ -134,9 +134,7 @@ public class Situations implements SiriRepository<PtSituationElement> {
                 Set<String> datasetFilteredIdSet = new HashSet<>();
 
                 if (datasetId != null) {
-                    idSet.stream().filter(key -> key.startsWith(datasetId + ":")).forEach(key -> {
-                        datasetFilteredIdSet.add(key);
-                    });
+                    idSet.stream().filter(key -> key.startsWith(datasetId + ":")).forEach(key -> datasetFilteredIdSet.add(key));
                 } else {
                     datasetFilteredIdSet.addAll(idSet);
                 }
@@ -162,26 +160,6 @@ public class Situations implements SiriRepository<PtSituationElement> {
         return getAll(datasetId);
     }
 
-    @Override
-    public int cleanup() {
-        long t1 = System.currentTimeMillis();
-        Set<String> keysToRemove = new HashSet<>();
-        situations.keySet()
-                .stream()
-                .forEach(key -> {
-                    PtSituationElement situationElement = situations.get(key);
-                    if (situationElement != null) {
-                        long expiration = getExpiration(situationElement);
-                        if (expiration < 0) {
-                            keysToRemove.add(key);
-                        }
-                    }
-                });
-
-        logger.info("Cleanup removed {} expired elements in {} seconds.", keysToRemove.size(), (int)(System.currentTimeMillis()-t1)/1000);
-        keysToRemove.forEach(key -> situations.delete(key));
-        return keysToRemove.size();
-    }
     public long getExpiration(PtSituationElement situationElement) {
         List<HalfOpenTimestampOutputRangeStructure> validityPeriods = situationElement.getValidityPeriods();
 

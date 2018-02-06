@@ -14,7 +14,7 @@ import static org.junit.Assert.*;
 
 public class SiriObjectFactoryTest {
 
-    private int hoursUntilInitialTermination = 1;
+    private final int hoursUntilInitialTermination = 1;
 
     @Test
     public void testCreateVMSubscription(){

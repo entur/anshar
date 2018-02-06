@@ -5,8 +5,8 @@ import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 
 public class RightPaddingStopPlaceAdapter extends ValueAdapter {
 
-    private int length;
-    private String paddingValue;
+    private final int length;
+    private final String paddingValue;
 
 
     public RightPaddingStopPlaceAdapter(Class clazz, int length, String paddingValue) {

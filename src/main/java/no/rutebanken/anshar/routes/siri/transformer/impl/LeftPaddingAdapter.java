@@ -6,8 +6,8 @@ import org.apache.commons.lang3.StringUtils;
 
 public class LeftPaddingAdapter extends ValueAdapter {
 
-    private int paddingLength;
-    private char paddingChar;
+    private final int paddingLength;
+    private final char paddingChar;
 
 
     public LeftPaddingAdapter(Class clazz, int paddingLength, char paddingChar) {

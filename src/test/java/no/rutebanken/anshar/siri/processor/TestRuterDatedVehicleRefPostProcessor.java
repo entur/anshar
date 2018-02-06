@@ -19,10 +19,10 @@ import static no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer.
 public class TestRuterDatedVehicleRefPostProcessor {
 
 
-    String originalDatedVehicleRef = "250:125:9-12510";
-    String targetVehicleRef = "RUT:ServiceJourney:250-125";
+    private String originalDatedVehicleRef = "250:125:9-12510";
+    private String targetVehicleRef = "RUT:ServiceJourney:250-125";
 
-    String completeDatedVehicleRef = originalDatedVehicleRef + SEPARATOR + targetVehicleRef;
+    private String completeDatedVehicleRef = originalDatedVehicleRef + SEPARATOR + targetVehicleRef;
 
     @Test
     public void testConvertDatedVehicleRef() {

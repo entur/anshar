@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
 
 @Repository
 public class ProductionTimetables implements SiriRepository<ProductionTimetableDeliveryStructure> {
-    private Logger logger = LoggerFactory.getLogger(ProductionTimetables.class);
+    private final Logger logger = LoggerFactory.getLogger(ProductionTimetables.class);
 
     @Autowired
     private IMap<String, ProductionTimetableDeliveryStructure> timetableDeliveries;
@@ -99,22 +99,6 @@ public class ProductionTimetables implements SiriRepository<ProductionTimetableD
         return getAll(datasetId);
     }
 
-    @Override
-    public int cleanup() {
-        long t1 = System.currentTimeMillis();
-        Set<String> keysToRemove = new HashSet<>();
-        timetableDeliveries.keySet()
-                .stream()
-                .forEach(key -> {
-                    if (getExpiration(timetableDeliveries.get(key)) < 0) {
-                        keysToRemove.add(key);
-                    }
-                });
-
-        logger.info("Cleanup removed {} expired elements in {} seconds.", keysToRemove.size(), (int)(System.currentTimeMillis()-t1)/1000);
-        keysToRemove.forEach(key -> timetableDeliveries.delete(key));
-        return keysToRemove.size();
-    }
     public long getExpiration(ProductionTimetableDeliveryStructure s) {
 
         ZonedDateTime validUntil = s.getValidUntil();

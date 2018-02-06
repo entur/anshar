@@ -14,7 +14,7 @@
             xhr.open('PUT', uri, true);
             xhr.onreadystatechange = function() {
                 window.location.reload()
-            }
+            };
             xhr.send(null);
         }
     </script>

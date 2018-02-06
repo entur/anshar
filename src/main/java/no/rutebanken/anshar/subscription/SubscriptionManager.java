@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
 public class SubscriptionManager {
 
     final int HEALTHCHECK_INTERVAL_FACTOR = 5;
-    private Logger logger = LoggerFactory.getLogger(SubscriptionManager.class);
+    private final Logger logger = LoggerFactory.getLogger(SubscriptionManager.class);
 
     @Autowired
     @Qualifier("getSubscriptionsMap")
@@ -224,7 +224,7 @@ public class SubscriptionManager {
     public Boolean isSubscriptionHealthy(String subscriptionId) {
         return isSubscriptionHealthy(subscriptionId, HEALTHCHECK_INTERVAL_FACTOR);
     }
-    public Boolean isSubscriptionHealthy(String subscriptionId, int healthCheckIntervalFactor) {
+    private Boolean isSubscriptionHealthy(String subscriptionId, int healthCheckIntervalFactor) {
         Instant instant = lastActivity.get(subscriptionId);
 
         if (instant == null) {

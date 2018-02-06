@@ -7,7 +7,7 @@ import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 
 public class OutboundIdAdapter extends ValueAdapter {
 
-    private OutboundIdMappingPolicy outboundIdMappingPolicy;
+    private final OutboundIdMappingPolicy outboundIdMappingPolicy;
 
     public OutboundIdAdapter(Class clazz, OutboundIdMappingPolicy outboundIdMappingPolicy) {
         super(clazz);

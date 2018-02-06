@@ -19,10 +19,10 @@ import static junit.framework.TestCase.assertTrue;
 public class HealthManagerTest {
 
     @Autowired
-    HealthManager healthManager;
+    private HealthManager healthManager;
 
     @Autowired
-    ExtendedHazelcastService extendedHazelcastService;
+    private ExtendedHazelcastService extendedHazelcastService;
 
     /*
      * Test is ignored as it shuts down entire hazelcast-instance causing ultiple tests to fail

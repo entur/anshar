@@ -18,7 +18,7 @@ public class InterruptibleHazelcastRoutePolicy extends HazelcastRoutePolicy {
 
     private IMap<String, String> locks;
 
-    private Object syncObject = new Object();
+    private final Object syncObject = new Object();
     private ExecutorService executorService;
     private Future<Void> future;
 
@@ -61,7 +61,7 @@ public class InterruptibleHazelcastRoutePolicy extends HazelcastRoutePolicy {
         }
     }
 
-    private Void acquireLeadership() throws Exception {
+    private Void acquireLeadership() {
 
         String lockKey = getLockKey();
 

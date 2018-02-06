@@ -10,7 +10,7 @@ import java.util.StringTokenizer;
 public class RuterDatedVehicleRefPostProcessor extends ValueAdapter implements PostProcessor {
 
     private static final String DELIMITER = ":";
-    static final String SERVICE_JOURNEY_PREFIX = "RUT:ServiceJourney:";
+    private static final String SERVICE_JOURNEY_PREFIX = "RUT:ServiceJourney:";
 
     @Override
     public void process(Siri siri) {

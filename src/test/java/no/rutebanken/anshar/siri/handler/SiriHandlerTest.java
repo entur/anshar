@@ -12,7 +12,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import uk.org.siri.siri20.Siri;
 
 import javax.xml.bind.JAXBException;
-
 import java.io.ByteArrayInputStream;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -151,28 +150,23 @@ public class SiriHandlerTest {
 
 
     private SubscriptionSetup getSxSubscription() {
-        SubscriptionSetup.SubscriptionType subscriptionType = SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE;
-        SubscriptionSetup setup = getSubscriptionSetup(subscriptionType);
-        return setup;
+        return getSubscriptionSetup(SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE);
     }
 
     private SubscriptionSetup getVmSubscription() {
-        SubscriptionSetup setup = getSubscriptionSetup(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING);
-        return setup;
+        return getSubscriptionSetup(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING);
     }
 
     private SubscriptionSetup getEtSubscription() {
-        SubscriptionSetup setup = getSubscriptionSetup(SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE);
-        return setup;
+        return getSubscriptionSetup(SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE);
     }
 
     private SubscriptionSetup getPtSubscription() {
-        SubscriptionSetup setup = getSubscriptionSetup(SubscriptionSetup.SubscriptionType.PRODUCTION_TIMETABLE);
-        return setup;
+        return getSubscriptionSetup(SubscriptionSetup.SubscriptionType.PRODUCTION_TIMETABLE);
     }
 
     private SubscriptionSetup getSubscriptionSetup(SubscriptionSetup.SubscriptionType type) {
-        SubscriptionSetup sub = new SubscriptionSetup(
+        return new SubscriptionSetup(
                 type,
                 SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
                 "http://localhost",
@@ -192,6 +186,5 @@ public class SiriHandlerTest {
                 Duration.ofSeconds(600),
                 true
         );
-        return sub;
     }
 }

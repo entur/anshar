@@ -24,7 +24,7 @@ public class SiriValueTransformer {
 
     public static final String SEPARATOR = "$";
 
-    private static Logger logger = LoggerFactory.getLogger(SiriValueTransformer.class);
+    private static final Logger logger = LoggerFactory.getLogger(SiriValueTransformer.class);
 
     private static final LoadingCache<Class, List<Method>> getterMethodsCache = CacheBuilder.newBuilder()
             .build(
@@ -51,7 +51,7 @@ public class SiriValueTransformer {
      * @return
      * @throws JAXBException
      */
-    public static Siri parseXml(InputStream xml, List adapters) throws JAXBException, XMLStreamException {
+    public static Siri parseXml(InputStream xml, List<ValueAdapter> adapters) throws JAXBException, XMLStreamException {
         return transform(SiriXml.parseXml(xml), adapters);
     }
 

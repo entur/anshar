@@ -5,7 +5,7 @@ import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 
 public class PrefixAdapter extends ValueAdapter {
 
-    private String prefix;
+    private final String prefix;
 
 
     public PrefixAdapter(Class clazz, String prefix) {

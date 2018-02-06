@@ -24,7 +24,7 @@ public class SingletonRoutePolicyFactory implements RoutePolicyFactory {
     private boolean ignorePolicy;
 
     @Autowired
-    ExtendedHazelcastService hazelcastService;
+    private ExtendedHazelcastService hazelcastService;
 
     /**
      * Create policy ensuring only one route with 'key' is started in cluster.

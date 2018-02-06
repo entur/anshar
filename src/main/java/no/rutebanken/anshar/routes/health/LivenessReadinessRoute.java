@@ -61,13 +61,13 @@ public class LivenessReadinessRoute extends RouteBuilder {
 
     @Autowired
     @Qualifier("getUnhealthySubscriptionsSet")
-    ISet<String> unhealthySubscriptionsAlreadyNotified;
+    private ISet<String> unhealthySubscriptionsAlreadyNotified;
 
     @Autowired
-    HealthManager healthManager;
+    private HealthManager healthManager;
 
     @Autowired
-    SubscriptionManager subscriptionManager;
+    private SubscriptionManager subscriptionManager;
 
     public static boolean triggerRestart;
 

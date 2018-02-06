@@ -20,9 +20,9 @@ import java.util.Map;
 import static no.rutebanken.anshar.routes.siri.helpers.SiriRequestFactory.getCamelUrl;
 
 public class Siri20ToSiriRS14Subscription extends SiriSubscriptionRouteBuilder {
-    private Logger logger = LoggerFactory.getLogger(this.getClass());
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    private SiriHandler handler;
+    private final SiriHandler handler;
 
     public Siri20ToSiriRS14Subscription(AnsharConfiguration config, SiriHandler handler, SubscriptionSetup subscriptionSetup, SubscriptionManager subscriptionManager) {
         super(config, subscriptionManager);

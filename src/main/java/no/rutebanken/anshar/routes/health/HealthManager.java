@@ -25,7 +25,7 @@ import java.util.Set;
 @Configuration
 public class HealthManager {
 
-    private Logger logger = LoggerFactory.getLogger(HealthManager.class);
+    private final Logger logger = LoggerFactory.getLogger(HealthManager.class);
 
     @Autowired
     @Qualifier("getHealthCheckMap")
@@ -83,8 +83,7 @@ public class HealthManager {
         if (lastReceivedData != null) {
             long lastReceivedMillis = lastReceivedData.toEpochMilli();
 
-            long seconds = (Instant.now().toEpochMilli() - lastReceivedMillis) / (1000);
-            return seconds;
+            return (Instant.now().toEpochMilli() - lastReceivedMillis) / (1000);
         }
         return -1;
     }

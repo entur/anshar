@@ -16,13 +16,13 @@ import java.io.FileNotFoundException;
 public class BlobStoreService {
 
 	@Autowired
-	BlobStoreRepository repository;
+	private BlobStoreRepository repository;
 
 	@Autowired
-	Storage storage;
+	private Storage storage;
 
 	@Value("${blobstore.gcs.container.name}")
-	String containerName;
+	private String containerName;
 
 	@PostConstruct
 	public void init() {

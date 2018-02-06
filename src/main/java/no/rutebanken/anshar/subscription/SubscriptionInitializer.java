@@ -23,7 +23,7 @@ import java.util.*;
 
 @Service
 public class SubscriptionInitializer implements CamelContextAware, ApplicationContextAware {
-    private Logger logger = LoggerFactory.getLogger(SubscriptionInitializer.class);
+    private final Logger logger = LoggerFactory.getLogger(SubscriptionInitializer.class);
 
     @Autowired
     private SubscriptionManager subscriptionManager;
@@ -32,10 +32,10 @@ public class SubscriptionInitializer implements CamelContextAware, ApplicationCo
     private SubscriptionConfig subscriptionConfig;
 
     @Autowired
-    SiriHandler handler;
+    private SiriHandler handler;
 
     @Autowired
-    AnsharConfiguration configuration;
+    private AnsharConfiguration configuration;
 
     private CamelContext camelContext;
 
@@ -59,7 +59,7 @@ public class SubscriptionInitializer implements CamelContextAware, ApplicationCo
         final Map<String, Object> myFoos = applicationContext.getBeansWithAnnotation(Mapping.class);
         final Map<String, Class> mappingAdaptersById = new HashMap<>();
         for (final Object myFoo : myFoos.values()) {
-            final Class<? extends Object> mappingAdapterClass = myFoo.getClass();
+            final Class<?> mappingAdapterClass = myFoo.getClass();
             final Mapping annotation = mappingAdapterClass.getAnnotation(Mapping.class);
             mappingAdaptersById.put(annotation.id(), mappingAdapterClass);
         }

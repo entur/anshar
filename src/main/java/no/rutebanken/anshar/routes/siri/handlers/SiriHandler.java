@@ -28,7 +28,7 @@ import java.util.*;
 @Service
 public class SiriHandler {
 
-    private Logger logger = LoggerFactory.getLogger(SiriHandler.class);
+    private final Logger logger = LoggerFactory.getLogger(SiriHandler.class);
 
     @Autowired
     private ServerSubscriptionManager serverSubscriptionManager;
@@ -66,7 +66,7 @@ public class SiriHandler {
         return handleIncomingSiri(subscriptionId, xml, null);
     }
 
-    public Siri handleIncomingSiri(String subscriptionId, InputStream xml, String datasetId) {
+    private Siri handleIncomingSiri(String subscriptionId, InputStream xml, String datasetId) {
         return handleIncomingSiri(subscriptionId, xml, datasetId, null);
     }
 
@@ -99,7 +99,7 @@ public class SiriHandler {
      * @param incoming
      * @throws JAXBException
      */
-    private Siri processSiriServerRequest(Siri incoming, String datasetId, OutboundIdMappingPolicy outboundIdMappingPolicy) throws JAXBException {
+    private Siri processSiriServerRequest(Siri incoming, String datasetId, OutboundIdMappingPolicy outboundIdMappingPolicy) {
 
         if (incoming.getSubscriptionRequest() != null) {
             logger.info("Handling subscriptionrequest with ID-policy {}.", outboundIdMappingPolicy);
@@ -131,13 +131,13 @@ public class SiriHandler {
                 for (VehicleMonitoringRequestStructure req : serviceRequest.getVehicleMonitoringRequests()) {
                     LineRef lineRef = req.getLineRef();
                     if (lineRef != null) {
-                        Set linerefList = filterMap.get(LineRef.class) != null ? filterMap.get(LineRef.class): new HashSet<>();
+                        Set<String> linerefList = filterMap.get(LineRef.class) != null ? filterMap.get(LineRef.class): new HashSet<>();
                         linerefList.add(lineRef.getValue());
                         filterMap.put(LineRef.class, linerefList);
                     }
                     VehicleRef vehicleRef = req.getVehicleRef();
                     if (vehicleRef != null) {
-                        Set vehicleRefList = filterMap.get(VehicleRef.class) != null ? filterMap.get(VehicleRef.class): new HashSet<>();
+                        Set<String> vehicleRefList = filterMap.get(VehicleRef.class) != null ? filterMap.get(VehicleRef.class): new HashSet<>();
                         vehicleRefList.add(vehicleRef.getValue());
                         filterMap.put(VehicleRef.class, vehicleRefList);
                     }

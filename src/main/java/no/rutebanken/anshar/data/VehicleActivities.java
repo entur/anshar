@@ -25,7 +25,7 @@ import static no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer.
 
 @Repository
 public class VehicleActivities implements SiriRepository<VehicleActivityStructure> {
-    private Logger logger = LoggerFactory.getLogger(VehicleActivities.class);
+    private final Logger logger = LoggerFactory.getLogger(VehicleActivities.class);
 
     @Autowired
     private IMap<String, VehicleActivityStructure> vehicleActivities;
@@ -77,26 +77,6 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
         return new ArrayList<>(vendorSpecific.values());
     }
 
-    @Override
-    public int cleanup() {
-        long t1 = System.currentTimeMillis();
-        Set<String> keysToRemove = new HashSet<>();
-        vehicleActivities.keySet()
-                .stream()
-                .forEach(key -> {
-                    VehicleActivityStructure vehicleActivityStructure = vehicleActivities.get(key);
-                    if (vehicleActivityStructure != null) {
-                        long expiration = getExpiration(vehicleActivityStructure);
-                        if (expiration < 0) {
-                            keysToRemove.add(key);
-                        }
-                    }
-                });
-
-        logger.info("Cleanup removed {} expired elements in {} seconds.", keysToRemove.size(), (int)(System.currentTimeMillis()-t1)/1000);
-        keysToRemove.forEach(key -> vehicleActivities.delete(key));
-        return keysToRemove.size();
-    }
     /**
      * @return All vehicle activities that have been updated since last request from requestor
      */
@@ -109,9 +89,7 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
                 Set<String> datasetFilteredIdSet = new HashSet<>();
 
                 if (datasetId != null) {
-                    idSet.stream().filter(key -> key.startsWith(datasetId + ":")).forEach(key -> {
-                        datasetFilteredIdSet.add(key);
-                    });
+                    idSet.stream().filter(key -> key.startsWith(datasetId + ":")).forEach(key -> datasetFilteredIdSet.add(key));
                 } else {
                     datasetFilteredIdSet.addAll(idSet);
                 }
@@ -142,7 +120,6 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
         SortedSet<VehicleActivityStructure> matchingEstimatedVehicleJourneys = new TreeSet<>(Comparator.comparing(AbstractItemStructure::getRecordedAtTime));
 
         vehicleActivities.keySet()
-                .stream()
                 .forEach(key -> {
                     VehicleActivityStructure vehicleJourney = vehicleActivities.get(key);
                     if (vehicleJourney != null && vehicleJourney.getMonitoredVehicleJourney() != null) { //Object may have expired
@@ -183,7 +160,7 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
                 .collect(Collectors.toSet());
 
         //Remove collected objects
-        collectedIds.forEach(id -> idSet.remove(id));
+        collectedIds.forEach(idSet::remove);
 
 
         logger.info("Returning {}, {} left for requestorRef {}", collectedIds.size(), idSet.size(), requestorId);

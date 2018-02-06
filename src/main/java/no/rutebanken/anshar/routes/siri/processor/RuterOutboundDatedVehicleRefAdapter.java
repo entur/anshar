@@ -10,7 +10,7 @@ import java.util.List;
 
 public class RuterOutboundDatedVehicleRefAdapter extends ValueAdapter implements PostProcessor {
 
-    private OutboundIdMappingPolicy outboundIdMappingPolicy;
+    private final OutboundIdMappingPolicy outboundIdMappingPolicy;
 
     public RuterOutboundDatedVehicleRefAdapter(Class clazz, OutboundIdMappingPolicy outboundIdMappingPolicy) {
         super(clazz);
@@ -63,7 +63,7 @@ public class RuterOutboundDatedVehicleRefAdapter extends ValueAdapter implements
         }
     }
 
-    public String apply(String text) {
+    protected String apply(String text) {
         if (text == null || text.isEmpty()) {
             return text;
         }
@@ -78,11 +78,11 @@ public class RuterOutboundDatedVehicleRefAdapter extends ValueAdapter implements
         return text;
     }
 
-    public static String getOriginalId(String text) {
+    private static String getOriginalId(String text) {
         return text.substring(0, text.indexOf(SiriValueTransformer.SEPARATOR));
     }
 
-    public static String getMappedId(String text) {
+    private static String getMappedId(String text) {
         return text.substring(text.indexOf(SiriValueTransformer.SEPARATOR)+1);
     }
 

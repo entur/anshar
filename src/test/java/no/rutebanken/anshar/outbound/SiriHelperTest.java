@@ -58,7 +58,7 @@ public class SiriHelperTest {
         matchingValues.add(filterMatchingLineRef_2);
         filter.put(LineRef.class, matchingValues);
 
-        Siri filtered = siriHelper.filterSiriPayload(serviceDelivery, filter);
+        Siri filtered = SiriHelper.filterSiriPayload(serviceDelivery, filter);
 
 
         assertNotNull(filtered);
@@ -124,7 +124,7 @@ public class SiriHelperTest {
         matchingValues.add(filterMatchingLineRef_1);
         filter.put(LineRef.class, matchingValues);
 
-        Siri filtered = siriHelper.filterSiriPayload(siri, filter);
+        Siri filtered = SiriHelper.filterSiriPayload(siri, filter);
 
         int sizeAfter = siri.getServiceDelivery().getVehicleMonitoringDeliveries().get(0).getVehicleActivities().size();
         int filteredSizeAfter = filtered.getServiceDelivery().getVehicleMonitoringDeliveries().get(0).getVehicleActivities().size();
@@ -139,7 +139,7 @@ public class SiriHelperTest {
         filter2.put(LineRef.class, matchingValues2);
 
         // Filtering original SIRI-data with different filter
-        Siri filtered2 = siriHelper.filterSiriPayload(siri, filter2);
+        Siri filtered2 = SiriHelper.filterSiriPayload(siri, filter2);
 
         int sizeAfter2 = siri.getServiceDelivery().getVehicleMonitoringDeliveries().get(0).getVehicleActivities().size();
         int filteredSizeAfter2 = filtered.getServiceDelivery().getVehicleMonitoringDeliveries().get(0).getVehicleActivities().size();

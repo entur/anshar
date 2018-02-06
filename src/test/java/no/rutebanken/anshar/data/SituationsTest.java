@@ -2,7 +2,6 @@ package no.rutebanken.anshar.data;
 
 import no.rutebanken.anshar.App;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,16 +21,10 @@ import static org.junit.Assert.assertTrue;
 public class SituationsTest {
 
     @Autowired
-    Situations situations;
+    private Situations situations;
 
     @Autowired
     private SiriObjectFactory siriObjectFactory;
-
-    @Before
-    public void setup() {
-
-    }
-
 
     @Test
     public void testAddSituation() {
@@ -116,7 +109,7 @@ public class SituationsTest {
         HalfOpenTimestampOutputRangeStructure period = new HalfOpenTimestampOutputRangeStructure();
         period.setStartTime(startTime);
 
-        element.setParticipantRef(siriObjectFactory.createRequestorRef(participantRef));
+        element.setParticipantRef(SiriObjectFactory.createRequestorRef(participantRef));
 
         SituationNumber sn = new SituationNumber();
         sn.setValue(situationNumber);

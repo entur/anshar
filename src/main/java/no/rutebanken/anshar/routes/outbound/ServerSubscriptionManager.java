@@ -35,7 +35,7 @@ public class ServerSubscriptionManager extends CamelRouteManager {
 
     private static final java.lang.String ANSHAR_HEARTBEAT_KEY = "ANSHAR_HEARTBEAT_LOCK_KEY";
 
-    private Logger logger = LoggerFactory.getLogger(ServerSubscriptionManager.class);
+    private final Logger logger = LoggerFactory.getLogger(ServerSubscriptionManager.class);
 
     @Autowired
     private IMap<String, OutboundSubscriptionSetup> subscriptions;
@@ -77,6 +77,7 @@ public class ServerSubscriptionManager extends CamelRouteManager {
 
     @Autowired
     private SiriHelper siriHelper;
+
     private OutboundSubscriptionSetup activeMQ_SX;
     private OutboundSubscriptionSetup activeMQ_VM;
     private OutboundSubscriptionSetup activeMQ_ET;
@@ -196,7 +197,7 @@ public class ServerSubscriptionManager extends CamelRouteManager {
 
     private OutboundSubscriptionSetup createSubscription(SubscriptionRequest subscriptionRequest, String datasetId, OutboundIdMappingPolicy outboundIdMappingPolicy) {
 
-        OutboundSubscriptionSetup setup = new OutboundSubscriptionSetup(
+        return new OutboundSubscriptionSetup(
                 subscriptionRequest.getRequestTimestamp(),
                 getSubscriptionType(subscriptionRequest),
                 SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
@@ -212,7 +213,6 @@ public class ServerSubscriptionManager extends CamelRouteManager {
                 datasetId,
                 true
                 );
-        return setup;
     }
 
     private long getHeartbeatInterval(SubscriptionRequest subscriptionRequest) {
@@ -226,24 +226,24 @@ public class ServerSubscriptionManager extends CamelRouteManager {
     }
 
     private SubscriptionSetup.SubscriptionType getSubscriptionType(SubscriptionRequest subscriptionRequest) {
-        if (siriHelper.containsValues(subscriptionRequest.getSituationExchangeSubscriptionRequests())) {
+        if (SiriHelper.containsValues(subscriptionRequest.getSituationExchangeSubscriptionRequests())) {
             return SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE;
-        } else if (siriHelper.containsValues(subscriptionRequest.getVehicleMonitoringSubscriptionRequests())) {
+        } else if (SiriHelper.containsValues(subscriptionRequest.getVehicleMonitoringSubscriptionRequests())) {
             return SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING;
-        } else if (siriHelper.containsValues(subscriptionRequest.getEstimatedTimetableSubscriptionRequests())) {
+        } else if (SiriHelper.containsValues(subscriptionRequest.getEstimatedTimetableSubscriptionRequests())) {
             return SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE;
-        } else if (siriHelper.containsValues(subscriptionRequest.getProductionTimetableSubscriptionRequests())) {
+        } else if (SiriHelper.containsValues(subscriptionRequest.getProductionTimetableSubscriptionRequests())) {
             return SubscriptionSetup.SubscriptionType.PRODUCTION_TIMETABLE;
         }
         return null;
     }
 
     private long getChangeBeforeUpdates(SubscriptionRequest subscriptionRequest) {
-        if (siriHelper.containsValues(subscriptionRequest.getVehicleMonitoringSubscriptionRequests())) {
+        if (SiriHelper.containsValues(subscriptionRequest.getVehicleMonitoringSubscriptionRequests())) {
             return getMilliSeconds(subscriptionRequest.getVehicleMonitoringSubscriptionRequests().get(0).getChangeBeforeUpdates());
-        } else if (siriHelper.containsValues(subscriptionRequest.getEstimatedTimetableSubscriptionRequests())) {
+        } else if (SiriHelper.containsValues(subscriptionRequest.getEstimatedTimetableSubscriptionRequests())) {
             return getMilliSeconds(subscriptionRequest.getEstimatedTimetableSubscriptionRequests().get(0).getChangeBeforeUpdates());
-        } else if (siriHelper.containsValues(subscriptionRequest.getProductionTimetableSubscriptionRequests())) {
+        } else if (SiriHelper.containsValues(subscriptionRequest.getProductionTimetableSubscriptionRequests())) {
             return getMilliSeconds(subscriptionRequest.getEstimatedTimetableSubscriptionRequests().get(0).getChangeBeforeUpdates());
         }
         return 0;
@@ -261,28 +261,28 @@ public class ServerSubscriptionManager extends CamelRouteManager {
         heartbeatTimestampMap.put(subscription.getSubscriptionId(), Instant.now());
     }
 
-    public OutboundSubscriptionSetup removeSubscription(String subscriptionId) {
+    private OutboundSubscriptionSetup removeSubscription(String subscriptionId) {
         logger.info("Removing subscription {}", subscriptionId);
         heartbeatTimestampMap.remove(subscriptionId);
         return subscriptions.remove(subscriptionId);
     }
 
     private String findSubscriptionIdentifier(SubscriptionRequest subscriptionRequest) {
-        if (siriHelper.containsValues(subscriptionRequest.getSituationExchangeSubscriptionRequests())) {
+        if (SiriHelper.containsValues(subscriptionRequest.getSituationExchangeSubscriptionRequests())) {
 
             SituationExchangeSubscriptionStructure situationExchangeSubscriptionStructure = subscriptionRequest.
                     getSituationExchangeSubscriptionRequests().get(0);
 
             return getSubscriptionIdentifier(situationExchangeSubscriptionStructure);
 
-        } else if (siriHelper.containsValues(subscriptionRequest.getVehicleMonitoringSubscriptionRequests())) {
+        } else if (SiriHelper.containsValues(subscriptionRequest.getVehicleMonitoringSubscriptionRequests())) {
 
             VehicleMonitoringSubscriptionStructure vehicleMonitoringSubscriptionStructure =
                     subscriptionRequest.getVehicleMonitoringSubscriptionRequests().get(0);
 
             return getSubscriptionIdentifier(vehicleMonitoringSubscriptionStructure);
 
-        } else if (siriHelper.containsValues(subscriptionRequest.getEstimatedTimetableSubscriptionRequests())) {
+        } else if (SiriHelper.containsValues(subscriptionRequest.getEstimatedTimetableSubscriptionRequests())) {
 
             EstimatedTimetableSubscriptionStructure estimatedTimetableSubscriptionStructure =
                     subscriptionRequest.getEstimatedTimetableSubscriptionRequests().get(0);
@@ -300,13 +300,13 @@ public class ServerSubscriptionManager extends CamelRouteManager {
     }
 
     private ZonedDateTime findInitialTerminationTime(SubscriptionRequest subscriptionRequest) {
-        if (siriHelper.containsValues(subscriptionRequest.getSituationExchangeSubscriptionRequests())) {
+        if (SiriHelper.containsValues(subscriptionRequest.getSituationExchangeSubscriptionRequests())) {
 
             return subscriptionRequest.getSituationExchangeSubscriptionRequests().get(0).getInitialTerminationTime();
-        } else if (siriHelper.containsValues(subscriptionRequest.getVehicleMonitoringSubscriptionRequests())) {
+        } else if (SiriHelper.containsValues(subscriptionRequest.getVehicleMonitoringSubscriptionRequests())) {
 
             return subscriptionRequest.getVehicleMonitoringSubscriptionRequests().get(0).getInitialTerminationTime();
-        } else if (siriHelper.containsValues(subscriptionRequest.getEstimatedTimetableSubscriptionRequests())) {
+        } else if (SiriHelper.containsValues(subscriptionRequest.getEstimatedTimetableSubscriptionRequests())) {
 
             return subscriptionRequest.getEstimatedTimetableSubscriptionRequests().get(0).getInitialTerminationTime();
         }

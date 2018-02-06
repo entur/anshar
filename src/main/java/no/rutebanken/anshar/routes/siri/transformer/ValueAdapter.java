@@ -6,7 +6,7 @@ public abstract class ValueAdapter implements Serializable {
 
     private Class clazz;
 
-    public ValueAdapter(Class clazz) {
+    protected ValueAdapter(Class clazz) {
         this.clazz = clazz;
     }
 

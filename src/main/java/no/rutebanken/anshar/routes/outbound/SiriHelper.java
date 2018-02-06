@@ -18,7 +18,7 @@ import java.util.*;
 @Component
 public class SiriHelper {
 
-    private static Logger logger = LoggerFactory.getLogger(SiriHelper.class);
+    private static final Logger logger = LoggerFactory.getLogger(SiriHelper.class);
 
 
     @Autowired
@@ -33,7 +33,7 @@ public class SiriHelper {
     @Autowired
     private ProductionTimetables productionTimetables;
 
-    private SiriObjectFactory siriObjectFactory;
+    private final SiriObjectFactory siriObjectFactory;
 
     public SiriHelper(@Autowired SiriObjectFactory siriObjectFactory) {
         this.siriObjectFactory = siriObjectFactory;
