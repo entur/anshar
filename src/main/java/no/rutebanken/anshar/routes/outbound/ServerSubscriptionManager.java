@@ -207,7 +207,7 @@ public class ServerSubscriptionManager extends CamelRouteManager {
     private OutboundSubscriptionSetup createSubscription(SubscriptionRequest subscriptionRequest, String datasetId, OutboundIdMappingPolicy outboundIdMappingPolicy) {
 
         return new OutboundSubscriptionSetup(
-                subscriptionRequest.getRequestTimestamp(),
+                ZonedDateTime.now(),
                 getSubscriptionType(subscriptionRequest),
                 SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
                 subscriptionRequest.getConsumerAddress() != null ? subscriptionRequest.getConsumerAddress():subscriptionRequest.getAddress(),
