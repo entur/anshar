@@ -29,6 +29,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import static java.time.temporal.ChronoUnit.MILLIS;
+
 @Service
 @Configuration
 public class ServerSubscriptionManager extends CamelRouteManager {
@@ -49,8 +51,8 @@ public class ServerSubscriptionManager extends CamelRouteManager {
     private IMap<String, Instant> lockMap;
 
     @Autowired
-    @Qualifier("getFailedCountMap")
-    private IMap<String, Integer> failedPushCounterMap;
+    @Qualifier("getFailTrackerMap")
+    private IMap<String, Instant> failTrackerMap;
 
     @Autowired
     private SiriObjectFactory siriObjectFactory;
@@ -271,6 +273,7 @@ public class ServerSubscriptionManager extends CamelRouteManager {
     private OutboundSubscriptionSetup removeSubscription(String subscriptionId) {
         logger.info("Removing subscription {}", subscriptionId);
         heartbeatTimestampMap.remove(subscriptionId);
+        failTrackerMap.delete(subscriptionId);
         return subscriptions.remove(subscriptionId);
     }
 
@@ -434,18 +437,28 @@ public class ServerSubscriptionManager extends CamelRouteManager {
     }
 
     public void pushFailedForSubscription(String subscriptionId) {
-        int numberOfFails = failedPushCounterMap.getOrDefault(subscriptionId, 0);
-        numberOfFails++;
-        if (numberOfFails >= maxFailsAllowed) {
-            logger.info("Subscription {} has failed {} consecutive times - removing", subscriptionId, numberOfFails);
-            removeFailCounter(subscriptionId);
-            removeSubscription(subscriptionId);
-        } else {
-            failedPushCounterMap.set(subscriptionId, numberOfFails);
+        OutboundSubscriptionSetup outboundSubscriptionSetup = subscriptions.get(subscriptionId);
+        if (outboundSubscriptionSetup != null) {
+
+            long gracePeriod = 3*outboundSubscriptionSetup.getHeartbeatInterval();
+
+            Instant firstFail = failTrackerMap.getOrDefault(subscriptionId, Instant.now());
+
+            long terminationTime = firstFail.until(Instant.now(), MILLIS);
+            if (terminationTime > gracePeriod) {
+                logger.info("Cancelling outbound subscription {} that has failed for {}s.", subscriptionId, terminationTime/1000);
+                removeSubscription(subscriptionId);
+            } else {
+                logger.info("Outbound subscription {} has not responded for {}s, will be cancelled after {}s.", subscriptionId, terminationTime/1000, gracePeriod/1000);
+                failTrackerMap.set(subscriptionId, firstFail);
+            }
         }
     }
 
-    public void removeFailCounter(String subscriptionId) {
-        failedPushCounterMap.delete(subscriptionId);
+    public void clearFailTracker(String subscriptionId) {
+        if (failTrackerMap.containsKey(subscriptionId)) {
+            logger.info("Subscription {} is now responding - clearing failtracker", subscriptionId);
+            failTrackerMap.delete(subscriptionId);
+        }
     }
 }

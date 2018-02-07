@@ -167,8 +167,8 @@ public class ExtendedHazelcastService extends HazelCastService {
     }
 
     @Bean
-    public IMap<String, Integer> getFailedCountMap() {
-        return hazelcast.getMap("anshar.activity.failedcount");
+    public IMap<String, Instant> getFailTrackerMap() {
+        return hazelcast.getMap("anshar.activity.failtracker");
     }
 
     @Bean

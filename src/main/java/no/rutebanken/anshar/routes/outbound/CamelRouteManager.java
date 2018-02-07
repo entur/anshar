@@ -214,7 +214,7 @@ public class CamelRouteManager implements CamelContextAware {
                         .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
                         .to("log:push:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                         .to(remoteEndPoint + options)
-                        .bean(subscriptionManager, "removeFailCounter(${header.SubscriptionId})")
+                        .bean(subscriptionManager, "clearFailTracker(${header.SubscriptionId})")
                         .to("log:push-resp:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                         .log(LoggingLevel.INFO, "POST complete [" + subscriptionRequest.getSubscriptionId() + "]");
             }
