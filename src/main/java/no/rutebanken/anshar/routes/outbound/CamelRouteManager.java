@@ -80,7 +80,9 @@ public class CamelRouteManager implements CamelContextAware {
 
                 List<Siri> splitSiri = siriHelper.splitDeliveries(filteredPayload, deliverySize);
 
-                logger.info("Object split into {} deliveries.", splitSiri.size());
+                if (splitSiri.size() > 1) {
+                    logger.info("Object split into {} deliveries.", splitSiri.size());
+                }
 
                 SiriPushRouteBuilder siriPushRouteBuilder = new SiriPushRouteBuilder(consumerAddress, subscriptionRequest);
                 Route route = addSiriPushRoute(siriPushRouteBuilder);
@@ -132,7 +134,6 @@ public class CamelRouteManager implements CamelContextAware {
                 SituationExchangeDeliveryStructure deliveryStructure = serviceDelivery.getSituationExchangeDeliveries().get(0);
                 boolean containsSXdata = deliveryStructure.getSituations() != null &&
                         SiriHelper.containsValues(deliveryStructure.getSituations().getPtSituationElements());
-                logger.info("Contains SX-data: [{}]", containsSXdata);
                 return containsSXdata;
             }
 
@@ -140,7 +141,6 @@ public class CamelRouteManager implements CamelContextAware {
                 VehicleMonitoringDeliveryStructure deliveryStructure = serviceDelivery.getVehicleMonitoringDeliveries().get(0);
                 boolean containsVMdata = deliveryStructure.getVehicleActivities() != null &&
                         SiriHelper.containsValues(deliveryStructure.getVehicleActivities());
-                logger.info("Contains VM-data: [{}]", containsVMdata);
                 return containsVMdata;
             }
 
@@ -149,7 +149,6 @@ public class CamelRouteManager implements CamelContextAware {
                 boolean containsETdata = (deliveryStructure.getEstimatedJourneyVersionFrames() != null &&
                         SiriHelper.containsValues(deliveryStructure.getEstimatedJourneyVersionFrames()) &&
                         SiriHelper.containsValues(deliveryStructure.getEstimatedJourneyVersionFrames().get(0).getEstimatedVehicleJourneies()));
-                logger.info("Contains ET-data: [{}]", containsETdata);
                 return containsETdata;
             }
         }
