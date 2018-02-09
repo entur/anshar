@@ -26,14 +26,14 @@ public class RealtimeDataFileUploader extends BaseRouteBuilder {
     @Value("${anshar.export.snapshot.tmpFolder:/tmp/anshar/export}")
     private String tmpFolder;
 
-    @Value("${anshar.export.snapshot.interval.minutes:-1}")
-    private int snapshotInterval;
+    @Value("${anshar.export.snapshot.cron.expression}")
+    private String snapshotCronExpression;
 
     @Autowired
     private ExportHelper exportHelper;
-    private final static String TMP_FOLDER = "AnsharTmpFolder";
+    final static String TMP_FOLDER = "AnsharTmpFolder";
     final static String ZIP_FILE_PATH = "AnsharZipFilePATH";
-    private final static String ZIP_FILE = "AnsharZipFile";
+    final static String ZIP_FILE = "AnsharZipFile";
 
     protected RealtimeDataFileUploader(@Autowired AnsharConfiguration config, @Autowired SubscriptionManager subscriptionManager) {
         super(config, subscriptionManager);
@@ -42,7 +42,7 @@ public class RealtimeDataFileUploader extends BaseRouteBuilder {
     @Override
     public void configure() throws Exception {
 
-        if (snapshotInterval <= 0) {
+        if (snapshotCronExpression == null || snapshotCronExpression.isEmpty()) {
             log.info("Uploading snapshot disabled");
             return;
         }
@@ -51,8 +51,8 @@ public class RealtimeDataFileUploader extends BaseRouteBuilder {
             tmpFolder = tmpFolder.substring(0, tmpFolder.length()-1);
         }
 
-        log.info("Uploading snapshot every {} minutes", snapshotInterval);
-        singletonFrom("quartz2://anshar.export.snapshot?fireNow=true&trigger.repeatInterval=" + (snapshotInterval * 60 * 1000)
+        log.info("Uploading snapshot - cron-expression [{}].", snapshotCronExpression);
+        singletonFrom("quartz2://anshar.export.snapshot?cron=" + snapshotCronExpression
                 ,"anshar.export.snapshot")
                 .choice()
                 .when(p -> isLeader())
