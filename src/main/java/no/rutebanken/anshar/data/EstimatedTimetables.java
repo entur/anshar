@@ -113,8 +113,11 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
 
     public Siri createServiceDelivery(String requestorId, String datasetId, int maxSize) {
 
+        int trackingPeriodMinutes = configuration.getTrackingPeriodMinutes();
+
         if (requestorId == null) {
             requestorId = UUID.randomUUID().toString();
+            trackingPeriodMinutes = configuration.getAdHocTrackingPeriodMinutes();
         }
 
         // Get all relevant ids
@@ -127,7 +130,7 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
                     .forEach(key -> idSet.add(key));
         }
 
-        lastUpdateRequested.set(requestorId, Instant.now(), configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
+        lastUpdateRequested.set(requestorId, Instant.now(), trackingPeriodMinutes, TimeUnit.MINUTES);
 
         //Filter by datasetId
         Set<String> collectedIds = idSet.stream()

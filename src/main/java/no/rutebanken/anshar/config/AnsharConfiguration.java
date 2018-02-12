@@ -52,6 +52,9 @@ public class AnsharConfiguration {
     @Value("${anshar.outbound.polling.tracking.period.minutes:30}")
     private int trackingPeriodMinutes;
 
+    @Value("${anshar.outbound.adhoc.tracking.period.minutes:3}")
+    private int adHocTrackingPeriodMinutes;
+
     public String getHazelcastManagementUrl() {
         return hazelcastManagementUrl;
     }
@@ -106,5 +109,9 @@ public class AnsharConfiguration {
 
     public int getTrackingPeriodMinutes() {
         return trackingPeriodMinutes;
+    }
+
+    public int getAdHocTrackingPeriodMinutes() {
+        return adHocTrackingPeriodMinutes;
     }
 }
