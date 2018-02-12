@@ -440,7 +440,8 @@ public class ServerSubscriptionManager extends CamelRouteManager {
         OutboundSubscriptionSetup outboundSubscriptionSetup = subscriptions.get(subscriptionId);
         if (outboundSubscriptionSetup != null) {
 
-            long gracePeriod = 3*outboundSubscriptionSetup.getHeartbeatInterval();
+            //Grace-period is set to minimum 5 minutes
+            long gracePeriod = Math.max(3*outboundSubscriptionSetup.getHeartbeatInterval(), 5*60*1000);
 
             Instant firstFail = failTrackerMap.getOrDefault(subscriptionId, Instant.now());
 
