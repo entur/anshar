@@ -5,8 +5,6 @@ import java.util.List;
 
 interface SiriRepository<T> {
 
-    int trackingPeriodMinutes = 5;
-
     Collection<T> getAll();
 
     int getSize();

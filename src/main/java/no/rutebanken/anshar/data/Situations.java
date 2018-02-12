@@ -1,6 +1,7 @@
 package no.rutebanken.anshar.data;
 
 import com.hazelcast.core.IMap;
+import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.metrics.MetricsService;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
@@ -46,6 +47,9 @@ public class Situations implements SiriRepository<PtSituationElement> {
     @Autowired
     private MetricsService metricsService;
 
+    @Autowired
+    private AnsharConfiguration configuration;
+
     /**
      * @return All situations
      */
@@ -71,7 +75,7 @@ public class Situations implements SiriRepository<PtSituationElement> {
             situations.keySet().forEach(key -> idSet.add(key));
         }
 
-        lastUpdateRequested.set(requestorId, Instant.now(), trackingPeriodMinutes, TimeUnit.MINUTES);
+        lastUpdateRequested.set(requestorId, Instant.now(), configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
 
         //Filter by datasetId
         Set<String> collectedIds = idSet.stream()
@@ -129,7 +133,7 @@ public class Situations implements SiriRepository<PtSituationElement> {
         if (requestorId != null) {
 
             Set<String> idSet = changesMap.get(requestorId);
-            lastUpdateRequested.set(requestorId, Instant.now(), trackingPeriodMinutes, TimeUnit.MINUTES);
+            lastUpdateRequested.set(requestorId, Instant.now(), configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
             if (idSet != null) {
                 Set<String> datasetFilteredIdSet = new HashSet<>();
 

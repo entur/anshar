@@ -49,6 +49,9 @@ public class AnsharConfiguration {
     @Value("${anshar.default.max.elements.per.delivery:1500}")
     private int defaultMaxSize;
 
+    @Value("${anshar.outbound.polling.tracking.period.minutes:30}")
+    private int trackingPeriodMinutes;
+
     public String getHazelcastManagementUrl() {
         return hazelcastManagementUrl;
     }
@@ -99,5 +102,9 @@ public class AnsharConfiguration {
 
     public int getDefaultMaxSize() {
         return defaultMaxSize;
+    }
+
+    public int getTrackingPeriodMinutes() {
+        return trackingPeriodMinutes;
     }
 }

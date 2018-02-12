@@ -1,6 +1,7 @@
 package no.rutebanken.anshar.data;
 
 import com.hazelcast.core.IMap;
+import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.metrics.MetricsService;
 import no.rutebanken.anshar.routes.mqtt.SiriVmMqttHandler;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
@@ -48,6 +49,9 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
     @Autowired
     private MetricsService metricsService;
 
+    @Autowired
+    private AnsharConfiguration configuration;
+
     /**
      * @return All vehicle activities
      */
@@ -84,7 +88,7 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
         if (requestorId != null) {
 
             Set<String> idSet = changesMap.get(requestorId);
-            lastUpdateRequested.set(requestorId, Instant.now(), trackingPeriodMinutes, TimeUnit.MINUTES);
+            lastUpdateRequested.set(requestorId, Instant.now(), configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
             if (idSet != null) {
                 Set<String> datasetFilteredIdSet = new HashSet<>();
 
@@ -151,7 +155,7 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
             vehicleActivities.keySet().forEach(key -> idSet.add(key));
         }
 
-        lastUpdateRequested.set(requestorId, Instant.now(), trackingPeriodMinutes, TimeUnit.MINUTES);
+        lastUpdateRequested.set(requestorId, Instant.now(), configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
 
         //Filter by datasetId
         Set<String> collectedIds = idSet.stream()

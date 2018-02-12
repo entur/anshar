@@ -1,6 +1,7 @@
 package no.rutebanken.anshar.data;
 
 import com.hazelcast.core.IMap;
+import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.metrics.MetricsService;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.slf4j.Logger;
@@ -34,6 +35,9 @@ public class ProductionTimetables implements SiriRepository<ProductionTimetableD
     @Autowired
     private MetricsService metricsService;
 
+    @Autowired
+    private AnsharConfiguration configuration;
+
     /**
      * @return All PT-elements
      */
@@ -65,7 +69,7 @@ public class ProductionTimetables implements SiriRepository<ProductionTimetableD
         if (requestorId != null) {
 
             Set<String> idSet = changesMap.get(requestorId);
-            lastUpdateRequested.set(requestorId, Instant.now(), trackingPeriodMinutes, TimeUnit.MINUTES);
+            lastUpdateRequested.set(requestorId, Instant.now(), configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
             if (idSet != null) {
                 Set<String> datasetFilteredIdSet = new HashSet<>();
 
