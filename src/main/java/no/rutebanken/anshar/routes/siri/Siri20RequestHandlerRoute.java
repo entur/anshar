@@ -2,6 +2,7 @@ package no.rutebanken.anshar.routes.siri;
 
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.routes.CamelRouteNames;
+import no.rutebanken.anshar.routes.dataformat.SiriDataFormatHelper;
 import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
@@ -9,7 +10,6 @@ import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.builder.xml.Namespaces;
-import org.rutebanken.siri20.util.SiriXml;
 import org.rutebanken.validator.SiriValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +18,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 import uk.org.siri.siri20.Siri;
 
-import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
@@ -69,28 +68,26 @@ public class Siri20RequestHandlerRoute extends RouteBuilder {
                 .to("log:received:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .choice()
                     .when(header("CamelHttpPath").contains("/services")) //Handle synchronous response
-                    .process(p -> {
-                        p.getOut().setHeaders(p.getIn().getHeaders());
+                        .process(p -> {
+                            p.getOut().setHeaders(p.getIn().getHeaders());
 
-                        String path = (String) p.getIn().getHeader("CamelHttpPath");
-                        String datasetId = null;
+                            String path = (String) p.getIn().getHeader("CamelHttpPath");
+                            String datasetId = null;
 
-                        String pathPattern = "/services/";
-                        if (path.contains(pathPattern)) {
-                                        //e.g. "/anshar/services/akt" resolves "akt"
-                            datasetId = path.substring(path.indexOf(pathPattern) + pathPattern.length());
-                        }
-                        String query = p.getIn().getHeader("CamelHttpQuery", String.class);
+                            String pathPattern = "/services/";
+                            if (path.contains(pathPattern)) {
+                                            //e.g. "/anshar/services/akt" resolves "akt"
+                                datasetId = path.substring(path.indexOf(pathPattern) + pathPattern.length());
+                            }
+                            String query = p.getIn().getHeader("CamelHttpQuery", String.class);
 
-                        Siri response = handler.handleIncomingSiri(null, p.getIn().getBody(InputStream.class), datasetId, SiriHandler.getIdMappingPolicy(query));
-                        if (response != null) {
-                            logger.info("Found ServiceRequest-response, streaming response");
-                            HttpServletResponse out = p.getOut().getBody(HttpServletResponse.class);
-                            SiriXml.toXml(response, null, out.getOutputStream());
-                        } else {
-                            p.getOut().setBody(simple(null));
-                        }
-                    })
+                            Siri response = handler.handleIncomingSiri(null, p.getIn().getBody(InputStream.class), datasetId, SiriHandler.getIdMappingPolicy(query));
+                            if (response != null) {
+                                logger.info("Found ServiceRequest-response, streaming response");
+                                p.getOut().setBody(response);
+                            }
+                        })
+                        .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
                     .endChoice()
                     .when(header("CamelHttpPath").contains("/subscribe")) //Handle asynchronous response
                         .to("activemq:queue:" + CamelRouteNames.TRANSFORM_QUEUE + activeMQParameters)
