@@ -159,9 +159,7 @@ public class SubscriptionManager {
                 logger.info("Remote Service startTime ({}) is before lastActivity ({}) for subscription [{}]",serviceStartedTime, lastActivity, setup);
                 return touchSubscription(subscriptionId);
             } else {
-                logger.info("Remote service has been restarted, reestablishing subscription [{}]", setup);
-                //Setting 'last activity' to longer ago than healthcheck accepts
-                this.lastActivity.put(subscriptionId, Instant.now().minusSeconds((HEALTHCHECK_INTERVAL_FACTOR+1) * setup.getHeartbeatInterval().getSeconds()));
+                logger.info("Remote service has been restarted, allowing subscription to be restarted [{}]", setup);
             }
         }
         return false;

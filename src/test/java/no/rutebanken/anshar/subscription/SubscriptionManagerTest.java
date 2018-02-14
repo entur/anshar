@@ -103,10 +103,6 @@ public class SubscriptionManagerTest {
         assertTrue(touched);
         assertTrue(subscriptionManager.isSubscriptionHealthy(subscription.getSubscriptionId()));
 
-        serviceStartedTime = ZonedDateTime.now().plusMinutes(1);
-        touched = subscriptionManager.touchSubscription(subscription.getSubscriptionId(), serviceStartedTime);
-        assertFalse(touched);
-        assertFalse(subscriptionManager.isSubscriptionHealthy(subscription.getSubscriptionId()));
     }
 
     @Test
