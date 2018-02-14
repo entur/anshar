@@ -21,7 +21,7 @@ public class StopPlaceRegisterMapper extends ValueAdapter {
     private final List<String> prefixes;
     private final String datatype;
 
-    private final Set<String> unmappedAlreadyAdded;
+    private static final Set<String> unmappedAlreadyAdded = new HashSet<>();
 
     private final String datasetId;
     private final SubscriptionSetup.SubscriptionType type;
@@ -36,7 +36,6 @@ public class StopPlaceRegisterMapper extends ValueAdapter {
         this.datasetId = datasetId;
         this.prefixes = prefixes;
         this.datatype = datatype;
-        unmappedAlreadyAdded = new HashSet<>();
     }
 
 
