@@ -195,7 +195,6 @@ public class Siri20RequestHandlerRoute extends RouteBuilder {
 
 
         from("seda:" + CamelRouteNames.ROUTER_QUEUE)
-//                .to("file:" + configuration.getIncomingLogDirectory() + "?fileName=${header.CamelHttpPath}/${date:now:yyyyMMdd-hhmmss}")
                 .choice()
                 .when().xpath("/siri:Siri/siri:HeartbeatNotification", ns)
                     .to("activemq:queue:" + CamelRouteNames.HEARTBEAT_QUEUE + activeMQParameters)
@@ -226,7 +225,7 @@ public class Siri20RequestHandlerRoute extends RouteBuilder {
 
 
         from("activemq:queue:" + CamelRouteNames.DEFAULT_PROCESSOR_QUEUE + activeMqConsumerParameters)
-                .to("log:processor:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
+                .log("Processing request in default-queue [" + CamelRouteNames.DEFAULT_PROCESSOR_QUEUE + "].")
                 .process(p -> {
                     String path = p.getIn().getHeader("CamelHttpPath", String.class);
 
