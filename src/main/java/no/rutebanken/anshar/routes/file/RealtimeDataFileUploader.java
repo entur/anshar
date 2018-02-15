@@ -4,6 +4,7 @@ import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.routes.BaseRouteBuilder;
 import no.rutebanken.anshar.routes.dataformat.SiriDataFormatHelper;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
+import org.quartz.CronExpression;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
@@ -14,6 +15,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -51,7 +53,9 @@ public class RealtimeDataFileUploader extends BaseRouteBuilder {
             tmpFolder = tmpFolder.substring(0, tmpFolder.length()-1);
         }
 
-        log.info("Uploading snapshot - cron-expression [{}].", snapshotCronExpression);
+        log.info("Uploading snapshot with cron-expression [{}], first upload at: {}.", snapshotCronExpression,
+                new CronExpression(snapshotCronExpression).getNextValidTimeAfter(new Date()));
+
         singletonFrom("quartz2://anshar.export.snapshot?cron=" + snapshotCronExpression
                 ,"anshar.export.snapshot")
                 .choice()
