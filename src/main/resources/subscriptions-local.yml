@@ -3,6 +3,7 @@ anshar:
     -
       internalId: 1
       vendor: kolumbussx
+      name: Kolumbus - SX
       datasetId: KOL
       serviceType: SOAP
       subscriptionType: SITUATION_EXCHANGE
@@ -29,6 +30,7 @@ anshar:
     -
       internalId: 2
       vendor: kolumbusvm
+      name: Kolumbus - VM
       datasetId: KOL
       serviceType: REST
       subscriptionType: VEHICLE_MONITORING
@@ -53,6 +55,7 @@ anshar:
     -
       internalId: 3
       vendor: atbsx
+      name: AtB - SX
       datasetId: ATB
       serviceType: SOAP
       subscriptionType: SITUATION_EXCHANGE
@@ -79,6 +82,7 @@ anshar:
     -
       internalId: 4
       vendor: atbvm
+      name: AtB - VM
       datasetId: ATB
       serviceType: SOAP
       subscriptionType: VEHICLE_MONITORING
@@ -103,6 +107,7 @@ anshar:
     -
       internalId: 17
       vendor: baneEt-reqres-24h
+      name: BaneNOR - ET (Polling)
       datasetId: BNR
       serviceType: REST
       subscriptionType: ESTIMATED_TIMETABLE
@@ -128,6 +133,7 @@ anshar:
     -
       internalId: 1799
       vendor: baneEt
+      name: BaneNOR - ET (Subscription)
       datasetId: BNR
       serviceType: REST
       subscriptionType: ESTIMATED_TIMETABLE
@@ -155,6 +161,7 @@ anshar:
     -
       internalId: 171
       vendor: baneEt-reqres-1h
+      name: BaneNOR - ET (Polling - frequent)
       datasetId: BNR
       serviceType: REST
       subscriptionType: ESTIMATED_TIMETABLE
@@ -180,6 +187,7 @@ anshar:
     -
       internalId: 18
       vendor: baneSx-reqres-24h
+      name: BaneNOR - SX (Polling)
       datasetId: BNR
       serviceType: REST
       subscriptionType: SITUATION_EXCHANGE
@@ -204,6 +212,7 @@ anshar:
     -
       internalId: 181
       vendor: baneSx-reqres-1h
+      name: BaneNOR - SX (Polling - frequent)
       datasetId: BNR
       serviceType: REST
       subscriptionType: SITUATION_EXCHANGE
@@ -228,6 +237,7 @@ anshar:
     -
       internalId: 100
       vendor: internRuterVm
+      name: Entur - Ruter - VM
       datasetId: RUT
       serviceType: REST
       subscriptionType: VEHICLE_MONITORING
@@ -252,6 +262,7 @@ anshar:
     -
       internalId: 101
       vendor: internRuterEt
+      name: Entur - Ruter - ET
       datasetId: RUT
       serviceType: REST
       subscriptionType: ESTIMATED_TIMETABLE
@@ -277,6 +288,7 @@ anshar:
     -
       internalId: 102
       vendor: internRutersx
+      name: Entur - Ruter - SX
       datasetId: RUT
       serviceType: REST
       subscriptionType: SITUATION_EXCHANGE
@@ -302,6 +314,7 @@ anshar:
     -
       internalId: 999
       vendor: dummy
+      name: dummy - VM
       datasetId: RUT
       serviceType: REST
       subscriptionType: VEHICLE_MONITORING
@@ -328,6 +341,7 @@ anshar:
     -
       internalId: 9999
       vendor: dummy
+      name: dummy - ET
       datasetId: RUT
       serviceType: REST
       subscriptionType: ESTIMATED_TIMETABLE
@@ -354,6 +368,7 @@ anshar:
     -
       internalId: 99999
       vendor: dummy
+      name: dummy - SX
       datasetId: RUT
       serviceType: REST
       subscriptionType: SITUATION_EXCHANGE
@@ -380,11 +395,12 @@ anshar:
     -
       internalId: 24
       vendor: enturet
+      name: Entur - ET
       datasetId: ENT
       serviceType: REST
       subscriptionType: ESTIMATED_TIMETABLE
       subscriptionMode: REQUEST_RESPONSE
-      heartbeatIntervalSeconds: 20
+      heartbeatIntervalSeconds: 30
       previewIntervalSeconds: 10800
       changeBeforeUpdatesSeconds: 1
       operatorNamespace: http://wsdl.siri.org.uk
@@ -396,7 +412,7 @@ anshar:
       urlMap:
 #        SUBSCRIBE: localhost:8013/anshar/subscribe
 #        DELETE_SUBSCRIPTION: localhost:8013/anshar/subscribe
-        GET_ESTIMATED_TIMETABLE: https4://api.entur.org/anshar/1.0/anshar/services
+        GET_ESTIMATED_TIMETABLE: https4://api-test.entur.org/anshar/1.0/anshar/services
       version: 2.0
       contentType: application/soap+xml;charset=UTF-8
       subscriptionId: testing-${random.uuid}

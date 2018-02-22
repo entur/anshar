@@ -47,8 +47,8 @@
                 <td>${item.status}</td>
                 <td>${item.healthy?exists?then(item.healthy?c,"")}</td>
                 <td>${item.activated!""}</td>
-                <td>${item.vendor}</td>
-                <td>${item.lastDataReceived!""} ${item.flagAsNotReceivingData?then("<span class=\"glyphicon glyphicon-alert\"></span>","")}</td>
+                <td>${item.name}</td>
+                <td>${item.lastDataReceived!""} ${item.flagAsNotReceivingData?then("<span class=\"glyphicon glyphicon-alert text-warning\"></span>","")}</td>
                 <td align="right">${item.hitcount!0}</td>
                 <td align="right">${item.objectcount!0}</td>
             </tr>
@@ -56,6 +56,7 @@
             <td colspan="7">
                 <table class="table table-striped">
                     <tr><th>Dataset ID</th><td>${item.datasetId}</td></tr>
+                    <tr><th>Vendor ID</th><td>${item.vendor}</td></tr>
                     <tr><th>Servicetype</th><td>${item.serviceType}</td></tr>
                     <tr><th>Inbound URL</th><td>${item.inboundUrl}</td></tr>
                     <tr><th>Content-Type</th><td>${item.contentType}</td></tr>

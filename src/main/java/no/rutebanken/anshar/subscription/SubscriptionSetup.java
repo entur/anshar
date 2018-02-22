@@ -29,6 +29,7 @@ public class SubscriptionSetup implements Serializable {
     private String subscriptionId;
     private String version;
     private String vendor;
+    private String name;
     private String datasetId;
     private ServiceType serviceType;
     private Duration durationOfSubscription;
@@ -187,6 +188,7 @@ public class SubscriptionSetup implements Serializable {
         JSONObject obj = new JSONObject();
         obj.put("internalId", getInternalId());
         obj.put("vendor", getVendor());
+        obj.put("name", getName());
         obj.put("datasetId", getDatasetId());
         obj.put("subscriptionId", getSubscriptionId());
         obj.put("serviceType", getServiceType().toString());
@@ -407,6 +409,14 @@ public class SubscriptionSetup implements Serializable {
 
     public void setRequestorRef(String requestorRef) {
         this.requestorRef = requestorRef;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     /**

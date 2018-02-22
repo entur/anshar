@@ -3,6 +3,7 @@ anshar:
     -
       internalId: 1
       vendor: kolumbussx
+      name: Kolumbus - SX
       datasetId: KOL
       serviceType: SOAP
       subscriptionType: SITUATION_EXCHANGE
@@ -29,6 +30,7 @@ anshar:
     -
       internalId: 2
       vendor: kolumbusvm
+      name: Kolumbus - VM
       datasetId: KOL
       serviceType: SOAP
       subscriptionType: VEHICLE_MONITORING
@@ -53,6 +55,7 @@ anshar:
     -
       internalId: 3
       vendor: atbsx
+      name: AtB - SX
       datasetId: ATB
       serviceType: SOAP
       subscriptionType: SITUATION_EXCHANGE
@@ -79,6 +82,7 @@ anshar:
     -
       internalId: 4
       vendor: atbvm
+      name: AtB - VM
       datasetId: ATB
       serviceType: SOAP
       subscriptionType: VEHICLE_MONITORING
@@ -103,6 +107,7 @@ anshar:
     -
       internalId: 5
       vendor: aktsx
+      name: AKT - SX
       datasetId: AKT
       serviceType: REST
       subscriptionType: SITUATION_EXCHANGE
@@ -128,6 +133,7 @@ anshar:
     -
       internalId: 6
       vendor: aktet
+      name: AKT - ET
       datasetId: AKT
       serviceType: REST
       subscriptionType: ESTIMATED_TIMETABLE
@@ -154,6 +160,7 @@ anshar:
     -
       internalId: 12
       vendor: skysset
+      name: Skyss - ET
       datasetId: SKY
       serviceType: REST
       subscriptionType: ESTIMATED_TIMETABLE
@@ -180,6 +187,7 @@ anshar:
     -
       internalId: 13
       vendor: skysssx
+      name: Skyss - SX
       datasetId: SKY
       serviceType: REST
       subscriptionType: SITUATION_EXCHANGE
@@ -205,6 +213,7 @@ anshar:
     -
       internalId: 14
       vendor: brakaret
+      name: Brakar - ET
       datasetId: BRA
       serviceType: REST
       subscriptionType: ESTIMATED_TIMETABLE
@@ -231,6 +240,7 @@ anshar:
     -
       internalId: 15
       vendor: brakarsx
+      name: Brakar - SX
       datasetId: BRA
       serviceType: REST
       subscriptionType: SITUATION_EXCHANGE
@@ -257,6 +267,7 @@ anshar:
     -
       internalId: 16
       vendor: bybanenEt
+      name: Bybanen - ET
       datasetId: SKY
       serviceType: REST
       subscriptionType: ESTIMATED_TIMETABLE
@@ -284,6 +295,7 @@ anshar:
     -
       internalId: 17
       vendor: baneEt-reqres-24h
+      name: BaneNOR - ET (Polling)
       datasetId: BNR
       serviceType: REST
       subscriptionType: ESTIMATED_TIMETABLE
@@ -309,6 +321,7 @@ anshar:
     -
       internalId: 171
       vendor: baneEt-reqres-1h
+      name: BaneNOR - ET (Polling - frequent)
       datasetId: BNR
       serviceType: REST
       subscriptionType: ESTIMATED_TIMETABLE
@@ -334,6 +347,7 @@ anshar:
     -
       internalId: 18
       vendor: baneSx-reqres-24h
+      name: BaneNOR - SX (Polling)
       datasetId: BNR
       serviceType: REST
       subscriptionType: SITUATION_EXCHANGE
@@ -358,6 +372,7 @@ anshar:
     -
       internalId: 181
       vendor: baneSx-reqres-1h
+      name: BaneNOR - SX (Polling - frequent)
       datasetId: BNR
       serviceType: REST
       subscriptionType: SITUATION_EXCHANGE
@@ -382,6 +397,7 @@ anshar:
     -
       internalId: 19
       vendor: baneEt
+      name: BaneNOR - ET
       datasetId: BNR
       serviceType: REST
       subscriptionType: ESTIMATED_TIMETABLE
@@ -409,6 +425,7 @@ anshar:
     -
       internalId: 20
       vendor: baneSx
+      name: BaneNOR - SX
       datasetId: BNR
       serviceType: REST
       subscriptionType: SITUATION_EXCHANGE
@@ -435,6 +452,7 @@ anshar:
     -
       internalId: 21
       vendor: nsbSx
+      name: NSB - SX (test)
       datasetId: NSB
       serviceType: REST
       subscriptionType: SITUATION_EXCHANGE
@@ -460,6 +478,7 @@ anshar:
     -
       internalId: 212
       vendor: nsbSx-prod
+      name: NSB - SX (production)
       datasetId: NSB
       serviceType: REST
       subscriptionType: SITUATION_EXCHANGE
@@ -485,6 +504,7 @@ anshar:
     -
       internalId: 22
       vendor: tromset
+      name: Troms - ET
       datasetId: TRO
       serviceType: REST
       subscriptionType: ESTIMATED_TIMETABLE
@@ -511,6 +531,7 @@ anshar:
     -
       internalId: 23
       vendor: tromssx
+      name: Troms - SX
       datasetId: TRO
       serviceType: REST
       subscriptionType: SITUATION_EXCHANGE
@@ -536,6 +557,7 @@ anshar:
     -
       internalId: 24
       vendor: mret
+      name: Møre og Romsdal - ET
       datasetId: MOR
       serviceType: SOAP
       subscriptionType: ESTIMATED_TIMETABLE
@@ -565,6 +587,7 @@ anshar:
     -
       internalId: 25
       vendor: mrvm
+      name: Møre og Romsdal - VM
       datasetId: MOR
       serviceType: SOAP
       subscriptionType: VEHICLE_MONITORING
@@ -593,6 +616,7 @@ anshar:
     -
       internalId: 26
       vendor: mrsx
+      name: Møre og Romsdal - SX
       datasetId: MOR
       serviceType: SOAP
       subscriptionType: SITUATION_EXCHANGE
@@ -621,6 +645,7 @@ anshar:
     -
       internalId: 27
       vendor: ostEt
+      name: Østfold - ET
       datasetId: OST
       serviceType: SOAP
       subscriptionType: ESTIMATED_TIMETABLE
@@ -648,6 +673,7 @@ anshar:
     -
       internalId: 28
       vendor: ostVm
+      name: Østfold - VM
       datasetId: OST
       serviceType: SOAP
       subscriptionType: VEHICLE_MONITORING
@@ -675,6 +701,7 @@ anshar:
     -
       internalId: 29
       vendor: ostSx
+      name: Østfold - SX
       datasetId: OST
       serviceType: SOAP
       subscriptionType: SITUATION_EXCHANGE
@@ -701,6 +728,7 @@ anshar:
     -
       internalId: 30
       vendor: hedOppEt
+      name: Hedmark/Oppland - ET
       datasetId: HED
       serviceType: SOAP
       subscriptionType: ESTIMATED_TIMETABLE
@@ -728,6 +756,7 @@ anshar:
     -
       internalId: 100
       vendor: internRuterVm
+      name: Entur - Ruter - VM
       datasetId: RUT
       serviceType: REST
       subscriptionType: VEHICLE_MONITORING
@@ -753,6 +782,7 @@ anshar:
     -
       internalId: 101
       vendor: internRuterEt
+      name: Entur - Ruter - ET
       datasetId: RUT
       serviceType: REST
       subscriptionType: ESTIMATED_TIMETABLE
@@ -779,6 +809,7 @@ anshar:
     -
       internalId: 102
       vendor: internRutersx
+      name: Entur - Ruter - SX
       datasetId: RUT
       serviceType: REST
       subscriptionType: SITUATION_EXCHANGE
@@ -805,6 +836,7 @@ anshar:
     -
       internalId: 990
       vendor: internProdVm
+      name: Entur - VM
       datasetId: ENT
       serviceType: REST
       subscriptionType: VEHICLE_MONITORING
@@ -830,6 +862,7 @@ anshar:
     -
       internalId: 991
       vendor: internProdEt
+      name: Entur - ET
       datasetId: ENT
       serviceType: REST
       subscriptionType: ESTIMATED_TIMETABLE
@@ -856,6 +889,7 @@ anshar:
     -
       internalId: 992
       vendor: internProdSx
+      name: Entur - SX
       datasetId: ENT
       serviceType: REST
       subscriptionType: SITUATION_EXCHANGE

@@ -3,6 +3,7 @@ anshar:
     -
       internalId: 999
       vendor: dummy
+      name: dummy
       datasetId: BRA
       serviceType: REST
       subscriptionType: ESTIMATED_TIMETABLE
@@ -29,6 +30,7 @@ anshar:
     -
       internalId: 100
       vendor: internVm
+      name: Entur - VM
       datasetId: ENT
       serviceType: REST
       subscriptionType: VEHICLE_MONITORING
@@ -54,6 +56,7 @@ anshar:
     -
       internalId: 101
       vendor: internEt
+      name: Entur - ET
       datasetId: ENT
       serviceType: REST
       subscriptionType: ESTIMATED_TIMETABLE
@@ -80,6 +83,7 @@ anshar:
     -
       internalId: 102
       vendor: internSx
+      name: Entur - SX
       datasetId: ENT
       serviceType: REST
       subscriptionType: SITUATION_EXCHANGE
