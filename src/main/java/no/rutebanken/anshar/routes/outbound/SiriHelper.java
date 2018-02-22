@@ -218,16 +218,24 @@ public class SiriHelper {
 
     public static Siri filterSiriPayload(Siri siri, Map<Class, Set<String>> filter) {
         if (filter == null || filter.isEmpty()) {
-            logger.info("No filter to apply");
+            logger.debug("No filter to apply");
             return siri;
         }
 
         if (siri.getServiceDelivery() != null) {
-            if (containsValues(siri.getServiceDelivery().getVehicleMonitoringDeliveries()) |
-                    containsValues(siri.getServiceDelivery().getEstimatedTimetableDeliveries())) {
-                return applySingleMatchFilter(siri, filter);
-            } else if (containsValues(siri.getServiceDelivery().getSituationExchangeDeliveries())) {
-                return applyMultipleMatchFilter(siri, filter);
+
+            Siri filtered;
+            try {
+                filtered = SiriObjectFactory.deepCopy(siri);
+            } catch (Exception e) {
+                return siri;
+            }
+
+            if (containsValues(filtered.getServiceDelivery().getVehicleMonitoringDeliveries()) |
+                    containsValues(filtered.getServiceDelivery().getEstimatedTimetableDeliveries())) {
+                return applySingleMatchFilter(filtered, filter);
+            } else if (containsValues(filtered.getServiceDelivery().getSituationExchangeDeliveries())) {
+                return applyMultipleMatchFilter(filtered, filter);
             }
         }
 
@@ -239,17 +247,11 @@ public class SiriHelper {
      */
     private static Siri applySingleMatchFilter(Siri siri, Map<Class, Set<String>> filter) {
 
-        Siri filtered;
-        try {
-            filtered = SiriObjectFactory.deepCopy(siri);
-        } catch (Exception e) {
-            return siri;
-        }
 
-        filterLineRef(filtered, filter.get(LineRef.class));
-        filterVehicleRef(filtered, filter.get(VehicleRef.class));
+        filterLineRef(siri, filter.get(LineRef.class));
+        filterVehicleRef(siri, filter.get(VehicleRef.class));
 
-        return filtered;
+        return siri;
     }
 
     private static void filterLineRef(Siri siri, Set<String> linerefValues) {

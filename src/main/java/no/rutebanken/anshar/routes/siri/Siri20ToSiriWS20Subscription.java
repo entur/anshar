@@ -142,7 +142,6 @@ public class Siri20ToSiriWS20Subscription extends SiriSubscriptionRouteBuilder {
                 .to("log:received:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .process(p -> {
                     InputStream body = p.getIn().getBody(InputStream.class);
-                    logger.info("Response body [{}]", body);
                     if (body != null && body.available() > 0) {
                         handler.handleIncomingSiri(subscriptionSetup.getSubscriptionId(), body);
                     }

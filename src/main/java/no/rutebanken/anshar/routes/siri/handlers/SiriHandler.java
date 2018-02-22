@@ -113,7 +113,7 @@ public class SiriHandler {
             logger.info("Handling checkStatusRequest...");
             return serverSubscriptionManager.handleCheckStatusRequest(incoming.getCheckStatusRequest());
         } else if (incoming.getServiceRequest() != null) {
-            logger.info("Handling serviceRequest with ID-policy {}.", outboundIdMappingPolicy);
+            logger.debug("Handling serviceRequest with ID-policy {}.", outboundIdMappingPolicy);
             ServiceRequest serviceRequest = incoming.getServiceRequest();
             String requestorRef = null;
 
