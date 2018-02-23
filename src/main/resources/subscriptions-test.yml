@@ -471,7 +471,7 @@ anshar:
       subscriptionId: a21dadcb-78d9-4d70-8f4f-dbf91662ea4f
       requestorRef: ENTUR-test
       durationOfSubscriptionHours: 168
-      mappingAdapterId: nsbsx
+      mappingAdapterId: nsbsx-all
       filterPresets:
       idMappingPrefixes: NSB
       active: true
