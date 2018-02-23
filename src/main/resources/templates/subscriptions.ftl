@@ -25,7 +25,7 @@
             </tr>
         </thead>
         <tbody>
-            <#list body as item>
+            <#list body?sort_by("subscriptionRef") as item>
                 <tr>
                     <td>${item.subscriptionRef}</td>
                     <td>${item.address}</td>
