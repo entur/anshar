@@ -124,7 +124,7 @@ public class SiriHandler {
             }
 
             if (hasValues(serviceRequest.getSituationExchangeRequests())) {
-                serviceResponse = siriObjectFactory.createSXServiceDelivery(situations.getAllUpdates(requestorRef, datasetId));
+                serviceResponse = situations.createServiceDelivery(requestorRef, datasetId);
             } else if (hasValues(serviceRequest.getVehicleMonitoringRequests())) {
 
                 Map<Class, Set<String>> filterMap = new HashMap<>();
@@ -147,7 +147,7 @@ public class SiriHandler {
                     requestorRef = null;
                 }
 
-                Siri siri = siriObjectFactory.createVMServiceDelivery(vehicleActivities.getAllUpdates(requestorRef, datasetId));
+                Siri siri = vehicleActivities.createServiceDelivery(requestorRef, datasetId);
                 serviceResponse = SiriHelper.filterSiriPayload(siri, filterMap);
             } else if (hasValues(serviceRequest.getEstimatedTimetableRequests())) {
 
