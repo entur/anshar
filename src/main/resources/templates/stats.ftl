@@ -32,6 +32,7 @@
     <table class="table">
         <thead>
             <tr>
+                <th>#</th>
                 <th>Status</th>
                 <th>Healthy</th>
                 <th>Activated</th>
@@ -44,6 +45,7 @@
         <tbody>
         <#list body.subscriptions?sort_by("vendor") as item>
             <tr data-toggle="collapse" data-target="#accordion${item?counter}" style="cursor: pointer" class="clickable ${item.healthy?exists?then(item.healthy?then("success","danger"), "warning")}">
+                <th>${item?counter}</th>
                 <td>${item.status}</td>
                 <td>${item.healthy?exists?then(item.healthy?c,"")}</td>
                 <td>${item.activated!""}</td>
@@ -53,7 +55,7 @@
                 <td align="right">${item.objectcount!0}</td>
             </tr>
             <tr id="accordion${item?counter}" class="collapse ${item.healthy?exists?then(item.healthy?then("success","danger"), "warning")}">
-            <td colspan="7">
+            <td colspan="8">
                 <table class="table table-striped">
                     <tr><th>Dataset ID</th><td>${item.datasetId}</td></tr>
                     <tr><th>Vendor ID</th><td>${item.vendor}</td></tr>

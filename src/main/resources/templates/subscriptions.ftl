@@ -16,6 +16,7 @@
     <table class="table table-striped">
         <thead>
             <tr>
+                <th>#</th>
                 <th>SubscriptionRef</th>
                 <th>Address</th>
                 <th>Type</th>
@@ -27,6 +28,7 @@
         <tbody>
             <#list body?sort_by("subscriptionRef") as item>
                 <tr>
+                    <th>${item?counter}</th>
                     <td>${item.subscriptionRef}</td>
                     <td>${item.address}</td>
                     <td>${item.subscriptionType}</td>
