@@ -55,6 +55,9 @@ public class AnsharConfiguration {
     @Value("${anshar.outbound.adhoc.tracking.period.minutes:3}")
     private int adHocTrackingPeriodMinutes;
 
+    @Value("${anshar.siri.default.producerRef:ENT}")
+    private String producerRef;
+
     public String getHazelcastManagementUrl() {
         return hazelcastManagementUrl;
     }
@@ -113,5 +116,9 @@ public class AnsharConfiguration {
 
     public int getAdHocTrackingPeriodMinutes() {
         return adHocTrackingPeriodMinutes;
+    }
+
+    public String getProducerRef() {
+        return producerRef;
     }
 }

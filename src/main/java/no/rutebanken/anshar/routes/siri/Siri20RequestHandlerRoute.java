@@ -18,8 +18,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 import uk.org.siri.siri20.Siri;
 
-import java.io.File;
-import java.io.FileOutputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.net.ConnectException;
@@ -169,24 +168,19 @@ public class Siri20RequestHandlerRoute extends RouteBuilder {
                     logger.info("XMLValidation - start");
                     SiriValidator.Version siriVersion = SiriValidator.Version.VERSION_2_0;
 
-                    File targetFile = new File(p.getIn().getHeader("CamelFileNameProduced") + "_report");
-
-                    File parent = targetFile.getParentFile();
-                    if (!parent.exists() && !parent.mkdirs()) {
-                        throw new IllegalStateException("Couldn't create dir: " + parent);
-                    }
-
-                    FileOutputStream fos = new FileOutputStream(targetFile);
-                    PrintStream ps = new PrintStream(fos);
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                    PrintStream ps = new PrintStream(baos, true, "utf-8");
 
                     ps.println(p.getIn().getHeader("CamelHttpPath", String.class));
                     ps.println("Validating XML as " + siriVersion);
 
                     String xml = p.getIn().getBody(String.class);
-                    SiriValidator.validate(xml, siriVersion, ps);
+                    boolean valid = SiriValidator.validate(xml, siriVersion, ps);
 
-                    fos.close();
                     logger.info("XMLValidation - done");
+                    if (!valid) {
+                        logger.warn("Invalid XML: {}", new String(baos.toByteArray()));
+                    }
 
                 })
                 .routeId("validate.process")

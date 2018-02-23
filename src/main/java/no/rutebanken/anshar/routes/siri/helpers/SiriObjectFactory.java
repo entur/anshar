@@ -7,6 +7,7 @@ import com.esotericsoftware.kryo.io.Output;
 import com.esotericsoftware.kryo.pool.KryoFactory;
 import com.esotericsoftware.kryo.pool.KryoPool;
 import com.sun.org.apache.xerces.internal.dom.ElementNSImpl;
+import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.commons.lang3.NotImplementedException;
 import org.objenesis.strategy.StdInstantiatorStrategy;
@@ -68,7 +69,8 @@ public class SiriObjectFactory {
 
     }
 
-
+    @Autowired
+    private AnsharConfiguration configuration;
 
     public Instant serverStartTime;
 
@@ -448,51 +450,57 @@ public class SiriObjectFactory {
 
     public Siri createSXServiceDelivery(Collection<PtSituationElement> elements) {
         Siri siri = createSiriObject();
-        ServiceDelivery delivery = new ServiceDelivery();
+        ServiceDelivery delivery = createServiceDelivery();
         SituationExchangeDeliveryStructure deliveryStructure = new SituationExchangeDeliveryStructure();
         SituationExchangeDeliveryStructure.Situations situations = new SituationExchangeDeliveryStructure.Situations();
         situations.getPtSituationElements().addAll(elements);
         deliveryStructure.setSituations(situations);
         deliveryStructure.setResponseTimestamp(ZonedDateTime.now());
         delivery.getSituationExchangeDeliveries().add(deliveryStructure);
-        delivery.setResponseTimestamp(ZonedDateTime.now());
         siri.setServiceDelivery(delivery);
         return siri;
     }
 
     public Siri createVMServiceDelivery(Collection<VehicleActivityStructure> elements) {
         Siri siri = createSiriObject();
-        ServiceDelivery delivery = new ServiceDelivery();
+        ServiceDelivery delivery = createServiceDelivery();
         VehicleMonitoringDeliveryStructure deliveryStructure = new VehicleMonitoringDeliveryStructure();
         deliveryStructure.setVersion(SIRI_VERSION);
         deliveryStructure.getVehicleActivities().addAll(elements);
         deliveryStructure.setResponseTimestamp(ZonedDateTime.now());
         delivery.getVehicleMonitoringDeliveries().add(deliveryStructure);
-        delivery.setResponseTimestamp(ZonedDateTime.now());
         siri.setServiceDelivery(delivery);
         return siri;
     }
 
     public Siri createETServiceDelivery(Collection<EstimatedVehicleJourney> elements) {
         Siri siri = createSiriObject();
-        ServiceDelivery delivery = new ServiceDelivery();
+        ServiceDelivery delivery = createServiceDelivery();
         EstimatedTimetableDeliveryStructure deliveryStructure = new EstimatedTimetableDeliveryStructure();
         deliveryStructure.setVersion(SIRI_VERSION);
         EstimatedVersionFrameStructure estimatedVersionFrameStructure = new EstimatedVersionFrameStructure();
         estimatedVersionFrameStructure.setRecordedAtTime(ZonedDateTime.now());
         estimatedVersionFrameStructure.getEstimatedVehicleJourneies().addAll(elements);
         deliveryStructure.getEstimatedJourneyVersionFrames().add(estimatedVersionFrameStructure);
-        delivery.setResponseTimestamp(ZonedDateTime.now());
+
         delivery.getEstimatedTimetableDeliveries().add(deliveryStructure);
         siri.setServiceDelivery(delivery);
         return siri;
     }
 
+    private ServiceDelivery createServiceDelivery() {
+        ServiceDelivery delivery = new ServiceDelivery();
+        delivery.setResponseTimestamp(ZonedDateTime.now());
+        if (configuration != null && configuration.getProducerRef() != null) {
+            delivery.setProducerRef(createRequestorRef(configuration.getProducerRef()));
+        }
+        return delivery;
+    }
+
     public Siri createPTServiceDelivery(Collection<ProductionTimetableDeliveryStructure> elements) {
         Siri siri = createSiriObject();
-        ServiceDelivery delivery = new ServiceDelivery();
+        ServiceDelivery delivery = createServiceDelivery();
         delivery.getProductionTimetableDeliveries().addAll(elements);
-        delivery.setResponseTimestamp(ZonedDateTime.now());
         siri.setServiceDelivery(delivery);
         return siri;
     }
