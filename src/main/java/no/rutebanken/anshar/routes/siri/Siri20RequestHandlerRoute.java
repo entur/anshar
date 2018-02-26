@@ -78,9 +78,13 @@ public class Siri20RequestHandlerRoute extends RouteBuilder {
                                             //e.g. "/anshar/services/akt" resolves "akt"
                                 datasetId = path.substring(path.indexOf(pathPattern) + pathPattern.length());
                             }
-                            String query = p.getIn().getHeader("CamelHttpQuery", String.class);
 
-                            Siri response = handler.handleIncomingSiri(null, p.getIn().getBody(InputStream.class), datasetId, SiriHandler.getIdMappingPolicy(query));
+                            int maxSize = -1;
+                            if (p.getIn().getHeaders().containsKey("maxSize")) {
+                                maxSize = Integer.parseInt((String) p.getIn().getHeader("maxSize"));
+                            }
+
+                            Siri response = handler.handleIncomingSiri(null, p.getIn().getBody(InputStream.class), datasetId, SiriHandler.getIdMappingPolicy((String) p.getIn().getHeader("useOriginalId")), maxSize);
                             if (response != null) {
                                 logger.info("Found ServiceRequest-response, streaming response");
                                 p.getOut().setBody(response);
@@ -235,7 +239,7 @@ public class Siri20RequestHandlerRoute extends RouteBuilder {
                     String query = p.getIn().getHeader("CamelHttpQuery", String.class);
 
                     InputStream xml = p.getIn().getBody(InputStream.class);
-                    handler.handleIncomingSiri(subscriptionId, xml, datasetId, SiriHandler.getIdMappingPolicy(query));
+                    handler.handleIncomingSiri(subscriptionId, xml, datasetId, SiriHandler.getIdMappingPolicy(query), -1);
 
                 })
                 .routeId("incoming.processor.default")

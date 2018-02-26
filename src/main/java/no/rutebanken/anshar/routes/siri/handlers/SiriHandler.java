@@ -1,5 +1,6 @@
 package no.rutebanken.anshar.routes.siri.handlers;
 
+import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.data.EstimatedTimetables;
 import no.rutebanken.anshar.data.ProductionTimetables;
 import no.rutebanken.anshar.data.Situations;
@@ -51,6 +52,8 @@ public class SiriHandler {
     @Autowired
     private SiriObjectFactory siriObjectFactory;
 
+    @Autowired
+    private AnsharConfiguration configuration;
 
     @Autowired
     private HealthManager healthManager;
@@ -63,11 +66,11 @@ public class SiriHandler {
     }
 
     public Siri handleIncomingSiri(String subscriptionId, InputStream xml) {
-        return handleIncomingSiri(subscriptionId, xml, null);
+        return handleIncomingSiri(subscriptionId, xml, null, -1);
     }
 
-    private Siri handleIncomingSiri(String subscriptionId, InputStream xml, String datasetId) {
-        return handleIncomingSiri(subscriptionId, xml, datasetId, null);
+    private Siri handleIncomingSiri(String subscriptionId, InputStream xml, String datasetId, int maxSize) {
+        return handleIncomingSiri(subscriptionId, xml, datasetId, null, maxSize);
     }
 
     /**
@@ -78,14 +81,14 @@ public class SiriHandler {
      * @param outboundIdMappingPolicy Defines outbound idmapping-policy
      * @return
      */
-    public Siri handleIncomingSiri(String subscriptionId, InputStream xml, String datasetId, OutboundIdMappingPolicy outboundIdMappingPolicy) {
+    public Siri handleIncomingSiri(String subscriptionId, InputStream xml, String datasetId, OutboundIdMappingPolicy outboundIdMappingPolicy, int maxSize) {
         try {
             if (subscriptionId != null) {
                 return processSiriClientRequest(subscriptionId, xml);
             } else {
                 Siri incoming = SiriValueTransformer.parseXml(xml);
 
-                return processSiriServerRequest(incoming, datasetId, outboundIdMappingPolicy);
+                return processSiriServerRequest(incoming, datasetId, outboundIdMappingPolicy, maxSize);
             }
         } catch (JAXBException | XMLStreamException e) {
             logger.warn("Caught exception when parsing incoming XML", e);
@@ -99,7 +102,15 @@ public class SiriHandler {
      * @param incoming
      * @throws JAXBException
      */
-    private Siri processSiriServerRequest(Siri incoming, String datasetId, OutboundIdMappingPolicy outboundIdMappingPolicy) {
+    private Siri processSiriServerRequest(Siri incoming, String datasetId, OutboundIdMappingPolicy outboundIdMappingPolicy, int maxSize) {
+
+        if (maxSize < 0) {
+            maxSize = configuration.getDefaultMaxSize();
+
+            if (datasetId != null) {
+                maxSize = Integer.MAX_VALUE;
+            }
+        }
 
         if (incoming.getSubscriptionRequest() != null) {
             logger.info("Handling subscriptionrequest with ID-policy {}.", outboundIdMappingPolicy);
@@ -124,7 +135,7 @@ public class SiriHandler {
             }
 
             if (hasValues(serviceRequest.getSituationExchangeRequests())) {
-                serviceResponse = situations.createServiceDelivery(requestorRef, datasetId);
+                serviceResponse = situations.createServiceDelivery(requestorRef, datasetId, maxSize);
             } else if (hasValues(serviceRequest.getVehicleMonitoringRequests())) {
 
                 Map<Class, Set<String>> filterMap = new HashMap<>();
@@ -147,11 +158,11 @@ public class SiriHandler {
                     requestorRef = null;
                 }
 
-                Siri siri = vehicleActivities.createServiceDelivery(requestorRef, datasetId);
+                Siri siri = vehicleActivities.createServiceDelivery(requestorRef, datasetId, maxSize);
                 serviceResponse = SiriHelper.filterSiriPayload(siri, filterMap);
             } else if (hasValues(serviceRequest.getEstimatedTimetableRequests())) {
 
-                serviceResponse = estimatedTimetables.createServiceDelivery(requestorRef, datasetId);
+                serviceResponse = estimatedTimetables.createServiceDelivery(requestorRef, datasetId, maxSize);
             } else if (hasValues(serviceRequest.getProductionTimetableRequests())) {
                 serviceResponse = siriObjectFactory.createPTServiceDelivery(productionTimetables.getAllUpdates(requestorRef, datasetId));
             }
@@ -383,11 +394,10 @@ public class SiriHandler {
         return null;
     }
 
-    public static OutboundIdMappingPolicy getIdMappingPolicy(String query) {
+    public static OutboundIdMappingPolicy getIdMappingPolicy(String useOriginalId) {
         OutboundIdMappingPolicy outboundIdMappingPolicy = OutboundIdMappingPolicy.DEFAULT;
-        if (query != null) {
-            String useOriginalIdTrue = "useOriginalId=true";
-            if (query.toUpperCase().contains(useOriginalIdTrue.toUpperCase())) {
+        if (useOriginalId != null) {
+            if (Boolean.valueOf(useOriginalId)) {
                 outboundIdMappingPolicy = OutboundIdMappingPolicy.ORIGINAL_ID;
             }
         }

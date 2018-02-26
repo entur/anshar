@@ -103,14 +103,6 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
         return siriObjectFactory.createETServiceDelivery(matchingEstimatedVehicleJourneys);
     }
 
-    public Siri createServiceDelivery(String requestorId, String datasetId) {
-        int maxSize = configuration.getDefaultMaxSize();
-        if (datasetId != null) {
-            maxSize = Integer.MAX_VALUE;
-        }
-        return createServiceDelivery(requestorId, datasetId, maxSize);
-    }
-
     public Siri createServiceDelivery(String requestorId, String datasetId, int maxSize) {
 
         int trackingPeriodMinutes = configuration.getTrackingPeriodMinutes();
