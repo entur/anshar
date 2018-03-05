@@ -1,4 +1,4 @@
-package no.rutebanken.anshar.routes.file;
+package no.rutebanken.anshar.routes.export.file;
 
 import com.google.cloud.storage.Storage;
 import org.rutebanken.helper.gcp.BlobStoreHelper;
