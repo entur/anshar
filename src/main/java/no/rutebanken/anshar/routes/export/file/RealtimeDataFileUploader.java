@@ -1,4 +1,4 @@
-package no.rutebanken.anshar.routes.file;
+package no.rutebanken.anshar.routes.export.file;
 
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.routes.BaseRouteBuilder;
