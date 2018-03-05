@@ -414,7 +414,37 @@ anshar:
 #        DELETE_SUBSCRIPTION: localhost:8013/anshar/subscribe
         GET_ESTIMATED_TIMETABLE: https4://api-test.entur.org/anshar/1.0/anshar/services
       version: 2.0
-      contentType: application/soap+xml;charset=UTF-8
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: testing-${random.uuid}
+      requestorRef: testing-${random.uuid}
+      durationOfSubscriptionHours: 1
+      mappingAdapterId: entur
+      filterPresets:
+      idMappingPrefixes: ENT
+      active: false
+    -
+      internalId: 25
+      vendor: entursx
+      name: Entur - SX
+      datasetId: ENT
+      serviceType: REST
+      subscriptionType: SITUATION_EXCHANGE
+      subscriptionMode: REQUEST_RESPONSE
+      heartbeatIntervalSeconds: 30
+      previewIntervalSeconds: 10800
+      changeBeforeUpdatesSeconds: 1
+      operatorNamespace: http://wsdl.siri.org.uk
+      addressFieldName: Address
+      soapenvNamespace: http://www.w3.org/2003/05/soap-envelope
+      incrementalUpdates: true
+      overrideHttps: false
+      dataSupplyRequestForInitialDelivery: true
+      urlMap:
+#        SUBSCRIBE: localhost:8013/anshar/subscribe
+#        DELETE_SUBSCRIPTION: localhost:8013/anshar/subscribe
+        GET_SITUATION_EXCHANGE: https4://api-test.entur.org/anshar/1.0/anshar/services/NSB
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
       subscriptionId: testing-${random.uuid}
       requestorRef: testing-${random.uuid}
       durationOfSubscriptionHours: 1
