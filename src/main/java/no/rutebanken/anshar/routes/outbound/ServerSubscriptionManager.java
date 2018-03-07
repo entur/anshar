@@ -92,6 +92,8 @@ public class ServerSubscriptionManager extends CamelRouteManager {
     private OutboundSubscriptionSetup activeMQ_ET;
     private OutboundSubscriptionSetup activeMQ_PT;
 
+    private ScheduledExecutorService executor;
+
 
     @PostConstruct
     private void initializeActiveMqProducers() {
@@ -111,7 +113,7 @@ public class ServerSubscriptionManager extends CamelRouteManager {
 
     @PostConstruct
     private void startHeartbeatManager() {
-        ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+        executor = Executors.newSingleThreadScheduledExecutor();
 
         executor.scheduleAtFixedRate(() -> {
                     boolean acquiredLock = lockMap.tryLock(ANSHAR_HEARTBEAT_KEY);

@@ -91,6 +91,8 @@ public class CamelRouteManager implements CamelContextAware {
                     executeSiriPushRoute(siri, route.getId());
                 }
             } catch (Exception e) {
+                logger.info("Failed to push data to {} for subscription {}: {}", subscriptionRequest.getSubscriptionId(), consumerAddress, e);
+
                 if (e.getCause() instanceof SocketException) {
                     logger.info("Recipient is unreachable - ignoring");
                 } else {
