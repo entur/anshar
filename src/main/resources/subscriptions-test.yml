@@ -749,7 +749,7 @@ anshar:
       subscriptionId: c97b51a6-17a3-11e8-b642-0ed5f89f718b
       requestorRef: ENTUR_DEV_ET_d2bbc408-17a3-11e8-b642-0ed5f89f718b
       durationOfSubscriptionHours: 168
-      mappingAdapterId: entur
+      mappingAdapterId: ostfoldet
       filterPresets:
       idMappingPrefixes: HED,OPP
       active: false
