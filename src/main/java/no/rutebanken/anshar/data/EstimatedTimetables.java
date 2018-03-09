@@ -245,7 +245,7 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
         }
 
         if (expiryTimestamp != null) {
-            return ZonedDateTime.now().until(expiryTimestamp, ChronoUnit.MILLIS);
+            return ZonedDateTime.now().until(expiryTimestamp.plus(configuration.getEtGraceperiodMinutes(), ChronoUnit.MINUTES), ChronoUnit.MILLIS);
         } else {
             return -1;
         }

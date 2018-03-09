@@ -107,7 +107,7 @@ public class ProductionTimetables implements SiriRepository<ProductionTimetableD
 
         ZonedDateTime validUntil = s.getValidUntil();
         if (validUntil != null) {
-            return ZonedDateTime.now().until(validUntil, ChronoUnit.MILLIS);
+            return ZonedDateTime.now().until(validUntil.plus(configuration.getPtGraceperiodMinutes(), ChronoUnit.MINUTES), ChronoUnit.MILLIS);
         }
 
         return -1;

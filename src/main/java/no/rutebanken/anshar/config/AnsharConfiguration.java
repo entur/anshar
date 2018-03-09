@@ -15,7 +15,6 @@ public class AnsharConfiguration {
     @Value("${rutebanken.kubernetes.namespace:default}")
     private String namespace;
 
-
     @Value("${rutebanken.hazelcast.management.url:}")
     private String hazelcastManagementUrl;
 
@@ -57,6 +56,18 @@ public class AnsharConfiguration {
 
     @Value("${anshar.siri.default.producerRef:ENT}")
     private String producerRef;
+
+    @Value("${anshar.siri.sx.graceperiod.minutes:0}")
+    private long sxGraceperiodMinutes;
+
+    @Value("${anshar.siri.et.graceperiod.minutes:0}")
+    private long etGraceperiodMinutes;
+
+    @Value("${anshar.siri.vm.graceperiod.minutes:0}")
+    private long vmGraceperiodMinutes;
+
+    @Value("${anshar.siri.pt.graceperiod.minutes:0}")
+    private long ptGraceperiodMinutes;
 
     public String getHazelcastManagementUrl() {
         return hazelcastManagementUrl;
@@ -120,5 +131,21 @@ public class AnsharConfiguration {
 
     public String getProducerRef() {
         return producerRef;
+    }
+
+    public long getSxGraceperiodMinutes() {
+        return sxGraceperiodMinutes;
+    }
+
+    public long getEtGraceperiodMinutes() {
+        return etGraceperiodMinutes;
+    }
+
+    public long getVmGraceperiodMinutes() {
+        return vmGraceperiodMinutes;
+    }
+
+    public long getPtGraceperiodMinutes() {
+        return ptGraceperiodMinutes;
     }
 }

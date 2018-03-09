@@ -43,7 +43,6 @@ public class Situations implements SiriRepository<PtSituationElement> {
     @Autowired
     private SiriObjectFactory siriObjectFactory;
 
-
     @Autowired
     private MetricsService metricsService;
 
@@ -193,7 +192,7 @@ public class Situations implements SiriRepository<PtSituationElement> {
         }
 
         if (expiry != null) {
-            return ZonedDateTime.now().until(expiry, ChronoUnit.MILLIS);
+            return ZonedDateTime.now().until(expiry.plus(configuration.getSxGraceperiodMinutes(), ChronoUnit.MINUTES), ChronoUnit.MILLIS);
         } else {
             return -1;
         }

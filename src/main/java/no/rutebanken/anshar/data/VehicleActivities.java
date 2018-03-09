@@ -201,7 +201,7 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
 
         ZonedDateTime validUntil = a.getValidUntilTime();
         if (validUntil != null) {
-            return ZonedDateTime.now().until(validUntil, ChronoUnit.MILLIS);
+            return ZonedDateTime.now().until(validUntil.plus(configuration.getVmGraceperiodMinutes(), ChronoUnit.MINUTES), ChronoUnit.MILLIS);
         }
 
         return -1;
