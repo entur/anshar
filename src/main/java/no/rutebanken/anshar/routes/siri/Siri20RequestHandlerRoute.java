@@ -236,10 +236,8 @@ public class Siri20RequestHandlerRoute extends RouteBuilder {
                         datasetId = path.substring(path.indexOf(pathPattern) + pathPattern.length());
                     }
 
-                    String query = p.getIn().getHeader("CamelHttpQuery", String.class);
-
                     InputStream xml = p.getIn().getBody(InputStream.class);
-                    handler.handleIncomingSiri(subscriptionId, xml, datasetId, SiriHandler.getIdMappingPolicy(query), -1);
+                    handler.handleIncomingSiri(subscriptionId, xml, datasetId, SiriHandler.getIdMappingPolicy((String) p.getIn().getHeader("useOriginalId")), -1);
 
                 })
                 .routeId("incoming.processor.default")

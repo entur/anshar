@@ -87,7 +87,7 @@ public class SiriLiteRoute extends RouteBuilder {
 
                     Siri response = situations.createServiceDelivery(requestorId, datasetId, maxSize);
 
-                    List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(SiriHandler.getIdMappingPolicy(request.getQueryString()));
+                    List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(SiriHandler.getIdMappingPolicy(originalId));
                     if ("test".equals(originalId)) {
                         outboundAdapters = null;
                     }
@@ -140,7 +140,7 @@ public class SiriLiteRoute extends RouteBuilder {
                     }
 
 
-                    List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(SiriHandler.getIdMappingPolicy(request.getQueryString()));
+                    List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(SiriHandler.getIdMappingPolicy(originalId));
                     if ("test".equals(originalId)) {
                         outboundAdapters = null;
                     }
@@ -193,7 +193,7 @@ public class SiriLiteRoute extends RouteBuilder {
                         response = estimatedTimetables.createServiceDelivery(requestorId, datasetId, maxSize);
                     }
 
-                    List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(SiriHandler.getIdMappingPolicy(request.getQueryString()));
+                    List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(SiriHandler.getIdMappingPolicy(originalId));
                     if ("test".equals(originalId)) {
                         outboundAdapters = null;
                     }
@@ -230,7 +230,7 @@ public class SiriLiteRoute extends RouteBuilder {
 
                     Siri response = siriObjectFactory.createPTServiceDelivery(productionTimetables.getAllUpdates(requestorId, datasetId));
 
-                    List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(SiriHandler.getIdMappingPolicy(request.getQueryString()));
+                    List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(SiriHandler.getIdMappingPolicy(originalId));
                     if ("test".equals(originalId)) {
                         outboundAdapters = null;
                     }
