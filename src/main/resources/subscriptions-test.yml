@@ -774,8 +774,8 @@ anshar:
         CHECK_STATUS: 92.62.44.143:8000/SIRI
       version: 2.0
       contentType: text/xml;charset=UTF-8
-      subscriptionId: c97b51a6-17a3-11e8-b642-0ed5f89f718b
-      requestorRef: ENTUR_DEV_ET_d2bbc408-17a3-11e8-b642-0ed5f89f718b
+      subscriptionId: 98d87a06-6388-41b8-b689-9a61f88076b7
+      requestorRef: ENTUR_DEV_ET_98d87a06-6388-41b8-b689-9a61f88076b7
       durationOfSubscriptionHours: 168
       mappingAdapterId: ostfoldet
       filterPresets: OPP
