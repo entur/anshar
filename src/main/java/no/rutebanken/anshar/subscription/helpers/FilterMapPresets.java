@@ -20,10 +20,10 @@ public class FilterMapPresets {
                 filters.put(LineDirectionStructure.class, getSkyssLineDirectionFilters());
                 break;
             case HED:
-                filters.put(OperatorRefStructure.class, getOperatorFilter("40"));
+                filters.put(OperatorRefStructure.class, getOperatorFilter("40")); // 40 - Fara's internal OperatorRef for Hedmark
                 break;
             case OPP:
-                filters.put(OperatorRefStructure.class, getOperatorFilter("51"));
+                filters.put(OperatorRefStructure.class, getOperatorFilter("51")); // 51 - Fara's internal OperatorRef for Oppland
                 break;
         }
 
