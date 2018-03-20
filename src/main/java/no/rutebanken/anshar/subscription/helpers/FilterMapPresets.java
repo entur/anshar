@@ -3,6 +3,7 @@ package no.rutebanken.anshar.subscription.helpers;
 import uk.org.siri.siri20.DirectionRefStructure;
 import uk.org.siri.siri20.LineDirectionStructure;
 import uk.org.siri.siri20.LineRef;
+import uk.org.siri.siri20.OperatorRefStructure;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -18,9 +19,23 @@ public class FilterMapPresets {
             case BYBANEN:
                 filters.put(LineDirectionStructure.class, getSkyssLineDirectionFilters());
                 break;
+            case HED:
+                filters.put(OperatorRefStructure.class, getOperatorFilter("40"));
+                break;
+            case OPP:
+                filters.put(OperatorRefStructure.class, getOperatorFilter("51"));
+                break;
         }
 
         return filters;
+    }
+
+    private Set<Object> getOperatorFilter(String operator) {
+        OperatorRefStructure operatorRefStructure = new OperatorRefStructure();
+        operatorRefStructure.setValue(operator);
+        Set<Object> operators = new HashSet<>();
+        operators.add(operatorRefStructure);
+        return operators;
     }
 
     private Set<Object> getSkyssLineDirectionFilters() {

@@ -12,5 +12,7 @@ public enum SubscriptionPreset {
     TROMS,
     MOR,
     NSB,
-    NSR
+    NSR,
+    HED,
+    OPP
 }

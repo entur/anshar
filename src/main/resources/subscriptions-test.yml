@@ -727,8 +727,8 @@ anshar:
       active: false
     -
       internalId: 30
-      vendor: hedOppEt
-      name: Hedmark/Oppland - ET
+      vendor: hedEt
+      name: Hedmark - ET
       datasetId: HED
       serviceType: SOAP
       subscriptionType: ESTIMATED_TIMETABLE
@@ -750,8 +750,36 @@ anshar:
       requestorRef: ENTUR_DEV_ET_d2bbc408-17a3-11e8-b642-0ed5f89f718b
       durationOfSubscriptionHours: 168
       mappingAdapterId: ostfoldet
-      filterPresets:
-      idMappingPrefixes: HED,OPP
+      filterPresets: HED
+      idMappingPrefixes: HED
+      active: false
+    -
+      internalId: 31
+      vendor: oppEt
+      name: Oppland - ET
+      datasetId: OPP
+      serviceType: SOAP
+      subscriptionType: ESTIMATED_TIMETABLE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 120
+      previewIntervalSeconds: 10800
+      operatorNamespace: http://wsdl.siri.org.uk
+      addressFieldName: ConsumerAddress
+      soapenvNamespace: http://schemas.xmlsoap.org/soap/envelope/
+      changeBeforeUpdatesSeconds: 10
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: 92.62.44.143:8000/SIRI
+        DELETE_SUBSCRIPTION: 92.62.44.143:8000/SIRI
+        CHECK_STATUS: 92.62.44.143:8000/SIRI
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: c97b51a6-17a3-11e8-b642-0ed5f89f718b
+      requestorRef: ENTUR_DEV_ET_d2bbc408-17a3-11e8-b642-0ed5f89f718b
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: ostfoldet
+      filterPresets: OPP
+      idMappingPrefixes: OPP
       active: false
     -
       internalId: 100

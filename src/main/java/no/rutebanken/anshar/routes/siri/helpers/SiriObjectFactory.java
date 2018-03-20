@@ -318,17 +318,30 @@ public class SiriObjectFactory {
 
         if (filterMap != null) {
             if (filterMap.size() > 0) {
-                EstimatedTimetableRequestStructure.Lines lines = new EstimatedTimetableRequestStructure.Lines();
 
-                Set lineRefs = filterMap.get(LineDirectionStructure.class);
-                for (Object lineref : lineRefs) {
-                    if (lineref != null &&
-                            lineref instanceof LineDirectionStructure) {
-                        lines.getLineDirections().add((LineDirectionStructure) lineref);
+                if (filterMap.containsKey(LineDirectionStructure.class)) {
+                    EstimatedTimetableRequestStructure.Lines lines = new EstimatedTimetableRequestStructure.Lines();
+                    Set lineRefs = filterMap.get(LineDirectionStructure.class);
+                    for (Object lineref : lineRefs) {
+                        if (lineref != null &&
+                                lineref instanceof LineDirectionStructure) {
+                            lines.getLineDirections().add((LineDirectionStructure) lineref);
+                        }
+                    }
+                    if (!lines.getLineDirections().isEmpty()) {
+                        etRequest.setLines(lines);
                     }
                 }
 
-                etRequest.setLines(lines);
+                if (filterMap.containsKey(OperatorRefStructure.class)) {
+                    Set<Object> operatorRefs = filterMap.get(OperatorRefStructure.class);
+                    for (Object operatorRef : operatorRefs) {
+                        if (operatorRef != null &&
+                                operatorRef instanceof OperatorRefStructure) {
+                            etRequest.getOperatorReves().add((OperatorRefStructure) operatorRef);
+                        }
+                    }
+                }
             }
         }
 
