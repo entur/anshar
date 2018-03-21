@@ -4,6 +4,7 @@ import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 
 import java.io.Serializable;
+import java.text.MessageFormat;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
@@ -115,5 +116,9 @@ public class OutboundSubscriptionSetup implements Serializable {
 
     public List<ValueAdapter> getValueAdapters() {
         return valueAdapters;
+    }
+
+    public String toString() {
+        return MessageFormat.format("[subscriptionId={0}, requestorRef={1}, address={2}]", subscriptionId, requestorRef, address);
     }
 }

@@ -126,7 +126,7 @@ public class ServerSubscriptionManager extends CamelRouteManager {
                                     OutboundSubscriptionSetup subscription = subscriptions.get(key);
 
                                     if (LocalDateTime.now().isAfter(subscription.getInitialTerminationTime().toLocalDateTime())) {
-                                        logger.info("Subscription [{}] expired at {}, and will be terminated", subscription.getSubscriptionId(), subscription.getInitialTerminationTime());
+                                        logger.info("Subscription [{}] expired at {}, and will be terminated", subscription, subscription.getInitialTerminationTime());
                                         terminateSubscription(subscription.getSubscriptionId());
 
                                     } else if (heartbeatTimestampMap.get(key).isBefore(Instant.now().minusMillis(subscription.getHeartbeatInterval()))) {

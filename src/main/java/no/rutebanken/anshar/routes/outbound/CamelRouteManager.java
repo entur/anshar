@@ -81,7 +81,7 @@ public class CamelRouteManager implements CamelContextAware {
                 List<Siri> splitSiri = siriHelper.splitDeliveries(filteredPayload, deliverySize);
 
                 if (splitSiri.size() > 1) {
-                    logger.info("Object split into {} deliveries.", splitSiri.size());
+                    logger.info("Object split into {} deliveries for subscription.", splitSiri.size(), subscriptionRequest);
                 }
 
                 SiriPushRouteBuilder siriPushRouteBuilder = new SiriPushRouteBuilder(consumerAddress, subscriptionRequest);
@@ -91,7 +91,7 @@ public class CamelRouteManager implements CamelContextAware {
                     executeSiriPushRoute(siri, route.getId());
                 }
             } catch (Exception e) {
-                logger.info("Failed to push data to {} for subscription {}: {}", subscriptionRequest.getSubscriptionId(), consumerAddress, e);
+                logger.info("Failed to push data for subscription {}: {}", subscriptionRequest, e);
 
                 if (e.getCause() instanceof SocketException) {
                     logger.info("Recipient is unreachable - ignoring");
@@ -208,7 +208,7 @@ public class CamelRouteManager implements CamelContextAware {
             } else {
                 definition = from(routeName)
                         .routeId(routeName)
-                        .log(LoggingLevel.INFO, "POST data to " + remoteEndPoint + " [" + subscriptionRequest.getSubscriptionId() + "]")
+                        .log(LoggingLevel.INFO, "POST data to " + subscriptionRequest)
                         .setHeader("SubscriptionId", constant(subscriptionRequest.getSubscriptionId()))
                         .setHeader("CamelHttpMethod", constant("POST"))
                         .setHeader(Exchange.CONTENT_TYPE, constant("application/xml"))
@@ -217,7 +217,7 @@ public class CamelRouteManager implements CamelContextAware {
                         .to(remoteEndPoint + options)
                         .bean(subscriptionManager, "clearFailTracker(${header.SubscriptionId})")
                         .to("log:push-resp:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
-                        .log(LoggingLevel.INFO, "POST complete [" + subscriptionRequest.getSubscriptionId() + "]");
+                        .log(LoggingLevel.INFO, "POST complete " + subscriptionRequest);
             }
 
         }
