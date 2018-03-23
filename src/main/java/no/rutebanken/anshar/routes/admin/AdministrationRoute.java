@@ -44,6 +44,7 @@ public class AdministrationRoute extends RouteBuilder {
                 .put("/start").to("direct:start")
                 .get("/subscriptions").produces("text/html").to("direct:subscriptions")
                 .get("/clusterstats").produces("application/json").to("direct:clusterstats")
+                .get("/validation").produces("application/json").to("direct:validation")
                 .get("/unmapped").produces("text/html").to("direct:unmapped");
 
         //Return subscription status
@@ -76,6 +77,13 @@ public class AdministrationRoute extends RouteBuilder {
         from("direct:clusterstats")
                 .bean(extendedHazelcastService, "listNodes(${header.stats})")
                 .routeId("admin.clusterstats")
+        ;
+
+        //Return subscription status
+        from("direct:validation")
+                .bean(healthManager, "getValidationResults(${header.subscriptionId})")
+                .to("freemarker:templates/validation.ftl")
+                .routeId("admin.validation")
         ;
 
         //Return subscription status

@@ -11,6 +11,7 @@ import no.rutebanken.anshar.routes.outbound.ServerSubscriptionManager;
 import no.rutebanken.anshar.routes.outbound.SiriHelper;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
+import no.rutebanken.anshar.routes.validation.SiriValidator;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import no.rutebanken.anshar.subscription.helpers.MappingAdapterPresets;
@@ -60,6 +61,9 @@ public class SiriHandler {
 
     @Autowired
     private MappingAdapterPresets mappingAdapterPresets;
+
+    @Autowired
+    private SiriValidator siriValidator;
 
     public SiriHandler() {
 
@@ -193,7 +197,9 @@ public class SiriHandler {
 
         if (subscriptionSetup != null) {
 
-            Siri incoming = SiriValueTransformer.parseXml(xml, subscriptionSetup.getMappingAdapters());
+            Siri originalInput = siriValidator.parseXml(subscriptionSetup, xml);
+
+            Siri incoming = SiriValueTransformer.transform(originalInput, subscriptionSetup.getMappingAdapters());
 
             if (incoming.getHeartbeatNotification() != null) {
                 subscriptionManager.touchSubscription(subscriptionId);

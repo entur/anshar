@@ -47,6 +47,7 @@ public class SubscriptionSetup implements Serializable {
     private boolean overrideHttps;
     private String contentType;
     private String vehicleMonitoringRefValue;
+    private boolean validation;
 
     public SubscriptionSetup() {
     }
@@ -202,6 +203,7 @@ public class SubscriptionSetup implements Serializable {
         obj.put("durationOfSubscription", getDurationOfSubscription().toString());
         obj.put("requestorRef", getRequestorRef());
         obj.put("inboundUrl", buildUrl(true));
+        obj.put("validation", isValidation());
         obj.put("contentType", getContentType());
 
         return obj;
@@ -305,6 +307,14 @@ public class SubscriptionSetup implements Serializable {
 
     public Duration getChangeBeforeUpdates() {
         return changeBeforeUpdates;
+    }
+
+    public boolean isValidation() {
+        return validation;
+    }
+
+    public void setValidation(boolean validation) {
+        this.validation = validation;
     }
 
     public enum ServiceType {SOAP, REST}

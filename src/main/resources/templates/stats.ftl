@@ -72,6 +72,7 @@
                     <tr><th>Id</th><td>${item.subscriptionId}</td></tr>
                     <tr><th>RequestorRef</th><td>${item.requestorRef}</td></tr>
                     <tr><th>Mode</th><td>${item.subscriptionMode}</td></tr>
+                    <tr><th>Validation active</th><td>${item.validation?c}</td></tr>
                     <tr>
                         <th>URLs</th>
                         <td>
