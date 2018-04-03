@@ -238,7 +238,7 @@ anshar:
       mappingAdapterId: ruter
       filterPresets:
       idMappingPrefixes: RUT
-      active: true
+      active: false
     -
       internalId: 12
       vendor: skysset
@@ -393,7 +393,7 @@ anshar:
         GET_ESTIMATED_TIMETABLE: https4://siri.opm.jbv.no/jbv/et
       version: 2.0
       contentType: text/xml;charset=UTF-8
-      subscriptionId: ${random.uuid}
+      subscriptionId: 2680361a-33e1-456b-ba07-0bc514700974
       requestorRef: ENTUR
       durationOfSubscriptionHours: 2
       mappingAdapterId: banenoret
@@ -419,7 +419,7 @@ anshar:
         GET_ESTIMATED_TIMETABLE: https4://siri.opm.jbv.no/jbv/et
       version: 2.0
       contentType: text/xml;charset=UTF-8
-      subscriptionId: ${random.uuid}
+      subscriptionId: e996f2e4-4f59-4acf-96ee-0966a6a7d608
       requestorRef: ENTUR
       durationOfSubscriptionHours: 2
       mappingAdapterId: banenoret
@@ -444,7 +444,7 @@ anshar:
         GET_SITUATION_EXCHANGE: https4://siri.opm.jbv.no/jbv/sx
       version: 2.0
       contentType: text/xml;charset=UTF-8
-      subscriptionId: ${random.uuid}
+      subscriptionId: 1c1b36e4-db1e-4f5b-b760-db3ed903eaf8
       requestorRef: ENTUR
       durationOfSubscriptionHours: 2
       mappingAdapterId: banenorsx
@@ -469,7 +469,7 @@ anshar:
         GET_SITUATION_EXCHANGE: https4://siri.opm.jbv.no/jbv/sx
       version: 2.0
       contentType: text/xml;charset=UTF-8
-      subscriptionId: ${random.uuid}
+      subscriptionId: 98cd089b-980b-40cd-acd8-6170aa5d0951
       requestorRef: ENTUR
       durationOfSubscriptionHours: 2
       mappingAdapterId: banenorsx
@@ -810,4 +810,4 @@ anshar:
       mappingAdapterId: ruter-metro
       filterPresets:
       idMappingPrefixes: RUT
-      active: false
+      active: true
