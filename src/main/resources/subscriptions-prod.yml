@@ -777,7 +777,7 @@ anshar:
       subscriptionId: 527843d3-d42f-462a-956c-b012523e47a1
       requestorRef: ENTUR_SX
       durationOfSubscriptionHours: 168
-      mappingAdapterId: nsr
+      mappingAdapterId: ostfoldsx
       filterPresets:
       idMappingPrefixes: OST
       active: true
