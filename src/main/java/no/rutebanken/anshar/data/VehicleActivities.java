@@ -169,23 +169,23 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
         lastUpdateRequested.set(requestorId, Instant.now(), trackingPeriodMinutes, TimeUnit.MINUTES);
 
         //Filter by datasetId
-        Set<String> collectedIds = idSet.stream()
+        Set<String> requestedIds = idSet.stream()
                 .filter(key -> datasetId == null || key.startsWith(datasetId + ":"))
-                .limit(maxSize)
                 .collect(Collectors.toSet());
 
+        Set<String> sizeLimitedIds = requestedIds.stream().limit(maxSize).collect(Collectors.toSet());
+
+        Boolean isMoreData = sizeLimitedIds.size() < requestedIds.size();
+
         //Remove collected objects
-        collectedIds.forEach(idSet::remove);
+        sizeLimitedIds.forEach(idSet::remove);
 
-
-        logger.info("Returning {}, {} left for requestorRef {}", collectedIds.size(), idSet.size(), requestorId);
-
-        Boolean isMoreData = !idSet.isEmpty();
+        logger.info("Returning {}, {} left for requestorRef {}", sizeLimitedIds.size(), idSet.size(), requestorId);
 
         //Update change-tracker
         changesMap.set(requestorId, idSet);
 
-        Collection<VehicleActivityStructure> values = vehicleActivities.getAll(collectedIds).values();
+        Collection<VehicleActivityStructure> values = vehicleActivities.getAll(sizeLimitedIds).values();
         Siri siri = siriObjectFactory.createVMServiceDelivery(values);
 
         siri.getServiceDelivery().setMoreData(isMoreData);
