@@ -789,7 +789,7 @@ anshar:
       serviceType: REST
       subscriptionType: ESTIMATED_TIMETABLE
       subscriptionMode: FETCHED_DELIVERY
-      heartbeatIntervalSeconds: 60
+      heartbeatIntervalSeconds: 120
       updateIntervalSeconds: 10
       changeBeforeUpdatesSeconds: 5
       previewIntervalSeconds: 10800
