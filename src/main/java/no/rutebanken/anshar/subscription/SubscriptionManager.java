@@ -402,4 +402,12 @@ public class SubscriptionManager {
             dataReceived.put(subscriptionId, Instant.now());
         }
     }
+
+    /**
+     * Silently updates subscription
+     * @param subscriptionSetup
+     */
+    public void updateSubscription(SubscriptionSetup subscriptionSetup) {
+        subscriptions.set(subscriptionSetup.getSubscriptionId(), subscriptionSetup);
+    }
 }

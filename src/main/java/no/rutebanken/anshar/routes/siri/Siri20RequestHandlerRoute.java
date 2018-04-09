@@ -4,12 +4,14 @@ import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.routes.CamelRouteNames;
 import no.rutebanken.anshar.routes.dataformat.SiriDataFormatHelper;
 import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
+import no.rutebanken.anshar.routes.validation.SiriXmlValidator;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.builder.xml.Namespaces;
+import org.json.simple.JSONObject;
 import org.rutebanken.validator.SiriValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,9 +20,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 import uk.org.siri.siri20.Siri;
 
-import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
-import java.io.PrintStream;
 import java.net.ConnectException;
 import java.util.HashMap;
 import java.util.Map;
@@ -140,11 +140,27 @@ public class Siri20RequestHandlerRoute extends RouteBuilder {
                 .routeId("incoming.receive")
         ;
 
-        //
+        // Temporary route for logging raw inputdata from external subscriptions
         from("jetty:http://0.0.0.0:" + configuration.getInboundPort() + "/anshar/tmplogger")
                 .to("file:" + configuration.getIncomingLogDirectory() + "/")
                 .routeId("admin.filelogger")
         ;
+
+        // Validate XML against schema only
+        from("jetty:http://0.0.0.0:" + configuration.getInboundPort() + "/anshar/rest/sirivalidator?httpMethodRestrict=POST")
+                .process(p -> {
+                    InputStream xml = p.getIn().getBody(InputStream.class);
+                    if (xml != null) {
+                        logger.info("XML-validator started");
+
+                        JSONObject validationResult = SiriXmlValidator.validate(xml);
+
+                        p.getOut().setBody(validationResult.toJSONString());
+                        p.getOut().setHeader("Content-Type", "application/json");
+                    }
+                })
+        ;
+
 
         from("activemq:queue:" + CamelRouteNames.TRANSFORM_QUEUE + activeMqConsumerParameters)
                // .to("log:raw:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
@@ -158,39 +174,9 @@ public class Siri20RequestHandlerRoute extends RouteBuilder {
                         .to("xslt:xsl/siri_14_20.xsl?saxon=true&allowStAX=false&resultHandlerFactory=#streamResultHandlerFactory") // Convert from v1.4 to 2.0
                     .endChoice()
                 .end()
-                .choice()
-                    .when(exchange -> configuration.isValidationEnabled())
-                        .to("activemq:queue:" + CamelRouteNames.VALIDATOR_QUEUE + activeMQParameters)
-                    .endChoice()
-                .end()
                 .to("seda:" + CamelRouteNames.ROUTER_QUEUE)
                 .routeId("incoming.transform")
         ;
-
-        from("activemq:queue:" + CamelRouteNames.VALIDATOR_QUEUE + activeMqConsumerParameters)
-                .process(p -> {
-                    logger.info("XMLValidation - start");
-                    SiriValidator.Version siriVersion = SiriValidator.Version.VERSION_2_0;
-
-                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                    PrintStream ps = new PrintStream(baos, true, "utf-8");
-
-                    ps.println(p.getIn().getHeader("CamelHttpPath", String.class));
-                    ps.println("Validating XML as " + siriVersion);
-
-                    String xml = p.getIn().getBody(String.class);
-                    boolean valid = SiriValidator.validate(xml, siriVersion, ps);
-
-                    logger.info("XMLValidation - done");
-                    if (!valid) {
-                        logger.warn("Invalid XML: {}", new String(baos.toByteArray()));
-                    }
-
-                })
-                .routeId("validate.process")
-        ;
-
-
 
         from("seda:" + CamelRouteNames.ROUTER_QUEUE)
                 .choice()

@@ -11,7 +11,7 @@ import no.rutebanken.anshar.routes.outbound.ServerSubscriptionManager;
 import no.rutebanken.anshar.routes.outbound.SiriHelper;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
-import no.rutebanken.anshar.routes.validation.SiriValidator;
+import no.rutebanken.anshar.routes.validation.SiriXmlValidator;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import no.rutebanken.anshar.subscription.helpers.MappingAdapterPresets;
@@ -63,7 +63,7 @@ public class SiriHandler {
     private MappingAdapterPresets mappingAdapterPresets;
 
     @Autowired
-    private SiriValidator siriValidator;
+    private SiriXmlValidator siriXmlValidator;
 
     public SiriHandler() {
 
@@ -197,7 +197,7 @@ public class SiriHandler {
 
         if (subscriptionSetup != null) {
 
-            Siri originalInput = siriValidator.parseXml(subscriptionSetup, xml);
+            Siri originalInput = siriXmlValidator.parseXml(subscriptionSetup, xml);
 
             Siri incoming = SiriValueTransformer.transform(originalInput, subscriptionSetup.getMappingAdapters());
 
@@ -334,6 +334,7 @@ public class SiriHandler {
         } else {
             logger.debug("ServiceDelivery for invalid subscriptionId [{}] ignored.", subscriptionId);
         }
+        subscriptionManager.updateSubscription(subscriptionSetup);
         return null;
     }
 

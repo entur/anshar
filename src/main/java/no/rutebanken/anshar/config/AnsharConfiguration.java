@@ -21,9 +21,6 @@ public class AnsharConfiguration {
     @Value("${anshar.incoming.port}")
     private String inboundPort;
 
-    @Value("${anshar.validation.enabled}")
-    private boolean validationEnabled = false;
-
     @Value("${anshar.incoming.activemq.concurrentConsumers}")
     private long concurrentConsumers;
 
@@ -99,10 +96,6 @@ public class AnsharConfiguration {
 
     public long getConcurrentConsumers() {
         return concurrentConsumers;
-    }
-
-    public boolean isValidationEnabled() {
-        return validationEnabled;
     }
 
     public String getEnvironment() {

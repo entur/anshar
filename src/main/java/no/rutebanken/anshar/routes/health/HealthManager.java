@@ -15,10 +15,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 
-import javax.xml.bind.JAXBException;
-import javax.xml.stream.XMLStreamException;
 import java.time.Instant;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 @Service
 @Configuration
@@ -33,14 +34,6 @@ public class HealthManager {
     @Autowired
     @Qualifier("getUnmappedIds")
     private IMap<String, Map<SubscriptionSetup.SubscriptionType, Set<String>>> unmappedIds;
-
-    @Autowired
-    @Qualifier("getSubscriptionsMap")
-    private IMap<String, SubscriptionSetup> subscriptions;
-
-    @Autowired
-    @Qualifier("getValidationResultRefMap")
-    private IMap<String, List<String>> validationResultRefs;
 
     @Value("${anshar.admin.health.allowed.inactivity.seconds:999}")
     private long allowedInactivityTime;
@@ -145,31 +138,5 @@ public class HealthManager {
         unmappedIds.put(type, ids);
 
         this.unmappedIds.set(datasetId, unmappedIds);
-    }
-
-    public JSONObject getValidationResults(String subscriptionId) throws JAXBException, XMLStreamException {
-        List<String> resultPairs = validationResultRefs.get(subscriptionId);
-
-        SubscriptionSetup subscriptionSetup = subscriptions.get(subscriptionId);
-        if (subscriptionSetup == null) {
-            return null;
-        }
-
-        JSONObject validationResult = new JSONObject();
-
-        validationResult.put("subscription", subscriptionSetup.toJSON());
-
-        JSONArray resultList = new JSONArray();
-        if (resultPairs != null) {
-            for (String ref : resultPairs) {
-//                JSONObject result = new JSONObject();
-//
-//                result.put("validationRef", ref);
-                resultList.add(ref);
-            }
-        }
-        validationResult.put("validationRefs", resultList);
-
-        return validationResult;
     }
 }

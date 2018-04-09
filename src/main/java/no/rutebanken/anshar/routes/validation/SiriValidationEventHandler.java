@@ -20,6 +20,7 @@ import org.json.simple.JSONObject;
 
 import javax.xml.bind.ValidationEvent;
 import javax.xml.bind.ValidationEventHandler;
+import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,11 +28,16 @@ class SiriValidationEventHandler implements ValidationEventHandler {
 
     Map<String, ValidationEvent> events = new HashMap<>();
     Map<String, Integer> equalsEventCounter = new HashMap<>();
+    private ZonedDateTime timestamp = ZonedDateTime.now();
 
     public boolean handleEvent(ValidationEvent event) {
+
+
         String message = event.getMessage();
 
-        events.put(message, event);
+        if (!events.containsKey(message)) {
+            events.put(message, event);
+        }
 
         int counter = equalsEventCounter.getOrDefault(message, 0);
         counter++;
@@ -51,24 +57,27 @@ class SiriValidationEventHandler implements ValidationEventHandler {
 
             event.put("severity", wrapAsString(e.getSeverity()));
             event.put("message", wrapAsString(e.getMessage()));
-            event.put("numberOfOcurrences", wrapAsString(equalsEventCounter.get(key)));
+            event.put("numberOfOccurrences", wrapAsString(equalsEventCounter.get(key)));
 
             JSONObject locator = new JSONObject();
             locator.put("lineNumber", wrapAsString(e.getLocator().getLineNumber()));
             locator.put("columnNumber", wrapAsString(e.getLocator().getColumnNumber()));
-            locator.put("offset", wrapAsString(e.getLocator().getOffset()));
-            locator.put("object", wrapAsString(e.getLocator().getObject()));
-            locator.put("node", wrapAsString(e.getLocator().getNode()));
-            locator.put("url", wrapAsString(e.getLocator().getURL()));
             event.put("locator", locator);
 
             eventList.add(event);
         });
+        obj.put("timestamp", timestamp);
         obj.put("events", eventList);
         return obj;
     }
 
-    private String wrapAsString(Object o) {
-        return ""+o;
+    private Object wrapAsString(Object o) {
+        if (o != null) {
+            if (! (o instanceof Integer)) {
+                return "" + o;
+            }
+            return o;
+        }
+        return null;
     }
 }

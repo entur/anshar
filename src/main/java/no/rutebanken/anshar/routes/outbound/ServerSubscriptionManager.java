@@ -81,9 +81,6 @@ public class ServerSubscriptionManager extends CamelRouteManager {
     @Value("${anshar.outbound.activemq.topic.enabled}")
     private boolean activeMqTopicEnabled;
 
-    @Value("${anshar.outbound.max.fails.allowed:10}")
-    private int maxFailsAllowed;
-
     @Autowired
     private SiriHelper siriHelper;
 

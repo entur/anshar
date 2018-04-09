@@ -15,7 +15,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
-import uk.org.siri.siri20.*;
+import uk.org.siri.siri20.EstimatedVehicleJourney;
+import uk.org.siri.siri20.ProductionTimetableDeliveryStructure;
+import uk.org.siri.siri20.PtSituationElement;
+import uk.org.siri.siri20.VehicleActivityStructure;
 
 import java.io.*;
 import java.math.BigInteger;
@@ -235,7 +238,7 @@ public class ExtendedHazelcastService extends HazelCastService {
         return hazelcast.getMap("anshar.validation.results.ref");
     }
     @Bean
-    public IMap<String, Siri> getValidationResultSiriMap() {
+    public IMap<String, byte[]> getValidationResultSiriMap() {
         return hazelcast.getMap("anshar.validation.results.siri");
     }
     @Bean

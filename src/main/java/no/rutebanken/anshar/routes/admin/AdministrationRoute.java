@@ -4,7 +4,9 @@ import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.data.collections.ExtendedHazelcastService;
 import no.rutebanken.anshar.routes.health.HealthManager;
 import no.rutebanken.anshar.routes.outbound.ServerSubscriptionManager;
+import no.rutebanken.anshar.routes.validation.SiriXmlValidator;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
+import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.camel.builder.RouteBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +34,9 @@ public class AdministrationRoute extends RouteBuilder {
     @Autowired
     private HealthManager healthManager;
 
+    @Autowired
+    private SiriXmlValidator siriXmlValidator;
+
     @Override
     public void configure() throws Exception {
 
@@ -42,9 +47,9 @@ public class AdministrationRoute extends RouteBuilder {
                 .get("/stats").produces("text/html").to("direct:stats")
                 .put("/stop").to("direct:stop")
                 .put("/start").to("direct:start")
+                .put("/toggle-validate").produces("text/html").to("direct:toggle-validate")
                 .get("/subscriptions").produces("text/html").to("direct:subscriptions")
                 .get("/clusterstats").produces("application/json").to("direct:clusterstats")
-                .get("/validation").produces("application/json").to("direct:validation")
                 .get("/unmapped").produces("text/html").to("direct:unmapped");
 
         //Return subscription status
@@ -66,6 +71,12 @@ public class AdministrationRoute extends RouteBuilder {
                 .routeId("admin.start")
         ;
 
+        from("direct:toggle-validate")
+                .filter(header("subscriptionId").isNotNull())
+                .process(p -> toggleValidation((String) p.getIn().getHeader("subscriptionId")))
+                .routeId("admin.toggle-validate")
+        ;
+
         //Return subscription status
         from("direct:subscriptions")
                 .bean(serverSubscriptionManager, "getSubscriptionsAsJson")
@@ -73,20 +84,13 @@ public class AdministrationRoute extends RouteBuilder {
                 .routeId("admin.subscriptions")
         ;
 
-        //Return subscription status
+        //Return cluster status
         from("direct:clusterstats")
                 .bean(extendedHazelcastService, "listNodes(${header.stats})")
                 .routeId("admin.clusterstats")
         ;
 
-        //Return subscription status
-        from("direct:validation")
-                .bean(healthManager, "getValidationResults(${header.subscriptionId})")
-                .to("freemarker:templates/validation.ftl")
-                .routeId("admin.validation")
-        ;
-
-        //Return subscription status
+        //Return unmapped ids
         from("direct:unmapped")
                 .filter(header("datasetId").isNotNull())
                 .bean(healthManager, "getUnmappedIdsAsJson(${header.datasetId})")
@@ -94,5 +98,17 @@ public class AdministrationRoute extends RouteBuilder {
                 .routeId("admin.unmapped")
         ;
 
+    }
+
+    private void toggleValidation(String subscriptionId) {
+        SubscriptionSetup subscriptionSetup = subscriptionManager.get(subscriptionId);
+        if (subscriptionSetup != null) {
+            subscriptionSetup.setValidation(! subscriptionSetup.isValidation());
+            if (subscriptionSetup.isValidation()) {
+                //Validation has now been switched on - clear previous results
+                siriXmlValidator.clearValidationResults(subscriptionId);
+            }
+            subscriptionManager.updateSubscription(subscriptionSetup);
+        }
     }
 }
