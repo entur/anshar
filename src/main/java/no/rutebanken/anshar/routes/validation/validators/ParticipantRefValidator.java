@@ -24,7 +24,7 @@ public class ParticipantRefValidator extends CustomValidator {
     public ValidationEvent isValid(Node node) {
         String nodeValue = getNodeValue(node);
 
-        if (nodeValue != null && nodeValue.length() == 3) {
+        if (nodeValue == null || nodeValue.length() != 3) {
             //TODO: Check for valid CodeSpace
             return createEvent(node, FIELDNAME, "CODESPACE", nodeValue);
         }
