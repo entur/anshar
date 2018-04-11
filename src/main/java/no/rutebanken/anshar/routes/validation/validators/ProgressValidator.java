@@ -11,7 +11,7 @@ import java.util.Set;
 
 import static no.rutebanken.anshar.routes.validation.validators.Constants.PT_SITUATION_ELEMENT;
 
-@Validator(targetType = SiriDataType.SITUATION_EXCHANGE)
+@Validator(profileName = "norway", targetType = SiriDataType.SITUATION_EXCHANGE)
 @Component
 public class ProgressValidator extends CustomValidator {
 

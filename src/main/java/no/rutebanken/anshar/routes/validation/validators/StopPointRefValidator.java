@@ -8,7 +8,7 @@ import javax.xml.bind.ValidationEvent;
 
 import static no.rutebanken.anshar.routes.validation.validators.Constants.ESTIMATED_CALL;
 
-@Validator(targetType = SiriDataType.ESTIMATED_TIMETABLE)
+@Validator(profileName = "norway", targetType = SiriDataType.ESTIMATED_TIMETABLE)
 @Component
 public class StopPointRefValidator extends CustomValidator {
 

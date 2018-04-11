@@ -1,6 +1,7 @@
 package no.rutebanken.anshar.routes.validation;
 
 import com.hazelcast.core.IMap;
+import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.routes.siri.transformer.ApplicationContextHolder;
 import no.rutebanken.anshar.routes.validation.validators.CustomValidator;
 import no.rutebanken.anshar.routes.validation.validators.Validator;
@@ -46,6 +47,8 @@ public class SiriXmlValidator extends ApplicationContextHolder{
     private static JAXBContext jaxbContext;
     private static Schema schema;
 
+    @Autowired
+    private AnsharConfiguration configuration;
 
     /**
      * Keeps a list of references to unique ids
@@ -96,10 +99,14 @@ public class SiriXmlValidator extends ApplicationContextHolder{
 
         for (Object o : validatorBeans.values()) {
             if (o instanceof CustomValidator) {
-                final SiriDataType type = o.getClass().getAnnotation(Validator.class).targetType();
-                final Set<CustomValidator> validators = validationRules.getOrDefault(type, new HashSet<>());
-                validators.add((CustomValidator) o);
-                validationRules.put(type, validators);
+                final String profileName = o.getClass().getAnnotation(Validator.class).profileName();
+                if (profileName.equals(configuration.getValidationProfileName())) {
+                    final SiriDataType type = o.getClass().getAnnotation(Validator.class).targetType();
+
+                    final Set<CustomValidator> validators = validationRules.getOrDefault(type, new HashSet<>());
+                    validators.add((CustomValidator) o);
+                    validationRules.put(type, validators);
+                }
             }
         }
     }
@@ -158,9 +165,14 @@ public class SiriXmlValidator extends ApplicationContextHolder{
 
                         unmarshaller.setSchema(schema);
                         unmarshaller.setEventHandler(handler);
-                        Siri unmarshal = (Siri) unmarshaller.unmarshal(sr);
 
-                        validateAttributes(originalXml, type, handler);
+                        //Unmarshalling with schema-validation
+                        unmarshaller.unmarshal(sr);
+
+                        if (configuration.isProfileValidation()) {
+                            // Custom validation of attribute contents
+                            validateAttributes(originalXml, type, handler);
+                        }
 
                         addResult(subscriptionSetup, originalXml, handler.toJSON());
 

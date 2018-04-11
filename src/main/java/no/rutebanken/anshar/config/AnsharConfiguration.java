@@ -66,6 +66,12 @@ public class AnsharConfiguration {
     @Value("${anshar.siri.pt.graceperiod.minutes:0}")
     private long ptGraceperiodMinutes;
 
+    @Value("${anshar.validation.profile.enabled}")
+    private boolean profileValidation;
+
+    @Value("${anshar.validation.profile.name}")
+    private String validationProfileName;
+
     public String getHazelcastManagementUrl() {
         return hazelcastManagementUrl;
     }
@@ -140,5 +146,13 @@ public class AnsharConfiguration {
 
     public long getPtGraceperiodMinutes() {
         return ptGraceperiodMinutes;
+    }
+
+    public boolean isProfileValidation() {
+        return profileValidation;
+    }
+
+    public String getValidationProfileName() {
+        return validationProfileName;
     }
 }
