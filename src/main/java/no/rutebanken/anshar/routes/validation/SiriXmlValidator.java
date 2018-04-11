@@ -162,6 +162,7 @@ public class SiriXmlValidator extends ApplicationContextHolder{
                         StringReader sr= new StringReader(originalXml);
 
                         SiriValidationEventHandler handler = new SiriValidationEventHandler();
+                        SiriValidationEventHandler profileHandler = new SiriValidationEventHandler();
 
                         unmarshaller.setSchema(schema);
                         unmarshaller.setEventHandler(handler);
@@ -171,10 +172,17 @@ public class SiriXmlValidator extends ApplicationContextHolder{
 
                         if (configuration.isProfileValidation()) {
                             // Custom validation of attribute contents
-                            validateAttributes(originalXml, type, handler);
+                            validateAttributes(originalXml, type, profileHandler);
                         }
 
-                        addResult(subscriptionSetup, originalXml, handler.toJSON());
+                        JSONObject schemaEvents = handler.toJSON();
+                        JSONObject profileEvents = profileHandler.toJSON();
+
+                        JSONObject combinedEvents = new JSONObject();
+                        combinedEvents.put("schema", schemaEvents);
+                        combinedEvents.put("profile", profileEvents);
+
+                        addResult(subscriptionSetup, originalXml, combinedEvents);
 
                         logger.info("Validation took: " + (System.currentTimeMillis()-t1));
                     } catch (JAXBException e) {

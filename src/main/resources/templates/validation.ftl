@@ -20,43 +20,70 @@
             <tr>
                 <th>#</th>
                 <th>Timestamp</th>
-                <th>Validation errors</th>
+                <th>Schema validation errors</th>
+                <th>Profile validation errors</th>
+                <th>XML</th>
             </tr>
             </thead>
             <tbody>
         <#list body.validationRefs as validation>
             <tr data-toggle="collapse" data-target="#accordion${validation?counter}" style="cursor: pointer" class="clickable ${validation.events?has_content?then("danger","success")}">
                 <th>${validation?counter}</th>
-                <td>${validation.timestamp}</td>
-                <td>${validation.events?size}</td>
+                <td>${validation.schema.timestamp}</td>
+                <td>${validation.schema.events?size}</td>
+                <td>${validation.profile.events?size}</td>
+                <td><a href="validation/siri?validationRef=${validation.validationRef}">XML</a></td>
             </tr>
             <tr id="accordion${validation?counter}" class="collapse">
-                <td colspan="3">
-                    <div>
-                        <a href="validation/siri?validationRef=${validation.validationRef}">Download XML</a>
-                    </div>
-                    <table class="table table-striped">
-                        <thead>
-                        <tr>
-                            <th>Severity</th>
-                            <th>Count</th>
-                            <th>Message</th>
-                            <th>Line</th>
-                            <th>Column</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                            <#list validation.events?sort_by("numberOfOccurrences")?reverse as event >
+                <td colspan="5">
+                    <#if validation.schema.events?size != 0 >
+                    <fieldset>
+                        <legend>Schema validation</legend>
+                        <table class="table table-striped">
+                            <thead>
                             <tr>
-                                <td>${event.severity}</td>
-                                <td>${event.numberOfOccurrences}</td>
-                                <td>${event.message}</td>
-                                <td>${event.locator.lineNumber}</td>
-                                <td>${event.locator.columnNumber}</td>
+                                <th>Severity</th>
+                                <th>Count</th>
+                                <th>Message</th>
+                                <th>Line</th>
+                                <th>Column</th>
                             </tr>
-                            </#list>
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                <#list validation.schema.events?sort_by("numberOfOccurrences")?reverse as event >
+                                <tr>
+                                    <td>${event.severity}</td>
+                                    <td>${event.numberOfOccurrences}</td>
+                                    <td>${event.message}</td>
+                                    <td>${event.locator.lineNumber}</td>
+                                    <td>${event.locator.columnNumber}</td>
+                                </tr>
+                                </#list>
+                            </tbody>
+                        </table>
+                    </fieldset>
+                    </#if>
+                    <#if validation.profile.events?size != 0 >
+                    <fieldset>
+                        <legend>Profile validation</legend>
+                        <table class="table table-striped">
+                            <thead>
+                            <tr>
+                                <th>Count</th>
+                                <th>Message</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                                <#list validation.profile.events?sort_by("numberOfOccurrences")?reverse as event >
+                                <tr>
+                                    <td>${event.numberOfOccurrences}</td>
+                                    <td>${event.message}</td>
+                                </tr>
+                                </#list>
+                            </tbody>
+                        </table>
+                    </fieldset>
+                    </#if>
                 </td>
             </tr>
         </#list>
