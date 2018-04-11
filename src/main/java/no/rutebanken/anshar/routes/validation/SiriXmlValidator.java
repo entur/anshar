@@ -127,13 +127,9 @@ public class SiriXmlValidator extends ApplicationContextHolder{
                         long t1 = System.currentTimeMillis();
 
                         /*
-
-                           Re-marshalling - and unmarshalling - object to ensure correct line numbers.
-
+                         * Resolving SIRI-datatype
                          */
-
                         SiriDataType type;
-
                         if (siri.getServiceDelivery() != null) {
                             if (siri.getServiceDelivery().getEstimatedTimetableDeliveries() != null &&
                                     !siri.getServiceDelivery().getEstimatedTimetableDeliveries().isEmpty()) {
@@ -152,6 +148,11 @@ public class SiriXmlValidator extends ApplicationContextHolder{
                         }
 
 
+                        /*
+
+                           Re-marshalling - and unmarshalling - object to ensure correct line numbers.
+
+                         */
                         Marshaller marshaller = jaxbContext.createMarshaller();
                         marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
                         StringWriter writer = new StringWriter();

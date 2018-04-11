@@ -28,7 +28,7 @@
                 </thead>
                 <tbody>
             <#list body.validationRefs as validation>
-                <tr data-toggle="collapse" data-target="#accordion${validation?counter}" style="cursor: pointer" class="clickable ${validation.events?has_content?then("danger","success")}">
+                <tr data-toggle="collapse" data-target="#accordion${validation?counter}" style="cursor: pointer" class="clickable ${(validation.schema.events?has_content && validation.profile.events?has_content)?then("danger","success")}">
                     <th>${validation?counter}</th>
                     <td>${validation.schema.timestamp}</td>
                     <td>${validation.schema.events?size}</td>
@@ -37,7 +37,7 @@
                 </tr>
                 <tr id="accordion${validation?counter}" class="collapse">
                     <td colspan="5">
-                        <#if validation.schema.events?size != 0 >
+                        <#if validation.schema.events?has_content >
                         <fieldset>
                             <legend>Schema validation</legend>
                             <table class="table table-striped">
@@ -64,7 +64,7 @@
                             </table>
                         </fieldset>
                         </#if>
-                        <#if validation.profile.events?size != 0 >
+                        <#if validation.profile.events?has_content >
                         <fieldset>
                             <legend>Profile validation</legend>
                             <table class="table table-striped">
