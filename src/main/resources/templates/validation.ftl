@@ -21,7 +21,6 @@
                 <th>#</th>
                 <th>Timestamp</th>
                 <th>Validation errors</th>
-                <th>XML</th>
             </tr>
             </thead>
             <tbody>
@@ -30,10 +29,12 @@
                 <th>${validation?counter}</th>
                 <td>${validation.timestamp}</td>
                 <td>${validation.events?size}</td>
-                <td><a href="validation/siri?validationRef=${validation.validationRef}">Download XML</a></td>
             </tr>
             <tr id="accordion${validation?counter}" class="collapse">
-                <td colspan="4">
+                <td colspan="3">
+                    <div>
+                        <a href="validation/siri?validationRef=${validation.validationRef}">Download XML</a>
+                    </div>
                     <table class="table table-striped">
                         <thead>
                         <tr>

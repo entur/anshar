@@ -134,7 +134,7 @@
                     <tr><th>Id</th><td>${item.subscriptionId}</td></tr>
                     <tr><th>RequestorRef</th><td>${item.requestorRef}</td></tr>
                     <tr><th>Mode</th><td>${item.subscriptionMode}</td></tr>
-                    <tr><th>Validation active</th>
+                    <tr><th><a tabindex="-1" href="validation?subscriptionId=${item.subscriptionId}" target="_blank">Validation active</a></th>
                         <td>
                             <label class="switch">
                                 <input type="checkbox" tabindex="-1" ${item.validation?then("checked", "")} onchange="administerSubscription('toggle-validate', '${item.subscriptionId}', false)">

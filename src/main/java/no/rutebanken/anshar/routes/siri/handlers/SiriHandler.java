@@ -334,7 +334,6 @@ public class SiriHandler {
         } else {
             logger.debug("ServiceDelivery for invalid subscriptionId [{}] ignored.", subscriptionId);
         }
-        subscriptionManager.updateSubscription(subscriptionSetup);
         return null;
     }
 

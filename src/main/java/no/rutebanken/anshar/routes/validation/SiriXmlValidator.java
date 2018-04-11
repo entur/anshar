@@ -1,6 +1,10 @@
 package no.rutebanken.anshar.routes.validation;
 
 import com.hazelcast.core.IMap;
+import no.rutebanken.anshar.routes.siri.transformer.ApplicationContextHolder;
+import no.rutebanken.anshar.routes.validation.validators.CustomValidator;
+import no.rutebanken.anshar.routes.validation.validators.Validator;
+import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -11,29 +15,30 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
+import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 import uk.org.siri.siri20.Siri;
 
 import javax.xml.XMLConstants;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
+import javax.xml.bind.*;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
+import javax.xml.xpath.*;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 @Component
 @Configuration
-public class SiriXmlValidator {
+public class SiriXmlValidator extends ApplicationContextHolder{
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -60,8 +65,12 @@ public class SiriXmlValidator {
     @Qualifier("getSubscriptionsMap")
     private IMap<String, SubscriptionSetup> subscriptions;
 
+    @Autowired
+    private SubscriptionManager subscriptionManager;
+
     @Value("${anshar.validation.max.results:5}")
     private int maxResultsPerSubscription;
+    private Map<SubscriptionSetup.SubscriptionType, Set<CustomValidator>> validationRules = new HashMap<>();
 
     public SiriXmlValidator() {
         if (jaxbContext == null) {
@@ -80,6 +89,21 @@ public class SiriXmlValidator {
         }
     }
 
+
+    private void populateValidationRules() {
+        Map<String, Object> validatorBeans = getContext().getBeansWithAnnotation(Validator.class);
+
+        for (Object o : validatorBeans.values()) {
+            if (o instanceof CustomValidator) {
+                final SubscriptionSetup.SubscriptionType type = o.getClass().getAnnotation(Validator.class).type();
+                final Set<CustomValidator> validators = validationRules.getOrDefault(type, new HashSet<>());
+                validators.add((CustomValidator) o);
+                validationRules.put(type, validators);
+            }
+        }
+    }
+
+
     public Siri parseXml(SubscriptionSetup subscriptionSetup, InputStream xml) {
         try {
             Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
@@ -90,33 +114,65 @@ public class SiriXmlValidator {
 
             if (subscriptionSetup.isValidation()) {
 
+                new Thread(() -> {
+                    try {
+                        long t1 = System.currentTimeMillis();
 
-                long t1 = System.currentTimeMillis();
+                        /*
 
-                /*
+                           Re-marshalling - and unmarshalling - object to ensure correct line numbers.
 
-                   Re-marshalling - and unmarshalling - object to ensure correct line numbers.
+                         */
 
-                 */
+                        SubscriptionSetup.SubscriptionType type;
 
-                Marshaller marshaller = jaxbContext.createMarshaller();
-                marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-                StringWriter writer = new StringWriter();
-                marshaller.marshal(siri, writer);
+                        if (siri.getServiceDelivery() != null) {
+                            if (siri.getServiceDelivery().getEstimatedTimetableDeliveries() != null &&
+                                    !siri.getServiceDelivery().getEstimatedTimetableDeliveries().isEmpty()) {
+                                type = SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE;
+                            } else if (siri.getServiceDelivery().getSituationExchangeDeliveries() != null &&
+                                    !siri.getServiceDelivery().getSituationExchangeDeliveries().isEmpty()) {
+                                type = SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE;
+                            } else if (siri.getServiceDelivery().getVehicleMonitoringDeliveries() != null &&
+                                    !siri.getServiceDelivery().getVehicleMonitoringDeliveries().isEmpty()) {
+                                type = SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING;
+                            } else {
+                                return;
+                            }
+                        } else {
+                            return;
+                        }
 
-                String originalXml = writer.toString();
 
-                StringReader sr= new StringReader(originalXml);
+                        Marshaller marshaller = jaxbContext.createMarshaller();
+                        marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+                        StringWriter writer = new StringWriter();
+                        marshaller.marshal(siri, writer);
 
-                SiriValidationEventHandler handler = new SiriValidationEventHandler();
+                        String originalXml = writer.toString();
 
-                unmarshaller.setSchema(schema);
-                unmarshaller.setEventHandler(handler);
-                unmarshaller.unmarshal(sr);
+                        StringReader sr= new StringReader(originalXml);
 
-                addResult(subscriptionSetup, originalXml, handler.toJSON());
+                        SiriValidationEventHandler handler = new SiriValidationEventHandler();
 
-                System.err.println("Validation took: " + (System.currentTimeMillis()-t1));
+                        unmarshaller.setSchema(schema);
+                        unmarshaller.setEventHandler(handler);
+                        Siri unmarshal = (Siri) unmarshaller.unmarshal(sr);
+
+                        validateAttributes(originalXml, type, handler);
+
+                        addResult(subscriptionSetup, originalXml, handler.toJSON());
+
+                        logger.info("Validation took: " + (System.currentTimeMillis()-t1));
+                    } catch (JAXBException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }).start();
+
             }
 
             return siri;
@@ -124,12 +180,38 @@ public class SiriXmlValidator {
             e.printStackTrace();
         } catch (XMLStreamException e) {
             e.printStackTrace();
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
     }
 
+    private void validateAttributes(String siri, SubscriptionSetup.SubscriptionType type, SiriValidationEventHandler handler) throws XPathExpressionException, XPathFactoryConfigurationException, ParserConfigurationException, IOException, SAXException {
+        if (validationRules.isEmpty()) {
+            populateValidationRules();
+        }
+        XPathFactory xpathFactory = XPathFactory.newInstance();
+        XPath xpath = xpathFactory.newXPath();
+        DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder builder = builderFactory.newDocumentBuilder();
+
+        InputStream stream = new ByteArrayInputStream(siri.getBytes("utf-8"));
+
+        Document xmlDocument = builder.parse(stream);
+
+        int errorCounter = 0;
+        for (CustomValidator rule : validationRules.get(type)) {
+            NodeList nodes = (NodeList) xpath.evaluate(rule.getXpath(), xmlDocument, XPathConstants.NODESET);
+            for (int i = 0; i < nodes.getLength(); i++) {
+                ValidationEvent event = rule.isValid(nodes.item(i));
+                if (event != null) {
+                    handler.handleEvent(event);
+                    errorCounter++;
+                }
+            }
+        }
+        logger.info("Found {} custom rule violations in SIRI XML", errorCounter);
+    }
 
     public void clearValidationResults(String subscriptionId) {
         List<String> validationRefs = validationResultRefs.get(subscriptionId);
@@ -232,6 +314,7 @@ public class SiriXmlValidator {
 
         if (subscriptionValidationRefs.size() >= maxResultsPerSubscription) {
             subscriptionSetup.setValidation(false);
+            subscriptionManager.updateSubscription(subscriptionSetup);
             logger.info("Reached {} validations - disabling validation for {}", maxResultsPerSubscription, subscriptionSetup);
         }
     }
