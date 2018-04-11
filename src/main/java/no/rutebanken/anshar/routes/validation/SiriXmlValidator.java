@@ -4,6 +4,7 @@ import com.hazelcast.core.IMap;
 import no.rutebanken.anshar.routes.siri.transformer.ApplicationContextHolder;
 import no.rutebanken.anshar.routes.validation.validators.CustomValidator;
 import no.rutebanken.anshar.routes.validation.validators.Validator;
+import no.rutebanken.anshar.subscription.SiriDataType;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.json.simple.JSONArray;
@@ -70,7 +71,7 @@ public class SiriXmlValidator extends ApplicationContextHolder{
 
     @Value("${anshar.validation.max.results:5}")
     private int maxResultsPerSubscription;
-    private Map<SubscriptionSetup.SubscriptionType, Set<CustomValidator>> validationRules = new HashMap<>();
+    private Map<SiriDataType, Set<CustomValidator>> validationRules = new HashMap<>();
 
     public SiriXmlValidator() {
         if (jaxbContext == null) {
@@ -95,7 +96,7 @@ public class SiriXmlValidator extends ApplicationContextHolder{
 
         for (Object o : validatorBeans.values()) {
             if (o instanceof CustomValidator) {
-                final SubscriptionSetup.SubscriptionType type = o.getClass().getAnnotation(Validator.class).type();
+                final SiriDataType type = o.getClass().getAnnotation(Validator.class).targetType();
                 final Set<CustomValidator> validators = validationRules.getOrDefault(type, new HashSet<>());
                 validators.add((CustomValidator) o);
                 validationRules.put(type, validators);
@@ -124,18 +125,18 @@ public class SiriXmlValidator extends ApplicationContextHolder{
 
                          */
 
-                        SubscriptionSetup.SubscriptionType type;
+                        SiriDataType type;
 
                         if (siri.getServiceDelivery() != null) {
                             if (siri.getServiceDelivery().getEstimatedTimetableDeliveries() != null &&
                                     !siri.getServiceDelivery().getEstimatedTimetableDeliveries().isEmpty()) {
-                                type = SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE;
+                                type = SiriDataType.ESTIMATED_TIMETABLE;
                             } else if (siri.getServiceDelivery().getSituationExchangeDeliveries() != null &&
                                     !siri.getServiceDelivery().getSituationExchangeDeliveries().isEmpty()) {
-                                type = SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE;
+                                type = SiriDataType.SITUATION_EXCHANGE;
                             } else if (siri.getServiceDelivery().getVehicleMonitoringDeliveries() != null &&
                                     !siri.getServiceDelivery().getVehicleMonitoringDeliveries().isEmpty()) {
-                                type = SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING;
+                                type = SiriDataType.VEHICLE_MONITORING;
                             } else {
                                 return;
                             }
@@ -186,7 +187,7 @@ public class SiriXmlValidator extends ApplicationContextHolder{
         return null;
     }
 
-    private void validateAttributes(String siri, SubscriptionSetup.SubscriptionType type, SiriValidationEventHandler handler) throws XPathExpressionException, XPathFactoryConfigurationException, ParserConfigurationException, IOException, SAXException {
+    private void validateAttributes(String siri, SiriDataType type, SiriValidationEventHandler handler) throws XPathExpressionException, XPathFactoryConfigurationException, ParserConfigurationException, IOException, SAXException {
         if (validationRules.isEmpty()) {
             populateValidationRules();
         }

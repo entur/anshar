@@ -4,7 +4,7 @@ import com.hazelcast.core.IMap;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.metrics.MetricsService;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
-import no.rutebanken.anshar.subscription.SubscriptionSetup;
+import no.rutebanken.anshar.subscription.SiriDataType;
 import org.quartz.utils.counter.Counter;
 import org.quartz.utils.counter.CounterImpl;
 import org.slf4j.Logger;
@@ -222,7 +222,7 @@ public class Situations implements SiriRepository<PtSituationElement> {
         });
         logger.info("Updated {} (of {}) :: Already expired: {},", changes.size(), sxList.size(), alreadyExpiredCounter.getValue());
 
-        metricsService.registerIncomingData(SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE, datasetId, changes.size());
+        metricsService.registerIncomingData(SiriDataType.SITUATION_EXCHANGE, datasetId, changes.size());
 
         changesMap.keySet().forEach(requestor -> {
             if (lastUpdateRequested.get(requestor) != null) {

@@ -3,7 +3,7 @@ package no.rutebanken.anshar.routes.health;
 import com.hazelcast.core.HazelcastInstanceNotActiveException;
 import com.hazelcast.core.IMap;
 import no.rutebanken.anshar.data.collections.HealthCheckKey;
-import no.rutebanken.anshar.subscription.SubscriptionSetup;
+import no.rutebanken.anshar.subscription.SiriDataType;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -33,7 +33,7 @@ public class HealthManager {
 
     @Autowired
     @Qualifier("getUnmappedIds")
-    private IMap<String, Map<SubscriptionSetup.SubscriptionType, Set<String>>> unmappedIds;
+    private IMap<String, Map<SiriDataType, Set<String>>> unmappedIds;
 
     @Value("${anshar.admin.health.allowed.inactivity.seconds:999}")
     private long allowedInactivityTime;
@@ -88,7 +88,7 @@ public class HealthManager {
         return -1;
     }
 
-    public Map<SubscriptionSetup.SubscriptionType, Set<String>> getUnmappedIds(String datasetId) {
+    public Map<SiriDataType, Set<String>> getUnmappedIds(String datasetId) {
         return unmappedIds.getOrDefault(datasetId, new HashMap<>());
     }
 
@@ -98,11 +98,11 @@ public class HealthManager {
             return result;
         }
 
-        Map<SubscriptionSetup.SubscriptionType, Set<String>> dataSetUnmapped = getUnmappedIds(datasetId);
+        Map<SiriDataType, Set<String>> dataSetUnmapped = getUnmappedIds(datasetId);
 
         if (dataSetUnmapped != null) {
             JSONArray typesList = new JSONArray();
-            for (SubscriptionSetup.SubscriptionType type : dataSetUnmapped.keySet()) {
+            for (SiriDataType type : dataSetUnmapped.keySet()) {
                 JSONObject typeObject = new JSONObject();
                 Set<String> unmappedIdsForType = dataSetUnmapped.get(type);
 
@@ -120,8 +120,8 @@ public class HealthManager {
         return result;
     }
 
-    public void addUnmappedId(SubscriptionSetup.SubscriptionType type, String datasetId, String id) {
-        Map<SubscriptionSetup.SubscriptionType, Set<String>> unmappedIds = getUnmappedIds(datasetId);
+    public void addUnmappedId(SiriDataType type, String datasetId, String id) {
+        Map<SiriDataType, Set<String>> unmappedIds = getUnmappedIds(datasetId);
 
         Set<String> ids = unmappedIds.getOrDefault(type, new HashSet<>());
         ids.add(id);
@@ -130,8 +130,8 @@ public class HealthManager {
         this.unmappedIds.set(datasetId, unmappedIds);
     }
 
-    public void removeUnmappedId(SubscriptionSetup.SubscriptionType type, String datasetId, String id) {
-        Map<SubscriptionSetup.SubscriptionType, Set<String>> unmappedIds = getUnmappedIds(datasetId);
+    public void removeUnmappedId(SiriDataType type, String datasetId, String id) {
+        Map<SiriDataType, Set<String>> unmappedIds = getUnmappedIds(datasetId);
 
         Set<String> ids = unmappedIds.getOrDefault(type, new HashSet<>());
         ids.remove(id);

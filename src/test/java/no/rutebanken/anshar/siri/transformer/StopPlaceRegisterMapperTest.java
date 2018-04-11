@@ -5,7 +5,7 @@ import no.rutebanken.anshar.routes.health.HealthManager;
 import no.rutebanken.anshar.routes.siri.transformer.ApplicationContextHolder;
 import no.rutebanken.anshar.routes.siri.transformer.impl.StopPlaceRegisterMapper;
 import no.rutebanken.anshar.routes.siri.transformer.impl.StopPlaceUpdaterService;
-import no.rutebanken.anshar.subscription.SubscriptionSetup;
+import no.rutebanken.anshar.subscription.SiriDataType;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -46,7 +46,7 @@ public class StopPlaceRegisterMapperTest {
 
         List<String> prefixes = new ArrayList<>();
 
-        StopPlaceRegisterMapper mapper = new StopPlaceRegisterMapper(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING, "TST",JourneyPlaceRefStructure.class, prefixes);
+        StopPlaceRegisterMapper mapper = new StopPlaceRegisterMapper(SiriDataType.VEHICLE_MONITORING, "TST",JourneyPlaceRefStructure.class, prefixes);
 
         assertEquals("NSR:QUAY:11223344", mapper.apply("1234"));
     }
@@ -60,7 +60,7 @@ public class StopPlaceRegisterMapperTest {
         StopPlaceUpdaterService stopPlaceService = ApplicationContextHolder.getContext().getBean(StopPlaceUpdaterService.class);
         stopPlaceService.addStopPlaceMappings(stopPlaceMap);
 
-        StopPlaceRegisterMapper mapper = new StopPlaceRegisterMapper(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING, "TST",JourneyPlaceRefStructure.class, prefixes);
+        StopPlaceRegisterMapper mapper = new StopPlaceRegisterMapper(SiriDataType.VEHICLE_MONITORING, "TST",JourneyPlaceRefStructure.class, prefixes);
 
         assertEquals("NSR:QUAY:11223344", mapper.apply("1234"));
     }
@@ -75,7 +75,7 @@ public class StopPlaceRegisterMapperTest {
         StopPlaceUpdaterService stopPlaceService = ApplicationContextHolder.getContext().getBean(StopPlaceUpdaterService.class);
         stopPlaceService.addStopPlaceMappings(stopPlaceMap);
 
-        StopPlaceRegisterMapper mapper = new StopPlaceRegisterMapper(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING, "TST",JourneyPlaceRefStructure.class, prefixes);
+        StopPlaceRegisterMapper mapper = new StopPlaceRegisterMapper(SiriDataType.VEHICLE_MONITORING, "TST",JourneyPlaceRefStructure.class, prefixes);
 
         assertEquals("NSR:QUAY:44444444", mapper.apply("5555"));
     }
@@ -86,7 +86,7 @@ public class StopPlaceRegisterMapperTest {
 
         List<String> prefixes = new ArrayList<>();
 
-        StopPlaceRegisterMapper mapper = new StopPlaceRegisterMapper(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING, "TST",JourneyPlaceRefStructure.class, prefixes);
+        StopPlaceRegisterMapper mapper = new StopPlaceRegisterMapper(SiriDataType.VEHICLE_MONITORING, "TST",JourneyPlaceRefStructure.class, prefixes);
 
         assertEquals("NSR:QUAY:11223344", mapper.apply("NSR:QUAY:11223344"));
     }
@@ -110,15 +110,15 @@ public class StopPlaceRegisterMapperTest {
         String originalId = "4321";
         String mappedId = "NSR:QUAY:44332211";
 
-        StopPlaceRegisterMapper mapper = new StopPlaceRegisterMapper(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING, datasetId,JourneyPlaceRefStructure.class, prefixes);
+        StopPlaceRegisterMapper mapper = new StopPlaceRegisterMapper(SiriDataType.VEHICLE_MONITORING, datasetId,JourneyPlaceRefStructure.class, prefixes);
 
         assertEquals(originalId, mapper.apply(originalId));
 
-        Map<SubscriptionSetup.SubscriptionType, Set<String>> unmappedIds = healthManager.getUnmappedIds(datasetId);
+        Map<SiriDataType, Set<String>> unmappedIds = healthManager.getUnmappedIds(datasetId);
 
         assertEquals(1, unmappedIds.size());
 
-        Set<String> ids = unmappedIds.get(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING);
+        Set<String> ids = unmappedIds.get(SiriDataType.VEHICLE_MONITORING);
         assertEquals(1, ids.size());
         assertEquals(originalId, ids.iterator().next());
 
@@ -131,7 +131,7 @@ public class StopPlaceRegisterMapperTest {
 
         unmappedIds = healthManager.getUnmappedIds(datasetId);
         assertEquals(1, unmappedIds.size());
-        ids = unmappedIds.get(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING);
+        ids = unmappedIds.get(SiriDataType.VEHICLE_MONITORING);
         assertEquals(0, ids.size());
 
     }

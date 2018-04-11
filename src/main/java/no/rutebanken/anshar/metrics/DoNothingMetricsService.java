@@ -1,10 +1,10 @@
 package no.rutebanken.anshar.metrics;
 
-import no.rutebanken.anshar.subscription.SubscriptionSetup;
+import no.rutebanken.anshar.subscription.SiriDataType;
 
 public class DoNothingMetricsService implements MetricsService {
     @Override
-    public void registerIncomingData(SubscriptionSetup.SubscriptionType subscriptionType, String agencyId, int count) {
+    public void registerIncomingData(SiriDataType subscriptionType, String agencyId, int count) {
 
     }
 }

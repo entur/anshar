@@ -3,7 +3,7 @@ package no.rutebanken.anshar.data;
 import com.hazelcast.core.IMap;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.metrics.MetricsService;
-import no.rutebanken.anshar.subscription.SubscriptionSetup;
+import no.rutebanken.anshar.subscription.SiriDataType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -137,7 +137,7 @@ public class ProductionTimetables implements SiriRepository<ProductionTimetableD
             }
         });
 
-        metricsService.registerIncomingData(SubscriptionSetup.SubscriptionType.PRODUCTION_TIMETABLE, datasetId, changes.size());
+        metricsService.registerIncomingData(SiriDataType.PRODUCTION_TIMETABLE, datasetId, changes.size());
 
         changesMap.keySet().forEach(requestor -> {
             if (lastUpdateRequested.get(requestor) != null) {

@@ -1,6 +1,7 @@
 package no.rutebanken.anshar.routes.outbound;
 
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
+import no.rutebanken.anshar.subscription.SiriDataType;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 
 import java.io.Serializable;
@@ -13,7 +14,7 @@ import java.util.Set;
 public class OutboundSubscriptionSetup implements Serializable {
 
     private ZonedDateTime requestTimestamp;
-    private SubscriptionSetup.SubscriptionType subscriptionType;
+    private SiriDataType subscriptionType;
     private SubscriptionSetup.SubscriptionMode subscriptionMode;
     private String address;
     private long heartbeatInterval;
@@ -28,7 +29,7 @@ public class OutboundSubscriptionSetup implements Serializable {
     private String datasetId;
     private long changeBeforeUpdates;
 
-    public OutboundSubscriptionSetup(ZonedDateTime requestTimestamp, SubscriptionSetup.SubscriptionType subscriptionType, SubscriptionSetup.SubscriptionMode subscriptionMode, String address, long heartbeatInterval,
+    public OutboundSubscriptionSetup(ZonedDateTime requestTimestamp, SiriDataType subscriptionType, SubscriptionSetup.SubscriptionMode subscriptionMode, String address, long heartbeatInterval,
                                      long changeBeforeUpdates, SubscriptionSetup.ServiceType serviceType, Map<Class, Set<String>> filterMap, List<ValueAdapter> valueAdapters,
                                      String subscriptionId, String requestorRef, ZonedDateTime initialTerminationTime, String datasetId, boolean active) {
         this.requestTimestamp = requestTimestamp;
@@ -47,7 +48,7 @@ public class OutboundSubscriptionSetup implements Serializable {
         this.active = active;
     }
 
-    OutboundSubscriptionSetup(SubscriptionSetup.SubscriptionType subscriptionType, String address, int timeToLive, List<ValueAdapter> outboundAdapters) {
+    OutboundSubscriptionSetup(SiriDataType subscriptionType, String address, int timeToLive, List<ValueAdapter> outboundAdapters) {
         this.subscriptionType = subscriptionType;
         this.address = address;
         this.timeToLive = timeToLive;
@@ -62,7 +63,7 @@ public class OutboundSubscriptionSetup implements Serializable {
         return requestTimestamp;
     }
 
-    public SubscriptionSetup.SubscriptionType getSubscriptionType() {
+    public SiriDataType getSubscriptionType() {
         return subscriptionType;
     }
 

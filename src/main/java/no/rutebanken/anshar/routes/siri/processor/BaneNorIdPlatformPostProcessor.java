@@ -4,7 +4,7 @@ import no.rutebanken.anshar.routes.health.HealthManager;
 import no.rutebanken.anshar.routes.siri.transformer.ApplicationContextHolder;
 import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
-import no.rutebanken.anshar.subscription.SubscriptionSetup;
+import no.rutebanken.anshar.subscription.SiriDataType;
 import uk.org.siri.siri20.*;
 
 import java.util.HashSet;
@@ -15,12 +15,12 @@ public class BaneNorIdPlatformPostProcessor extends ValueAdapter implements Post
 
     private static BaneNorIdPlatformUpdaterService stopPlaceService;
     private static HealthManager healthManager;
-    private final SubscriptionSetup.SubscriptionType type;
+    private final SiriDataType type;
 
     private static Set<String> unmappedAlreadyAdded;
     private final String datasetId;
 
-    public BaneNorIdPlatformPostProcessor(SubscriptionSetup.SubscriptionType type, String datasetId) {
+    public BaneNorIdPlatformPostProcessor(SiriDataType type, String datasetId) {
         this.datasetId = datasetId;
         this.type = type;
         unmappedAlreadyAdded = new HashSet<>();

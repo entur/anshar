@@ -1,6 +1,6 @@
 package no.rutebanken.anshar.routes.validation.validators;
 
-import no.rutebanken.anshar.subscription.SubscriptionSetup;
+import no.rutebanken.anshar.subscription.SiriDataType;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Node;
 
@@ -8,7 +8,7 @@ import javax.xml.bind.ValidationEvent;
 
 import static no.rutebanken.anshar.routes.validation.validators.Constants.ESTIMATED_CALL;
 
-@Validator(type = SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE)
+@Validator(targetType = SiriDataType.ESTIMATED_TIMETABLE)
 @Component
 public class StopPointRefValidator extends CustomValidator {
 

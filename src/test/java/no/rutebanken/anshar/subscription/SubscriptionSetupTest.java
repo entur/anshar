@@ -24,7 +24,7 @@ public class SubscriptionSetupTest {
         urlMap_2.putAll(urlMap_1);
 
         setup_1 = new SubscriptionSetup(
-                SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE,
+                SiriDataType.SITUATION_EXCHANGE,
                 SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
                 "http://localhost",
                 Duration.ofHours(1),
@@ -45,7 +45,7 @@ public class SubscriptionSetupTest {
         );
 
         setup_2 = new SubscriptionSetup(
-                SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE,
+                SiriDataType.SITUATION_EXCHANGE,
                 SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
                 "http://localhost",
                 Duration.ofHours(1),
@@ -74,7 +74,7 @@ public class SubscriptionSetupTest {
     @Test
     public void testEqualsUpdatedSubscriptionType() {
         assertEquals(setup_1, setup_2);
-        setup_2.setSubscriptionType(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING);
+        setup_2.setSubscriptionType(SiriDataType.VEHICLE_MONITORING);
         assertFalse(setup_1.equals(setup_2));
     }
 

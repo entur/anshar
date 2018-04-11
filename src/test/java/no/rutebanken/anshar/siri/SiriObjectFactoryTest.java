@@ -1,6 +1,7 @@
 package no.rutebanken.anshar.siri;
 
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
+import no.rutebanken.anshar.subscription.SiriDataType;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.junit.Test;
 import uk.org.siri.siri20.*;
@@ -19,7 +20,7 @@ public class SiriObjectFactoryTest {
     @Test
     public void testCreateVMSubscription(){
 
-        SubscriptionSetup subscriptionSetup = createSubscriptionSetup(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING,
+        SubscriptionSetup subscriptionSetup = createSubscriptionSetup(SiriDataType.VEHICLE_MONITORING,
                 SubscriptionSetup.SubscriptionMode.REQUEST_RESPONSE,
                 UUID.randomUUID().toString());
 
@@ -45,7 +46,7 @@ public class SiriObjectFactoryTest {
     @Test
     public void testCreateVMServiceRequest(){
 
-        SubscriptionSetup subscriptionSetup = createSubscriptionSetup(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING,
+        SubscriptionSetup subscriptionSetup = createSubscriptionSetup(SiriDataType.VEHICLE_MONITORING,
                 SubscriptionSetup.SubscriptionMode.REQUEST_RESPONSE,
                 UUID.randomUUID().toString());
 
@@ -66,7 +67,7 @@ public class SiriObjectFactoryTest {
     @Test
     public void testCreateSXSubscription(){
 
-        SubscriptionSetup subscriptionSetup = createSubscriptionSetup(SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE,
+        SubscriptionSetup subscriptionSetup = createSubscriptionSetup(SiriDataType.SITUATION_EXCHANGE,
                 SubscriptionSetup.SubscriptionMode.REQUEST_RESPONSE,
                 UUID.randomUUID().toString());
 
@@ -95,19 +96,19 @@ public class SiriObjectFactoryTest {
     @Test
     public void testCreateSubscriptionCustomAddressfield(){
 
-        SubscriptionSetup sxSubscriptionSetup = createSubscriptionSetup(SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE,
+        SubscriptionSetup sxSubscriptionSetup = createSubscriptionSetup(SiriDataType.SITUATION_EXCHANGE,
                 SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
                 UUID.randomUUID().toString());
 
-        SubscriptionSetup etSubscriptionSetup = createSubscriptionSetup(SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE,
+        SubscriptionSetup etSubscriptionSetup = createSubscriptionSetup(SiriDataType.ESTIMATED_TIMETABLE,
                 SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
                 UUID.randomUUID().toString());
 
-        SubscriptionSetup vmSubscriptionSetup = createSubscriptionSetup(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING,
+        SubscriptionSetup vmSubscriptionSetup = createSubscriptionSetup(SiriDataType.VEHICLE_MONITORING,
                 SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
                 UUID.randomUUID().toString());
 
-        SubscriptionSetup ptSubscriptionSetup = createSubscriptionSetup(SubscriptionSetup.SubscriptionType.PRODUCTION_TIMETABLE,
+        SubscriptionSetup ptSubscriptionSetup = createSubscriptionSetup(SiriDataType.PRODUCTION_TIMETABLE,
                 SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
                 UUID.randomUUID().toString());
 
@@ -151,7 +152,7 @@ public class SiriObjectFactoryTest {
     @Test
     public void testCreateSXServiceRequest(){
 
-        SubscriptionSetup subscriptionSetup = createSubscriptionSetup(SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE,
+        SubscriptionSetup subscriptionSetup = createSubscriptionSetup(SiriDataType.SITUATION_EXCHANGE,
                 SubscriptionSetup.SubscriptionMode.REQUEST_RESPONSE,
                 UUID.randomUUID().toString());
 
@@ -172,7 +173,7 @@ public class SiriObjectFactoryTest {
     @Test
     public void testCreateETSubscription(){
 
-        SubscriptionSetup subscriptionSetup = createSubscriptionSetup(SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE,
+        SubscriptionSetup subscriptionSetup = createSubscriptionSetup(SiriDataType.ESTIMATED_TIMETABLE,
                 SubscriptionSetup.SubscriptionMode.REQUEST_RESPONSE,
                 UUID.randomUUID().toString());
 
@@ -200,7 +201,7 @@ public class SiriObjectFactoryTest {
     @Test
     public void testCreateETServiceRequest(){
 
-        SubscriptionSetup subscriptionSetup = createSubscriptionSetup(SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE,
+        SubscriptionSetup subscriptionSetup = createSubscriptionSetup(SiriDataType.ESTIMATED_TIMETABLE,
                 SubscriptionSetup.SubscriptionMode.REQUEST_RESPONSE,
                 UUID.randomUUID().toString());
 
@@ -221,7 +222,7 @@ public class SiriObjectFactoryTest {
     @Test
     public void testCreatePTSubscription(){
 
-        SubscriptionSetup subscriptionSetup = createSubscriptionSetup(SubscriptionSetup.SubscriptionType.PRODUCTION_TIMETABLE,
+        SubscriptionSetup subscriptionSetup = createSubscriptionSetup(SiriDataType.PRODUCTION_TIMETABLE,
                 SubscriptionSetup.SubscriptionMode.REQUEST_RESPONSE,
                 UUID.randomUUID().toString());
 
@@ -243,7 +244,7 @@ public class SiriObjectFactoryTest {
     @Test
     public void testCreatePTServiceRequest(){
 
-        SubscriptionSetup subscriptionSetup = createSubscriptionSetup(SubscriptionSetup.SubscriptionType.PRODUCTION_TIMETABLE,
+        SubscriptionSetup subscriptionSetup = createSubscriptionSetup(SiriDataType.PRODUCTION_TIMETABLE,
                 SubscriptionSetup.SubscriptionMode.REQUEST_RESPONSE,
                 UUID.randomUUID().toString());
 
@@ -264,7 +265,7 @@ public class SiriObjectFactoryTest {
     @Test
     public void testCreateTerminateSubscriptionRequest(){
 
-        SubscriptionSetup subscriptionSetup = createSubscriptionSetup(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING,
+        SubscriptionSetup subscriptionSetup = createSubscriptionSetup(SiriDataType.VEHICLE_MONITORING,
                 SubscriptionSetup.SubscriptionMode.REQUEST_RESPONSE,
                 UUID.randomUUID().toString());
 
@@ -278,7 +279,7 @@ public class SiriObjectFactoryTest {
         Siri request = SiriObjectFactory.createTerminateSubscriptionRequest(null);
         assertNull(request);
 
-        SubscriptionSetup subscriptionSetup = createSubscriptionSetup(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING,
+        SubscriptionSetup subscriptionSetup = createSubscriptionSetup(SiriDataType.VEHICLE_MONITORING,
                 SubscriptionSetup.SubscriptionMode.REQUEST_RESPONSE,
                 UUID.randomUUID().toString());
 
@@ -287,11 +288,11 @@ public class SiriObjectFactoryTest {
 
     }
 
-    private SubscriptionSetup createSubscriptionSetup(SubscriptionSetup.SubscriptionType type, SubscriptionSetup.SubscriptionMode mode, String subscriptionId) {
+    private SubscriptionSetup createSubscriptionSetup(SiriDataType type, SubscriptionSetup.SubscriptionMode mode, String subscriptionId) {
         return createSubscriptionSetup(type, mode, subscriptionId, "RutebankenDev");
     }
 
-    private SubscriptionSetup createSubscriptionSetup(SubscriptionSetup.SubscriptionType type, SubscriptionSetup.SubscriptionMode mode, String subscriptionId, String requestorRef) {
+    private SubscriptionSetup createSubscriptionSetup(SiriDataType type, SubscriptionSetup.SubscriptionMode mode, String subscriptionId, String requestorRef) {
         SubscriptionSetup subscriptionSetup = new SubscriptionSetup();
         subscriptionSetup.setSubscriptionType(type);
         subscriptionSetup.setSubscriptionMode(mode);

@@ -1,7 +1,7 @@
 package no.rutebanken.anshar.routes.validation.validators;
 
 import com.google.common.collect.Sets;
-import no.rutebanken.anshar.subscription.SubscriptionSetup;
+import no.rutebanken.anshar.subscription.SiriDataType;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Node;
 
@@ -10,7 +10,7 @@ import java.util.Set;
 
 import static no.rutebanken.anshar.routes.validation.validators.Constants.PT_SITUATION_ELEMENT;
 
-@Validator(type = SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE)
+@Validator(targetType = SiriDataType.SITUATION_EXCHANGE)
 @Component
 public class ReportTypeValidator extends CustomValidator {
 

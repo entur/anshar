@@ -288,7 +288,7 @@ public class SubscriptionManagerTest {
 
     private SubscriptionSetup createSubscription(long initialDuration, Duration heartbeatInterval) {
         return new SubscriptionSetup(
-                SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE,
+                SiriDataType.SITUATION_EXCHANGE,
                 SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
                 "http://localhost",
                 heartbeatInterval,

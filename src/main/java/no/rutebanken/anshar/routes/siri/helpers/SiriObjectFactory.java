@@ -8,6 +8,7 @@ import com.esotericsoftware.kryo.pool.KryoFactory;
 import com.esotericsoftware.kryo.pool.KryoPool;
 import com.sun.org.apache.xerces.internal.dom.ElementNSImpl;
 import no.rutebanken.anshar.config.AnsharConfiguration;
+import no.rutebanken.anshar.subscription.SiriDataType;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.commons.lang3.NotImplementedException;
 import org.objenesis.strategy.StdInstantiatorStrategy;
@@ -83,7 +84,7 @@ public class SiriObjectFactory {
 
         SubscriptionRequest request = null;
 
-        if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE)) {
+        if (subscriptionSetup.getSubscriptionType().equals(SiriDataType.SITUATION_EXCHANGE)) {
             request = createSituationExchangeSubscriptionRequest(subscriptionSetup.getRequestorRef(),subscriptionSetup.getSubscriptionId(),
                     subscriptionSetup.getHeartbeatInterval(),
                     subscriptionSetup.buildUrl(),
@@ -93,7 +94,7 @@ public class SiriObjectFactory {
                     subscriptionSetup.getIncrementalUpdates(),
                     subscriptionSetup.getPreviewInterval());
         }
-        if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING)) {
+        if (subscriptionSetup.getSubscriptionType().equals(SiriDataType.VEHICLE_MONITORING)) {
             request = createVehicleMonitoringSubscriptionRequest(subscriptionSetup.getRequestorRef(),
                     subscriptionSetup.getSubscriptionId(),
                     subscriptionSetup.getHeartbeatInterval(),
@@ -106,7 +107,7 @@ public class SiriObjectFactory {
                     subscriptionSetup.getIncrementalUpdates(),
                     subscriptionSetup.getVehicleMonitoringRefValue());
         }
-        if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE)) {
+        if (subscriptionSetup.getSubscriptionType().equals(SiriDataType.ESTIMATED_TIMETABLE)) {
             request = createEstimatedTimetableSubscriptionRequest(subscriptionSetup.getRequestorRef(),subscriptionSetup.getSubscriptionId(),
                     subscriptionSetup.getHeartbeatInterval(),
                     subscriptionSetup.buildUrl(),
@@ -117,7 +118,7 @@ public class SiriObjectFactory {
                     subscriptionSetup.getPreviewInterval(),
                     subscriptionSetup.getChangeBeforeUpdates());
         }
-        if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.PRODUCTION_TIMETABLE)) {
+        if (subscriptionSetup.getSubscriptionType().equals(SiriDataType.PRODUCTION_TIMETABLE)) {
             request = createProductionTimetableSubscriptionRequest(subscriptionSetup.getRequestorRef(), subscriptionSetup.getSubscriptionId(),
                     subscriptionSetup.getHeartbeatInterval(),
                     subscriptionSetup.buildUrl(),
@@ -138,18 +139,18 @@ public class SiriObjectFactory {
         request.setRequestTimestamp(ZonedDateTime.now());
         request.setRequestorRef(createRequestorRef(subscriptionSetup.getRequestorRef()));
 
-        if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE)) {
+        if (subscriptionSetup.getSubscriptionType().equals(SiriDataType.SITUATION_EXCHANGE)) {
             request.getSituationExchangeRequests().add(createSituationExchangeRequestStructure(subscriptionSetup.getPreviewInterval()));
 
         }
-        if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING)) {
+        if (subscriptionSetup.getSubscriptionType().equals(SiriDataType.VEHICLE_MONITORING)) {
             request.getVehicleMonitoringRequests().add(createVehicleMonitoringRequestStructure());
         }
-        if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE)) {
+        if (subscriptionSetup.getSubscriptionType().equals(SiriDataType.ESTIMATED_TIMETABLE)) {
             request.getEstimatedTimetableRequests().add(createEstimatedTimetableRequestStructure(subscriptionSetup.getPreviewInterval()));
         }
 
-        if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.PRODUCTION_TIMETABLE)) {
+        if (subscriptionSetup.getSubscriptionType().equals(SiriDataType.PRODUCTION_TIMETABLE)) {
             request.getProductionTimetableRequests().add(createProductionTimetableRequestStructure());
         }
 

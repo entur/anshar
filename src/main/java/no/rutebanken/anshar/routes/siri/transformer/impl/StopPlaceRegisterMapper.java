@@ -4,7 +4,7 @@ package no.rutebanken.anshar.routes.siri.transformer.impl;
 import no.rutebanken.anshar.routes.health.HealthManager;
 import no.rutebanken.anshar.routes.siri.transformer.ApplicationContextHolder;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
-import no.rutebanken.anshar.subscription.SubscriptionSetup;
+import no.rutebanken.anshar.subscription.SiriDataType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,13 +24,13 @@ public class StopPlaceRegisterMapper extends ValueAdapter {
     private static final Set<String> unmappedAlreadyAdded = new HashSet<>();
 
     private final String datasetId;
-    private final SubscriptionSetup.SubscriptionType type;
+    private final SiriDataType type;
 
-    public StopPlaceRegisterMapper(SubscriptionSetup.SubscriptionType type, String datasetId, Class clazz, List<String> prefixes) {
+    public StopPlaceRegisterMapper(SiriDataType type, String datasetId, Class clazz, List<String> prefixes) {
         this(type, datasetId, clazz, prefixes, "Quay");
     }
 
-    public StopPlaceRegisterMapper(SubscriptionSetup.SubscriptionType type, String datasetId, Class clazz, List<String> prefixes, String datatype) {
+    public StopPlaceRegisterMapper(SiriDataType type, String datasetId, Class clazz, List<String> prefixes, String datatype) {
         super(clazz);
         this.type = type;
         this.datasetId = datasetId;

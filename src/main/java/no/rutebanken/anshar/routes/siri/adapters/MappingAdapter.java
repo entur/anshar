@@ -4,6 +4,7 @@ import no.rutebanken.anshar.routes.siri.handlers.OutboundIdMappingPolicy;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.routes.siri.transformer.impl.PrefixAdapter;
 import no.rutebanken.anshar.routes.siri.transformer.impl.StopPlaceRegisterMapper;
+import no.rutebanken.anshar.subscription.SiriDataType;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import no.rutebanken.anshar.subscription.helpers.MappingAdapterPresets;
 import uk.org.ifopt.siri20.StopPlaceRef;
@@ -19,7 +20,7 @@ public abstract class MappingAdapter {
     public List<ValueAdapter> getOutboundValueAdapters(OutboundIdMappingPolicy mappingPolicy) {
         return new MappingAdapterPresets().getOutboundAdapters(mappingPolicy);
     }
-    List<ValueAdapter> createNsrIdMappingAdapters(SubscriptionSetup.SubscriptionType type, String datasetId, List<String> idMappingPrefixes) {
+    List<ValueAdapter> createNsrIdMappingAdapters(SiriDataType type, String datasetId, List<String> idMappingPrefixes) {
         List<ValueAdapter> nsr = new ArrayList<>();
         nsr.add(new StopPlaceRegisterMapper(type, datasetId, StopPlaceRef.class, idMappingPrefixes, "StopPlace"));
         nsr.add(new StopPlaceRegisterMapper(type, datasetId, StopPointRef.class, idMappingPrefixes));

@@ -2,6 +2,7 @@ package no.rutebanken.anshar.routes;
 
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.routes.policy.InterruptibleHazelcastRoutePolicy;
+import no.rutebanken.anshar.subscription.SiriDataType;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import no.rutebanken.anshar.subscription.helpers.RequestType;
@@ -86,11 +87,11 @@ public abstract class BaseRouteBuilder extends SpringRouteBuilder {
     protected String getRequestUrl(SubscriptionSetup subscriptionSetup) throws ServiceNotSupportedException {
         Map<RequestType, String> urlMap = subscriptionSetup.getUrlMap();
         String url;
-        if (subscriptionSetup.getSubscriptionType() == SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE) {
+        if (subscriptionSetup.getSubscriptionType() == SiriDataType.ESTIMATED_TIMETABLE) {
             url = urlMap.get(RequestType.GET_ESTIMATED_TIMETABLE);
-        } else if (subscriptionSetup.getSubscriptionType() == SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING) {
+        } else if (subscriptionSetup.getSubscriptionType() == SiriDataType.VEHICLE_MONITORING) {
             url = urlMap.get(RequestType.GET_VEHICLE_MONITORING);
-        } else if (subscriptionSetup.getSubscriptionType() == SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE) {
+        } else if (subscriptionSetup.getSubscriptionType() == SiriDataType.SITUATION_EXCHANGE) {
             url = urlMap.get(RequestType.GET_SITUATION_EXCHANGE);
         } else {
             throw new ServiceNotSupportedException();
@@ -103,11 +104,11 @@ public abstract class BaseRouteBuilder extends SpringRouteBuilder {
         if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.SUBSCRIBE &&
                 subscriptionSetup.isDataSupplyRequestForInitialDelivery()) {
             return "DataSupplyRequest";
-        } if (subscriptionSetup.getSubscriptionType() == SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE) {
+        } if (subscriptionSetup.getSubscriptionType() == SiriDataType.ESTIMATED_TIMETABLE) {
             return "GetEstimatedTimetableRequest";
-        } else if (subscriptionSetup.getSubscriptionType() == SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING) {
+        } else if (subscriptionSetup.getSubscriptionType() == SiriDataType.VEHICLE_MONITORING) {
             return "GetVehicleMonitoring";
-        } else if (subscriptionSetup.getSubscriptionType() == SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE) {
+        } else if (subscriptionSetup.getSubscriptionType() == SiriDataType.SITUATION_EXCHANGE) {
             return "GetSituationExchange";
         } else {
             throw new ServiceNotSupportedException();

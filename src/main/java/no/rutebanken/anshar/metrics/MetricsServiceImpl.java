@@ -5,7 +5,7 @@ import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.graphite.Graphite;
 import com.codahale.metrics.graphite.GraphiteReporter;
 import com.google.common.base.Strings;
-import no.rutebanken.anshar.subscription.SubscriptionSetup;
+import no.rutebanken.anshar.subscription.SiriDataType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,7 +60,7 @@ public class MetricsServiceImpl implements MetricsService {
 
 
     @Override
-    public void registerIncomingData(SubscriptionSetup.SubscriptionType subscriptionType, String agencyId, int count) {
+    public void registerIncomingData(SiriDataType subscriptionType, String agencyId, int count) {
         String counterName = "data.from." + agencyId + ".type." + subscriptionType;
 //        synchronized (LOCK) {
              metrics.meter(counterName).mark(count);

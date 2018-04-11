@@ -237,11 +237,11 @@ public class SubscriptionInitializer implements CamelContextAware, ApplicationCo
         Map<RequestType, String> urlMap = s.getUrlMap();
         if (s.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.REQUEST_RESPONSE) {
 
-            if (SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE.equals(s.getSubscriptionType())) {
+            if (SiriDataType.SITUATION_EXCHANGE.equals(s.getSubscriptionType())) {
                 Preconditions.checkNotNull(urlMap.get(RequestType.GET_SITUATION_EXCHANGE), "GET_SITUATION_EXCHANGE-url is missing. " + s);
-            } else if (SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING.equals(s.getSubscriptionType())) {
+            } else if (SiriDataType.VEHICLE_MONITORING.equals(s.getSubscriptionType())) {
                 Preconditions.checkNotNull(urlMap.get(RequestType.GET_VEHICLE_MONITORING), "GET_VEHICLE_MONITORING-url is missing. " + s);
-            } else if (SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE.equals(s.getSubscriptionType())) {
+            } else if (SiriDataType.ESTIMATED_TIMETABLE.equals(s.getSubscriptionType())) {
                 Preconditions.checkNotNull(urlMap.get(RequestType.GET_ESTIMATED_TIMETABLE), "GET_ESTIMATED_TIMETABLE-url is missing. " + s);
             } else {
                 Preconditions.checkArgument(false, "URLs not configured correctly");
@@ -249,9 +249,9 @@ public class SubscriptionInitializer implements CamelContextAware, ApplicationCo
         } else if (s.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.SUBSCRIBE) {
 
             //Type-specific requirements
-            if (SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE.equals(s.getSubscriptionType())) {
+            if (SiriDataType.ESTIMATED_TIMETABLE.equals(s.getSubscriptionType())) {
                 Preconditions.checkNotNull(s.getPreviewInterval(), "PreviewInterval is not set");
-            } else if (SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE.equals(s.getSubscriptionType())) {
+            } else if (SiriDataType.SITUATION_EXCHANGE.equals(s.getSubscriptionType())) {
                 Preconditions.checkNotNull(s.getPreviewInterval(), "PreviewInterval is not set");
             }
 

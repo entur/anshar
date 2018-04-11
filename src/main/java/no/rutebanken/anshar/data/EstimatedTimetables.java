@@ -5,7 +5,7 @@ import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.metrics.MetricsService;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter;
-import no.rutebanken.anshar.subscription.SubscriptionSetup;
+import no.rutebanken.anshar.subscription.SiriDataType;
 import org.quartz.utils.counter.Counter;
 import org.quartz.utils.counter.CounterImpl;
 import org.slf4j.Logger;
@@ -372,7 +372,7 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
         });
 
         logger.info("Updated {} (of {})", changes.size(), etList.size());
-        metricsService.registerIncomingData(SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE, datasetId, changes.size());
+        metricsService.registerIncomingData(SiriDataType.ESTIMATED_TIMETABLE, datasetId, changes.size());
 
         changesMap.keySet().forEach(requestor -> {
             if (lastUpdateRequested.get(requestor) != null) {

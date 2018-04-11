@@ -18,7 +18,7 @@ public class SubscriptionSetup implements Serializable {
     private Logger logger = LoggerFactory.getLogger(SubscriptionSetup.class);
     private long internalId;
     private List<ValueAdapter> mappingAdapters = new ArrayList<>();
-    private SubscriptionType subscriptionType;
+    private SiriDataType subscriptionType;
     private String address;
     private Duration heartbeatInterval;
     private Duration updateInterval;
@@ -67,7 +67,7 @@ public class SubscriptionSetup implements Serializable {
      * @param durationOfSubscription Initial duration of subscription
      * @param active Activates/deactivates subscription
      */
-    public SubscriptionSetup(SubscriptionType subscriptionType, SubscriptionMode subscriptionMode, String address, Duration heartbeatInterval, Duration updateInterval, String operatorNamespace, Map<RequestType, String> urlMap,
+    public SubscriptionSetup(SiriDataType subscriptionType, SubscriptionMode subscriptionMode, String address, Duration heartbeatInterval, Duration updateInterval, String operatorNamespace, Map<RequestType, String> urlMap,
                              String version, String vendor, String datasetId, ServiceType serviceType, List<ValueAdapter> mappingAdapters, Map<Class, Set<Object>> filterMap, List<String> idMappingPrefixes,
                              String subscriptionId, String requestorRef, Duration durationOfSubscription, boolean active) {
         this.subscriptionType = subscriptionType;
@@ -162,7 +162,7 @@ public class SubscriptionSetup implements Serializable {
         return requestorRef;
     }
 
-    public SubscriptionType getSubscriptionType() {
+    public SiriDataType getSubscriptionType() {
         return subscriptionType;
     }
 
@@ -318,7 +318,7 @@ public class SubscriptionSetup implements Serializable {
     }
 
     public enum ServiceType {SOAP, REST}
-    public enum SubscriptionType {SITUATION_EXCHANGE, VEHICLE_MONITORING, PRODUCTION_TIMETABLE, ESTIMATED_TIMETABLE}
+
     public enum SubscriptionMode {SUBSCRIBE, REQUEST_RESPONSE, POLLING_FETCHED_DELIVERY, FETCHED_DELIVERY}
 
     public void setIdMappingPrefixes(List<String> idMappingPrefixes) {
@@ -337,7 +337,7 @@ public class SubscriptionSetup implements Serializable {
         this.mappingAdapterId = mappingAdapterId;
     }
 
-    public void setSubscriptionType(SubscriptionType subscriptionType) {
+    public void setSubscriptionType(SiriDataType subscriptionType) {
         this.subscriptionType = subscriptionType;
     }
 
