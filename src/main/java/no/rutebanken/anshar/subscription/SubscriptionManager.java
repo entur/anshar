@@ -175,6 +175,20 @@ public class SubscriptionManager {
         return subscriptions.get(subscriptionId);
     }
 
+    public JSONObject getSubscriptionsForCodespace(String codespace) {
+        JSONObject jsonSubscriptions = new JSONObject();
+        JSONArray filteredSubscriptions = new JSONArray();
+
+        filteredSubscriptions.addAll(subscriptions.values().stream()
+                .filter(subscription -> subscription.getDatasetId().equals(codespace))
+                .map(subscription -> getJsonObject(subscription))
+                .filter(json -> json != null)
+                .collect(Collectors.toList()));
+
+        jsonSubscriptions.put("subscriptions", filteredSubscriptions);
+        return jsonSubscriptions;
+    }
+
     private void hit(String subscriptionId) {
         int counter = (hitcount.get(subscriptionId) != null ? hitcount.get(subscriptionId):0);
         hitcount.put(subscriptionId, counter+1);

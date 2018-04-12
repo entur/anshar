@@ -12,7 +12,7 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.PT_SIT
 @Component
 public class SituationNumberValidator extends CustomValidator {
 
-    private static final String FIELDNAME = "Summary";
+    private static final String FIELDNAME = "SituationNumber";
     private static final String path = PT_SITUATION_ELEMENT + FIELDNAME;
 
     @Override
@@ -24,8 +24,8 @@ public class SituationNumberValidator extends CustomValidator {
     public ValidationEvent isValid(Node node) {
         String nodeValue = getNodeValue(node);
 
-        if (nodeValue == null || nodeValue.isEmpty()) {
-            return createEvent(node, FIELDNAME, " not empty", nodeValue);
+        if (nodeValue != null && !nodeValue.contains(":SituationNumber:")) {
+            return createEvent(node, FIELDNAME, "CODESPACE:SituationNumber:ID", nodeValue);
         }
 
         return null;

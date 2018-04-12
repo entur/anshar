@@ -1,11 +1,14 @@
 package no.rutebanken.anshar.routes.validation.validators;
 
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import javax.xml.bind.ValidationEvent;
 import javax.xml.bind.helpers.ValidationEventImpl;
 import javax.xml.bind.helpers.ValidationEventLocatorImpl;
 import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class CustomValidator {
 
@@ -22,6 +25,67 @@ public abstract class CustomValidator {
             return node.getFirstChild().getNodeValue();
         }
         return null;
+    }
+
+    protected Node getChildNodeByName(Node node, String name) {
+        if (node != null) {
+            final NodeList childNodes = node.getChildNodes();
+            for (int i = 0; i < childNodes.getLength(); i++) {
+                final Node n = childNodes.item(i);
+                if (n.hasChildNodes()) {
+                    for (int j = 0; j < n.getChildNodes().getLength(); j++) {
+                        if (n.getNodeName().equals(name)) {
+                            return n;
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    protected List<Node> getChildNodesByName(Node node, String name) {
+        List<Node> nodes = new ArrayList<>();
+        if (node != null) {
+            final NodeList childNodes = node.getChildNodes();
+            for (int i = 0; i < childNodes.getLength(); i++) {
+                final Node n = childNodes.item(i);
+                if (n.getNodeName().equals(name)) {
+                    nodes.add(n);
+                }
+            }
+        }
+        return nodes;
+    }
+
+
+    protected Node getSiblingNodeByName(Node node, String name) {
+        final Node parentNode = node.getParentNode();
+        if (parentNode != null) {
+            final NodeList childNodes = parentNode.getChildNodes();
+            for (int i = 0; i < childNodes.getLength(); i++) {
+                final Node n = childNodes.item(i);
+                if (n.getNodeName().equals(name)) {
+                    return n;
+                }
+            }
+        }
+        return null;
+    }
+
+    protected List<Node> getSiblingNodesByName(Node node, String name) {
+        final Node parentNode = node.getParentNode();
+        List<Node> nodes = new ArrayList<>();
+        if (parentNode != null) {
+            final NodeList childNodes = parentNode.getChildNodes();
+            for (int i = 0; i < childNodes.getLength(); i++) {
+                final Node n = childNodes.item(i);
+                if (n.getNodeName().equals(name)) {
+                    nodes.add(n);
+                }
+            }
+        }
+        return nodes;
     }
 
     /**

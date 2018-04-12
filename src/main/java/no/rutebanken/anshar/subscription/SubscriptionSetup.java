@@ -188,6 +188,7 @@ public class SubscriptionSetup implements Serializable {
     public JSONObject toJSON() {
         JSONObject obj = new JSONObject();
         obj.put("internalId", getInternalId());
+        obj.put("activated", isActive());
         obj.put("vendor", getVendor());
         obj.put("name", getName());
         obj.put("datasetId", getDatasetId());

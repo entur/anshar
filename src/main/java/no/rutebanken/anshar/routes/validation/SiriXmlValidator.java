@@ -62,6 +62,10 @@ public class SiriXmlValidator extends ApplicationContextHolder{
     private IMap<String, byte[]> validatedSiri;
 
     @Autowired
+    @Qualifier("getValidationSizeTracker")
+    private IMap<String, Long> validationSize;
+
+    @Autowired
     @Qualifier("getValidationResultJsonMap")
     private IMap<String, JSONObject> validationResults;
 
@@ -72,8 +76,9 @@ public class SiriXmlValidator extends ApplicationContextHolder{
     @Autowired
     private SubscriptionManager subscriptionManager;
 
-    @Value("${anshar.validation.max.results:5}")
-    private int maxResultsPerSubscription;
+    @Value("${anshar.validation.total.max.size.mb:4}")
+    private int maxTotalXmlSize;
+
     private Map<SiriDataType, Set<CustomValidator>> validationRules = new HashMap<>();
 
     public SiriXmlValidator() {
@@ -244,6 +249,7 @@ public class SiriXmlValidator extends ApplicationContextHolder{
                 validatedSiri.delete(ref);
             }
 
+            validationSize.delete(subscriptionId);
             validationResultRefs.delete(subscriptionId);
         }
     }
@@ -333,11 +339,13 @@ public class SiriXmlValidator extends ApplicationContextHolder{
         validatedSiri.set(newUniqueReference, byteArray);
         validationResults.set(newUniqueReference, jsonObject);
         validationResultRefs.set(subscriptionSetup.getSubscriptionId(), subscriptionValidationRefs);
+        final Long totalXmlSize = (validationSize.getOrDefault(subscriptionSetup.getSubscriptionId(), 0L) + byteArray.length);
+        validationSize.set(subscriptionSetup.getSubscriptionId(), totalXmlSize);
 
-        if (subscriptionValidationRefs.size() >= maxResultsPerSubscription) {
+        if (totalXmlSize > (maxTotalXmlSize * 1024*1024)) {
             subscriptionSetup.setValidation(false);
             subscriptionManager.updateSubscription(subscriptionSetup);
-            logger.info("Reached {} validations - disabling validation for {}", maxResultsPerSubscription, subscriptionSetup);
+            logger.info("Reached max size - {}mb - for validations, validated {} deliveries,  disabling validation for {}", maxTotalXmlSize, subscriptionValidationRefs.size(), subscriptionSetup);
         }
     }
 

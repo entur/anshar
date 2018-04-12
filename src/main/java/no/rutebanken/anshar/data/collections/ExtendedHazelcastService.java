@@ -246,6 +246,10 @@ public class ExtendedHazelcastService extends HazelCastService {
     public IMap<String, JSONObject> getValidationResultJsonMap() {
         return hazelcast.getMap("anshar.validation.results.json");
     }
+    @Bean
+    public IMap<String, Long> getValidationSizeTracker() {
+        return hazelcast.getMap("anshar.validation.results.size");
+    }
 
     @Bean
     public IMap<String,BigInteger> getObjectCounterMap() {
