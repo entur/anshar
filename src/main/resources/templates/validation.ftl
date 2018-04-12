@@ -90,10 +90,10 @@
             <tr>
                 <th>#</th>
                 <th>Name</th>
-                <th>Status</th>
+                <th>Subscription status</th>
                 <th>Type</th>
-                <th>Validation</th>
-                <th><span class="glyphicon glyphicon-info-sign text-info"></th>
+                <th>Results</th>
+                <th>On/Off <span class="glyphicon glyphicon-info-sign text-info"></th>
             </tr>
             </thead>
             <tbody>
@@ -104,10 +104,12 @@
                     <td>${item.status!""}</td>
                     <td>${item.subscriptionType}</td>
                     <td>
-                        <a href="report?subscriptionId=${item.subscriptionId}" target="_blank">Validation report</a>
-                    </td>
+                        <label>
+                            <a href="report?subscriptionId=${item.subscriptionId}" target="_blank">Validation report</a>
+                        </label>
+                        </td>
                     <td>
-                        <label class="switch" title="Temporarily activate validation">
+                        <label class="switch">
                             <input type="checkbox" ${item.validation?then("checked", "")} onchange="toggleValidation('${item.subscriptionId}')">
                             <span class="slider round"></span>
                         </label>
