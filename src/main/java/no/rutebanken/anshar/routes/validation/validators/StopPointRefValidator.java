@@ -25,7 +25,7 @@ public class StopPointRefValidator extends CustomValidator {
     public ValidationEvent isValid(Node node) {
         String nodeValue = getNodeValue(node);
 
-        if (!nodeValue.startsWith("NSR:Quay:")) {
+        if (nodeValue == null || !nodeValue.startsWith("NSR:Quay:")) {
             return  createEvent(node, FIELDNAME, "NSR:Quay:ID", nodeValue);
         }
 

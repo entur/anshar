@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import org.w3c.dom.Node;
 
 import javax.xml.bind.ValidationEvent;
+import java.util.List;
 
 import static no.rutebanken.anshar.routes.validation.validators.Constants.PT_SITUATION_ELEMENT;
 
@@ -22,11 +23,31 @@ public class SummaryValidator extends CustomValidator {
 
     @Override
     public ValidationEvent isValid(Node node) {
-        String nodeValue = getNodeValue(node);
 
-        if (nodeValue == null || nodeValue.isEmpty()) {
-            return createEvent(node, FIELDNAME, " not empty", nodeValue);
+        final List<Node> childNodesByName = getChildNodesByName(node, FIELDNAME);
+
+        boolean requireLangAttribute = (childNodesByName.size() > 1);
+
+        if (childNodesByName.isEmpty()) {
+            return createEvent(node, FIELDNAME, "not empty", null);
         }
+
+        for (Node summaryNode : childNodesByName) {
+
+            String nodeValue = getNodeValue(summaryNode);
+
+            if (nodeValue == null || nodeValue.isEmpty()) {
+                return createEvent(summaryNode, FIELDNAME, "not empty", nodeValue);
+            }
+
+            if (requireLangAttribute) {
+                final String lang = getNodeAttributeValue(summaryNode, "lang");
+                if (lang == null || lang.isEmpty()) {
+                    return createEvent(summaryNode, FIELDNAME, "lang-attribute when more than one Summary", nodeValue);
+                }
+            }
+        }
+
 
         return null;
     }

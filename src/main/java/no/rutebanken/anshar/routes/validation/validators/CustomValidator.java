@@ -1,5 +1,6 @@
 package no.rutebanken.anshar.routes.validation.validators;
 
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -23,6 +24,19 @@ public abstract class CustomValidator {
     protected String getNodeValue(Node node) {
         if (node != null && node.getFirstChild() != null && node.getFirstChild().getNodeValue() != null) {
             return node.getFirstChild().getNodeValue();
+        }
+        return null;
+    }
+
+    /**
+     * Returns the textual content of the provided node - null if it does not exist
+     * @param node
+     * @return
+     */
+    protected String getNodeAttributeValue(Node node, String attributeName) {
+        if (node != null && node.getAttributes() != null) {
+            final NamedNodeMap attributes = node.getAttributes();
+            return getNodeValue(attributes.getNamedItem(attributeName));
         }
         return null;
     }
