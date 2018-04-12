@@ -123,7 +123,7 @@
         <ul>
             <li>Remove previous validation reports</li>
             <li>Start validation of all incoming ServiceDeliveries</li>
-            <li>Automatically disable validation after size limit has been reached</li>
+            <li>Validation will automatically be disabled when size limit has been reached</li>
         </ul>
     </div>
 </div>
