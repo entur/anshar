@@ -28,12 +28,12 @@
             </thead>
             <tbody>
                 <#list body.validationRefs as validation>
-                <tr data-toggle="collapse" data-target="#accordion${validation?counter}" style="cursor: pointer" class="clickable ${((validation.schema.events?size + validation.profile.events?size) != 0)?then("danger","success")}">
-                    <th>${validation?counter}</th>
-                    <td>${validation.schema.timestamp}</td>
-                    <td>${validation.schema.events?size}</td>
-                    <td>${validation.profile.events?size}</td>
-                    <td><a href="validation/siri?validationRef=${validation.validationRef}">XML</a></td>
+                <tr style="cursor: pointer" class="${((validation.schema.events?size + validation.profile.events?size) != 0)?then("danger","success")}">
+                    <th data-toggle="collapse" data-target="#accordion${validation?counter}" >${validation?counter}</th>
+                    <td data-toggle="collapse" data-target="#accordion${validation?counter}" >${validation.schema.timestamp}</td>
+                    <td data-toggle="collapse" data-target="#accordion${validation?counter}" >${validation.schema.events?size}</td>
+                    <td data-toggle="collapse" data-target="#accordion${validation?counter}" >${validation.profile.events?size}</td>
+                    <td><a href="siri?validationRef=${validation.validationRef}">XML <span class="glyphicon glyphicon-download"></span></a></td>
                 </tr>
                 <tr id="accordion${validation?counter}" class="collapse">
                     <td colspan="5">
@@ -70,6 +70,7 @@
                                 <table class="table table-striped">
                                     <thead>
                                     <tr>
+                                        <th>Severity</th>
                                         <th>Count</th>
                                         <th>Message</th>
                                     </tr>
@@ -77,6 +78,7 @@
                                     <tbody>
                                         <#list validation.profile.events?sort_by("numberOfOccurrences")?reverse as event >
                                         <tr>
+                                            <td>${event.severity}</td>
                                             <td>${event.numberOfOccurrences}</td>
                                             <td>${event.message}</td>
                                         </tr>
