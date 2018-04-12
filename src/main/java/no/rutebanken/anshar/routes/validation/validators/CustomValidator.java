@@ -108,10 +108,11 @@ public abstract class CustomValidator {
      * @param fieldname Name of attribute that fails validation
      * @param expectedValues Expected value or description of expected value
      * @param actualValue Actual value of node
+     * @param severity
      * @return
      */
-    protected ValidationEvent createEvent(Node node, String fieldname, Object expectedValues, String actualValue) {
+    protected ValidationEvent createEvent(Node node, String fieldname, Object expectedValues, String actualValue, int severity) {
         String message = MessageFormat.format("Value [{0}] is invalid for field [{1}], expected {2}", actualValue, fieldname, expectedValues);
-        return new ValidationEventImpl(ValidationEvent.WARNING, message, new ValidationEventLocatorImpl(node));
+        return new ValidationEventImpl(severity, message, new ValidationEventLocatorImpl(node));
     }
 }

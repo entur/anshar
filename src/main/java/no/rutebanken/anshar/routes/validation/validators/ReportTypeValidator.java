@@ -30,7 +30,7 @@ public class ReportTypeValidator extends CustomValidator {
         String nodeValue = getNodeValue(node);
 
         if (nodeValue != null && !expectedValues.contains(nodeValue)) {
-            return  createEvent(node, FIELDNAME, expectedValues, nodeValue);
+            return  createEvent(node, FIELDNAME, expectedValues, nodeValue, ValidationEvent.ERROR);
         }
 
         return null;

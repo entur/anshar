@@ -25,7 +25,7 @@ public class SituationNumberValidator extends CustomValidator {
         String nodeValue = getNodeValue(node);
 
         if (nodeValue != null && !nodeValue.contains(":SituationNumber:")) {
-            return createEvent(node, FIELDNAME, "CODESPACE:SituationNumber:ID", nodeValue);
+            return createEvent(node, FIELDNAME, "CODESPACE:SituationNumber:ID", nodeValue, ValidationEvent.WARNING);
         }
 
         return null;

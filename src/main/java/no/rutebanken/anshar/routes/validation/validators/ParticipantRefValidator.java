@@ -26,7 +26,7 @@ public class ParticipantRefValidator extends CustomValidator {
 
         if (nodeValue == null || nodeValue.length() != 3) {
             //TODO: Check for valid CodeSpace
-            return createEvent(node, FIELDNAME, "CODESPACE", nodeValue);
+            return createEvent(node, FIELDNAME, "CODESPACE", nodeValue, ValidationEvent.ERROR);
         }
 
         return null;

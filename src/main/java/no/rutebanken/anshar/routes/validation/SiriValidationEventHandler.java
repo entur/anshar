@@ -55,7 +55,7 @@ class SiriValidationEventHandler implements ValidationEventHandler {
 
             JSONObject event = new JSONObject();
 
-            event.put("severity", wrapAsString(e.getSeverity()));
+            event.put("severity", resolveSeverity(e.getSeverity()));
             event.put("message", wrapAsString(e.getMessage()));
             event.put("numberOfOccurrences", wrapAsString(equalsEventCounter.get(key)));
 
@@ -69,6 +69,17 @@ class SiriValidationEventHandler implements ValidationEventHandler {
         obj.put("timestamp", timestamp);
         obj.put("events", eventList);
         return obj;
+    }
+
+    private String resolveSeverity(int severity) {
+        switch (severity) {
+            case ValidationEvent.FATAL_ERROR:
+                return "FATAL_ERROR";
+            case ValidationEvent.ERROR:
+                return "ERROR";
+            default:
+                return "WARNING";
+        }
     }
 
     private Object wrapAsString(Object o) {

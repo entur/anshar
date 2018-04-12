@@ -29,7 +29,7 @@ public class SummaryValidator extends CustomValidator {
         boolean requireLangAttribute = (childNodesByName.size() > 1);
 
         if (childNodesByName.isEmpty()) {
-            return createEvent(node, FIELDNAME, "not empty", null);
+            return createEvent(node, FIELDNAME, "not empty", null, ValidationEvent.FATAL_ERROR);
         }
 
         for (Node summaryNode : childNodesByName) {
@@ -37,13 +37,13 @@ public class SummaryValidator extends CustomValidator {
             String nodeValue = getNodeValue(summaryNode);
 
             if (nodeValue == null || nodeValue.isEmpty()) {
-                return createEvent(summaryNode, FIELDNAME, "not empty", nodeValue);
+                return createEvent(summaryNode, FIELDNAME, "not empty", nodeValue, ValidationEvent.FATAL_ERROR);
             }
 
             if (requireLangAttribute) {
                 final String lang = getNodeAttributeValue(summaryNode, "lang");
                 if (lang == null || lang.isEmpty()) {
-                    return createEvent(summaryNode, FIELDNAME, "lang-attribute when more than one Summary", nodeValue);
+                    return createEvent(summaryNode, FIELDNAME, "lang-attribute when more than one Summary", nodeValue, ValidationEvent.FATAL_ERROR);
                 }
             }
         }

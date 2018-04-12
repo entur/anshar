@@ -31,7 +31,7 @@ public class ProgressValidator extends CustomValidator {
         String nodeValue = getNodeValue(node);
 
         if (nodeValue != null && !expectedValues.contains(nodeValue)) {
-            return  createEvent(node, FIELDNAME, expectedValues, nodeValue);
+            return  createEvent(node, FIELDNAME, expectedValues, nodeValue, ValidationEvent.WARNING);
         }
 
         return null;
