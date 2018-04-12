@@ -13,7 +13,7 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.PT_SIT
 public class ParticipantRefValidator extends CustomValidator {
 
     private static final String FIELDNAME = "ParticipantRef";
-    private static final String path = PT_SITUATION_ELEMENT + FIELDNAME;
+    private static final String path = PT_SITUATION_ELEMENT + "/" + FIELDNAME;
 
     @Override
     public String getXpath() {

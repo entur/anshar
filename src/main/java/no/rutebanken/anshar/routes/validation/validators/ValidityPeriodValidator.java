@@ -16,7 +16,7 @@ public class ValidityPeriodValidator extends CustomValidator {
 
 
     private static final String FIELDNAME = "ValidityPeriod";
-    private static final String path = PT_SITUATION_ELEMENT + FIELDNAME;
+    private static final String path = PT_SITUATION_ELEMENT + "/" + FIELDNAME;
 
 
     @Override
@@ -69,7 +69,7 @@ public class ValidityPeriodValidator extends CustomValidator {
             if (endTime == null) {
                 return createEvent(node, FIELDNAME, "valid date", timeValue);
             } else if (endTime.minus(5, ChronoUnit.HOURS).isBefore(startTime)){
-                return createEvent(node, FIELDNAME, "EndTime must be set to at least 5 hours validity when Progress is closed", timeValue);
+                return createEvent(node, FIELDNAME, "EndTime to be at least 5 hours after Startime when Progress is closed", timeValue);
 
             }
 

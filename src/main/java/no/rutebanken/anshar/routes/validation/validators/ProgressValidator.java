@@ -17,7 +17,7 @@ public class ProgressValidator extends CustomValidator {
 
 
     private static final String FIELDNAME = "Progress";
-    private static final String path = PT_SITUATION_ELEMENT + FIELDNAME;
+    private static final String path = PT_SITUATION_ELEMENT + "/" + FIELDNAME;
 
     static Set<String> expectedValues = Sets.newHashSet(WorkflowStatusEnumeration.OPEN.value(), WorkflowStatusEnumeration.CLOSED.value());
 

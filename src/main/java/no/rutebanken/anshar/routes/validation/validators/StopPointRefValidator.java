@@ -14,7 +14,7 @@ public class StopPointRefValidator extends CustomValidator {
 
 
     private static final String FIELDNAME = "StopPointRef";
-    private static final String path = ESTIMATED_CALL + FIELDNAME;
+    private static final String path = ESTIMATED_CALL + "/" + FIELDNAME;
 
     @Override
     public String getXpath() {

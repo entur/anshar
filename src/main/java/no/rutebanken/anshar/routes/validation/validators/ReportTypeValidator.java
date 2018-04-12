@@ -16,7 +16,7 @@ public class ReportTypeValidator extends CustomValidator {
 
 
     private static final String FIELDNAME = "ReportType";
-    private static final String path = PT_SITUATION_ELEMENT + FIELDNAME;
+    private static final String path = PT_SITUATION_ELEMENT + "/" + FIELDNAME;
 
     static Set<String> expectedValues = Sets.newHashSet("general", "incident");
 
