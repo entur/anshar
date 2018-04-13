@@ -697,7 +697,7 @@ anshar:
       mappingAdapterId: nsr
       filterPresets:
       idMappingPrefixes: MOR
-      active: false
+      active: true
     -
       internalId: 28
       vendor: ostEt
