@@ -50,7 +50,7 @@
                 <td>${item.healthy?exists?then(item.healthy?c,"")}</td>
                 <td>${item.activated!""}</td>
                 <td>${item.name}</td>
-                <td>${item.lastDataReceived!""} ${item.flagAsNotReceivingData?then("<span class=\"glyphicon glyphicon-alert text-warning\"></span>","")}</td>
+                <td>${item.lastDataReceived!""} ${item.flagAsNotReceivingData?then("<span class=\"glyphicon glyphicon-alert text-warning\" title=\"Subscription is alive, but not receiving data\"></span>","")}</td>
                 <td align="right">${item.hitcount!0}</td>
                 <td align="right">${item.objectcount!0}</td>
             </tr>
