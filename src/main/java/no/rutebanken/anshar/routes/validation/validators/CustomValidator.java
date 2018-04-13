@@ -41,6 +41,10 @@ public abstract class CustomValidator {
         return null;
     }
 
+    protected String getChildNodeValue(Node node, String name) {
+        return getNodeValue(getChildNodeByName(node, name));
+    }
+
     protected Node getChildNodeByName(Node node, String name) {
         if (node != null) {
             final NodeList childNodes = node.getChildNodes();
@@ -72,6 +76,10 @@ public abstract class CustomValidator {
         return nodes;
     }
 
+
+    protected String getSiblingNodeValue(Node node, String name) {
+        return getNodeValue(getSiblingNodeByName(node, name));
+    }
 
     protected Node getSiblingNodeByName(Node node, String name) {
         final Node parentNode = node.getParentNode();
