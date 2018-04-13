@@ -5,7 +5,9 @@ import org.springframework.stereotype.Component;
 import org.w3c.dom.Node;
 
 import javax.xml.bind.ValidationEvent;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static no.rutebanken.anshar.routes.validation.validators.Constants.PT_SITUATION_ELEMENT;
 
@@ -14,6 +16,7 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.PT_SIT
 public class SummaryValidator extends CustomValidator {
 
     private static final String FIELDNAME = "Summary";
+    private static final String ATTRIBUTE = "lang";
     private static final String path = PT_SITUATION_ELEMENT;
 
     @Override
@@ -32,6 +35,7 @@ public class SummaryValidator extends CustomValidator {
             return createEvent(node, FIELDNAME, "not empty", null, ValidationEvent.FATAL_ERROR);
         }
 
+        Set<String> foundLangAttributes = new HashSet<>();
         for (Node summaryNode : childNodesByName) {
 
             String nodeValue = getNodeValue(summaryNode);
@@ -41,9 +45,13 @@ public class SummaryValidator extends CustomValidator {
             }
 
             if (requireLangAttribute) {
-                final String lang = getNodeAttributeValue(summaryNode, "lang");
+                final String lang = getNodeAttributeValue(summaryNode, ATTRIBUTE);
                 if (lang == null || lang.isEmpty()) {
-                    return createEvent(summaryNode, FIELDNAME, "lang-attribute when more than one Summary", nodeValue, ValidationEvent.FATAL_ERROR);
+                    return createEvent(summaryNode, FIELDNAME, "lang-attribute when more than one Summary", lang, ValidationEvent.FATAL_ERROR);
+                } else if (foundLangAttributes.contains(lang)) {
+                    return createEvent(summaryNode, FIELDNAME, "unique lang-attribute", lang, ValidationEvent.FATAL_ERROR);
+                } else {
+                    foundLangAttributes.add(lang);
                 }
             }
         }

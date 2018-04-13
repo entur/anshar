@@ -42,6 +42,14 @@ public class SummaryValidatorTest extends CustomValidatorTest {
     }
 
     @Test
+    public void testMultipleSummariesWithSameLanguage() throws Exception{
+        String xml = "<PLACEHOLDER><Summary lang=\"NO\">lorem ipsum</Summary><Summary lang=\"NO\">lorem ipsum</Summary></PLACEHOLDER>";
+
+        final ValidationEvent valid = validator.isValid(createXmlNode(xml));
+        assertNotNull("Multiple summaries with same language flagged as valid", valid);
+    }
+
+    @Test
     public void testMultipleSummariesWithoutLanguage() throws Exception{
         String xml = "<PLACEHOLDER><Summary >lorem ipsum</Summary><Summary >lorem ipsum</Summary></PLACEHOLDER>";
 
