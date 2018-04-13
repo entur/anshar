@@ -121,12 +121,8 @@
     </div>
     <div class="row">
         <span class="glyphicon glyphicon-info-sign text-info"></span>
-        Switching on validation:
-        <ul>
-            <li>Remove previous validation reports</li>
-            <li>Start validation of all incoming ServiceDeliveries</li>
-            <li>Validation will automatically be disabled when size limit has been reached</li>
-        </ul>
+        Switching on validation will remove all previous validation reports, and start validation of all incoming ServiceDeliveries<br />
+        Validation will automatically be disabled when size limit has been reached
     </div>
 </div>
 

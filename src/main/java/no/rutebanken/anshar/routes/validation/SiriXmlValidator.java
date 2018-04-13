@@ -79,6 +79,9 @@ public class SiriXmlValidator extends ApplicationContextHolder{
     @Value("${anshar.validation.total.max.size.mb:4}")
     private int maxTotalXmlSize;
 
+    @Value("${anshar.validation.total.max.count:50}")
+    private int maxNumberOfValidations;
+
     private Map<SiriDataType, Set<CustomValidator>> validationRules = new HashMap<>();
 
     public SiriXmlValidator() {
@@ -346,6 +349,11 @@ public class SiriXmlValidator extends ApplicationContextHolder{
             subscriptionSetup.setValidation(false);
             subscriptionManager.updateSubscription(subscriptionSetup);
             logger.info("Reached max size - {}mb - for validations, validated {} deliveries,  disabling validation for {}", maxTotalXmlSize, subscriptionValidationRefs.size(), subscriptionSetup);
+        }
+        if (subscriptionValidationRefs.size() > maxNumberOfValidations) {
+            subscriptionSetup.setValidation(false);
+            subscriptionManager.updateSubscription(subscriptionSetup);
+            logger.info("Reached max number of validations, validated {} deliveries, disabling validation for {}", subscriptionValidationRefs.size(), subscriptionSetup);
         }
     }
 
