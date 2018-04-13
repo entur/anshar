@@ -1,6 +1,6 @@
 <html>
 <head>
-    <title>Validation results</title>
+    <title>SIRI Validation</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
@@ -79,7 +79,7 @@
 </head>
 <body>
 <div class="jumbotron text-center">
-    <h2>Subscriptions</h2>
+    <h2>SIRI Validation</h2>
 </div>
 <#if body?exists >
 <div class="container">
