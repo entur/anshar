@@ -13,9 +13,10 @@
  * limitations under the Licence.
  */
 
-package no.rutebanken.anshar.validation;
+package no.rutebanken.anshar.validation.et;
 
-import no.rutebanken.anshar.routes.validation.validators.StopPointRefValidator;
+import no.rutebanken.anshar.routes.validation.validators.et.EstimatedStopPointRefValidator;
+import no.rutebanken.anshar.validation.CustomValidatorTest;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -24,35 +25,36 @@ import javax.xml.bind.ValidationEvent;
 import static junit.framework.TestCase.assertNotNull;
 import static junit.framework.TestCase.assertNull;
 
-public class StopPointRefValidatorTest extends CustomValidatorTest {
+public class EstimatedStopPointRefValidatorTest extends CustomValidatorTest {
 
-    static StopPointRefValidator validator;
+    static EstimatedStopPointRefValidator validator;
+    private String fieldName = "StopPointRef";
 
     @BeforeClass
     public static void init() {
-        validator = new StopPointRefValidator();
+        validator = new EstimatedStopPointRefValidator();
     }
 
     @Test
     public void testEmptyStopPointRef() throws Exception{
-        String xml = createXml("StopPointRef", "");
+        String xml = createXml(fieldName, "");
 
-        assertNotNull("Empty StopPointRef flagged as valid", validator.isValid(createXmlNode(xml)));
+        assertNotNull("Empty "+ fieldName +" flagged as valid", validator.isValid(createXmlNode(xml)));
     }
 
     @Test
     public void testQuayStopPointRef() throws Exception{
-        String xml = createXml("StopPointRef", "NSR:Quay:1234");
+        String xml = createXml(fieldName, "NSR:Quay:1234");
 
         final ValidationEvent valid = validator.isValid(createXmlNode(xml));
-        assertNull("Valid StopPointRef flagged as invalid", valid);
+        assertNull("Valid "+ fieldName +" flagged as invalid", valid);
     }
 
     @Test
     public void testStopPlaceStopPointRef() throws Exception{
-        String xml = createXml("StopPointRef", "NSR:StopPlace:1234");
+        String xml = createXml(fieldName, "NSR:StopPlace:1234");
 
         final ValidationEvent valid = validator.isValid(createXmlNode(xml));
-        assertNotNull("StopPointRef with StopPlace flagged as valid", valid);
+        assertNotNull(fieldName +" with StopPlace flagged as valid", valid);
     }
 }

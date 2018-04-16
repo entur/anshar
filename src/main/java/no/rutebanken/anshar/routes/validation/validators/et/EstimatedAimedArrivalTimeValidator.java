@@ -13,27 +13,28 @@
  * limitations under the Licence.
  */
 
-package no.rutebanken.anshar.routes.validation.validators;
+package no.rutebanken.anshar.routes.validation.validators.et;
 
-import com.google.common.collect.Sets;
+import no.rutebanken.anshar.routes.validation.validators.TimeValidator;
+import no.rutebanken.anshar.routes.validation.validators.Validator;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Node;
 
 import javax.xml.bind.ValidationEvent;
-import java.util.Set;
 
-import static no.rutebanken.anshar.routes.validation.validators.Constants.PT_SITUATION_ELEMENT;
+import static no.rutebanken.anshar.routes.validation.validators.Constants.ESTIMATED_CALL;
 
-@Validator(profileName = "norway", targetType = SiriDataType.SITUATION_EXCHANGE)
+
+@Validator(profileName = "norway", targetType = SiriDataType.ESTIMATED_TIMETABLE)
 @Component
-public class ReportTypeValidator extends CustomValidator {
+public class EstimatedAimedArrivalTimeValidator extends TimeValidator {
 
 
-    private static final String FIELDNAME = "ReportType";
-    private static final String path = PT_SITUATION_ELEMENT + "/" + FIELDNAME;
+    private static final String FIELDNAME = "AimedArrivalTime";
+    private static final String path = ESTIMATED_CALL + "/" + FIELDNAME;
 
-    static Set<String> expectedValues = Sets.newHashSet("general", "incident");
+    private static String comparisonFieldName = "AimedDepartureTime";
 
     @Override
     public String getXpath() {
@@ -42,13 +43,7 @@ public class ReportTypeValidator extends CustomValidator {
 
     @Override
     public ValidationEvent isValid(Node node) {
-        String nodeValue = getNodeValue(node);
-
-        if (nodeValue != null && !expectedValues.contains(nodeValue)) {
-            return  createEvent(node, FIELDNAME, expectedValues, nodeValue, ValidationEvent.ERROR);
-        }
-
-        return null;
+        return checkTimeValidity(node, FIELDNAME, comparisonFieldName, Mode.BEFORE);
     }
 
 }
