@@ -1,14 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
+  ~ the European Commission - subsequent versions of the EUPL (the "Licence");
+  ~ You may not use this work except in compliance with the Licence.
+  ~ You may obtain a copy of the Licence at:
+  ~
+  ~   https://joinup.ec.europa.eu/software/page/eupl
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the Licence is distributed on an "AS IS" basis,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the Licence for the specific language governing permissions and
+  ~ limitations under the Licence.
+  -->
+
 <siril:Siri xmlns:siril="http://www.siri.org.uk/siri" version="1.4">
    <siril:ServiceDelivery>
       <ResponseTimestamp xmlns="http://www.siri.org.uk/siri">2016-05-25T07:33:12.6740457+02:00</ResponseTimestamp>
       <ProducerRef xmlns="http://www.siri.org.uk/siri">SwarcoMizar</ProducerRef>
       <ResponseMessageIdentifier xmlns="http://www.siri.org.uk/siri">R_</ResponseMessageIdentifier>
-      <SituationExchangeDelivery xmlns="http://www.siri.org.uk/siri"
-                                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                                 xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-                                 xmlns:s="http://schemas.xmlsoap.org/soap/envelope/"
-                                 version="1.4">
+       <SituationExchangeDelivery xmlns="http://www.siri.org.uk/siri"
+                                  version="1.4">
          <ResponseTimestamp>2016-05-25T07:33:12.6740457+02:00</ResponseTimestamp>
          <RequestMessageRef>343434</RequestMessageRef>
          <ValidUntil>2016-05-26T07:33:12.6740457+02:00</ValidUntil>

@@ -1,9 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
+  ~ the European Commission - subsequent versions of the EUPL (the "Licence");
+  ~ You may not use this work except in compliance with the Licence.
+  ~ You may obtain a copy of the Licence at:
+  ~
+  ~   https://joinup.ec.europa.eu/software/page/eupl
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the Licence is distributed on an "AS IS" basis,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the Licence for the specific language governing permissions and
+  ~ limitations under the Licence.
+  -->
+
 <siri:Siri xmlns:siri="http://www.siri.org.uk/siri">
     <ServiceRequest xmlns="http://www.siri.org.uk/siri"
-        xmlns:ns2="http://www.ifopt.org.uk/acsb"
-        xmlns:ns4="http://datex2.eu/schema/2_0RC1/2_0"
-        xmlns:ns3="http://www.ifopt.org.uk/ifopt">
+    >
         <RequestTimestamp>2016-05-24T16:28:08.524+02:00</RequestTimestamp>
         <RequestorRef>0f5ece83-0d09-4194-bc96-3cd879f1fd7a</RequestorRef>
         <SituationExchangeRequest version="2.0">
