@@ -365,7 +365,7 @@ public class SiriXmlValidator extends ApplicationContextHolder{
             subscriptionManager.updateSubscription(subscriptionSetup);
             logger.info("Reached max size - {}mb - for validations, validated {} deliveries,  disabling validation for {}", maxTotalXmlSize, subscriptionValidationRefs.size(), subscriptionSetup);
         }
-        if (subscriptionValidationRefs.size() > maxNumberOfValidations) {
+        if (subscriptionValidationRefs.size() >= maxNumberOfValidations) {
             subscriptionSetup.setValidation(false);
             subscriptionManager.updateSubscription(subscriptionSetup);
             logger.info("Reached max number of validations, validated {} deliveries, disabling validation for {}", subscriptionValidationRefs.size(), subscriptionSetup);
