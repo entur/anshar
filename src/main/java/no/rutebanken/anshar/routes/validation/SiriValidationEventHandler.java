@@ -35,55 +35,107 @@ import org.json.simple.JSONObject;
 
 import javax.xml.bind.ValidationEvent;
 import javax.xml.bind.ValidationEventHandler;
-import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 class SiriValidationEventHandler implements ValidationEventHandler {
 
-    Map<String, ValidationEvent> events = new HashMap<>();
+    Map<String, Map<String, ValidationEvent>> categorizedEvents = new HashMap<>();
     Map<String, Integer> equalsEventCounter = new HashMap<>();
-    private ZonedDateTime timestamp = ZonedDateTime.now();
+    private long timestamp = System.currentTimeMillis();
 
     public boolean handleEvent(ValidationEvent event) {
+        return handleCategorizedEvent(this.getClass().getSimpleName(), event);
+    }
+
+    public boolean handleCategorizedEvent(String categoryName, ValidationEvent event) {
 
 
         String message = event.getMessage();
 
-        if (!events.containsKey(message)) {
-            events.put(message, event);
+        final Map<String, ValidationEvent> category = categorizedEvents.getOrDefault(categoryName, new HashMap<>());
+
+        if (!category.containsKey(message)) {
+            category.put(message, event);
         }
 
         int counter = equalsEventCounter.getOrDefault(message, 0);
         counter++;
         equalsEventCounter.put(message, counter);
 
+        categorizedEvents.put(categoryName, category);
+
         return true;
     }
 
     public JSONObject toJSON() {
         JSONObject obj = new JSONObject();
-        JSONArray eventList = new JSONArray();
-
-        events.keySet().forEach(key -> {
-            ValidationEvent e = events.get(key);
-
-            JSONObject event = new JSONObject();
-
-            event.put("severity", resolveSeverity(e.getSeverity()));
-            event.put("message", wrapAsString(e.getMessage()));
-            event.put("numberOfOccurrences", wrapAsString(equalsEventCounter.get(key)));
-
-            JSONObject locator = new JSONObject();
-            locator.put("lineNumber", wrapAsString(e.getLocator().getLineNumber()));
-            locator.put("columnNumber", wrapAsString(e.getLocator().getColumnNumber()));
-            event.put("locator", locator);
-
-            eventList.add(event);
-        });
         obj.put("timestamp", timestamp);
-        obj.put("events", eventList);
+
+        AtomicInteger counter = new AtomicInteger();
+
+        if (categorizedEvents.size() == 1 && categorizedEvents.containsKey(this.getClass().getSimpleName())) {
+            //Simple json without category
+            JSONArray eventList = new JSONArray();
+
+            categorizedEvents.get(this.getClass().getSimpleName())
+                    .values().stream().forEach(e -> {
+                JSONObject event = createJsonValidationEvent(e);
+                counter.addAndGet(getOccurrenceCount(e));
+                eventList.add(event);
+            });
+
+            obj.put("events", eventList);
+        } else {
+            JSONArray categories = new JSONArray();
+
+            categorizedEvents.keySet().forEach(cat -> {
+                final Map<String, ValidationEvent> eventMap = categorizedEvents.get(cat);
+                JSONObject category = new JSONObject();
+                category.put("category", cat);
+
+                JSONArray eventList = new JSONArray();
+
+                eventMap.values().stream().forEach(e -> {
+                    JSONObject event = createJsonValidationEvent(e);
+                    counter.addAndGet(getOccurrenceCount(e));
+                    eventList.add(event);
+                });
+                category.put("events", eventList);
+
+                categories.add(category);
+            });
+
+            obj.put("categories", categories);
+        }
+        obj.put("errorCount", counter.intValue());
         return obj;
+    }
+
+    private Integer getOccurrenceCount(ValidationEvent e) {
+        final String message = e.getMessage();
+        if (message != null) {
+            final Integer count = equalsEventCounter.get(message);
+            if (count != null) {
+                return count.intValue();
+            }
+        }
+        return 0;
+    }
+
+    private JSONObject createJsonValidationEvent(ValidationEvent e) {
+        JSONObject event = new JSONObject();
+
+        event.put("severity", resolveSeverity(e.getSeverity()));
+        event.put("message", wrapAsString(e.getMessage()));
+        event.put("numberOfOccurrences", wrapAsString(getOccurrenceCount(e)));
+
+        JSONObject locator = new JSONObject();
+        locator.put("lineNumber", wrapAsString(e.getLocator().getLineNumber()));
+        locator.put("columnNumber", wrapAsString(e.getLocator().getColumnNumber()));
+        event.put("locator", locator);
+        return event;
     }
 
     private String resolveSeverity(int severity) {

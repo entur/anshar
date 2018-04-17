@@ -93,7 +93,7 @@
                 <th>Subscription status</th>
                 <th>Type</th>
                 <th>Results</th>
-                <th>On/Off <span class="glyphicon glyphicon-info-sign text-info"></th>
+                <th>On/Off <sup><span class="glyphicon glyphicon-info-sign text-info"></sup></th>
             </tr>
             </thead>
             <tbody>
@@ -120,7 +120,7 @@
         </table>
     </div>
     <div class="row">
-        <span class="glyphicon glyphicon-info-sign text-info"></span>
+        <sup><span class="glyphicon glyphicon-info-sign text-info"></span></sup>
         Switching on validation will remove all previous validation reports, and start validation of all incoming ServiceDeliveries<br />
         Validation will automatically be disabled when size limit has been reached
     </div>

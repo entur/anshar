@@ -25,6 +25,11 @@ public abstract class NsrQuayValidator extends CustomValidator {
     protected static String FIELDNAME;
 
     @Override
+    public String getCategoryName() {
+        return FIELDNAME;
+    }
+
+    @Override
     public ValidationEvent isValid(Node node) {
         String nodeValue = getNodeValue(node);
 

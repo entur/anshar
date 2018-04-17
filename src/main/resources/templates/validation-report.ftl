@@ -26,13 +26,13 @@
                 <th>XML</th>
             </tr>
             </thead>
-            <tbody>
+            <tbody >
                 <#list body.validationRefs as validation>
-                <tr style="cursor: pointer" class="${((validation.schema.events?size + validation.profile.events?size) != 0)?then("danger","success")}">
+                <tr style="cursor: pointer" class="${((validation.schema.errorCount + validation.profile.errorCount) != 0)?then("danger","success")}">
                     <th data-toggle="collapse" data-target="#accordion${validation?counter}" >${validation?counter}</th>
-                    <td data-toggle="collapse" data-target="#accordion${validation?counter}" >${validation.schema.timestamp}</td>
-                    <td data-toggle="collapse" data-target="#accordion${validation?counter}" >${validation.schema.events?size}</td>
-                    <td data-toggle="collapse" data-target="#accordion${validation?counter}" >${validation.profile.events?size}</td>
+                    <td data-toggle="collapse" data-target="#accordion${validation?counter}" >${validation.schema.timestamp?number_to_datetime}</td>
+                    <td data-toggle="collapse" data-target="#accordion${validation?counter}" >${validation.schema.errorCount?c}</td>
+                    <td data-toggle="collapse" data-target="#accordion${validation?counter}" >${validation.profile.errorCount?c}</td>
                     <td><a href="siri?validationRef=${validation.validationRef}">XML <span class="glyphicon glyphicon-download"></span></a></td>
                 </tr>
                 <tr id="accordion${validation?counter}" class="collapse">
@@ -40,7 +40,7 @@
                         <#if validation.schema.events?has_content >
                             <fieldset>
                                 <legend>Schema validation</legend>
-                                <table class="table table-striped">
+                                <table class="table table-sm">
                                     <thead>
                                     <tr>
                                         <th>Severity</th>
@@ -51,8 +51,8 @@
                                     </tr>
                                     </thead>
                                     <tbody>
-                                        <#list validation.schema.events?sort_by("numberOfOccurrences")?reverse as event >
-                                        <tr>
+                                        <#list validation.schema.events as event >
+                                        <tr class="warning">
                                             <td>${event.severity}</td>
                                             <td>${event.numberOfOccurrences}</td>
                                             <td>${event.message}</td>
@@ -64,23 +64,43 @@
                                 </table>
                             </fieldset>
                         </#if>
-                        <#if validation.profile.events?has_content >
+                        <#if validation.profile.categories?has_content >
                             <fieldset>
-                                <legend>Profile validation</legend>
-                                <table class="table table-striped">
+                                <legend>Profile validation <sup><span class="glyphicon glyphicon-info-sign text-info" title="Click row for details"></span></sup></legend>
+                                <table class="table table-sm">
                                     <thead>
                                     <tr>
-                                        <th>Severity</th>
+                                        <th colspan="2">Category</th>
                                         <th>Count</th>
-                                        <th>Message</th>
                                     </tr>
                                     </thead>
                                     <tbody>
-                                        <#list validation.profile.events?sort_by("numberOfOccurrences")?reverse as event >
-                                        <tr>
-                                            <td>${event.severity}</td>
-                                            <td>${event.numberOfOccurrences}</td>
-                                            <td>${event.message}</td>
+                                        <#list validation.profile.categories?sort_by("category") as category >
+                                        <tr style="cursor: pointer" data-toggle="collapse" data-target="#accordion-category-${validation?counter}-${category?counter}" class="warning">
+                                            <td colspan="2">${category.category}</td>
+                                            <td>${category.events?size}</td>
+                                        </tr>
+                                        <tr id="accordion-category-${validation?counter}-${category?counter}" class="collapse">
+                                            <td colspan="3" >
+                                                <table class="table table-sm">
+                                                    <thead>
+                                                    <tr>
+                                                        <th>Severity</th>
+                                                        <th>Count</th>
+                                                        <th>Message</th>
+                                                    </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                    <#list category.events?sort_by("numberOfOccurrences")?reverse as event >
+                                                    <tr>
+                                                        <td>${event.severity}</td>
+                                                        <td>${event.numberOfOccurrences}</td>
+                                                        <td>${event.message}</td>
+                                                    </tr>
+                                                    </#list>
+                                                    </tbody>
+                                                </table>
+                                            </td>
                                         </tr>
                                         </#list>
                                     </tbody>

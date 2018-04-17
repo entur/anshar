@@ -94,7 +94,7 @@ public class SiriXmlValidator extends ApplicationContextHolder{
     @Value("${anshar.validation.total.max.size.mb:4}")
     private int maxTotalXmlSize;
 
-    @Value("${anshar.validation.total.max.count:50}")
+    @Value("${anshar.validation.total.max.count:10}")
     private int maxNumberOfValidations;
 
     private Map<SiriDataType, Set<CustomValidator>> validationRules = new HashMap<>();
@@ -250,7 +250,7 @@ public class SiriXmlValidator extends ApplicationContextHolder{
             for (int i = 0; i < nodes.getLength(); i++) {
                 ValidationEvent event = rule.isValid(nodes.item(i));
                 if (event != null) {
-                    handler.handleEvent(event);
+                    handler.handleCategorizedEvent(rule.getCategoryName(), event);
                     errorCounter++;
                 }
             }
