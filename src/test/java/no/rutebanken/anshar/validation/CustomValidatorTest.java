@@ -32,6 +32,15 @@ public class CustomValidatorTest {
         return "<" + fieldName + ">" + value + "</" + fieldName + ">";
     }
 
+    protected  String mergeXml(String... elements) {
+        StringBuffer b = new StringBuffer("<PLACEHOLDER>");
+        for (String element : elements) {
+            b.append(element);
+        }
+        b.append("</PLACEHOLDER>");
+        return b.toString();
+    }
+
 
     protected Node createXmlNode(String xml) throws ParserConfigurationException, IOException, SAXException {
 
