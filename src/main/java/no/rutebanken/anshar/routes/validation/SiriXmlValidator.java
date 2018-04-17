@@ -355,6 +355,8 @@ public class SiriXmlValidator extends ApplicationContextHolder{
         // GZIP'ing contents to reduce memory-footprint
         byte[] byteArray = zipString(siriXml);
 
+        // TODO: Add automatic expiry to clean up data over time?
+
         validatedSiri.set(newUniqueReference, byteArray);
         validationResults.set(newUniqueReference, jsonObject);
         validationResultRefs.set(subscriptionSetup.getSubscriptionId(), subscriptionValidationRefs);
