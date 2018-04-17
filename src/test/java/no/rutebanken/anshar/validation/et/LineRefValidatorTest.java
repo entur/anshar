@@ -58,41 +58,37 @@
  * limitations under the Licence.
  */
 
-package no.rutebanken.anshar.routes.validation.validators.et;
+package no.rutebanken.anshar.validation.et;
 
-import no.rutebanken.anshar.routes.validation.validators.CustomValidator;
-import no.rutebanken.anshar.routes.validation.validators.Validator;
-import no.rutebanken.anshar.subscription.SiriDataType;
-import org.springframework.stereotype.Component;
-import org.w3c.dom.Node;
+import no.rutebanken.anshar.routes.validation.validators.et.LineRefValidator;
+import no.rutebanken.anshar.validation.CustomValidatorTest;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
-import javax.xml.bind.ValidationEvent;
+import static junit.framework.TestCase.assertNotNull;
+import static junit.framework.TestCase.assertNull;
 
-import static no.rutebanken.anshar.routes.validation.validators.Constants.ESTIMATED_VEHICLE_JOURNEY;
+public class LineRefValidatorTest extends CustomValidatorTest {
 
-@Validator(profileName = "norway", targetType = SiriDataType.ESTIMATED_TIMETABLE)
-@Component
-public class LineRefValidator extends CustomValidator {
+    static LineRefValidator validator;
+    private String fieldName = "LineRef";
 
-
-    private static final String FIELDNAME = "LineRef";
-    private static final String path = ESTIMATED_VEHICLE_JOURNEY + "/" + FIELDNAME;
-
-
-    @Override
-    public String getXpath() {
-        return path;
+    @BeforeClass
+    public static void init() {
+        validator = new LineRefValidator();
     }
 
-    @Override
-    public ValidationEvent isValid(Node node) {
-        String nodeValue = getNodeValue(node);
+    @Test
+    public void testValidLine() throws Exception{
+        String xml = createXml(fieldName, "ENT:Line:1234");
 
-        if (nodeValue != null && !nodeValue.contains(":Line:")) {
-            return  createEvent(node, FIELDNAME, "CODESPACE:Line:ID", nodeValue, ValidationEvent.WARNING);
-        }
-
-        return null;
+        assertNull("Valid "+fieldName+" flagged as invalid", validator.isValid(createXmlNode(xml)));
     }
 
+    @Test
+    public void testInvalidLine() throws Exception{
+        String xml = createXml(fieldName, "N11");
+
+        assertNotNull("Invalid "+fieldName+" flagged as valid", validator.isValid(createXmlNode(xml)));
+    }
 }
