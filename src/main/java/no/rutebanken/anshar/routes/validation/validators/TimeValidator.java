@@ -50,7 +50,7 @@ public abstract class TimeValidator extends CustomValidator {
                 //Check that arrival is before or equal to departure
                 final ZonedDateTime comparisonTime = ZonedDateTime.parse(comparisonField);
                 if (!isValid(time, comparisonTime, mode)) {
-                    return createEvent(node, fieldname, "before " + comparisonFieldName, field, ValidationEvent.FATAL_ERROR);
+                    return createEvent(node, fieldname,  "" + mode  + " " + comparisonFieldName + " [" + comparisonTime + "]", field, ValidationEvent.FATAL_ERROR);
                 }
             }
 
