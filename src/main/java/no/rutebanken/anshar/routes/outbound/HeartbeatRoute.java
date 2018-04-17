@@ -27,7 +27,6 @@ import uk.org.siri.siri20.Siri;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -70,8 +69,6 @@ public class HeartbeatRoute extends BaseRouteBuilder {
                             serverSubscriptionManager.pushSiriData(heartbeatNotification, outboundSubscriptionSetup);
 
                             heartbeatTimestampMap.put(subscriptionId, Instant.now(), heartbeatInterval, TimeUnit.MILLISECONDS);
-                            System.err.println("Next heartbeat at " + new Date(System.currentTimeMillis() + heartbeatInterval));
-
                         }
                     }
                 }

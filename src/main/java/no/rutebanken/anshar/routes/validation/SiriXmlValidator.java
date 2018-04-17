@@ -271,6 +271,7 @@ public class SiriXmlValidator extends ApplicationContextHolder{
             validationResultRefs.delete(subscriptionId);
         }
     }
+
     public JSONObject getValidationResults(String subscriptionId) {
         List<String> validationRefs = validationResultRefs.get(subscriptionId);
 
