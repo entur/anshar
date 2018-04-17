@@ -1,0 +1,81 @@
+/*
+ * Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
+ * the European Commission - subsequent versions of the EUPL (the "Licence");
+ * You may not use this work except in compliance with the Licence.
+ * You may obtain a copy of the Licence at:
+ *
+ *   https://joinup.ec.europa.eu/software/page/eupl
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the Licence is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the Licence for the specific language governing permissions and
+ * limitations under the Licence.
+ */
+
+package no.rutebanken.anshar.routes.outbound;
+
+import com.hazelcast.core.IMap;
+import no.rutebanken.anshar.config.AnsharConfiguration;
+import no.rutebanken.anshar.routes.BaseRouteBuilder;
+import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
+import no.rutebanken.anshar.subscription.SubscriptionManager;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import uk.org.siri.siri20.Siri;
+
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.util.Date;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+
+@Service
+public class HeartbeatRoute extends BaseRouteBuilder {
+
+    private int heartbeatIntervalMillis = 2000;
+
+
+    @Autowired
+    @Qualifier("getHeartbeatTimestampMap")
+    private IMap<String, Instant> heartbeatTimestampMap;
+
+    @Autowired
+    ServerSubscriptionManager serverSubscriptionManager;
+
+    @Autowired
+    private SiriObjectFactory siriObjectFactory;
+
+    protected HeartbeatRoute(@Autowired  AnsharConfiguration config, @Autowired SubscriptionManager subscriptionManager) {
+        super(config, subscriptionManager);
+    }
+
+    @Override
+    public void configure() throws Exception {
+        singletonFrom("quartz2://anshar.outbound.subscription.manager?fireNow=true&trigger.repeatInterval=" + heartbeatIntervalMillis,
+                "anshar.outbound.subscription.manager.route")
+            .process(p -> {
+                final Set<String> subscriptionIds = serverSubscriptionManager.subscriptions.keySet();
+                for (String subscriptionId : subscriptionIds) {
+                    final OutboundSubscriptionSetup outboundSubscriptionSetup = serverSubscriptionManager.subscriptions.get(subscriptionId);
+
+                    if (LocalDateTime.now().isAfter(outboundSubscriptionSetup.getInitialTerminationTime().toLocalDateTime())) {
+                        serverSubscriptionManager.terminateSubscription(outboundSubscriptionSetup.getSubscriptionId());
+                    } else if (!heartbeatTimestampMap.containsKey(subscriptionId)) {
+                        if (outboundSubscriptionSetup != null) {
+                            final long heartbeatInterval = outboundSubscriptionSetup.getHeartbeatInterval();
+
+                            Siri heartbeatNotification = siriObjectFactory.createHeartbeatNotification(outboundSubscriptionSetup.getSubscriptionId());
+                            serverSubscriptionManager.pushSiriData(heartbeatNotification, outboundSubscriptionSetup);
+
+                            heartbeatTimestampMap.put(subscriptionId, Instant.now(), heartbeatInterval, TimeUnit.MILLISECONDS);
+                            System.err.println("Next heartbeat at " + new Date(System.currentTimeMillis() + heartbeatInterval));
+
+                        }
+                    }
+                }
+            })
+        ;
+    }
+}

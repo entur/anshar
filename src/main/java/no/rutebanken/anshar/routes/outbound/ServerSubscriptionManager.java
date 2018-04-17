@@ -35,15 +35,12 @@ import uk.org.siri.siri20.*;
 import javax.annotation.PostConstruct;
 import javax.xml.datatype.Duration;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import static java.time.temporal.ChronoUnit.MILLIS;
 
@@ -51,16 +48,10 @@ import static java.time.temporal.ChronoUnit.MILLIS;
 @Configuration
 public class ServerSubscriptionManager extends CamelRouteManager {
 
-    private static final java.lang.String ANSHAR_HEARTBEAT_KEY = "ANSHAR_HEARTBEAT_LOCK_KEY";
-
     private final Logger logger = LoggerFactory.getLogger(ServerSubscriptionManager.class);
 
     @Autowired
-    private IMap<String, OutboundSubscriptionSetup> subscriptions;
-
-    @Autowired
-    @Qualifier("getHeartbeatTimestampMap")
-    private IMap<String, Instant> heartbeatTimestampMap;
+    IMap<String, OutboundSubscriptionSetup> subscriptions;
 
     @Autowired
     @Qualifier("getLockMap")
@@ -122,40 +113,6 @@ public class ServerSubscriptionManager extends CamelRouteManager {
                 activeMqTopicPrefix + type.name().toLowerCase(),
                 activeMqTopicTimeToLive,
                 mappingAdapterPresets.getOutboundAdapters(outboundIdMappingPolicy));
-    }
-
-    @PostConstruct
-    private void startHeartbeatManager() {
-        executor = Executors.newSingleThreadScheduledExecutor();
-
-        executor.scheduleAtFixedRate(() -> {
-                    boolean acquiredLock = lockMap.tryLock(ANSHAR_HEARTBEAT_KEY);
-
-                    if (acquiredLock) {
-                        try {
-                            if (!heartbeatTimestampMap.isEmpty()) {
-                                heartbeatTimestampMap.keySet().forEach(key -> {
-
-                                    OutboundSubscriptionSetup subscription = subscriptions.get(key);
-
-                                    if (LocalDateTime.now().isAfter(subscription.getInitialTerminationTime().toLocalDateTime())) {
-                                        logger.info("Subscription [{}] expired at {}, and will be terminated", subscription, subscription.getInitialTerminationTime());
-                                        terminateSubscription(subscription.getSubscriptionId());
-
-                                    } else if (heartbeatTimestampMap.get(key).isBefore(Instant.now().minusMillis(subscription.getHeartbeatInterval()))) {
-                                        // More than "heartbeatinterval" since last heartbeat
-                                        Siri heartbeatNotification = siriObjectFactory.createHeartbeatNotification(subscription.getSubscriptionId());
-                                        pushSiriData(heartbeatNotification, subscription);
-                                        heartbeatTimestampMap.put(key, Instant.now());
-                                    }
-                                });
-                            }
-                        } finally {
-                            lockMap.unlock(ANSHAR_HEARTBEAT_KEY);
-                        }
-                    }
-                },
-                5000, 5000, TimeUnit.MILLISECONDS);
     }
 
     public JSONArray getSubscriptionsAsJson() {
@@ -282,12 +239,10 @@ public class ServerSubscriptionManager extends CamelRouteManager {
 
     private void addSubscription(OutboundSubscriptionSetup subscription) {
         subscriptions.put(subscription.getSubscriptionId(), subscription);
-        heartbeatTimestampMap.put(subscription.getSubscriptionId(), Instant.now());
     }
 
     private OutboundSubscriptionSetup removeSubscription(String subscriptionId) {
         logger.info("Removing subscription {}", subscriptionId);
-        heartbeatTimestampMap.remove(subscriptionId);
         failTrackerMap.delete(subscriptionId);
         return subscriptions.remove(subscriptionId);
     }
@@ -345,7 +300,7 @@ public class ServerSubscriptionManager extends CamelRouteManager {
         terminateSubscription(subscriptionRef);
     }
 
-    private void terminateSubscription(String subscriptionRef) {
+    void terminateSubscription(String subscriptionRef) {
         OutboundSubscriptionSetup subscriptionRequest = removeSubscription(subscriptionRef);
 
         if (subscriptionRequest != null) {
