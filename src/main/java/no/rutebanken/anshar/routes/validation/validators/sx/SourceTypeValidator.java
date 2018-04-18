@@ -28,28 +28,42 @@
  * limitations under the Licence.
  */
 
+/*
+ * Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
+ * the European Commission - subsequent versions of the EUPL (the "Licence");
+ * You may not use this work except in compliance with the Licence.
+ * You may obtain a copy of the Licence at:
+ *
+ *   https://joinup.ec.europa.eu/software/page/eupl
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the Licence is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the Licence for the specific language governing permissions and
+ * limitations under the Licence.
+ */
+
 package no.rutebanken.anshar.routes.validation.validators.sx;
 
-import no.rutebanken.anshar.routes.validation.validators.StringStructureValidator;
+import com.google.common.collect.Sets;
+import no.rutebanken.anshar.routes.validation.validators.LimitedSubsetValidator;
 import no.rutebanken.anshar.routes.validation.validators.Validator;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import org.springframework.stereotype.Component;
-import org.w3c.dom.Node;
-
-import javax.xml.bind.ValidationEvent;
-import java.util.List;
+import uk.org.siri.siri20.SituationSourceTypeEnumeration;
 
 import static no.rutebanken.anshar.routes.validation.validators.Constants.PT_SITUATION_ELEMENT;
 
 @Validator(profileName = "norway", targetType = SiriDataType.SITUATION_EXCHANGE)
 @Component
-public class SummaryValidator extends StringStructureValidator {
+public class SourceTypeValidator extends LimitedSubsetValidator {
 
-    private static String path = PT_SITUATION_ELEMENT;
+
+    private static final String FIELDNAME = "SourceType";
+    private static final String path = PT_SITUATION_ELEMENT + "/Source/" + FIELDNAME;
 
     static {
-        FIELDNAME = "Summary";
-        path = PT_SITUATION_ELEMENT;
+        expectedValues = Sets.newHashSet(SituationSourceTypeEnumeration.DIRECT_REPORT.value());
     }
 
     @Override
@@ -57,24 +71,4 @@ public class SummaryValidator extends StringStructureValidator {
         return path;
     }
 
-    @Override
-    public ValidationEvent isValid(Node node) {
-        final ValidationEvent validationEvent = super.isValid(node);
-        if (validationEvent != null) {
-            return validationEvent;
-        }
-
-        /*
-         Check max-length for Summary
-         */
-        final List<Node> childNodesByName = getChildNodesByName(node, FIELDNAME);
-
-        for (Node textNode : childNodesByName) {
-            String nodeValue = getNodeValue(textNode);
-            if (nodeValue != null && nodeValue.length() > 160) {
-                return createEvent(node, FIELDNAME, "shorter than max-length", ""+nodeValue.length() + " chars", ValidationEvent.WARNING);
-            }
-        }
-        return null;
-    }
 }

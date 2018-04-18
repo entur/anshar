@@ -65,6 +65,18 @@ public class SummaryValidatorTest extends CustomValidatorTest {
     }
 
     @Test
+    public void testTooLongSummary() throws Exception{
+        String msg = "";
+        for (int i = 0; i < 161; i++) {
+            msg += "a";
+        }
+        String xml = "<PLACEHOLDER><Summary>" + msg + "</Summary></PLACEHOLDER>";
+
+        final ValidationEvent valid = validator.isValid(createXmlNode(xml));
+        assertNotNull("Valid Summary flagged as invalid", valid);
+    }
+
+    @Test
     public void testMultipleSummariesWithLanguage() throws Exception{
         String xml = "<PLACEHOLDER><Summary lang=\"NO\">lorem ipsum</Summary><Summary lang=\"EN\">lorem ipsum</Summary></PLACEHOLDER>";
 

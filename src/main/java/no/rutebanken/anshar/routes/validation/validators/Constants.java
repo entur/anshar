@@ -17,7 +17,11 @@ package no.rutebanken.anshar.routes.validation.validators;
 
 public class Constants {
     private static final String SERVICE_DELIVERY = "Siri/ServiceDelivery/";
+
     public static final String PT_SITUATION_ELEMENT = SERVICE_DELIVERY + "SituationExchangeDelivery/Situations/PtSituationElement";
+    public static final String AFFECTS = PT_SITUATION_ELEMENT + "/Affects";
+    public static final String AFFECTED_NETWORK = AFFECTS + "/Networks/AffectedNetwork";
+
     public static final String ESTIMATED_VEHICLE_JOURNEY = SERVICE_DELIVERY + "EstimatedTimetableDelivery/EstimatedJourneyVersionFrame/EstimatedVehicleJourney";
     public static final String ESTIMATED_CALL = ESTIMATED_VEHICLE_JOURNEY + "/EstimatedCalls/EstimatedCall";
     public static final String RECORDED_CALL = ESTIMATED_VEHICLE_JOURNEY + "/RecordedCalls/RecordedCall";

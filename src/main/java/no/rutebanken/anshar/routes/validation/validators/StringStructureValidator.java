@@ -28,51 +28,56 @@
  * limitations under the Licence.
  */
 
-package no.rutebanken.anshar.routes.validation.validators.sx;
+package no.rutebanken.anshar.routes.validation.validators;
 
-import no.rutebanken.anshar.routes.validation.validators.StringStructureValidator;
-import no.rutebanken.anshar.routes.validation.validators.Validator;
-import no.rutebanken.anshar.subscription.SiriDataType;
-import org.springframework.stereotype.Component;
 import org.w3c.dom.Node;
 
 import javax.xml.bind.ValidationEvent;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
-import static no.rutebanken.anshar.routes.validation.validators.Constants.PT_SITUATION_ELEMENT;
+public abstract class StringStructureValidator extends CustomValidator {
 
-@Validator(profileName = "norway", targetType = SiriDataType.SITUATION_EXCHANGE)
-@Component
-public class SummaryValidator extends StringStructureValidator {
 
-    private static String path = PT_SITUATION_ELEMENT;
+    protected static String FIELDNAME;
 
-    static {
-        FIELDNAME = "Summary";
-        path = PT_SITUATION_ELEMENT;
-    }
+    private static final String ATTRIBUTE = "lang";
+
 
     @Override
-    public String getXpath() {
-        return path;
+    public String getCategoryName() {
+        return FIELDNAME;
     }
 
     @Override
     public ValidationEvent isValid(Node node) {
-        final ValidationEvent validationEvent = super.isValid(node);
-        if (validationEvent != null) {
-            return validationEvent;
-        }
-
-        /*
-         Check max-length for Summary
-         */
         final List<Node> childNodesByName = getChildNodesByName(node, FIELDNAME);
 
+        boolean requireLangAttribute = (childNodesByName.size() > 1);
+
+        if (childNodesByName.isEmpty()) {
+            return createEvent(node, FIELDNAME, "not empty", null, ValidationEvent.FATAL_ERROR);
+        }
+
+        Set<String> foundLangAttributes = new HashSet<>();
         for (Node textNode : childNodesByName) {
+
             String nodeValue = getNodeValue(textNode);
-            if (nodeValue != null && nodeValue.length() > 160) {
-                return createEvent(node, FIELDNAME, "shorter than max-length", ""+nodeValue.length() + " chars", ValidationEvent.WARNING);
+
+            if (nodeValue == null || nodeValue.isEmpty()) {
+                return createEvent(textNode, FIELDNAME, "not empty", nodeValue, ValidationEvent.FATAL_ERROR);
+            }
+
+            if (requireLangAttribute) {
+                final String lang = getNodeAttributeValue(textNode, ATTRIBUTE);
+                if (lang == null || lang.isEmpty()) {
+                    return createEvent(textNode, FIELDNAME, "lang-attribute when more than one " + FIELDNAME, lang, ValidationEvent.FATAL_ERROR);
+                } else if (foundLangAttributes.contains(lang)) {
+                    return createEvent(textNode, FIELDNAME, "unique lang-attribute", lang, ValidationEvent.FATAL_ERROR);
+                } else {
+                    foundLangAttributes.add(lang);
+                }
             }
         }
         return null;

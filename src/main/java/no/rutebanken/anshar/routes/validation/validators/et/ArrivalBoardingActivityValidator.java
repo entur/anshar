@@ -76,42 +76,30 @@
 package no.rutebanken.anshar.routes.validation.validators.et;
 
 import com.google.common.collect.Sets;
-import no.rutebanken.anshar.routes.validation.validators.CustomValidator;
+import no.rutebanken.anshar.routes.validation.validators.LimitedSubsetValidator;
 import no.rutebanken.anshar.routes.validation.validators.Validator;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import org.springframework.stereotype.Component;
-import org.w3c.dom.Node;
 import uk.org.siri.siri20.ArrivalBoardingActivityEnumeration;
-
-import javax.xml.bind.ValidationEvent;
-import java.util.Set;
 
 import static no.rutebanken.anshar.routes.validation.validators.Constants.ESTIMATED_CALL;
 
 @Validator(profileName = "norway", targetType = SiriDataType.ESTIMATED_TIMETABLE)
 @Component
-public class ArrivalBoardingActivityValidator extends CustomValidator {
+public class ArrivalBoardingActivityValidator extends LimitedSubsetValidator {
 
     private static final String FIELDNAME = "ArrivalBoardingActivity";
     private static final String path = ESTIMATED_CALL + "/" + FIELDNAME;
 
-    static Set<String> expectedValues = Sets.newHashSet(
-            ArrivalBoardingActivityEnumeration.ALIGHTING.value(),
-            ArrivalBoardingActivityEnumeration.NO_ALIGHTING.value(),
-            ArrivalBoardingActivityEnumeration.PASS_THRU.value());
+    static {
+        expectedValues = Sets.newHashSet(
+                ArrivalBoardingActivityEnumeration.ALIGHTING.value(),
+                ArrivalBoardingActivityEnumeration.NO_ALIGHTING.value(),
+                ArrivalBoardingActivityEnumeration.PASS_THRU.value());
+    }
     @Override
     public String getXpath() {
         return path;
     }
 
-    @Override
-    public ValidationEvent isValid(Node node) {
-        String nodeValue = getNodeValue(node);
-
-        if (nodeValue != null && !expectedValues.contains(nodeValue)) {
-            return  createEvent(node, FIELDNAME, expectedValues, nodeValue, ValidationEvent.WARNING);
-        }
-
-        return null;
-    }
 }

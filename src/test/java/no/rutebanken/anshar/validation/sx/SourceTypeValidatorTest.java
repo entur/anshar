@@ -43,51 +43,47 @@
  * limitations under the Licence.
  */
 
-/*
- * Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
- * the European Commission - subsequent versions of the EUPL (the "Licence");
- * You may not use this work except in compliance with the Licence.
- * You may obtain a copy of the Licence at:
- *
- *   https://joinup.ec.europa.eu/software/page/eupl
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the Licence is distributed on an "AS IS" basis,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the Licence for the specific language governing permissions and
- * limitations under the Licence.
- */
+package no.rutebanken.anshar.validation.sx;
 
-package no.rutebanken.anshar.routes.validation.validators.et;
+import no.rutebanken.anshar.routes.validation.validators.sx.SourceTypeValidator;
+import no.rutebanken.anshar.validation.CustomValidatorTest;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
-import com.google.common.collect.Sets;
-import no.rutebanken.anshar.routes.validation.validators.LimitedSubsetValidator;
-import no.rutebanken.anshar.routes.validation.validators.Validator;
-import no.rutebanken.anshar.subscription.SiriDataType;
-import org.springframework.stereotype.Component;
-import uk.org.siri.siri20.CallStatusEnumeration;
+import javax.xml.bind.ValidationEvent;
 
-import static no.rutebanken.anshar.routes.validation.validators.Constants.ESTIMATED_CALL;
+import static junit.framework.TestCase.assertNotNull;
+import static junit.framework.TestCase.assertNull;
 
-@Validator(profileName = "norway", targetType = SiriDataType.ESTIMATED_TIMETABLE)
-@Component
-public class EstimatedArrivalStatusValidator extends LimitedSubsetValidator {
+public class SourceTypeValidatorTest extends CustomValidatorTest {
 
-    private static final String FIELDNAME = "ArrivalStatus";
-    private static final String path = ESTIMATED_CALL + "/" + FIELDNAME;
+    static SourceTypeValidator validator;
+    private String fieldName = "SourceType";
 
-    static {
-        expectedValues = Sets.newHashSet(
-                CallStatusEnumeration.ARRIVED.value(),
-                CallStatusEnumeration.CANCELLED.value(),
-                CallStatusEnumeration.EARLY.value(),
-                CallStatusEnumeration.ON_TIME.value(),
-                CallStatusEnumeration.DELAYED.value());
+    @BeforeClass
+    public static void init() {
+        validator = new SourceTypeValidator();
     }
 
-    @Override
-    public String getXpath() {
-        return path;
+    @Test
+    public void testDirectReportType() throws Exception{
+        String xml = createXml(fieldName, "directReport");
+
+        assertNull("Valid "+fieldName+" flagged as invalid", validator.isValid(createXmlNode(xml)));
     }
 
+    @Test
+    public void testFaxReportType() throws Exception{
+        String xml = createXml(fieldName, "fax");
+
+        assertNotNull("Invalid "+fieldName+" flagged as valid", validator.isValid(createXmlNode(xml)));
+    }
+
+    @Test
+    public void testEmptySourceType() throws Exception{
+        String xml = createXml(fieldName, "");
+
+        final ValidationEvent valid = validator.isValid(createXmlNode(xml));
+        assertNotNull("Invalid "+fieldName+" flagged as valid", valid);
+    }
 }

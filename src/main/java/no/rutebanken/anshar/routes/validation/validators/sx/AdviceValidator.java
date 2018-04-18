@@ -58,60 +58,26 @@
  * limitations under the Licence.
  */
 
-/*
- * Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
- * the European Commission - subsequent versions of the EUPL (the "Licence");
- * You may not use this work except in compliance with the Licence.
- * You may obtain a copy of the Licence at:
- *
- *   https://joinup.ec.europa.eu/software/page/eupl
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the Licence is distributed on an "AS IS" basis,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the Licence for the specific language governing permissions and
- * limitations under the Licence.
- */
+package no.rutebanken.anshar.routes.validation.validators.sx;
 
-/*
- * Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
- * the European Commission - subsequent versions of the EUPL (the "Licence");
- * You may not use this work except in compliance with the Licence.
- * You may obtain a copy of the Licence at:
- *
- *   https://joinup.ec.europa.eu/software/page/eupl
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the Licence is distributed on an "AS IS" basis,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the Licence for the specific language governing permissions and
- * limitations under the Licence.
- */
-
-package no.rutebanken.anshar.routes.validation.validators.et;
-
-import com.google.common.collect.Sets;
-import no.rutebanken.anshar.routes.validation.validators.LimitedSubsetValidator;
+import no.rutebanken.anshar.routes.validation.validators.StringStructureValidator;
 import no.rutebanken.anshar.routes.validation.validators.Validator;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import org.springframework.stereotype.Component;
-import uk.org.siri.siri20.DepartureBoardingActivityEnumeration;
 
-import static no.rutebanken.anshar.routes.validation.validators.Constants.ESTIMATED_CALL;
+import static no.rutebanken.anshar.routes.validation.validators.Constants.PT_SITUATION_ELEMENT;
 
-@Validator(profileName = "norway", targetType = SiriDataType.ESTIMATED_TIMETABLE)
+@Validator(profileName = "norway", targetType = SiriDataType.SITUATION_EXCHANGE)
 @Component
-public class DepartureBoardingActivityValidator extends LimitedSubsetValidator {
+public class AdviceValidator extends StringStructureValidator {
 
-    private static final String FIELDNAME = "DepartureBoardingActivity";
-    private static final String path = ESTIMATED_CALL + "/" + FIELDNAME;
+    private static String path = PT_SITUATION_ELEMENT;
 
     static {
-        expectedValues = Sets.newHashSet(
-                DepartureBoardingActivityEnumeration.BOARDING.value(),
-                DepartureBoardingActivityEnumeration.NO_BOARDING.value(),
-                DepartureBoardingActivityEnumeration.PASS_THRU.value());
+        FIELDNAME = "Advice";
+        path = PT_SITUATION_ELEMENT;
     }
+
     @Override
     public String getXpath() {
         return path;

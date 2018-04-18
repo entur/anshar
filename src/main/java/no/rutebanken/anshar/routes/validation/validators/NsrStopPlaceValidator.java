@@ -28,53 +28,30 @@
  * limitations under the Licence.
  */
 
-package no.rutebanken.anshar.routes.validation.validators.sx;
+package no.rutebanken.anshar.routes.validation.validators;
 
-import no.rutebanken.anshar.routes.validation.validators.StringStructureValidator;
-import no.rutebanken.anshar.routes.validation.validators.Validator;
-import no.rutebanken.anshar.subscription.SiriDataType;
-import org.springframework.stereotype.Component;
 import org.w3c.dom.Node;
 
 import javax.xml.bind.ValidationEvent;
-import java.util.List;
 
-import static no.rutebanken.anshar.routes.validation.validators.Constants.PT_SITUATION_ELEMENT;
+public abstract class NsrStopPlaceValidator extends CustomValidator {
 
-@Validator(profileName = "norway", targetType = SiriDataType.SITUATION_EXCHANGE)
-@Component
-public class SummaryValidator extends StringStructureValidator {
 
-    private static String path = PT_SITUATION_ELEMENT;
-
-    static {
-        FIELDNAME = "Summary";
-        path = PT_SITUATION_ELEMENT;
-    }
+    protected static String FIELDNAME;
 
     @Override
-    public String getXpath() {
-        return path;
+    public String getCategoryName() {
+        return FIELDNAME;
     }
 
     @Override
     public ValidationEvent isValid(Node node) {
-        final ValidationEvent validationEvent = super.isValid(node);
-        if (validationEvent != null) {
-            return validationEvent;
+        String nodeValue = getNodeValue(node);
+
+        if (nodeValue == null || !nodeValue.startsWith("NSR:StopPlace:")) {
+            return  createEvent(node, FIELDNAME, "NSR:StopPlace:ID", nodeValue, ValidationEvent.FATAL_ERROR);
         }
 
-        /*
-         Check max-length for Summary
-         */
-        final List<Node> childNodesByName = getChildNodesByName(node, FIELDNAME);
-
-        for (Node textNode : childNodesByName) {
-            String nodeValue = getNodeValue(textNode);
-            if (nodeValue != null && nodeValue.length() > 160) {
-                return createEvent(node, FIELDNAME, "shorter than max-length", ""+nodeValue.length() + " chars", ValidationEvent.WARNING);
-            }
-        }
         return null;
     }
 }
