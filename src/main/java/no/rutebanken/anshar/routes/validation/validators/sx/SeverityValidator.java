@@ -74,10 +74,11 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.PT_SIT
 public class SeverityValidator extends LimitedSubsetValidator {
 
 
-    private static final String FIELDNAME = "Severity";
-    private static final String path = PT_SITUATION_ELEMENT + "/" + FIELDNAME;
+    private static String path;
 
-    static {
+    public SeverityValidator() {
+        FIELDNAME = "Severity";
+        path = PT_SITUATION_ELEMENT + "/" + FIELDNAME;
         expectedValues = Sets.newHashSet(
                 SeverityEnumeration.NO_IMPACT.value(),
                 SeverityEnumeration.SLIGHT.value(),

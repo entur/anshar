@@ -74,10 +74,11 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.AFFECT
 public class VehicleModeValidator extends LimitedSubsetValidator {
 
 
-    private static final String FIELDNAME = "VehicleMode";
-    private static final String path = AFFECTED_NETWORK + "/" + FIELDNAME;
+    private static String path;
 
-    static {
+    public VehicleModeValidator() {
+        FIELDNAME = "VehicleMode";
+        path = AFFECTED_NETWORK + "/" + FIELDNAME;
         expectedValues = Sets.newHashSet(
                 VehicleModesOfTransportEnumeration.ALL.value(),
                 VehicleModesOfTransportEnumeration.AIR.value(),

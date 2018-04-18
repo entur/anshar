@@ -38,9 +38,9 @@ import java.util.Set;
 public abstract class LimitedSubsetValidator extends CustomValidator {
 
 
-    protected static String FIELDNAME;
+    protected String FIELDNAME;
 
-    protected static Set<String> expectedValues;
+    protected Set<String> expectedValues;
 
     @Override
     public String getCategoryName() {

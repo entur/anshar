@@ -88,15 +88,17 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.ESTIMA
 @Component
 public class ArrivalBoardingActivityValidator extends LimitedSubsetValidator {
 
-    private static final String FIELDNAME = "ArrivalBoardingActivity";
-    private static final String path = ESTIMATED_CALL + "/" + FIELDNAME;
+    private static String path;
 
-    static {
+    public ArrivalBoardingActivityValidator()  {
+        FIELDNAME = "ArrivalBoardingActivity";
+        path = ESTIMATED_CALL + "/" + FIELDNAME;
         expectedValues = Sets.newHashSet(
                 ArrivalBoardingActivityEnumeration.ALIGHTING.value(),
                 ArrivalBoardingActivityEnumeration.NO_ALIGHTING.value(),
                 ArrivalBoardingActivityEnumeration.PASS_THRU.value());
     }
+
     @Override
     public String getXpath() {
         return path;

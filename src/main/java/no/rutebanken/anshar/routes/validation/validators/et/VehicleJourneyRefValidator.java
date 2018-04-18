@@ -60,37 +60,27 @@
 
 package no.rutebanken.anshar.routes.validation.validators.et;
 
-import no.rutebanken.anshar.routes.validation.validators.CustomValidator;
+import no.rutebanken.anshar.routes.validation.validators.NsrGenericIdValidator;
 import no.rutebanken.anshar.routes.validation.validators.Validator;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import org.springframework.stereotype.Component;
-import org.w3c.dom.Node;
-
-import javax.xml.bind.ValidationEvent;
 
 import static no.rutebanken.anshar.routes.validation.validators.Constants.ESTIMATED_VEHICLE_JOURNEY;
 
 @Validator(profileName = "norway", targetType = SiriDataType.ESTIMATED_TIMETABLE)
 @Component
-public class VehicleJourneyRefValidator extends CustomValidator {
+public class VehicleJourneyRefValidator extends NsrGenericIdValidator {
 
-    private static final String FIELDNAME = "VehicleJourneyRef";
-    private static final String path = ESTIMATED_VEHICLE_JOURNEY + "/" + FIELDNAME;
+    private static String path;
+
+    public VehicleJourneyRefValidator() {
+        FIELDNAME = "VehicleJourneyRef";
+        ID_LABEL = "Line";
+        path = ESTIMATED_VEHICLE_JOURNEY + "/" + FIELDNAME;
+    }
 
     @Override
     public String getXpath() {
         return path;
-    }
-
-    @Override
-    public ValidationEvent isValid(Node node) {
-        String nodeValue = getNodeValue(node);
-
-        if (nodeValue != null && nodeValue.contains(":Line:")) {
-            return  createEvent(node, FIELDNAME, "CODESPACE:VehicleJourney:ID", nodeValue, ValidationEvent.WARNING);
-        }
-
-
-        return null;
     }
 }

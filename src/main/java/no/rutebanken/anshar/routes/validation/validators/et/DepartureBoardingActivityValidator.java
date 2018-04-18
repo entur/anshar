@@ -103,10 +103,12 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.ESTIMA
 @Component
 public class DepartureBoardingActivityValidator extends LimitedSubsetValidator {
 
-    private static final String FIELDNAME = "DepartureBoardingActivity";
-    private static final String path = ESTIMATED_CALL + "/" + FIELDNAME;
+    private static String path;
 
-    static {
+    public DepartureBoardingActivityValidator() {
+        FIELDNAME = "DepartureBoardingActivity";
+        path = ESTIMATED_CALL + "/" + FIELDNAME;
+
         expectedValues = Sets.newHashSet(
                 DepartureBoardingActivityEnumeration.BOARDING.value(),
                 DepartureBoardingActivityEnumeration.NO_BOARDING.value(),

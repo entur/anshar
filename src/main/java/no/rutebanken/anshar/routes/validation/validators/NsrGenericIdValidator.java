@@ -43,37 +43,32 @@
  * limitations under the Licence.
  */
 
-package no.rutebanken.anshar.routes.validation.validators.et;
+package no.rutebanken.anshar.routes.validation.validators;
 
-import com.google.common.collect.Sets;
-import no.rutebanken.anshar.routes.validation.validators.LimitedSubsetValidator;
-import no.rutebanken.anshar.routes.validation.validators.Validator;
-import no.rutebanken.anshar.subscription.SiriDataType;
-import org.springframework.stereotype.Component;
-import uk.org.siri.siri20.OccupancyEnumeration;
+import org.w3c.dom.Node;
 
-import static no.rutebanken.anshar.routes.validation.validators.Constants.ESTIMATED_VEHICLE_JOURNEY;
+import javax.xml.bind.ValidationEvent;
 
-@Validator(profileName = "norway", targetType = SiriDataType.ESTIMATED_TIMETABLE)
-@Component
-public class OccupancyValidator extends LimitedSubsetValidator {
+public abstract class NsrGenericIdValidator extends CustomValidator {
 
 
+    protected String FIELDNAME;
 
-    private static String path;
+    protected String ID_LABEL;
 
-    public OccupancyValidator() {
-        FIELDNAME = "Occupancy";
-        path = ESTIMATED_VEHICLE_JOURNEY + "/" + FIELDNAME;
-        expectedValues = Sets.newHashSet(
-                OccupancyEnumeration.FULL.value(),
-                OccupancyEnumeration.SEATS_AVAILABLE.value(),
-                OccupancyEnumeration.STANDING_AVAILABLE.value()
-        );
+    @Override
+    public String getCategoryName() {
+        return FIELDNAME;
     }
 
     @Override
-    public String getXpath() {
-        return path;
+    public ValidationEvent isValid(Node node) {
+        String nodeValue = getNodeValue(node);
+
+        if (nodeValue == null || !nodeValue.contains(":" + ID_LABEL + ":")) {
+            return  createEvent(node, FIELDNAME, "CODESPACE:" + ID_LABEL + ":ID", nodeValue, ValidationEvent.FATAL_ERROR);
+        }
+
+        return null;
     }
 }

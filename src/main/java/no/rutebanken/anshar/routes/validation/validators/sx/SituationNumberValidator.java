@@ -30,36 +30,27 @@
 
 package no.rutebanken.anshar.routes.validation.validators.sx;
 
-import no.rutebanken.anshar.routes.validation.validators.CustomValidator;
+import no.rutebanken.anshar.routes.validation.validators.NsrGenericIdValidator;
 import no.rutebanken.anshar.routes.validation.validators.Validator;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import org.springframework.stereotype.Component;
-import org.w3c.dom.Node;
-
-import javax.xml.bind.ValidationEvent;
 
 import static no.rutebanken.anshar.routes.validation.validators.Constants.PT_SITUATION_ELEMENT;
 
 @Validator(profileName = "norway", targetType = SiriDataType.SITUATION_EXCHANGE)
 @Component
-public class SituationNumberValidator extends CustomValidator {
+public class SituationNumberValidator extends NsrGenericIdValidator {
 
-    private static final String FIELDNAME = "SituationNumber";
-    private static final String path = PT_SITUATION_ELEMENT + "/" + FIELDNAME;
+    private static String path;
+
+    public SituationNumberValidator() {
+        FIELDNAME = "SituationNumber";
+        ID_LABEL = "SituationNumber";
+        path = PT_SITUATION_ELEMENT + "/" + FIELDNAME;
+    }
 
     @Override
     public String getXpath() {
         return path;
-    }
-
-    @Override
-    public ValidationEvent isValid(Node node) {
-        String nodeValue = getNodeValue(node);
-
-        if (nodeValue != null && !nodeValue.contains(":SituationNumber:")) {
-            return createEvent(node, FIELDNAME, "CODESPACE:SituationNumber:ID", nodeValue, ValidationEvent.WARNING);
-        }
-
-        return null;
     }
 }

@@ -59,10 +59,11 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.PT_SIT
 public class SourceTypeValidator extends LimitedSubsetValidator {
 
 
-    private static final String FIELDNAME = "SourceType";
-    private static final String path = PT_SITUATION_ELEMENT + "/Source/" + FIELDNAME;
+    private static String path;
 
-    static {
+    public SourceTypeValidator() {
+        FIELDNAME = "SourceType";
+        path = PT_SITUATION_ELEMENT + "/Source/" + FIELDNAME;
         expectedValues = Sets.newHashSet(SituationSourceTypeEnumeration.DIRECT_REPORT.value());
     }
 

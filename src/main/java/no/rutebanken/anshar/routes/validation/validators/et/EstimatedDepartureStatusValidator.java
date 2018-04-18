@@ -88,10 +88,11 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.ESTIMA
 @Component
 public class EstimatedDepartureStatusValidator extends LimitedSubsetValidator {
 
-    private static final String FIELDNAME = "DepartureStatus";
-    private static final String path = ESTIMATED_CALL + "/" + FIELDNAME;
+    private static String path;
 
-    static {
+    public EstimatedDepartureStatusValidator() {
+        FIELDNAME = "DepartureStatus";
+        path = ESTIMATED_CALL + "/" + FIELDNAME;
         expectedValues = Sets.newHashSet(
                 CallStatusEnumeration.CANCELLED.value(),
                 CallStatusEnumeration.ON_TIME.value(),

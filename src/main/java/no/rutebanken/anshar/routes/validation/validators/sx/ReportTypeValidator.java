@@ -43,10 +43,11 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.PT_SIT
 public class ReportTypeValidator extends LimitedSubsetValidator {
 
 
-    private static final String FIELDNAME = "ReportType";
-    private static final String path = PT_SITUATION_ELEMENT + "/" + FIELDNAME;
+    private static String path;
 
-    static {
+    public ReportTypeValidator() {
+        FIELDNAME = "ReportType";
+        path = PT_SITUATION_ELEMENT + "/" + FIELDNAME;
         expectedValues = Sets.newHashSet("general", "incident");
     }
 
