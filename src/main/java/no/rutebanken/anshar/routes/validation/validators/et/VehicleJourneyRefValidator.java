@@ -75,7 +75,7 @@ public class VehicleJourneyRefValidator extends NsrGenericIdValidator {
 
     public VehicleJourneyRefValidator() {
         FIELDNAME = "VehicleJourneyRef";
-        ID_LABEL = "Line";
+        ID_LABEL = "ServiceJourney";
         path = ESTIMATED_VEHICLE_JOURNEY + "/" + FIELDNAME;
     }
 
