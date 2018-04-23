@@ -57,8 +57,9 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.RECORD
 public class RecordedStopPointRefValidator extends NsrQuayValidator {
 
 
-    private static final String path;
-    static {
+    private static String path;
+
+    public RecordedStopPointRefValidator() {
         FIELDNAME = "StopPointRef";
         path = RECORDED_CALL + "/" + FIELDNAME;
     }

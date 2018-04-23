@@ -52,7 +52,7 @@ public abstract class LimitedSubsetValidator extends CustomValidator {
         String nodeValue = getNodeValue(node);
 
         if (nodeValue == null || !expectedValues.contains(nodeValue)) {
-            return  createEvent(node, FIELDNAME, expectedValues, nodeValue, ValidationEvent.ERROR);
+            return  createEvent(node, FIELDNAME, "one of " + expectedValues, nodeValue, ValidationEvent.ERROR);
         }
         return null;
     }

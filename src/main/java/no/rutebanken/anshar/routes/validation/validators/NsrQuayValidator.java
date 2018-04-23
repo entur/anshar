@@ -22,7 +22,7 @@ import javax.xml.bind.ValidationEvent;
 public abstract class NsrQuayValidator extends CustomValidator {
 
 
-    protected static String FIELDNAME;
+    protected String FIELDNAME;
 
     @Override
     public String getCategoryName() {
@@ -33,7 +33,7 @@ public abstract class NsrQuayValidator extends CustomValidator {
     public ValidationEvent isValid(Node node) {
         String nodeValue = getNodeValue(node);
 
-        if (nodeValue == null || !nodeValue.startsWith("NSR:Quay:")) {
+        if (!isValidNsrId("NSR:Quay:", nodeValue)) {
             return  createEvent(node, FIELDNAME, "NSR:Quay:ID", nodeValue, ValidationEvent.FATAL_ERROR);
         }
 

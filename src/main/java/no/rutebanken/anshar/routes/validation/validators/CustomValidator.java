@@ -35,6 +35,14 @@ public abstract class CustomValidator {
         return this.getClass().getSimpleName().replace("Validator", "");
     }
 
+    protected boolean isValidNsrId(String prefix, String nodeValue) {
+        return nodeValue != null && nodeValue.startsWith(prefix);
+    }
+
+    protected boolean isValidGenericId(String pattern, String nodeValue) {
+        return nodeValue != null && nodeValue.contains(pattern);
+    }
+
     /**
      * Returns the textual content of the provided node - null if it does not exist
      * @param node

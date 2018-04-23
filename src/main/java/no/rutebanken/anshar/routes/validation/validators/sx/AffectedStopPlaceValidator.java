@@ -24,15 +24,15 @@ import org.w3c.dom.Node;
 
 import javax.xml.bind.ValidationEvent;
 
-import static no.rutebanken.anshar.routes.validation.validators.Constants.AFFECTED_NETWORK;
+import static no.rutebanken.anshar.routes.validation.validators.Constants.AFFECTED_STOP_PLACE;
 
 @Validator(profileName = "norway", targetType = SiriDataType.SITUATION_EXCHANGE)
 @Component
-public class AffectedOperatorValidator extends CustomValidator {
+public class AffectedStopPlaceValidator extends CustomValidator {
 
+    private static final String FIELDNAME = "StopPlaceRef";
 
-    private static final String FIELDNAME = "AffectedOperator";
-    private static final String path = AFFECTED_NETWORK + "/" + FIELDNAME;
+    private static String path = AFFECTED_STOP_PLACE + "/" + FIELDNAME;
 
     @Override
     public String getXpath() {
@@ -43,12 +43,9 @@ public class AffectedOperatorValidator extends CustomValidator {
     public ValidationEvent isValid(Node node) {
         String nodeValue = getNodeValue(node);
 
-        if (nodeValue == null || nodeValue.length() != 3) {
-            //TODO: Check for valid CodeSpace
-            return createEvent(node, FIELDNAME, "CODESPACE", nodeValue, ValidationEvent.ERROR);
+        if (!isValidNsrId("NSR:StopPlace:", nodeValue) & !isValidNsrId("NSR:Quay:", nodeValue)) {
+            return  createEvent(node, FIELDNAME, "NSR:StopPlace:ID of NSR:Quay:ID", nodeValue, ValidationEvent.FATAL_ERROR);
         }
-
         return null;
     }
-
 }

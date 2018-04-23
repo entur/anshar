@@ -16,39 +16,27 @@
 
 package no.rutebanken.anshar.routes.validation.validators.sx;
 
-import no.rutebanken.anshar.routes.validation.validators.CustomValidator;
+import no.rutebanken.anshar.routes.validation.validators.NsrGenericIdValidator;
 import no.rutebanken.anshar.routes.validation.validators.Validator;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import org.springframework.stereotype.Component;
-import org.w3c.dom.Node;
 
-import javax.xml.bind.ValidationEvent;
-
-import static no.rutebanken.anshar.routes.validation.validators.Constants.AFFECTED_NETWORK;
+import static no.rutebanken.anshar.routes.validation.validators.Constants.AFFECTED_LINE;
 
 @Validator(profileName = "norway", targetType = SiriDataType.SITUATION_EXCHANGE)
 @Component
-public class AffectedOperatorValidator extends CustomValidator {
+public class AffectedLineValidator extends NsrGenericIdValidator {
 
+    private static String path;
 
-    private static final String FIELDNAME = "AffectedOperator";
-    private static final String path = AFFECTED_NETWORK + "/" + FIELDNAME;
+    public AffectedLineValidator() {
+        FIELDNAME = "LineRef";
+        ID_LABEL = "Line";
+        path = AFFECTED_LINE + "/" + FIELDNAME;
+    }
 
     @Override
     public String getXpath() {
         return path;
     }
-
-    @Override
-    public ValidationEvent isValid(Node node) {
-        String nodeValue = getNodeValue(node);
-
-        if (nodeValue == null || nodeValue.length() != 3) {
-            //TODO: Check for valid CodeSpace
-            return createEvent(node, FIELDNAME, "CODESPACE", nodeValue, ValidationEvent.ERROR);
-        }
-
-        return null;
-    }
-
 }

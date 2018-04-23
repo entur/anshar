@@ -37,7 +37,7 @@ import javax.xml.bind.ValidationEvent;
 public abstract class NsrStopPlaceValidator extends CustomValidator {
 
 
-    protected static String FIELDNAME;
+    protected String FIELDNAME;
 
     @Override
     public String getCategoryName() {
@@ -48,7 +48,7 @@ public abstract class NsrStopPlaceValidator extends CustomValidator {
     public ValidationEvent isValid(Node node) {
         String nodeValue = getNodeValue(node);
 
-        if (nodeValue == null || !nodeValue.startsWith("NSR:StopPlace:")) {
+        if (!isValidNsrId("NSR:StopPlace:", nodeValue)) {
             return  createEvent(node, FIELDNAME, "NSR:StopPlace:ID", nodeValue, ValidationEvent.FATAL_ERROR);
         }
 

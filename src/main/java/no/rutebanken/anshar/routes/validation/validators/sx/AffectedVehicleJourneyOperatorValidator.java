@@ -28,28 +28,39 @@
  * limitations under the Licence.
  */
 
-package no.rutebanken.anshar.routes.validation.validators.et;
+package no.rutebanken.anshar.routes.validation.validators.sx;
 
-import no.rutebanken.anshar.routes.validation.validators.NsrQuayValidator;
+import no.rutebanken.anshar.routes.validation.validators.CustomValidator;
 import no.rutebanken.anshar.routes.validation.validators.Validator;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import org.springframework.stereotype.Component;
+import org.w3c.dom.Node;
 
-import static no.rutebanken.anshar.routes.validation.validators.Constants.ESTIMATED_CALL;
+import javax.xml.bind.ValidationEvent;
 
-@Validator(profileName = "norway", targetType = SiriDataType.ESTIMATED_TIMETABLE)
+import static no.rutebanken.anshar.routes.validation.validators.Constants.AFFECTED_VEHICLE_JOURNEY;
+
+@Validator(profileName = "norway", targetType = SiriDataType.SITUATION_EXCHANGE)
 @Component
-public class EstimatedStopPointRefValidator extends NsrQuayValidator {
+public class AffectedVehicleJourneyOperatorValidator extends CustomValidator {
 
-    private static String path;
-    public EstimatedStopPointRefValidator() {
-        FIELDNAME = "StopPointRef";
-        path = ESTIMATED_CALL + "/" + FIELDNAME;
-    }
+    private static final String FIELDNAME = "Operator";
+    private static final String path = AFFECTED_VEHICLE_JOURNEY + "/" + FIELDNAME;
 
     @Override
     public String getXpath() {
         return path;
     }
 
+    @Override
+    public ValidationEvent isValid(Node node) {
+        String nodeValue = getNodeValue(node);
+
+        if (nodeValue == null || nodeValue.length() != 3) {
+            //TODO: Check for valid Operator
+            return createEvent(node, FIELDNAME, "CODESPACE", nodeValue, ValidationEvent.WARNING);
+        }
+
+        return null;
+    }
 }

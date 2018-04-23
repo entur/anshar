@@ -43,37 +43,39 @@
  * limitations under the Licence.
  */
 
-package no.rutebanken.anshar.validation.et;
+package no.rutebanken.anshar.routes.validation.validators.sx;
 
-import no.rutebanken.anshar.routes.validation.validators.et.OperatorRefValidator;
-import no.rutebanken.anshar.validation.CustomValidatorTest;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import com.google.common.collect.Sets;
+import no.rutebanken.anshar.routes.validation.validators.LimitedSubsetValidator;
+import no.rutebanken.anshar.routes.validation.validators.Validator;
+import no.rutebanken.anshar.subscription.SiriDataType;
+import org.springframework.stereotype.Component;
+import uk.org.siri.siri20.RoutePointTypeEnumeration;
 
-import static junit.framework.TestCase.assertNotNull;
-import static junit.framework.TestCase.assertNull;
+import static no.rutebanken.anshar.routes.validation.validators.Constants.AFFECTED_STOP_POINT;
 
-public class OperatorRefValidatorTest extends CustomValidatorTest {
+@Validator(profileName = "norway", targetType = SiriDataType.SITUATION_EXCHANGE)
+@Component
+public class StopConditionValidator extends LimitedSubsetValidator {
 
-    static OperatorRefValidator validator;
-    private String fieldName = "OperatorRef";
+    private static String path;
 
-    @BeforeClass
-    public static void init() {
-        validator = new OperatorRefValidator();
+    public StopConditionValidator() {
+        FIELDNAME = "StopCondition";
+        path = AFFECTED_STOP_POINT + "/" + FIELDNAME;
+
+        expectedValues = Sets.newHashSet(
+                RoutePointTypeEnumeration.EXCEPTIONAL_STOP.value(),
+                RoutePointTypeEnumeration.DESTINATION.value(),
+                RoutePointTypeEnumeration.NOT_STOPPING.value(),
+                RoutePointTypeEnumeration.REQUEST_STOP.value(),
+                RoutePointTypeEnumeration.START_POINT.value(),
+                RoutePointTypeEnumeration.STOP.value()
+        );
     }
 
-    @Test
-    public void testValidParticipant() throws Exception{
-        String xml = createXml(fieldName, "ENT");
-
-        assertNull("Valid "+fieldName+" flagged as invalid", validator.isValid(createXmlNode(xml)));
-    }
-
-    @Test
-    public void testInvalidParticipant() throws Exception{
-        String xml = createXml(fieldName, "N");
-
-        assertNotNull("Invalid "+fieldName+" flagged as valid", validator.isValid(createXmlNode(xml)));
+    @Override
+    public String getXpath() {
+        return path;
     }
 }
