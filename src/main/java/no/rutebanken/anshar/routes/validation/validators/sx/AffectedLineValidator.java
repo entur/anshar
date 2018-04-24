@@ -31,7 +31,7 @@ public class AffectedLineValidator extends NsrGenericIdValidator {
 
     public AffectedLineValidator() {
         FIELDNAME = "LineRef";
-        ID_LABEL = "Line";
+        ID_PATTERN = "Line";
         path = AFFECTED_LINE + "/" + FIELDNAME;
     }
 

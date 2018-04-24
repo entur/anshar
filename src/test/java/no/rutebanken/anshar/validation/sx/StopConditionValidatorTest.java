@@ -43,18 +43,18 @@ public class StopConditionValidatorTest extends CustomValidatorTest {
     @Test
     public void testValidStopCondition() throws Exception{
 
-        assertNull("Valid "+fieldName+" flagged as invalid", validator.isValid(createXmlNode(createXml(fieldName, "exceptionalStop"))));
-        assertNull("Valid "+fieldName+" flagged as invalid", validator.isValid(createXmlNode(createXml(fieldName, "destination"))));
-        assertNull("Valid "+fieldName+" flagged as invalid", validator.isValid(createXmlNode(createXml(fieldName, "notStopping"))));
-        assertNull("Valid "+fieldName+" flagged as invalid", validator.isValid(createXmlNode(createXml(fieldName, "requestStop"))));
-        assertNull("Valid "+fieldName+" flagged as invalid", validator.isValid(createXmlNode(createXml(fieldName, "startPoint"))));
-        assertNull("Valid "+fieldName+" flagged as invalid", validator.isValid(createXmlNode(createXml(fieldName, "stop"))));
+        assertNull("Valid "+fieldName+" flagged as invalid", validator.isValid(createXmlNode(fieldName, "exceptionalStop")));
+        assertNull("Valid "+fieldName+" flagged as invalid", validator.isValid(createXmlNode(fieldName, "destination")));
+        assertNull("Valid "+fieldName+" flagged as invalid", validator.isValid(createXmlNode(fieldName, "notStopping")));
+        assertNull("Valid "+fieldName+" flagged as invalid", validator.isValid(createXmlNode(fieldName, "requestStop")));
+        assertNull("Valid "+fieldName+" flagged as invalid", validator.isValid(createXmlNode(fieldName, "startPoint")));
+        assertNull("Valid "+fieldName+" flagged as invalid", validator.isValid(createXmlNode(fieldName, "stop")));
     }
 
     @Test
     public void testInvalidStopCondition() throws Exception{
 
-        assertNotNull("Valid "+fieldName+" flagged as invalid", validator.isValid(createXmlNode(createXml(fieldName, "additionalStop"))));
+        assertNotNull("Valid "+fieldName+" flagged as invalid", validator.isValid(createXmlNode(fieldName, "additionalStop")));
 
     }
 }

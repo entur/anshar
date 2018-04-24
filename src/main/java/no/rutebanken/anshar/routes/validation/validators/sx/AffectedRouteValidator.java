@@ -30,7 +30,7 @@ public class AffectedRouteValidator extends NsrGenericIdValidator {
 
     public AffectedRouteValidator() {
         FIELDNAME = "AffectedRoute";
-        ID_LABEL = "Route";
+        ID_PATTERN = "Route";
         path = AFFECTED_ROUTE + "/" + FIELDNAME;
     }
 

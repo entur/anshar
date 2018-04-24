@@ -30,7 +30,7 @@ public class AffectedVehicleJourneyRefValidator extends NsrGenericIdValidator {
 
     public AffectedVehicleJourneyRefValidator() {
         FIELDNAME = "VehicleJourneyRef";
-        ID_LABEL = "ServiceJourney";
+        ID_PATTERN = "ServiceJourney";
         path = AFFECTED_VEHICLE_JOURNEY + "/" + FIELDNAME;
     }
 

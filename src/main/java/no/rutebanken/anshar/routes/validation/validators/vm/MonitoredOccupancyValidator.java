@@ -13,37 +13,36 @@
  * limitations under the Licence.
  */
 
-package no.rutebanken.anshar.routes.validation.validators.et;
+package no.rutebanken.anshar.routes.validation.validators.vm;
 
-import no.rutebanken.anshar.routes.validation.validators.TimeValidator;
+import com.google.common.collect.Sets;
+import no.rutebanken.anshar.routes.validation.validators.LimitedSubsetValidator;
 import no.rutebanken.anshar.routes.validation.validators.Validator;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import org.springframework.stereotype.Component;
-import org.w3c.dom.Node;
+import uk.org.siri.siri20.OccupancyEnumeration;
 
-import javax.xml.bind.ValidationEvent;
+import static no.rutebanken.anshar.routes.validation.validators.Constants.MONITORED_VEHICLE_JOURNEY;
 
-import static no.rutebanken.anshar.routes.validation.validators.Constants.ESTIMATED_CALL;
-
-
-@Validator(profileName = "norway", targetType = SiriDataType.ESTIMATED_TIMETABLE)
+@Validator(profileName = "norway", targetType = SiriDataType.VEHICLE_MONITORING)
 @Component
-public class EstimatedExpectedDepartureTimeValidator extends TimeValidator {
+public class MonitoredOccupancyValidator extends LimitedSubsetValidator {
 
 
-    private static final String FIELDNAME = "ExpectedDepartureTime";
-    private static final String path = ESTIMATED_CALL + "/" + FIELDNAME;
+    private static String path;
 
-    private static String comparisonFieldName = "ExpectedArrivalTime";
+    public MonitoredOccupancyValidator() {
+        FIELDNAME = "Occupancy";
+        path = MONITORED_VEHICLE_JOURNEY + "/" + FIELDNAME;
+        expectedValues = Sets.newHashSet(
+                OccupancyEnumeration.FULL.value(),
+                OccupancyEnumeration.SEATS_AVAILABLE.value(),
+                OccupancyEnumeration.STANDING_AVAILABLE.value()
+        );
+    }
 
     @Override
     public String getXpath() {
         return path;
     }
-
-    @Override
-    public ValidationEvent isValid(Node node) {
-        return checkTimeValidity(node, FIELDNAME, comparisonFieldName, Mode.AFTER);
-    }
-
 }

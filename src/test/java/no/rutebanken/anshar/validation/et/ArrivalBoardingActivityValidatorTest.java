@@ -96,14 +96,14 @@ public class ArrivalBoardingActivityValidatorTest extends CustomValidatorTest {
     @Test
     public void testValid() throws Exception{
 
-        assertNull("Valid " + fieldName + " flagged as invalid", validator.isValid(createXmlNode(createXml(fieldName, "alighting"))));
-        assertNull("Valid " + fieldName + " flagged as invalid", validator.isValid(createXmlNode(createXml(fieldName, "noAlighting"))));
-        assertNull("Valid " + fieldName + " flagged as invalid", validator.isValid(createXmlNode(createXml(fieldName, "passThru"))));
+        assertNull("Valid " + fieldName + " flagged as invalid", validator.isValid(createXmlNode(fieldName, "alighting")));
+        assertNull("Valid " + fieldName + " flagged as invalid", validator.isValid(createXmlNode(fieldName, "noAlighting")));
+        assertNull("Valid " + fieldName + " flagged as invalid", validator.isValid(createXmlNode(fieldName, "passThru")));
     }
     @Test
     public void testInvalid() throws Exception{
 
-        assertNotNull("Invalid " + fieldName + " flagged as valid", validator.isValid(createXmlNode(createXml(fieldName, "boarding"))));
+        assertNotNull("Invalid " + fieldName + " flagged as valid", validator.isValid(createXmlNode(fieldName, "boarding")));
     }
 
 

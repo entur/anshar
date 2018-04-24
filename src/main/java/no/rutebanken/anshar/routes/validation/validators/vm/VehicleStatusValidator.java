@@ -13,33 +13,39 @@
  * limitations under the Licence.
  */
 
-package no.rutebanken.anshar.routes.validation.validators.sx;
+package no.rutebanken.anshar.routes.validation.validators.vm;
 
 import com.google.common.collect.Sets;
 import no.rutebanken.anshar.routes.validation.validators.LimitedSubsetValidator;
 import no.rutebanken.anshar.routes.validation.validators.Validator;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import org.springframework.stereotype.Component;
-import uk.org.siri.siri20.WorkflowStatusEnumeration;
+import uk.org.siri.siri20.VehicleStatusEnumeration;
 
-import static no.rutebanken.anshar.routes.validation.validators.Constants.PT_SITUATION_ELEMENT;
+import static no.rutebanken.anshar.routes.validation.validators.Constants.MONITORED_VEHICLE_JOURNEY;
 
-@Validator(profileName = "norway", targetType = SiriDataType.SITUATION_EXCHANGE)
+@Validator(profileName = "norway", targetType = SiriDataType.VEHICLE_MONITORING)
 @Component
-public class ProgressValidator extends LimitedSubsetValidator {
+public class VehicleStatusValidator extends LimitedSubsetValidator {
 
 
     private static String path;
 
-    public ProgressValidator() {
-        FIELDNAME = "Progress";
-        path = PT_SITUATION_ELEMENT + "/" + FIELDNAME;
-        expectedValues = Sets.newHashSet(WorkflowStatusEnumeration.OPEN.value(), WorkflowStatusEnumeration.CLOSED.value());
+    public VehicleStatusValidator() {
+        FIELDNAME = "VehicleStatus";
+        path = MONITORED_VEHICLE_JOURNEY + "/" + FIELDNAME;
+        expectedValues = Sets.newHashSet(
+                VehicleStatusEnumeration.ASSIGNED.value(),
+                VehicleStatusEnumeration.AT_ORIGIN.value(),
+                VehicleStatusEnumeration.CANCELLED.value(),
+                VehicleStatusEnumeration.COMPLETED.value(),
+                VehicleStatusEnumeration.IN_PROGRESS.value(),
+                VehicleStatusEnumeration.OFF_ROUTE.value()
+        );
     }
 
     @Override
     public String getXpath() {
         return path;
     }
-
 }

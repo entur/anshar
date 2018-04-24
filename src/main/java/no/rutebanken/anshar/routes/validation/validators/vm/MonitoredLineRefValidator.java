@@ -13,37 +13,30 @@
  * limitations under the Licence.
  */
 
-package no.rutebanken.anshar.routes.validation.validators.et;
+package no.rutebanken.anshar.routes.validation.validators.vm;
 
-import no.rutebanken.anshar.routes.validation.validators.TimeValidator;
+import no.rutebanken.anshar.routes.validation.validators.NsrGenericIdValidator;
 import no.rutebanken.anshar.routes.validation.validators.Validator;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import org.springframework.stereotype.Component;
-import org.w3c.dom.Node;
 
-import javax.xml.bind.ValidationEvent;
+import static no.rutebanken.anshar.routes.validation.validators.Constants.MONITORED_VEHICLE_JOURNEY;
 
-import static no.rutebanken.anshar.routes.validation.validators.Constants.ESTIMATED_CALL;
-
-
-@Validator(profileName = "norway", targetType = SiriDataType.ESTIMATED_TIMETABLE)
+@Validator(profileName = "norway", targetType = SiriDataType.VEHICLE_MONITORING)
 @Component
-public class EstimatedExpectedDepartureTimeValidator extends TimeValidator {
+public class MonitoredLineRefValidator extends NsrGenericIdValidator {
 
 
-    private static final String FIELDNAME = "ExpectedDepartureTime";
-    private static final String path = ESTIMATED_CALL + "/" + FIELDNAME;
+    private String path;
 
-    private static String comparisonFieldName = "ExpectedArrivalTime";
+    public MonitoredLineRefValidator() {
+        FIELDNAME = "LineRef";
+        ID_PATTERN = "Line";
+        path = MONITORED_VEHICLE_JOURNEY + "/" + FIELDNAME;
+    }
 
     @Override
     public String getXpath() {
         return path;
     }
-
-    @Override
-    public ValidationEvent isValid(Node node) {
-        return checkTimeValidity(node, FIELDNAME, comparisonFieldName, Mode.AFTER);
-    }
-
 }

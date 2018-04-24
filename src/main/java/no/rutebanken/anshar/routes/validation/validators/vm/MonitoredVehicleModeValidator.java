@@ -13,33 +13,39 @@
  * limitations under the Licence.
  */
 
-package no.rutebanken.anshar.routes.validation.validators.sx;
+package no.rutebanken.anshar.routes.validation.validators.vm;
 
 import com.google.common.collect.Sets;
 import no.rutebanken.anshar.routes.validation.validators.LimitedSubsetValidator;
 import no.rutebanken.anshar.routes.validation.validators.Validator;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import org.springframework.stereotype.Component;
-import uk.org.siri.siri20.WorkflowStatusEnumeration;
+import uk.org.siri.siri20.VehicleModesEnumeration;
 
-import static no.rutebanken.anshar.routes.validation.validators.Constants.PT_SITUATION_ELEMENT;
+import static no.rutebanken.anshar.routes.validation.validators.Constants.MONITORED_VEHICLE_JOURNEY;
 
-@Validator(profileName = "norway", targetType = SiriDataType.SITUATION_EXCHANGE)
+@Validator(profileName = "norway", targetType = SiriDataType.VEHICLE_MONITORING)
 @Component
-public class ProgressValidator extends LimitedSubsetValidator {
+public class MonitoredVehicleModeValidator extends LimitedSubsetValidator {
 
+    private String path;
 
-    private static String path;
-
-    public ProgressValidator() {
-        FIELDNAME = "Progress";
-        path = PT_SITUATION_ELEMENT + "/" + FIELDNAME;
-        expectedValues = Sets.newHashSet(WorkflowStatusEnumeration.OPEN.value(), WorkflowStatusEnumeration.CLOSED.value());
+    public MonitoredVehicleModeValidator() {
+        FIELDNAME = "VehicleMode";
+        path = MONITORED_VEHICLE_JOURNEY + "/" + FIELDNAME;
+        expectedValues = Sets.newHashSet(
+                VehicleModesEnumeration.AIR.value(),
+                VehicleModesEnumeration.BUS.value(),
+                VehicleModesEnumeration.COACH.value(),
+                VehicleModesEnumeration.FERRY.value(),
+                VehicleModesEnumeration.METRO.value(),
+                VehicleModesEnumeration.RAIL.value(),
+                VehicleModesEnumeration.TRAM.value()
+        );
     }
 
     @Override
     public String getXpath() {
         return path;
     }
-
 }

@@ -68,7 +68,7 @@ import org.junit.Test;
 import static junit.framework.TestCase.assertNotNull;
 import static junit.framework.TestCase.assertNull;
 
-public class LineRefValidatorTest extends CustomValidatorTest {
+public class MonitoredLineRefValidatorTest extends CustomValidatorTest {
 
     static LineRefValidator validator;
     private String fieldName = "LineRef";

@@ -13,28 +13,28 @@
  * limitations under the Licence.
  */
 
-package no.rutebanken.anshar.routes.validation.validators.et;
+package no.rutebanken.anshar.routes.validation.validators.vm;
 
-import no.rutebanken.anshar.routes.validation.validators.TimeValidator;
+import no.rutebanken.anshar.routes.validation.validators.CustomValidator;
 import no.rutebanken.anshar.routes.validation.validators.Validator;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Node;
 
 import javax.xml.bind.ValidationEvent;
+import java.time.Duration;
+import java.time.format.DateTimeParseException;
 
-import static no.rutebanken.anshar.routes.validation.validators.Constants.ESTIMATED_CALL;
+import static no.rutebanken.anshar.routes.validation.validators.Constants.MONITORED_VEHICLE_JOURNEY;
 
-
-@Validator(profileName = "norway", targetType = SiriDataType.ESTIMATED_TIMETABLE)
+@Validator(profileName = "norway", targetType = SiriDataType.VEHICLE_MONITORING)
 @Component
-public class EstimatedExpectedDepartureTimeValidator extends TimeValidator {
+public class DelayValidator extends CustomValidator {
 
 
-    private static final String FIELDNAME = "ExpectedDepartureTime";
-    private static final String path = ESTIMATED_CALL + "/" + FIELDNAME;
+    private static final String FIELDNAME = "Delay";
+    private static final String path = MONITORED_VEHICLE_JOURNEY + "/" + FIELDNAME;
 
-    private static String comparisonFieldName = "ExpectedArrivalTime";
 
     @Override
     public String getXpath() {
@@ -43,7 +43,15 @@ public class EstimatedExpectedDepartureTimeValidator extends TimeValidator {
 
     @Override
     public ValidationEvent isValid(Node node) {
-        return checkTimeValidity(node, FIELDNAME, comparisonFieldName, Mode.AFTER);
-    }
+        String delay = getNodeValue(node);
+        if (delay != null) {
+            try {
+                Duration duration = Duration.parse(delay);
+            } catch (DateTimeParseException e){
+                return createEvent(node, FIELDNAME, "valid Duration", delay, ValidationEvent.ERROR);
+            }
+        }
 
+        return null;
+    }
 }

@@ -54,7 +54,7 @@ public abstract class NsrGenericIdValidator extends CustomValidator {
 
     protected String FIELDNAME;
 
-    protected String ID_LABEL;
+    protected String ID_PATTERN;
 
     @Override
     public String getCategoryName() {
@@ -65,8 +65,8 @@ public abstract class NsrGenericIdValidator extends CustomValidator {
     public ValidationEvent isValid(Node node) {
         String nodeValue = getNodeValue(node);
 
-        if (nodeValue == null || !nodeValue.contains(":" + ID_LABEL + ":")) {
-            return  createEvent(node, FIELDNAME, "CODESPACE:" + ID_LABEL + ":ID", nodeValue, ValidationEvent.FATAL_ERROR);
+        if (nodeValue == null || !nodeValue.contains(":" + ID_PATTERN + ":")) {
+            return  createEvent(node, FIELDNAME, "CODESPACE:" + ID_PATTERN + ":ID", nodeValue, ValidationEvent.FATAL_ERROR);
         }
 
         return null;

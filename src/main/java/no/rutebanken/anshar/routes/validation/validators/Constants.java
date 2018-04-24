@@ -27,15 +27,17 @@ public class Constants {
 
     public static final String AFFECTED_STOP_POINT = AFFECTS + "/StopPoints/AffectedStopPoint";
     public static final String AFFECTED_STOP_PLACE = AFFECTS + "/StopPlaces/AffectedStopPlace";
-
     public static final String ACCESSIBILITY_ASSESSMENT = AFFECTED_STOP_PLACE + "/StopPlaces";
-
     public static final String AFFECTED_COMPONENTS = AFFECTED_STOP_PLACE + "/AffectedComponents";
-
     public static final String AFFECTED_VEHICLE_JOURNEY = AFFECTS + "/VehicleJourneys/AffectedVehicleJourney";
 
 
     public static final String ESTIMATED_VEHICLE_JOURNEY = SERVICE_DELIVERY + "EstimatedTimetableDelivery/EstimatedJourneyVersionFrame/EstimatedVehicleJourney";
     public static final String ESTIMATED_CALL = ESTIMATED_VEHICLE_JOURNEY + "/EstimatedCalls/EstimatedCall";
     public static final String RECORDED_CALL = ESTIMATED_VEHICLE_JOURNEY + "/RecordedCalls/RecordedCall";
+
+
+    public static final String VEHICLE_ACTIVITY = SERVICE_DELIVERY + "/VehicleMonitoringDelivery/VehicleActivity";
+    public static final String MONITORED_VEHICLE_JOURNEY =  VEHICLE_ACTIVITY + "/MonitoredVehicleJourney";
+    public static final String MONITORED_CALL_STRUCTURE =  MONITORED_VEHICLE_JOURNEY + "/MonitoredCall";
 }

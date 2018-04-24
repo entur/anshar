@@ -81,16 +81,16 @@ public class EstimatedArrivalStatusValidatorTest extends CustomValidatorTest {
     @Test
     public void testValid() throws Exception{
 
-        assertNull("Valid " + fieldName + " flagged as invalid", validator.isValid(createXmlNode(createXml(fieldName, "arrived"))));
-        assertNull("Valid " + fieldName + " flagged as invalid", validator.isValid(createXmlNode(createXml(fieldName, "cancelled"))));
-        assertNull("Valid " + fieldName + " flagged as invalid", validator.isValid(createXmlNode(createXml(fieldName, "early"))));
-        assertNull("Valid " + fieldName + " flagged as invalid", validator.isValid(createXmlNode(createXml(fieldName, "onTime"))));
-        assertNull("Valid " + fieldName + " flagged as invalid", validator.isValid(createXmlNode(createXml(fieldName, "delayed"))));
+        assertNull("Valid " + fieldName + " flagged as invalid", validator.isValid(createXmlNode(fieldName, "arrived")));
+        assertNull("Valid " + fieldName + " flagged as invalid", validator.isValid(createXmlNode(fieldName, "cancelled")));
+        assertNull("Valid " + fieldName + " flagged as invalid", validator.isValid(createXmlNode(fieldName, "early")));
+        assertNull("Valid " + fieldName + " flagged as invalid", validator.isValid(createXmlNode(fieldName, "onTime")));
+        assertNull("Valid " + fieldName + " flagged as invalid", validator.isValid(createXmlNode(fieldName, "delayed")));
     }
     @Test
     public void testInvalid() throws Exception{
 
-        assertNotNull("Valid " + fieldName + " flagged as invalid", validator.isValid(createXmlNode(createXml(fieldName, "missed"))));
+        assertNotNull("Valid " + fieldName + " flagged as invalid", validator.isValid(createXmlNode(fieldName, "missed")));
     }
 
 
