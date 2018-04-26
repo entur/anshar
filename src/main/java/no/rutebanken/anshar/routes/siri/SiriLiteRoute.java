@@ -26,6 +26,7 @@ import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.subscription.helpers.MappingAdapterPresets;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.http.HttpHeaders;
 import org.rutebanken.siri20.util.SiriJson;
 import org.rutebanken.siri20.util.SiriXml;
@@ -137,6 +138,18 @@ public class SiriLiteRoute extends RouteBuilder {
                     String originalId = request.getParameter("useOriginalId");
                     String maxSizeStr = request.getParameter("maxSize");
                     String lineRef = request.getParameter("lineRef");
+
+                    if (requestorId == null) {
+                        // Generating requestorId based on hash from client IP
+                        String clientIpAddress = request.getHeader("X-Forwarded-For");
+                        if (clientIpAddress == null) {
+                            clientIpAddress = request.getRemoteAddr();
+                        }
+                        if (clientIpAddress != null) {
+                            requestorId = DigestUtils.sha256Hex(request.getRemoteAddr());
+                            logger.info("IP: () mapped to requestorId: {}", clientIpAddress, requestorId);
+                        }
+                    }
 
                     int maxSize = datasetId != null ? Integer.MAX_VALUE:configuration.getDefaultMaxSize();
                     if (maxSizeStr != null) {
