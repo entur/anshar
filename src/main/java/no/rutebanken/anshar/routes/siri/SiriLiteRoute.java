@@ -141,12 +141,12 @@ public class SiriLiteRoute extends RouteBuilder {
 
                     if (requestorId == null) {
                         // Generating requestorId based on hash from client IP
-                        String clientIpAddress = request.getHeader("X-Forwarded-For");
+                        String clientIpAddress = request.getHeader("X-Real-IP");
                         if (clientIpAddress == null) {
                             clientIpAddress = request.getRemoteAddr();
                         }
                         if (clientIpAddress != null) {
-                            requestorId = DigestUtils.sha256Hex(request.getRemoteAddr());
+                            requestorId = DigestUtils.sha256Hex(clientIpAddress);
                             logger.info("IP: '{}' mapped to requestorId: '{}'", clientIpAddress, requestorId);
                         }
                     }
