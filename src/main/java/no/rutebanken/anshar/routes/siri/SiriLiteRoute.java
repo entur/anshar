@@ -147,7 +147,7 @@ public class SiriLiteRoute extends RouteBuilder {
                         }
                         if (clientIpAddress != null) {
                             requestorId = DigestUtils.sha256Hex(request.getRemoteAddr());
-                            logger.info("IP: () mapped to requestorId: {}", clientIpAddress, requestorId);
+                            logger.info("IP: '{}' mapped to requestorId: '{}'", clientIpAddress, requestorId);
                         }
                     }
 
