@@ -88,7 +88,7 @@ public class SiriLiteRoute extends RouteBuilder {
                     if (datasetId == null) {
                         datasetId = request.getParameter("datasetId");
                     }
-                    String requestorId = request.getParameter("requestorId");
+                    String requestorId = resolveRequestorId(request);
                     String originalId = request.getParameter("useOriginalId");
                     String maxSizeStr = request.getParameter("maxSize");
 
@@ -134,22 +134,11 @@ public class SiriLiteRoute extends RouteBuilder {
                     if (datasetId == null) {
                         datasetId = request.getParameter("datasetId");
                     }
-                    String requestorId = request.getParameter("requestorId");
                     String originalId = request.getParameter("useOriginalId");
                     String maxSizeStr = request.getParameter("maxSize");
                     String lineRef = request.getParameter("lineRef");
 
-                    if (requestorId == null) {
-                        // Generating requestorId based on hash from client IP
-                        String clientIpAddress = request.getHeader("X-Real-IP");
-                        if (clientIpAddress == null) {
-                            clientIpAddress = request.getRemoteAddr();
-                        }
-                        if (clientIpAddress != null) {
-                            requestorId = DigestUtils.sha256Hex(clientIpAddress);
-                            logger.info("IP: '{}' mapped to requestorId: '{}'", clientIpAddress, requestorId);
-                        }
-                    }
+                    String requestorId = resolveRequestorId(request);
 
                     int maxSize = datasetId != null ? Integer.MAX_VALUE:configuration.getDefaultMaxSize();
                     if (maxSizeStr != null) {
@@ -200,7 +189,7 @@ public class SiriLiteRoute extends RouteBuilder {
                     if (datasetId == null) {
                         datasetId = request.getParameter("datasetId");
                     }
-                    String requestorId = request.getParameter("requestorId");
+                    String requestorId = resolveRequestorId(request);
                     String originalId = request.getParameter("useOriginalId");
                     String maxSizeStr = request.getParameter("maxSize");
                     String lineRef = request.getParameter("lineRef");
@@ -253,7 +242,7 @@ public class SiriLiteRoute extends RouteBuilder {
                     if (datasetId == null) {
                         datasetId = request.getParameter("datasetId");
                     }
-                    String requestorId = request.getParameter("requestorId");
+                    String requestorId = resolveRequestorId(request);
                     String originalId = request.getParameter("useOriginalId");
 
                     Siri response = siriObjectFactory.createPTServiceDelivery(productionTimetables.getAllUpdates(requestorId, datasetId));
@@ -279,6 +268,30 @@ public class SiriLiteRoute extends RouteBuilder {
                 .routeId("incoming.rest.pt")
         ;
 
+    }
+
+    /**
+     * If http-parameter requestorId is not provided in request, it will be generated based on
+     * client IP and requested resource for uniqueness
+     * @param request
+     * @return
+     */
+    private String resolveRequestorId(HttpServletRequest request) {
+        String requestorId = request.getParameter("requestorId");
+
+        if (requestorId == null) {
+            // Generating requestorId based on hash from client IP
+            String clientIpAddress = request.getHeader("X-Real-IP");
+            if (clientIpAddress == null) {
+                clientIpAddress = request.getRemoteAddr();
+            }
+            if (clientIpAddress != null) {
+                String uri = request.getRequestURI();
+                requestorId = DigestUtils.sha256Hex(clientIpAddress + uri);
+                logger.info("IP: '{}' and uri '{}' mapped to requestorId: '{}'", clientIpAddress, uri, requestorId);
+            }
+        }
+        return requestorId;
     }
 
 }
