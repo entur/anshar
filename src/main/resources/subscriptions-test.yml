@@ -862,6 +862,33 @@ anshar:
       idMappingPrefixes: RUT
       active: true
     -
+      internalId: 1020
+      vendor: rutersx-qa
+      name: Ruter - SX - DEVI 2, QA
+      datasetId: RUT
+      serviceType: REST
+      subscriptionType: SITUATION_EXCHANGE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 600
+      previewIntervalSeconds: 86400
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: qasirisx.ruter.no/sx/subscribe.xml
+        DELETE_SUBSCRIPTION: qasirisx.ruter.no/sx/managesubscription.xml
+        CHECK_STATUS: qasirisx.ruter.no/sx/checkstatus.xml
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: 49128577-b39b-4b4a-b90c-ed084f4fe5fd
+      requestorRef: RutebankenDEV
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: entur
+      filterPresets:
+      idMappingPrefixes: RUT
+      active: true
+    -
       internalId: 990
       vendor: internProdVm
       name: Entur - VM
