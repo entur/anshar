@@ -17,6 +17,7 @@ package no.rutebanken.anshar.routes.siri.adapters;
 
 import no.rutebanken.anshar.routes.siri.processor.BaneNorArrivalDepartureCancellationProcessor;
 import no.rutebanken.anshar.routes.siri.processor.BaneNorIdPlatformPostProcessor;
+import no.rutebanken.anshar.routes.siri.processor.BaneNorSiriEtRewriter;
 import no.rutebanken.anshar.routes.siri.processor.OperatorFilterPostProcessor;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
@@ -45,6 +46,7 @@ public class BaneNorEtValueAdapters extends MappingAdapter {
         valueAdapters.add(new OperatorFilterPostProcessor(operatorsToIgnore, operatorOverrideMapping));
 
         valueAdapters.add(new BaneNorArrivalDepartureCancellationProcessor());
+        valueAdapters.add(new BaneNorSiriEtRewriter());
 
         return valueAdapters;
     }
