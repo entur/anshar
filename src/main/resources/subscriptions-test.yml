@@ -876,15 +876,15 @@ anshar:
       soapenvNamespace:
       incrementalUpdates:
       urlMap:
-        SUBSCRIBE: qasirisx.ruter.no/sx/subscribe.xml
-        DELETE_SUBSCRIPTION: qasirisx.ruter.no/sx/managesubscription.xml
-        CHECK_STATUS: qasirisx.ruter.no/sx/checkstatus.xml
+        SUBSCRIBE: https4://qasirisx.ruter.no/sx/subscribe.xml
+        DELETE_SUBSCRIPTION: https4://qasirisx.ruter.no/sx/managesubscription.xml
+        CHECK_STATUS: https4://qasirisx.ruter.no/sx/checkstatus.xml
       version: 2.0
       contentType: text/xml;charset=UTF-8
       subscriptionId: 49128577-b39b-4b4a-b90c-ed084f4fe5fd
       requestorRef: RutebankenDEV
       durationOfSubscriptionHours: 168
-      mappingAdapterId: entur
+      mappingAdapterId: ruter
       filterPresets:
       idMappingPrefixes: RUT
       active: true
