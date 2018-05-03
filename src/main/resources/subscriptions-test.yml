@@ -865,7 +865,7 @@ anshar:
       internalId: 1020
       vendor: rutersx-qa
       name: Ruter - SX - DEVI 2, QA
-      datasetId: QA-RUT
+      datasetId: RUT
       serviceType: REST
       subscriptionType: SITUATION_EXCHANGE
       subscriptionMode: SUBSCRIBE
