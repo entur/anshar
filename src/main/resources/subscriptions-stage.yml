@@ -107,4 +107,31 @@ anshar:
       filterPresets:
       idMappingPrefixes:
       active: true
+    -
+      internalId: 201
+      vendor: rutersx-qa
+      name: Ruter - SX - DEVI 2, QA
+      datasetId: QA-RUT
+      serviceType: REST
+      subscriptionType: SITUATION_EXCHANGE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 600
+      previewIntervalSeconds: 86400
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: https4://qasirisx.ruter.no/sx/subscribe.xml
+        DELETE_SUBSCRIPTION: https4://qasirisx.ruter.no/sx/managesubscription.xml
+        CHECK_STATUS: https4://qasirisx.ruter.no/sx/checkstatus.xml
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: 4554c15f-a618-4ccd-820c-88613793ae1a
+      requestorRef: RutebankenStage
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: ruter
+      filterPresets:
+      idMappingPrefixes: RUT
+      active: true
       
