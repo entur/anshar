@@ -84,6 +84,8 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
                                         restructuredDeliveryContent.add(estimatedVehicleJourney);
                                     } else {
 
+                                        logger.info("Single journey with trainNumber [{}], split into {}", etTrainNumber, remappedEstimatedCalls.keySet());
+
                                         for (String id : remappedEstimatedCalls.keySet()) {
                                             List<RecordedCall> recordedCalls = recordedTrip.get(id);
                                             List<EstimatedCall> estimatedCalls = remappedEstimatedCalls.get(id);
