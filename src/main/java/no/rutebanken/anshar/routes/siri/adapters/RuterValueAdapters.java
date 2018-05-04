@@ -44,11 +44,9 @@ public class RuterValueAdapters extends MappingAdapter {
 
         valueAdapters.addAll(createNsrIdMappingAdapters(subscriptionSetup.getSubscriptionType(), subscriptionSetup.getDatasetId(), subscriptionSetup.getIdMappingPrefixes()));
 
-        if (subscriptionSetup.getDatasetId() != null && !subscriptionSetup.getDatasetId().isEmpty()) {
-            List<ValueAdapter> datasetPrefix = createIdPrefixAdapters(subscriptionSetup.getDatasetId());
-            if (!subscriptionSetup.getMappingAdapters().containsAll(datasetPrefix)) {
-                subscriptionSetup.getMappingAdapters().addAll(datasetPrefix);
-            }
+        List<ValueAdapter> datasetPrefix = createIdPrefixAdapters("RUT");
+        if (!subscriptionSetup.getMappingAdapters().containsAll(datasetPrefix)) {
+            subscriptionSetup.getMappingAdapters().addAll(datasetPrefix);
         }
 
         return valueAdapters;
