@@ -56,8 +56,8 @@ public class NSBGtfsUpdaterService {
 
     private static Logger logger = LoggerFactory.getLogger(NSBGtfsUpdaterService.class);
 
-    private static final int UPDATE_FREQUENCY = 30;
-    private static final TimeUnit REQUENCY_TIME_UNIT = TimeUnit.SECONDS;
+    private static final int UPDATE_FREQUENCY = 6;
+    private static final TimeUnit REQUENCY_TIME_UNIT = TimeUnit.HOURS;
 
     // Kept non-configurable since this whole adapter is a temporary hack - ROR-326/ROR-329
     private static final String GTFS_URL = "https://storage.googleapis.com/marduk-production/outbound/gtfs/rb_nsb-aggregated-gtfs.zip";
