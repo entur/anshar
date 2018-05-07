@@ -48,6 +48,7 @@ public class ExtraJourneyValidator extends CustomValidator {
     private static final String vehicleModeNodeName = "VehicleMode";
     private static final String routeRefNodeName = "RouteRef";
     private static final String groupOfLinesRef = "GroupOfLinesRef";
+    private static final String estimatedVehicleJourneyCodeRef = "EstimatedVehicleJourneyCode";
 
     @Override
     public String getXpath() {
@@ -91,6 +92,12 @@ public class ExtraJourneyValidator extends CustomValidator {
             }
             if (!groupOfLines.contains(":Network:")) {
                 return  createEvent(node, groupOfLinesRef, "valid GroupOfLinesRef - CODESPACE:Network:ID", groupOfLines, ValidationEvent.ERROR);
+            }
+
+            // EstimatedVehicleJourneyCode - required
+            final String estimatedVehicleJourneyCode = getSiblingNodeValue(node, estimatedVehicleJourneyCodeRef);
+            if (estimatedVehicleJourneyCode == null) {
+                return  createEvent(node, estimatedVehicleJourneyCodeRef, "not null when ExtraJourney=true", groupOfLines, ValidationEvent.ERROR);
             }
         }
 

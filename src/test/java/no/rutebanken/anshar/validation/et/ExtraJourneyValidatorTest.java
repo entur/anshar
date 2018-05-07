@@ -30,6 +30,7 @@ public class ExtraJourneyValidatorTest extends CustomValidatorTest{
     private String vehicleModeName = "VehicleMode";
     private String routeRefName = "RouteRef";
     private String groupOfLinesName = "GroupOfLinesRef";
+    private String estimatedVehicleJourneyCodeName = "EstimatedVehicleJourneyCode";
 
     private String validVehicleMode = "air";
     private String invalidVehicleMode = "underground";
@@ -39,6 +40,8 @@ public class ExtraJourneyValidatorTest extends CustomValidatorTest{
 
     private String validGroupOfLinesRef = "NSR:Network:TEST";
     private String invalidGroupOfLines = "TEST";
+
+    private String estimatedVehicleJourneyCode = "NSR.VehicleJourney:1234-1234-1234-EXTRA";
 
     @BeforeClass
     public static void init() {
@@ -51,10 +54,11 @@ public class ExtraJourneyValidatorTest extends CustomValidatorTest{
         String vehicleMode = createXml(vehicleModeName, validVehicleMode);
         String routeRef = createXml(routeRefName, validRouteRef);
         String groupOfLines = createXml(groupOfLinesName, validGroupOfLinesRef);
+        String estimatedVehicleJourney = createXml(estimatedVehicleJourneyCodeName, estimatedVehicleJourneyCode);
 
-        String xml = mergeXml(extraJourney, vehicleMode, routeRef, groupOfLines);
+        String xml = mergeXml(extraJourney, vehicleMode, routeRef, groupOfLines, estimatedVehicleJourney);
 
-        assertNull("Correct " + extraJourneyFieldName + " flagged as valid", validator.isValid(createXmlNode(xml).getFirstChild()));
+        assertNull("Correct " + extraJourneyFieldName + " flagged as invalid", validator.isValid(createXmlNode(xml).getFirstChild()));
     }
 
     @Test
