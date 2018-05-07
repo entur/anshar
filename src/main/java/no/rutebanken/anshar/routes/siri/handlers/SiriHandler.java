@@ -39,6 +39,7 @@ import org.springframework.stereotype.Service;
 import uk.org.siri.siri20.*;
 
 import javax.xml.bind.JAXBException;
+import javax.xml.bind.UnmarshalException;
 import javax.xml.stream.XMLStreamException;
 import java.io.InputStream;
 import java.util.*;
@@ -85,11 +86,11 @@ public class SiriHandler {
 
     }
 
-    public Siri handleIncomingSiri(String subscriptionId, InputStream xml) {
+    public Siri handleIncomingSiri(String subscriptionId, InputStream xml) throws UnmarshalException {
         return handleIncomingSiri(subscriptionId, xml, null, -1);
     }
 
-    private Siri handleIncomingSiri(String subscriptionId, InputStream xml, String datasetId, int maxSize) {
+    private Siri handleIncomingSiri(String subscriptionId, InputStream xml, String datasetId, int maxSize) throws UnmarshalException {
         return handleIncomingSiri(subscriptionId, xml, datasetId, null, maxSize);
     }
 
@@ -101,7 +102,7 @@ public class SiriHandler {
      * @param outboundIdMappingPolicy Defines outbound idmapping-policy
      * @return
      */
-    public Siri handleIncomingSiri(String subscriptionId, InputStream xml, String datasetId, OutboundIdMappingPolicy outboundIdMappingPolicy, int maxSize) {
+    public Siri handleIncomingSiri(String subscriptionId, InputStream xml, String datasetId, OutboundIdMappingPolicy outboundIdMappingPolicy, int maxSize) throws UnmarshalException {
         try {
             if (subscriptionId != null) {
                 return processSiriClientRequest(subscriptionId, xml);
@@ -110,6 +111,8 @@ public class SiriHandler {
 
                 return processSiriServerRequest(incoming, datasetId, outboundIdMappingPolicy, maxSize);
             }
+        } catch (UnmarshalException e) {
+            throw e;
         } catch (JAXBException | XMLStreamException e) {
             logger.warn("Caught exception when parsing incoming XML", e);
         }
@@ -134,7 +137,7 @@ public class SiriHandler {
 
         if (incoming.getSubscriptionRequest() != null) {
             logger.info("Handling subscriptionrequest with ID-policy {}.", outboundIdMappingPolicy);
-            serverSubscriptionManager.handleSubscriptionRequest(incoming.getSubscriptionRequest(), datasetId, outboundIdMappingPolicy);
+            return serverSubscriptionManager.handleSubscriptionRequest(incoming.getSubscriptionRequest(), datasetId, outboundIdMappingPolicy);
 
         } else if (incoming.getTerminateSubscriptionRequest() != null) {
             logger.info("Handling terminateSubscriptionrequest...");

@@ -23,6 +23,7 @@ import no.rutebanken.anshar.routes.validation.SiriXmlValidator;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.camel.Exchange;
+import org.apache.camel.InvalidPayloadException;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.builder.xml.Namespaces;
@@ -35,6 +36,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 import uk.org.siri.siri20.Siri;
 
+import javax.xml.bind.UnmarshalException;
 import java.io.InputStream;
 import java.net.ConnectException;
 import java.util.HashMap;
@@ -65,6 +67,13 @@ public class Siri20RequestHandlerRoute extends RouteBuilder {
                 .maximumRedeliveries(10)
                 .redeliveryDelay(10000)
                 .useExponentialBackOff();
+
+        onException(UnmarshalException.class, InvalidPayloadException.class)
+                .handled(true)
+                .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("400"))
+                .setBody(simple("Invalid XML"))
+        ;
+
 
         errorHandler(loggingErrorHandler()
                         .log(logger)
@@ -107,11 +116,29 @@ public class Siri20RequestHandlerRoute extends RouteBuilder {
                         })
                         .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
                     .endChoice()
-                    .when(header("CamelHttpPath").contains("/subscribe")) //Handle asynchronous response
-                        .to("activemq:queue:" + CamelRouteNames.TRANSFORM_QUEUE + activeMQParameters)
-                        .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
-                        .setBody(constant(null))
-                    .endChoice()
+                    .when(header("CamelHttpPath").contains("/subscribe")) //Handle synchronous SubscriptionResponse
+                        .process(p -> {
+                            String path = p.getIn().getHeader("CamelHttpPath", String.class);
+
+                            String subscriptionId = getSubscriptionIdFromPath(path);
+                            String datasetId = null;
+
+                            //e.g. "/anshar/subscribe/akt" resolves "akt"
+                            String pathPattern = "/subscribe/";
+                            datasetId = path.substring(path.indexOf(pathPattern) + pathPattern.length());
+
+                            InputStream xml = p.getIn().getBody(InputStream.class);
+
+                            Siri response = handler.handleIncomingSiri(subscriptionId, xml, datasetId, SiriHandler.getIdMappingPolicy((String) p.getIn().getHeader("useOriginalId")), -1);
+                            if (response != null) {
+                                logger.info("Returning SubscriptionResponse");
+
+                                p.getOut().setBody(response);
+                            }
+
+                        })
+                        .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
+                .endChoice()
                     .otherwise()  //Handle asynchronous response
                         .choice()
                             .when(p -> {
@@ -230,12 +257,6 @@ public class Siri20RequestHandlerRoute extends RouteBuilder {
 
                     String subscriptionId = getSubscriptionIdFromPath(path);
                     String datasetId = null;
-
-                    String pathPattern = "/subscribe/";
-                    if (path.contains(pathPattern)) {
-                                    //e.g. "/anshar/subscribe/akt" resolves "akt"
-                        datasetId = path.substring(path.indexOf(pathPattern) + pathPattern.length());
-                    }
 
                     InputStream xml = p.getIn().getBody(InputStream.class);
                     handler.handleIncomingSiri(subscriptionId, xml, datasetId, SiriHandler.getIdMappingPolicy((String) p.getIn().getHeader("useOriginalId")), -1);

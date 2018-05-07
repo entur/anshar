@@ -139,7 +139,7 @@ public class ServerSubscriptionManager extends CamelRouteManager {
         return stats;
     }
 
-    public void handleSubscriptionRequest( SubscriptionRequest subscriptionRequest, String datasetId, OutboundIdMappingPolicy outboundIdMappingPolicy) {
+    public Siri handleSubscriptionRequest(SubscriptionRequest subscriptionRequest, String datasetId, OutboundIdMappingPolicy outboundIdMappingPolicy) {
 
         OutboundSubscriptionSetup subscription = createSubscription(subscriptionRequest, datasetId, outboundIdMappingPolicy);
 
@@ -157,12 +157,11 @@ public class ServerSubscriptionManager extends CamelRouteManager {
 
         if (hasError) {
             Siri subscriptionResponse = siriObjectFactory.createSubscriptionResponse(subscription.getSubscriptionId(), false, errorText);
-            pushSiriData(subscriptionResponse, subscription);
+            return subscriptionResponse;
         } else {
             addSubscription(subscription);
 
             Siri subscriptionResponse = siriObjectFactory.createSubscriptionResponse(subscription.getSubscriptionId(), true, null);
-            pushSiriData(subscriptionResponse, subscription);
 
             //Send initial ServiceDelivery
             Siri delivery = siriHelper.findInitialDeliveryData(subscription);
@@ -171,6 +170,7 @@ public class ServerSubscriptionManager extends CamelRouteManager {
                 logger.info("Sending initial delivery to " + subscription.getAddress());
                 pushSiriData(delivery, subscription);
             }
+            return subscriptionResponse;
         }
     }
 
