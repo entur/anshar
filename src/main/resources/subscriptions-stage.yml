@@ -133,5 +133,5 @@ anshar:
       mappingAdapterId: ruter
       filterPresets:
       idMappingPrefixes: RUT
-      active: true
+      active: false
       
