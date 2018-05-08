@@ -129,7 +129,8 @@ public class ServerSubscriptionManager extends CamelRouteManager {
             obj.put("subscriptionRef",""+key);
             obj.put("subscriptionType",""+subscription.getSubscriptionType());
             obj.put("address",""+subscription.getAddress());
-            obj.put("heartbeatInterval",""+subscription.getHeartbeatInterval());
+            obj.put("heartbeatInterval",""+(subscription.getHeartbeatInterval()/1000) + " s");
+            obj.put("datasetId",subscription.getDatasetId()!=null ? subscription.getDatasetId():"");
             obj.put("requestReceived", formatter.format(subscription.getRequestTimestamp()));
             obj.put("initialTerminationTime",formatter.format(subscription.getInitialTerminationTime()));
 
@@ -293,14 +294,7 @@ public class ServerSubscriptionManager extends CamelRouteManager {
         return null;
     }
 
-    public void terminateSubscription(TerminateSubscriptionRequestStructure terminateSubscriptionRequest) {
-
-        String subscriptionRef = terminateSubscriptionRequest.getSubscriptionReves().get(0).getValue();
-
-        terminateSubscription(subscriptionRef);
-    }
-
-    void terminateSubscription(String subscriptionRef) {
+    public void terminateSubscription(String subscriptionRef) {
         OutboundSubscriptionSetup subscriptionRequest = removeSubscription(subscriptionRef);
 
         if (subscriptionRequest != null) {

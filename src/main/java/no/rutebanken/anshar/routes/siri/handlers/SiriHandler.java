@@ -141,7 +141,11 @@ public class SiriHandler {
 
         } else if (incoming.getTerminateSubscriptionRequest() != null) {
             logger.info("Handling terminateSubscriptionrequest...");
-            serverSubscriptionManager.terminateSubscription(incoming.getTerminateSubscriptionRequest());
+            TerminateSubscriptionRequestStructure terminateSubscriptionRequest = incoming.getTerminateSubscriptionRequest();
+            if (terminateSubscriptionRequest.getSubscriptionReves() != null && !terminateSubscriptionRequest.getSubscriptionReves().isEmpty()) {
+                serverSubscriptionManager.terminateSubscription(terminateSubscriptionRequest.getSubscriptionReves().get(0).getValue());
+            }
+
 
         } else if (incoming.getCheckStatusRequest() != null) {
             logger.info("Handling checkStatusRequest...");

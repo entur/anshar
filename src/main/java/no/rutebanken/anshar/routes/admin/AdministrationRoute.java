@@ -21,6 +21,7 @@ import no.rutebanken.anshar.routes.health.HealthManager;
 import no.rutebanken.anshar.routes.outbound.ServerSubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import org.apache.camel.builder.RouteBuilder;
+import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,13 +58,19 @@ public class AdministrationRoute extends RouteBuilder {
                 .get("/stats").produces("text/html").to("direct:stats")
                 .put("/stop").to("direct:stop")
                 .put("/start").to("direct:start")
+                .put("/terminate").to("direct:terminate.outbound.subscription")
                 .get("/subscriptions").produces("text/html").to("direct:subscriptions")
                 .get("/clusterstats").produces("application/json").to("direct:clusterstats")
                 .get("/unmapped").produces("text/html").to("direct:unmapped");
 
         //Return subscription status
         from("direct:stats")
-                .bean(subscriptionManager, "buildStats")
+                .process(p -> {
+                    JSONObject stats = subscriptionManager.buildStats();
+
+                    stats.put("outbound", serverSubscriptionManager.getSubscriptionsAsJson());
+                    p.getOut().setBody(stats);
+                })
                 .to("freemarker:templates/stats.ftl")
                 .routeId("admin.stats")
         ;
@@ -85,6 +92,12 @@ public class AdministrationRoute extends RouteBuilder {
                 .bean(serverSubscriptionManager, "getSubscriptionsAsJson")
                 .to("freemarker:templates/subscriptions.ftl")
                 .routeId("admin.subscriptions")
+        ;
+
+        //Return subscription status
+        from("direct:terminate.outbound.subscription")
+                .bean(serverSubscriptionManager, "terminateSubscription(${header.subscriptionId})")
+                .routeId("admin.terminate.subscription")
         ;
 
         //Return cluster status
