@@ -125,7 +125,9 @@ public class Siri20RequestHandlerRoute extends RouteBuilder {
 
                             //e.g. "/anshar/subscribe/akt" resolves "akt"
                             String pathPattern = "/subscribe/";
-                            datasetId = path.substring(path.indexOf(pathPattern) + pathPattern.length());
+                            if (path.contains(pathPattern)) {
+                                datasetId = path.substring(path.indexOf(pathPattern) + pathPattern.length());
+                            }
 
                             InputStream xml = p.getIn().getBody(InputStream.class);
 
