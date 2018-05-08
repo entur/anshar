@@ -143,10 +143,11 @@ public class SiriHandler {
             logger.info("Handling terminateSubscriptionrequest...");
             TerminateSubscriptionRequestStructure terminateSubscriptionRequest = incoming.getTerminateSubscriptionRequest();
             if (terminateSubscriptionRequest.getSubscriptionReves() != null && !terminateSubscriptionRequest.getSubscriptionReves().isEmpty()) {
-                serverSubscriptionManager.terminateSubscription(terminateSubscriptionRequest.getSubscriptionReves().get(0).getValue());
+                String subscriptionRef = terminateSubscriptionRequest.getSubscriptionReves().get(0).getValue();
+
+                serverSubscriptionManager.terminateSubscription(subscriptionRef);
+                return siriObjectFactory.createTerminateSubscriptionResponse(subscriptionRef);
             }
-
-
         } else if (incoming.getCheckStatusRequest() != null) {
             logger.info("Handling checkStatusRequest...");
             return serverSubscriptionManager.handleCheckStatusRequest(incoming.getCheckStatusRequest());

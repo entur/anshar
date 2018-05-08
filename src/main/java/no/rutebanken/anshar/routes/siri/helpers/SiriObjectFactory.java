@@ -605,6 +605,7 @@ public class SiriObjectFactory {
         TerminationResponseStatusStructure status = new TerminationResponseStatusStructure();
         status.setSubscriptionRef(createSubscriptionIdentifier(subscriptionRef));
         status.setResponseTimestamp(ZonedDateTime.now());
+        status.setStatus(true);
 
         response.getTerminationResponseStatuses().add(status);
         siri.setTerminateSubscriptionResponse(response);
