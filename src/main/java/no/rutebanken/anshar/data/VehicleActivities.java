@@ -78,6 +78,11 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
         return vehicleActivities.size();
     }
 
+    public void clearAll() {
+        logger.error("Deleting all data - should only be used in test!!!");
+        vehicleActivities.clear();
+    }
+
     /**
      * @return All vehicle activities that are still valid
      */

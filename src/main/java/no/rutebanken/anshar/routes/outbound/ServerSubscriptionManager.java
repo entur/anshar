@@ -38,6 +38,8 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
@@ -113,6 +115,11 @@ public class ServerSubscriptionManager extends CamelRouteManager {
                 activeMqTopicPrefix + type.name().toLowerCase(),
                 activeMqTopicTimeToLive,
                 mappingAdapterPresets.getOutboundAdapters(outboundIdMappingPolicy));
+    }
+
+
+    public Collection getSubscriptions() {
+        return Collections.unmodifiableCollection(subscriptions.values());
     }
 
     public JSONArray getSubscriptionsAsJson() {

@@ -71,6 +71,11 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
         return timetableDeliveries.size();
     }
 
+    public void clearAll() {
+        logger.error("Deleting all data - should only be used in test!!!");
+        timetableDeliveries.clear();
+    }
+
     @Autowired
     private SiriObjectFactory siriObjectFactory;
 

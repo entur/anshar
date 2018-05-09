@@ -75,6 +75,12 @@ public class Situations implements SiriRepository<PtSituationElement> {
         return situations.size();
     }
 
+
+    public void clearAll() {
+        logger.error("Deleting all data - should only be used in test!!!");
+        situations.clear();
+    }
+
     public Siri createServiceDelivery(String requestorId, String datasetId) {
         int maxSize = configuration.getDefaultMaxSize();
         if (datasetId != null) {
