@@ -36,11 +36,11 @@ import uk.org.siri.siri20.*;
 
 import java.util.List;
 
-public class CodespaceAdapter extends ValueAdapter implements PostProcessor {
+public class CodespaceProcessor extends ValueAdapter implements PostProcessor {
 
     private final String codespace;
 
-    public CodespaceAdapter(String codespace) {
+    public CodespaceProcessor(String codespace) {
         this.codespace = codespace;
     }
 

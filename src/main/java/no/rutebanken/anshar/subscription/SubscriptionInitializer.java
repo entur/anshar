@@ -20,7 +20,8 @@ import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.routes.siri.*;
 import no.rutebanken.anshar.routes.siri.adapters.Mapping;
 import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
-import no.rutebanken.anshar.routes.siri.processor.CodespaceAdapter;
+import no.rutebanken.anshar.routes.siri.processor.CodespaceProcessor;
+import no.rutebanken.anshar.routes.siri.processor.ReportTypeProcessor;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.subscription.helpers.RequestType;
 import org.apache.camel.CamelContext;
@@ -113,7 +114,8 @@ public class SubscriptionInitializer implements CamelContextAware, ApplicationCo
                         List<ValueAdapter> valueAdapters = (List<ValueAdapter>) adapterClass.getMethod("getValueAdapters", SubscriptionSetup.class).invoke(adapterClass.newInstance(), subscriptionSetup);
 
                         //Is added to ALL subscriptions
-                        valueAdapters.add(new CodespaceAdapter(subscriptionSetup.getDatasetId()));
+                        valueAdapters.add(new CodespaceProcessor(subscriptionSetup.getDatasetId()));
+                        valueAdapters.add(new ReportTypeProcessor());
 
                         subscriptionSetup.getMappingAdapters().addAll(valueAdapters);
                     } catch (Exception e) {
