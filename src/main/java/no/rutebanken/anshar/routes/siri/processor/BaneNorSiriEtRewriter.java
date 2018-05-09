@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.org.siri.siri20.*;
 
+import java.math.BigInteger;
 import java.time.ZonedDateTime;
 import java.util.*;
 
@@ -80,7 +81,7 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
                                     Map<String, List<RecordedCall>> recordedTrip = remapRecordedCalls(serviceDate, etTrainNumber, estimatedVehicleJourney.getRecordedCalls());
                                     Map<String, List<EstimatedCall>> remappedEstimatedCalls = remapEstimatedCalls(serviceDate, etTrainNumber, estimatedVehicleJourney.getEstimatedCalls());
 
-                                    if (remappedEstimatedCalls.size() < 2) {
+                                    if (remappedEstimatedCalls.size() < 1) {
                                         restructuredDeliveryContent.add(estimatedVehicleJourney);
                                     } else {
 
@@ -89,6 +90,16 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
                                         for (String id : remappedEstimatedCalls.keySet()) {
                                             List<RecordedCall> recordedCalls = recordedTrip.get(id);
                                             List<EstimatedCall> estimatedCalls = remappedEstimatedCalls.get(id);
+
+                                            int order = 1;
+                                            if (recordedCalls != null) {
+                                                for (RecordedCall recordedCall : recordedCalls) {
+                                                    recordedCall.setOrder(BigInteger.valueOf(order++));
+                                                }
+                                            }
+                                            for (EstimatedCall estimatedCall : estimatedCalls) {
+                                                estimatedCall.setOrder(BigInteger.valueOf(order++));
+                                            }
 
                                             if (estimatedCalls.size() > 1) {
                                                 //Remove arrival on first
