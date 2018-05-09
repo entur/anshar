@@ -38,6 +38,9 @@ public class MappingAdapterPresets {
         adapters.add(new OutboundIdAdapter(DestinationRef.class, outboundIdMappingPolicy));
         adapters.add(new OutboundIdAdapter(CourseOfJourneyRefStructure.class, outboundIdMappingPolicy));
 
+        //Adapter for SIRI-SX ParticipantRef
+        adapters.add(new OutboundIdAdapter(RequestorRef.class, outboundIdMappingPolicy));
+
         //Adding postprocessor for Ruter DatedVehicleRef
         adapters.add(new RuterOutboundDatedVehicleRefAdapter(this.getClass(), outboundIdMappingPolicy));
         return adapters;
