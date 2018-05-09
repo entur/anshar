@@ -54,7 +54,7 @@ import java.util.List;
 
 public class ReportTypeProcessor extends ValueAdapter implements PostProcessor {
 
-    public static final String DEFAULT_REPORT_TYPE = "incident";
+    private static final String DEFAULT_REPORT_TYPE = "incident";
 
     @Override
     protected String apply(String text) {
