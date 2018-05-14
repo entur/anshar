@@ -83,6 +83,7 @@ public class ValidationRoute extends RouteBuilder {
                 //Validation has now been switched on - clear previous results
                 siriXmlValidator.clearValidationResults(subscriptionId);
             }
+            log.info("Toggling validation, validation is now {}", (subscriptionSetup.isValidation()?"active":"disabled"));
             subscriptionManager.updateSubscription(subscriptionSetup);
         }
     }
