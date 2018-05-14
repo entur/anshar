@@ -40,6 +40,7 @@ import uk.org.siri.siri20.*;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.UnmarshalException;
+import javax.xml.datatype.Duration;
 import javax.xml.stream.XMLStreamException;
 import java.io.InputStream;
 import java.util.*;
@@ -189,8 +190,14 @@ public class SiriHandler {
                 Siri siri = vehicleActivities.createServiceDelivery(requestorRef, datasetId, maxSize);
                 serviceResponse = SiriHelper.filterSiriPayload(siri, filterMap);
             } else if (hasValues(serviceRequest.getEstimatedTimetableRequests())) {
+                Duration previewInterval = serviceRequest.getEstimatedTimetableRequests().get(0).getPreviewInterval();
+                long previewIntervalInMillis = -1;
 
-                serviceResponse = estimatedTimetables.createServiceDelivery(requestorRef, datasetId, maxSize);
+                if (previewInterval != null) {
+                    previewIntervalInMillis = previewInterval.getTimeInMillis(new Date());
+                }
+
+                serviceResponse = estimatedTimetables.createServiceDelivery(requestorRef, datasetId, maxSize, previewIntervalInMillis);
             } else if (hasValues(serviceRequest.getProductionTimetableRequests())) {
                 serviceResponse = siriObjectFactory.createPTServiceDelivery(productionTimetables.getAllUpdates(requestorRef, datasetId));
             }

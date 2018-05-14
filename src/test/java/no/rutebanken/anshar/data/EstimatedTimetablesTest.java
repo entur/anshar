@@ -480,6 +480,80 @@ public class EstimatedTimetablesTest {
         assertEquals(callCount, estimatedCalls.size());
     }
 
+    @Test
+    public void testServiceDeliveryWithPreviewInterval() {
+        String datasetId = "PreviewIntervalTest";
+
+        estimatedTimetables.add(datasetId, createEstimatedVehicleJourney("1234", "1", 0, 30, ZonedDateTime.now().plusMinutes(1), true));
+        estimatedTimetables.add(datasetId, createEstimatedVehicleJourney("2345", "2", 0, 30, ZonedDateTime.now().plusMinutes(10), true));
+
+        Siri serviceDelivery_1 = estimatedTimetables.createServiceDelivery(null, datasetId, 10, 2*60*1000);
+        assertNotNull(serviceDelivery_1);
+        assertNotNull(serviceDelivery_1.getServiceDelivery());
+        assertNotNull(serviceDelivery_1.getServiceDelivery().getEstimatedTimetableDeliveries());
+        assertTrue("Only first journey should have been returned", serviceDelivery_1.getServiceDelivery().getEstimatedTimetableDeliveries().get(0)
+                                                    .getEstimatedJourneyVersionFrames().get(0).getEstimatedVehicleJourneies().size() == 1);
+        assertFalse(serviceDelivery_1.getServiceDelivery().isMoreData());
+
+
+        Siri serviceDelivery_10 = estimatedTimetables.createServiceDelivery(null, datasetId, 10, 11*60*1000);
+        assertNotNull(serviceDelivery_10);
+        assertNotNull(serviceDelivery_10.getServiceDelivery());
+        assertNotNull(serviceDelivery_10.getServiceDelivery().getEstimatedTimetableDeliveries());
+        assertTrue("Both journeys should have been returned", serviceDelivery_10.getServiceDelivery().getEstimatedTimetableDeliveries().get(0)
+                .getEstimatedJourneyVersionFrames().get(0).getEstimatedVehicleJourneies().size() == 2);
+
+        assertFalse(serviceDelivery_10.getServiceDelivery().isMoreData());
+
+
+        EstimatedVehicleJourney estimatedVehicleJourneyWithCancellation = createEstimatedVehicleJourney("3456", "3", 0, 30, ZonedDateTime.now().plusMinutes(30), true);
+        estimatedVehicleJourneyWithCancellation.setCancellation(Boolean.TRUE);
+        estimatedTimetables.add(datasetId, estimatedVehicleJourneyWithCancellation);
+
+        Siri serviceDelivery_30 = estimatedTimetables.createServiceDelivery(null, datasetId, 10, 11*60*1000);
+
+        assertNotNull(serviceDelivery_30);
+        assertNotNull(serviceDelivery_30.getServiceDelivery());
+        assertNotNull(serviceDelivery_30.getServiceDelivery().getEstimatedTimetableDeliveries());
+        assertTrue("Cancelled journey in the future should have been returned",serviceDelivery_30.getServiceDelivery().getEstimatedTimetableDeliveries().get(0)
+                .getEstimatedJourneyVersionFrames().get(0).getEstimatedVehicleJourneies().size() == 3);
+        assertFalse(serviceDelivery_30.getServiceDelivery().isMoreData());
+
+        Siri serviceDelivery_3 = estimatedTimetables.createServiceDelivery(null, datasetId, 10);
+
+        assertNotNull(serviceDelivery_3);
+        assertNotNull(serviceDelivery_3.getServiceDelivery());
+        assertNotNull(serviceDelivery_3.getServiceDelivery().getEstimatedTimetableDeliveries());
+        assertTrue("Default request should have returned all journeys",serviceDelivery_3.getServiceDelivery().getEstimatedTimetableDeliveries().get(0)
+                .getEstimatedJourneyVersionFrames().get(0).getEstimatedVehicleJourneies().size() == 3);
+
+        assertFalse(serviceDelivery_3.getServiceDelivery().isMoreData());
+
+
+        String requestorId = UUID.randomUUID().toString();
+        serviceDelivery_3 = estimatedTimetables.createServiceDelivery(requestorId, datasetId, 2);
+
+        assertNotNull(serviceDelivery_3);
+        assertNotNull(serviceDelivery_3.getServiceDelivery());
+        assertNotNull(serviceDelivery_3.getServiceDelivery().getEstimatedTimetableDeliveries());
+        assertTrue("Default request should have returned all journeys",serviceDelivery_3.getServiceDelivery().getEstimatedTimetableDeliveries().get(0)
+                .getEstimatedJourneyVersionFrames().get(0).getEstimatedVehicleJourneies().size() == 2);
+
+        assertTrue(serviceDelivery_3.getServiceDelivery().isMoreData());
+
+        serviceDelivery_3 = estimatedTimetables.createServiceDelivery(requestorId, datasetId, 2);
+
+        assertNotNull(serviceDelivery_3);
+        assertNotNull(serviceDelivery_3.getServiceDelivery());
+        assertNotNull(serviceDelivery_3.getServiceDelivery().getEstimatedTimetableDeliveries());
+        assertTrue("Default request should have returned all journeys",serviceDelivery_3.getServiceDelivery().getEstimatedTimetableDeliveries().get(0)
+                .getEstimatedJourneyVersionFrames().get(0).getEstimatedVehicleJourneies().size() == 1);
+
+        assertFalse(serviceDelivery_3.getServiceDelivery().isMoreData());
+
+    }
+
+
     private EstimatedVehicleJourney createEstimatedVehicleJourney(String lineRefValue, String vehicleRefValue, int startOrder, int callCount, ZonedDateTime time, Boolean isComplete) {
         EstimatedVehicleJourney element = new EstimatedVehicleJourney();
         LineRef lineRef = new LineRef();
@@ -499,8 +573,8 @@ public class EstimatedTimetablesTest {
                 call.setStopPointRef(stopPointRef);
                 call.setAimedArrivalTime(time);
                 call.setExpectedArrivalTime(time);
-                call.setAimedDepartureTime(time);
-                call.setExpectedDepartureTime(time);
+                call.setAimedDepartureTime(time.plusMinutes(1));
+                call.setExpectedDepartureTime(time.plusMinutes(1));
                 call.setOrder(BigInteger.valueOf(i));
             estimatedCalls.getEstimatedCalls().add(call);
         }

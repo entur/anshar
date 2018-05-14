@@ -26,7 +26,6 @@ import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.subscription.helpers.MappingAdapterPresets;
 import org.apache.camel.builder.RouteBuilder;
-import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.http.HttpHeaders;
 import org.rutebanken.siri20.util.SiriJson;
 import org.rutebanken.siri20.util.SiriXml;
@@ -193,6 +192,7 @@ public class SiriLiteRoute extends RouteBuilder {
                     String originalId = request.getParameter("useOriginalId");
                     String maxSizeStr = request.getParameter("maxSize");
                     String lineRef = request.getParameter("lineRef");
+                    String previewIntervalMinutesStr = request.getParameter("previewIntervalMinutes");
 
                     int maxSize = datasetId != null ? Integer.MAX_VALUE:configuration.getDefaultMaxSize();
                     if (maxSizeStr != null) {
@@ -202,12 +202,19 @@ public class SiriLiteRoute extends RouteBuilder {
                             //ignore
                         }
                     }
+                    long previewIntervalMillis = -1;
+                    if (previewIntervalMinutesStr != null) {
+                        int minutes = Integer.parseInt(previewIntervalMinutesStr);
+                        if (minutes > 0) {
+                            previewIntervalMillis = minutes*60*1000;
+                        }
+                    }
 
                     Siri response;
                     if (lineRef != null) {
                         response = estimatedTimetables.createServiceDelivery(lineRef);
                     } else {
-                        response = estimatedTimetables.createServiceDelivery(requestorId, datasetId, maxSize);
+                        response = estimatedTimetables.createServiceDelivery(requestorId, datasetId, maxSize, previewIntervalMillis);
                     }
 
                     List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(SiriHandler.getIdMappingPolicy(originalId));
@@ -279,18 +286,18 @@ public class SiriLiteRoute extends RouteBuilder {
     private String resolveRequestorId(HttpServletRequest request) {
         String requestorId = request.getParameter("requestorId");
 
-        if (requestorId == null) {
-            // Generating requestorId based on hash from client IP
-            String clientIpAddress = request.getHeader("X-Real-IP");
-            if (clientIpAddress == null) {
-                clientIpAddress = request.getRemoteAddr();
-            }
-            if (clientIpAddress != null) {
-                String uri = request.getRequestURI();
-                requestorId = DigestUtils.sha256Hex(clientIpAddress + uri);
-                logger.info("IP: '{}' and uri '{}' mapped to requestorId: '{}'", clientIpAddress, uri, requestorId);
-            }
-        }
+//        if (requestorId == null) {
+//            // Generating requestorId based on hash from client IP
+//            String clientIpAddress = request.getHeader("X-Real-IP");
+//            if (clientIpAddress == null) {
+//                clientIpAddress = request.getRemoteAddr();
+//            }
+//            if (clientIpAddress != null) {
+//                String uri = request.getRequestURI();
+//                requestorId = DigestUtils.sha256Hex(clientIpAddress + uri);
+//                logger.info("IP: '{}' and uri '{}' mapped to requestorId: '{}'", clientIpAddress, uri, requestorId);
+//            }
+//        }
         return requestorId;
     }
 

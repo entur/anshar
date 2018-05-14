@@ -35,6 +35,8 @@ import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer.SEPARATOR;
@@ -124,6 +126,11 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
     }
 
     public Siri createServiceDelivery(String requestorId, String datasetId, int maxSize) {
+        return createServiceDelivery(requestorId, datasetId, maxSize, -1);
+    }
+
+
+    public Siri createServiceDelivery(String requestorId, String datasetId, int maxSize, long previewInterval) {
 
         int trackingPeriodMinutes = configuration.getTrackingPeriodMinutes();
 
@@ -149,12 +156,38 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
                 .filter(key -> datasetId == null || key.startsWith(datasetId + ":"))
                 .collect(Collectors.toSet());
 
-        Set<String> sizeLimitedIds = requestedIds.stream().limit(maxSize).collect(Collectors.toSet());
+        final ZonedDateTime previewExpiry = ZonedDateTime.now().plusSeconds(previewInterval / 1000);
+
+        final AtomicInteger previewIntervalExclusionCounter = new AtomicInteger();
+        Predicate<? super String> previewIntervalFilter = (Predicate<String>) id -> {
+            if (previewInterval < 0) {
+                return true;
+            }
+
+            //If pattern is changed (ExtraJourney or Cancellation) - it should be returned regardless of startTime
+            if (hasPatternChanges(timetableDeliveries.get(id))) {
+                return true;
+            }
+
+            ZonedDateTime startTime = getStartTime(timetableDeliveries.get(id));
+            if (startTime != null && startTime.isBefore(previewExpiry)) {
+                //Period is valid
+                return true;
+            }
+            previewIntervalExclusionCounter.incrementAndGet();
+            return false;
+        };
+
+        Set<String> sizeLimitedIds = requestedIds
+                .stream()
+                .filter(previewIntervalFilter)
+                .limit(maxSize)
+                .collect(Collectors.toSet());
 
         //Remove collected objects
         sizeLimitedIds.forEach(idSet::remove);
 
-        Boolean isMoreData = sizeLimitedIds.size() < requestedIds.size();
+        Boolean isMoreData = (previewIntervalExclusionCounter.get() + sizeLimitedIds.size()) < requestedIds.size();
 
         logger.info("Returning {}, {} left for requestorRef {}", sizeLimitedIds.size(), idSet.size(), requestorId);
 
@@ -169,6 +202,31 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
         msgRef.setValue(requestorId);
         siri.getServiceDelivery().setRequestMessageRef(msgRef);
         return siri;
+    }
+
+    /**
+     * Returns true if EstimatedVehicleJourney has any cancellations
+     * @param estimatedVehicleJourney
+     * @return
+     */
+    private boolean hasPatternChanges(EstimatedVehicleJourney estimatedVehicleJourney) {
+        if (estimatedVehicleJourney != null) {
+            if (estimatedVehicleJourney.isCancellation() != null && estimatedVehicleJourney.isCancellation()) {
+                return true;
+            }
+            if (estimatedVehicleJourney.isExtraJourney() != null && estimatedVehicleJourney.isExtraJourney()) {
+                return true;
+            }
+            if (estimatedVehicleJourney.getEstimatedCalls() != null && estimatedVehicleJourney.getEstimatedCalls().getEstimatedCalls() != null) {
+                List<EstimatedCall> estimatedCalls = estimatedVehicleJourney.getEstimatedCalls().getEstimatedCalls();
+                for (EstimatedCall estimatedCall : estimatedCalls) {
+                    if (estimatedCall.isCancellation() != null && estimatedCall.isCancellation()) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     public Collection<EstimatedVehicleJourney> getAllUpdates(String requestorId, String datasetId) {
@@ -223,6 +281,48 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
         return new ArrayList<>(datasetIdSpecific.values());
     }
 
+    private ZonedDateTime getStartTime(EstimatedVehicleJourney vehicleJourney) {
+        ZonedDateTime startTime = null;
+        if (vehicleJourney != null) {
+            if (vehicleJourney.getRecordedCalls() != null && !vehicleJourney.getRecordedCalls().getRecordedCalls().isEmpty()) {
+                List<RecordedCall> recordedCalls = vehicleJourney.getRecordedCalls().getRecordedCalls();
+                RecordedCall firstRecordedCall = recordedCalls.get(0);
+
+                if (firstRecordedCall.getAimedArrivalTime() != null) {
+                    startTime = firstRecordedCall.getAimedArrivalTime();
+                }
+                if (firstRecordedCall.getAimedDepartureTime() != null) {
+                    startTime = firstRecordedCall.getAimedDepartureTime();
+                }
+                if (firstRecordedCall.getExpectedArrivalTime() != null) {
+                    startTime = firstRecordedCall.getExpectedArrivalTime();
+                }
+                if (firstRecordedCall.getExpectedDepartureTime() != null) {
+                    startTime = firstRecordedCall.getExpectedDepartureTime();
+                }
+
+            }
+            if (vehicleJourney.getEstimatedCalls() != null && !vehicleJourney.getEstimatedCalls().getEstimatedCalls().isEmpty()) {
+                List<EstimatedCall> estimatedCalls = vehicleJourney.getEstimatedCalls().getEstimatedCalls();
+                EstimatedCall firstEstimatedCall = estimatedCalls.get(0);
+
+                if (firstEstimatedCall.getAimedArrivalTime() != null) {
+                    startTime = firstEstimatedCall.getAimedArrivalTime();
+                }
+                if (firstEstimatedCall.getAimedDepartureTime() != null) {
+                    startTime = firstEstimatedCall.getAimedDepartureTime();
+                }
+                if (firstEstimatedCall.getExpectedArrivalTime() != null) {
+                    startTime = firstEstimatedCall.getExpectedArrivalTime();
+                }
+                if (firstEstimatedCall.getExpectedDepartureTime() != null) {
+                    startTime = firstEstimatedCall.getExpectedDepartureTime();
+                }
+            }
+        }
+        return startTime;
+    }
+
     public long getExpiration(EstimatedVehicleJourney vehicleJourney) {
         ZonedDateTime expiryTimestamp = null;
         if (vehicleJourney != null) {
@@ -260,7 +360,6 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
                 if (lastEstimatedCall.getExpectedDepartureTime() != null) {
                     expiryTimestamp = lastEstimatedCall.getExpectedDepartureTime();
                 }
-
             }
         }
 
