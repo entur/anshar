@@ -205,9 +205,7 @@ public class SiriLiteRoute extends RouteBuilder {
                     long previewIntervalMillis = -1;
                     if (previewIntervalMinutesStr != null) {
                         int minutes = Integer.parseInt(previewIntervalMinutesStr);
-                        if (minutes > 0) {
-                            previewIntervalMillis = minutes*60*1000;
-                        }
+                        previewIntervalMillis = minutes*60*1000;
                     }
 
                     Siri response;
