@@ -39,6 +39,7 @@ import uk.org.siri.siri20.VehicleActivityStructure;
 import java.io.*;
 import java.math.BigInteger;
 import java.time.Instant;
+import java.time.ZonedDateTime;
 import java.util.*;
 
 @Service
@@ -113,6 +114,16 @@ public class ExtendedHazelcastService extends HazelCastService {
     @Bean
     public IMap<String, Set<String>> getEstimatedTimetableChangesMap() {
         return hazelcast.getMap("anshar.et.changes");
+    }
+
+    @Bean
+    public IMap<String, String> getIdForPatternChangesMap() {
+        return hazelcast.getMap("anshar.et.index.pattern");
+    }
+
+    @Bean
+    public IMap<String, ZonedDateTime> getIdStartTimeMap() {
+        return hazelcast.getMap("anshar.et.index.startTime");
     }
 
     @Bean

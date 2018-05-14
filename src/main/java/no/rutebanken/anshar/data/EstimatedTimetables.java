@@ -49,6 +49,14 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
     private IMap<String, EstimatedVehicleJourney> timetableDeliveries;
 
     @Autowired
+    @Qualifier("getIdForPatternChangesMap")
+    private IMap<String, String> idForPatternChanges;
+
+    @Autowired
+    @Qualifier("getIdStartTimeMap")
+    private IMap<String, ZonedDateTime> idStartTimeMap;
+
+    @Autowired
     @Qualifier("getEstimatedTimetableChangesMap")
     private IMap<String, Set<String>> changesMap;
 
@@ -165,11 +173,11 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
             }
 
             //If pattern is changed (ExtraJourney or Cancellation) - it should be returned regardless of startTime
-            if (hasPatternChanges(timetableDeliveries.get(id))) {
+            if (idForPatternChanges.containsKey(id)) {
                 return true;
             }
 
-            ZonedDateTime startTime = getStartTime(timetableDeliveries.get(id));
+            ZonedDateTime startTime = idStartTimeMap.get(id);
             if (startTime != null && startTime.isBefore(previewExpiry)) {
                 //Period is valid
                 return true;
@@ -482,6 +490,15 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
                             !et.getEstimatedCalls().getEstimatedCalls().isEmpty()) {
                         changes.add(key);
                         timetableDeliveries.set(key, et, expiration, TimeUnit.MILLISECONDS);
+
+                        if (hasPatternChanges(et)) {
+                            // Keep track of all valid ET with pattern-changes
+                            idForPatternChanges.set(key, key, expiration, TimeUnit.MILLISECONDS);
+                        }
+
+                        idStartTimeMap.set(key, getStartTime(et), expiration, TimeUnit.MILLISECONDS);
+
+
                     }
                 } else {
                     outdatedCounter.increment();
