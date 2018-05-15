@@ -166,29 +166,32 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
 
         final ZonedDateTime previewExpiry = ZonedDateTime.now().plusSeconds(previewInterval / 1000);
 
+        Set<String> startTimes = new HashSet<>();
+
+        if (previewInterval >= 0) {
+            long t1 = System.currentTimeMillis();
+            startTimes.addAll(idStartTimeMap.keySet(entry -> ((ZonedDateTime)entry.getValue()).isBefore(previewExpiry)));
+            logger.info("Found {} ids starting within {} ms in {} ms", startTimes.size(), previewInterval, (System.currentTimeMillis()-t1));
+        }
+
+        final AtomicInteger previewIntervalInclusionCounter = new AtomicInteger();
         final AtomicInteger previewIntervalExclusionCounter = new AtomicInteger();
         Predicate<? super String> previewIntervalFilter = (Predicate<String>) id -> {
-            if (previewInterval < 0) {
+
+            if (idForPatternChanges.containsKey(id) || startTimes.contains(id)) {
+                // Is valid in requested previewInterval
+                previewIntervalInclusionCounter.incrementAndGet();
                 return true;
             }
 
-            //If pattern is changed (ExtraJourney or Cancellation) - it should be returned regardless of startTime
-            if (idForPatternChanges.containsKey(id)) {
-                return true;
-            }
-
-            ZonedDateTime startTime = idStartTimeMap.get(id);
-            if (startTime != null && startTime.isBefore(previewExpiry)) {
-                //Period is valid
-                return true;
-            }
             previewIntervalExclusionCounter.incrementAndGet();
             return false;
         };
 
+
         Set<String> sizeLimitedIds = requestedIds
                 .stream()
-                .filter(previewIntervalFilter)
+                .filter(id -> previewInterval < 0 || previewIntervalFilter.test(id))
                 .limit(maxSize)
                 .collect(Collectors.toSet());
 
