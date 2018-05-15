@@ -782,6 +782,62 @@ anshar:
       idMappingPrefixes: OPP
       active: false
     -
+      internalId: 30
+      vendor: hedEt
+      name: Hedmark - ET - PROD
+      datasetId: HED
+      serviceType: SOAP
+      subscriptionType: ESTIMATED_TIMETABLE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 120
+      previewIntervalSeconds: 10800
+      operatorNamespace: http://wsdl.siri.org.uk
+      addressFieldName: ConsumerAddress
+      soapenvNamespace: http://schemas.xmlsoap.org/soap/envelope/
+      changeBeforeUpdatesSeconds: 10
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: 92.62.36.219:8000/SIRI
+        DELETE_SUBSCRIPTION: 92.62.36.219:8000/SIRI
+        CHECK_STATUS: 92.62.36.219:8000/SIRI
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: 186c3737-8549-4415-bab2-7f944f56d31b
+      requestorRef: ENTUR_DEV_ET_186c3737-8549-4415-bab2-7f944f56d31b
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: ostfoldet
+      filterPresets: HED
+      idMappingPrefixes: HED
+      active: false
+    -
+      internalId: 31
+      vendor: oppEt
+      name: Oppland - ET - PROD
+      datasetId: OPP
+      serviceType: SOAP
+      subscriptionType: ESTIMATED_TIMETABLE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 120
+      previewIntervalSeconds: 10800
+      operatorNamespace: http://wsdl.siri.org.uk
+      addressFieldName: ConsumerAddress
+      soapenvNamespace: http://schemas.xmlsoap.org/soap/envelope/
+      changeBeforeUpdatesSeconds: 10
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: 92.62.36.219:8000/SIRI
+        DELETE_SUBSCRIPTION: 92.62.36.219:8000/SIRI
+        CHECK_STATUS: 92.62.36.219:8000/SIRI
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: a6004ff5-7c77-4667-8d16-50cc74300713
+      requestorRef: ENTUR_DEV_ET_a6004ff5-7c77-4667-8d16-50cc74300713
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: ostfoldet
+      filterPresets: OPP
+      idMappingPrefixes: OPP
+      active: false
+    -
       internalId: 100
       vendor: internRuterVm
       name: Entur - Ruter - VM
