@@ -782,7 +782,7 @@ anshar:
       idMappingPrefixes: OPP
       active: false
     -
-      internalId: 30
+      internalId: 32
       vendor: hedEt
       name: Hedmark - ET - PROD
       datasetId: HED
@@ -810,7 +810,7 @@ anshar:
       idMappingPrefixes: HED
       active: false
     -
-      internalId: 31
+      internalId: 33
       vendor: oppEt
       name: Oppland - ET - PROD
       datasetId: OPP
