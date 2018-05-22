@@ -17,7 +17,6 @@ package no.rutebanken.anshar.routes.outbound;
 
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.subscription.SiriDataType;
-import no.rutebanken.anshar.subscription.SubscriptionSetup;
 
 import java.io.Serializable;
 import java.text.MessageFormat;
@@ -30,37 +29,31 @@ public class OutboundSubscriptionSetup implements Serializable {
 
     private ZonedDateTime requestTimestamp;
     private SiriDataType subscriptionType;
-    private SubscriptionSetup.SubscriptionMode subscriptionMode;
     private String address;
     private long heartbeatInterval;
     private int timeToLive;
-    private SubscriptionSetup.ServiceType serviceType;
     private Map<Class, Set<String>> filterMap;
     private List<ValueAdapter> valueAdapters;
     private String subscriptionId;
     private String requestorRef;
     private ZonedDateTime initialTerminationTime;
-    private boolean active;
     private String datasetId;
     private long changeBeforeUpdates;
 
-    public OutboundSubscriptionSetup(ZonedDateTime requestTimestamp, SiriDataType subscriptionType, SubscriptionSetup.SubscriptionMode subscriptionMode, String address, long heartbeatInterval,
-                                     long changeBeforeUpdates, SubscriptionSetup.ServiceType serviceType, Map<Class, Set<String>> filterMap, List<ValueAdapter> valueAdapters,
-                                     String subscriptionId, String requestorRef, ZonedDateTime initialTerminationTime, String datasetId, boolean active) {
+    public OutboundSubscriptionSetup(ZonedDateTime requestTimestamp, SiriDataType subscriptionType, String address, long heartbeatInterval,
+                                     long changeBeforeUpdates, Map<Class, Set<String>> filterMap, List<ValueAdapter> valueAdapters,
+                                     String subscriptionId, String requestorRef, ZonedDateTime initialTerminationTime, String datasetId) {
         this.requestTimestamp = requestTimestamp;
         this.subscriptionType = subscriptionType;
-        this.subscriptionMode = subscriptionMode;
         this.address = address;
         this.heartbeatInterval = heartbeatInterval;
         this.changeBeforeUpdates = changeBeforeUpdates;
-        this.serviceType = serviceType;
         this.filterMap = filterMap;
         this.valueAdapters = valueAdapters;
         this.subscriptionId = subscriptionId;
         this.requestorRef = requestorRef;
         this.initialTerminationTime = initialTerminationTime;
         this.datasetId = datasetId;
-        this.active = active;
     }
 
     OutboundSubscriptionSetup(SiriDataType subscriptionType, String address, int timeToLive, List<ValueAdapter> outboundAdapters) {
@@ -82,10 +75,6 @@ public class OutboundSubscriptionSetup implements Serializable {
         return subscriptionType;
     }
 
-    public SubscriptionSetup.SubscriptionMode getSubscriptionMode() {
-        return subscriptionMode;
-    }
-
     public String getAddress() {
         return address;
     }
@@ -100,10 +89,6 @@ public class OutboundSubscriptionSetup implements Serializable {
 
     public long getChangeBeforeUpdates() {
         return changeBeforeUpdates;
-    }
-
-    public SubscriptionSetup.ServiceType getServiceType() {
-        return serviceType;
     }
 
     public Map<Class, Set<String>> getFilterMap() {
@@ -124,10 +109,6 @@ public class OutboundSubscriptionSetup implements Serializable {
 
     public String getDatasetId() {
         return datasetId;
-    }
-
-    public boolean isActive() {
-        return active;
     }
 
     public List<ValueAdapter> getValueAdapters() {

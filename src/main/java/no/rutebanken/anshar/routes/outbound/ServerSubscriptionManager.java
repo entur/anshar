@@ -19,7 +19,6 @@ import com.hazelcast.core.IMap;
 import no.rutebanken.anshar.routes.siri.handlers.OutboundIdMappingPolicy;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.subscription.SiriDataType;
-import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import no.rutebanken.anshar.subscription.helpers.MappingAdapterPresets;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -189,18 +188,15 @@ public class ServerSubscriptionManager extends CamelRouteManager {
         return new OutboundSubscriptionSetup(
                 ZonedDateTime.now(),
                 getSubscriptionType(subscriptionRequest),
-                SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
                 subscriptionRequest.getConsumerAddress() != null ? subscriptionRequest.getConsumerAddress():subscriptionRequest.getAddress(),
                 getHeartbeatInterval(subscriptionRequest),
                 getChangeBeforeUpdates(subscriptionRequest),
-                SubscriptionSetup.ServiceType.REST,
                 siriHelper.getFilter(subscriptionRequest),
                 mappingAdapterPresets.getOutboundAdapters(outboundIdMappingPolicy),
                 findSubscriptionIdentifier(subscriptionRequest),
                 subscriptionRequest.getRequestorRef().getValue(),
                 findInitialTerminationTime(subscriptionRequest),
-                datasetId,
-                true
+                datasetId
                 );
     }
 
@@ -330,8 +326,7 @@ public class ServerSubscriptionManager extends CamelRouteManager {
         }
 
         subscriptions.values().stream().filter(subscriptionRequest ->
-                        (subscriptionRequest.getSubscriptionMode().equals(SubscriptionSetup.SubscriptionMode.SUBSCRIBE) &
-                                subscriptionRequest.getSubscriptionType().equals(SiriDataType.VEHICLE_MONITORING) &
+                        ( subscriptionRequest.getSubscriptionType().equals(SiriDataType.VEHICLE_MONITORING) &
                                 (subscriptionRequest.getDatasetId() == null || (subscriptionRequest.getDatasetId().equals(datasetId))))
 
         ).forEach(subscription ->
@@ -354,8 +349,7 @@ public class ServerSubscriptionManager extends CamelRouteManager {
         }
 
         subscriptions.values().stream().filter(subscriptionRequest ->
-                        (subscriptionRequest.getSubscriptionMode().equals(SubscriptionSetup.SubscriptionMode.SUBSCRIBE) &
-                                subscriptionRequest.getSubscriptionType().equals(SiriDataType.SITUATION_EXCHANGE) &
+                        (subscriptionRequest.getSubscriptionType().equals(SiriDataType.SITUATION_EXCHANGE) &
                                 (subscriptionRequest.getDatasetId() == null || (subscriptionRequest.getDatasetId().equals(datasetId))))
 
         ).forEach(subscription ->
@@ -376,8 +370,7 @@ public class ServerSubscriptionManager extends CamelRouteManager {
         }
 
         subscriptions.values().stream().filter(subscriptionRequest ->
-                        (subscriptionRequest.getSubscriptionMode().equals(SubscriptionSetup.SubscriptionMode.SUBSCRIBE) &
-                                subscriptionRequest.getSubscriptionType().equals(SiriDataType.PRODUCTION_TIMETABLE) &
+                        (subscriptionRequest.getSubscriptionType().equals(SiriDataType.PRODUCTION_TIMETABLE) &
                                 (subscriptionRequest.getDatasetId() == null || (subscriptionRequest.getDatasetId().equals(datasetId))))
 
         ).forEach(subscription ->
@@ -398,8 +391,7 @@ public class ServerSubscriptionManager extends CamelRouteManager {
         }
 
         subscriptions.values().stream().filter(subscriptionRequest ->
-                        (subscriptionRequest.getSubscriptionMode().equals(SubscriptionSetup.SubscriptionMode.SUBSCRIBE) &
-                                subscriptionRequest.getSubscriptionType().equals(SiriDataType.ESTIMATED_TIMETABLE) &
+                        (subscriptionRequest.getSubscriptionType().equals(SiriDataType.ESTIMATED_TIMETABLE) &
                                 (subscriptionRequest.getDatasetId() == null || (subscriptionRequest.getDatasetId().equals(datasetId))))
 
         ).forEach(subscription ->
