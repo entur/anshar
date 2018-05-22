@@ -35,7 +35,7 @@ import static no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer.
  */
 public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor {
 
-    private static Logger logger = LoggerFactory.getLogger(BaneNorSiriEtRewriter.class);
+    private static final Logger logger = LoggerFactory.getLogger(BaneNorSiriEtRewriter.class);
 
     @Override
     protected String apply(String value) {
@@ -178,23 +178,20 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
             List<ServiceDate> serviceDates = getServiceDates(serviceJourneyId);
             if (serviceDates.contains(serviceDate)) {
                 boolean matchStopIdOnly = false;
-                for (int i = 0; i < stopTimes.size(); i++) {
-                    StopTime stopTime = stopTimes.get(i);
-
+                for (StopTime stopTime : stopTimes) {
                     for (EstimatedCall estimatedCall : estimatedCalls) {
                         String stopId = getMappedStopId(estimatedCall.getStopPointRef());
 
-
                         if (isMatch(matchStopIdOnly, stopTime, stopId, estimatedCall.getAimedArrivalTime(), estimatedCall.getAimedDepartureTime())) {
-                                if (!matchStopIdOnly) {
-                                    //No longer check arrival-/departuretimes as they may deviate
-                                    matchStopIdOnly = true;
-                                }
-                                List<EstimatedCall> calls = matches.getOrDefault(serviceJourneyId, new ArrayList<>());
-                                calls.add(estimatedCall);
+                            if (!matchStopIdOnly) {
+                                //No longer check arrival-/departuretimes as they may deviate
+                                matchStopIdOnly = true;
+                            }
+                            List<EstimatedCall> calls = matches.getOrDefault(serviceJourneyId, new ArrayList<>());
+                            calls.add(estimatedCall);
 
-                                matches.put(serviceJourneyId, calls);
-                                break;
+                            matches.put(serviceJourneyId, calls);
+                            break;
                         }
                     }
                 }
@@ -221,24 +218,21 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
             List<ServiceDate> serviceDates = getServiceDates(serviceJourneyId);
             if (serviceDates.contains(serviceDate)) {
                 boolean matchStopIdOnly = false;
-                for (int i = 0; i < stopTimes.size(); i++) {
-                    StopTime stopTime = stopTimes.get(i);
-
+                for (StopTime stopTime : stopTimes) {
                     for (RecordedCall recordedCall : recordedCalls) {
                         String stopId = getMappedStopId(recordedCall.getStopPointRef());
 
-
                         if (isMatch(matchStopIdOnly, stopTime, stopId, recordedCall.getAimedArrivalTime(), recordedCall.getAimedDepartureTime())) {
 
-                                if (!matchStopIdOnly) {
-                                    //No longer check arrival-/departuretimes as they may deviate
-                                    matchStopIdOnly = true;
-                                }
-                                List<RecordedCall> calls = matches.getOrDefault(serviceJourneyId, new ArrayList<>());
-                                calls.add(recordedCall);
+                            if (!matchStopIdOnly) {
+                                //No longer check arrival-/departuretimes as they may deviate
+                                matchStopIdOnly = true;
+                            }
+                            List<RecordedCall> calls = matches.getOrDefault(serviceJourneyId, new ArrayList<>());
+                            calls.add(recordedCall);
 
-                                matches.put(serviceJourneyId, calls);
-                                break;
+                            matches.put(serviceJourneyId, calls);
+                            break;
                         }
                     }
                 }

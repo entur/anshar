@@ -43,7 +43,6 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.io.*;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
 import java.util.concurrent.Executors;
@@ -54,7 +53,7 @@ import java.util.stream.Collectors;
 @Service
 public class NSBGtfsUpdaterService {
 
-    private static Logger logger = LoggerFactory.getLogger(NSBGtfsUpdaterService.class);
+    private static final Logger logger = LoggerFactory.getLogger(NSBGtfsUpdaterService.class);
 
     private static final int UPDATE_FREQUENCY = 6;
     private static final TimeUnit REQUENCY_TIME_UNIT = TimeUnit.HOURS;
@@ -149,7 +148,7 @@ public class NSBGtfsUpdaterService {
 
                         tmpTripDates.put(serviceJourneyId,
                                 calendarDatesForServiceId.stream()
-                                        .map(serviceCalendarDate -> serviceCalendarDate.getDate())
+                                        .map(ServiceCalendarDate::getDate)
                                         .collect(Collectors.toList())
                         );
                     }
@@ -198,8 +197,6 @@ public class NSBGtfsUpdaterService {
                 }
             }
             return tmpFile.getAbsolutePath();
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         } finally {

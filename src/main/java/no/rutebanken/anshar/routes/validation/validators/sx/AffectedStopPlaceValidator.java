@@ -32,7 +32,7 @@ public class AffectedStopPlaceValidator extends CustomValidator {
 
     private static final String FIELDNAME = "StopPlaceRef";
 
-    private static String path = AFFECTED_STOP_PLACE + "/" + FIELDNAME;
+    private static final String path = AFFECTED_STOP_PLACE + "/" + FIELDNAME;
 
     @Override
     public String getXpath() {

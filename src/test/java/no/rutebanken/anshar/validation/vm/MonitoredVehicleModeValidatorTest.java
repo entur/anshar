@@ -27,7 +27,7 @@ import static junit.framework.TestCase.assertNull;
 public class MonitoredVehicleModeValidatorTest extends CustomValidatorTest {
 
     private static MonitoredVehicleModeValidator validator;
-    private String fieldName = "VehicleMode";
+    private final String fieldName = "VehicleMode";
 
     @BeforeClass
     public static void init() {

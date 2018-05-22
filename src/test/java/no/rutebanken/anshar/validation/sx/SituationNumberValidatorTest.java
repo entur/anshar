@@ -42,8 +42,8 @@ import static junit.framework.TestCase.assertNull;
 
 public class SituationNumberValidatorTest extends CustomValidatorTest {
 
-    static SituationNumberValidator validator;
-    private String fieldName = "SituationNumber";
+    private static SituationNumberValidator validator;
+    private final String fieldName = "SituationNumber";
 
     @BeforeClass
     public static void init() {

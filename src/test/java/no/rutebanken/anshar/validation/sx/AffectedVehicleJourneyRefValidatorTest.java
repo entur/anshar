@@ -27,8 +27,8 @@ import static junit.framework.TestCase.assertNull;
 
 public class AffectedVehicleJourneyRefValidatorTest extends CustomValidatorTest {
 
-    static AffectedVehicleJourneyRefValidator validator;
-    private String fieldName = "VehicleJourneyRef";
+    private static AffectedVehicleJourneyRefValidator validator;
+    private final String fieldName = "VehicleJourneyRef";
 
     @BeforeClass
     public static void init() {

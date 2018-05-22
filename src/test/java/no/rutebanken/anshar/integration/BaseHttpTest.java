@@ -31,11 +31,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 @SpringBootTest(classes = App.class)
 public abstract class BaseHttpTest {
 
-    public static final String TEST_SUBSCRIPTION_ID = "test.subscription.id";
+    static final String TEST_SUBSCRIPTION_ID = "test.subscription.id";
     @Value("${anshar.incoming.port}")
     private int port;
 
-    protected static final String dataSource = "TTT";
+    static final String dataSource = "TTT";
 
     @Before
     public void init() {
@@ -45,7 +45,7 @@ public abstract class BaseHttpTest {
         RestAssured.filters(new ResponseLoggingFilter());
     }
 
-    protected SubscriptionSetup getSubscriptionSetup(SiriDataType subscriptionType) {
+    SubscriptionSetup getSubscriptionSetup(SiriDataType subscriptionType) {
         SubscriptionSetup sub = new SubscriptionSetup();
         sub.setSubscriptionType(subscriptionType);
         sub.setRequestorRef("TestSubscription");

@@ -113,7 +113,7 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
                 Set<String> datasetFilteredIdSet = new HashSet<>();
 
                 if (datasetId != null) {
-                    idSet.stream().filter(key -> key.startsWith(datasetId + ":")).forEach(key -> datasetFilteredIdSet.add(key));
+                    idSet.stream().filter(key -> key.startsWith(datasetId + ":")).forEach(datasetFilteredIdSet::add);
                 } else {
                     datasetFilteredIdSet.addAll(idSet);
                 }
@@ -183,7 +183,7 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
         Set<String> idSet = changesMap.getOrDefault(requestorId, allIds);
 
         if (idSet == allIds) {
-            vehicleActivities.keySet().forEach(key -> idSet.add(key));
+            vehicleActivities.keySet().forEach(idSet::add);
         }
 
         lastUpdateRequested.set(requestorId, Instant.now(), trackingPeriodMinutes, TimeUnit.MINUTES);
@@ -334,7 +334,7 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
     }
 
     private String vehicleRefToString(VehicleActivityStructure.MonitoredVehicleJourney monitoredVehicleJourney) {
-        StringBuffer s = new StringBuffer();
+        StringBuilder s = new StringBuilder();
         s.append("[")
                 .append("LineRef: ").append(monitoredVehicleJourney.getLineRef() != null ? monitoredVehicleJourney.getLineRef().getValue() : "null")
                 .append(",VehicleRef: ").append(monitoredVehicleJourney.getVehicleRef() != null ? monitoredVehicleJourney.getVehicleRef().getValue() : "null")
@@ -375,7 +375,7 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
      * @return
      */
     private String createKey(String datasetId, VehicleRef vehicleRef) {
-        StringBuffer key = new StringBuffer();
+        StringBuilder key = new StringBuilder();
         key.append(datasetId).append(":").append(vehicleRef.getValue());
 
         return key.toString();

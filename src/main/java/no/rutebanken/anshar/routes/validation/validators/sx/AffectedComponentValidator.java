@@ -47,14 +47,14 @@ public class AffectedComponentValidator extends CustomValidator {
         </AffectedComponent>
      */
 
-    private Set<String> expectedComponentTypes = Sets.newHashSet(
+    private final Set<String> expectedComponentTypes = Sets.newHashSet(
             StopPlaceComponentTypeEnumeration.ACCESS_SPACE.value(),
             StopPlaceComponentTypeEnumeration.BOARDING_POSITION.value(),
             StopPlaceComponentTypeEnumeration.ENTRANCE.value(),
             StopPlaceComponentTypeEnumeration.QUAY.value()
     );
 
-    private Set<String> expectedAccessFeatureType = Sets.newHashSet(
+    private final Set<String> expectedAccessFeatureType = Sets.newHashSet(
             AccessibilityFeatureEnumeration.ESCALATOR.value(),
             AccessibilityFeatureEnumeration.LIFT.value(),
             AccessibilityFeatureEnumeration.NARROW_ENTRANCE.value(),

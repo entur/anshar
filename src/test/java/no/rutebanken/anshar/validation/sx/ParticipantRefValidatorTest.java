@@ -40,8 +40,8 @@ import static junit.framework.TestCase.assertNull;
 
 public class ParticipantRefValidatorTest extends CustomValidatorTest {
 
-    static ParticipantRefValidator validator;
-    private String fieldName = "ParticipantRef";
+    private static ParticipantRefValidator validator;
+    private final String fieldName = "ParticipantRef";
 
     @BeforeClass
     public static void init() {

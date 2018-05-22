@@ -35,16 +35,16 @@ public class AccessibilityAssessmentValidator extends CustomValidator {
 
     private static final String FIELDNAME = "AccessibilityAssessment";
 
-    public static final String LIMITATIONS = "Limitations";
-    public static final String ACCESSIBILITY_LIMITATION = "AccessibilityLimitation";
-    public static final String WHEELCHAIR_ACCESS = "WheelchairAccess";
-    public static final String STEP_FREE_ACCESS = "StepFreeAccess";
-    public static final String ESCALATOR_FREE_ACCESS = "EscalatorFreeAccess";
-    public static final String LIFT_FREE_ACCESS = "LiftFreeAccess";
+    private static final String LIMITATIONS = "Limitations";
+    private static final String ACCESSIBILITY_LIMITATION = "AccessibilityLimitation";
+    private static final String WHEELCHAIR_ACCESS = "WheelchairAccess";
+    private static final String STEP_FREE_ACCESS = "StepFreeAccess";
+    private static final String ESCALATOR_FREE_ACCESS = "EscalatorFreeAccess";
+    private static final String LIFT_FREE_ACCESS = "LiftFreeAccess";
 
     private static String path;
 
-    private static Set<String> expectedValues = Sets.newHashSet(
+    private static final Set<String> expectedValues = Sets.newHashSet(
             AccessibilityEnumeration.TRUE.value(),
             AccessibilityEnumeration.FALSE.value(),
             AccessibilityEnumeration.UNKNOWN.value()

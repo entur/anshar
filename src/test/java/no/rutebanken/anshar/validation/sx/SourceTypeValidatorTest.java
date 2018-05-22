@@ -57,8 +57,8 @@ import static junit.framework.TestCase.assertNull;
 
 public class SourceTypeValidatorTest extends CustomValidatorTest {
 
-    static SourceTypeValidator validator;
-    private String fieldName = "SourceType";
+    private static SourceTypeValidator validator;
+    private final String fieldName = "SourceType";
 
     @BeforeClass
     public static void init() {

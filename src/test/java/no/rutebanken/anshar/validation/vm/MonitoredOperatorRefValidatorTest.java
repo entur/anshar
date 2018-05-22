@@ -25,8 +25,8 @@ import static junit.framework.TestCase.assertNull;
 
 public class MonitoredOperatorRefValidatorTest extends CustomValidatorTest {
 
-    static MonitoredOperatorRefValidator validator;
-    private String fieldName = "OperatorRef";
+    private static MonitoredOperatorRefValidator validator;
+    private final String fieldName = "OperatorRef";
 
     @BeforeClass
     public static void init() {

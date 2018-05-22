@@ -100,8 +100,8 @@ import static junit.framework.TestCase.assertNull;
 
 public class DepartureBoardingActivityValidatorTest extends CustomValidatorTest {
 
-    static DepartureBoardingActivityValidator validator;
-    private String fieldName = "DepartureBoardingActivity";
+    private static DepartureBoardingActivityValidator validator;
+    private final String fieldName = "DepartureBoardingActivity";
 
     @BeforeClass
     public static void init() {

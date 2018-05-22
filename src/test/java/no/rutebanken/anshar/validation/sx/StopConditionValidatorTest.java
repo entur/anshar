@@ -25,8 +25,8 @@ import static junit.framework.TestCase.assertNull;
 
 public class StopConditionValidatorTest extends CustomValidatorTest {
 
-    static StopConditionValidator validator;
-    private String fieldName = "StopCondition";
+    private static StopConditionValidator validator;
+    private final String fieldName = "StopCondition";
 
     @BeforeClass
     public static void init() {

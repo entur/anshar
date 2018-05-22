@@ -103,7 +103,7 @@ public class Situations implements SiriRepository<PtSituationElement> {
         Set<String> idSet = changesMap.getOrDefault(requestorId, allIds);
 
         if (idSet == allIds) {
-            situations.keySet().forEach(key -> idSet.add(key));
+            situations.keySet().forEach(idSet::add);
         }
 
         lastUpdateRequested.set(requestorId, Instant.now(), trackingPeriodMinutes, TimeUnit.MINUTES);
@@ -169,7 +169,7 @@ public class Situations implements SiriRepository<PtSituationElement> {
                 Set<String> datasetFilteredIdSet = new HashSet<>();
 
                 if (datasetId != null) {
-                    idSet.stream().filter(key -> key.startsWith(datasetId + ":")).forEach(key -> datasetFilteredIdSet.add(key));
+                    idSet.stream().filter(key -> key.startsWith(datasetId + ":")).forEach(datasetFilteredIdSet::add);
                 } else {
                     datasetFilteredIdSet.addAll(idSet);
                 }
@@ -268,7 +268,7 @@ public class Situations implements SiriRepository<PtSituationElement> {
     }
 
     private static String createKey(String datasetId, PtSituationElement element) {
-        StringBuffer key = new StringBuffer();
+        StringBuilder key = new StringBuilder();
 
         key.append(datasetId).append(":")
                 .append((element.getSituationNumber() != null ? element.getSituationNumber().getValue() : "null"))

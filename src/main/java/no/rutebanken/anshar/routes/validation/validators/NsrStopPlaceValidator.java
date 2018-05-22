@@ -37,7 +37,7 @@ import javax.xml.bind.ValidationEvent;
 public abstract class NsrStopPlaceValidator extends CustomValidator {
 
 
-    protected String FIELDNAME;
+    private String FIELDNAME;
 
     @Override
     public String getCategoryName() {

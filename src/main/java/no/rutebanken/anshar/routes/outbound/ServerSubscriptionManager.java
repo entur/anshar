@@ -102,18 +102,19 @@ public class ServerSubscriptionManager extends CamelRouteManager {
 
     @PostConstruct
     private void initializeActiveMqProducers() {
-        activeMQ_SX = createActiveMQSubscription(SiriDataType.SITUATION_EXCHANGE);
-        activeMQ_VM = createActiveMQSubscription(SiriDataType.VEHICLE_MONITORING);
-        activeMQ_ET = createActiveMQSubscription(SiriDataType.ESTIMATED_TIMETABLE);
-        activeMQ_PT = createActiveMQSubscription(SiriDataType.PRODUCTION_TIMETABLE);
+        activeMQ_SX = createActiveMQSubscription(SiriDataType.SITUATION_EXCHANGE, "activemq.internal.subscription.sx");
+        activeMQ_VM = createActiveMQSubscription(SiriDataType.VEHICLE_MONITORING, "activemq.internal.subscription.vm");
+        activeMQ_ET = createActiveMQSubscription(SiriDataType.ESTIMATED_TIMETABLE, "activemq.internal.subscription.et");
+        activeMQ_PT = createActiveMQSubscription(SiriDataType.PRODUCTION_TIMETABLE, "activemq.internal.subscription.pt");
     }
 
-    private OutboundSubscriptionSetup createActiveMQSubscription(SiriDataType type) {
+    private OutboundSubscriptionSetup createActiveMQSubscription(SiriDataType type, String subscriptionId) {
         return new OutboundSubscriptionSetup(
                 type,
                 activeMqTopicPrefix + type.name().toLowerCase(),
                 activeMqTopicTimeToLive,
-                mappingAdapterPresets.getOutboundAdapters(outboundIdMappingPolicy));
+                mappingAdapterPresets.getOutboundAdapters(outboundIdMappingPolicy),
+                subscriptionId);
     }
 
 

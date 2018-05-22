@@ -45,7 +45,7 @@ import static junit.framework.TestCase.assertNull;
 public class ValidityPeriodValidatorTest extends CustomValidatorTest {
 
 
-    static ValidityPeriodValidator validator;
+    private static ValidityPeriodValidator validator;
 
     @BeforeClass
     public static void init() {

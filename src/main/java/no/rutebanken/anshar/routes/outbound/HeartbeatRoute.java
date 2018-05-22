@@ -33,7 +33,7 @@ import java.util.concurrent.TimeUnit;
 @Service
 public class HeartbeatRoute extends BaseRouteBuilder {
 
-    private int heartbeatIntervalMillis = 2000;
+    private final int heartbeatIntervalMillis = 2000;
 
 
     @Autowired
@@ -41,7 +41,7 @@ public class HeartbeatRoute extends BaseRouteBuilder {
     private IMap<String, Instant> heartbeatTimestampMap;
 
     @Autowired
-    ServerSubscriptionManager serverSubscriptionManager;
+    private ServerSubscriptionManager serverSubscriptionManager;
 
     @Autowired
     private SiriObjectFactory siriObjectFactory;

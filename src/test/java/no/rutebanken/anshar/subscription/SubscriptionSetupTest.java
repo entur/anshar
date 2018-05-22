@@ -15,13 +15,15 @@
 
 package no.rutebanken.anshar.subscription;
 
-import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.subscription.helpers.RequestType;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.time.Duration;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 import static junit.framework.TestCase.*;
 
@@ -50,9 +52,9 @@ public class SubscriptionSetupTest {
                 "SwarcoMizar",
                 "tst",
                 SubscriptionSetup.ServiceType.SOAP,
-                new ArrayList<ValueAdapter>(),
-                new HashMap<Class, Set<Object>>(),
-                new ArrayList<String>(),
+                new ArrayList<>(),
+                new HashMap<>(),
+                new ArrayList<>(),
                 UUID.randomUUID().toString(),
                 "RutebankenDEV",
                 Duration.ofSeconds((long) 1000),
@@ -71,9 +73,9 @@ public class SubscriptionSetupTest {
                 "SwarcoMizar",
                 "tst",
                 SubscriptionSetup.ServiceType.SOAP,
-                new ArrayList<ValueAdapter>(),
-                new HashMap<Class, Set<Object>>(),
-                new ArrayList<String>(),
+                new ArrayList<>(),
+                new HashMap<>(),
+                new ArrayList<>(),
                 UUID.randomUUID().toString(),
                 "RutebankenDEV",
                 Duration.ofSeconds((long) 1000),

@@ -28,7 +28,7 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.MONITO
 @Component
 public class MonitoredVehicleModeValidator extends LimitedSubsetValidator {
 
-    private String path;
+    private final String path;
 
     public MonitoredVehicleModeValidator() {
         FIELDNAME = "VehicleMode";

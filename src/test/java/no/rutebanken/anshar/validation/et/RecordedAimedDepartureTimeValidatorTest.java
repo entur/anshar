@@ -102,9 +102,9 @@ import static junit.framework.TestCase.assertNull;
 
 public class RecordedAimedDepartureTimeValidatorTest extends CustomValidatorTest {
 
-    static RecordedAimedDepartureTimeValidator validator;
-    private String fieldName = "AimedDepartureTime";
-    private String comparisonField = "AimedArrivalTime";
+    private static RecordedAimedDepartureTimeValidator validator;
+    private final String fieldName = "AimedDepartureTime";
+    private final String comparisonField = "AimedArrivalTime";
 
     @BeforeClass
     public static void init() {

@@ -27,7 +27,7 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.MONITO
 public class MonitoredLineRefValidator extends NsrGenericIdValidator {
 
 
-    private String path;
+    private final String path;
 
     public MonitoredLineRefValidator() {
         FIELDNAME = "LineRef";

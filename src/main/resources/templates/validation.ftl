@@ -81,7 +81,7 @@
 <div class="jumbotron text-center">
     <h2>SIRI Validation</h2>
 </div>
-<#if body?exists >
+<#if body?? >
 <div class="container">
 
     <div class="row">
@@ -98,7 +98,7 @@
             </thead>
             <tbody>
                 <#list body.subscriptions?sort_by("name") as item>
-                <tr class="${item.healthy?exists?then(item.healthy?then("success","danger"), "warning")}">
+                <tr class="${item.healthy???then(item.healthy?then("success","danger"), "warning")}">
                     <th>${item?counter}</th>
                     <td>${item.name}</td>
                     <td>${item.status!""}</td>

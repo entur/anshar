@@ -42,7 +42,7 @@ import static junit.framework.TestCase.assertNull;
 
 public class SummaryValidatorTest extends CustomValidatorTest {
 
-    static SummaryValidator validator;
+    private static SummaryValidator validator;
 
     @BeforeClass
     public static void init() {
@@ -66,9 +66,9 @@ public class SummaryValidatorTest extends CustomValidatorTest {
 
     @Test
     public void testTooLongSummary() throws Exception{
-        String msg = "";
+        StringBuilder msg = new StringBuilder();
         for (int i = 0; i < 161; i++) {
-            msg += "a";
+            msg.append("a");
         }
         String xml = "<PLACEHOLDER><Summary>" + msg + "</Summary></PLACEHOLDER>";
 

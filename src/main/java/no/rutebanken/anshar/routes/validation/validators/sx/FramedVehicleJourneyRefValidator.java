@@ -34,8 +34,8 @@ public class FramedVehicleJourneyRefValidator extends CustomValidator {
 
     private static final String FIELDNAME = "FramedVehicleJourneyRef";
     private static final String path = AFFECTED_VEHICLE_JOURNEY + "/" + FIELDNAME;
-    private DateFormat format;
-    private String pattern = "yyyy-MM-dd";
+    private final DateFormat format;
+    private final String pattern = "yyyy-MM-dd";
 
     public FramedVehicleJourneyRefValidator() {
         format = new SimpleDateFormat(pattern);

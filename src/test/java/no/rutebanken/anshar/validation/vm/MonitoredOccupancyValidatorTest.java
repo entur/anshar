@@ -27,8 +27,8 @@ import static junit.framework.TestCase.*;
 
 public class MonitoredOccupancyValidatorTest extends CustomValidatorTest {
 
-    static MonitoredOccupancyValidator validator;
-    private String fieldName = "Occupancy";
+    private static MonitoredOccupancyValidator validator;
+    private final String fieldName = "Occupancy";
 
     @BeforeClass
     public static void init() {

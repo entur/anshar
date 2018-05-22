@@ -222,8 +222,7 @@ public class SiriHandler {
      * @return
      * @throws JAXBException
      */
-    private Siri processSiriClientRequest(String subscriptionId, InputStream xml)
-            throws JAXBException, XMLStreamException {
+    private Siri processSiriClientRequest(String subscriptionId, InputStream xml) {
         SubscriptionSetup subscriptionSetup = subscriptionManager.get(subscriptionId);
 
         if (subscriptionSetup != null) {
@@ -274,7 +273,7 @@ public class SiriHandler {
                                 }
                         );
                     }
-                    deliveryContainsData = deliveryContainsData | (addedOrUpdated.size() > 0);
+                    deliveryContainsData = addedOrUpdated.size() > 0;
 
                     serverSubscriptionManager.pushUpdatedSituations(addedOrUpdated, subscriptionSetup.getDatasetId());
 

@@ -26,22 +26,22 @@ import static junit.framework.TestCase.assertNull;
 public class ExtraJourneyValidatorTest extends CustomValidatorTest{
 
     private static ExtraJourneyValidator validator;
-    private String extraJourneyFieldName = "ExtraJourney";
-    private String vehicleModeName = "VehicleMode";
-    private String routeRefName = "RouteRef";
-    private String groupOfLinesName = "GroupOfLinesRef";
-    private String estimatedVehicleJourneyCodeName = "EstimatedVehicleJourneyCode";
+    private final String extraJourneyFieldName = "ExtraJourney";
+    private final String vehicleModeName = "VehicleMode";
+    private final String routeRefName = "RouteRef";
+    private final String groupOfLinesName = "GroupOfLinesRef";
+    private final String estimatedVehicleJourneyCodeName = "EstimatedVehicleJourneyCode";
 
-    private String validVehicleMode = "air";
-    private String invalidVehicleMode = "underground";
+    private final String validVehicleMode = "air";
+    private final String invalidVehicleMode = "underground";
 
-    private String validRouteRef = "NSR:Route:1234";
-    private String invalidRouteRef = "1234";
+    private final String validRouteRef = "NSR:Route:1234";
+    private final String invalidRouteRef = "1234";
 
-    private String validGroupOfLinesRef = "NSR:Network:TEST";
-    private String invalidGroupOfLines = "TEST";
+    private final String validGroupOfLinesRef = "NSR:Network:TEST";
+    private final String invalidGroupOfLines = "TEST";
 
-    private String estimatedVehicleJourneyCode = "NSR.VehicleJourney:1234-1234-1234-EXTRA";
+    private final String estimatedVehicleJourneyCode = "NSR.VehicleJourney:1234-1234-1234-EXTRA";
 
     @BeforeClass
     public static void init() {

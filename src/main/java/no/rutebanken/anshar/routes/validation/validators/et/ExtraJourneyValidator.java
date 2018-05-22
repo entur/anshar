@@ -36,7 +36,7 @@ public class ExtraJourneyValidator extends CustomValidator {
     private static final String path = ESTIMATED_VEHICLE_JOURNEY + "/" + FIELDNAME;
 
 
-    static Set<String> validVehicleModes = Sets.newHashSet(
+    private static final Set<String> validVehicleModes = Sets.newHashSet(
             VehicleModesEnumeration.AIR.value(),
             VehicleModesEnumeration.BUS.value(),
             VehicleModesEnumeration.COACH.value(),

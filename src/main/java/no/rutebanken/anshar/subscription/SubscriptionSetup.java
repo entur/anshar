@@ -30,7 +30,7 @@ import java.util.*;
 
 public class SubscriptionSetup implements Serializable {
 
-    private Logger logger = LoggerFactory.getLogger(SubscriptionSetup.class);
+    private final Logger logger = LoggerFactory.getLogger(SubscriptionSetup.class);
     private long internalId;
     private List<ValueAdapter> mappingAdapters = new ArrayList<>();
     private SiriDataType subscriptionType;
@@ -378,7 +378,7 @@ public class SubscriptionSetup implements Serializable {
         return updateInterval;
     }
 
-    public void setUpdateInterval(Duration updateInterval) {
+    private void setUpdateInterval(Duration updateInterval) {
         this.updateInterval = updateInterval;
     }
 
@@ -437,7 +437,7 @@ public class SubscriptionSetup implements Serializable {
         this.requestorRef = requestorRef;
     }
 
-    public String getName() {
+    private String getName() {
         return name;
     }
 

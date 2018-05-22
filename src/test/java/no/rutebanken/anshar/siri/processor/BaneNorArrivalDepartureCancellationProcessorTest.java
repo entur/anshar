@@ -30,7 +30,7 @@ import static junit.framework.TestCase.assertEquals;
 
 public class BaneNorArrivalDepartureCancellationProcessorTest {
 
-    BaneNorArrivalDepartureCancellationProcessor processor = new BaneNorArrivalDepartureCancellationProcessor();
+    private final BaneNorArrivalDepartureCancellationProcessor processor = new BaneNorArrivalDepartureCancellationProcessor();
 
     @Test
     public void testCancellationOnStart() {
@@ -195,8 +195,8 @@ public class BaneNorArrivalDepartureCancellationProcessorTest {
             boolean isArrivalCancelled = expectedArrivalBoardingCancellationStatus[i][0];
             boolean isDepartureCancelled = expectedArrivalBoardingCancellationStatus[i][1];
 
-            assertEquals("EstimatedCall does not match cancellation (" + i + ")", isArrivalCancelled & isDepartureCancelled, estimatedCall.isCancellation() != null && estimatedCall.isCancellation().booleanValue());
-            assertEquals("EstimatedCall does not match cancellation (" + i + ")", !isArrivalCancelled | !isDepartureCancelled, estimatedCall.isCancellation() == null | (estimatedCall.isCancellation() != null && !estimatedCall.isCancellation().booleanValue()));
+            assertEquals("EstimatedCall does not match cancellation (" + i + ")", isArrivalCancelled & isDepartureCancelled, estimatedCall.isCancellation() != null && estimatedCall.isCancellation());
+            assertEquals("EstimatedCall does not match cancellation (" + i + ")", !isArrivalCancelled | !isDepartureCancelled, estimatedCall.isCancellation() == null | (estimatedCall.isCancellation() != null && !estimatedCall.isCancellation()));
 
             assertEquals("EstimatedCall does not match on Arrival (" + i + ")", isArrivalCancelled, (estimatedCall.getArrivalStatus().equals(CallStatusEnumeration.CANCELLED)));
             assertEquals("EstimatedCall does not match on Departure (" + i + ")", isDepartureCancelled, (estimatedCall.getDepartureStatus().equals(CallStatusEnumeration.CANCELLED)));

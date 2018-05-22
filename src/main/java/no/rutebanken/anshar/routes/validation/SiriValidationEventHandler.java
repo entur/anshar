@@ -41,15 +41,16 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 class SiriValidationEventHandler implements ValidationEventHandler {
 
-    Map<String, Map<String, ValidationEvent>> categorizedEvents = new HashMap<>();
-    Map<String, Integer> equalsEventCounter = new HashMap<>();
-    private long timestamp = System.currentTimeMillis();
+    private final Map<String, Map<String, ValidationEvent>> categorizedEvents = new HashMap<>();
+    private final Map<String, Integer> equalsEventCounter = new HashMap<>();
+    private final long timestamp = System.currentTimeMillis();
 
     public boolean handleEvent(ValidationEvent event) {
-        return handleCategorizedEvent(this.getClass().getSimpleName(), event);
+        handleCategorizedEvent(this.getClass().getSimpleName(), event);
+        return true;
     }
 
-    public boolean handleCategorizedEvent(String categoryName, ValidationEvent event) {
+    public void handleCategorizedEvent(String categoryName, ValidationEvent event) {
 
 
         String message = event.getMessage();
@@ -65,8 +66,6 @@ class SiriValidationEventHandler implements ValidationEventHandler {
         equalsEventCounter.put(message, counter);
 
         categorizedEvents.put(categoryName, category);
-
-        return true;
     }
 
     public JSONObject toJSON() {
@@ -80,7 +79,7 @@ class SiriValidationEventHandler implements ValidationEventHandler {
             JSONArray eventList = new JSONArray();
 
             categorizedEvents.get(this.getClass().getSimpleName())
-                    .values().stream().forEach(e -> {
+                    .values().forEach(e -> {
                 JSONObject event = createJsonValidationEvent(e);
                 counter.addAndGet(getOccurrenceCount(e));
                 eventList.add(event);
@@ -97,7 +96,7 @@ class SiriValidationEventHandler implements ValidationEventHandler {
 
                 JSONArray eventList = new JSONArray();
 
-                eventMap.values().stream().forEach(e -> {
+                eventMap.values().forEach(e -> {
                     JSONObject event = createJsonValidationEvent(e);
                     counter.addAndGet(getOccurrenceCount(e));
                     eventList.add(event);
@@ -118,7 +117,7 @@ class SiriValidationEventHandler implements ValidationEventHandler {
         if (message != null) {
             final Integer count = equalsEventCounter.get(message);
             if (count != null) {
-                return count.intValue();
+                return count;
             }
         }
         return 0;

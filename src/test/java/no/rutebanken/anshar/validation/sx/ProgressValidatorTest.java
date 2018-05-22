@@ -42,8 +42,8 @@ import static junit.framework.TestCase.assertNull;
 
 public class ProgressValidatorTest extends CustomValidatorTest {
 
-    static ProgressValidator validator;
-    static String fieldName = "Progress";
+    private static ProgressValidator validator;
+    private static final String fieldName = "Progress";
 
     @BeforeClass
     public static void init() {

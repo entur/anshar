@@ -154,7 +154,7 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
         if (idSet == allIds) {
             timetableDeliveries.keySet().stream()
                     .filter(key -> datasetId == null || key.startsWith(datasetId + ":"))
-                    .forEach(key -> idSet.add(key));
+                    .forEach(idSet::add);
         }
 
         lastUpdateRequested.set(requestorId, Instant.now(), trackingPeriodMinutes, TimeUnit.MINUTES);
@@ -250,7 +250,7 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
                 Set<String> datasetFilteredIdSet = new HashSet<>();
 
                 if (datasetId != null) {
-                    idSet.stream().filter(key -> key.startsWith(datasetId + ":")).forEach(key -> datasetFilteredIdSet.add(key));
+                    idSet.stream().filter(key -> key.startsWith(datasetId + ":")).forEach(datasetFilteredIdSet::add);
                 } else {
                     datasetFilteredIdSet.addAll(idSet);
                 }
@@ -643,7 +643,7 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
     }
 
     private static String createKey(String datasetId, EstimatedVehicleJourney element) {
-        StringBuffer key = new StringBuffer();
+        StringBuilder key = new StringBuilder();
 
         String datedVehicleJourney = element.getDatedVehicleJourneyRef() != null ? element.getDatedVehicleJourneyRef().getValue() : null;
         if (datedVehicleJourney == null && element.getFramedVehicleJourneyRef() != null) {

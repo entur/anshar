@@ -26,11 +26,11 @@ import static junit.framework.TestCase.*;
 
 public class LocationValidatorTest extends CustomValidatorTest {
 
-    static LocationValidator validator;
+    private static LocationValidator validator;
     private String fieldName = "Location";
-    private String srsAttributeFieldName = "srsName";
-    private String latFieldName = "Latitude";
-    private String lonFieldName = "Longitude";
+    private final String srsAttributeFieldName = "srsName";
+    private final String latFieldName = "Latitude";
+    private final String lonFieldName = "Longitude";
 
     @BeforeClass
     public static void init() {
@@ -89,7 +89,7 @@ public class LocationValidatorTest extends CustomValidatorTest {
         StringBuilder xml = new StringBuilder();
         xml.append("<Location ");
         if (srsName != null) {
-            xml.append(srsAttributeFieldName + "=\"" + srsName + "\"");
+            xml.append(srsAttributeFieldName).append("=\"").append(srsName).append("\"");
         }
         xml.append(">");
 

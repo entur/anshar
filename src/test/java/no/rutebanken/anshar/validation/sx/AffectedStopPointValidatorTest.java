@@ -72,8 +72,8 @@ import static junit.framework.TestCase.assertNull;
 
 public class AffectedStopPointValidatorTest extends CustomValidatorTest {
 
-    static AffectedStopPointValidator validator;
-    private String fieldName = "StopPointRef";
+    private static AffectedStopPointValidator validator;
+    private final String fieldName = "StopPointRef";
 
     @BeforeClass
     public static void init() {

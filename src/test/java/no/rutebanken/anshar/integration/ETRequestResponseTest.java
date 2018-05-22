@@ -48,11 +48,12 @@ import static org.hamcrest.Matchers.equalTo;
 
 public class ETRequestResponseTest extends BaseHttpTest {
 
-    public static final String lineRef = "TEST:Line:1";
-    public static final String datedVehicleRef = "TEST:ServiceJourney:1";
-    public static final int callCount = 5;
+    private static final String lineRef = "TEST:Line:1";
+    private static final String datedVehicleRef = "TEST:ServiceJourney:1";
+    private static final int callCount = 5;
 
     @Autowired
+    private
     EstimatedTimetables repo;
 
     @Before

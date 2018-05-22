@@ -47,7 +47,10 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
-import javax.xml.xpath.*;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 import java.io.*;
 import java.util.*;
 import java.util.zip.GZIPInputStream;
@@ -97,7 +100,7 @@ public class SiriXmlValidator extends ApplicationContextHolder{
     @Value("${anshar.validation.total.max.count:10}")
     private int maxNumberOfValidations;
 
-    private Map<SiriDataType, Set<CustomValidator>> validationRules = new HashMap<>();
+    private final Map<SiriDataType, Set<CustomValidator>> validationRules = new HashMap<>();
 
     public SiriXmlValidator() {
         if (jaxbContext == null) {
@@ -108,9 +111,7 @@ public class SiriXmlValidator extends ApplicationContextHolder{
 
                 schema = sf.newSchema(getClass().getClassLoader().getResource("siri-2.0/xsd/siri.xsd"));
 
-            } catch (JAXBException e) {
-                e.printStackTrace();
-            } catch (SAXException e) {
+            } catch (JAXBException | SAXException e) {
                 e.printStackTrace();
             }
         }
@@ -209,10 +210,6 @@ public class SiriXmlValidator extends ApplicationContextHolder{
                         addResult(subscriptionSetup, originalXml, combinedEvents);
 
                         logger.info("Validation took: " + (System.currentTimeMillis()-t1));
-                    } catch (JAXBException e) {
-                        e.printStackTrace();
-                    } catch (IOException e) {
-                        e.printStackTrace();
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -221,17 +218,13 @@ public class SiriXmlValidator extends ApplicationContextHolder{
             }
 
             return siri;
-        } catch (JAXBException e) {
-            e.printStackTrace();
-        } catch (XMLStreamException e) {
-            e.printStackTrace();
         } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
     }
 
-    private void validateAttributes(String siri, SiriDataType type, SiriValidationEventHandler handler) throws XPathExpressionException, XPathFactoryConfigurationException, ParserConfigurationException, IOException, SAXException {
+    private void validateAttributes(String siri, SiriDataType type, SiriValidationEventHandler handler) throws XPathExpressionException, ParserConfigurationException, IOException, SAXException {
         if (validationRules.isEmpty()) {
             populateValidationRules();
         }
@@ -309,13 +302,10 @@ public class SiriXmlValidator extends ApplicationContextHolder{
         if (compressed != null) {
             ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(compressed);
             GZIPInputStream gzipIn = new GZIPInputStream(byteArrayInputStream);
-            ObjectInputStream objectIn = new ObjectInputStream(gzipIn);
-            try {
+            try (ObjectInputStream objectIn = new ObjectInputStream(gzipIn)) {
                 return (String) objectIn.readObject();
             } catch (ClassNotFoundException e) {
                 e.printStackTrace();
-            } finally {
-                objectIn.close();
             }
         }
         return null;
@@ -336,9 +326,7 @@ public class SiriXmlValidator extends ApplicationContextHolder{
 
             return handler.toJSON();
 
-        } catch (XMLStreamException e) {
-            e.printStackTrace();
-        } catch (JAXBException e) {
+        } catch (XMLStreamException | JAXBException e) {
             e.printStackTrace();
         }
         return null;

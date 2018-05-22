@@ -85,8 +85,8 @@ import static junit.framework.TestCase.assertNull;
 
 public class ArrivalBoardingActivityValidatorTest extends CustomValidatorTest {
 
-    static ArrivalBoardingActivityValidator validator;
-    private String fieldName = "ArrivalBoardingActivity";
+    private static ArrivalBoardingActivityValidator validator;
+    private final String fieldName = "ArrivalBoardingActivity";
 
     @BeforeClass
     public static void init() {

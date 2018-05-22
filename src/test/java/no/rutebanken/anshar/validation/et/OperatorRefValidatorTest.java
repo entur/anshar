@@ -55,8 +55,8 @@ import static junit.framework.TestCase.assertNull;
 
 public class OperatorRefValidatorTest extends CustomValidatorTest {
 
-    static OperatorRefValidator validator;
-    private String fieldName = "OperatorRef";
+    private static OperatorRefValidator validator;
+    private final String fieldName = "OperatorRef";
 
     @BeforeClass
     public static void init() {

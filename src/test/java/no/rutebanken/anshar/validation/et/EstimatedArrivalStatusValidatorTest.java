@@ -70,8 +70,8 @@ import static junit.framework.TestCase.assertNull;
 
 public class EstimatedArrivalStatusValidatorTest extends CustomValidatorTest {
 
-    static EstimatedArrivalStatusValidator validator;
-    private String fieldName = "ArrivalStatus";
+    private static EstimatedArrivalStatusValidator validator;
+    private final String fieldName = "ArrivalStatus";
 
     @BeforeClass
     public static void init() {

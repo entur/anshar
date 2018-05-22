@@ -25,7 +25,7 @@
         <tbody>
         <#list body.unmapped?sort_by("type") as item>
 
-            <tr data-toggle="collapse" data-target="#accordion${item?counter}" style="cursor: pointer" class="clickable ${item.healthy?exists?then(item.healthy?then("success","danger"), "warning")}">
+            <tr data-toggle="collapse" data-target="#accordion${item?counter}" style="cursor: pointer" class="clickable ${item.healthy???then(item.healthy?then("success","danger"), "warning")}">
                 <td>${item.type}</td>
                 <td align="right">${item.count!0}</td>
             </tr>

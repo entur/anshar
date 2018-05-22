@@ -10,9 +10,9 @@
 <body>
 <div class="jumbotron text-center">
     <h2>Validation results</h2>
-    <strong>${(body?exists && body.subscription?exists)?then(body.subscription.name, "Subscription not found")}</strong>
+    <strong>${(body?? && body.subscription??)?then(body.subscription.name, "Subscription not found")}</strong>
 </div>
-<#if body?exists >
+<#if body?? >
 <div class="container">
 
     <div class="row">

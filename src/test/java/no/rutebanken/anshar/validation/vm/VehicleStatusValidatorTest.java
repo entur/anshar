@@ -27,8 +27,8 @@ import static junit.framework.TestCase.*;
 
 public class VehicleStatusValidatorTest extends CustomValidatorTest {
 
-    static VehicleStatusValidator validator;
-    private String fieldName = "VehicleStatus";
+    private static VehicleStatusValidator validator;
+    private final String fieldName = "VehicleStatus";
 
     @BeforeClass
     public static void init() {

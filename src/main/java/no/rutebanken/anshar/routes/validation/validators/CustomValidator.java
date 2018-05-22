@@ -108,7 +108,7 @@ public abstract class CustomValidator {
         return getNodeValue(getSiblingNodeByName(node, name));
     }
 
-    protected Node getSiblingNodeByName(Node node, String name) {
+    private Node getSiblingNodeByName(Node node, String name) {
         final Node parentNode = node.getParentNode();
         if (parentNode != null) {
             final NodeList childNodes = parentNode.getChildNodes();

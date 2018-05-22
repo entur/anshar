@@ -89,9 +89,7 @@ public class ProductionTimetables implements SiriRepository<ProductionTimetableD
                 Set<String> datasetFilteredIdSet = new HashSet<>();
 
                 if (datasetId != null) {
-                    idSet.stream().filter(key -> key.startsWith(datasetId + ":")).forEach(key -> {
-                        datasetFilteredIdSet.add(key);
-                    });
+                    idSet.stream().filter(key -> key.startsWith(datasetId + ":")).forEach(datasetFilteredIdSet::add);
                 } else {
                     datasetFilteredIdSet.addAll(idSet);
                 }
@@ -178,7 +176,7 @@ public class ProductionTimetables implements SiriRepository<ProductionTimetableD
         return timetableDeliveries.get(createKey(datasetId, timetableDelivery));
     }
     private String createKey(String datasetId, ProductionTimetableDeliveryStructure element) {
-        StringBuffer key = new StringBuffer();
+        StringBuilder key = new StringBuilder();
 
         key.append(datasetId).append(":")
                 .append(element.getVersion());

@@ -54,8 +54,8 @@ import static junit.framework.TestCase.assertNull;
 
 public class OccupancyValidatorTest extends CustomValidatorTest {
 
-    static OccupancyValidator validator;
-    private String fieldName = "Occupancy";
+    private static OccupancyValidator validator;
+    private static final String fieldName = "Occupancy";
 
     @BeforeClass
     public static void init() {

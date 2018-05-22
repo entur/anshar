@@ -30,8 +30,8 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.PT_SIT
 @Component
 public class DetailValidator extends CustomValidator {
 
-    private static String FIELDNAME = "Detail";
-    private static String path = PT_SITUATION_ELEMENT;
+    private static final String FIELDNAME = "Detail";
+    private static final String path = PT_SITUATION_ELEMENT;
 
     @Override
     public String getXpath() {

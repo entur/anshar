@@ -28,13 +28,13 @@ import java.util.Set;
 public class OutboundSubscriptionSetup implements Serializable {
 
     private ZonedDateTime requestTimestamp;
-    private SiriDataType subscriptionType;
-    private String address;
+    private final SiriDataType subscriptionType;
+    private final String address;
     private long heartbeatInterval;
     private int timeToLive;
     private Map<Class, Set<String>> filterMap;
-    private List<ValueAdapter> valueAdapters;
-    private String subscriptionId;
+    private final List<ValueAdapter> valueAdapters;
+    private final String subscriptionId;
     private String requestorRef;
     private ZonedDateTime initialTerminationTime;
     private String datasetId;
@@ -56,11 +56,12 @@ public class OutboundSubscriptionSetup implements Serializable {
         this.datasetId = datasetId;
     }
 
-    OutboundSubscriptionSetup(SiriDataType subscriptionType, String address, int timeToLive, List<ValueAdapter> outboundAdapters) {
+    OutboundSubscriptionSetup(SiriDataType subscriptionType, String address, int timeToLive, List<ValueAdapter> outboundAdapters, String subscriptionId) {
         this.subscriptionType = subscriptionType;
         this.address = address;
         this.timeToLive = timeToLive;
         this.valueAdapters = outboundAdapters;
+        this.subscriptionId = subscriptionId;
     }
 
     public String createRouteId() {

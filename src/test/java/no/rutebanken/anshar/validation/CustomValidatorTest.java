@@ -32,7 +32,7 @@ public class CustomValidatorTest {
     }
 
     protected  String mergeXml(String... elements) {
-        StringBuffer b = new StringBuffer("<PLACEHOLDER>");
+        StringBuilder b = new StringBuilder("<PLACEHOLDER>");
         for (String element : elements) {
             b.append(element);
         }

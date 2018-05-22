@@ -26,8 +26,8 @@ import static junit.framework.TestCase.assertNull;
 
 public class FramedVehicleJourneyRefValidatorTest extends CustomValidatorTest {
 
-    static FramedVehicleJourneyRefValidator validator;
-    private String fieldName = "FramedVehicleJourneyRef";
+    private static FramedVehicleJourneyRefValidator validator;
+    private final String fieldName = "FramedVehicleJourneyRef";
 
     @BeforeClass
     public static void init() {

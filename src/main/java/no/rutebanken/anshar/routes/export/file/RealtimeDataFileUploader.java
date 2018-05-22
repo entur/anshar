@@ -48,9 +48,9 @@ public class RealtimeDataFileUploader extends BaseRouteBuilder {
 
     @Autowired
     private ExportHelper exportHelper;
-    final static String TMP_FOLDER = "AnsharTmpFolder";
+    private final static String TMP_FOLDER = "AnsharTmpFolder";
     final static String ZIP_FILE_PATH = "AnsharZipFilePATH";
-    final static String ZIP_FILE = "AnsharZipFile";
+    private final static String ZIP_FILE = "AnsharZipFile";
 
     protected RealtimeDataFileUploader(@Autowired AnsharConfiguration config, @Autowired SubscriptionManager subscriptionManager) {
         super(config, subscriptionManager);
@@ -126,7 +126,7 @@ public class RealtimeDataFileUploader extends BaseRouteBuilder {
         from("direct:anshar.export.delete.zip")
                 .process(p -> {
                     File folder = new File((String)p.getIn().getHeader(TMP_FOLDER));
-                    Arrays.stream(folder.listFiles(pathname -> pathname.getName().endsWith(".zip"))).forEach(file -> file.delete());
+                    Arrays.stream(folder.listFiles(pathname -> pathname.getName().endsWith(".zip"))).forEach(File::delete);
                 })
                 .routeId("anshar.export.delete.zip");
     }

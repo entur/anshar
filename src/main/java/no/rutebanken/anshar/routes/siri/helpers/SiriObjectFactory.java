@@ -54,33 +54,33 @@ public class SiriObjectFactory {
     private static final KryoPool kryoPool;
 
     static {
-    	KryoFactory factory = new KryoFactory() {
-    		  public Kryo create () {
-    		    Kryo kryo = new Kryo();
-    		    kryo.setInstantiatorStrategy(new Kryo.DefaultInstantiatorStrategy(new StdInstantiatorStrategy()));
-    		    kryo.register(ElementNSImpl.class, new Serializer() {
+    	KryoFactory factory = () -> {
+                      Kryo kryo = new Kryo();
+                      kryo.setInstantiatorStrategy(new Kryo.DefaultInstantiatorStrategy(new StdInstantiatorStrategy()));
+                      kryo.register(ElementNSImpl.class, new Serializer() {
 
 
-                    @Override
-                    public void write(Kryo kryo, Output output, Object object) {
-                        throw new NotImplementedException("write-method not implemented");
-                    }
+                @Override
+                public void write(Kryo kryo, Output output, Object object) {
+                    throw new NotImplementedException("write-method not implemented");
+                }
 
-                    @Override
-                    public Object read(Kryo kryo, Input input, Class type) {
-                        throw new NotImplementedException("read-method not implemented");
-                    }
+                @Override
+                public Object read(Kryo kryo, Input input, Class type) {
+                    throw new NotImplementedException("read-method not implemented");
+                }
 
-                    @Override
-                    public Object copy(Kryo kryo, Object original) {
+                @Override
+                public Object copy(Kryo kryo, Object original) {
 
-                        return ((ElementNSImpl) original).cloneNode(true);
-                    }
-                });
-    		    // configure kryo instance, customize settings
-    		    return kryo;
-    		  }
-    		};
+                    return ((ElementNSImpl) original).cloneNode(true);
+                }
+            });
+
+          // configure kryo instance, customize settings
+          return kryo;
+        };
+
     	kryoPool = new KryoPool.Builder(factory).softReferences().build();
 
     }

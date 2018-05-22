@@ -19,7 +19,7 @@ public class Constants {
     private static final String SERVICE_DELIVERY = "Siri/ServiceDelivery/";
 
     public static final String PT_SITUATION_ELEMENT = SERVICE_DELIVERY + "SituationExchangeDelivery/Situations/PtSituationElement";
-    public static final String AFFECTS = PT_SITUATION_ELEMENT + "/Affects";
+    private static final String AFFECTS = PT_SITUATION_ELEMENT + "/Affects";
 
     public static final String AFFECTED_NETWORK = AFFECTS + "/Networks/AffectedNetwork";
     public static final String AFFECTED_LINE = AFFECTED_NETWORK + "/AffectedLine";
@@ -37,7 +37,7 @@ public class Constants {
     public static final String RECORDED_CALL = ESTIMATED_VEHICLE_JOURNEY + "/RecordedCalls/RecordedCall";
 
 
-    public static final String VEHICLE_ACTIVITY = SERVICE_DELIVERY + "/VehicleMonitoringDelivery/VehicleActivity";
+    private static final String VEHICLE_ACTIVITY = SERVICE_DELIVERY + "/VehicleMonitoringDelivery/VehicleActivity";
     public static final String MONITORED_VEHICLE_JOURNEY =  VEHICLE_ACTIVITY + "/MonitoredVehicleJourney";
     public static final String MONITORED_CALL_STRUCTURE =  MONITORED_VEHICLE_JOURNEY + "/MonitoredCall";
 }

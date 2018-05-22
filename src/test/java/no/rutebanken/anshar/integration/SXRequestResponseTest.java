@@ -51,10 +51,11 @@ import static org.hamcrest.Matchers.equalTo;
 public class SXRequestResponseTest extends BaseHttpTest {
 
     @Autowired
+    private
     Situations repo;
 
-    private String participantRef = "SX";
-    private String situationNumber = "TTT:SituationNumber:1234";
+    private final String participantRef = "SX";
+    private final String situationNumber = "TTT:SituationNumber:1234";
 
     @Before
     public void addData() {

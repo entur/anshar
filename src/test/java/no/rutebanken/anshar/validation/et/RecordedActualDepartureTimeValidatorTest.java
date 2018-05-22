@@ -117,9 +117,9 @@ import static junit.framework.TestCase.assertNull;
 
 public class RecordedActualDepartureTimeValidatorTest extends CustomValidatorTest {
 
-    static RecordedActualDepartureTimeValidator validator;
-    private String fieldName = "ActualDepartureTime";
-    private String comparisonField = "ActualArrivalTime";
+    private static RecordedActualDepartureTimeValidator validator;
+    private final String fieldName = "ActualDepartureTime";
+    private final String comparisonField = "ActualArrivalTime";
 
     @BeforeClass
     public static void init() {

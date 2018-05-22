@@ -56,17 +56,17 @@
                     </thead>
                     <tbody>
                     <#list body.subscriptions?sort_by("vendor") as item>
-                        <tr data-toggle="collapse" data-target="#accordion${item?counter}" style="cursor: pointer" class="clickable ${item.healthy?exists?then(item.healthy?then("success","danger"), "warning")}">
+                        <tr data-toggle="collapse" data-target="#accordion${item?counter}" style="cursor: pointer" class="clickable ${item.healthy???then(item.healthy?then("success","danger"), "warning")}">
                             <th>${item?counter}</th>
                             <td>${item.status}</td>
-                            <td>${item.healthy?exists?then(item.healthy?c,"")}</td>
+                            <td>${item.healthy???then(item.healthy?c,"")}</td>
                             <td>${item.activated!""}</td>
                             <td>${item.name}</td>
                             <td>${item.lastDataReceived!""} ${item.flagAsNotReceivingData?then("<span class=\"glyphicon glyphicon-alert text-warning\" title=\"Subscription is alive, but not receiving data\"></span>","")}</td>
                             <td align="right">${item.hitcount!0}</td>
                             <td align="right">${item.objectcount!0}</td>
                         </tr>
-                        <tr id="accordion${item?counter}" class="collapse ${item.healthy?exists?then(item.healthy?then("success","danger"), "warning")}">
+                        <tr id="accordion${item?counter}" class="collapse ${item.healthy???then(item.healthy?then("success","danger"), "warning")}">
                         <td colspan="8">
                             <table class="table table-striped">
                                 <tr><th>Dataset ID</th><td>${item.datasetId}</td></tr>

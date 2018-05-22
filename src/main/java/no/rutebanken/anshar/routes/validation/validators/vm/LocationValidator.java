@@ -35,7 +35,7 @@ public class LocationValidator extends CustomValidator {
     private static final String COORDINATES_FIELDNAME = "Coordinates";
     private static final String path =  MONITORED_VEHICLE_JOURNEY + "/" + FIELDNAME;
 
-    Set<String> expectedValues = Sets.newHashSet("WGS84", "EPSG:4326");
+    private static final Set<String> expectedValues = Sets.newHashSet("WGS84", "EPSG:4326");
 
     @Override
     public String getXpath() {

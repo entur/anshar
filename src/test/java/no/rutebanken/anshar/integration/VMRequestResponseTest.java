@@ -34,9 +34,10 @@ import static org.hamcrest.Matchers.equalTo;
 public class VMRequestResponseTest extends BaseHttpTest {
 
     @Autowired
+    private
     VehicleActivities repo;
 
-    private String vehicleReference = "1234";
+    private final String vehicleReference = "1234";
 
     @Before
     public void addData() {

@@ -42,8 +42,8 @@ import static junit.framework.TestCase.assertNull;
 
 public class ReportTypeValidatorTest extends CustomValidatorTest {
 
-    static ReportTypeValidator validator;
-    private String fieldName = "ReportType";
+    private static ReportTypeValidator validator;
+    private final String fieldName = "ReportType";
 
     @BeforeClass
     public static void init() {

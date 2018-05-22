@@ -40,6 +40,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -196,8 +197,8 @@ public class SubscriptionManager {
 
         filteredSubscriptions.addAll(subscriptions.values().stream()
                 .filter(subscription -> subscription.getDatasetId().equals(codespace))
-                .map(subscription -> getJsonObject(subscription))
-                .filter(json -> json != null)
+                .map(this::getJsonObject)
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList()));
 
         jsonSubscriptions.put("subscriptions", filteredSubscriptions);
@@ -305,7 +306,7 @@ public class SubscriptionManager {
         JSONArray stats = new JSONArray();
         stats.addAll(subscriptions.keySet().stream()
                 .map(key -> getJsonObject(subscriptions.get(key)))
-                .filter(json -> json != null)
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList()));
 
         result.put("subscriptions", stats);
@@ -400,14 +401,14 @@ public class SubscriptionManager {
     public Set<String> getAllUnhealthySubscriptions(int allowedInactivitySeconds) {
         Set<String> subscriptionIds = subscriptions.keySet()
                 .stream()
-                .filter(subscriptionId -> isActiveSubscription(subscriptionId))
+                .filter(this::isActiveSubscription)
                 .filter(subscriptionId -> !isSubscriptionReceivingData(subscriptionId, allowedInactivitySeconds))
                 .collect(Collectors.toSet());
-        if (subscriptionIds != null & !subscriptionIds.isEmpty()) {
+        if (subscriptionIds != null && !subscriptionIds.isEmpty()) {
             return subscriptions.getAll(subscriptionIds)
                     .values()
                     .stream()
-                    .map(subscriptionSetup -> subscriptionSetup.getVendor())
+                    .map(SubscriptionSetup::getVendor)
                     .collect(Collectors.toSet());
         }
         return new HashSet<>();

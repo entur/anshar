@@ -35,6 +35,7 @@ import static org.hamcrest.Matchers.equalTo;
 public class SiriSubscriptionTest extends BaseHttpTest {
 
     @Autowired
+    private
     ServerSubscriptionManager subscriptionManager;
 
     @Test
