@@ -15,8 +15,7 @@ anshar:
       soapenvNamespace:
       incrementalUpdates:
       urlMap:
-        SUBSCRIBE: https4://api.entur.org/anshar/1.0/anshar/services
-        DELETE_SUBSCRIPTION: https4://api.entur.org/anshar/1.0/anshar/services
+        GET_VEHICLE_MONITORING: https4://api.entur.org/anshar/1.0/anshar/services
       version: 2.0
       contentType: text/xml;charset=UTF-8
       subscriptionId: anshar-example-${random.uuid}
