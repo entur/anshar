@@ -22,7 +22,7 @@ import java.time.ZonedDateTime;
 
 public abstract class TimeValidator extends CustomValidator {
 
-    protected enum Mode {BEFORE, AFTER};
+    protected enum Mode {BEFORE, AFTER}
 
     /**
      * Checks validity of field named @fieldName from @node
