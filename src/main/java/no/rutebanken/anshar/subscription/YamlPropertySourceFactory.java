@@ -17,6 +17,8 @@ package no.rutebanken.anshar.subscription;
 
 import org.springframework.boot.env.PropertySourcesLoader;
 import org.springframework.core.env.PropertySource;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.EncodedResource;
 import org.springframework.core.io.support.PropertySourceFactory;
@@ -28,8 +30,24 @@ class YamlPropertySourceFactory implements PropertySourceFactory {
 
     @Override
     public PropertySource<?> createPropertySource(String name, EncodedResource resource) throws IOException {
-        return name != null ? new PropertySourcesLoader().load(resource.getResource(), name, null) : new PropertySourcesLoader().load(
-                resource.getResource(), getNameForResource(resource.getResource()), null);
+        PropertySource<?> propertySource;
+        if (name != null) {
+            propertySource = new PropertySourcesLoader().load(resource.getResource(), name, null);
+        } else {
+            propertySource = new PropertySourcesLoader().load(
+                    resource.getResource(), getNameForResource(resource.getResource()), null);
+        }
+
+        // Properties not found through classpath - resolve properties from absolute path
+        if (propertySource == null) {
+            String path = ((ClassPathResource) resource.getResource()).getPath();
+            if (!path.startsWith("/")) {
+                path = "/"+path;
+            }
+            propertySource = new PropertySourcesLoader().load(new FileSystemResource(path));
+        }
+
+        return propertySource;
     }
 
     private static String getNameForResource(Resource resource) {
