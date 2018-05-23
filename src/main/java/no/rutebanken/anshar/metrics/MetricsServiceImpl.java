@@ -76,9 +76,9 @@ public class MetricsServiceImpl implements MetricsService {
 
     @Override
     public void registerIncomingData(SiriDataType subscriptionType, String agencyId, int count) {
-        String counterName = "data.from." + agencyId + ".type." + subscriptionType;
+        String counterName = "data.type." + subscriptionType;
 //        synchronized (LOCK) {
-             metrics.meter(counterName).mark(count);
+             metrics.histogram(counterName).update(count);
 
 //            //Immediately report only the updated Meter
 //            reporter.report(

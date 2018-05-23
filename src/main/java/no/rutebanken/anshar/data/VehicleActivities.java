@@ -270,7 +270,7 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
 
         logger.info("Updated {} (of {}) :: Ignored elements - Missing location:{}, Missing values: {}, Skipped: {}", changes.size(), vmList.size(), invalidLocationCounter.getValue(), notMeaningfulCounter.getValue(), outdatedCounter.getValue());
 
-        metricsService.registerIncomingData(SiriDataType.VEHICLE_MONITORING, datasetId, changes.size());
+        metricsService.registerIncomingData(SiriDataType.VEHICLE_MONITORING, datasetId, vehicleActivities.size());
 
         changesMap.keySet().forEach(requestor -> {
             if (lastUpdateRequested.get(requestor) != null) {
