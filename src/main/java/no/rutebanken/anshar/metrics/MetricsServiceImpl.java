@@ -15,6 +15,7 @@
 
 package no.rutebanken.anshar.metrics;
 
+import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.graphite.Graphite;
@@ -78,7 +79,15 @@ public class MetricsServiceImpl implements MetricsService {
     public void registerIncomingData(SiriDataType subscriptionType, String agencyId, int count) {
         String counterName = "data.type." + subscriptionType;
 //        synchronized (LOCK) {
-             metrics.histogram(counterName).update(count);
+//             metrics.histogram(counterName).update(count);
+
+             metrics.gauge("data.type.gauge." + subscriptionType, () -> new Gauge() {
+                 @Override
+                 public Integer getValue() {
+                     return count;
+                 }
+             }
+             );
 
 //            //Immediately report only the updated Meter
 //            reporter.report(
