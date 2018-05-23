@@ -511,7 +511,7 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
         });
 
         logger.info("Updated {} (of {})", changes.size(), etList.size());
-        metricsService.registerIncomingData(SiriDataType.ESTIMATED_TIMETABLE, datasetId, etList.size());
+        metricsService.registerIncomingData(SiriDataType.ESTIMATED_TIMETABLE, datasetId, timetableDeliveries);
 
         changesMap.keySet().forEach(requestor -> {
             if (lastUpdateRequested.get(requestor) != null) {

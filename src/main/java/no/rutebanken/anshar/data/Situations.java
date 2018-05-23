@@ -243,7 +243,7 @@ public class Situations implements SiriRepository<PtSituationElement> {
         });
         logger.info("Updated {} (of {}) :: Already expired: {},", changes.size(), sxList.size(), alreadyExpiredCounter.getValue());
 
-        metricsService.registerIncomingData(SiriDataType.SITUATION_EXCHANGE, datasetId, situations.size());
+        metricsService.registerIncomingData(SiriDataType.SITUATION_EXCHANGE, datasetId, situations);
 
         changesMap.keySet().forEach(requestor -> {
             if (lastUpdateRequested.get(requestor) != null) {

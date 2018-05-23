@@ -17,9 +17,11 @@ package no.rutebanken.anshar.metrics;
 
 import no.rutebanken.anshar.subscription.SiriDataType;
 
+import java.util.Map;
+
 public class DoNothingMetricsService implements MetricsService {
     @Override
-    public void registerIncomingData(SiriDataType subscriptionType, String agencyId, int count) {
+    public void registerIncomingData(SiriDataType subscriptionType, String agencyId, Map data) {
 
     }
 }

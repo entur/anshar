@@ -29,6 +29,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public class MetricsServiceImpl implements MetricsService {
@@ -76,27 +77,16 @@ public class MetricsServiceImpl implements MetricsService {
 
 
     @Override
-    public void registerIncomingData(SiriDataType subscriptionType, String agencyId, int count) {
+    public void registerIncomingData(SiriDataType subscriptionType, String agencyId, Map data) {
         String counterName = "data.type." + subscriptionType;
-//        synchronized (LOCK) {
-//             metrics.histogram(counterName).update(count);
-
-             metrics.gauge("data.type.gauge." + subscriptionType, () -> new Gauge() {
-                 @Override
-                 public Integer getValue() {
-                     return count;
-                 }
-             }
-             );
-
-//            //Immediately report only the updated Meter
-//            reporter.report(
-//                    metrics.getGauges(),
-//                    metrics.getCounters(),
-//                    metrics.getHistograms(),
-//                    metrics.getMeters((name, metric) -> counterName.equals(name)),
-//                    metrics.getTimers());
-//        }
+        if (!metrics.getGauges().containsKey(counterName)) {
+            metrics.gauge(counterName, () -> new Gauge() {
+                @Override
+                public Integer getValue() {
+                    return data.size();
+                }
+            });
+        }
     }
 
 }

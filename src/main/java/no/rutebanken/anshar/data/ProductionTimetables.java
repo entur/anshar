@@ -150,7 +150,7 @@ public class ProductionTimetables implements SiriRepository<ProductionTimetableD
             }
         });
 
-        metricsService.registerIncomingData(SiriDataType.PRODUCTION_TIMETABLE, datasetId, timetableDeliveries.size());
+        metricsService.registerIncomingData(SiriDataType.PRODUCTION_TIMETABLE, datasetId, timetableDeliveries);
 
         changesMap.keySet().forEach(requestor -> {
             if (lastUpdateRequested.get(requestor) != null) {
