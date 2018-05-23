@@ -15,16 +15,19 @@
 
 package no.rutebanken.anshar.routes.siri.processor;
 
+import com.google.common.collect.Sets;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import uk.org.siri.siri20.PtSituationElement;
 import uk.org.siri.siri20.Siri;
 import uk.org.siri.siri20.SituationExchangeDeliveryStructure;
 
 import java.util.List;
+import java.util.Set;
 
 public class ReportTypeProcessor extends ValueAdapter implements PostProcessor {
 
     private static final String DEFAULT_REPORT_TYPE = "incident";
+    private static final Set<String> allowedReportTypes = Sets.newHashSet(DEFAULT_REPORT_TYPE, "general");
 
     @Override
     protected String apply(String text) {
@@ -41,7 +44,9 @@ public class ReportTypeProcessor extends ValueAdapter implements PostProcessor {
                     SituationExchangeDeliveryStructure.Situations situations = situationExchangeDelivery.getSituations();
                     if (situations != null && situations.getPtSituationElements() != null) {
                         for (PtSituationElement ptSituationElement : situations.getPtSituationElements()) {
-                            if (ptSituationElement.getReportType() == null || ptSituationElement.getReportType().isEmpty()) {
+                            String reportType = ptSituationElement.getReportType();
+                            if (reportType == null || reportType.isEmpty() ||
+                                    !allowedReportTypes.contains(reportType)) {
                                 ptSituationElement.setReportType(DEFAULT_REPORT_TYPE);
                             }
                         }
