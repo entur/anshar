@@ -41,7 +41,7 @@ public class NSBGtfsUpdaterService {
     private static final Logger logger = LoggerFactory.getLogger(NSBGtfsUpdaterService.class);
 
     private static final int UPDATE_FREQUENCY = 6;
-    private static final TimeUnit REQUENCY_TIME_UNIT = TimeUnit.HOURS;
+    private static final TimeUnit FREQUENCY_TIME_UNIT = TimeUnit.HOURS;
 
     // Kept non-configurable since this whole adapter is a temporary hack - ROR-326/ROR-329
     private static final String GTFS_URL = "https://storage.googleapis.com/marduk-production/outbound/gtfs/rb_nsb-aggregated-gtfs.zip";
@@ -148,7 +148,7 @@ public class NSBGtfsUpdaterService {
                 },
                 0,
                 UPDATE_FREQUENCY,
-                REQUENCY_TIME_UNIT);
+                FREQUENCY_TIME_UNIT);
     }
 
     private static void readDao(GtfsReader reader) throws IOException {
