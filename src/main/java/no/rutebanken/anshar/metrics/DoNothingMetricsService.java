@@ -21,7 +21,7 @@ import java.util.Map;
 
 public class DoNothingMetricsService implements MetricsService {
     @Override
-    public void registerIncomingData(SiriDataType subscriptionType, String agencyId, Map data) {
-
+    public void registerIncomingData(SiriDataType subscriptionType, Map<String, Integer> data) {
+        //Ignore
     }
 }

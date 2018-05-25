@@ -30,6 +30,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 import uk.org.siri.siri20.*;
 
+import javax.annotation.PostConstruct;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
@@ -65,6 +66,10 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
     private IMap<String, Instant> lastUpdateRequested;
 
     @Autowired
+    @Qualifier("getEtCodespaceCounter")
+    private IMap<String, Integer> codespaceCounter;
+
+    @Autowired
     private MetricsService metricsService;
 
     @Autowired
@@ -76,6 +81,12 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
     public Collection<EstimatedVehicleJourney> getAll() {
         return timetableDeliveries.values();
     }
+
+    @PostConstruct
+    private void initMapListener() {
+        timetableDeliveries.addEntryListener(new CodespaceCounterMapListener(codespaceCounter), false);
+    }
+
 
     public int getSize() {
         return timetableDeliveries.size();
@@ -511,7 +522,7 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
         });
 
         logger.info("Updated {} (of {})", changes.size(), etList.size());
-        metricsService.registerIncomingData(SiriDataType.ESTIMATED_TIMETABLE, datasetId, timetableDeliveries);
+        metricsService.registerIncomingData(SiriDataType.ESTIMATED_TIMETABLE, codespaceCounter);
 
         changesMap.keySet().forEach(requestor -> {
             if (lastUpdateRequested.get(requestor) != null) {

@@ -30,6 +30,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 import uk.org.siri.siri20.*;
 
+import javax.annotation.PostConstruct;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
@@ -62,6 +63,10 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
     private SiriObjectFactory siriObjectFactory;
 
     @Autowired
+    @Qualifier("getVmCodespaceCounter")
+    private IMap<String, Integer> codespaceCounter;
+
+    @Autowired
     private MetricsService metricsService;
 
     @Autowired
@@ -72,6 +77,11 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
      */
     public Collection<VehicleActivityStructure> getAll() {
         return vehicleActivities.values();
+    }
+
+    @PostConstruct
+    private void initMapListener() {
+        vehicleActivities.addEntryListener(new CodespaceCounterMapListener(codespaceCounter), false);
     }
 
     public int getSize() {
@@ -270,7 +280,7 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
 
         logger.info("Updated {} (of {}) :: Ignored elements - Missing location:{}, Missing values: {}, Skipped: {}", changes.size(), vmList.size(), invalidLocationCounter.getValue(), notMeaningfulCounter.getValue(), outdatedCounter.getValue());
 
-        metricsService.registerIncomingData(SiriDataType.VEHICLE_MONITORING, datasetId, vehicleActivities);
+        metricsService.registerIncomingData(SiriDataType.VEHICLE_MONITORING, codespaceCounter);
 
         changesMap.keySet().forEach(requestor -> {
             if (lastUpdateRequested.get(requestor) != null) {

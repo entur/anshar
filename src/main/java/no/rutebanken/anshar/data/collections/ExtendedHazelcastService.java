@@ -281,4 +281,21 @@ public class ExtendedHazelcastService extends HazelCastService {
     public IMap<String,BigInteger> getObjectCounterMap() {
         return hazelcast.getMap("anshar.activity.objectcount");
     }
+
+    @Bean
+    public IMap<String, Integer> getEtCodespaceCounter() {
+        return hazelcast.getMap("anshar.codespace.et.counter");
+    }
+    @Bean
+    public IMap<String, Integer> getVmCodespaceCounter() {
+        return hazelcast.getMap("anshar.codespace.vm.counter");
+    }
+    @Bean
+    public IMap<String, Integer> getSxCodespaceCounter() {
+        return hazelcast.getMap("anshar.codespace.sx.counter");
+    }
+    @Bean
+    public IMap<String, Integer> getPtCodespaceCounter() {
+        return hazelcast.getMap("anshar.codespace.pt.counter");
+    }
 }

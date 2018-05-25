@@ -32,6 +32,7 @@ import uk.org.siri.siri20.MessageRefStructure;
 import uk.org.siri.siri20.PtSituationElement;
 import uk.org.siri.siri20.Siri;
 
+import javax.annotation.PostConstruct;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
@@ -59,6 +60,10 @@ public class Situations implements SiriRepository<PtSituationElement> {
     private SiriObjectFactory siriObjectFactory;
 
     @Autowired
+    @Qualifier("getSxCodespaceCounter")
+    private IMap<String, Integer> codespaceCounter;
+
+    @Autowired
     private MetricsService metricsService;
 
     @Autowired
@@ -75,6 +80,10 @@ public class Situations implements SiriRepository<PtSituationElement> {
         return situations.size();
     }
 
+    @PostConstruct
+    private void initMapListener() {
+        situations.addEntryListener(new CodespaceCounterMapListener(codespaceCounter), false);
+    }
 
     public void clearAll() {
         logger.error("Deleting all data - should only be used in test!!!");
@@ -243,7 +252,7 @@ public class Situations implements SiriRepository<PtSituationElement> {
         });
         logger.info("Updated {} (of {}) :: Already expired: {},", changes.size(), sxList.size(), alreadyExpiredCounter.getValue());
 
-        metricsService.registerIncomingData(SiriDataType.SITUATION_EXCHANGE, datasetId, situations);
+        metricsService.registerIncomingData(SiriDataType.SITUATION_EXCHANGE, codespaceCounter);
 
         changesMap.keySet().forEach(requestor -> {
             if (lastUpdateRequested.get(requestor) != null) {

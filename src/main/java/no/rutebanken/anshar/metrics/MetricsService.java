@@ -24,6 +24,6 @@ public interface MetricsService {
     /**
      * Method used for registering incoming data
      */
-    void registerIncomingData(SiriDataType subscriptionType, String agencyId, Map data);
+    void registerIncomingData(SiriDataType subscriptionType, Map<String, Integer> data);
 
 }
