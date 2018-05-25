@@ -42,7 +42,10 @@ class CodespaceCounterMapListener implements EntryAddedListener<String, String>,
     private void updateCount(String codespace, int diff) {
         counterMap.putIfAbsent(codespace, new Integer(0));
         int counter = counterMap.get(codespace);
-        counterMap.set(codespace, counter + diff);
+        int value = counter + diff;
+        if (value >= 0) { //Avoid negative counter-values
+            counterMap.set(codespace, value);
+        }
     }
 
 }
