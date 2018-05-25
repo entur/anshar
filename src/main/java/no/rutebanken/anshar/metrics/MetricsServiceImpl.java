@@ -78,7 +78,7 @@ public class MetricsServiceImpl implements MetricsService {
 
     @Override
     public void registerIncomingData(SiriDataType subscriptionType, Map<String, Integer> data) {
-        String prefix = "data.type." + subscriptionType + ".";
+        String prefix = "gauge." + subscriptionType + ".";
 
         data.keySet().forEach(codespace -> {
             String gaugeName = prefix + codespace;
