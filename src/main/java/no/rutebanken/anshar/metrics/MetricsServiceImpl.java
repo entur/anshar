@@ -77,20 +77,16 @@ public class MetricsServiceImpl implements MetricsService {
 
 
     @Override
-    public void registerIncomingData(SiriDataType subscriptionType, Map<String, Integer> data) {
-        String prefix = "gauge." + subscriptionType + ".";
-
-        data.keySet().forEach(codespace -> {
-            String gaugeName = prefix + codespace;
-            if (!metrics.getGauges().containsKey(gaugeName)) {
-                metrics.gauge(gaugeName, () -> new Gauge() {
-                    @Override
-                    public Integer getValue() {
-                        return data.get(codespace);
-                    }
-                });
-            }
-        });
+    public void registerIncomingData(SiriDataType subscriptionType, String agencyId, Map data) {
+        String counterName = "data.type." + subscriptionType;
+        if (!metrics.getGauges().containsKey(counterName)) {
+            metrics.gauge(counterName, () -> new Gauge() {
+                @Override
+                public Integer getValue() {
+                    return data.size();
+                }
+            });
+        }
     }
 
 }

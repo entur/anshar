@@ -26,7 +26,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 import uk.org.siri.siri20.ProductionTimetableDeliveryStructure;
 
-import javax.annotation.PostConstruct;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
@@ -48,11 +47,6 @@ public class ProductionTimetables implements SiriRepository<ProductionTimetableD
     @Qualifier("getLastPtUpdateRequest")
     private IMap<String, Instant> lastUpdateRequested;
 
-
-    @Autowired
-    @Qualifier("getPtCodespaceCounter")
-    private IMap<String, Integer> codespaceCounter;
-
     @Autowired
     private MetricsService metricsService;
 
@@ -64,11 +58,6 @@ public class ProductionTimetables implements SiriRepository<ProductionTimetableD
      */
     public Collection<ProductionTimetableDeliveryStructure> getAll() {
         return timetableDeliveries.values();
-    }
-
-    @PostConstruct
-    private void initMapListener() {
-        timetableDeliveries.addEntryListener(new CodespaceCounterMapListener(codespaceCounter), false);
     }
 
     public int getSize() {
@@ -161,7 +150,7 @@ public class ProductionTimetables implements SiriRepository<ProductionTimetableD
             }
         });
 
-        metricsService.registerIncomingData(SiriDataType.PRODUCTION_TIMETABLE, codespaceCounter);
+        metricsService.registerIncomingData(SiriDataType.PRODUCTION_TIMETABLE, datasetId, timetableDeliveries);
 
         changesMap.keySet().forEach(requestor -> {
             if (lastUpdateRequested.get(requestor) != null) {
