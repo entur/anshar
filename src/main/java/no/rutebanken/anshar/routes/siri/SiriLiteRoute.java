@@ -1,3 +1,18 @@
+/*
+ * Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
+ * the European Commission - subsequent versions of the EUPL (the "Licence");
+ * You may not use this work except in compliance with the Licence.
+ * You may obtain a copy of the Licence at:
+ *
+ *   https://joinup.ec.europa.eu/software/page/eupl
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the Licence is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the Licence for the specific language governing permissions and
+ * limitations under the Licence.
+ */
+
 package no.rutebanken.anshar.routes.siri;
 
 import no.rutebanken.anshar.config.AnsharConfiguration;
@@ -72,7 +87,7 @@ public class SiriLiteRoute extends RouteBuilder {
                     if (datasetId == null) {
                         datasetId = request.getParameter("datasetId");
                     }
-                    String requestorId = request.getParameter("requestorId");
+                    String requestorId = resolveRequestorId(request);
                     String originalId = request.getParameter("useOriginalId");
                     String maxSizeStr = request.getParameter("maxSize");
 
@@ -87,7 +102,7 @@ public class SiriLiteRoute extends RouteBuilder {
 
                     Siri response = situations.createServiceDelivery(requestorId, datasetId, maxSize);
 
-                    List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(SiriHandler.getIdMappingPolicy(request.getQueryString()));
+                    List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(SiriHandler.getIdMappingPolicy(originalId));
                     if ("test".equals(originalId)) {
                         outboundAdapters = null;
                     }
@@ -118,10 +133,11 @@ public class SiriLiteRoute extends RouteBuilder {
                     if (datasetId == null) {
                         datasetId = request.getParameter("datasetId");
                     }
-                    String requestorId = request.getParameter("requestorId");
                     String originalId = request.getParameter("useOriginalId");
                     String maxSizeStr = request.getParameter("maxSize");
                     String lineRef = request.getParameter("lineRef");
+
+                    String requestorId = resolveRequestorId(request);
 
                     int maxSize = datasetId != null ? Integer.MAX_VALUE:configuration.getDefaultMaxSize();
                     if (maxSizeStr != null) {
@@ -140,7 +156,7 @@ public class SiriLiteRoute extends RouteBuilder {
                     }
 
 
-                    List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(SiriHandler.getIdMappingPolicy(request.getQueryString()));
+                    List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(SiriHandler.getIdMappingPolicy(originalId));
                     if ("test".equals(originalId)) {
                         outboundAdapters = null;
                     }
@@ -172,10 +188,11 @@ public class SiriLiteRoute extends RouteBuilder {
                     if (datasetId == null) {
                         datasetId = request.getParameter("datasetId");
                     }
-                    String requestorId = request.getParameter("requestorId");
+                    String requestorId = resolveRequestorId(request);
                     String originalId = request.getParameter("useOriginalId");
                     String maxSizeStr = request.getParameter("maxSize");
                     String lineRef = request.getParameter("lineRef");
+                    String previewIntervalMinutesStr = request.getParameter("previewIntervalMinutes");
 
                     int maxSize = datasetId != null ? Integer.MAX_VALUE:configuration.getDefaultMaxSize();
                     if (maxSizeStr != null) {
@@ -185,15 +202,20 @@ public class SiriLiteRoute extends RouteBuilder {
                             //ignore
                         }
                     }
+                    long previewIntervalMillis = -1;
+                    if (previewIntervalMinutesStr != null) {
+                        int minutes = Integer.parseInt(previewIntervalMinutesStr);
+                        previewIntervalMillis = minutes*60*1000;
+                    }
 
                     Siri response;
                     if (lineRef != null) {
                         response = estimatedTimetables.createServiceDelivery(lineRef);
                     } else {
-                        response = estimatedTimetables.createServiceDelivery(requestorId, datasetId, maxSize);
+                        response = estimatedTimetables.createServiceDelivery(requestorId, datasetId, maxSize, previewIntervalMillis);
                     }
 
-                    List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(SiriHandler.getIdMappingPolicy(request.getQueryString()));
+                    List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(SiriHandler.getIdMappingPolicy(originalId));
                     if ("test".equals(originalId)) {
                         outboundAdapters = null;
                     }
@@ -225,12 +247,12 @@ public class SiriLiteRoute extends RouteBuilder {
                     if (datasetId == null) {
                         datasetId = request.getParameter("datasetId");
                     }
-                    String requestorId = request.getParameter("requestorId");
+                    String requestorId = resolveRequestorId(request);
                     String originalId = request.getParameter("useOriginalId");
 
                     Siri response = siriObjectFactory.createPTServiceDelivery(productionTimetables.getAllUpdates(requestorId, datasetId));
 
-                    List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(SiriHandler.getIdMappingPolicy(request.getQueryString()));
+                    List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(SiriHandler.getIdMappingPolicy(originalId));
                     if ("test".equals(originalId)) {
                         outboundAdapters = null;
                     }
@@ -251,6 +273,30 @@ public class SiriLiteRoute extends RouteBuilder {
                 .routeId("incoming.rest.pt")
         ;
 
+    }
+
+    /**
+     * If http-parameter requestorId is not provided in request, it will be generated based on
+     * client IP and requested resource for uniqueness
+     * @param request
+     * @return
+     */
+    private String resolveRequestorId(HttpServletRequest request) {
+        String requestorId = request.getParameter("requestorId");
+
+//        if (requestorId == null) {
+//            // Generating requestorId based on hash from client IP
+//            String clientIpAddress = request.getHeader("X-Real-IP");
+//            if (clientIpAddress == null) {
+//                clientIpAddress = request.getRemoteAddr();
+//            }
+//            if (clientIpAddress != null) {
+//                String uri = request.getRequestURI();
+//                requestorId = DigestUtils.sha256Hex(clientIpAddress + uri);
+//                logger.info("IP: '{}' and uri '{}' mapped to requestorId: '{}'", clientIpAddress, uri, requestorId);
+//            }
+//        }
+        return requestorId;
     }
 
 }

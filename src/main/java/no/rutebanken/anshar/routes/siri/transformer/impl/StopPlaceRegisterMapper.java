@@ -1,10 +1,25 @@
+/*
+ * Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
+ * the European Commission - subsequent versions of the EUPL (the "Licence");
+ * You may not use this work except in compliance with the Licence.
+ * You may obtain a copy of the Licence at:
+ *
+ *   https://joinup.ec.europa.eu/software/page/eupl
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the Licence is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the Licence for the specific language governing permissions and
+ * limitations under the Licence.
+ */
+
 package no.rutebanken.anshar.routes.siri.transformer.impl;
 
 
 import no.rutebanken.anshar.routes.health.HealthManager;
 import no.rutebanken.anshar.routes.siri.transformer.ApplicationContextHolder;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
-import no.rutebanken.anshar.subscription.SubscriptionSetup;
+import no.rutebanken.anshar.subscription.SiriDataType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,13 +39,13 @@ public class StopPlaceRegisterMapper extends ValueAdapter {
     private static final Set<String> unmappedAlreadyAdded = new HashSet<>();
 
     private final String datasetId;
-    private final SubscriptionSetup.SubscriptionType type;
+    private final SiriDataType type;
 
-    public StopPlaceRegisterMapper(SubscriptionSetup.SubscriptionType type, String datasetId, Class clazz, List<String> prefixes) {
+    public StopPlaceRegisterMapper(SiriDataType type, String datasetId, Class clazz, List<String> prefixes) {
         this(type, datasetId, clazz, prefixes, "Quay");
     }
 
-    public StopPlaceRegisterMapper(SubscriptionSetup.SubscriptionType type, String datasetId, Class clazz, List<String> prefixes, String datatype) {
+    public StopPlaceRegisterMapper(SiriDataType type, String datasetId, Class clazz, List<String> prefixes, String datatype) {
         super(clazz);
         this.type = type;
         this.datasetId = datasetId;

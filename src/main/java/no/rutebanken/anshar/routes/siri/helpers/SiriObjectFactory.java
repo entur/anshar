@@ -1,3 +1,18 @@
+/*
+ * Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
+ * the European Commission - subsequent versions of the EUPL (the "Licence");
+ * You may not use this work except in compliance with the Licence.
+ * You may obtain a copy of the Licence at:
+ *
+ *   https://joinup.ec.europa.eu/software/page/eupl
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the Licence is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the Licence for the specific language governing permissions and
+ * limitations under the Licence.
+ */
+
 package no.rutebanken.anshar.routes.siri.helpers;
 
 import com.esotericsoftware.kryo.Kryo;
@@ -8,6 +23,7 @@ import com.esotericsoftware.kryo.pool.KryoFactory;
 import com.esotericsoftware.kryo.pool.KryoPool;
 import com.sun.org.apache.xerces.internal.dom.ElementNSImpl;
 import no.rutebanken.anshar.config.AnsharConfiguration;
+import no.rutebanken.anshar.subscription.SiriDataType;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.commons.lang3.NotImplementedException;
 import org.objenesis.strategy.StdInstantiatorStrategy;
@@ -38,33 +54,33 @@ public class SiriObjectFactory {
     private static final KryoPool kryoPool;
 
     static {
-    	KryoFactory factory = new KryoFactory() {
-    		  public Kryo create () {
-    		    Kryo kryo = new Kryo();
-    		    kryo.setInstantiatorStrategy(new Kryo.DefaultInstantiatorStrategy(new StdInstantiatorStrategy()));
-    		    kryo.register(ElementNSImpl.class, new Serializer() {
+    	KryoFactory factory = () -> {
+                      Kryo kryo = new Kryo();
+                      kryo.setInstantiatorStrategy(new Kryo.DefaultInstantiatorStrategy(new StdInstantiatorStrategy()));
+                      kryo.register(ElementNSImpl.class, new Serializer() {
 
 
-                    @Override
-                    public void write(Kryo kryo, Output output, Object object) {
-                        throw new NotImplementedException("write-method not implemented");
-                    }
+                @Override
+                public void write(Kryo kryo, Output output, Object object) {
+                    throw new NotImplementedException("write-method not implemented");
+                }
 
-                    @Override
-                    public Object read(Kryo kryo, Input input, Class type) {
-                        throw new NotImplementedException("read-method not implemented");
-                    }
+                @Override
+                public Object read(Kryo kryo, Input input, Class type) {
+                    throw new NotImplementedException("read-method not implemented");
+                }
 
-                    @Override
-                    public Object copy(Kryo kryo, Object original) {
+                @Override
+                public Object copy(Kryo kryo, Object original) {
 
-                        return ((ElementNSImpl) original).cloneNode(true);
-                    }
-                });
-    		    // configure kryo instance, customize settings
-    		    return kryo;
-    		  }
-    		};
+                    return ((ElementNSImpl) original).cloneNode(true);
+                }
+            });
+
+          // configure kryo instance, customize settings
+          return kryo;
+        };
+
     	kryoPool = new KryoPool.Builder(factory).softReferences().build();
 
     }
@@ -83,7 +99,7 @@ public class SiriObjectFactory {
 
         SubscriptionRequest request = null;
 
-        if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE)) {
+        if (subscriptionSetup.getSubscriptionType().equals(SiriDataType.SITUATION_EXCHANGE)) {
             request = createSituationExchangeSubscriptionRequest(subscriptionSetup.getRequestorRef(),subscriptionSetup.getSubscriptionId(),
                     subscriptionSetup.getHeartbeatInterval(),
                     subscriptionSetup.buildUrl(),
@@ -93,7 +109,7 @@ public class SiriObjectFactory {
                     subscriptionSetup.getIncrementalUpdates(),
                     subscriptionSetup.getPreviewInterval());
         }
-        if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING)) {
+        if (subscriptionSetup.getSubscriptionType().equals(SiriDataType.VEHICLE_MONITORING)) {
             request = createVehicleMonitoringSubscriptionRequest(subscriptionSetup.getRequestorRef(),
                     subscriptionSetup.getSubscriptionId(),
                     subscriptionSetup.getHeartbeatInterval(),
@@ -106,7 +122,7 @@ public class SiriObjectFactory {
                     subscriptionSetup.getIncrementalUpdates(),
                     subscriptionSetup.getVehicleMonitoringRefValue());
         }
-        if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE)) {
+        if (subscriptionSetup.getSubscriptionType().equals(SiriDataType.ESTIMATED_TIMETABLE)) {
             request = createEstimatedTimetableSubscriptionRequest(subscriptionSetup.getRequestorRef(),subscriptionSetup.getSubscriptionId(),
                     subscriptionSetup.getHeartbeatInterval(),
                     subscriptionSetup.buildUrl(),
@@ -117,7 +133,7 @@ public class SiriObjectFactory {
                     subscriptionSetup.getPreviewInterval(),
                     subscriptionSetup.getChangeBeforeUpdates());
         }
-        if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.PRODUCTION_TIMETABLE)) {
+        if (subscriptionSetup.getSubscriptionType().equals(SiriDataType.PRODUCTION_TIMETABLE)) {
             request = createProductionTimetableSubscriptionRequest(subscriptionSetup.getRequestorRef(), subscriptionSetup.getSubscriptionId(),
                     subscriptionSetup.getHeartbeatInterval(),
                     subscriptionSetup.buildUrl(),
@@ -138,18 +154,18 @@ public class SiriObjectFactory {
         request.setRequestTimestamp(ZonedDateTime.now());
         request.setRequestorRef(createRequestorRef(subscriptionSetup.getRequestorRef()));
 
-        if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE)) {
+        if (subscriptionSetup.getSubscriptionType().equals(SiriDataType.SITUATION_EXCHANGE)) {
             request.getSituationExchangeRequests().add(createSituationExchangeRequestStructure(subscriptionSetup.getPreviewInterval()));
 
         }
-        if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING)) {
+        if (subscriptionSetup.getSubscriptionType().equals(SiriDataType.VEHICLE_MONITORING)) {
             request.getVehicleMonitoringRequests().add(createVehicleMonitoringRequestStructure());
         }
-        if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE)) {
+        if (subscriptionSetup.getSubscriptionType().equals(SiriDataType.ESTIMATED_TIMETABLE)) {
             request.getEstimatedTimetableRequests().add(createEstimatedTimetableRequestStructure(subscriptionSetup.getPreviewInterval()));
         }
 
-        if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.PRODUCTION_TIMETABLE)) {
+        if (subscriptionSetup.getSubscriptionType().equals(SiriDataType.PRODUCTION_TIMETABLE)) {
             request.getProductionTimetableRequests().add(createProductionTimetableRequestStructure());
         }
 
@@ -318,17 +334,30 @@ public class SiriObjectFactory {
 
         if (filterMap != null) {
             if (filterMap.size() > 0) {
-                EstimatedTimetableRequestStructure.Lines lines = new EstimatedTimetableRequestStructure.Lines();
 
-                Set lineRefs = filterMap.get(LineDirectionStructure.class);
-                for (Object lineref : lineRefs) {
-                    if (lineref != null &&
-                            lineref instanceof LineDirectionStructure) {
-                        lines.getLineDirections().add((LineDirectionStructure) lineref);
+                if (filterMap.containsKey(LineDirectionStructure.class)) {
+                    EstimatedTimetableRequestStructure.Lines lines = new EstimatedTimetableRequestStructure.Lines();
+                    Set lineRefs = filterMap.get(LineDirectionStructure.class);
+                    for (Object lineref : lineRefs) {
+                        if (lineref != null &&
+                                lineref instanceof LineDirectionStructure) {
+                            lines.getLineDirections().add((LineDirectionStructure) lineref);
+                        }
+                    }
+                    if (!lines.getLineDirections().isEmpty()) {
+                        etRequest.setLines(lines);
                     }
                 }
 
-                etRequest.setLines(lines);
+                if (filterMap.containsKey(OperatorRefStructure.class)) {
+                    Set<Object> operatorRefs = filterMap.get(OperatorRefStructure.class);
+                    for (Object operatorRef : operatorRefs) {
+                        if (operatorRef != null &&
+                                operatorRef instanceof OperatorRefStructure) {
+                            etRequest.getOperatorReves().add((OperatorRefStructure) operatorRef);
+                        }
+                    }
+                }
             }
         }
 
@@ -482,6 +511,7 @@ public class SiriObjectFactory {
         estimatedVersionFrameStructure.setRecordedAtTime(ZonedDateTime.now());
         estimatedVersionFrameStructure.getEstimatedVehicleJourneies().addAll(elements);
         deliveryStructure.getEstimatedJourneyVersionFrames().add(estimatedVersionFrameStructure);
+        deliveryStructure.setResponseTimestamp(ZonedDateTime.now());
 
         delivery.getEstimatedTimetableDeliveries().add(deliveryStructure);
         siri.setServiceDelivery(delivery);
@@ -575,6 +605,7 @@ public class SiriObjectFactory {
         TerminationResponseStatusStructure status = new TerminationResponseStatusStructure();
         status.setSubscriptionRef(createSubscriptionIdentifier(subscriptionRef));
         status.setResponseTimestamp(ZonedDateTime.now());
+        status.setStatus(true);
 
         response.getTerminationResponseStatuses().add(status);
         siri.setTerminateSubscriptionResponse(response);

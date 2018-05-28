@@ -1,3 +1,18 @@
+/*
+ * Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
+ * the European Commission - subsequent versions of the EUPL (the "Licence");
+ * You may not use this work except in compliance with the Licence.
+ * You may obtain a copy of the Licence at:
+ *
+ *   https://joinup.ec.europa.eu/software/page/eupl
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the Licence is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the Licence for the specific language governing permissions and
+ * limitations under the Licence.
+ */
+
 package no.rutebanken.anshar.data;
 
 import com.hazelcast.core.IMap;
@@ -5,7 +20,7 @@ import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.metrics.MetricsService;
 import no.rutebanken.anshar.routes.mqtt.SiriVmMqttHandler;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
-import no.rutebanken.anshar.subscription.SubscriptionSetup;
+import no.rutebanken.anshar.subscription.SiriDataType;
 import org.quartz.utils.counter.Counter;
 import org.quartz.utils.counter.CounterImpl;
 import org.slf4j.Logger;
@@ -63,6 +78,11 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
         return vehicleActivities.size();
     }
 
+    public void clearAll() {
+        logger.error("Deleting all data - should only be used in test!!!");
+        vehicleActivities.clear();
+    }
+
     /**
      * @return All vehicle activities that are still valid
      */
@@ -93,7 +113,7 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
                 Set<String> datasetFilteredIdSet = new HashSet<>();
 
                 if (datasetId != null) {
-                    idSet.stream().filter(key -> key.startsWith(datasetId + ":")).forEach(key -> datasetFilteredIdSet.add(key));
+                    idSet.stream().filter(key -> key.startsWith(datasetId + ":")).forEach(datasetFilteredIdSet::add);
                 } else {
                     datasetFilteredIdSet.addAll(idSet);
                 }
@@ -163,29 +183,29 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
         Set<String> idSet = changesMap.getOrDefault(requestorId, allIds);
 
         if (idSet == allIds) {
-            vehicleActivities.keySet().forEach(key -> idSet.add(key));
+            vehicleActivities.keySet().forEach(idSet::add);
         }
 
         lastUpdateRequested.set(requestorId, Instant.now(), trackingPeriodMinutes, TimeUnit.MINUTES);
 
         //Filter by datasetId
-        Set<String> collectedIds = idSet.stream()
+        Set<String> requestedIds = idSet.stream()
                 .filter(key -> datasetId == null || key.startsWith(datasetId + ":"))
-                .limit(maxSize)
                 .collect(Collectors.toSet());
 
+        Set<String> sizeLimitedIds = requestedIds.stream().limit(maxSize).collect(Collectors.toSet());
+
+        Boolean isMoreData = sizeLimitedIds.size() < requestedIds.size();
+
         //Remove collected objects
-        collectedIds.forEach(idSet::remove);
+        sizeLimitedIds.forEach(idSet::remove);
 
-
-        logger.info("Returning {}, {} left for requestorRef {}", collectedIds.size(), idSet.size(), requestorId);
-
-        Boolean isMoreData = !idSet.isEmpty();
+        logger.info("Returning {}, {} left for requestorRef {}", sizeLimitedIds.size(), idSet.size(), requestorId);
 
         //Update change-tracker
         changesMap.set(requestorId, idSet);
 
-        Collection<VehicleActivityStructure> values = vehicleActivities.getAll(collectedIds).values();
+        Collection<VehicleActivityStructure> values = vehicleActivities.getAll(sizeLimitedIds).values();
         Siri siri = siriObjectFactory.createVMServiceDelivery(values);
 
         siri.getServiceDelivery().setMoreData(isMoreData);
@@ -201,7 +221,7 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
 
         ZonedDateTime validUntil = a.getValidUntilTime();
         if (validUntil != null) {
-            return ZonedDateTime.now().until(validUntil, ChronoUnit.MILLIS);
+            return ZonedDateTime.now().until(validUntil.plus(configuration.getVmGraceperiodMinutes(), ChronoUnit.MINUTES), ChronoUnit.MILLIS);
         }
 
         return -1;
@@ -250,7 +270,7 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
 
         logger.info("Updated {} (of {}) :: Ignored elements - Missing location:{}, Missing values: {}, Skipped: {}", changes.size(), vmList.size(), invalidLocationCounter.getValue(), notMeaningfulCounter.getValue(), outdatedCounter.getValue());
 
-        metricsService.registerIncomingData(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING, datasetId, changes.size());
+        metricsService.registerIncomingData(SiriDataType.VEHICLE_MONITORING, datasetId, vehicleActivities);
 
         changesMap.keySet().forEach(requestor -> {
             if (lastUpdateRequested.get(requestor) != null) {
@@ -314,7 +334,7 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
     }
 
     private String vehicleRefToString(VehicleActivityStructure.MonitoredVehicleJourney monitoredVehicleJourney) {
-        StringBuffer s = new StringBuffer();
+        StringBuilder s = new StringBuilder();
         s.append("[")
                 .append("LineRef: ").append(monitoredVehicleJourney.getLineRef() != null ? monitoredVehicleJourney.getLineRef().getValue() : "null")
                 .append(",VehicleRef: ").append(monitoredVehicleJourney.getVehicleRef() != null ? monitoredVehicleJourney.getVehicleRef().getValue() : "null")
@@ -355,7 +375,7 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
      * @return
      */
     private String createKey(String datasetId, VehicleRef vehicleRef) {
-        StringBuffer key = new StringBuffer();
+        StringBuilder key = new StringBuilder();
         key.append(datasetId).append(":").append(vehicleRef.getValue());
 
         return key.toString();

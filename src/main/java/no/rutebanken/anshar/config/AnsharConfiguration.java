@@ -1,3 +1,18 @@
+/*
+ * Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
+ * the European Commission - subsequent versions of the EUPL (the "Licence");
+ * You may not use this work except in compliance with the Licence.
+ * You may obtain a copy of the Licence at:
+ *
+ *   https://joinup.ec.europa.eu/software/page/eupl
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the Licence is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the Licence for the specific language governing permissions and
+ * limitations under the Licence.
+ */
+
 package no.rutebanken.anshar.config;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -15,15 +30,11 @@ public class AnsharConfiguration {
     @Value("${rutebanken.kubernetes.namespace:default}")
     private String namespace;
 
-
     @Value("${rutebanken.hazelcast.management.url:}")
     private String hazelcastManagementUrl;
 
     @Value("${anshar.incoming.port}")
     private String inboundPort;
-
-    @Value("${anshar.validation.enabled}")
-    private boolean validationEnabled = false;
 
     @Value("${anshar.incoming.activemq.concurrentConsumers}")
     private long concurrentConsumers;
@@ -58,6 +69,24 @@ public class AnsharConfiguration {
     @Value("${anshar.siri.default.producerRef:ENT}")
     private String producerRef;
 
+    @Value("${anshar.siri.sx.graceperiod.minutes:0}")
+    private long sxGraceperiodMinutes;
+
+    @Value("${anshar.siri.et.graceperiod.minutes:0}")
+    private long etGraceperiodMinutes;
+
+    @Value("${anshar.siri.vm.graceperiod.minutes:0}")
+    private long vmGraceperiodMinutes;
+
+    @Value("${anshar.siri.pt.graceperiod.minutes:0}")
+    private long ptGraceperiodMinutes;
+
+    @Value("${anshar.validation.profile.enabled}")
+    private boolean profileValidation;
+
+    @Value("${anshar.validation.profile.name}")
+    private String validationProfileName;
+
     public String getHazelcastManagementUrl() {
         return hazelcastManagementUrl;
     }
@@ -90,10 +119,6 @@ public class AnsharConfiguration {
         return concurrentConsumers;
     }
 
-    public boolean isValidationEnabled() {
-        return validationEnabled;
-    }
-
     public String getEnvironment() {
         return environment;
     }
@@ -120,5 +145,29 @@ public class AnsharConfiguration {
 
     public String getProducerRef() {
         return producerRef;
+    }
+
+    public long getSxGraceperiodMinutes() {
+        return sxGraceperiodMinutes;
+    }
+
+    public long getEtGraceperiodMinutes() {
+        return etGraceperiodMinutes;
+    }
+
+    public long getVmGraceperiodMinutes() {
+        return vmGraceperiodMinutes;
+    }
+
+    public long getPtGraceperiodMinutes() {
+        return ptGraceperiodMinutes;
+    }
+
+    public boolean isProfileValidation() {
+        return profileValidation;
+    }
+
+    public String getValidationProfileName() {
+        return validationProfileName;
     }
 }

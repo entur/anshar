@@ -1,3 +1,18 @@
+/*
+ * Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
+ * the European Commission - subsequent versions of the EUPL (the "Licence");
+ * You may not use this work except in compliance with the Licence.
+ * You may obtain a copy of the Licence at:
+ *
+ *   https://joinup.ec.europa.eu/software/page/eupl
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the Licence is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the Licence for the specific language governing permissions and
+ * limitations under the Licence.
+ */
+
 package no.rutebanken.anshar.routes.siri.transformer;
 
 import com.google.common.cache.CacheBuilder;
@@ -16,15 +31,15 @@ import javax.xml.stream.XMLStreamException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 public class SiriValueTransformer {
 
     public static final String SEPARATOR = "$";
 
     private static final Logger logger = LoggerFactory.getLogger(SiriValueTransformer.class);
+
+    private static final Map<GetterKey, Set<Method>> cachedGettersForAdapter = new HashMap<>();
 
     private static final LoadingCache<Class, List<Method>> getterMethodsCache = CacheBuilder.newBuilder()
             .build(
@@ -122,7 +137,13 @@ public class SiriValueTransformer {
         //Only apply to Siri-classes
         if (obj.getClass().getName().startsWith("uk.org.siri")) {
 
-            List<Method> allMethods = getterMethodsCache.get(obj.getClass());
+            GetterKey getterKey = new GetterKey(obj.getClass(), adapter);
+            Set<Method> allMethods = cachedGettersForAdapter.get(getterKey);
+
+            if (allMethods == null) {
+                allMethods = new HashSet<>();
+                allMethods.addAll(getterMethodsCache.get(obj.getClass()));
+            }
             for (Method method : allMethods) {
                 if (methodsToIgnore.contains(method.getName())) {
                     continue;
@@ -130,6 +151,10 @@ public class SiriValueTransformer {
 
 
                 if (method.getReturnType().equals(adapter.getClassToApply())) {
+
+                    Set<Method> methods = cachedGettersForAdapter.getOrDefault(getterKey, new HashSet<>());
+                    methods.add(method);
+                    cachedGettersForAdapter.put(getterKey, methods);
 
                     Object previousValue = method.invoke(obj);
                     if (previousValue != null) {
@@ -168,6 +193,40 @@ public class SiriValueTransformer {
                     }
                 }
             }
+        }
+    }
+
+    private static class GetterKey {
+        private final ValueAdapter adapter;
+        private final Class clazz;
+
+        public GetterKey(Class clazz, ValueAdapter adapter) {
+            this.clazz = clazz;
+            this.adapter = adapter;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            GetterKey getterKey = (GetterKey) o;
+
+            if (adapter != null ? !adapter.equals(getterKey.adapter) : getterKey.adapter != null) {
+                return false;
+            }
+            return clazz != null ? clazz.equals(getterKey.clazz) : getterKey.clazz == null;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = adapter != null ? adapter.hashCode() : 0;
+            result = 31 * result + (clazz != null ? clazz.hashCode() : 0);
+            return result;
         }
     }
 }

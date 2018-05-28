@@ -1,7 +1,23 @@
+/*
+ * Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
+ * the European Commission - subsequent versions of the EUPL (the "Licence");
+ * You may not use this work except in compliance with the Licence.
+ * You may obtain a copy of the Licence at:
+ *
+ *   https://joinup.ec.europa.eu/software/page/eupl
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the Licence is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the Licence for the specific language governing permissions and
+ * limitations under the Licence.
+ */
+
 package no.rutebanken.anshar.siri.handler;
 
 import no.rutebanken.anshar.App;
 import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
+import no.rutebanken.anshar.subscription.SiriDataType;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.junit.Test;
@@ -150,22 +166,22 @@ public class SiriHandlerTest {
 
 
     private SubscriptionSetup getSxSubscription() {
-        return getSubscriptionSetup(SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE);
+        return getSubscriptionSetup(SiriDataType.SITUATION_EXCHANGE);
     }
 
     private SubscriptionSetup getVmSubscription() {
-        return getSubscriptionSetup(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING);
+        return getSubscriptionSetup(SiriDataType.VEHICLE_MONITORING);
     }
 
     private SubscriptionSetup getEtSubscription() {
-        return getSubscriptionSetup(SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE);
+        return getSubscriptionSetup(SiriDataType.ESTIMATED_TIMETABLE);
     }
 
     private SubscriptionSetup getPtSubscription() {
-        return getSubscriptionSetup(SubscriptionSetup.SubscriptionType.PRODUCTION_TIMETABLE);
+        return getSubscriptionSetup(SiriDataType.PRODUCTION_TIMETABLE);
     }
 
-    private SubscriptionSetup getSubscriptionSetup(SubscriptionSetup.SubscriptionType type) {
+    private SubscriptionSetup getSubscriptionSetup(SiriDataType type) {
         return new SubscriptionSetup(
                 type,
                 SubscriptionSetup.SubscriptionMode.SUBSCRIBE,

@@ -1,3 +1,18 @@
+/*
+ * Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
+ * the European Commission - subsequent versions of the EUPL (the "Licence");
+ * You may not use this work except in compliance with the Licence.
+ * You may obtain a copy of the Licence at:
+ *
+ *   https://joinup.ec.europa.eu/software/page/eupl
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the Licence is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the Licence for the specific language governing permissions and
+ * limitations under the Licence.
+ */
+
 package no.rutebanken.anshar.subscription;
 
 
@@ -25,6 +40,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -175,6 +191,20 @@ public class SubscriptionManager {
         return subscriptions.get(subscriptionId);
     }
 
+    public JSONObject getSubscriptionsForCodespace(String codespace) {
+        JSONObject jsonSubscriptions = new JSONObject();
+        JSONArray filteredSubscriptions = new JSONArray();
+
+        filteredSubscriptions.addAll(subscriptions.values().stream()
+                .filter(subscription -> subscription.getDatasetId().equals(codespace))
+                .map(this::getJsonObject)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList()));
+
+        jsonSubscriptions.put("subscriptions", filteredSubscriptions);
+        return jsonSubscriptions;
+    }
+
     private void hit(String subscriptionId) {
         int counter = (hitcount.get(subscriptionId) != null ? hitcount.get(subscriptionId):0);
         hitcount.put(subscriptionId, counter+1);
@@ -276,7 +306,7 @@ public class SubscriptionManager {
         JSONArray stats = new JSONArray();
         stats.addAll(subscriptions.keySet().stream()
                 .map(key -> getJsonObject(subscriptions.get(key)))
-                .filter(json -> json != null)
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList()));
 
         result.put("subscriptions", stats);
@@ -371,14 +401,14 @@ public class SubscriptionManager {
     public Set<String> getAllUnhealthySubscriptions(int allowedInactivitySeconds) {
         Set<String> subscriptionIds = subscriptions.keySet()
                 .stream()
-                .filter(subscriptionId -> isActiveSubscription(subscriptionId))
+                .filter(this::isActiveSubscription)
                 .filter(subscriptionId -> !isSubscriptionReceivingData(subscriptionId, allowedInactivitySeconds))
                 .collect(Collectors.toSet());
-        if (subscriptionIds != null & !subscriptionIds.isEmpty()) {
+        if (subscriptionIds != null && !subscriptionIds.isEmpty()) {
             return subscriptions.getAll(subscriptionIds)
                     .values()
                     .stream()
-                    .map(subscriptionSetup -> subscriptionSetup.getVendor())
+                    .map(SubscriptionSetup::getVendor)
                     .collect(Collectors.toSet());
         }
         return new HashSet<>();
@@ -401,5 +431,13 @@ public class SubscriptionManager {
         if (isActiveSubscription(subscriptionId)) {
             dataReceived.put(subscriptionId, Instant.now());
         }
+    }
+
+    /**
+     * Silently updates subscription
+     * @param subscriptionSetup
+     */
+    public void updateSubscription(SubscriptionSetup subscriptionSetup) {
+        subscriptions.set(subscriptionSetup.getSubscriptionId(), subscriptionSetup);
     }
 }

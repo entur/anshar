@@ -1,3 +1,18 @@
+/*
+ * Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
+ * the European Commission - subsequent versions of the EUPL (the "Licence");
+ * You may not use this work except in compliance with the Licence.
+ * You may obtain a copy of the Licence at:
+ *
+ *   https://joinup.ec.europa.eu/software/page/eupl
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the Licence is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the Licence for the specific language governing permissions and
+ * limitations under the Licence.
+ */
+
 package no.rutebanken.anshar.routes.siri.handlers;
 
 import no.rutebanken.anshar.config.AnsharConfiguration;
@@ -11,6 +26,8 @@ import no.rutebanken.anshar.routes.outbound.ServerSubscriptionManager;
 import no.rutebanken.anshar.routes.outbound.SiriHelper;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
+import no.rutebanken.anshar.routes.validation.SiriXmlValidator;
+import no.rutebanken.anshar.subscription.SiriDataType;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import no.rutebanken.anshar.subscription.helpers.MappingAdapterPresets;
@@ -22,6 +39,8 @@ import org.springframework.stereotype.Service;
 import uk.org.siri.siri20.*;
 
 import javax.xml.bind.JAXBException;
+import javax.xml.bind.UnmarshalException;
+import javax.xml.datatype.Duration;
 import javax.xml.stream.XMLStreamException;
 import java.io.InputStream;
 import java.util.*;
@@ -61,15 +80,18 @@ public class SiriHandler {
     @Autowired
     private MappingAdapterPresets mappingAdapterPresets;
 
+    @Autowired
+    private SiriXmlValidator siriXmlValidator;
+
     public SiriHandler() {
 
     }
 
-    public Siri handleIncomingSiri(String subscriptionId, InputStream xml) {
+    public Siri handleIncomingSiri(String subscriptionId, InputStream xml) throws UnmarshalException {
         return handleIncomingSiri(subscriptionId, xml, null, -1);
     }
 
-    private Siri handleIncomingSiri(String subscriptionId, InputStream xml, String datasetId, int maxSize) {
+    private Siri handleIncomingSiri(String subscriptionId, InputStream xml, String datasetId, int maxSize) throws UnmarshalException {
         return handleIncomingSiri(subscriptionId, xml, datasetId, null, maxSize);
     }
 
@@ -81,7 +103,7 @@ public class SiriHandler {
      * @param outboundIdMappingPolicy Defines outbound idmapping-policy
      * @return
      */
-    public Siri handleIncomingSiri(String subscriptionId, InputStream xml, String datasetId, OutboundIdMappingPolicy outboundIdMappingPolicy, int maxSize) {
+    public Siri handleIncomingSiri(String subscriptionId, InputStream xml, String datasetId, OutboundIdMappingPolicy outboundIdMappingPolicy, int maxSize) throws UnmarshalException {
         try {
             if (subscriptionId != null) {
                 return processSiriClientRequest(subscriptionId, xml);
@@ -90,6 +112,8 @@ public class SiriHandler {
 
                 return processSiriServerRequest(incoming, datasetId, outboundIdMappingPolicy, maxSize);
             }
+        } catch (UnmarshalException e) {
+            throw e;
         } catch (JAXBException | XMLStreamException e) {
             logger.warn("Caught exception when parsing incoming XML", e);
         }
@@ -114,12 +138,17 @@ public class SiriHandler {
 
         if (incoming.getSubscriptionRequest() != null) {
             logger.info("Handling subscriptionrequest with ID-policy {}.", outboundIdMappingPolicy);
-            serverSubscriptionManager.handleSubscriptionRequest(incoming.getSubscriptionRequest(), datasetId, outboundIdMappingPolicy);
+            return serverSubscriptionManager.handleSubscriptionRequest(incoming.getSubscriptionRequest(), datasetId, outboundIdMappingPolicy);
 
         } else if (incoming.getTerminateSubscriptionRequest() != null) {
             logger.info("Handling terminateSubscriptionrequest...");
-            serverSubscriptionManager.terminateSubscription(incoming.getTerminateSubscriptionRequest());
+            TerminateSubscriptionRequestStructure terminateSubscriptionRequest = incoming.getTerminateSubscriptionRequest();
+            if (terminateSubscriptionRequest.getSubscriptionReves() != null && !terminateSubscriptionRequest.getSubscriptionReves().isEmpty()) {
+                String subscriptionRef = terminateSubscriptionRequest.getSubscriptionReves().get(0).getValue();
 
+                serverSubscriptionManager.terminateSubscription(subscriptionRef);
+                return siriObjectFactory.createTerminateSubscriptionResponse(subscriptionRef);
+            }
         } else if (incoming.getCheckStatusRequest() != null) {
             logger.info("Handling checkStatusRequest...");
             return serverSubscriptionManager.handleCheckStatusRequest(incoming.getCheckStatusRequest());
@@ -161,8 +190,14 @@ public class SiriHandler {
                 Siri siri = vehicleActivities.createServiceDelivery(requestorRef, datasetId, maxSize);
                 serviceResponse = SiriHelper.filterSiriPayload(siri, filterMap);
             } else if (hasValues(serviceRequest.getEstimatedTimetableRequests())) {
+                Duration previewInterval = serviceRequest.getEstimatedTimetableRequests().get(0).getPreviewInterval();
+                long previewIntervalInMillis = -1;
 
-                serviceResponse = estimatedTimetables.createServiceDelivery(requestorRef, datasetId, maxSize);
+                if (previewInterval != null) {
+                    previewIntervalInMillis = previewInterval.getTimeInMillis(new Date());
+                }
+
+                serviceResponse = estimatedTimetables.createServiceDelivery(requestorRef, datasetId, maxSize, previewIntervalInMillis);
             } else if (hasValues(serviceRequest.getProductionTimetableRequests())) {
                 serviceResponse = siriObjectFactory.createPTServiceDelivery(productionTimetables.getAllUpdates(requestorRef, datasetId));
             }
@@ -187,13 +222,14 @@ public class SiriHandler {
      * @return
      * @throws JAXBException
      */
-    private Siri processSiriClientRequest(String subscriptionId, InputStream xml)
-            throws JAXBException, XMLStreamException {
+    private Siri processSiriClientRequest(String subscriptionId, InputStream xml) {
         SubscriptionSetup subscriptionSetup = subscriptionManager.get(subscriptionId);
 
         if (subscriptionSetup != null) {
 
-            Siri incoming = SiriValueTransformer.parseXml(xml, subscriptionSetup.getMappingAdapters());
+            Siri originalInput = siriXmlValidator.parseXml(subscriptionSetup, xml);
+
+            Siri incoming = SiriValueTransformer.transform(originalInput, subscriptionSetup.getMappingAdapters());
 
             if (incoming.getHeartbeatNotification() != null) {
                 subscriptionManager.touchSubscription(subscriptionId);
@@ -220,7 +256,7 @@ public class SiriHandler {
                 boolean deliveryContainsData = false;
                 healthManager.dataReceived();
 
-                if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE)) {
+                if (subscriptionSetup.getSubscriptionType().equals(SiriDataType.SITUATION_EXCHANGE)) {
                     List<SituationExchangeDeliveryStructure> situationExchangeDeliveries = incoming.getServiceDelivery().getSituationExchangeDeliveries();
                     logger.info("Got SX-delivery: Subscription [{}]", subscriptionSetup);
 
@@ -237,7 +273,7 @@ public class SiriHandler {
                                 }
                         );
                     }
-                    deliveryContainsData = deliveryContainsData | (addedOrUpdated.size() > 0);
+                    deliveryContainsData = addedOrUpdated.size() > 0;
 
                     serverSubscriptionManager.pushUpdatedSituations(addedOrUpdated, subscriptionSetup.getDatasetId());
 
@@ -245,7 +281,7 @@ public class SiriHandler {
 
                     logger.info("Active SX-elements: {}, current delivery: {}, {}", situations.getSize(), addedOrUpdated.size(), subscriptionSetup);
                 }
-                if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING)) {
+                if (subscriptionSetup.getSubscriptionType().equals(SiriDataType.VEHICLE_MONITORING)) {
                     List<VehicleMonitoringDeliveryStructure> vehicleMonitoringDeliveries = incoming.getServiceDelivery().getVehicleMonitoringDeliveries();
                     logger.info("Got VM-delivery: Subscription [{}]", subscriptionSetup);
 
@@ -270,7 +306,7 @@ public class SiriHandler {
 
                     logger.info("Active VM-elements: {}, current delivery: {}, {}", vehicleActivities.getSize(), addedOrUpdated.size(), subscriptionSetup);
                 }
-                if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE)) {
+                if (subscriptionSetup.getSubscriptionType().equals(SiriDataType.ESTIMATED_TIMETABLE)) {
                     List<EstimatedTimetableDeliveryStructure> estimatedTimetableDeliveries = incoming.getServiceDelivery().getEstimatedTimetableDeliveries();
                     logger.info("Got ET-delivery: Subscription {}", subscriptionSetup);
 
@@ -297,7 +333,7 @@ public class SiriHandler {
 
                     logger.info("Active ET-elements: {}, current delivery: {}, {}", estimatedTimetables.getSize(), addedOrUpdated.size(), subscriptionSetup);
                 }
-                if (subscriptionSetup.getSubscriptionType().equals(SubscriptionSetup.SubscriptionType.PRODUCTION_TIMETABLE)) {
+                if (subscriptionSetup.getSubscriptionType().equals(SiriDataType.PRODUCTION_TIMETABLE)) {
                     List<ProductionTimetableDeliveryStructure> productionTimetableDeliveries = incoming.getServiceDelivery().getProductionTimetableDeliveries();
                     logger.info("Got PT-delivery: Subscription [{}]", subscriptionSetup);
                     List<ProductionTimetableDeliveryStructure> addedOrUpdated = new ArrayList<>();

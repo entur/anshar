@@ -1,3 +1,18 @@
+/*
+ * Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
+ * the European Commission - subsequent versions of the EUPL (the "Licence");
+ * You may not use this work except in compliance with the Licence.
+ * You may obtain a copy of the Licence at:
+ *
+ *   https://joinup.ec.europa.eu/software/page/eupl
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the Licence is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the Licence for the specific language governing permissions and
+ * limitations under the Licence.
+ */
+
 package no.rutebanken.anshar.routes.export.file;
 
 import no.rutebanken.anshar.config.AnsharConfiguration;
@@ -33,9 +48,9 @@ public class RealtimeDataFileUploader extends BaseRouteBuilder {
 
     @Autowired
     private ExportHelper exportHelper;
-    final static String TMP_FOLDER = "AnsharTmpFolder";
+    private final static String TMP_FOLDER = "AnsharTmpFolder";
     final static String ZIP_FILE_PATH = "AnsharZipFilePATH";
-    final static String ZIP_FILE = "AnsharZipFile";
+    private final static String ZIP_FILE = "AnsharZipFile";
 
     protected RealtimeDataFileUploader(@Autowired AnsharConfiguration config, @Autowired SubscriptionManager subscriptionManager) {
         super(config, subscriptionManager);
@@ -111,7 +126,7 @@ public class RealtimeDataFileUploader extends BaseRouteBuilder {
         from("direct:anshar.export.delete.zip")
                 .process(p -> {
                     File folder = new File((String)p.getIn().getHeader(TMP_FOLDER));
-                    Arrays.stream(folder.listFiles(pathname -> pathname.getName().endsWith(".zip"))).forEach(file -> file.delete());
+                    Arrays.stream(folder.listFiles(pathname -> pathname.getName().endsWith(".zip"))).forEach(File::delete);
                 })
                 .routeId("anshar.export.delete.zip");
     }

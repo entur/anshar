@@ -1,3 +1,18 @@
+/*
+ * Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
+ * the European Commission - subsequent versions of the EUPL (the "Licence");
+ * You may not use this work except in compliance with the Licence.
+ * You may obtain a copy of the Licence at:
+ *
+ *   https://joinup.ec.europa.eu/software/page/eupl
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the Licence is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the Licence for the specific language governing permissions and
+ * limitations under the Licence.
+ */
+
 package no.rutebanken.anshar.routes.outbound;
 
 import no.rutebanken.anshar.routes.dataformat.SiriDataFormatHelper;
@@ -81,7 +96,7 @@ public class CamelRouteManager implements CamelContextAware {
                 List<Siri> splitSiri = siriHelper.splitDeliveries(filteredPayload, deliverySize);
 
                 if (splitSiri.size() > 1) {
-                    logger.info("Object split into {} deliveries.", splitSiri.size());
+                    logger.info("Object split into {} deliveries for subscription.", splitSiri.size(), subscriptionRequest);
                 }
 
                 SiriPushRouteBuilder siriPushRouteBuilder = new SiriPushRouteBuilder(consumerAddress, subscriptionRequest);
@@ -91,6 +106,8 @@ public class CamelRouteManager implements CamelContextAware {
                     executeSiriPushRoute(siri, route.getId());
                 }
             } catch (Exception e) {
+                logger.info("Failed to push data for subscription {}: {}", subscriptionRequest, e);
+
                 if (e.getCause() instanceof SocketException) {
                     logger.info("Recipient is unreachable - ignoring");
                 } else {
@@ -206,7 +223,7 @@ public class CamelRouteManager implements CamelContextAware {
             } else {
                 definition = from(routeName)
                         .routeId(routeName)
-                        .log(LoggingLevel.INFO, "POST data to " + remoteEndPoint + " [" + subscriptionRequest.getSubscriptionId() + "]")
+                        .log(LoggingLevel.INFO, "POST data to " + subscriptionRequest)
                         .setHeader("SubscriptionId", constant(subscriptionRequest.getSubscriptionId()))
                         .setHeader("CamelHttpMethod", constant("POST"))
                         .setHeader(Exchange.CONTENT_TYPE, constant("application/xml"))
@@ -215,7 +232,7 @@ public class CamelRouteManager implements CamelContextAware {
                         .to(remoteEndPoint + options)
                         .bean(subscriptionManager, "clearFailTracker(${header.SubscriptionId})")
                         .to("log:push-resp:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
-                        .log(LoggingLevel.INFO, "POST complete [" + subscriptionRequest.getSubscriptionId() + "]");
+                        .log(LoggingLevel.INFO, "POST complete " + subscriptionRequest);
             }
 
         }

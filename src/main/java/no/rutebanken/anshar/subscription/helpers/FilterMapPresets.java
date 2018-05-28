@@ -1,8 +1,24 @@
+/*
+ * Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
+ * the European Commission - subsequent versions of the EUPL (the "Licence");
+ * You may not use this work except in compliance with the Licence.
+ * You may obtain a copy of the Licence at:
+ *
+ *   https://joinup.ec.europa.eu/software/page/eupl
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the Licence is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the Licence for the specific language governing permissions and
+ * limitations under the Licence.
+ */
+
 package no.rutebanken.anshar.subscription.helpers;
 
 import uk.org.siri.siri20.DirectionRefStructure;
 import uk.org.siri.siri20.LineDirectionStructure;
 import uk.org.siri.siri20.LineRef;
+import uk.org.siri.siri20.OperatorRefStructure;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -18,9 +34,23 @@ public class FilterMapPresets {
             case BYBANEN:
                 filters.put(LineDirectionStructure.class, getSkyssLineDirectionFilters());
                 break;
+            case HED:
+                filters.put(OperatorRefStructure.class, getOperatorFilter("40")); // 40 - Fara's internal OperatorRef for Hedmark
+                break;
+            case OPP:
+                filters.put(OperatorRefStructure.class, getOperatorFilter("51")); // 51 - Fara's internal OperatorRef for Oppland
+                break;
         }
 
         return filters;
+    }
+
+    private Set<Object> getOperatorFilter(String operator) {
+        OperatorRefStructure operatorRefStructure = new OperatorRefStructure();
+        operatorRefStructure.setValue(operator);
+        Set<Object> operators = new HashSet<>();
+        operators.add(operatorRefStructure);
+        return operators;
     }
 
     private Set<Object> getSkyssLineDirectionFilters() {

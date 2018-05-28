@@ -1,12 +1,29 @@
+/*
+ * Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
+ * the European Commission - subsequent versions of the EUPL (the "Licence");
+ * You may not use this work except in compliance with the Licence.
+ * You may obtain a copy of the Licence at:
+ *
+ *   https://joinup.ec.europa.eu/software/page/eupl
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the Licence is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the Licence for the specific language governing permissions and
+ * limitations under the Licence.
+ */
+
 package no.rutebanken.anshar.subscription;
 
-import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.subscription.helpers.RequestType;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.time.Duration;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 import static junit.framework.TestCase.*;
 
@@ -24,7 +41,7 @@ public class SubscriptionSetupTest {
         urlMap_2.putAll(urlMap_1);
 
         setup_1 = new SubscriptionSetup(
-                SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE,
+                SiriDataType.SITUATION_EXCHANGE,
                 SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
                 "http://localhost",
                 Duration.ofHours(1),
@@ -35,9 +52,9 @@ public class SubscriptionSetupTest {
                 "SwarcoMizar",
                 "tst",
                 SubscriptionSetup.ServiceType.SOAP,
-                new ArrayList<ValueAdapter>(),
-                new HashMap<Class, Set<Object>>(),
-                new ArrayList<String>(),
+                new ArrayList<>(),
+                new HashMap<>(),
+                new ArrayList<>(),
                 UUID.randomUUID().toString(),
                 "RutebankenDEV",
                 Duration.ofSeconds((long) 1000),
@@ -45,7 +62,7 @@ public class SubscriptionSetupTest {
         );
 
         setup_2 = new SubscriptionSetup(
-                SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE,
+                SiriDataType.SITUATION_EXCHANGE,
                 SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
                 "http://localhost",
                 Duration.ofHours(1),
@@ -56,9 +73,9 @@ public class SubscriptionSetupTest {
                 "SwarcoMizar",
                 "tst",
                 SubscriptionSetup.ServiceType.SOAP,
-                new ArrayList<ValueAdapter>(),
-                new HashMap<Class, Set<Object>>(),
-                new ArrayList<String>(),
+                new ArrayList<>(),
+                new HashMap<>(),
+                new ArrayList<>(),
                 UUID.randomUUID().toString(),
                 "RutebankenDEV",
                 Duration.ofSeconds((long) 1000),
@@ -74,7 +91,7 @@ public class SubscriptionSetupTest {
     @Test
     public void testEqualsUpdatedSubscriptionType() {
         assertEquals(setup_1, setup_2);
-        setup_2.setSubscriptionType(SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING);
+        setup_2.setSubscriptionType(SiriDataType.VEHICLE_MONITORING);
         assertFalse(setup_1.equals(setup_2));
     }
 

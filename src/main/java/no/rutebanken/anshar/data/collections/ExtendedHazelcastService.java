@@ -1,3 +1,18 @@
+/*
+ * Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
+ * the European Commission - subsequent versions of the EUPL (the "Licence");
+ * You may not use this work except in compliance with the Licence.
+ * You may obtain a copy of the Licence at:
+ *
+ *   https://joinup.ec.europa.eu/software/page/eupl
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the Licence is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the Licence for the specific language governing permissions and
+ * limitations under the Licence.
+ */
+
 package no.rutebanken.anshar.data.collections;
 
 import com.hazelcast.config.SerializerConfig;
@@ -5,6 +20,7 @@ import com.hazelcast.core.*;
 import com.hazelcast.nio.serialization.ByteArraySerializer;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.routes.outbound.OutboundSubscriptionSetup;
+import no.rutebanken.anshar.subscription.SiriDataType;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -23,6 +39,7 @@ import uk.org.siri.siri20.VehicleActivityStructure;
 import java.io.*;
 import java.math.BigInteger;
 import java.time.Instant;
+import java.time.ZonedDateTime;
 import java.util.*;
 
 @Service
@@ -97,6 +114,16 @@ public class ExtendedHazelcastService extends HazelCastService {
     @Bean
     public IMap<String, Set<String>> getEstimatedTimetableChangesMap() {
         return hazelcast.getMap("anshar.et.changes");
+    }
+
+    @Bean
+    public IMap<String, String> getIdForPatternChangesMap() {
+        return hazelcast.getMap("anshar.et.index.pattern");
+    }
+
+    @Bean
+    public IMap<String, ZonedDateTime> getIdStartTimeMap() {
+        return hazelcast.getMap("anshar.et.index.startTime");
     }
 
     @Bean
@@ -229,8 +256,25 @@ public class ExtendedHazelcastService extends HazelCastService {
     }
 
     @Bean
-    public IMap<String, Map<SubscriptionSetup.SubscriptionType, Set<String>>> getUnmappedIds() {
+    public IMap<String, Map<SiriDataType, Set<String>>> getUnmappedIds() {
         return hazelcast.getMap("anshar.mapping.unmapped");
+    }
+
+    @Bean
+    public IMap<String, List<String>> getValidationResultRefMap() {
+        return hazelcast.getMap("anshar.validation.results.ref");
+    }
+    @Bean
+    public IMap<String, byte[]> getValidationResultSiriMap() {
+        return hazelcast.getMap("anshar.validation.results.siri");
+    }
+    @Bean
+    public IMap<String, JSONObject> getValidationResultJsonMap() {
+        return hazelcast.getMap("anshar.validation.results.json");
+    }
+    @Bean
+    public IMap<String, Long> getValidationSizeTracker() {
+        return hazelcast.getMap("anshar.validation.results.size");
     }
 
     @Bean

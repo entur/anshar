@@ -1,9 +1,24 @@
+/*
+ * Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
+ * the European Commission - subsequent versions of the EUPL (the "Licence");
+ * You may not use this work except in compliance with the Licence.
+ * You may obtain a copy of the Licence at:
+ *
+ *   https://joinup.ec.europa.eu/software/page/eupl
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the Licence is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the Licence for the specific language governing permissions and
+ * limitations under the Licence.
+ */
+
 package no.rutebanken.anshar.data;
 
 import com.hazelcast.core.IMap;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.metrics.MetricsService;
-import no.rutebanken.anshar.subscription.SubscriptionSetup;
+import no.rutebanken.anshar.subscription.SiriDataType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,9 +89,7 @@ public class ProductionTimetables implements SiriRepository<ProductionTimetableD
                 Set<String> datasetFilteredIdSet = new HashSet<>();
 
                 if (datasetId != null) {
-                    idSet.stream().filter(key -> key.startsWith(datasetId + ":")).forEach(key -> {
-                        datasetFilteredIdSet.add(key);
-                    });
+                    idSet.stream().filter(key -> key.startsWith(datasetId + ":")).forEach(datasetFilteredIdSet::add);
                 } else {
                     datasetFilteredIdSet.addAll(idSet);
                 }
@@ -107,7 +120,7 @@ public class ProductionTimetables implements SiriRepository<ProductionTimetableD
 
         ZonedDateTime validUntil = s.getValidUntil();
         if (validUntil != null) {
-            return ZonedDateTime.now().until(validUntil, ChronoUnit.MILLIS);
+            return ZonedDateTime.now().until(validUntil.plus(configuration.getPtGraceperiodMinutes(), ChronoUnit.MINUTES), ChronoUnit.MILLIS);
         }
 
         return -1;
@@ -137,7 +150,7 @@ public class ProductionTimetables implements SiriRepository<ProductionTimetableD
             }
         });
 
-        metricsService.registerIncomingData(SubscriptionSetup.SubscriptionType.PRODUCTION_TIMETABLE, datasetId, changes.size());
+        metricsService.registerIncomingData(SiriDataType.PRODUCTION_TIMETABLE, datasetId, timetableDeliveries);
 
         changesMap.keySet().forEach(requestor -> {
             if (lastUpdateRequested.get(requestor) != null) {
@@ -163,7 +176,7 @@ public class ProductionTimetables implements SiriRepository<ProductionTimetableD
         return timetableDeliveries.get(createKey(datasetId, timetableDelivery));
     }
     private String createKey(String datasetId, ProductionTimetableDeliveryStructure element) {
-        StringBuffer key = new StringBuffer();
+        StringBuilder key = new StringBuilder();
 
         key.append(datasetId).append(":")
                 .append(element.getVersion());

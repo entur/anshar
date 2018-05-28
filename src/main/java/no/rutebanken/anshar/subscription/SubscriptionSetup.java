@@ -1,3 +1,18 @@
+/*
+ * Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
+ * the European Commission - subsequent versions of the EUPL (the "Licence");
+ * You may not use this work except in compliance with the Licence.
+ * You may obtain a copy of the Licence at:
+ *
+ *   https://joinup.ec.europa.eu/software/page/eupl
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the Licence is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the Licence for the specific language governing permissions and
+ * limitations under the Licence.
+ */
+
 package no.rutebanken.anshar.subscription;
 
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
@@ -15,10 +30,10 @@ import java.util.*;
 
 public class SubscriptionSetup implements Serializable {
 
-    private Logger logger = LoggerFactory.getLogger(SubscriptionSetup.class);
+    private final Logger logger = LoggerFactory.getLogger(SubscriptionSetup.class);
     private long internalId;
     private List<ValueAdapter> mappingAdapters = new ArrayList<>();
-    private SubscriptionType subscriptionType;
+    private SiriDataType subscriptionType;
     private String address;
     private Duration heartbeatInterval;
     private Duration updateInterval;
@@ -47,6 +62,7 @@ public class SubscriptionSetup implements Serializable {
     private boolean overrideHttps;
     private String contentType;
     private String vehicleMonitoringRefValue;
+    private boolean validation;
 
     public SubscriptionSetup() {
     }
@@ -66,7 +82,7 @@ public class SubscriptionSetup implements Serializable {
      * @param durationOfSubscription Initial duration of subscription
      * @param active Activates/deactivates subscription
      */
-    public SubscriptionSetup(SubscriptionType subscriptionType, SubscriptionMode subscriptionMode, String address, Duration heartbeatInterval, Duration updateInterval, String operatorNamespace, Map<RequestType, String> urlMap,
+    public SubscriptionSetup(SiriDataType subscriptionType, SubscriptionMode subscriptionMode, String address, Duration heartbeatInterval, Duration updateInterval, String operatorNamespace, Map<RequestType, String> urlMap,
                              String version, String vendor, String datasetId, ServiceType serviceType, List<ValueAdapter> mappingAdapters, Map<Class, Set<Object>> filterMap, List<String> idMappingPrefixes,
                              String subscriptionId, String requestorRef, Duration durationOfSubscription, boolean active) {
         this.subscriptionType = subscriptionType;
@@ -161,7 +177,7 @@ public class SubscriptionSetup implements Serializable {
         return requestorRef;
     }
 
-    public SubscriptionType getSubscriptionType() {
+    public SiriDataType getSubscriptionType() {
         return subscriptionType;
     }
 
@@ -187,6 +203,7 @@ public class SubscriptionSetup implements Serializable {
     public JSONObject toJSON() {
         JSONObject obj = new JSONObject();
         obj.put("internalId", getInternalId());
+        obj.put("activated", isActive());
         obj.put("vendor", getVendor());
         obj.put("name", getName());
         obj.put("datasetId", getDatasetId());
@@ -202,6 +219,7 @@ public class SubscriptionSetup implements Serializable {
         obj.put("durationOfSubscription", getDurationOfSubscription().toString());
         obj.put("requestorRef", getRequestorRef());
         obj.put("inboundUrl", buildUrl(true));
+        obj.put("validation", isValidation());
         obj.put("contentType", getContentType());
 
         return obj;
@@ -307,8 +325,16 @@ public class SubscriptionSetup implements Serializable {
         return changeBeforeUpdates;
     }
 
+    public boolean isValidation() {
+        return validation;
+    }
+
+    public void setValidation(boolean validation) {
+        this.validation = validation;
+    }
+
     public enum ServiceType {SOAP, REST}
-    public enum SubscriptionType {SITUATION_EXCHANGE, VEHICLE_MONITORING, PRODUCTION_TIMETABLE, ESTIMATED_TIMETABLE}
+
     public enum SubscriptionMode {SUBSCRIBE, REQUEST_RESPONSE, POLLING_FETCHED_DELIVERY, FETCHED_DELIVERY}
 
     public void setIdMappingPrefixes(List<String> idMappingPrefixes) {
@@ -327,7 +353,7 @@ public class SubscriptionSetup implements Serializable {
         this.mappingAdapterId = mappingAdapterId;
     }
 
-    public void setSubscriptionType(SubscriptionType subscriptionType) {
+    public void setSubscriptionType(SiriDataType subscriptionType) {
         this.subscriptionType = subscriptionType;
     }
 
@@ -352,7 +378,7 @@ public class SubscriptionSetup implements Serializable {
         return updateInterval;
     }
 
-    public void setUpdateInterval(Duration updateInterval) {
+    private void setUpdateInterval(Duration updateInterval) {
         this.updateInterval = updateInterval;
     }
 
@@ -411,7 +437,7 @@ public class SubscriptionSetup implements Serializable {
         this.requestorRef = requestorRef;
     }
 
-    public String getName() {
+    private String getName() {
         return name;
     }
 

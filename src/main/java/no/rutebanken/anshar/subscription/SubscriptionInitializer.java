@@ -1,3 +1,18 @@
+/*
+ * Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
+ * the European Commission - subsequent versions of the EUPL (the "Licence");
+ * You may not use this work except in compliance with the Licence.
+ * You may obtain a copy of the Licence at:
+ *
+ *   https://joinup.ec.europa.eu/software/page/eupl
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the Licence is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the Licence for the specific language governing permissions and
+ * limitations under the Licence.
+ */
+
 package no.rutebanken.anshar.subscription;
 
 import com.google.common.base.Preconditions;
@@ -5,6 +20,8 @@ import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.routes.siri.*;
 import no.rutebanken.anshar.routes.siri.adapters.Mapping;
 import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
+import no.rutebanken.anshar.routes.siri.processor.CodespaceProcessor;
+import no.rutebanken.anshar.routes.siri.processor.ReportTypeProcessor;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.subscription.helpers.RequestType;
 import org.apache.camel.CamelContext;
@@ -95,6 +112,10 @@ public class SubscriptionInitializer implements CamelContextAware, ApplicationCo
                     Class adapterClass = mappingAdaptersById.get(subscriptionSetup.getMappingAdapterId());
                     try {
                         List<ValueAdapter> valueAdapters = (List<ValueAdapter>) adapterClass.getMethod("getValueAdapters", SubscriptionSetup.class).invoke(adapterClass.newInstance(), subscriptionSetup);
+
+                        //Is added to ALL subscriptions
+                        valueAdapters.add(new CodespaceProcessor(subscriptionSetup.getDatasetId()));
+                        valueAdapters.add(new ReportTypeProcessor());
 
                         subscriptionSetup.getMappingAdapters().addAll(valueAdapters);
                     } catch (Exception e) {
@@ -237,11 +258,11 @@ public class SubscriptionInitializer implements CamelContextAware, ApplicationCo
         Map<RequestType, String> urlMap = s.getUrlMap();
         if (s.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.REQUEST_RESPONSE) {
 
-            if (SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE.equals(s.getSubscriptionType())) {
+            if (SiriDataType.SITUATION_EXCHANGE.equals(s.getSubscriptionType())) {
                 Preconditions.checkNotNull(urlMap.get(RequestType.GET_SITUATION_EXCHANGE), "GET_SITUATION_EXCHANGE-url is missing. " + s);
-            } else if (SubscriptionSetup.SubscriptionType.VEHICLE_MONITORING.equals(s.getSubscriptionType())) {
+            } else if (SiriDataType.VEHICLE_MONITORING.equals(s.getSubscriptionType())) {
                 Preconditions.checkNotNull(urlMap.get(RequestType.GET_VEHICLE_MONITORING), "GET_VEHICLE_MONITORING-url is missing. " + s);
-            } else if (SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE.equals(s.getSubscriptionType())) {
+            } else if (SiriDataType.ESTIMATED_TIMETABLE.equals(s.getSubscriptionType())) {
                 Preconditions.checkNotNull(urlMap.get(RequestType.GET_ESTIMATED_TIMETABLE), "GET_ESTIMATED_TIMETABLE-url is missing. " + s);
             } else {
                 Preconditions.checkArgument(false, "URLs not configured correctly");
@@ -249,9 +270,9 @@ public class SubscriptionInitializer implements CamelContextAware, ApplicationCo
         } else if (s.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.SUBSCRIBE) {
 
             //Type-specific requirements
-            if (SubscriptionSetup.SubscriptionType.ESTIMATED_TIMETABLE.equals(s.getSubscriptionType())) {
+            if (SiriDataType.ESTIMATED_TIMETABLE.equals(s.getSubscriptionType())) {
                 Preconditions.checkNotNull(s.getPreviewInterval(), "PreviewInterval is not set");
-            } else if (SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE.equals(s.getSubscriptionType())) {
+            } else if (SiriDataType.SITUATION_EXCHANGE.equals(s.getSubscriptionType())) {
                 Preconditions.checkNotNull(s.getPreviewInterval(), "PreviewInterval is not set");
             }
 

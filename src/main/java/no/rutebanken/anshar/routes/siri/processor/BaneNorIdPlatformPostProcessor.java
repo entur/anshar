@@ -1,10 +1,25 @@
+/*
+ * Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
+ * the European Commission - subsequent versions of the EUPL (the "Licence");
+ * You may not use this work except in compliance with the Licence.
+ * You may obtain a copy of the Licence at:
+ *
+ *   https://joinup.ec.europa.eu/software/page/eupl
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the Licence is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the Licence for the specific language governing permissions and
+ * limitations under the Licence.
+ */
+
 package no.rutebanken.anshar.routes.siri.processor;
 
 import no.rutebanken.anshar.routes.health.HealthManager;
 import no.rutebanken.anshar.routes.siri.transformer.ApplicationContextHolder;
 import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
-import no.rutebanken.anshar.subscription.SubscriptionSetup;
+import no.rutebanken.anshar.subscription.SiriDataType;
 import uk.org.siri.siri20.*;
 
 import java.util.HashSet;
@@ -15,12 +30,12 @@ public class BaneNorIdPlatformPostProcessor extends ValueAdapter implements Post
 
     private static BaneNorIdPlatformUpdaterService stopPlaceService;
     private static HealthManager healthManager;
-    private final SubscriptionSetup.SubscriptionType type;
+    private final SiriDataType type;
 
     private static Set<String> unmappedAlreadyAdded;
     private final String datasetId;
 
-    public BaneNorIdPlatformPostProcessor(SubscriptionSetup.SubscriptionType type, String datasetId) {
+    public BaneNorIdPlatformPostProcessor(SiriDataType type, String datasetId) {
         this.datasetId = datasetId;
         this.type = type;
         unmappedAlreadyAdded = new HashSet<>();

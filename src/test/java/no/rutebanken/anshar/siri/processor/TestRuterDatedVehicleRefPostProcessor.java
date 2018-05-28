@@ -1,3 +1,18 @@
+/*
+ * Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
+ * the European Commission - subsequent versions of the EUPL (the "Licence");
+ * You may not use this work except in compliance with the Licence.
+ * You may obtain a copy of the Licence at:
+ *
+ *   https://joinup.ec.europa.eu/software/page/eupl
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the Licence is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the Licence for the specific language governing permissions and
+ * limitations under the Licence.
+ */
+
 package no.rutebanken.anshar.siri.processor;
 
 import no.rutebanken.anshar.routes.siri.handlers.OutboundIdMappingPolicy;
@@ -19,10 +34,10 @@ import static no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer.
 public class TestRuterDatedVehicleRefPostProcessor {
 
 
-    private String originalDatedVehicleRef = "250:125:9-12510";
-    private String targetVehicleRef = "RUT:ServiceJourney:250-125";
+    private final String originalDatedVehicleRef = "250:125:9-12510";
+    private final String targetVehicleRef = "RUT:ServiceJourney:250-125";
 
-    private String completeDatedVehicleRef = originalDatedVehicleRef + SEPARATOR + targetVehicleRef;
+    private final String completeDatedVehicleRef = originalDatedVehicleRef + SEPARATOR + targetVehicleRef;
 
     @Test
     public void testConvertDatedVehicleRef() {

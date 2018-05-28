@@ -1,10 +1,25 @@
+/*
+ * Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
+ * the European Commission - subsequent versions of the EUPL (the "Licence");
+ * You may not use this work except in compliance with the Licence.
+ * You may obtain a copy of the Licence at:
+ *
+ *   https://joinup.ec.europa.eu/software/page/eupl
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the Licence is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the Licence for the specific language governing permissions and
+ * limitations under the Licence.
+ */
+
 package no.rutebanken.anshar.data;
 
 import com.hazelcast.core.IMap;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.metrics.MetricsService;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
-import no.rutebanken.anshar.subscription.SubscriptionSetup;
+import no.rutebanken.anshar.subscription.SiriDataType;
 import org.quartz.utils.counter.Counter;
 import org.quartz.utils.counter.CounterImpl;
 import org.slf4j.Logger;
@@ -43,7 +58,6 @@ public class Situations implements SiriRepository<PtSituationElement> {
     @Autowired
     private SiriObjectFactory siriObjectFactory;
 
-
     @Autowired
     private MetricsService metricsService;
 
@@ -59,6 +73,12 @@ public class Situations implements SiriRepository<PtSituationElement> {
 
     public int getSize() {
         return situations.size();
+    }
+
+
+    public void clearAll() {
+        logger.error("Deleting all data - should only be used in test!!!");
+        situations.clear();
     }
 
     public Siri createServiceDelivery(String requestorId, String datasetId) {
@@ -83,29 +103,29 @@ public class Situations implements SiriRepository<PtSituationElement> {
         Set<String> idSet = changesMap.getOrDefault(requestorId, allIds);
 
         if (idSet == allIds) {
-            situations.keySet().forEach(key -> idSet.add(key));
+            situations.keySet().forEach(idSet::add);
         }
 
         lastUpdateRequested.set(requestorId, Instant.now(), trackingPeriodMinutes, TimeUnit.MINUTES);
 
         //Filter by datasetId
-        Set<String> collectedIds = idSet.stream()
+        Set<String> requestedIds = idSet.stream()
                 .filter(key -> datasetId == null || key.startsWith(datasetId + ":"))
-                .limit(maxSize)
                 .collect(Collectors.toSet());
 
+        Set<String> sizeLimitedIds = requestedIds.stream().limit(maxSize).collect(Collectors.toSet());
+
+        Boolean isMoreData = sizeLimitedIds.size() < requestedIds.size();
+
         //Remove collected objects
-        collectedIds.forEach(idSet::remove);
+        sizeLimitedIds.forEach(idSet::remove);
 
-
-        logger.info("Returning {}, {} left for requestorRef {}", collectedIds.size(), idSet.size(), requestorId);
-
-        Boolean isMoreData = !idSet.isEmpty();
+        logger.info("Returning {}, {} left for requestorRef {}", sizeLimitedIds.size(), idSet.size(), requestorId);
 
         //Update change-tracker
         changesMap.set(requestorId, idSet);
 
-        Collection<PtSituationElement> values = situations.getAll(collectedIds).values();
+        Collection<PtSituationElement> values = situations.getAll(sizeLimitedIds).values();
         Siri siri = siriObjectFactory.createSXServiceDelivery(values);
 
         siri.getServiceDelivery().setMoreData(isMoreData);
@@ -149,7 +169,7 @@ public class Situations implements SiriRepository<PtSituationElement> {
                 Set<String> datasetFilteredIdSet = new HashSet<>();
 
                 if (datasetId != null) {
-                    idSet.stream().filter(key -> key.startsWith(datasetId + ":")).forEach(key -> datasetFilteredIdSet.add(key));
+                    idSet.stream().filter(key -> key.startsWith(datasetId + ":")).forEach(datasetFilteredIdSet::add);
                 } else {
                     datasetFilteredIdSet.addAll(idSet);
                 }
@@ -193,7 +213,7 @@ public class Situations implements SiriRepository<PtSituationElement> {
         }
 
         if (expiry != null) {
-            return ZonedDateTime.now().until(expiry, ChronoUnit.MILLIS);
+            return ZonedDateTime.now().until(expiry.plus(configuration.getSxGraceperiodMinutes(), ChronoUnit.MINUTES), ChronoUnit.MILLIS);
         } else {
             return -1;
         }
@@ -223,7 +243,7 @@ public class Situations implements SiriRepository<PtSituationElement> {
         });
         logger.info("Updated {} (of {}) :: Already expired: {},", changes.size(), sxList.size(), alreadyExpiredCounter.getValue());
 
-        metricsService.registerIncomingData(SubscriptionSetup.SubscriptionType.SITUATION_EXCHANGE, datasetId, changes.size());
+        metricsService.registerIncomingData(SiriDataType.SITUATION_EXCHANGE, datasetId, situations);
 
         changesMap.keySet().forEach(requestor -> {
             if (lastUpdateRequested.get(requestor) != null) {
@@ -248,7 +268,7 @@ public class Situations implements SiriRepository<PtSituationElement> {
     }
 
     private static String createKey(String datasetId, PtSituationElement element) {
-        StringBuffer key = new StringBuffer();
+        StringBuilder key = new StringBuilder();
 
         key.append(datasetId).append(":")
                 .append((element.getSituationNumber() != null ? element.getSituationNumber().getValue() : "null"))

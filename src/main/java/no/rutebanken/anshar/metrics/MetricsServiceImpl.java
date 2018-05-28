@@ -1,11 +1,27 @@
+/*
+ * Licensed under the EUPL, Version 1.2 or – as soon they will be approved by
+ * the European Commission - subsequent versions of the EUPL (the "Licence");
+ * You may not use this work except in compliance with the Licence.
+ * You may obtain a copy of the Licence at:
+ *
+ *   https://joinup.ec.europa.eu/software/page/eupl
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the Licence is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the Licence for the specific language governing permissions and
+ * limitations under the Licence.
+ */
+
 package no.rutebanken.anshar.metrics;
 
+import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.graphite.Graphite;
 import com.codahale.metrics.graphite.GraphiteReporter;
 import com.google.common.base.Strings;
-import no.rutebanken.anshar.subscription.SubscriptionSetup;
+import no.rutebanken.anshar.subscription.SiriDataType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,6 +29,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public class MetricsServiceImpl implements MetricsService {
@@ -60,19 +77,16 @@ public class MetricsServiceImpl implements MetricsService {
 
 
     @Override
-    public void registerIncomingData(SubscriptionSetup.SubscriptionType subscriptionType, String agencyId, int count) {
-        String counterName = "data.from." + agencyId + ".type." + subscriptionType;
-//        synchronized (LOCK) {
-             metrics.meter(counterName).mark(count);
-
-//            //Immediately report only the updated Meter
-//            reporter.report(
-//                    metrics.getGauges(),
-//                    metrics.getCounters(),
-//                    metrics.getHistograms(),
-//                    metrics.getMeters((name, metric) -> counterName.equals(name)),
-//                    metrics.getTimers());
-//        }
+    public void registerIncomingData(SiriDataType subscriptionType, String agencyId, Map data) {
+        String counterName = "data.type." + subscriptionType;
+        if (!metrics.getGauges().containsKey(counterName)) {
+            metrics.gauge(counterName, () -> new Gauge() {
+                @Override
+                public Integer getValue() {
+                    return data.size();
+                }
+            });
+        }
     }
 
 }
