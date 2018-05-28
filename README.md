@@ -32,3 +32,10 @@ To view status/statistics (JSON-format) for all clustering.
 - http://<host>:<port>/anshar/clusterstats
 ```
 
+## Validation
+Anshar supports validating all incoming XML against the SIRI XSD and a customizable subset (default is the norwegian SIRI Profile)
+Validation is administered per codespace - and is accessible on:
+```
+- http://<host>:<port>/anshar/validation/ENT
+```
+
