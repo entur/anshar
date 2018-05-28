@@ -292,46 +292,36 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
         return new ArrayList<>(datasetIdSpecific.values());
     }
 
-    private ZonedDateTime getStartTime(EstimatedVehicleJourney vehicleJourney) {
-        ZonedDateTime startTime = null;
-        if (vehicleJourney != null) {
-            if (vehicleJourney.getRecordedCalls() != null && !vehicleJourney.getRecordedCalls().getRecordedCalls().isEmpty()) {
-                List<RecordedCall> recordedCalls = vehicleJourney.getRecordedCalls().getRecordedCalls();
-                RecordedCall firstRecordedCall = recordedCalls.get(0);
+    private ZonedDateTime getFirstAimedTime(EstimatedVehicleJourney vehicleJourney) {
 
-                if (firstRecordedCall.getAimedArrivalTime() != null) {
-                    startTime = firstRecordedCall.getAimedArrivalTime();
-                }
-                if (firstRecordedCall.getAimedDepartureTime() != null) {
-                    startTime = firstRecordedCall.getAimedDepartureTime();
-                }
-                if (firstRecordedCall.getExpectedArrivalTime() != null) {
-                    startTime = firstRecordedCall.getExpectedArrivalTime();
-                }
-                if (firstRecordedCall.getExpectedDepartureTime() != null) {
-                    startTime = firstRecordedCall.getExpectedDepartureTime();
-                }
+        if (vehicleJourney.getRecordedCalls() != null && !vehicleJourney.getRecordedCalls().getRecordedCalls().isEmpty()) {
+            List<RecordedCall> recordedCalls = vehicleJourney.getRecordedCalls().getRecordedCalls();
+            RecordedCall firstRecordedCall = recordedCalls.get(0);
 
+            if (firstRecordedCall.getAimedDepartureTime() != null) {
+                return firstRecordedCall.getAimedDepartureTime();
             }
-            if (vehicleJourney.getEstimatedCalls() != null && !vehicleJourney.getEstimatedCalls().getEstimatedCalls().isEmpty()) {
-                List<EstimatedCall> estimatedCalls = vehicleJourney.getEstimatedCalls().getEstimatedCalls();
-                EstimatedCall firstEstimatedCall = estimatedCalls.get(0);
 
-                if (firstEstimatedCall.getAimedArrivalTime() != null) {
-                    startTime = firstEstimatedCall.getAimedArrivalTime();
-                }
-                if (firstEstimatedCall.getAimedDepartureTime() != null) {
-                    startTime = firstEstimatedCall.getAimedDepartureTime();
-                }
-                if (firstEstimatedCall.getExpectedArrivalTime() != null) {
-                    startTime = firstEstimatedCall.getExpectedArrivalTime();
-                }
-                if (firstEstimatedCall.getExpectedDepartureTime() != null) {
-                    startTime = firstEstimatedCall.getExpectedDepartureTime();
-                }
+            if (firstRecordedCall.getAimedArrivalTime() != null) {
+                return firstRecordedCall.getAimedArrivalTime();
             }
         }
-        return startTime;
+
+        if (vehicleJourney.getEstimatedCalls() != null && !vehicleJourney.getEstimatedCalls().getEstimatedCalls().isEmpty()) {
+            List<EstimatedCall> estimatedCalls = vehicleJourney.getEstimatedCalls().getEstimatedCalls();
+            EstimatedCall firstEstimatedCall = estimatedCalls.get(0);
+
+            if (firstEstimatedCall.getAimedDepartureTime() != null) {
+                return firstEstimatedCall.getAimedDepartureTime();
+            }
+            if (firstEstimatedCall.getAimedArrivalTime() != null) {
+                return firstEstimatedCall.getAimedArrivalTime();
+            }
+        }
+
+        logger.warn("Unable to find aimed time for VehicleJourney with key {}, returning 'now'", createKey(vehicleJourney.getDataSource(), vehicleJourney));
+
+        return ZonedDateTime.now();
     }
 
     public long getExpiration(EstimatedVehicleJourney vehicleJourney) {
@@ -499,7 +489,9 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
                             idForPatternChanges.set(key, key, expiration, TimeUnit.MILLISECONDS);
                         }
 
-                        idStartTimeMap.set(key, getStartTime(et), expiration, TimeUnit.MILLISECONDS);
+                        if (et != null) {
+                            idStartTimeMap.set(key, getFirstAimedTime(et), expiration, TimeUnit.MILLISECONDS);
+                        }
 
 
                     }
