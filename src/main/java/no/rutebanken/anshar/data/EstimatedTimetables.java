@@ -489,11 +489,7 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
                             idForPatternChanges.set(key, key, expiration, TimeUnit.MILLISECONDS);
                         }
 
-                        if (et != null) {
-                            idStartTimeMap.set(key, getFirstAimedTime(et), expiration, TimeUnit.MILLISECONDS);
-                        }
-
-
+                        idStartTimeMap.set(key, getFirstAimedTime(et), expiration, TimeUnit.MILLISECONDS);
                     }
                 } else {
                     outdatedCounter.increment();
