@@ -30,10 +30,10 @@
 
     <ul class="nav nav-tabs" id="tabs" role="tablist">
         <li class="nav-item">
-            <a class="nav-link active" id="inbound-tab" data-toggle="tab" href="#inbound" role="tab" aria-controls="inbound" aria-selected="true">Inbound <span class="glyphicon glyphicon-arrow-down"></span> </a>
+            <a class="nav-link active" id="inbound-tab" data-toggle="tab" href="#inbound" role="tab" aria-controls="inbound" aria-selected="true">Inbound <span class="badge alert-success">${body.subscriptions?size}</span> <span class="glyphicon glyphicon-arrow-down"></span> </a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" id="outbound-tab" data-toggle="tab" href="#outbound" role="tab" aria-controls="outbound" aria-selected="false">Outbound <span class="glyphicon glyphicon-arrow-up"></span></a>
+            <a class="nav-link" id="outbound-tab" data-toggle="tab" href="#outbound" role="tab" aria-controls="outbound" aria-selected="false">Outbound <span class="badge alert-success">${body.outbound?size}</span> <span class="glyphicon glyphicon-arrow-up"></span></a>
         </li>
     </ul>
 
