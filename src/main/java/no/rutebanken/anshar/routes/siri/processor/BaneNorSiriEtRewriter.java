@@ -99,23 +99,6 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
                                                 estimatedCall.setOrder(BigInteger.valueOf(order++));
                                             }
 
-                                            if (estimatedCalls.size() > 1) {
-                                                //Remove arrival on first
-                                                estimatedCalls.get(0).setAimedArrivalTime(null);
-                                                estimatedCalls.get(0).setExpectedArrivalTime(null);
-                                                estimatedCalls.get(0).setArrivalBoardingActivity(null);
-                                                estimatedCalls.get(0).setArrivalPlatformName(null);
-                                                estimatedCalls.get(0).setArrivalStatus(null);
-
-                                                //Remove departure on last
-                                                estimatedCalls.get(estimatedCalls.size() - 1).setAimedDepartureTime(null);
-                                                estimatedCalls.get(estimatedCalls.size() - 1).setExpectedDepartureTime(null);
-                                                estimatedCalls.get(estimatedCalls.size() - 1).setDepartureBoardingActivity(null);
-                                                estimatedCalls.get(estimatedCalls.size() - 1).setDeparturePlatformName(null);
-                                                estimatedCalls.get(estimatedCalls.size() - 1).setDepartureStatus(null);
-                                            }
-
-
                                             EstimatedVehicleJourney journey = new EstimatedVehicleJourney();
 
                                             journey.setLineRef(estimatedVehicleJourney.getLineRef());
