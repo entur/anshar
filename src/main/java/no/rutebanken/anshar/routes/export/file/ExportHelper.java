@@ -78,7 +78,12 @@ public class ExportHelper {
                             for (EstimatedVehicleJourney estimatedVehicleJourney : estimatedVersionFrameStructure.getEstimatedVehicleJourneies()) {
                                 GtfsRealtime.FeedEntity.Builder entity = GtfsRealtime.FeedEntity.newBuilder();
                                 entity.setTripUpdate(tripUpdateFactory.createTripUpdateFromEstimatedVehicleJourney(estimatedVehicleJourney));
-                                entity.setId(estimatedVehicleJourney.getDatedVehicleJourneyRef().getValue());
+
+                                if (estimatedVehicleJourney.getDatedVehicleJourneyRef() != null) {
+                                    entity.setId(estimatedVehicleJourney.getDatedVehicleJourneyRef().getValue());
+                                } else {
+                                    entity.setId(estimatedVehicleJourney.getFramedVehicleJourneyRef().getDatedVehicleJourneyRef());
+                                }
                                 builder.addEntity(entity);
                             }
                         }
