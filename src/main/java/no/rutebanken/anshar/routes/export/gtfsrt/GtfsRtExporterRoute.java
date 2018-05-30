@@ -69,8 +69,8 @@ public class GtfsRtExporterRoute extends BaseRouteBuilder {
 
 
         from("direct:anshar.export.upload.gtfsrt")
-                .bean("blobStoreService", "uploadBlob(${header."+FILENAME+"}-${date:now:yyyyMMdd-HHmmss}, ${body})")
-                .log("GTFS-RT uploaded.")
+                .bean("blobStoreService", "uploadBlob(${header."+FILENAME+"}-${date:now:yyyyMMdd-HHmmss}.pbf, ${body})")
+                .log("GTFS-RT uploaded [${header."+FILENAME+"}-${date:now:yyyyMMdd-HHmmss}.pbf]")
                 .routeId("anshar.export.upload.gtfsrt");
 
     }
