@@ -50,7 +50,7 @@ public class RealtimeDataFileUploader extends BaseRouteBuilder {
     private ExportHelper exportHelper;
     private final static String TMP_FOLDER = "AnsharTmpFolder";
     final static String ZIP_FILE_PATH = "AnsharZipFilePATH";
-    private final static String ZIP_FILE = "AnsharZipFile";
+    public final static String ZIP_FILE = "AnsharZipFile";
 
     protected RealtimeDataFileUploader(@Autowired AnsharConfiguration config, @Autowired SubscriptionManager subscriptionManager) {
         super(config, subscriptionManager);

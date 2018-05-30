@@ -22,10 +22,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.io.*;
 
 @Service
 public class BlobStoreService {
@@ -48,5 +45,9 @@ public class BlobStoreService {
 	public void uploadBlob(@Header(value = RealtimeDataFileUploader.ZIP_FILE_PATH) String path) throws FileNotFoundException {
 		File f = new File(path);
 		repository.uploadBlob(f.getName(), new BufferedInputStream(new FileInputStream(f)), true);
+	}
+
+	public void uploadBlob(String name, byte[] data) throws FileNotFoundException {
+		repository.uploadBlob(name, new BufferedInputStream(new ByteArrayInputStream(data)), true);
 	}
 }

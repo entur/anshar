@@ -26,7 +26,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import uk.org.siri.siri20.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -60,7 +59,15 @@ public class ExportHelper {
     private Siri transform(Siri body) {
         return SiriValueTransformer.transform(body, mappingAdapterPresets.getOutboundAdapters(OutboundIdMappingPolicy.DEFAULT));
     }
-    public void createGtfsRt(Siri siri) {
+    public byte[] createGtfsRt(Siri siri) {
+
+        GtfsRealtime.FeedMessage.Builder builder = GtfsRealtime.FeedMessage.newBuilder();
+
+        GtfsRealtime.FeedHeader.Builder header = GtfsRealtime.FeedHeader.newBuilder();
+        header.setIncrementality(GtfsRealtime.FeedHeader.Incrementality.FULL_DATASET);
+        header.setGtfsRealtimeVersion("2.0");
+        builder.setHeader(header);
+
         ServiceDelivery serviceDelivery = siri.getServiceDelivery();
         //SIRI ET
         if (isNonNullNonEmptyList(serviceDelivery.getEstimatedTimetableDeliveries())) {
@@ -69,24 +76,30 @@ public class ExportHelper {
                     for (EstimatedVersionFrameStructure estimatedVersionFrameStructure : deliveryStructure.getEstimatedJourneyVersionFrames()) {
                         if (isNonNullNonEmptyList(estimatedVersionFrameStructure.getEstimatedVehicleJourneies())) {
                             for (EstimatedVehicleJourney estimatedVehicleJourney : estimatedVersionFrameStructure.getEstimatedVehicleJourneies()) {
-//                                tripUpdateFactory.createTripUpdateEstimatedVehicleJourney(estimatedVehicleJourney)
+                                GtfsRealtime.FeedEntity.Builder entity = GtfsRealtime.FeedEntity.newBuilder();
+                                entity.setTripUpdate(tripUpdateFactory.createTripUpdateFromEstimatedVehicleJourney(estimatedVehicleJourney));
+                                entity.setId(estimatedVehicleJourney.getDatedVehicleJourneyRef().getValue());
+                                builder.addEntity(entity);
                             }
                         }
                     }
                 }
             }
-        } else if (isNonNullNonEmptyList(serviceDelivery.getSituationExchangeDeliveries())) {
-            List<GtfsRealtime.Alert> alerts = new ArrayList<>();
-
-            for (SituationExchangeDeliveryStructure sxDeliveryStructure : serviceDelivery.getSituationExchangeDeliveries()) {
-                if (sxDeliveryStructure.getSituations() != null && isNonNullNonEmptyList(sxDeliveryStructure.getSituations().getPtSituationElements())) {
-                    for (PtSituationElement sx : sxDeliveryStructure.getSituations().getPtSituationElements()) {
-                        alerts.add(alertFactory.createAlertFromSituation(sx));
-                    }
-                }
-            }
-            System.out.println("Created alerts: " + alerts);
         }
+//        else if (isNonNullNonEmptyList(serviceDelivery.getSituationExchangeDeliveries())) {
+//            List<GtfsRealtime.Alert> alerts = new ArrayList<>();
+//
+//            for (SituationExchangeDeliveryStructure sxDeliveryStructure : serviceDelivery.getSituationExchangeDeliveries()) {
+//                if (sxDeliveryStructure.getSituations() != null && isNonNullNonEmptyList(sxDeliveryStructure.getSituations().getPtSituationElements())) {
+//                    for (PtSituationElement sx : sxDeliveryStructure.getSituations().getPtSituationElements()) {
+//                        alerts.add(alertFactory.createAlertFromSituation(sx));
+//                    }
+//                }
+//            }
+//            System.out.println("Created alerts: " + alerts);
+//        }
+
+        return builder.build().toByteArray();
     }
 
     private boolean isNonNullNonEmptyList(List deliveries) {

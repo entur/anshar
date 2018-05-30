@@ -16,17 +16,14 @@ import java.util.Date;
 @Component
 public class GtfsRtExporterRoute extends BaseRouteBuilder {
 
-    @Value("${anshar.export.gtfsrt.tmpFolder:/tmp/anshar/gtfsrt}")
-    private String tmpFolder;
-
-    @Value("${anshar.export.gtfsrt.cron.expression}")
+    @Value("${anshar.export.gtfsrt.cron.expression:}")
     private String snapshotCronExpression;
 
     @Autowired
     private ExportHelper exportHelper;
 
-    final static String TMP_FOLDER = "AnsharTmpFolder";
-
+    private static final java.lang.String FILENAME = "FILENAME";
+    private static final java.lang.String GTFS_RT_FILENAME = "entur_gtfs_rt.pbf";
 
     protected GtfsRtExporterRoute(@Autowired AnsharConfiguration config, @Autowired SubscriptionManager subscriptionManager) {
         super(config, subscriptionManager);
@@ -35,13 +32,11 @@ public class GtfsRtExporterRoute extends BaseRouteBuilder {
     @Override
     public void configure() throws Exception {
 
+        snapshotCronExpression = "0 0/1 * ? * * *";
+
         if (snapshotCronExpression == null || snapshotCronExpression.isEmpty()) {
             log.info("Uploading snapshot disabled");
             return;
-        }
-
-        if (tmpFolder.endsWith("/")) {
-            tmpFolder = tmpFolder.substring(0, tmpFolder.length()-1);
         }
 
         log.info("Creating GTFS-RT with cron-expression [{}], first creation at: {}.", snapshotCronExpression,
@@ -51,26 +46,32 @@ public class GtfsRtExporterRoute extends BaseRouteBuilder {
                  "anshar.export.gtfsrt")
                 .choice()
                 .when(p -> isLeader())
-                    .setHeader(TMP_FOLDER, simple(tmpFolder))
+                    .setHeader(FILENAME, simple(GTFS_RT_FILENAME))
                     .bean(exportHelper, "exportET")
                     .bean(exportHelper, "createGtfsRt(${body})")
-                    .setHeader("siriDataType", simple("ET"))
-//                    .to("direct:anshar.export.gtfsrt.create")
-
-                    .bean(exportHelper, "exportSX")
-                    .setHeader("siriDataType", simple("SX"))
-//                    .to("direct:anshar.export.gtfsrt.create")
-
-                    .bean(exportHelper, "exportVM")
-                    .setHeader("siriDataType", simple("VM"))
-//                    .to("direct:anshar.export.gtfsrt.create")
-
-//                    .to("direct:anshar.export.create.zip")
-//                    .to("direct:anshar.export.upload.zip")
-//                    .to("direct:anshar.export.delete.zip")
-//                .end()
-
+                    .to("direct:anshar.export.upload.gtfsrt")
+//                    .setHeader("siriDataType", simple("ET"))
+////                    .to("direct:anshar.export.gtfsrt.create")
+//
+//                    .bean(exportHelper, "exportSX")
+//                    .setHeader("siriDataType", simple("SX"))
+////                    .to("direct:anshar.export.gtfsrt.create")
+//
+//                    .bean(exportHelper, "exportVM")
+//                    .setHeader("siriDataType", simple("VM"))
+////                    .to("direct:anshar.export.gtfsrt.create")
+//
+////                    .to("direct:anshar.export.create.gtfsrt.zip")
+////                    .to("direct:anshar.export.upload.zip")
+////                    .to("direct:anshar.export.delete.zip")
+                .end()
         ;
+
+
+        from("direct:anshar.export.upload.gtfsrt")
+                .bean("blobStoreService", "uploadBlob(${header."+FILENAME+"}-${date:now:yyyyMMdd-HHmmss}, ${body})")
+                .log("GTFS-RT uploaded.")
+                .routeId("anshar.export.upload.gtfsrt");
 
     }
 

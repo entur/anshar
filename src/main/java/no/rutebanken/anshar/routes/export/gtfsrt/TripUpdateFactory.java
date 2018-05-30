@@ -9,9 +9,53 @@ import javax.xml.datatype.Duration;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.Date;
+import java.util.List;
 
 @Component
 public class TripUpdateFactory {
+
+
+    public GtfsRealtime.TripUpdate createTripUpdateFromEstimatedVehicleJourney(EstimatedVehicleJourney journey) {
+
+        GtfsRealtime.TripUpdate.Builder tripUpdate = GtfsRealtime.TripUpdate.newBuilder();
+        GtfsRealtime.TripDescriptor td = this.getMonitoredVehicleJourneyAsTripDescriptor(journey);
+        tripUpdate.setTrip(td);
+
+        GtfsRealtime.VehicleDescriptor vd = this.getMonitoredVehicleJourneyAsVehicleDescriptor(journey.getVehicleRef());
+        if(vd != null) {
+            tripUpdate.setVehicle(vd);
+        }
+
+        if (journey.getEstimatedCalls() != null && journey.getEstimatedCalls().getEstimatedCalls() != null) {
+            List<EstimatedCall> estimatedCalls = journey.getEstimatedCalls().getEstimatedCalls();
+            for (EstimatedCall estimatedCall : estimatedCalls) {
+
+                GtfsRealtime.TripUpdate.StopTimeUpdate.Builder stoptimeUpdate = GtfsRealtime.TripUpdate.StopTimeUpdate.newBuilder();
+                stoptimeUpdate.setStopId(estimatedCall.getStopPointRef().getValue());
+
+                if (estimatedCall.getExpectedArrivalTime() != null) {
+                    stoptimeUpdate.setArrival(getStopTimeEvent(estimatedCall.getAimedArrivalTime(), estimatedCall.getExpectedArrivalTime()));
+                }
+
+                if (estimatedCall.getExpectedDepartureTime() != null) {
+                    stoptimeUpdate.setDeparture(getStopTimeEvent(estimatedCall.getAimedDepartureTime(), estimatedCall.getExpectedDepartureTime()));
+                }
+
+                tripUpdate.addStopTimeUpdate(stoptimeUpdate);
+            }
+        }
+
+
+        return tripUpdate.build();
+    }
+
+    private GtfsRealtime.TripUpdate.StopTimeEvent getStopTimeEvent(ZonedDateTime aimedTime, ZonedDateTime expectedTime) {
+        GtfsRealtime.TripUpdate.StopTimeEvent.Builder steBuilder = GtfsRealtime.TripUpdate.StopTimeEvent.newBuilder();
+        steBuilder.setTime(expectedTime.toEpochSecond());
+        steBuilder.setDelay((int) (expectedTime.toEpochSecond()-aimedTime.toEpochSecond()));
+        steBuilder.setUncertainty(0);
+        return steBuilder.build();
+    }
 
     public GtfsRealtime.TripUpdate createTripUpdateFromVehicleMonitoring(VehicleActivityStructure activity) {
 
@@ -57,8 +101,33 @@ public class TripUpdateFactory {
         return td.build();
     }
 
+
+    private GtfsRealtime.TripDescriptor getMonitoredVehicleJourneyAsTripDescriptor(EstimatedVehicleJourney journey) {
+        com.google.transit.realtime.GtfsRealtime.TripDescriptor.Builder td = GtfsRealtime.TripDescriptor.newBuilder();
+        String tripId = getTripId(journey);
+        if (tripId != null) {
+            td.setTripId(tripId);
+        }
+        return td.build();
+    }
+
+    private String getTripId(EstimatedVehicleJourney journey) {
+
+        if (journey.getFramedVehicleJourneyRef() != null) {
+            return journey.getFramedVehicleJourneyRef().getDatedVehicleJourneyRef();
+        } else {
+            return journey.getDatedVehicleJourneyRef().getValue();
+        }
+
+    }
+
+
     private GtfsRealtime.VehicleDescriptor getMonitoredVehicleJourneyAsVehicleDescriptor(VehicleActivityStructure.MonitoredVehicleJourney mvj) {
-        VehicleRef vehicleRef = mvj.getVehicleRef();
+        return getMonitoredVehicleJourneyAsVehicleDescriptor(mvj.getVehicleRef());
+    }
+
+
+    private GtfsRealtime.VehicleDescriptor getMonitoredVehicleJourneyAsVehicleDescriptor(VehicleRef vehicleRef) {
         if(vehicleRef != null && vehicleRef.getValue() != null) {
             com.google.transit.realtime.GtfsRealtime.VehicleDescriptor.Builder vd = GtfsRealtime.VehicleDescriptor.newBuilder();
             vd.setId(vehicleRef.getValue());
