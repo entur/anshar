@@ -77,7 +77,6 @@ public class GtfsRtExporterRoute extends BaseRouteBuilder {
 
     private boolean isLeader() {
         boolean isLeader = isLeader("anshar.export.gtfsrt");
-        log.info("Is leader: {}", isLeader);
         return isLeader;
     }
 }
