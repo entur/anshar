@@ -103,8 +103,10 @@ public class ExportHelper {
 //            }
 //            System.out.println("Created alerts: " + alerts);
 //        }
-
-        return builder.build().toByteArray();
+        if (builder.getEntityList().size() > 0) {
+            return builder.build().toByteArray();
+        }
+        return null;
     }
 
     private boolean isNonNullNonEmptyList(List deliveries) {

@@ -32,8 +32,6 @@ public class GtfsRtExporterRoute extends BaseRouteBuilder {
     @Override
     public void configure() throws Exception {
 
-        snapshotCronExpression = "0 0/1 * ? * * *";
-
         if (snapshotCronExpression == null || snapshotCronExpression.isEmpty()) {
             log.info("Uploading snapshot disabled");
             return;

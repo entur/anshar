@@ -48,6 +48,8 @@ public class BlobStoreService {
 	}
 
 	public void uploadBlob(String name, byte[] data) throws FileNotFoundException {
-		repository.uploadBlob(name, new BufferedInputStream(new ByteArrayInputStream(data)), true);
+		if (data != null) {
+			repository.uploadBlob(name, new BufferedInputStream(new ByteArrayInputStream(data)), true);
+		}
 	}
 }
