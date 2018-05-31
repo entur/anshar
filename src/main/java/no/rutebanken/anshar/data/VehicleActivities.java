@@ -245,7 +245,7 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
 
                         VehicleActivityStructure existing = vehicleActivities.get(key);
 
-                        boolean keep = (existing == null); //No existing data i.e. keep
+                        boolean keep = true;//(existing == null); //No existing data i.e. keep
 
 //                        if (existing != null &&
 //                                (activity.getRecordedAtTime() != null && existing.getRecordedAtTime() != null)) {
