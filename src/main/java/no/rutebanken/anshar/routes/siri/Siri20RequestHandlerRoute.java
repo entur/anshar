@@ -182,12 +182,6 @@ public class Siri20RequestHandlerRoute extends RouteBuilder {
                 .routeId("incoming.receive")
         ;
 
-        // Temporary route for logging raw inputdata from external subscriptions
-        from("jetty:http://0.0.0.0:" + configuration.getInboundPort() + "/anshar/tmplogger")
-                .to("file:" + configuration.getIncomingLogDirectory() + "/")
-                .routeId("admin.filelogger")
-        ;
-
         from("activemq:queue:" + CamelRouteNames.TRANSFORM_QUEUE + activeMqConsumerParameters)
                // .to("log:raw:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .choice()
