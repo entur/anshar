@@ -19,7 +19,6 @@ import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.routes.CamelRouteNames;
 import no.rutebanken.anshar.routes.dataformat.SiriDataFormatHelper;
 import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
-import no.rutebanken.anshar.routes.validation.SiriXmlValidator;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.camel.Exchange;
@@ -27,7 +26,6 @@ import org.apache.camel.InvalidPayloadException;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.builder.xml.Namespaces;
-import org.json.simple.JSONObject;
 import org.rutebanken.validator.SiriValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -189,22 +187,6 @@ public class Siri20RequestHandlerRoute extends RouteBuilder {
                 .to("file:" + configuration.getIncomingLogDirectory() + "/")
                 .routeId("admin.filelogger")
         ;
-
-        // Validate XML against schema only
-        from("jetty:http://0.0.0.0:" + configuration.getInboundPort() + "/anshar/rest/sirivalidator?httpMethodRestrict=POST")
-                .process(p -> {
-                    InputStream xml = p.getIn().getBody(InputStream.class);
-                    if (xml != null) {
-                        logger.info("XML-validator started");
-
-                        JSONObject validationResult = SiriXmlValidator.validate(xml);
-
-                        p.getOut().setBody(validationResult.toJSONString());
-                        p.getOut().setHeader("Content-Type", "application/json");
-                    }
-                })
-        ;
-
 
         from("activemq:queue:" + CamelRouteNames.TRANSFORM_QUEUE + activeMqConsumerParameters)
                // .to("log:raw:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
