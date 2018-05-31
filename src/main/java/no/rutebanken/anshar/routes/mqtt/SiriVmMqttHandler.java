@@ -328,7 +328,8 @@ public class SiriVmMqttHandler {
     }
 
     private String getStartTime(MonitoredVehicleJourney monitoredVehicleJourney) {
-        ZonedDateTime originAimedDepartureTime = monitoredVehicleJourney.getOriginAimedDepartureTime();
+        ZonedDateTime originAimedDepartureTime = monitoredVehicleJourney.getOriginAimedDepartureTime() != null ?
+                monitoredVehicleJourney.getOriginAimedDepartureTime(): ZonedDateTime.now();
 
         String date = VehiclePosition.UNKNOWN;
         if (originAimedDepartureTime != null) {
@@ -403,6 +404,11 @@ public class SiriVmMqttHandler {
     private String getTimestamp(VehicleActivityStructure monitoredVehicleJourney) {
         ZonedDateTime locationRecordedAtTime = monitoredVehicleJourney.getRecordedAtTime();
         if (locationRecordedAtTime != null) {
+
+            long epochSecond = locationRecordedAtTime.toEpochSecond();
+            if (epochSecond < 0) {
+                return DateTimeFormatter.ISO_INSTANT.format(ZonedDateTime.now());
+            }
             return DateTimeFormatter.ISO_INSTANT.format(locationRecordedAtTime);
         }
         return VehiclePosition.UNKNOWN;
@@ -411,7 +417,12 @@ public class SiriVmMqttHandler {
     private long getTsi(VehicleActivityStructure monitoredVehicleJourney) {
         ZonedDateTime locationRecordedAtTime = monitoredVehicleJourney.getRecordedAtTime();
         if (locationRecordedAtTime != null) {
-            return locationRecordedAtTime.toEpochSecond();
+
+            long epochSecond = locationRecordedAtTime.toEpochSecond();
+            if (epochSecond < 0) {
+                return ZonedDateTime.now().toEpochSecond();
+            }
+            return epochSecond;
         }
         return 0;
     }
@@ -425,7 +436,8 @@ public class SiriVmMqttHandler {
     }
 
     private String getDepartureDay(MonitoredVehicleJourney monitoredVehicleJourney) {
-        ZonedDateTime originAimedDepartureTime = monitoredVehicleJourney.getOriginAimedDepartureTime();
+        ZonedDateTime originAimedDepartureTime = monitoredVehicleJourney.getOriginAimedDepartureTime() != null ?
+                monitoredVehicleJourney.getOriginAimedDepartureTime(): ZonedDateTime.now();
 
         String date = VehiclePosition.UNKNOWN;
         if (originAimedDepartureTime != null) {
