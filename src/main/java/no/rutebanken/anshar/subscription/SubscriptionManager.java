@@ -315,14 +315,14 @@ public class SubscriptionManager {
         result.put("serverStarted", formatTimestamp(siriObjectFactory.serverStartTime));
         result.put("secondsSinceDataReceived", healthManager.getSecondsSinceDataReceived());
         JSONObject count = new JSONObject();
+
         count.put("sx", sx.getSize());
         count.put("et", et.getSize());
         count.put("vm", vm.getSize());
-        count.put("pt", pt.getSize());
+
         count.put("sxChanges", sxChanges.size());
         count.put("etChanges", etChanges.size());
         count.put("vmChanges", vmChanges.size());
-        count.put("ptChanges", ptChanges.size());
 
         result.put("elements", count);
 

@@ -130,11 +130,6 @@
                         <div class="col-md-1">${body.elements.et}</div>
                         <div class="col-md-1">${body.elements.etChanges}</div>
                     </div>
-                    <div class="row">
-                        <div class="col-md-1">PT</div>
-                        <div class="col-md-1">${body.elements.pt}</div>
-                        <div class="col-md-1">${body.elements.ptChanges}</div>
-                    </div>
                 </div>
         </div>
 
