@@ -204,11 +204,12 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
         Collection<EstimatedVehicleJourney> values = timetableDeliveries.getAll(sizeLimitedIds).values();
         Siri siri = siriObjectFactory.createETServiceDelivery(values);
 
+        siri.getServiceDelivery().setMoreData(isMoreData);
+
         if (isAdHocRequest) {
             logger.info("Returning {}, no requestorRef is set", sizeLimitedIds.size());
         } else {
 
-            siri.getServiceDelivery().setMoreData(isMoreData);
             MessageRefStructure msgRef = new MessageRefStructure();
             msgRef.setValue(requestorId);
             siri.getServiceDelivery().setRequestMessageRef(msgRef);

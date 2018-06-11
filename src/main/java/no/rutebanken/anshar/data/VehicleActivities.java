@@ -209,6 +209,8 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
         if (isAdHocRequest) {
             logger.info("Returning {}, no requestorRef is set", sizeLimitedIds.size());
         } else {
+
+
             //Update change-tracker
             changesMap.set(requestorId, idSet);
             lastUpdateRequested.set(requestorId, Instant.now(), trackingPeriodMinutes, TimeUnit.MINUTES);

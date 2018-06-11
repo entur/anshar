@@ -123,12 +123,12 @@ public class Situations implements SiriRepository<PtSituationElement> {
 
         Collection<PtSituationElement> values = situations.getAll(sizeLimitedIds).values();
         Siri siri = siriObjectFactory.createSXServiceDelivery(values);
+        siri.getServiceDelivery().setMoreData(isMoreData);
 
         if (isAdHocRequest) {
             logger.info("Returning {}, no requestorRef is set", sizeLimitedIds.size());
         } else {
 
-            siri.getServiceDelivery().setMoreData(isMoreData);
 
             MessageRefStructure msgRef = new MessageRefStructure();
             msgRef.setValue(requestorId);
