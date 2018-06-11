@@ -142,9 +142,12 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
 
         int trackingPeriodMinutes = configuration.getTrackingPeriodMinutes();
 
+        boolean isAdHocRequest = false;
+
         if (requestorId == null) {
             requestorId = UUID.randomUUID().toString();
             trackingPeriodMinutes = configuration.getAdHocTrackingPeriodMinutes();
+            isAdHocRequest = true;
         }
 
         // Get all relevant ids
@@ -156,8 +159,6 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
                     .filter(key -> datasetId == null || key.startsWith(datasetId + ":"))
                     .forEach(idSet::add);
         }
-
-        lastUpdateRequested.set(requestorId, Instant.now(), trackingPeriodMinutes, TimeUnit.MINUTES);
 
         //Filter by datasetId
         Set<String> requestedIds = idSet.stream()
@@ -200,18 +201,25 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
 
         Boolean isMoreData = (previewIntervalExclusionCounter.get() + sizeLimitedIds.size()) < requestedIds.size();
 
-        logger.info("Returning {}, {} left for requestorRef {}", sizeLimitedIds.size(), idSet.size(), requestorId);
-
-        //Update change-tracker
-        changesMap.set(requestorId, idSet);
-
         Collection<EstimatedVehicleJourney> values = timetableDeliveries.getAll(sizeLimitedIds).values();
         Siri siri = siriObjectFactory.createETServiceDelivery(values);
 
-        siri.getServiceDelivery().setMoreData(isMoreData);
-        MessageRefStructure msgRef = new MessageRefStructure();
-        msgRef.setValue(requestorId);
-        siri.getServiceDelivery().setRequestMessageRef(msgRef);
+        if (isAdHocRequest) {
+            logger.info("Returning {}, no requestorRef is set", sizeLimitedIds.size());
+        } else {
+
+            siri.getServiceDelivery().setMoreData(isMoreData);
+            MessageRefStructure msgRef = new MessageRefStructure();
+            msgRef.setValue(requestorId);
+            siri.getServiceDelivery().setRequestMessageRef(msgRef);
+
+            //Update change-tracker
+            changesMap.set(requestorId, idSet);
+            lastUpdateRequested.set(requestorId, Instant.now(), trackingPeriodMinutes, TimeUnit.MINUTES);
+
+            logger.info("Returning {}, {} left for requestorRef {}", sizeLimitedIds.size(), idSet.size(), requestorId);
+        }
+
         return siri;
     }
 

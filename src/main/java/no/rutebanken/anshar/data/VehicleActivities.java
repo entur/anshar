@@ -173,9 +173,12 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
 
         int trackingPeriodMinutes = configuration.getTrackingPeriodMinutes();
 
+        boolean isAdHocRequest = false;
+
         if (requestorId == null) {
             requestorId = UUID.randomUUID().toString();
             trackingPeriodMinutes = configuration.getAdHocTrackingPeriodMinutes();
+            isAdHocRequest = true;
         }
 
         // Get all relevant ids
@@ -185,8 +188,6 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
         if (idSet == allIds) {
             vehicleActivities.keySet().forEach(idSet::add);
         }
-
-        lastUpdateRequested.set(requestorId, Instant.now(), trackingPeriodMinutes, TimeUnit.MINUTES);
 
         //Filter by datasetId
         Set<String> requestedIds = idSet.stream()
@@ -200,19 +201,24 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
         //Remove collected objects
         sizeLimitedIds.forEach(idSet::remove);
 
-        logger.info("Returning {}, {} left for requestorRef {}", sizeLimitedIds.size(), idSet.size(), requestorId);
-
-        //Update change-tracker
-        changesMap.set(requestorId, idSet);
-
         Collection<VehicleActivityStructure> values = vehicleActivities.getAll(sizeLimitedIds).values();
         Siri siri = siriObjectFactory.createVMServiceDelivery(values);
 
         siri.getServiceDelivery().setMoreData(isMoreData);
 
-        MessageRefStructure msgRef = new MessageRefStructure();
-        msgRef.setValue(requestorId);
-        siri.getServiceDelivery().setRequestMessageRef(msgRef);
+        if (isAdHocRequest) {
+            logger.info("Returning {}, no requestorRef is set", sizeLimitedIds.size());
+        } else {
+            //Update change-tracker
+            changesMap.set(requestorId, idSet);
+            lastUpdateRequested.set(requestorId, Instant.now(), trackingPeriodMinutes, TimeUnit.MINUTES);
+
+            MessageRefStructure msgRef = new MessageRefStructure();
+            msgRef.setValue(requestorId);
+            siri.getServiceDelivery().setRequestMessageRef(msgRef);
+
+            logger.info("Returning {}, {} left for requestorRef {}", sizeLimitedIds.size(), idSet.size(), requestorId);
+        }
 
         return siri;
     }
