@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.org.siri.siri20.*;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -35,6 +36,14 @@ public class OstfoldIdPlatformPostProcessor extends ValueAdapter implements Post
     private final static Set<String> unmappedStopPlacePlatform = new HashSet<>();
     private static boolean listUpdated;
     private final StopPlaceRegisterMapper stopPlaceRegisterMapper;
+
+    private static List<String> loggingLineNumberFilter;
+    static {
+        loggingLineNumberFilter = new ArrayList<>();
+        for (int i = 455; i < 494; i++) {
+            loggingLineNumberFilter.add("" + i);
+        }
+    }
 
     public OstfoldIdPlatformPostProcessor(SubscriptionSetup subscriptionSetup) {
         stopPlaceRegisterMapper = new StopPlaceRegisterMapper(subscriptionSetup.getSubscriptionType(),
@@ -73,10 +82,13 @@ public class OstfoldIdPlatformPostProcessor extends ValueAdapter implements Post
                             for (EstimatedVehicleJourney estimatedVehicleJourney : estimatedVersionFrameStructure.getEstimatedVehicleJourneies()) {
 
                                 // Temporarily logging every ET with monitoring status
-                                logger.info("Monitored: {}, DatedVehicleJourneyRef: {}, PublishedLineName: {}",
-                                        estimatedVehicleJourney.isMonitored(),
-                                        estimatedVehicleJourney.getFramedVehicleJourneyRef().getDatedVehicleJourneyRef(),
-                                        estimatedVehicleJourney.getPublishedLineNames().get(0).getValue());
+                                String publishedLineName = estimatedVehicleJourney.getPublishedLineNames().get(0).getValue();
+                                if (loggingLineNumberFilter.contains(publishedLineName)) {
+                                    logger.info("Monitored: {}, DatedVehicleJourneyRef: {}, PublishedLineName: {}",
+                                            estimatedVehicleJourney.isMonitored(),
+                                            estimatedVehicleJourney.getFramedVehicleJourneyRef().getDatedVehicleJourneyRef(),
+                                            publishedLineName);
+                                }
 
                                 EstimatedVehicleJourney.EstimatedCalls estimatedCalls = estimatedVehicleJourney.getEstimatedCalls();
                                 if (estimatedCalls != null) {
