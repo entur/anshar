@@ -73,10 +73,10 @@ public class OstfoldIdPlatformPostProcessor extends ValueAdapter implements Post
                             for (EstimatedVehicleJourney estimatedVehicleJourney : estimatedVersionFrameStructure.getEstimatedVehicleJourneies()) {
 
                                 // Temporarily logging every ET with monitoring status
-                                logger.info("Monitored: {}, DatedVehicleJourneyRef: {}, LineRef: {}",
+                                logger.info("Monitored: {}, DatedVehicleJourneyRef: {}, PublishedLineName: {}",
                                         estimatedVehicleJourney.isMonitored(),
                                         estimatedVehicleJourney.getFramedVehicleJourneyRef().getDatedVehicleJourneyRef(),
-                                        estimatedVehicleJourney.getLineRef().getValue());
+                                        estimatedVehicleJourney.getPublishedLineNames().get(0).getValue());
 
                                 EstimatedVehicleJourney.EstimatedCalls estimatedCalls = estimatedVehicleJourney.getEstimatedCalls();
                                 if (estimatedCalls != null) {
