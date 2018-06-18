@@ -62,8 +62,6 @@ public class Siri20ToSiriRS20RequestResponse extends SiriSubscriptionRouteBuilde
             .bean(helper, "createSiriDataRequest", false)
             .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
             .setExchangePattern(ExchangePattern.InOut) // Make sure we wait for a response
-            .setHeader("SOAPAction", simple(getSoapAction(subscriptionSetup))) // extract and compute SOAPAction (Microsoft requirement)
-            .setHeader("operatorNamespace", constant(subscriptionSetup.getOperatorNamespace())) // Need to make SOAP request with endpoint specific element namespace
             .removeHeaders("CamelHttp*") // Remove any incoming HTTP headers as they interfere with the outgoing definition
             .setHeader(Exchange.CONTENT_TYPE, constant(subscriptionSetup.getContentType())) // Necessary when talking to Microsoft web services
             .setHeader(Exchange.HTTP_METHOD, constant(HttpMethods.POST))
@@ -75,7 +73,7 @@ public class Siri20ToSiriRS20RequestResponse extends SiriSubscriptionRouteBuilde
                 .to("log:response:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .to("activemq:queue:" + CamelRouteNames.TRANSFORM_QUEUE + "?disableReplyTo=true&timeToLive=" + getTimeToLive())
             .doCatch(Exception.class)
-                .log("Caught exception - releasing leadership: "+ subscriptionSetup.toString())
+                .log("Caught exception -" + (releaseLeadershipOnError ? "":" NOT") + " releasing leadership: " + subscriptionSetup.toString())
                 .to("log:response:" + getClass().getSimpleName() + "?showCaughtException=true&showAll=true&multiline=true")
                 .process(p -> {
                     if (releaseLeadershipOnError) {
