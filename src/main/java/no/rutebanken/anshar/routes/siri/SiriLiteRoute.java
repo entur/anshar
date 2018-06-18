@@ -236,43 +236,6 @@ public class SiriLiteRoute extends RouteBuilder {
                 .routeId("incoming.rest.et")
         ;
 
-
-        from("direct:anshar.rest.pt")
-                .log("RequestTracer - Incoming request (PT)")
-                .process(p -> {
-                    p.getOut().setHeaders(p.getIn().getHeaders());
-
-                    HttpServletRequest request = p.getIn().getBody(HttpServletRequest.class);
-                    String datasetId = request.getParameter("agencyId");
-                    if (datasetId == null) {
-                        datasetId = request.getParameter("datasetId");
-                    }
-                    String requestorId = resolveRequestorId(request);
-                    String originalId = request.getParameter("useOriginalId");
-
-                    Siri response = siriObjectFactory.createPTServiceDelivery(productionTimetables.getAllUpdates(requestorId, datasetId));
-
-                    List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(SiriHandler.getIdMappingPolicy(originalId));
-                    if ("test".equals(originalId)) {
-                        outboundAdapters = null;
-                    }
-                    response = SiriValueTransformer.transform(response, outboundAdapters);
-
-                    HttpServletResponse out = p.getIn().getBody(HttpServletResponse.class);
-
-                    if ("application/json".equals(p.getIn().getHeader(HttpHeaders.CONTENT_TYPE)) |
-                            "application/json".equals(p.getIn().getHeader(HttpHeaders.ACCEPT))) {
-                        out.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
-                        SiriJson.toJson(response, out.getOutputStream());
-                    } else {
-                        out.setHeader(HttpHeaders.CONTENT_TYPE, "application/xml");
-                        SiriXml.toXml(response, null, out.getOutputStream());
-                    }
-                })
-                .log("RequestTracer - Request done (PT)")
-                .routeId("incoming.rest.pt")
-        ;
-
     }
 
     /**
