@@ -272,7 +272,7 @@ public class Siri20RequestHandlerRoute extends RouteBuilder {
                 })
                 .choice()
                 .when(header("routename").isNotNull())
-                    .toD("seda:${header.routename}")
+                    .toD("direct:${header.routename}")
                 .endChoice()
                 .routeId("incoming.processor.fetched_delivery")
         ;

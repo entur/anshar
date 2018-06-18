@@ -95,7 +95,7 @@ public class Siri20ToSiriWS20Subscription extends SiriSubscriptionRouteBuilder {
                 .choice()
                 .when(p -> subscriptionSetup.isDataSupplyRequestForInitialDelivery())
                     .log("Requesting DataSupplyRequest " + subscriptionSetup)
-                    .to("seda:"+subscriptionSetup.getServiceRequestRouteName())
+                    .to("direct:" + subscriptionSetup.getServiceRequestRouteName())
                 .end()
                 .routeId("start.ws.20.subscription."+subscriptionSetup.getVendor())
         ;

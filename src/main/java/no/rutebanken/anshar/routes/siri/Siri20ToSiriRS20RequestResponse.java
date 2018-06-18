@@ -50,14 +50,14 @@ public class Siri20ToSiriRS20RequestResponse extends SiriSubscriptionRouteBuilde
                     monitoringRouteId)
                     .choice()
                     .when(p -> requestData(subscriptionSetup.getSubscriptionId(), p.getFromRouteId()))
-                    .to("seda:" + subscriptionSetup.getServiceRequestRouteName())
+                    .to("direct:" + subscriptionSetup.getServiceRequestRouteName())
                     .endChoice()
             ;
         } else {
             releaseLeadershipOnError = false;
         }
 
-        from("seda:" + subscriptionSetup.getServiceRequestRouteName())
+        from("direct:" + subscriptionSetup.getServiceRequestRouteName())
             .log("Retrieving data " + subscriptionSetup.toString())
             .bean(helper, "createSiriDataRequest", false)
             .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
