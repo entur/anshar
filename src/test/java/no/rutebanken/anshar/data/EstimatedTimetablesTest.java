@@ -316,6 +316,80 @@ public class EstimatedTimetablesTest {
     }
 
     @Test
+    public void testPartiallyUpdatedIncompleteJourney() {
+        int previousSize = estimatedTimetables.getAll().size();
+
+        ZonedDateTime arrival = ZonedDateTime.now().plusHours(1);
+        ZonedDateTime departure = arrival.plusMinutes(1);
+        //Adding ET-data with stops 0-20
+        String lineRefValue = "12345-partialUpdateOutOfOrder";
+        estimatedTimetables.add("test", createEstimatedVehicleJourney(lineRefValue, "4321", 0, 20, arrival, departure, true));
+        assertEquals("Adding Journey did not add element.", previousSize+1, estimatedTimetables.getAll().size());
+
+        ZonedDateTime updatedArrival = ZonedDateTime.now().plusHours(25);
+        ZonedDateTime updatedDeparture = updatedArrival.plusMinutes(1);
+        EstimatedVehicleJourney estimatedVehicleJourney = createEstimatedVehicleJourney(lineRefValue, "4321", 0, 0, departure, false);
+
+        EstimatedVehicleJourney.EstimatedCalls estimatedCalls = new EstimatedVehicleJourney.EstimatedCalls();
+        int firstOrderValue = 10;
+        List<Integer> updatedIdx = new ArrayList<>();
+        for (int i = 0; i <= 3; i++) {
+
+            int order = firstOrderValue + 3 * i;
+            updatedIdx.add(order);
+            StopPointRef stopPointRef = new StopPointRef();
+            stopPointRef.setValue("NSR:TEST:" + order);
+            EstimatedCall call = new EstimatedCall();
+            call.setStopPointRef(stopPointRef);
+            call.setAimedArrivalTime(updatedArrival);
+            call.setExpectedArrivalTime(updatedArrival);
+            call.setAimedDepartureTime(updatedDeparture);
+            call.setExpectedDepartureTime(updatedDeparture);
+
+            //Only updating some
+            call.setOrder(BigInteger.valueOf(order)); // Update should contain calls with order 10, 13, 16, 19
+
+            estimatedCalls.getEstimatedCalls().add(call);
+        }
+        estimatedVehicleJourney.setEstimatedCalls(estimatedCalls);
+
+        estimatedTimetables.add("test", estimatedVehicleJourney);
+        assertEquals("Updating Journey should not add element.", previousSize+1, estimatedTimetables.getAll().size());
+
+
+        boolean checkedMatchingJourney = false;
+        Collection<EstimatedVehicleJourney> all = estimatedTimetables.getAll();
+        for (EstimatedVehicleJourney vehicleJourney : all) {
+            if (lineRefValue.equals(vehicleJourney.getLineRef().getValue())) {
+                List<EstimatedCall> estimatedCallsList = vehicleJourney.getEstimatedCalls().getEstimatedCalls();
+
+                int size = estimatedCallsList.size();
+                assertEquals("List of EstimatedCalls have not been joined as expected.", 20, size);
+                for (int i = 0; i < size; i++) {
+                    EstimatedCall estimatedCall = estimatedCallsList.get(i);
+                    if (updatedIdx.contains(i)) {
+                        // Should be updated
+                        assertEquals("Updated AimedArrivalTime has wrong timestamp", updatedArrival, estimatedCall.getAimedArrivalTime());
+                        assertEquals("Updated ExpectedArrivalTime has wrong timestamp", updatedArrival, estimatedCall.getExpectedArrivalTime());
+                        assertEquals("Updated ExpectedDepartureTime has wrong timestamp", updatedDeparture, estimatedCall.getExpectedDepartureTime());
+                        assertEquals("Updated AimedDepartureTime has wrong timestamp", updatedDeparture, estimatedCall.getAimedDepartureTime());
+                    } else {
+                        //Should not be updated
+                        assertEquals("Original AimedArrivalTime has wrong timestamp", arrival, estimatedCall.getAimedArrivalTime());
+                        assertEquals("Original ExpectedArrivalTime has wrong timestamp", arrival, estimatedCall.getExpectedArrivalTime());
+                        assertEquals("Original ExpectedDepartureTime has wrong timestamp", departure, estimatedCall.getExpectedDepartureTime());
+                        assertEquals("Original AimedDepartureTime has wrong timestamp", departure, estimatedCall.getAimedDepartureTime());
+                    }
+                }
+                checkedMatchingJourney = true;
+            }
+        }
+
+        assertTrue("Did not check matching VehicleJourney", checkedMatchingJourney);
+
+    }
+
+    @Test
     public void testMapEstimatedToRecordedCall() {
 
         StopPointRef stopPoint = new StopPointRef();
@@ -553,8 +627,11 @@ public class EstimatedTimetablesTest {
 
     }
 
+    private EstimatedVehicleJourney createEstimatedVehicleJourney(String lineRefValue, String vehicleRefValue, int startOrder, int callCount, ZonedDateTime arrival, Boolean isComplete) {
+        return createEstimatedVehicleJourney(lineRefValue, vehicleRefValue, startOrder, callCount, arrival, arrival, isComplete);
+    }
 
-    private EstimatedVehicleJourney createEstimatedVehicleJourney(String lineRefValue, String vehicleRefValue, int startOrder, int callCount, ZonedDateTime time, Boolean isComplete) {
+    private EstimatedVehicleJourney createEstimatedVehicleJourney(String lineRefValue, String vehicleRefValue, int startOrder, int callCount, ZonedDateTime arrival, ZonedDateTime departure, Boolean isComplete) {
         EstimatedVehicleJourney element = new EstimatedVehicleJourney();
         LineRef lineRef = new LineRef();
         lineRef.setValue(lineRefValue);
@@ -571,10 +648,10 @@ public class EstimatedTimetablesTest {
             stopPointRef.setValue("NSR:TEST:" + i);
             EstimatedCall call = new EstimatedCall();
                 call.setStopPointRef(stopPointRef);
-                call.setAimedArrivalTime(time);
-                call.setExpectedArrivalTime(time);
-                call.setAimedDepartureTime(time.plusMinutes(1));
-                call.setExpectedDepartureTime(time.plusMinutes(1));
+                call.setAimedArrivalTime(arrival);
+                call.setExpectedArrivalTime(arrival);
+                call.setAimedDepartureTime(departure);
+                call.setExpectedDepartureTime(departure);
                 call.setOrder(BigInteger.valueOf(i));
             estimatedCalls.getEstimatedCalls().add(call);
         }
@@ -616,4 +693,5 @@ public class EstimatedTimetablesTest {
 
         return element;
     }
+
 }
