@@ -26,14 +26,14 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
-import static no.rutebanken.anshar.routes.validation.validators.Constants.AFFECTED_VEHICLE_JOURNEY;
+import static no.rutebanken.anshar.routes.validation.validators.Constants.ESTIMATED_VEHICLE_JOURNEY;
 
 @Validator(profileName = "norway", targetType = SiriDataType.ESTIMATED_TIMETABLE)
 @Component
 public class EtFramedVehicleJourneyRefValidator extends CustomValidator {
 
     private static final String FIELDNAME = "FramedVehicleJourneyRef";
-    private static final String path = AFFECTED_VEHICLE_JOURNEY + "/" + FIELDNAME;
+    private static final String path = ESTIMATED_VEHICLE_JOURNEY + "/" + FIELDNAME;
     private final DateFormat format;
     private final String pattern = "yyyy-MM-dd";
 
