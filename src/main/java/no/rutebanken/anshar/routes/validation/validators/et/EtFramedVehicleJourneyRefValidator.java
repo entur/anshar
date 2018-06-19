@@ -43,6 +43,11 @@ public class EtFramedVehicleJourneyRefValidator extends CustomValidator {
     }
 
     @Override
+    public String getCategoryName() {
+        return FIELDNAME;
+    }
+
+    @Override
     public String getXpath() {
         return path;
     }
