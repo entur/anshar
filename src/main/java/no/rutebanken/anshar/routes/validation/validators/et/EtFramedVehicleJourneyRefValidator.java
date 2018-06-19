@@ -76,7 +76,7 @@ public class EtFramedVehicleJourneyRefValidator extends CustomValidator {
         String datedVehicleJourneyRef = getChildNodeValue(node, "DatedVehicleJourneyRef");
         if (!isValidGenericId("ServiceJourney", datedVehicleJourneyRef)) {
 
-            return createEvent(node, "DatedVehicleJourneyRef", "<CODESPACE>:ServiceJourney:<ID>", datedVehicleJourneyRef, ValidationEvent.FATAL_ERROR);
+            return createEvent(node, "DatedVehicleJourneyRef", "CODESPACE:ServiceJourney:ID", datedVehicleJourneyRef, ValidationEvent.FATAL_ERROR);
         }
 
         return null;
