@@ -60,77 +60,66 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
                         List<EstimatedVehicleJourney> estimatedVehicleJourneies = estimatedJourneyVersionFrame.getEstimatedVehicleJourneies();
                         previousSize += estimatedVehicleJourneies.size();
 
+                        Map<String, List<EstimatedVehicleJourney>> restructuredJourneyList = new HashMap<>();
+                        Map<String, List<EstimatedVehicleJourney>> extraJourneyList = new HashMap<>();
+
                         for (EstimatedVehicleJourney estimatedVehicleJourney : estimatedVehicleJourneies) {
+
                             if (estimatedVehicleJourney.getVehicleRef() != null) {
                                 String etTrainNumber = estimatedVehicleJourney.getVehicleRef().getValue();
 
-                                if (!isKnownTrainNr(etTrainNumber)) {
-                                    // Match not found - keep data unchanged
-                                    restructuredDeliveryContent.add(estimatedVehicleJourney);
+                                if (etTrainNumber.length() == 5 && (etTrainNumber.startsWith("905") | etTrainNumber.startsWith("908"))) {
+                                    //Extra journey - map EstimatedCall as the original train
+                                    String extraTrainOriginalTrainNumber = etTrainNumber.substring(2);
+
+                                    logger.warn("Found added train {} to be merged with original {}", etTrainNumber, extraTrainOriginalTrainNumber);
+
+                                    if (isKnownTrainNr(extraTrainOriginalTrainNumber)) {
+                                        // Restructure the extra train as if it was the original
+                                        extraJourneyList.put(extraTrainOriginalTrainNumber, reStructureEstimatedJourney(estimatedVehicleJourney, extraTrainOriginalTrainNumber));
+                                    }
+                                } else if (isKnownTrainNr(etTrainNumber)) {
+
+                                    restructuredJourneyList.put(etTrainNumber, reStructureEstimatedJourney(estimatedVehicleJourney, etTrainNumber));
                                 } else {
-
-                                    ZonedDateTime departureTime;
-                                    if (estimatedVehicleJourney.getRecordedCalls() != null && !estimatedVehicleJourney.getRecordedCalls().getRecordedCalls().isEmpty()) {
-                                        departureTime = estimatedVehicleJourney.getRecordedCalls().getRecordedCalls().get(0).getAimedDepartureTime();
-                                    } else {
-                                        departureTime = estimatedVehicleJourney.getEstimatedCalls().getEstimatedCalls().get(0).getAimedDepartureTime();
-                                    }
-
-                                    ServiceDate serviceDate = new ServiceDate(departureTime.getYear(), departureTime.getMonthValue(), departureTime.getDayOfMonth());
-
-                                    Map<String, List<RecordedCall>> recordedTrip = remapRecordedCalls(serviceDate, etTrainNumber, estimatedVehicleJourney.getRecordedCalls());
-                                    Map<String, List<EstimatedCall>> remappedEstimatedCalls = remapEstimatedCalls(serviceDate, etTrainNumber, estimatedVehicleJourney.getEstimatedCalls());
-
-                                    if (remappedEstimatedCalls.size() < 1) {
-                                        restructuredDeliveryContent.add(estimatedVehicleJourney);
-                                    } else {
-
-                                        for (String id : remappedEstimatedCalls.keySet()) {
-                                            List<RecordedCall> recordedCalls = recordedTrip.get(id);
-                                            List<EstimatedCall> estimatedCalls = remappedEstimatedCalls.get(id);
-
-                                            int order = 1;
-                                            if (recordedCalls != null) {
-                                                for (RecordedCall recordedCall : recordedCalls) {
-                                                    recordedCall.setOrder(BigInteger.valueOf(order++));
-                                                }
-                                            }
-                                            for (EstimatedCall estimatedCall : estimatedCalls) {
-                                                estimatedCall.setOrder(BigInteger.valueOf(order++));
-                                            }
-
-                                            EstimatedVehicleJourney journey = new EstimatedVehicleJourney();
-
-                                            journey.setLineRef(estimatedVehicleJourney.getLineRef());
-                                            journey.setDirectionRef(estimatedVehicleJourney.getDirectionRef());
-
-                                            //Setting ServiceJourneyId
-                                            DatedVehicleJourneyRef datedVehicleJourneyRef = new DatedVehicleJourneyRef();
-                                            datedVehicleJourneyRef.setValue(id);
-                                            journey.setDatedVehicleJourneyRef(datedVehicleJourneyRef);
-
-                                            journey.getVehicleModes().addAll(estimatedVehicleJourney.getVehicleModes());
-                                            journey.setOperatorRef(estimatedVehicleJourney.getOperatorRef());
-                                            journey.getServiceFeatureReves().addAll(estimatedVehicleJourney.getServiceFeatureReves());
-                                            journey.setVehicleRef(estimatedVehicleJourney.getVehicleRef());
-
-                                            journey.setIsCompleteStopSequence(estimatedVehicleJourney.isIsCompleteStopSequence());
-                                            journey.setCancellation(estimatedVehicleJourney.isCancellation());
-
-                                            if (recordedCalls != null) {
-                                                EstimatedVehicleJourney.RecordedCalls restructuredRecordedCalls = new EstimatedVehicleJourney.RecordedCalls();
-                                                restructuredRecordedCalls.getRecordedCalls().addAll(recordedCalls);
-                                                journey.setRecordedCalls(restructuredRecordedCalls);
-                                            }
-
-                                            EstimatedVehicleJourney.EstimatedCalls restructuredCalls = new EstimatedVehicleJourney.EstimatedCalls();
-                                            restructuredCalls.getEstimatedCalls().addAll(estimatedCalls);
-                                            journey.setEstimatedCalls(restructuredCalls);
-
-                                            restructuredDeliveryContent.add(journey);
-                                        }
-                                    }
+                                    // Match not found - keep data unchanged
+                                    restructuredJourneyList.put(etTrainNumber, Arrays.asList(estimatedVehicleJourney));
                                 }
+                            }
+
+
+                        }
+                        for (String originalTrainNumber : restructuredJourneyList.keySet()) {
+                            if (extraJourneyList.containsKey(originalTrainNumber)) {
+
+                                List<EstimatedVehicleJourney> extraVehicleJourneys = extraJourneyList.get(originalTrainNumber);
+                                List<EstimatedVehicleJourney> originalVehicleJourneys = restructuredJourneyList.get(originalTrainNumber);
+
+                                if (extraVehicleJourneys.size() == 2 && originalVehicleJourneys.size() == 2) {
+
+                                    sortByFirstAimedDeparture(extraVehicleJourneys);
+                                    sortByFirstAimedDeparture(originalVehicleJourneys);
+
+                                    // Add first part from extra-train
+                                    EstimatedVehicleJourney extraVehicleJourney = extraVehicleJourneys.get(0);
+                                    extraVehicleJourney.getVehicleRef().setValue(originalTrainNumber);
+                                    restructuredDeliveryContent.add(extraVehicleJourney);
+
+                                    // ...and last part from original
+                                    EstimatedVehicleJourney originalVehicleJourney = originalVehicleJourneys.get(1);
+                                    restructuredDeliveryContent.add(originalVehicleJourney);
+
+                                    logger.warn("Keeping serviceJourney {} from added train, {} from original.",
+                                            extraVehicleJourney.getDatedVehicleJourneyRef().getValue(),
+                                            originalVehicleJourney.getDatedVehicleJourneyRef().getValue());
+
+                                } else {
+                                    restructuredDeliveryContent.addAll(originalVehicleJourneys);
+                                }
+
+
+                            } else {
+                                restructuredDeliveryContent.addAll(restructuredJourneyList.get(originalTrainNumber));
                             }
                         }
                         estimatedJourneyVersionFrame.getEstimatedVehicleJourneies().clear();
@@ -142,6 +131,82 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
             }
         }
         logger.info("Restructured SIRI ET from {} to {} journeys in {} ms", previousSize, newSize, (System.currentTimeMillis()-startTime));
+    }
+
+    private void sortByFirstAimedDeparture(List<EstimatedVehicleJourney> journeys) {
+        journeys.sort(Comparator.comparing(e -> {
+                if (e.getRecordedCalls() != null && !e.getRecordedCalls().getRecordedCalls().isEmpty()) {
+                    return e.getRecordedCalls().getRecordedCalls().get(0).getAimedDepartureTime();
+                }
+                return e.getEstimatedCalls().getEstimatedCalls().get(0).getAimedDepartureTime();
+            })
+        );
+    }
+
+    private List<EstimatedVehicleJourney> reStructureEstimatedJourney(EstimatedVehicleJourney estimatedVehicleJourney, String etTrainNumber) {
+        List<EstimatedVehicleJourney> restructuredJourneyList = new ArrayList<>();
+        ZonedDateTime departureTime;
+        if (estimatedVehicleJourney.getRecordedCalls() != null && !estimatedVehicleJourney.getRecordedCalls().getRecordedCalls().isEmpty()) {
+            departureTime = estimatedVehicleJourney.getRecordedCalls().getRecordedCalls().get(0).getAimedDepartureTime();
+        } else {
+            departureTime = estimatedVehicleJourney.getEstimatedCalls().getEstimatedCalls().get(0).getAimedDepartureTime();
+        }
+
+        ServiceDate serviceDate = new ServiceDate(departureTime.getYear(), departureTime.getMonthValue(), departureTime.getDayOfMonth());
+
+        Map<String, List<RecordedCall>> recordedTrip = remapRecordedCalls(serviceDate, etTrainNumber, estimatedVehicleJourney.getRecordedCalls());
+        Map<String, List<EstimatedCall>> remappedEstimatedCalls = remapEstimatedCalls(serviceDate, etTrainNumber, estimatedVehicleJourney.getEstimatedCalls());
+
+        if (remappedEstimatedCalls.size() < 1) {
+            restructuredJourneyList.add(estimatedVehicleJourney);
+        } else {
+
+            for (String id : remappedEstimatedCalls.keySet()) {
+                List<RecordedCall> recordedCalls = recordedTrip.get(id);
+                List<EstimatedCall> estimatedCalls = remappedEstimatedCalls.get(id);
+
+                int order = 1;
+                if (recordedCalls != null) {
+                    for (RecordedCall recordedCall : recordedCalls) {
+                        recordedCall.setOrder(BigInteger.valueOf(order++));
+                    }
+                }
+                for (EstimatedCall estimatedCall : estimatedCalls) {
+                    estimatedCall.setOrder(BigInteger.valueOf(order++));
+                }
+
+                EstimatedVehicleJourney journey = new EstimatedVehicleJourney();
+
+                journey.setLineRef(estimatedVehicleJourney.getLineRef());
+                journey.setDirectionRef(estimatedVehicleJourney.getDirectionRef());
+
+                //Setting ServiceJourneyId
+                DatedVehicleJourneyRef datedVehicleJourneyRef = new DatedVehicleJourneyRef();
+                datedVehicleJourneyRef.setValue(id);
+                journey.setDatedVehicleJourneyRef(datedVehicleJourneyRef);
+
+                journey.getVehicleModes().addAll(estimatedVehicleJourney.getVehicleModes());
+                journey.setOperatorRef(estimatedVehicleJourney.getOperatorRef());
+                journey.getServiceFeatureReves().addAll(estimatedVehicleJourney.getServiceFeatureReves());
+                journey.setVehicleRef(estimatedVehicleJourney.getVehicleRef());
+
+                journey.setIsCompleteStopSequence(estimatedVehicleJourney.isIsCompleteStopSequence());
+                journey.setCancellation(estimatedVehicleJourney.isCancellation());
+
+                if (recordedCalls != null) {
+                    EstimatedVehicleJourney.RecordedCalls restructuredRecordedCalls = new EstimatedVehicleJourney.RecordedCalls();
+                    restructuredRecordedCalls.getRecordedCalls().addAll(recordedCalls);
+                    journey.setRecordedCalls(restructuredRecordedCalls);
+                }
+
+                EstimatedVehicleJourney.EstimatedCalls restructuredCalls = new EstimatedVehicleJourney.EstimatedCalls();
+                restructuredCalls.getEstimatedCalls().addAll(estimatedCalls);
+                journey.setEstimatedCalls(restructuredCalls);
+
+                restructuredJourneyList.add(journey);
+            }
+        }
+        return restructuredJourneyList;
     }
 
     private Map<String, List<EstimatedCall>> remapEstimatedCalls(ServiceDate serviceDate, String etTrainNumber, EstimatedVehicleJourney.EstimatedCalls estimatedCallsWrapper) {
