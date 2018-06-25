@@ -68,7 +68,9 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
                             if (estimatedVehicleJourney.getVehicleRef() != null) {
                                 String etTrainNumber = estimatedVehicleJourney.getVehicleRef().getValue();
 
-                                if (etTrainNumber.length() == 5 && (etTrainNumber.startsWith("905") | etTrainNumber.startsWith("908"))) {
+                                if (isKnownTrainNr(etTrainNumber )) {
+                                    restructuredJourneyList.put(etTrainNumber, reStructureEstimatedJourney(estimatedVehicleJourney, etTrainNumber));
+                                }  else if (etTrainNumber.length() == 5 && (etTrainNumber.startsWith("905") | etTrainNumber.startsWith("908"))) {
                                     //Extra journey - map EstimatedCall as the original train
                                     String extraTrainOriginalTrainNumber = etTrainNumber.substring(2);
 
@@ -78,9 +80,6 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
                                         // Restructure the extra train as if it was the original
                                         extraJourneyList.put(extraTrainOriginalTrainNumber, reStructureEstimatedJourney(estimatedVehicleJourney, extraTrainOriginalTrainNumber));
                                     }
-                                } else if (isKnownTrainNr(etTrainNumber)) {
-
-                                    restructuredJourneyList.put(etTrainNumber, reStructureEstimatedJourney(estimatedVehicleJourney, etTrainNumber));
                                 } else {
                                     // Match not found - keep data unchanged
                                     restructuredJourneyList.put(etTrainNumber, Arrays.asList(estimatedVehicleJourney));
