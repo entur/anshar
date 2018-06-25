@@ -16,10 +16,9 @@
 package no.rutebanken.anshar.routes.health;
 
 import com.hazelcast.core.ISet;
-import no.rutebanken.anshar.config.AnsharConfiguration;
+import no.rutebanken.anshar.routes.RestRouteBuilder;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import org.apache.camel.Exchange;
-import org.apache.camel.builder.RouteBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,12 +34,8 @@ import java.util.Set;
 
 @Service
 @Configuration
-public class LivenessReadinessRoute extends RouteBuilder {
+public class LivenessReadinessRoute extends RestRouteBuilder {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
-
-
-    @Autowired
-    private AnsharConfiguration configuration;
 
     @Value("${anshar.healthcheck.hubot.url}")
     private String hubotUrl;
@@ -94,17 +89,15 @@ public class LivenessReadinessRoute extends RouteBuilder {
 
     @Override
     public void configure() throws Exception {
+        super.configure();
 
-        restConfiguration("jetty")
-                .port(configuration.getInboundPort());
-
-
-        rest("")
+        rest("").tag("health")
                 .get("/ready").to("direct:ready")
                 .get("/up").to("direct:up")
                 .get("/healthy").to("direct:healthy")
                 .get("/anshardata").to("direct:anshardata")
-                .get("/favicon.ico").to("direct:notfound");
+                .get("/favicon.ico").to("direct:notfound")
+        ;
 
         //To avoid large stacktraces in the log when fetching data using browser
         from("direct:notfound")
@@ -216,6 +209,7 @@ public class LivenessReadinessRoute extends RouteBuilder {
 //                    .setHeader(Exchange.HTTP_METHOD, constant(HttpMethods.POST))
 //                    .to(hubotUrl)
                 .endChoice()
+            .routeId("health.notify.hubot")
         ;
 
     }

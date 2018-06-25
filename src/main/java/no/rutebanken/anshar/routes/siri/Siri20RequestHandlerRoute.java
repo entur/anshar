@@ -17,6 +17,7 @@ package no.rutebanken.anshar.routes.siri;
 
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.routes.CamelRouteNames;
+import no.rutebanken.anshar.routes.RestRouteBuilder;
 import no.rutebanken.anshar.routes.dataformat.SiriDataFormatHelper;
 import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
@@ -24,8 +25,8 @@ import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.camel.Exchange;
 import org.apache.camel.InvalidPayloadException;
 import org.apache.camel.LoggingLevel;
-import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.builder.xml.Namespaces;
+import org.apache.camel.model.rest.RestParamType;
 import org.rutebanken.validator.SiriValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +43,7 @@ import java.util.Map;
 
 @Service
 @Configuration
-public class Siri20RequestHandlerRoute extends RouteBuilder {
+public class Siri20RequestHandlerRoute extends RestRouteBuilder {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -60,6 +61,8 @@ public class Siri20RequestHandlerRoute extends RouteBuilder {
 
     @Override
     public void configure() throws Exception {
+
+        super.configure();
 
         onException(ConnectException.class)
                 .maximumRedeliveries(10)
@@ -84,102 +87,89 @@ public class Siri20RequestHandlerRoute extends RouteBuilder {
         String activeMQParameters = "?disableReplyTo=true&timeToLive="+ configuration.getTimeToLive();
         String activeMqConsumerParameters = "?asyncConsumer=true&concurrentConsumers="+ configuration.getConcurrentConsumers();
 
-        //Incoming notifications/deliveries
-        from("jetty:http://0.0.0.0:" + configuration.getInboundPort() + "?matchOnUriPrefix=true&httpMethodRestrict=POST")
-                .to("log:received:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
+        rest("anshar").tag("siri")
+                .consumes("application/xml").produces("application/xml")
+
+                .post("/services").to("direct:process.service.request")
+                        .apiDocs(false)
+
+                .post("/services/{datasetId}").to("direct:process.service.request")
+                        .description("Endpoint used for ServiceRequest limited to single dataprovider.")
+                        .param().required(false).name("datasetId").type(RestParamType.path).description("The id of the Codespace to limit data to").dataType("string").endParam()
+
+                .post("/subscribe").to("direct:process.subscription.request")
+                        .apiDocs(false)
+
+                .post("/subscribe/{datasetId}").to("direct:process.subscription.request")
+                        .description("Endpoint used for SubscriptionRequest limited to single dataprovider.")
+                        .param().required(false).name("datasetId").type(RestParamType.path).description("The id of the Codespace to limit data to").dataType("string").endParam()
+
+                .post("/{version}/{type}/{vendor}/{subscriptionId}").to("direct:process.incoming.request")
+                        .apiDocs(false)
+
+                .post("/{version}/{type}/{vendor}/{subscriptionId}/{service}").to("direct:process.incoming.request")
+                        .apiDocs(false)
+
+                .post("/{version}/{type}/{vendor}/{subscriptionId}/{service}/{operation}").to("direct:process.incoming.request")
+                        .description("Generated endpoint for incoming data")
+                        .param().required(false).name("service").endParam()
+                        .param().required(false).name("operation").endParam()
+        ;
+
+        from("direct:process.incoming.request")
                 .choice()
-                    .when(header("CamelHttpPath").contains("/services")) //Handle synchronous response
-                        .process(p -> {
-                            p.getOut().setHeaders(p.getIn().getHeaders());
-
-                            String path = (String) p.getIn().getHeader("CamelHttpPath");
-                            String datasetId = null;
-
-                            String pathPattern = "/services/";
-                            if (path.contains(pathPattern)) {
-                                            //e.g. "/anshar/services/akt" resolves "akt"
-                                datasetId = path.substring(path.indexOf(pathPattern) + pathPattern.length());
-                            }
-
-                            int maxSize = -1;
-                            if (p.getIn().getHeaders().containsKey("maxSize")) {
-                                maxSize = Integer.parseInt((String) p.getIn().getHeader("maxSize"));
-                            }
-
-                            Siri response = handler.handleIncomingSiri(null, p.getIn().getBody(InputStream.class), datasetId, SiriHandler.getIdMappingPolicy((String) p.getIn().getHeader("useOriginalId")), maxSize);
-                            if (response != null) {
-                                logger.info("Found ServiceRequest-response, streaming response");
-                                p.getOut().setBody(response);
-                            }
-                        })
-                        .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
-                    .endChoice()
-                    .when(header("CamelHttpPath").contains("/subscribe")) //Handle synchronous SubscriptionResponse
-                        .process(p -> {
-                            String path = p.getIn().getHeader("CamelHttpPath", String.class);
-
-                            String subscriptionId = getSubscriptionIdFromPath(path);
-                            String datasetId = null;
-
-                            //e.g. "/anshar/subscribe/akt" resolves "akt"
-                            String pathPattern = "/subscribe/";
-                            if (path.contains(pathPattern)) {
-                                datasetId = path.substring(path.indexOf(pathPattern) + pathPattern.length());
-                            }
-
-                            InputStream xml = p.getIn().getBody(InputStream.class);
-
-                            Siri response = handler.handleIncomingSiri(subscriptionId, xml, datasetId, SiriHandler.getIdMappingPolicy((String) p.getIn().getHeader("useOriginalId")), -1);
-                            if (response != null) {
-                                logger.info("Returning SubscriptionResponse");
-
-                                p.getOut().setBody(response);
-                            }
-
-                        })
-                        .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
+                .when(p -> subscriptionExistsAndIsActive(p))
+                    //Valid subscription
+                    .to("activemq:queue:" + CamelRouteNames.TRANSFORM_QUEUE + activeMQParameters)
+                    .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
+                    .setBody(constant(null))
                 .endChoice()
-                    .otherwise()  //Handle asynchronous response
-                        .choice()
-                            .when(p -> {
-                                    String subscriptionId = getSubscriptionIdFromPath(p.getIn().getHeader("CamelHttpPath", String.class));
-                                    if (subscriptionId == null || subscriptionId.isEmpty()) {
-                                        return false;
-                                    }
-                                    SubscriptionSetup subscriptionSetup = subscriptionManager.get(subscriptionId);
+                .otherwise()
+                    // Invalid subscription
+                    .log("Ignoring incoming delivery for invalid subscription")
+                    .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("403")) //403 Forbidden
+                    .setBody(constant("Subscription is not valid"))
+                .endChoice()
+        .routeId("process.incoming")
+                ;
 
-                                    if (subscriptionSetup == null) {
-                                        return false;
-                                    }
+        from("direct:process.subscription.request")
+                .process(p -> {
+                    String datasetId = p.getIn().getHeader("datasetId", String.class);
 
-                                    boolean existsAndIsActive = (subscriptionManager.isSubscriptionRegistered(subscriptionId) &&
-                                                subscriptionSetup.isActive());
+                    InputStream xml = p.getIn().getBody(InputStream.class);
 
-                                    p.getOut().setHeaders(p.getIn().getHeaders());
+                    Siri response = handler.handleIncomingSiri(null, xml, datasetId, SiriHandler.getIdMappingPolicy((String) p.getIn().getHeader("useOriginalId")), -1);
+                    if (response != null) {
+                        logger.info("Returning SubscriptionResponse");
 
-                                    if (! "2.0".equals(subscriptionSetup.getVersion())) {
-                                        p.getOut().setHeader(TRANSFORM_VERSION, TRANSFORM_VERSION);
-                                    }
+                        p.getOut().setBody(response);
+                    }
 
-                                    if (subscriptionSetup.getServiceType() == SubscriptionSetup.ServiceType.SOAP) {
-                                        p.getOut().setHeader(TRANSFORM_SOAP, TRANSFORM_SOAP);
-                                    }
+                })
+                .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
+                .routeId("process.subscription")
+        ;
 
-                                    return existsAndIsActive;
-                                })
-                                    //Valid subscription
-                                .to("activemq:queue:" + CamelRouteNames.TRANSFORM_QUEUE + activeMQParameters)
-                                .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
-                                .setBody(constant(null))
-                            .endChoice()
-                        .otherwise()
-                                // Invalid subscription
-                            .log("Ignoring incoming delivery for invalid subscription")
-                            .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("403")) //403 Forbidden
-                            .setBody(constant("Subscription is not valid"))
-                        .endChoice()
-                .end()
-                .routeId("incoming.receive")
+        from("direct:process.service.request")
+                .process(p -> {
+                    p.getOut().setHeaders(p.getIn().getHeaders());
+
+                    String datasetId = p.getIn().getHeader("datasetId", String.class);
+
+                    int maxSize = -1;
+                    if (p.getIn().getHeaders().containsKey("maxSize")) {
+                        maxSize = Integer.parseInt((String) p.getIn().getHeader("maxSize"));
+                    }
+
+                    Siri response = handler.handleIncomingSiri(null, p.getIn().getBody(InputStream.class), datasetId, SiriHandler.getIdMappingPolicy((String) p.getIn().getHeader("useOriginalId")), maxSize);
+                    if (response != null) {
+                        logger.info("Found ServiceRequest-response, streaming response");
+                        p.getOut().setBody(response);
+                    }
+                })
+                .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
+                .routeId("process.service")
         ;
 
         from("activemq:queue:" + CamelRouteNames.TRANSFORM_QUEUE + activeMqConsumerParameters)
@@ -328,6 +318,33 @@ public class Siri20RequestHandlerRoute extends RouteBuilder {
                 .routeId("incoming.processor.pt")
         ;
 
+    }
+
+    private boolean subscriptionExistsAndIsActive(Exchange p) {
+        String subscriptionId = getSubscriptionIdFromPath(p.getIn().getHeader("CamelHttpPath", String.class));
+        if (subscriptionId == null || subscriptionId.isEmpty()) {
+            return false;
+        }
+        SubscriptionSetup subscriptionSetup = subscriptionManager.get(subscriptionId);
+
+        if (subscriptionSetup == null) {
+            return false;
+        }
+
+        boolean existsAndIsActive = (subscriptionManager.isSubscriptionRegistered(subscriptionId) &&
+                    subscriptionSetup.isActive());
+
+        p.getOut().setHeaders(p.getIn().getHeaders());
+
+        if (! "2.0".equals(subscriptionSetup.getVersion())) {
+            p.getOut().setHeader(TRANSFORM_VERSION, TRANSFORM_VERSION);
+        }
+
+        if (subscriptionSetup.getServiceType() == SubscriptionSetup.ServiceType.SOAP) {
+            p.getOut().setHeader(TRANSFORM_SOAP, TRANSFORM_SOAP);
+        }
+
+        return existsAndIsActive;
     }
 
     private SiriValidator.Version resolveSiriVersionFromString(String version) {

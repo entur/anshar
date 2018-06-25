@@ -17,10 +17,10 @@ package no.rutebanken.anshar.routes.admin;
 
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.data.collections.ExtendedHazelcastService;
+import no.rutebanken.anshar.routes.RestRouteBuilder;
 import no.rutebanken.anshar.routes.health.HealthManager;
 import no.rutebanken.anshar.routes.outbound.ServerSubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
-import org.apache.camel.builder.RouteBuilder;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +30,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @Configuration
-public class AdministrationRoute extends RouteBuilder {
+public class AdministrationRoute extends RestRouteBuilder {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
@@ -50,18 +50,17 @@ public class AdministrationRoute extends RouteBuilder {
 
     @Override
     public void configure() throws Exception {
+        super.configure();
 
-        restConfiguration("jetty")
-                .port(configuration.getInboundPort());
-
-        rest("/anshar")
+        rest("/anshar").tag("internal.admin")
                 .get("/stats").produces("text/html").to("direct:stats")
                 .put("/stop").to("direct:stop")
                 .put("/start").to("direct:start")
                 .put("/terminate").to("direct:terminate.outbound.subscription")
                 .get("/subscriptions").produces("text/html").to("direct:subscriptions")
                 .get("/clusterstats").produces("application/json").to("direct:clusterstats")
-                .get("/unmapped").produces("text/html").to("direct:unmapped");
+                .get("/unmapped").produces("text/html").to("direct:unmapped")
+        ;
 
         //Return subscription status
         from("direct:stats")

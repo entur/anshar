@@ -15,20 +15,16 @@
 
 package no.rutebanken.anshar.routes.validation;
 
-import no.rutebanken.anshar.config.AnsharConfiguration;
+import no.rutebanken.anshar.routes.RestRouteBuilder;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
-import org.apache.camel.builder.RouteBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 
 @Service
 @Configuration
-public class ValidationRoute extends RouteBuilder {
-
-    @Autowired
-    private AnsharConfiguration configuration;
+public class ValidationRoute extends RestRouteBuilder {
 
     @Autowired
     private SiriXmlValidator siriXmlValidator;
@@ -39,11 +35,9 @@ public class ValidationRoute extends RouteBuilder {
 
     @Override
     public void configure() throws Exception {
-
-        restConfiguration("jetty")
-                .port(configuration.getInboundPort());
-
+        super.configure();
         rest("/anshar/validation")
+                .tag("validation")
                 .get("/{codespace}").produces("text/html").to("direct:validation.list")
                 .get("/report").produces("text/html").to("direct:validation.report")
                 .put("/toggle").produces("text/html").to("direct:validation.toggle")

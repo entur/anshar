@@ -20,12 +20,13 @@ import no.rutebanken.anshar.data.EstimatedTimetables;
 import no.rutebanken.anshar.data.ProductionTimetables;
 import no.rutebanken.anshar.data.Situations;
 import no.rutebanken.anshar.data.VehicleActivities;
+import no.rutebanken.anshar.routes.RestRouteBuilder;
 import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.subscription.helpers.MappingAdapterPresets;
-import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.model.rest.RestParamType;
 import org.apache.http.HttpHeaders;
 import org.rutebanken.siri20.util.SiriJson;
 import org.rutebanken.siri20.util.SiriXml;
@@ -40,7 +41,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
 @Service
-public class SiriLiteRoute extends RouteBuilder {
+public class SiriLiteRoute extends RestRouteBuilder {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
@@ -66,15 +67,25 @@ public class SiriLiteRoute extends RouteBuilder {
 
     @Override
     public void configure() throws Exception {
-
-        restConfiguration("jetty")
-                .port(configuration.getInboundPort());
-
+        super.configure();
         rest("/anshar/rest")
+                .tag("siri.lite")
+
                 .get("/sx").to("direct:anshar.rest.sx")
+                        .param().required(false).name("datasetId").type(RestParamType.query).description("The id of the dataset to get").dataType("string").endParam()
+                        .param().required(false).name("useOriginalId").type(RestParamType.query).description("Option to return original Ids").dataType("boolean").endParam()
+                        .param().required(false).name("maxSize").type(RestParamType.query).description("Specify max number of returned elements").dataType("int").endParam()
+
                 .get("/vm").to("direct:anshar.rest.vm")
+                        .param().required(false).name("datasetId").type(RestParamType.query).description("The id of the dataset to get").dataType("string").endParam()
+                        .param().required(false).name("useOriginalId").type(RestParamType.query).description("Option to return original Ids").dataType("boolean").endParam()
+                        .param().required(false).name("maxSize").type(RestParamType.query).description("Specify max number of returned elements").dataType("int").endParam()
+
                 .get("/et").to("direct:anshar.rest.et")
-                .get("/pt").to("direct:anshar.rest.pt");
+                        .param().required(false).name("datasetId").type(RestParamType.query).description("The id of the dataset to get").dataType("string").endParam()
+                        .param().required(false).name("useOriginalId").type(RestParamType.query).description("Option to return original Ids").dataType("boolean").endParam()
+                        .param().required(false).name("maxSize").type(RestParamType.query).description("Specify max number of returned elements").dataType("int").endParam()
+        ;
 
         // Dataproviders
         from("direct:anshar.rest.sx")
