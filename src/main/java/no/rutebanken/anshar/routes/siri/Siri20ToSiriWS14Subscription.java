@@ -33,6 +33,7 @@ import java.io.InputStream;
 import java.net.ConnectException;
 import java.util.Map;
 
+import static no.rutebanken.anshar.routes.HttpParameter.PARAM_RESPONSE_CODE;
 import static no.rutebanken.anshar.routes.siri.helpers.SiriRequestFactory.getCamelUrl;
 
 public class Siri20ToSiriWS14Subscription extends SiriSubscriptionRouteBuilder {
@@ -88,7 +89,7 @@ public class Siri20ToSiriWS14Subscription extends SiriSubscriptionRouteBuilder {
                 .to("log:received:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .process(p -> {
 
-                    String responseCode = p.getIn().getHeader("CamelHttpResponseCode", String.class);
+                    String responseCode = p.getIn().getHeader(PARAM_RESPONSE_CODE, String.class);
                     if ("200".equals(responseCode)) {
                         logger.info("SubscriptionResponse OK - Async response performs actual registration");
                         subscriptionManager.activatePendingSubscription(subscriptionSetup.getSubscriptionId());

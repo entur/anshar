@@ -32,6 +32,7 @@ import java.io.InputStream;
 import java.net.ConnectException;
 import java.util.Map;
 
+import static no.rutebanken.anshar.routes.HttpParameter.PARAM_RESPONSE_CODE;
 import static no.rutebanken.anshar.routes.siri.helpers.SiriRequestFactory.getCamelUrl;
 
 public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
@@ -68,7 +69,7 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
                     .to("log:received response:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                     .process(p -> {
 
-                        String responseCode = p.getIn().getHeader("CamelHttpResponseCode", String.class);
+                        String responseCode = p.getIn().getHeader(PARAM_RESPONSE_CODE, String.class);
                         InputStream body = p.getIn().getBody(InputStream.class);
                         if (body != null && body.available() > 0) {
                             handler.handleIncomingSiri(subscriptionSetup.getSubscriptionId(), body);
@@ -99,7 +100,7 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
                 .to(getCamelUrl(urlMap.get(RequestType.CHECK_STATUS), getTimeout()))
                 .process(p -> {
 
-                    String responseCode = p.getIn().getHeader("CamelHttpResponseCode", String.class);
+                    String responseCode = p.getIn().getHeader(PARAM_RESPONSE_CODE, String.class);
                     if ("200" .equals(responseCode)) {
                         logger.trace("CheckStatus OK - Remote service is up [{}]", subscriptionSetup.buildUrl());
                         InputStream body = p.getIn().getBody(InputStream.class);

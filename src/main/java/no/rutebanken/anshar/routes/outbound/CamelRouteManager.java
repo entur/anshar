@@ -27,6 +27,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uk.org.siri.siri20.*;
 
+import javax.ws.rs.core.MediaType;
 import java.net.ConnectException;
 import java.net.SocketException;
 import java.util.HashMap;
@@ -226,7 +227,7 @@ public class CamelRouteManager implements CamelContextAware {
                         .log(LoggingLevel.INFO, "POST data to " + subscriptionRequest)
                         .setHeader("SubscriptionId", constant(subscriptionRequest.getSubscriptionId()))
                         .setHeader("CamelHttpMethod", constant("POST"))
-                        .setHeader(Exchange.CONTENT_TYPE, constant("application/xml"))
+                        .setHeader(Exchange.CONTENT_TYPE, constant(MediaType.APPLICATION_XML))
                         .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
                         .to("log:push:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                         .to(remoteEndPoint + options)

@@ -22,6 +22,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 
+import javax.ws.rs.core.MediaType;
+
+import static no.rutebanken.anshar.routes.HttpParameter.*;
+
 @Service
 @Configuration
 public class ValidationRoute extends RestRouteBuilder {
@@ -38,31 +42,31 @@ public class ValidationRoute extends RestRouteBuilder {
         super.configure();
         rest("/anshar/validation")
                 .tag("validation")
-                .get("/{codespace}").produces("text/html").to("direct:validation.list")
-                .get("/report").produces("text/html").to("direct:validation.report")
-                .put("/toggle").produces("text/html").to("direct:validation.toggle")
-                .get("/siri").produces("application/xml").to("direct:validation.siri")
+                .get("/{" + PARAM_CODESPACE + "}").produces(MediaType.TEXT_HTML).to("direct:validation.list")
+                .get("/report").produces(MediaType.TEXT_HTML).to("direct:validation.report")
+                .put("/toggle").produces(MediaType.TEXT_HTML).to("direct:validation.toggle")
+                .get("/siri").produces(MediaType.APPLICATION_XML).to("direct:validation.siri")
         ;
 
         from("direct:validation.toggle")
-                .filter(header("subscriptionId").isNotNull())
-                .process(p -> toggleValidation((String) p.getIn().getHeader("subscriptionId")))
+                .filter(header(PARAM_SUBSCRIPTION_ID).isNotNull())
+                .process(p -> toggleValidation((String) p.getIn().getHeader(PARAM_SUBSCRIPTION_ID)))
                 .routeId("admin.validation.toggle")
         ;
 
         from("direct:validation.list")
-                .bean(subscriptionManager, "getSubscriptionsForCodespace(${header.codespace})")
+                .bean(subscriptionManager, "getSubscriptionsForCodespace(${header."+ PARAM_CODESPACE+"})")
                 .to("freemarker:templates/validation.ftl")
                 .routeId("admin.validation.list")
         ;
         from("direct:validation.report")
-                .bean(siriXmlValidator, "getValidationResults(${header.subscriptionId})")
+                .bean(siriXmlValidator, "getValidationResults(${header." + PARAM_SUBSCRIPTION_ID + "})")
                 .to("freemarker:templates/validation-report.ftl")
                 .routeId("admin.validation.report")
         ;
 
         from("direct:validation.siri")
-                .bean(siriXmlValidator, "getValidatedSiri(${header.validationRef})")
+                .bean(siriXmlValidator, "getValidatedSiri(${header." + PARAM_VALIDATION_REF + "})")
                 .setHeader("Content-Disposition", simple("attachment; filename=\"SIRI.xml\""))
                 .routeId("admin.validation.siri")
         ;

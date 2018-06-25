@@ -17,12 +17,10 @@ package no.rutebanken.anshar.routes.siri;
 
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.data.EstimatedTimetables;
-import no.rutebanken.anshar.data.ProductionTimetables;
 import no.rutebanken.anshar.data.Situations;
 import no.rutebanken.anshar.data.VehicleActivities;
 import no.rutebanken.anshar.routes.RestRouteBuilder;
 import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
-import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.subscription.helpers.MappingAdapterPresets;
@@ -38,7 +36,10 @@ import uk.org.siri.siri20.Siri;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.core.MediaType;
 import java.util.List;
+
+import static no.rutebanken.anshar.routes.HttpParameter.*;
 
 @Service
 public class SiriLiteRoute extends RestRouteBuilder {
@@ -57,12 +58,6 @@ public class SiriLiteRoute extends RestRouteBuilder {
     private EstimatedTimetables estimatedTimetables;
 
     @Autowired
-    private ProductionTimetables productionTimetables;
-    
-    @Autowired
-    private SiriObjectFactory siriObjectFactory;
-
-    @Autowired
     private MappingAdapterPresets mappingAdapterPresets;
 
     @Override
@@ -72,19 +67,19 @@ public class SiriLiteRoute extends RestRouteBuilder {
                 .tag("siri.lite")
 
                 .get("/sx").to("direct:anshar.rest.sx")
-                        .param().required(false).name("datasetId").type(RestParamType.query).description("The id of the dataset to get").dataType("string").endParam()
-                        .param().required(false).name("useOriginalId").type(RestParamType.query).description("Option to return original Ids").dataType("boolean").endParam()
-                        .param().required(false).name("maxSize").type(RestParamType.query).description("Specify max number of returned elements").dataType("int").endParam()
+                        .param().required(false).name(PARAM_DATASET_ID).type(RestParamType.query).description("The id of the dataset to get").dataType("string").endParam()
+                        .param().required(false).name(PARAM_USE_ORIGINAL_ID).type(RestParamType.query).description("Option to return original Ids").dataType("boolean").endParam()
+                        .param().required(false).name(PARAM_MAX_SIZE).type(RestParamType.query).description("Specify max number of returned elements").dataType("int").endParam()
 
                 .get("/vm").to("direct:anshar.rest.vm")
-                        .param().required(false).name("datasetId").type(RestParamType.query).description("The id of the dataset to get").dataType("string").endParam()
-                        .param().required(false).name("useOriginalId").type(RestParamType.query).description("Option to return original Ids").dataType("boolean").endParam()
-                        .param().required(false).name("maxSize").type(RestParamType.query).description("Specify max number of returned elements").dataType("int").endParam()
+                        .param().required(false).name(PARAM_DATASET_ID).type(RestParamType.query).description("The id of the dataset to get").dataType("string").endParam()
+                        .param().required(false).name(PARAM_USE_ORIGINAL_ID).type(RestParamType.query).description("Option to return original Ids").dataType("boolean").endParam()
+                        .param().required(false).name(PARAM_MAX_SIZE).type(RestParamType.query).description("Specify max number of returned elements").dataType("int").endParam()
 
                 .get("/et").to("direct:anshar.rest.et")
-                        .param().required(false).name("datasetId").type(RestParamType.query).description("The id of the dataset to get").dataType("string").endParam()
-                        .param().required(false).name("useOriginalId").type(RestParamType.query).description("Option to return original Ids").dataType("boolean").endParam()
-                        .param().required(false).name("maxSize").type(RestParamType.query).description("Specify max number of returned elements").dataType("int").endParam()
+                        .param().required(false).name(PARAM_DATASET_ID).type(RestParamType.query).description("The id of the dataset to get").dataType("string").endParam()
+                        .param().required(false).name(PARAM_USE_ORIGINAL_ID).type(RestParamType.query).description("Option to return original Ids").dataType("boolean").endParam()
+                        .param().required(false).name(PARAM_MAX_SIZE).type(RestParamType.query).description("Specify max number of returned elements").dataType("int").endParam()
         ;
 
         // Dataproviders
@@ -93,22 +88,16 @@ public class SiriLiteRoute extends RestRouteBuilder {
                 .process(p -> {
                     p.getOut().setHeaders(p.getIn().getHeaders());
 
-                    HttpServletRequest request = p.getIn().getBody(HttpServletRequest.class);
-                    String datasetId = request.getParameter("agencyId");
-                    if (datasetId == null) {
-                        datasetId = request.getParameter("datasetId");
-                    }
-                    String requestorId = resolveRequestorId(request);
-                    String originalId = request.getParameter("useOriginalId");
-                    String maxSizeStr = request.getParameter("maxSize");
+                    String requestorId = resolveRequestorId(p.getIn().getBody(HttpServletRequest.class));
+
+                    String datasetId = p.getIn().getHeader(PARAM_DATASET_ID, String.class);
+                    String originalId = p.getIn().getHeader(PARAM_USE_ORIGINAL_ID, String.class);
+                    Integer maxSizeStr = p.getIn().getHeader(PARAM_MAX_SIZE, Integer.class);
 
                     int maxSize = datasetId != null ? Integer.MAX_VALUE:configuration.getDefaultMaxSize();
+
                     if (maxSizeStr != null) {
-                        try {
-                            maxSize = Integer.parseInt(maxSizeStr);
-                        } catch (NumberFormatException nfe) {
-                            //ignore
-                        }
+                        maxSize = maxSizeStr.intValue();
                     }
 
                     Siri response = situations.createServiceDelivery(requestorId, datasetId, maxSize);
@@ -121,12 +110,12 @@ public class SiriLiteRoute extends RestRouteBuilder {
 
                     HttpServletResponse out = p.getIn().getBody(HttpServletResponse.class);
 
-                    if ("application/json".equals(p.getIn().getHeader(HttpHeaders.CONTENT_TYPE)) |
-                            "application/json".equals(p.getIn().getHeader(HttpHeaders.ACCEPT))) {
-                        out.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
+                    if (MediaType.APPLICATION_JSON.equals(p.getIn().getHeader(HttpHeaders.CONTENT_TYPE)) |
+                            MediaType.APPLICATION_JSON.equals(p.getIn().getHeader(HttpHeaders.ACCEPT))) {
+                        out.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
                         SiriJson.toJson(response, out.getOutputStream());
                     } else {
-                        out.setHeader(HttpHeaders.CONTENT_TYPE, "application/xml");
+                        out.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_XML);
                         SiriXml.toXml(response, null, out.getOutputStream());
                     }
                 })
@@ -139,16 +128,12 @@ public class SiriLiteRoute extends RestRouteBuilder {
                 .process(p -> {
                     p.getOut().setHeaders(p.getIn().getHeaders());
 
-                    HttpServletRequest request = p.getIn().getBody(HttpServletRequest.class);
-                    String datasetId = request.getParameter("agencyId");
-                    if (datasetId == null) {
-                        datasetId = request.getParameter("datasetId");
-                    }
-                    String originalId = request.getParameter("useOriginalId");
-                    String maxSizeStr = request.getParameter("maxSize");
-                    String lineRef = request.getParameter("lineRef");
+                    String datasetId = p.getIn().getHeader(PARAM_DATASET_ID, String.class);
+                    String originalId = p.getIn().getHeader(PARAM_USE_ORIGINAL_ID, String.class);
+                    String maxSizeStr = p.getIn().getHeader(PARAM_MAX_SIZE, String.class);
+                    String lineRef = p.getIn().getHeader(PARAM_LINE_REF, String.class);
 
-                    String requestorId = resolveRequestorId(request);
+                    String requestorId = resolveRequestorId(p.getIn().getBody(HttpServletRequest.class));
 
                     int maxSize = datasetId != null ? Integer.MAX_VALUE:configuration.getDefaultMaxSize();
                     if (maxSizeStr != null) {
@@ -175,12 +160,12 @@ public class SiriLiteRoute extends RestRouteBuilder {
 
                     HttpServletResponse out = p.getIn().getBody(HttpServletResponse.class);
 
-                    if ("application/json".equals(p.getIn().getHeader(HttpHeaders.CONTENT_TYPE)) |
-                            "application/json".equals(p.getIn().getHeader(HttpHeaders.ACCEPT))) {
-                        out.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
+                    if (MediaType.APPLICATION_JSON.equals(p.getIn().getHeader(HttpHeaders.CONTENT_TYPE)) |
+                            MediaType.APPLICATION_JSON.equals(p.getIn().getHeader(HttpHeaders.ACCEPT))) {
+                        out.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
                         SiriJson.toJson(response, out.getOutputStream());
                     } else {
-                        out.setHeader(HttpHeaders.CONTENT_TYPE, "application/xml");
+                        out.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_XML);
                         SiriXml.toXml(response, null, out.getOutputStream());
                     }
                 })
@@ -194,16 +179,13 @@ public class SiriLiteRoute extends RestRouteBuilder {
                 .process(p -> {
                     p.getOut().setHeaders(p.getIn().getHeaders());
 
-                    HttpServletRequest request = p.getIn().getBody(HttpServletRequest.class);
-                    String datasetId = request.getParameter("agencyId");
-                    if (datasetId == null) {
-                        datasetId = request.getParameter("datasetId");
-                    }
-                    String requestorId = resolveRequestorId(request);
-                    String originalId = request.getParameter("useOriginalId");
-                    String maxSizeStr = request.getParameter("maxSize");
-                    String lineRef = request.getParameter("lineRef");
-                    String previewIntervalMinutesStr = request.getParameter("previewIntervalMinutes");
+                    String datasetId = p.getIn().getHeader(PARAM_DATASET_ID, String.class);
+                    String originalId = p.getIn().getHeader(PARAM_USE_ORIGINAL_ID, String.class);
+                    String maxSizeStr = p.getIn().getHeader(PARAM_MAX_SIZE, String.class);
+                    String lineRef = p.getIn().getHeader(PARAM_LINE_REF, String.class);
+                    String previewIntervalMinutesStr = p.getIn().getHeader(PARAM_PREVIEW_INTERVAL, String.class);
+
+                    String requestorId = resolveRequestorId(p.getIn().getBody(HttpServletRequest.class));
 
                     int maxSize = datasetId != null ? Integer.MAX_VALUE:configuration.getDefaultMaxSize();
                     if (maxSizeStr != null) {
@@ -234,12 +216,12 @@ public class SiriLiteRoute extends RestRouteBuilder {
 
                     HttpServletResponse out = p.getIn().getBody(HttpServletResponse.class);
 
-                    if ("application/json".equals(p.getIn().getHeader(HttpHeaders.CONTENT_TYPE)) |
-                            "application/json".equals(p.getIn().getHeader(HttpHeaders.ACCEPT))) {
-                        out.setHeader(HttpHeaders.CONTENT_TYPE, "application/json");
+                    if (MediaType.APPLICATION_JSON.equals(p.getIn().getHeader(HttpHeaders.CONTENT_TYPE)) |
+                            MediaType.APPLICATION_JSON.equals(p.getIn().getHeader(HttpHeaders.ACCEPT))) {
+                        out.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
                         SiriJson.toJson(response, out.getOutputStream());
                     } else {
-                        out.setHeader(HttpHeaders.CONTENT_TYPE, "application/xml");
+                        out.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_XML);
                         SiriXml.toXml(response, null, out.getOutputStream());
                     }
                 })

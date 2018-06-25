@@ -32,6 +32,7 @@ import java.io.InputStream;
 import java.net.ConnectException;
 import java.util.Map;
 
+import static no.rutebanken.anshar.routes.HttpParameter.PARAM_RESPONSE_CODE;
 import static no.rutebanken.anshar.routes.siri.helpers.SiriRequestFactory.getCamelUrl;
 
 public class Siri20ToSiriRS14Subscription extends SiriSubscriptionRouteBuilder {
@@ -76,7 +77,7 @@ public class Siri20ToSiriRS14Subscription extends SiriSubscriptionRouteBuilder {
                 .endDoTry()
                 .process(p -> {
 
-                    String responseCode = p.getIn().getHeader("CamelHttpResponseCode", String.class);
+                    String responseCode = p.getIn().getHeader(PARAM_RESPONSE_CODE, String.class);
                     if ("200".equals(responseCode)) {
                         logger.info("SubscriptionResponse OK {}", subscriptionSetup);
                     }

@@ -15,7 +15,6 @@
 
 package no.rutebanken.anshar.routes.admin;
 
-import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.data.collections.ExtendedHazelcastService;
 import no.rutebanken.anshar.routes.RestRouteBuilder;
 import no.rutebanken.anshar.routes.health.HealthManager;
@@ -28,13 +27,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 
+import javax.ws.rs.core.MediaType;
+
 @Service
 @Configuration
 public class AdministrationRoute extends RestRouteBuilder {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
-
-    @Autowired
-    private AnsharConfiguration configuration;
 
     @Autowired
     private ExtendedHazelcastService extendedHazelcastService;
@@ -53,13 +51,13 @@ public class AdministrationRoute extends RestRouteBuilder {
         super.configure();
 
         rest("/anshar").tag("internal.admin")
-                .get("/stats").produces("text/html").to("direct:stats")
+                .get("/stats").produces(MediaType.TEXT_HTML).to("direct:stats")
                 .put("/stop").to("direct:stop")
                 .put("/start").to("direct:start")
                 .put("/terminate").to("direct:terminate.outbound.subscription")
-                .get("/subscriptions").produces("text/html").to("direct:subscriptions")
-                .get("/clusterstats").produces("application/json").to("direct:clusterstats")
-                .get("/unmapped").produces("text/html").to("direct:unmapped")
+                .get("/subscriptions").produces(MediaType.TEXT_HTML).to("direct:subscriptions")
+                .get("/clusterstats").produces(MediaType.APPLICATION_JSON).to("direct:clusterstats")
+                .get("/unmapped").produces(MediaType.TEXT_HTML).to("direct:unmapped")
         ;
 
         //Return subscription status

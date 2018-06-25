@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 import java.io.InputStream;
 import java.util.Map;
 
+import static no.rutebanken.anshar.routes.HttpParameter.PARAM_RESPONSE_CODE;
 import static no.rutebanken.anshar.routes.siri.helpers.SiriRequestFactory.getCamelUrl;
 
 public class Siri20ToSiriWS20Subscription extends SiriSubscriptionRouteBuilder {
@@ -120,7 +121,7 @@ public class Siri20ToSiriWS20Subscription extends SiriSubscriptionRouteBuilder {
                 .end()
                 .process(p -> {
 
-                    String responseCode = p.getIn().getHeader("CamelHttpResponseCode", String.class);
+                    String responseCode = p.getIn().getHeader(PARAM_RESPONSE_CODE, String.class);
                     if ("200" .equals(responseCode)) {
                         InputStream body = p.getIn().getBody(InputStream.class);
                         if (body != null && body.available() > 0) {

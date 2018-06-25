@@ -27,7 +27,6 @@ import org.apache.camel.InvalidPayloadException;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.xml.Namespaces;
 import org.apache.camel.model.rest.RestParamType;
-import org.rutebanken.validator.SiriValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,11 +34,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 import uk.org.siri.siri20.Siri;
 
+import javax.ws.rs.core.MediaType;
 import javax.xml.bind.UnmarshalException;
 import java.io.InputStream;
 import java.net.ConnectException;
-import java.util.HashMap;
-import java.util.Map;
+
+import static no.rutebanken.anshar.routes.HttpParameter.*;
 
 @Service
 @Configuration
@@ -88,29 +88,29 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
         String activeMqConsumerParameters = "?asyncConsumer=true&concurrentConsumers="+ configuration.getConcurrentConsumers();
 
         rest("anshar").tag("siri")
-                .consumes("application/xml").produces("application/xml")
+                .consumes(MediaType.APPLICATION_XML).produces(MediaType.APPLICATION_XML)
 
                 .post("/services").to("direct:process.service.request")
                         .apiDocs(false)
 
-                .post("/services/{datasetId}").to("direct:process.service.request")
+                .post("/services/{" + PARAM_DATASET_ID + "}").to("direct:process.service.request")
                         .description("Endpoint used for ServiceRequest limited to single dataprovider.")
-                        .param().required(false).name("datasetId").type(RestParamType.path).description("The id of the Codespace to limit data to").dataType("string").endParam()
+                        .param().required(false).name(PARAM_DATASET_ID).type(RestParamType.path).description("The id of the Codespace to limit data to").dataType("string").endParam()
 
                 .post("/subscribe").to("direct:process.subscription.request")
                         .apiDocs(false)
 
-                .post("/subscribe/{datasetId}").to("direct:process.subscription.request")
+                .post("/subscribe/{" + PARAM_DATASET_ID + "}").to("direct:process.subscription.request")
                         .description("Endpoint used for SubscriptionRequest limited to single dataprovider.")
-                        .param().required(false).name("datasetId").type(RestParamType.path).description("The id of the Codespace to limit data to").dataType("string").endParam()
+                        .param().required(false).name(PARAM_DATASET_ID).type(RestParamType.path).description("The id of the Codespace to limit data to").dataType("string").endParam()
 
-                .post("/{version}/{type}/{vendor}/{subscriptionId}").to("direct:process.incoming.request")
+                .post("/{version}/{type}/{vendor}/{" + PARAM_SUBSCRIPTION_ID + "}").to("direct:process.incoming.request")
                         .apiDocs(false)
 
-                .post("/{version}/{type}/{vendor}/{subscriptionId}/{service}").to("direct:process.incoming.request")
+                .post("/{version}/{type}/{vendor}/{" + PARAM_SUBSCRIPTION_ID + "}/{service}").to("direct:process.incoming.request")
                         .apiDocs(false)
 
-                .post("/{version}/{type}/{vendor}/{subscriptionId}/{service}/{operation}").to("direct:process.incoming.request")
+                .post("/{version}/{type}/{vendor}/{" + PARAM_SUBSCRIPTION_ID + "}/{service}/{operation}").to("direct:process.incoming.request")
                         .description("Generated endpoint for incoming data")
                         .param().required(false).name("service").endParam()
                         .param().required(false).name("operation").endParam()
@@ -135,11 +135,11 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
 
         from("direct:process.subscription.request")
                 .process(p -> {
-                    String datasetId = p.getIn().getHeader("datasetId", String.class);
+                    String datasetId = p.getIn().getHeader(PARAM_DATASET_ID, String.class);
 
                     InputStream xml = p.getIn().getBody(InputStream.class);
 
-                    Siri response = handler.handleIncomingSiri(null, xml, datasetId, SiriHandler.getIdMappingPolicy((String) p.getIn().getHeader("useOriginalId")), -1);
+                    Siri response = handler.handleIncomingSiri(null, xml, datasetId, SiriHandler.getIdMappingPolicy((String) p.getIn().getHeader(PARAM_USE_ORIGINAL_ID)), -1);
                     if (response != null) {
                         logger.info("Returning SubscriptionResponse");
 
@@ -155,14 +155,16 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
                 .process(p -> {
                     p.getOut().setHeaders(p.getIn().getHeaders());
 
-                    String datasetId = p.getIn().getHeader("datasetId", String.class);
+                    String datasetId = p.getIn().getHeader(PARAM_DATASET_ID, String.class);
 
                     int maxSize = -1;
-                    if (p.getIn().getHeaders().containsKey("maxSize")) {
-                        maxSize = Integer.parseInt((String) p.getIn().getHeader("maxSize"));
+                    if (p.getIn().getHeaders().containsKey(PARAM_MAX_SIZE)) {
+                        maxSize = Integer.parseInt((String) p.getIn().getHeader(PARAM_MAX_SIZE));
                     }
 
-                    Siri response = handler.handleIncomingSiri(null, p.getIn().getBody(InputStream.class), datasetId, SiriHandler.getIdMappingPolicy((String) p.getIn().getHeader("useOriginalId")), maxSize);
+                    String useOriginalId = p.getIn().getHeader(PARAM_USE_ORIGINAL_ID, String.class);
+
+                    Siri response = handler.handleIncomingSiri(null, p.getIn().getBody(InputStream.class), datasetId, SiriHandler.getIdMappingPolicy(useOriginalId), maxSize);
                     if (response != null) {
                         logger.info("Found ServiceRequest-response, streaming response");
                         p.getOut().setBody(response);
@@ -221,13 +223,14 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
         from("activemq:queue:" + CamelRouteNames.DEFAULT_PROCESSOR_QUEUE + activeMqConsumerParameters)
                 .log("Processing request in default-queue [" + CamelRouteNames.DEFAULT_PROCESSOR_QUEUE + "].")
                 .process(p -> {
-                    String path = p.getIn().getHeader("CamelHttpPath", String.class);
 
-                    String subscriptionId = getSubscriptionIdFromPath(path);
+                    String subscriptionId = p.getIn().getHeader(PARAM_SUBSCRIPTION_ID, String.class);
                     String datasetId = null;
 
                     InputStream xml = p.getIn().getBody(InputStream.class);
-                    handler.handleIncomingSiri(subscriptionId, xml, datasetId, SiriHandler.getIdMappingPolicy((String) p.getIn().getHeader("useOriginalId")), -1);
+                    String useOriginalId = p.getIn().getHeader(PARAM_USE_ORIGINAL_ID, String.class);
+
+                    handler.handleIncomingSiri(subscriptionId, xml, datasetId, SiriHandler.getIdMappingPolicy(useOriginalId), -1);
 
                 })
                 .routeId("incoming.processor.default")
@@ -235,7 +238,7 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
 
         from("activemq:queue:" + CamelRouteNames.HEARTBEAT_QUEUE + activeMqConsumerParameters)
                 .process(p -> {
-                    String subscriptionId = getSubscriptionIdFromPath(p.getIn().getHeader("CamelHttpPath", String.class));
+                    String subscriptionId = p.getIn().getHeader(PARAM_SUBSCRIPTION_ID, String.class);
 
                     InputStream xml = p.getIn().getBody(InputStream.class);
                     handler.handleIncomingSiri(subscriptionId, xml);
@@ -250,7 +253,7 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
                 .process(p -> {
                     String routeName = null;
 
-                    String subscriptionId = getSubscriptionIdFromPath(p.getIn().getHeader("CamelHttpPath", String.class));
+                    String subscriptionId = p.getIn().getHeader(PARAM_SUBSCRIPTION_ID, String.class);
 
                     SubscriptionSetup subscription = subscriptionManager.get(subscriptionId);
                     if (subscription != null) {
@@ -270,7 +273,7 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
         from("activemq:queue:" + CamelRouteNames.SITUATION_EXCHANGE_QUEUE + activeMqConsumerParameters)
                 .log("Processing SX")
                 .process(p -> {
-                    String subscriptionId = getSubscriptionIdFromPath(p.getIn().getHeader("CamelHttpPath", String.class));
+                    String subscriptionId = p.getIn().getHeader(PARAM_SUBSCRIPTION_ID, String.class);
 
                     InputStream xml = p.getIn().getBody(InputStream.class);
                     handler.handleIncomingSiri(subscriptionId, xml);
@@ -283,7 +286,7 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
                 .log("Processing VM")
                 .process(p -> {
 
-                    String subscriptionId = getSubscriptionIdFromPath(p.getIn().getHeader("CamelHttpPath", String.class));
+                    String subscriptionId = p.getIn().getHeader(PARAM_SUBSCRIPTION_ID, String.class);
 
                     InputStream xml = p.getIn().getBody(InputStream.class);
                     handler.handleIncomingSiri(subscriptionId, xml);
@@ -295,7 +298,7 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
         from("activemq:queue:" + CamelRouteNames.ESTIMATED_TIMETABLE_QUEUE + activeMqConsumerParameters)
                 .log("Processing ET")
                 .process(p -> {
-                    String subscriptionId = getSubscriptionIdFromPath(p.getIn().getHeader("CamelHttpPath", String.class));
+                    String subscriptionId = p.getIn().getHeader(PARAM_SUBSCRIPTION_ID, String.class);
 
                     InputStream xml = p.getIn().getBody(InputStream.class);
                     handler.handleIncomingSiri(subscriptionId, xml);
@@ -308,7 +311,7 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
         from("activemq:queue:" + CamelRouteNames.PRODUCTION_TIMETABLE_QUEUE + activeMqConsumerParameters)
                 .log("Processing PT")
                 .process(p -> {
-                    String subscriptionId = getSubscriptionIdFromPath(p.getIn().getHeader("CamelHttpPath", String.class));
+                    String subscriptionId = p.getIn().getHeader(PARAM_SUBSCRIPTION_ID, String.class);
 
                     InputStream xml = p.getIn().getBody(InputStream.class);
 
@@ -321,7 +324,7 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
     }
 
     private boolean subscriptionExistsAndIsActive(Exchange p) {
-        String subscriptionId = getSubscriptionIdFromPath(p.getIn().getHeader("CamelHttpPath", String.class));
+        String subscriptionId = p.getIn().getHeader(PARAM_SUBSCRIPTION_ID, String.class);
         if (subscriptionId == null || subscriptionId.isEmpty()) {
             return false;
         }
@@ -345,62 +348,6 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
         }
 
         return existsAndIsActive;
-    }
-
-    private SiriValidator.Version resolveSiriVersionFromString(String version) {
-        if (version != null) {
-            switch (version) {
-                case "1.0":
-                    return SiriValidator.Version.VERSION_1_0;
-                case "1.3":
-                    return SiriValidator.Version.VERSION_1_3;
-                case "1.4":
-                    return SiriValidator.Version.VERSION_1_4;
-                case "2.0":
-                    return SiriValidator.Version.VERSION_2_0;
-            }
-        }
-        return SiriValidator.Version.VERSION_2_0;
-    }
-
-    private String getSubscriptionIdFromPath(String path) {
-        if (configuration.getIncomingPathPattern().startsWith("/")) {
-            if (!path.startsWith("/")) {
-                path = "/"+path;
-            }
-        } else {
-            if (path.startsWith("/")) {
-                path = path.substring(1);
-            }
-        }
-
-
-        Map<String, String> values = calculatePathVariableMap(path);
-        logger.trace("Incoming delivery {}", values);
-
-        return values.get("subscriptionId");
-    }
-
-    private Map<String, String> calculatePathVariableMap(String path) {
-        String[] parameters = path.split("/");
-        String[] parameterNames = configuration.getIncomingPathPattern().split("/");
-
-        Map<String, String> values = new HashMap<>();
-        for (int i = 0; i < parameterNames.length; i++) {
-
-            String value = (parameters.length > i ? parameters[i] : null);
-
-            if (parameterNames[i].startsWith("{")) {
-                parameterNames[i] = parameterNames[i].substring(1);
-            }
-            if (parameterNames[i].endsWith("}")) {
-                parameterNames[i] = parameterNames[i].substring(0, parameterNames[i].lastIndexOf("}"));
-            }
-
-            values.put(parameterNames[i], value);
-        }
-
-        return values;
     }
 
 }
