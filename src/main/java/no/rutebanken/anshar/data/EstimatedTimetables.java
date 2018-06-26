@@ -290,15 +290,7 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
         if (datasetId == null || datasetId.isEmpty()) {
             return getAll();
         }
-        Map<String, EstimatedVehicleJourney> datasetIdSpecific = new HashMap<>();
-        timetableDeliveries.keySet().stream().filter(key -> key.startsWith(datasetId + ":")).forEach(key -> {
-            EstimatedVehicleJourney element = timetableDeliveries.get(key);
-            if (element != null) {
-                datasetIdSpecific.put(key, element);
-            }
-        });
-
-        return new ArrayList<>(datasetIdSpecific.values());
+        return  timetableDeliveries.values(e -> ((String) e.getKey()).startsWith(datasetId + ":"));
     }
 
     private ZonedDateTime getFirstAimedTime(EstimatedVehicleJourney vehicleJourney) {
@@ -384,6 +376,7 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
     public Collection<EstimatedVehicleJourney> addAll(String datasetId, List<EstimatedVehicleJourney> etList) {
 
         Set<String> changes = new HashSet<>();
+        Set<EstimatedVehicleJourney> addedData = new HashSet<>();
 
         Counter outdatedCounter = new CounterImpl(0);
 
@@ -491,6 +484,7 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
                             et.getEstimatedCalls().getEstimatedCalls() != null &&
                             !et.getEstimatedCalls().getEstimatedCalls().isEmpty()) {
                         changes.add(key);
+                        addedData.add(et);
                         timetableDeliveries.set(key, et, expiration, TimeUnit.MILLISECONDS);
 
                         if (hasPatternChanges(et)) {
@@ -520,7 +514,7 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
             }
         });
 
-        return timetableDeliveries.getAll(changes).values();
+        return addedData;
     }
 
     RecordedCall mapToRecordedCall(EstimatedCall call) {

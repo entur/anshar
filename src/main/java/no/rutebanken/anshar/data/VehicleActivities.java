@@ -90,15 +90,8 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
         if (datasetId == null) {
             return getAll();
         }
-        Map<String, VehicleActivityStructure> vendorSpecific = new HashMap<>();
-        vehicleActivities.keySet().stream().filter(key -> key.startsWith(datasetId + ":")).forEach(key -> {
-            VehicleActivityStructure structure = vehicleActivities.get(key);
-            if (structure != null) {
-                vendorSpecific.put(key, structure);
-            }
-        });
 
-        return new ArrayList<>(vendorSpecific.values());
+        return  vehicleActivities.values(e -> ((String) e.getKey()).startsWith(datasetId + ":"));
     }
 
     /**
@@ -237,6 +230,7 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
 
     public Collection<VehicleActivityStructure> addAll(String datasetId, List<VehicleActivityStructure> vmList) {
         Set<String> changes = new HashSet<>();
+        Set<VehicleActivityStructure> addedData = new HashSet<>();
 
         Counter invalidLocationCounter = new CounterImpl(0);
         Counter notMeaningfulCounter = new CounterImpl(0);
@@ -265,6 +259,7 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
 
                         if (expiration > 0 && keep) {
                             changes.add(key);
+                            addedData.add(activity);
                             vehicleActivities.set(key, activity, expiration, TimeUnit.MILLISECONDS);
                             siriVmMqttHandler.pushToMqtt(datasetId, activity);
                         } else {
@@ -290,7 +285,7 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
             }
         });
 
-        return vehicleActivities.getAll(changes).values();
+        return addedData;
     }
 
 

@@ -152,15 +152,7 @@ public class Situations implements SiriRepository<PtSituationElement> {
             return getAll();
         }
 
-        Map<String, PtSituationElement> datasetIdSpecific = new HashMap<>();
-        situations.keySet().stream().filter(key -> key.startsWith(datasetId + ":")).forEach(key -> {
-            PtSituationElement element = situations.get(key);
-            if (element != null) {
-                datasetIdSpecific.put(key, element);
-            }
-        });
-
-        return new ArrayList<>(datasetIdSpecific.values());
+        return  situations.values(e -> ((String) e.getKey()).startsWith(datasetId + ":"));
     }
 
 
@@ -228,6 +220,7 @@ public class Situations implements SiriRepository<PtSituationElement> {
 
     public Collection<PtSituationElement> addAll(String datasetId, List<PtSituationElement> sxList) {
         Set<String> changes = new HashSet<>();
+        Set<PtSituationElement> addedData = new HashSet<>();
 
         Counter alreadyExpiredCounter = new CounterImpl(0);
         sxList.forEach(situation -> {
@@ -239,6 +232,7 @@ public class Situations implements SiriRepository<PtSituationElement> {
             if (expiration > 0) { //expiration < 0 => already expired
                 situations.set(key, situation, expiration, TimeUnit.MILLISECONDS);
                 changes.add(key);
+                addedData.add(situation);
             } else if (situations.containsKey(key)) {
                 // Situation is no longer valid
                 situations.remove(key);
@@ -261,7 +255,7 @@ public class Situations implements SiriRepository<PtSituationElement> {
                 changesMap.remove(requestor);
             }
         });
-        return situations.getAll(changes).values();
+        return addedData;
     }
 
     public PtSituationElement add(String datasetId, PtSituationElement situation) {
