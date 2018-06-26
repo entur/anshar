@@ -261,7 +261,7 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
                             changes.add(key);
                             addedData.add(activity);
                             vehicleActivities.set(key, activity, expiration, TimeUnit.MILLISECONDS);
-                            siriVmMqttHandler.pushToMqtt(datasetId, activity);
+                            siriVmMqttHandler.pushToMqttAsync(datasetId, activity);
                         } else {
                             outdatedCounter.increment();
                         }

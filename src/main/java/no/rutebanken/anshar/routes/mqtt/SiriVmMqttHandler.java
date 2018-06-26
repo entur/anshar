@@ -44,6 +44,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 @Configuration
 @Component
@@ -168,6 +169,11 @@ public class SiriVmMqttHandler {
         } catch (MqttException e) {
             logger.warn("Failed to connect to MQTT ", e);
         }
+    }
+
+
+    public void pushToMqttAsync(String datasetId, VehicleActivityStructure activity) {
+        CompletableFuture.runAsync(() -> pushToMqtt(datasetId, activity));
     }
 
     public void pushToMqtt(String datasetId, VehicleActivityStructure activity) {
