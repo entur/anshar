@@ -93,17 +93,17 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
                 .consumes(MediaType.APPLICATION_XML).produces(MediaType.APPLICATION_XML)
 
                 .post("/services").to("direct:process.service.request")
-                        .apiDocs(false)
+                        .description("Endpoint used for SIRI ServiceRequest.")
 
                 .post("/services/{" + PARAM_DATASET_ID + "}").to("direct:process.service.request")
-                        .description("Endpoint used for ServiceRequest limited to single dataprovider.")
+                        .description("Endpoint used for SIRI ServiceRequest limited to single dataprovider.")
                         .param().required(false).name(PARAM_DATASET_ID).type(RestParamType.path).description("The id of the Codespace to limit data to").dataType("string").endParam()
 
                 .post("/subscribe").to("direct:process.subscription.request")
-                        .apiDocs(false)
+                        .description("Endpoint used for SIRI SubscriptionRequest.")
 
                 .post("/subscribe/{" + PARAM_DATASET_ID + "}").to("direct:process.subscription.request")
-                        .description("Endpoint used for SubscriptionRequest limited to single dataprovider.")
+                        .description("Endpoint used for SIRI SubscriptionRequest limited to single dataprovider.")
                         .param().required(false).name(PARAM_DATASET_ID).type(RestParamType.path).description("The id of the Codespace to limit data to").dataType("string").endParam()
 
                 .post("/{version}/{type}/{vendor}/{" + PARAM_SUBSCRIPTION_ID + "}").to("direct:process.incoming.request")
@@ -113,7 +113,7 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
                         .apiDocs(false)
 
                 .post("/{version}/{type}/{vendor}/{" + PARAM_SUBSCRIPTION_ID + "}/{service}/{operation}").to("direct:process.incoming.request")
-                        .description("Generated endpoint for incoming data")
+                        .description("Generated dynamically when creating Subscription. Endpoint for incoming data")
                         .param().required(false).name("service").endParam()
                         .param().required(false).name("operation").endParam()
         ;
