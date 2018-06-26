@@ -24,6 +24,7 @@ public class HttpParameter {
     public static final String PARAM_MAX_SIZE        = "maxSize";
     public static final String PARAM_USE_ORIGINAL_ID = "useOriginalId";
     public static final String PARAM_LINE_REF        = "lineRef";
-    public static final String PARAM_RESPONSE_CODE   = "CamelHttpResponseCode";
     public static final String PARAM_PREVIEW_INTERVAL   = "previewIntervalMinutes";
+    public static final String PARAM_RESPONSE_CODE   = "CamelHttpResponseCode";
+    public static final String PARAM_PATH           = "CamelHttpPath";
 }
