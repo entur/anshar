@@ -34,6 +34,7 @@ import java.util.Map;
 
 import static no.rutebanken.anshar.routes.HttpParameter.PARAM_RESPONSE_CODE;
 import static no.rutebanken.anshar.routes.siri.helpers.SiriRequestFactory.getCamelUrl;
+import static no.rutebanken.anshar.subscription.SubscriptionSetup.SubscriptionMode.FETCHED_DELIVERY;
 
 public class Siri20ToSiriWS20Subscription extends SiriSubscriptionRouteBuilder {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -131,7 +132,19 @@ public class Siri20ToSiriWS20Subscription extends SiriSubscriptionRouteBuilder {
                         logger.info("CheckStatus NOT OK - Remote service is down [{}]", subscriptionSetup.buildUrl());
                     }
 
+                    if (subscriptionSetup.getSubscriptionMode().equals(FETCHED_DELIVERY) &&
+                            !subscriptionManager.isSubscriptionReceivingData(subscriptionSetup.getSubscriptionId(),
+                                    subscriptionSetup.getHeartbeatInterval().toMillis()/1000)) {
+                        logger.info("No data received since last CheckStatusRequest - triggering DataSupplyRequest.");
+                        p.getOut().setHeader("routename", subscriptionSetup.getServiceRequestRouteName());
+                    }
+
+
                 })
+                .choice()
+                    .when(header("routename").isNotNull())
+                        .toD("direct:${header.routename}")
+                    .endChoice()
                 .routeId("check.status.rs.20.subscription."+subscriptionSetup.getVendor())
         ;
 

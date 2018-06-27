@@ -414,7 +414,7 @@ public class SubscriptionManager {
         return new HashSet<>();
     }
 
-    private boolean isSubscriptionReceivingData(String subscriptionId, long allowedInactivitySeconds) {
+    public boolean isSubscriptionReceivingData(String subscriptionId, long allowedInactivitySeconds) {
         if (!isActiveSubscription(subscriptionId)) {
             return true;
         }
