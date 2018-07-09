@@ -16,8 +16,9 @@
 package no.rutebanken.anshar.routes.mqtt;
 
 import com.hazelcast.core.IMap;
-import javafx.util.Pair;
 import no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter;
+
+import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
@@ -222,8 +223,8 @@ public class SiriVmMqttHandler {
         } catch (JSONException e) {
            logger.info("Caught exception when generating MQTT-messsage - will be ignored", e);
         }
-
-        return new Pair<>(topic, message);
+        
+        return Pair.of(topic, message);
     }
 
     /**

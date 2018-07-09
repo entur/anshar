@@ -15,7 +15,7 @@
 
 package no.rutebanken.anshar.routes.mqtt;
 
-import javafx.util.Pair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Test;
