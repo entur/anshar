@@ -272,6 +272,10 @@
             <version>0.0.4</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+        </dependency>
 
         <!-- GTFS library -->
         <dependency>
