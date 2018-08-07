@@ -137,6 +137,7 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
                 ;
 
         from("direct:process.subscription.request")
+                .to("log:subscription" + getClass().getSimpleName() + "?showAll=true&multiline=true&showStreams=true") //StreamCache allows stream to be read multiple times
                 .process(p -> {
                     String datasetId = p.getIn().getHeader(PARAM_DATASET_ID, String.class);
 
@@ -155,6 +156,7 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
         ;
 
         from("direct:process.service.request")
+                .to("log:subscription" + getClass().getSimpleName() + "?showAll=true&multiline=true&showStreams=true") //StreamCache allows stream to be read multiple times
                 .process(p -> {
                     p.getOut().setHeaders(p.getIn().getHeaders());
 
