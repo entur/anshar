@@ -99,6 +99,14 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
                         .description("Endpoint used for SIRI ServiceRequest limited to single dataprovider.")
                         .param().required(false).name(PARAM_DATASET_ID).type(RestParamType.path).description("The id of the Codespace to limit data to").dataType("string").endParam()
 
+                .post("/anshar/subscribe").to("direct:process.subscription.request")
+                        .description("Backwards compatible endpoint used for SIRI SubscriptionRequest.")
+
+                .post("/anshar/subscribe/{" + PARAM_DATASET_ID + "}").to("direct:process.subscription.request")
+                    .description("Backwards compatible endpoint used for SIRI SubscriptionRequest limited to single dataprovider.")
+                    .param().required(false).name(PARAM_DATASET_ID).type(RestParamType.path).description("The id of the Codespace to limit data to").dataType("string").endParam()
+
+
                 .post("/subscribe").to("direct:process.subscription.request")
                         .description("Endpoint used for SIRI SubscriptionRequest.")
 
