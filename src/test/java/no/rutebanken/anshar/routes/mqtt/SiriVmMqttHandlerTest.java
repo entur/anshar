@@ -50,6 +50,27 @@ public class SiriVmMqttHandlerTest {
     }
 
     @Test
+    public void testTopicFormatWithCourseOfJourney() {
+
+        ZonedDateTime dateTime = ZonedDateTime.of(2017, 12, 24, 10, 11, 4, 0, ZoneId.of("GMT"));
+
+        VehicleActivityStructure vehicle = createVehicle(dateTime, "veh123", "RUT:Line:7890", "Nettbus",
+                "RUT:ServiceJourney:4321-321", 1, "NSR:Quay:4321", 59.10234567, 10.98765421, 123, "DesttNNx tehd",
+                "7890", "not used in this test", 1);
+
+        vehicle.getMonitoredVehicleJourney().setFramedVehicleJourneyRef(null);
+        CourseOfJourneyRefStructure courseOfJourney = new CourseOfJourneyRefStructure();
+        courseOfJourney.setValue("KOL:VehicleJourney:1234");
+        vehicle.getMonitoredVehicleJourney().setCourseOfJourneyRef(courseOfJourney);
+
+        String datasetId = "RUT";
+        Pair<String, String> message = new SiriVmMqttHandler().getMessage(datasetId, vehicle);
+        String topic = message.getKey();
+
+        assertEquals("/hfp/journey/bus/RUT:veh123/RUT:Line:7890/KOL:VehicleJourney:1234/1/DesttNNx tehd/1011/NSR:Quay:4321/59;10/19/08/27/", topic);
+    }
+
+    @Test
     public void testMessage() throws JSONException {
         ZonedDateTime dateTime = ZonedDateTime.of(2017, 12, 24, 9, 37, 4, 0, ZoneId.of("GMT"));
         VehicleActivityStructure vehicle = createVehicle(dateTime, "78123", "RUT:Line:0037", "Nobina",

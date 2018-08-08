@@ -17,7 +17,6 @@ package no.rutebanken.anshar.routes.mqtt;
 
 import com.hazelcast.core.IMap;
 import no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter;
-
 import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
@@ -280,6 +279,10 @@ public class SiriVmMqttHandler {
         FramedVehicleJourneyRefStructure framedVehicleJourneyRef = monitoredVehicleJourney.getFramedVehicleJourneyRef();
         if (framedVehicleJourneyRef != null && framedVehicleJourneyRef.getDatedVehicleJourneyRef() != null) {
             return OutboundIdAdapter.getMappedId(framedVehicleJourneyRef.getDatedVehicleJourneyRef());
+        }
+        if (monitoredVehicleJourney.getCourseOfJourneyRef() != null) {
+            // Backup-solution for Kolumbus/AtB
+            return OutboundIdAdapter.getMappedId(monitoredVehicleJourney.getCourseOfJourneyRef().getValue());
         }
         return VehiclePosition.UNKNOWN;
     }
