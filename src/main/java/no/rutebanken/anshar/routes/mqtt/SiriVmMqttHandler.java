@@ -181,6 +181,13 @@ public class SiriVmMqttHandler {
             return;
         }
 
+        // If monitored == false, ignore update
+        if (activity != null && activity.getMonitoredVehicleJourney() != null &&
+                activity.getMonitoredVehicleJourney().isMonitored() != null &&
+                !activity.getMonitoredVehicleJourney().isMonitored()) {
+            return;
+        }
+
         try {
             Pair<String, String> message = getMessage(datasetId, activity);
             publishMessage(message.getKey(), message.getValue());
