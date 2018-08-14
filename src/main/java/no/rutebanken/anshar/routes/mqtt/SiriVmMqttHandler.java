@@ -225,7 +225,7 @@ public class SiriVmMqttHandler {
         String topic = getTopic(mode, vehicleId, route, tripId, direction, headSign, startTime, nextStop, lat, lng);
         String message = null;
         try {
-            message = getMessage(monitoredVehicleJourney, vehicleId, timestamp, tsi, route, tripId, direction, headSign, startTime, lat, lng);
+            message = getMessage(monitoredVehicleJourney, vehicleId, timestamp, tsi, route, tripId, direction, headSign, startTime, lat, lng, mode);
         } catch (JSONException e) {
            logger.info("Caught exception when generating MQTT-messsage - will be ignored", e);
         }
@@ -253,7 +253,7 @@ public class SiriVmMqttHandler {
 
     private String getMessage(MonitoredVehicleJourney monitoredVehicleJourney, String vehicleId, String timeStamp,
                               long tsi, String route, String tripId, String direction, String headSign, String startTime, double lat,
-                              double lng) throws JSONException {
+                              double lng, String mode) throws JSONException {
         JSONObject vehiclePosition = new JSONObject();
         vehiclePosition.put(VehiclePosition.DESIGNATION, getDesignation(monitoredVehicleJourney));
         vehiclePosition.put(VehiclePosition.DIRECTION, direction);
@@ -274,6 +274,7 @@ public class SiriVmMqttHandler {
         vehiclePosition.put(VehiclePosition.STARTTIME, startTime);
         vehiclePosition.put(VehiclePosition.STOP_INDEX, getStopIndex(monitoredVehicleJourney));
         vehiclePosition.put(VehiclePosition.SOURCE, ENTUR);
+        vehiclePosition.put(VehiclePosition.MODE, mode);
 
         return new JSONObject().put(VehiclePosition.ROOT, vehiclePosition).toString();
     }
