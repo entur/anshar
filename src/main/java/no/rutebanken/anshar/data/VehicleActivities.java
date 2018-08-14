@@ -247,13 +247,13 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
 
                         VehicleActivityStructure existing = vehicleActivities.get(key);
 
-                        boolean keep = true;//(existing == null); //No existing data i.e. keep
+                        boolean keep = (existing == null); //No existing data i.e. keep
 
-//                        if (existing != null &&
-//                                (activity.getRecordedAtTime() != null && existing.getRecordedAtTime() != null)) {
-//                            //Newer data has already been processed
-//                            keep = activity.getRecordedAtTime().isAfter(existing.getRecordedAtTime());
-//                        }
+                        if (existing != null &&
+                                (activity.getRecordedAtTime() != null && existing.getRecordedAtTime() != null)) {
+                            //Newer data has already been processed
+                            keep = activity.getRecordedAtTime().isAfter(existing.getRecordedAtTime());
+                        }
 
                         long expiration = getExpiration(activity);
 
