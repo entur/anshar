@@ -300,6 +300,9 @@ public class SiriVmMqttHandler {
         if ("Sporvognsdrift".equals(getOperator(monitoredVehicleJourney))) {
             return "tram";
         }
+        if ("Tide_sjø_AS".equals(getOperator(monitoredVehicleJourney))) {
+            return "water";
+        }
         return "bus";
     }
 
