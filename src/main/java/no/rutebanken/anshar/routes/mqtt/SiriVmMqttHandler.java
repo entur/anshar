@@ -193,7 +193,7 @@ public class SiriVmMqttHandler {
             publishMessage(message.getKey(), message.getValue());
 
         } catch (NullPointerException e) {
-            logger.warn("Incomplete Siri data", e);
+            logger.debug("Incomplete Siri data", e);
         } catch (Exception e) {
             logger.warn("Could not parse", e);
         }
@@ -411,11 +411,7 @@ public class SiriVmMqttHandler {
     }
 
     private String getOperator(MonitoredVehicleJourney monitoredVehicleJourney) {
-        OperatorRefStructure operatorRef = monitoredVehicleJourney.getOperatorRef();
-        if (operatorRef != null && operatorRef.getValue() != null) {
-            return operatorRef.getValue();
-        }
-        return VehiclePosition.UNKNOWN;
+        return monitoredVehicleJourney.getDataSource();
     }
 
     private String getTimestamp(VehicleActivityStructure monitoredVehicleJourney) {
@@ -477,6 +473,14 @@ public class SiriVmMqttHandler {
                 origin = originName.getValue();
             }
         }
+
+        if (origin.isEmpty() | origin.equals(VehiclePosition.UNKNOWN)) {
+            throw new NullPointerException("VehicleActivityStructure.MonitoredVehicleJourney.OriginName not set");
+        }
+        if (headSign.isEmpty() | headSign.equals(VehiclePosition.UNKNOWN)) {
+            throw new NullPointerException("VehicleActivityStructure.MonitoredVehicleJourney.DestinationName not set");
+        }
+
         return origin.concat(JOURNEY_DELIM).concat(headSign);
     }
 
