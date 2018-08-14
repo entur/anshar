@@ -257,7 +257,7 @@ public class SiriVmMqttHandler {
         JSONObject vehiclePosition = new JSONObject();
         vehiclePosition.put(VehiclePosition.DESIGNATION, getDesignation(monitoredVehicleJourney));
         vehiclePosition.put(VehiclePosition.DIRECTION, direction);
-        vehiclePosition.put(VehiclePosition.OPERATOR, getOperator(monitoredVehicleJourney));
+        vehiclePosition.put(VehiclePosition.OPERATOR, getDataSource(monitoredVehicleJourney));
         vehiclePosition.put(VehiclePosition.VEHICLE_ID, vehicleId);
         vehiclePosition.put(VehiclePosition.TIMESTAMP, timeStamp);
         vehiclePosition.put(VehiclePosition.TSI, tsi);
@@ -297,6 +297,16 @@ public class SiriVmMqttHandler {
 
 
     private String getMode(MonitoredVehicleJourney monitoredVehicleJourney) {
+        String vehicleMode = getVehicleMode(monitoredVehicleJourney);
+        if (vehicleMode != null) {
+            switch (vehicleMode) {
+                case "ferry":
+                    return "water";
+                default:
+                    return vehicleMode;
+            }
+        }
+
         if ("Sporvognsdrift".equals(getOperator(monitoredVehicleJourney))) {
             return "tram";
         }
@@ -414,7 +424,23 @@ public class SiriVmMqttHandler {
         return VehiclePosition.UNKNOWN;
     }
 
+    private String getVehicleMode(MonitoredVehicleJourney monitoredVehicleJourney) {
+        List<VehicleModesEnumeration> vehicleModes = monitoredVehicleJourney.getVehicleModes();
+        if (vehicleModes != null && !vehicleModes.isEmpty()) {
+            return vehicleModes.get(0).value();
+        }
+        return null;
+    }
+
     private String getOperator(MonitoredVehicleJourney monitoredVehicleJourney) {
+        OperatorRefStructure operatorRef = monitoredVehicleJourney.getOperatorRef();
+        if (operatorRef != null && operatorRef.getValue() != null) {
+            return operatorRef.getValue();
+        }
+        return VehiclePosition.UNKNOWN;
+    }
+
+    private String getDataSource(MonitoredVehicleJourney monitoredVehicleJourney) {
         return monitoredVehicleJourney.getDataSource();
     }
 
