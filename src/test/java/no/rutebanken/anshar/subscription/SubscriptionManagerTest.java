@@ -216,11 +216,16 @@ public class SubscriptionManagerTest {
         }
 
         JSONObject jsonObject = subscriptionManager.buildStats();
-        assertNotNull(jsonObject.get("subscriptions"));
-        assertTrue(jsonObject.get("subscriptions") instanceof JSONArray);
 
-        JSONArray subscriptions = (JSONArray) jsonObject.get("subscriptions");
-        assertTrue(subscriptions.size() > 0);
+        assertNotNull(jsonObject.get("types"));
+        assertTrue(jsonObject.get("types") instanceof JSONArray);
+
+        JSONArray types = (JSONArray) jsonObject.get("types");
+
+        JSONArray subscriptions = new JSONArray();
+        for (int i = 0; i < types.size(); i++) {
+            subscriptions.addAll((JSONArray) ((JSONObject)types.get(i)).get("subscriptions"));
+        }
 
         boolean verifiedCounter = false;
         for (Object object : subscriptions) {
@@ -250,10 +255,15 @@ public class SubscriptionManagerTest {
         }
 
         JSONObject jsonObject = subscriptionManager.buildStats();
-        assertNotNull(jsonObject.get("subscriptions"));
-        assertTrue(jsonObject.get("subscriptions") instanceof JSONArray);
+        assertNotNull(jsonObject.get("types"));
+        assertTrue(jsonObject.get("types") instanceof JSONArray);
 
-        JSONArray subscriptions = (JSONArray) jsonObject.get("subscriptions");
+        JSONArray types = (JSONArray) jsonObject.get("types");
+
+        JSONArray subscriptions = new JSONArray();
+        for (int i = 0; i < types.size(); i++) {
+            subscriptions.addAll((JSONArray) ((JSONObject)types.get(i)).get("subscriptions"));
+        }
         assertTrue(subscriptions.size() > 0);
 
         boolean verifiedCounter = false;

@@ -304,12 +304,46 @@ public class SubscriptionManager {
     public JSONObject buildStats() {
         JSONObject result = new JSONObject();
         JSONArray stats = new JSONArray();
-        stats.addAll(subscriptions.keySet().stream()
-                .map(key -> getJsonObject(subscriptions.get(key)))
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList()));
 
-        result.put("subscriptions", stats);
+        JSONArray etSubscriptions = new JSONArray();
+        etSubscriptions.addAll(this.subscriptions.values().stream()
+                .filter(subscriptionSetup -> subscriptionSetup.getSubscriptionType() == SiriDataType.ESTIMATED_TIMETABLE)
+                .map(this::getJsonObject)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList())
+        );
+
+        JSONArray vmSubscriptions = new JSONArray();
+        vmSubscriptions.addAll(this.subscriptions.values().stream()
+                .filter(subscriptionSetup -> subscriptionSetup.getSubscriptionType() == SiriDataType.VEHICLE_MONITORING)
+                .map(this::getJsonObject)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList())
+        );
+
+        JSONArray sxSubscriptions = new JSONArray();
+        sxSubscriptions.addAll(this.subscriptions.values().stream()
+                .filter(subscriptionSetup -> subscriptionSetup.getSubscriptionType() == SiriDataType.SITUATION_EXCHANGE)
+                .map(this::getJsonObject)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList())
+        );
+
+        JSONObject etType = new JSONObject();
+        etType.put("typeName", ""+ SiriDataType.ESTIMATED_TIMETABLE);
+        etType.put("subscriptions", etSubscriptions);
+        JSONObject vmType = new JSONObject();
+        vmType.put("typeName", ""+ SiriDataType.VEHICLE_MONITORING);
+        vmType.put("subscriptions", vmSubscriptions);
+        JSONObject sxType = new JSONObject();
+        sxType.put("typeName", ""+ SiriDataType.SITUATION_EXCHANGE);
+        sxType.put("subscriptions", sxSubscriptions);
+
+        stats.add(etType);
+        stats.add(vmType);
+        stats.add(sxType);
+
+        result.put("types", stats);
 
         result.put("environment", environment);
         result.put("serverStarted", formatTimestamp(siriObjectFactory.serverStartTime));
