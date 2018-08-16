@@ -115,28 +115,6 @@
                     </table>
                 </div>
             </#list>
-                <div class="row">
-
-                    <div class="row">
-                        <div class="col-md-2"><label>Active elements:</label></div>
-                        <div class="col-md-1"><label>Polling clients:</label></div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-1">SX</div>
-                        <div class="col-md-1">${body.elements.sx}</div>
-                        <div class="col-md-1">${body.elements.sxChanges}</div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-1">VM</div>
-                        <div class="col-md-1">${body.elements.vm}</div>
-                        <div class="col-md-1">${body.elements.vmChanges}</div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-1">ET</div>
-                        <div class="col-md-1">${body.elements.et}</div>
-                        <div class="col-md-1">${body.elements.etChanges}</div>
-                    </div>
-                </div>
         </div>
 
         <div class="tab-pane" id="outbound" role="tabpanel" aria-labelledby="outbound-tab">
@@ -201,6 +179,13 @@
                         <td align="right">${body.elements.et}</td>
                         <td align="right">${body.elements.vm}</td>
                         <td align="right">${body.elements.sx}</td>
+                    </tr>
+                    <tr><td colspan="4"></td> </tr>
+                    <tr>
+                        <th>Polling clients</th>
+                        <td align="right">${body.elements.etChanges}</td>
+                        <td align="right">${body.elements.vmChanges}</td>
+                        <td align="right">${body.elements.sxChanges}</td>
                     </tr>
                     </tbody>
                 </table>
