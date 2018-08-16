@@ -91,7 +91,7 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
                         Integer count = sizeMap.getOrDefault(datasetId, 0);
                         sizeMap.put(datasetId, count+1);
                     });
-        logger.info("Calculating data-distribution took {} ms: {}", (System.currentTimeMillis()-t1), sizeMap);
+        logger.info("Calculating data-distribution (ET) took {} ms: {}", (System.currentTimeMillis()-t1), sizeMap);
         return sizeMap;
     }
 
