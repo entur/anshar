@@ -160,9 +160,9 @@
                     <thead>
                     <tr>
                         <th>Codespace</th>
-                        <th align="right">ET</th>
-                        <th align="right">VM</th>
-                        <th align="right">SX</th>
+                        <td align="right"><b>ET</b></td>
+                        <td align="right"><b>VM</b></td>
+                        <td align="right"><b>SX</b></td>
                     </tr>
                     </thead>
                     <tbody>
