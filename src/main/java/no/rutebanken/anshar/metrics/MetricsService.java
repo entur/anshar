@@ -17,13 +17,13 @@ package no.rutebanken.anshar.metrics;
 
 import no.rutebanken.anshar.subscription.SiriDataType;
 
-import java.util.Map;
+import java.util.function.Function;
 
 public interface MetricsService {
 
     /**
      * Method used for registering incoming data
      */
-    void registerIncomingData(SiriDataType subscriptionType, String agencyId, Map data);
+    void registerIncomingData(SiriDataType subscriptionType, String agencyId, Function<String, Integer> function);
 
 }

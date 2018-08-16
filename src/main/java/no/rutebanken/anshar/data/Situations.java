@@ -89,6 +89,14 @@ public class Situations implements SiriRepository<PtSituationElement> {
         return sizeMap;
     }
 
+
+    public Integer getDatasetSize(String datasetId) {
+        return Math.toIntExact(situations.keySet().stream()
+                .filter(key -> datasetId.equals(key.substring(0, key.indexOf(":"))))
+                .count());
+    }
+
+
     public void clearAll() {
         logger.error("Deleting all data - should only be used in test!!!");
         situations.clear();
@@ -257,7 +265,7 @@ public class Situations implements SiriRepository<PtSituationElement> {
         });
         logger.info("Updated {} (of {}) :: Already expired: {},", changes.size(), sxList.size(), alreadyExpiredCounter.getValue());
 
-        metricsService.registerIncomingData(SiriDataType.SITUATION_EXCHANGE, datasetId, situations);
+        metricsService.registerIncomingData(SiriDataType.SITUATION_EXCHANGE, datasetId, (id) -> getDatasetSize(id));
 
         changesMap.keySet().forEach(requestor -> {
             if (lastUpdateRequested.get(requestor) != null) {

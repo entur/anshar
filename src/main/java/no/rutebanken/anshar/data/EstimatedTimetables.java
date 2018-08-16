@@ -95,6 +95,12 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
         return sizeMap;
     }
 
+    public Integer getDatasetSize(String datasetId) {
+        return Math.toIntExact(timetableDeliveries.keySet().stream()
+                .filter(key -> datasetId.equals(key.substring(0, key.indexOf(":"))))
+                .count());
+    }
+
     public void clearAll() {
         logger.error("Deleting all data - should only be used in test!!!");
         timetableDeliveries.clear();
@@ -516,7 +522,7 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
         });
 
         logger.info("Updated {} (of {}), {} outdated", changes.size(), etList.size(), outdatedCounter.getValue());
-        metricsService.registerIncomingData(SiriDataType.ESTIMATED_TIMETABLE, datasetId, timetableDeliveries);
+        metricsService.registerIncomingData(SiriDataType.ESTIMATED_TIMETABLE, datasetId, (id) -> getDatasetSize(id));
 
         changesMap.keySet().forEach(requestor -> {
             if (lastUpdateRequested.get(requestor) != null) {

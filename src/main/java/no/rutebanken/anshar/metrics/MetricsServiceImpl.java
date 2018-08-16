@@ -15,7 +15,6 @@
 
 package no.rutebanken.anshar.metrics;
 
-import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.graphite.Graphite;
@@ -29,8 +28,8 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 public class MetricsServiceImpl implements MetricsService {
     private static final Logger logger = LoggerFactory.getLogger(MetricsServiceImpl.class);
@@ -77,13 +76,15 @@ public class MetricsServiceImpl implements MetricsService {
 
 
     @Override
-    public void registerIncomingData(SiriDataType subscriptionType, String agencyId, Map data) {
-        String counterName = "data.type." + subscriptionType;
+    public void registerIncomingData(SiriDataType subscriptionType, String agencyId, Function<String, Integer> function) {
+        String counterName = "data.type." + subscriptionType + "." + agencyId;
         if (!metrics.getGauges().containsKey(counterName)) {
-            metrics.gauge(counterName, () -> new Gauge() {
-                @Override
-                public Integer getValue() {
-                    return data.size();
+            metrics.gauge(counterName, () -> () -> {
+                long t1 = System.currentTimeMillis();
+                try {
+                    return function.apply(agencyId);
+                } finally {
+                    logger.info("Gauge {} calculated in {} ms", counterName, (System.currentTimeMillis()-t1));
                 }
             });
         }

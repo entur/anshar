@@ -91,6 +91,14 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
         return sizeMap;
     }
 
+
+    public Integer getDatasetSize(String datasetId) {
+        return Math.toIntExact(vehicleActivities.keySet().stream()
+                .filter(key -> datasetId.equals(key.substring(0, key.indexOf(":"))))
+                .count());
+    }
+
+
     public void clearAll() {
         logger.error("Deleting all data - should only be used in test!!!");
         vehicleActivities.clear();
@@ -286,7 +294,7 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
 
         logger.info("Updated {} (of {}) :: Ignored elements - Missing location:{}, Missing values: {}, Skipped: {}", changes.size(), vmList.size(), invalidLocationCounter.getValue(), notMeaningfulCounter.getValue(), outdatedCounter.getValue());
 
-        metricsService.registerIncomingData(SiriDataType.VEHICLE_MONITORING, datasetId, vehicleActivities);
+        metricsService.registerIncomingData(SiriDataType.VEHICLE_MONITORING, datasetId, (id) -> getDatasetSize(id));
 
         changesMap.keySet().forEach(requestor -> {
             if (lastUpdateRequested.get(requestor) != null) {
