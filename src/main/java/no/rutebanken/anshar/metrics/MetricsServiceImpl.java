@@ -77,16 +77,9 @@ public class MetricsServiceImpl implements MetricsService {
 
     @Override
     public void registerIncomingData(SiriDataType subscriptionType, String agencyId, Function<String, Integer> function) {
-        String counterName = "data.type." + subscriptionType + "." + agencyId;
+        String counterName = "data.type." + subscriptionType + ".codespace." + agencyId;
         if (!metrics.getGauges().containsKey(counterName)) {
-            metrics.gauge(counterName, () -> () -> {
-                long t1 = System.currentTimeMillis();
-                try {
-                    return function.apply(agencyId);
-                } finally {
-                    logger.info("Gauge {} calculated in {} ms", counterName, (System.currentTimeMillis()-t1));
-                }
-            });
+            metrics.gauge(counterName, () -> () -> function.apply(agencyId));
         }
     }
 
