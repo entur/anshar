@@ -80,7 +80,7 @@ public class Situations implements SiriRepository<PtSituationElement> {
         Map<String, Integer> sizeMap = new HashMap<>();
         long t1 = System.currentTimeMillis();
         situations.keySet().forEach(key -> {
-            String datasetId = key.substring(0, 3);
+            String datasetId = key.substring(0, key.indexOf(":"));
 
             Integer count = sizeMap.getOrDefault(datasetId, 0);
             sizeMap.put(datasetId, count+1);

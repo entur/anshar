@@ -86,7 +86,7 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
         Map<String, Integer> sizeMap = new HashMap<>();
         long t1 = System.currentTimeMillis();
         timetableDeliveries.keySet().forEach(key -> {
-                        String datasetId = key.substring(0, 3);
+                        String datasetId = key.substring(0, key.indexOf(":"));
 
                         Integer count = sizeMap.getOrDefault(datasetId, 0);
                         sizeMap.put(datasetId, count+1);
