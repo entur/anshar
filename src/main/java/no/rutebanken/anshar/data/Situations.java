@@ -76,6 +76,19 @@ public class Situations implements SiriRepository<PtSituationElement> {
     }
 
 
+    public Map<String, Integer> getDatasetSize() {
+        Map<String, Integer> sizeMap = new HashMap<>();
+        long t1 = System.currentTimeMillis();
+        situations.keySet().forEach(key -> {
+            String datasetId = key.substring(0, 3);
+
+            Integer count = sizeMap.getOrDefault(datasetId, 0);
+            sizeMap.put(datasetId, count+1);
+        });
+        logger.info("Calculating data-distribution took {} ms: {}", (System.currentTimeMillis()-t1), sizeMap);
+        return sizeMap;
+    }
+
     public void clearAll() {
         logger.error("Deleting all data - should only be used in test!!!");
         situations.clear();

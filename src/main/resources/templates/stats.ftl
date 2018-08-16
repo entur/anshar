@@ -134,6 +134,32 @@
                         <div class="col-md-1">${body.elements.etChanges}</div>
                     </div>
                 </div>
+            <div class="row">
+                <h4>Dataset distribution</h4>
+                <#list body.elements.etDatasets?sort_by("dataset") as item>
+                    <div class="row">
+                        <div class="col-md-1">ET</div>
+                        <div class="col-md-1">${item.dataset}</div>
+                        <div class="col-md-1">${item.count}</div>
+                    </div>
+                </#list>
+                <p />
+                <#list body.elements.vmDatasets?sort_by("dataset") as item>
+                    <div class="row">
+                        <div class="col-md-1">VM</div>
+                        <div class="col-md-1">${item.dataset}</div>
+                        <div class="col-md-1">${item.count}</div>
+                    </div>
+                </#list>
+                <p />
+                <#list body.elements.sxDatasets?sort_by("dataset") as item>
+                    <div class="row">
+                        <div class="col-md-1">SX</div>
+                        <div class="col-md-1">${item.dataset}</div>
+                        <div class="col-md-1">${item.count}</div>
+                    </div>
+                </#list>
+            </div>
         </div>
 
         <div class="tab-pane" id="outbound" role="tabpanel" aria-labelledby="outbound-tab">

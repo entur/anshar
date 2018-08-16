@@ -40,6 +40,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -354,6 +355,10 @@ public class SubscriptionManager {
         count.put("et", et.getSize());
         count.put("vm", vm.getSize());
 
+        count.put("etDatasets", getCountPerDataset(et.getDatasetSize()));
+        count.put("sxDatasets", getCountPerDataset(sx.getDatasetSize()));
+        count.put("vmDatasets", getCountPerDataset(vm.getDatasetSize()));
+
         count.put("sxChanges", sxChanges.size());
         count.put("etChanges", etChanges.size());
         count.put("vmChanges", vmChanges.size());
@@ -361,6 +366,17 @@ public class SubscriptionManager {
         result.put("elements", count);
 
         return result;
+    }
+
+    private JSONArray getCountPerDataset(Map<String, Integer> datasetSize) {
+        JSONArray etDatasetCount = new JSONArray();
+        for (String datasetId : datasetSize.keySet()) {
+            JSONObject counter = new JSONObject();
+            counter.put("dataset", datasetId);
+            counter.put("count", datasetSize.get(datasetId));
+            etDatasetCount.add(counter);
+        }
+        return etDatasetCount;
     }
 
     private JSONObject getJsonObject(SubscriptionSetup setup) {
