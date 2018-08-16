@@ -355,9 +355,7 @@ public class SubscriptionManager {
         count.put("et", et.getSize());
         count.put("vm", vm.getSize());
 
-        count.put("etDatasets", getCountPerDataset(et.getDatasetSize()));
-        count.put("sxDatasets", getCountPerDataset(sx.getDatasetSize()));
-        count.put("vmDatasets", getCountPerDataset(vm.getDatasetSize()));
+        count.put("distribution", getCountPerDataset(et.getDatasetSize(), vm.getDatasetSize(), sx.getDatasetSize()));
 
         count.put("sxChanges", sxChanges.size());
         count.put("etChanges", etChanges.size());
@@ -368,12 +366,20 @@ public class SubscriptionManager {
         return result;
     }
 
-    private JSONArray getCountPerDataset(Map<String, Integer> datasetSize) {
+    private JSONArray getCountPerDataset(Map<String, Integer> etDatasetSize, Map<String, Integer> vmDatasetSize, Map<String, Integer> sxDatasetSize) {
         JSONArray etDatasetCount = new JSONArray();
-        for (String datasetId : datasetSize.keySet()) {
+
+        Set<String> allKeys = new HashSet<>();
+        allKeys.addAll(etDatasetSize.keySet());
+        allKeys.addAll(vmDatasetSize.keySet());
+        allKeys.addAll(sxDatasetSize.keySet());
+
+        for (String datasetId : allKeys) {
             JSONObject counter = new JSONObject();
-            counter.put("dataset", datasetId);
-            counter.put("count", datasetSize.get(datasetId));
+            counter.put("datasetId", datasetId);
+            counter.put("etCount", etDatasetSize.getOrDefault(datasetId,0));
+            counter.put("vmCount", vmDatasetSize.getOrDefault(datasetId,0));
+            counter.put("sxCount", sxDatasetSize.getOrDefault(datasetId,0));
             etDatasetCount.add(counter);
         }
         return etDatasetCount;
