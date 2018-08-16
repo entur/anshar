@@ -177,7 +177,7 @@
         </div>
         <div class="tab-pane" id="distribution" role="tabpanel" aria-labelledby="distribution-tab">
             <div class="row">
-                <h4>Data distribution</h4>
+                <h4>Active data per codespace:</h4>
                 <table class="table table-striped">
                     <thead>
                     <tr>
