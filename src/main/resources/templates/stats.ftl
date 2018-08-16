@@ -196,6 +196,12 @@
                         <td>${item.sxCount}</td>
                     </tr>
                     </#list>
+                    <tr>
+                        <th>Total</th>
+                        <td>${body.elements.et}</td>
+                        <td>${body.elements.vm}</td>
+                        <td>${body.elements.sx}</td>
+                    </tr>
                     </tbody>
                 </table>
             </div>
