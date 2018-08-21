@@ -88,9 +88,14 @@ public class MetricsServiceImpl implements MetricsService {
     @Override
     public void registerSubscription(SubscriptionManager manager, SubscriptionSetup subscription) {
         String vendor = subscription.getVendor();
+        String datasetId = subscription.getDatasetId();
+        SiriDataType subscriptionType = subscription.getSubscriptionType();
 
-        String gauge_failing = "subscription." + vendor + ".failing" ;
-        String gauge_data_failing = "subscription." + vendor + ".data_failing" ;
+                                //e.g.: subscription.ET.RUT.ruterEt.failing
+        String gauge_baseName = "subscription." + subscriptionType + "." + datasetId + "." + vendor;
+
+        String gauge_failing = gauge_baseName + ".failing";
+        String gauge_data_failing = gauge_baseName + ".data_failing" ;
 
         //Flag as failing when ACTIVE, and NOT HEALTHY
         metrics.gauge(gauge_failing, () -> () -> manager.isActiveSubscription(subscription.getSubscriptionId()) &&
