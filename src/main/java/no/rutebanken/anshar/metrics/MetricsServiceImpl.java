@@ -21,6 +21,8 @@ import com.codahale.metrics.graphite.Graphite;
 import com.codahale.metrics.graphite.GraphiteReporter;
 import com.google.common.base.Strings;
 import no.rutebanken.anshar.subscription.SiriDataType;
+import no.rutebanken.anshar.subscription.SubscriptionManager;
+import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -83,4 +85,19 @@ public class MetricsServiceImpl implements MetricsService {
         }
     }
 
+    @Override
+    public void registerSubscription(SubscriptionManager manager, SubscriptionSetup subscription) {
+        String vendor = subscription.getVendor();
+
+        String gauge_failing = "subscription." + vendor + ".failing" ;
+        String gauge_data_failing = "subscription." + vendor + ".data_failing" ;
+
+        //Flag as failing when ACTIVE, and NOT HEALTHY
+        metrics.gauge(gauge_failing, () -> () -> manager.isActiveSubscription(subscription.getSubscriptionId()) &&
+                                                 !manager.isSubscriptionHealthy(subscription.getSubscriptionId()));
+
+        //Flag as data failing when ACTIVE, and NOT receiving data
+        metrics.gauge(gauge_data_failing, () -> () -> manager.isActiveSubscription(subscription.getSubscriptionId()) &&
+                                                 !manager.isSubscriptionReceivingData(subscription.getSubscriptionId(), 60));
+    }
 }

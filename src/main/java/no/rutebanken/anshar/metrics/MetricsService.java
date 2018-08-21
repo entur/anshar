@@ -16,6 +16,8 @@
 package no.rutebanken.anshar.metrics;
 
 import no.rutebanken.anshar.subscription.SiriDataType;
+import no.rutebanken.anshar.subscription.SubscriptionManager;
+import no.rutebanken.anshar.subscription.SubscriptionSetup;
 
 import java.util.function.Function;
 
@@ -26,4 +28,5 @@ public interface MetricsService {
      */
     void registerIncomingData(SiriDataType subscriptionType, String agencyId, Function<String, Integer> function);
 
+    void registerSubscription(SubscriptionManager manager, SubscriptionSetup subscription);
 }
