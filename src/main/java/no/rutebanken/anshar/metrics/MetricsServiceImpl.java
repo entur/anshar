@@ -101,8 +101,16 @@ public class MetricsServiceImpl implements MetricsService {
         metrics.gauge(gauge_failing, () -> () -> manager.isActiveSubscription(subscription.getSubscriptionId()) &&
                                                  !manager.isSubscriptionHealthy(subscription.getSubscriptionId()));
 
-        //Flag as data failing when ACTIVE, and NOT receiving data
-        metrics.gauge(gauge_data_failing, () -> () -> manager.isActiveSubscription(subscription.getSubscriptionId()) &&
-                                                 !manager.isSubscriptionReceivingData(subscription.getSubscriptionId(), 60));
+        //Set flag as data failing when ACTIVE, and NOT receiving data
+
+        // ...in the last 5 minutes
+        metrics.gauge(gauge_data_failing + ".5min", () -> () -> manager.isActiveSubscription(subscription.getSubscriptionId()) &&
+                                                 !manager.isSubscriptionReceivingData(subscription.getSubscriptionId(), 5*60));
+        // ...the last 15 minutes
+        metrics.gauge(gauge_data_failing + ".15min", () -> () -> manager.isActiveSubscription(subscription.getSubscriptionId()) &&
+                                                 !manager.isSubscriptionReceivingData(subscription.getSubscriptionId(), 15*60));
+        // ...and the last 30 minutes
+        metrics.gauge(gauge_data_failing + ".30min", () -> () -> manager.isActiveSubscription(subscription.getSubscriptionId()) &&
+                                                 !manager.isSubscriptionReceivingData(subscription.getSubscriptionId(), 30*60));
     }
 }
