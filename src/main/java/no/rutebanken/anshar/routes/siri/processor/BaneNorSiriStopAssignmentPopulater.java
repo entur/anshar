@@ -100,10 +100,21 @@ public class BaneNorSiriStopAssignmentPopulater extends ValueAdapter implements 
                 stopAssignment = estimatedCall.getArrivalStopAssignment();
             }
             if (stopAssignment.getAimedQuayRef() == null || StringUtils.isEmpty(stopAssignment.getAimedQuayRef().getValue()) ) {
-                StopTime stopTime = stopTimes.get(order - 1); //Stops in GTFS starts with 0, while it starts with 1 in the EstimatedCall-structure
-                String aimedQuay = stopTime.getStop().getId().getId();
-                stopAssignment.setAimedQuayRef(createQuayRef(aimedQuay));
-                addedAimedQuay = true;
+                int sequence = order - 1; //Stops in GTFS starts with 0, while it starts with 1 in the EstimatedCall-structure
+                if (stopTimes.size() > sequence) {
+                    StopTime stopTime = stopTimes.get(sequence);
+                    //Sometimes (when part of the route is in Sweden) the order of the call in the EstimatedCall does not match the stoptimes from route data
+                    if (stopTime.getStopSequence() == sequence) {
+                        String aimedQuay = stopTime.getStop().getId().getId();
+                        stopAssignment.setAimedQuayRef(createQuayRef(aimedQuay));
+                        addedAimedQuay = true;
+                    } else {
+                        logger.warn("Got incorrect sequence in stoptime for DatedVehicleJourney={}: has {} (estimatedCall.order-1), but got {}", datedVehicleJourneyRefValue, sequence, stopTime.getStopSequence());
+                    }
+                } else {
+                    logger.warn("Got a sequence number ({}) that is out of bounds (stopTimes.size()={}) for DatedVehicleJourney={}", sequence, stopTimes.size(), datedVehicleJourneyRef);
+                }
+
             }
             if (stopAssignment.getExpectedQuayRef() == null || StringUtils.isEmpty(stopAssignment.getExpectedQuayRef().getValue()) ) {
                 stopAssignment.setExpectedQuayRef(createQuayRef(expectedQuay));

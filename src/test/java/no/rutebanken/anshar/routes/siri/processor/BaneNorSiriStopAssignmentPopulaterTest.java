@@ -21,7 +21,9 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 
@@ -43,6 +45,7 @@ public class BaneNorSiriStopAssignmentPopulaterTest {
         //Checks resulting Siri for track-changes and cases where we can't populate stopAssignments
         int foundJourneys = 0;
         int notFoundJourneys = 0;
+        HashMap<String, Integer> operators = new HashMap<>();
         if (siri != null && siri.getServiceDelivery() != null) {
             List<EstimatedTimetableDeliveryStructure> etDeliveries = siri.getServiceDelivery().getEstimatedTimetableDeliveries();
             if (etDeliveries != null) {
@@ -51,6 +54,12 @@ public class BaneNorSiriStopAssignmentPopulaterTest {
                     for (EstimatedVersionFrameStructure estimatedJourneyVersionFrame : estimatedJourneyVersionFrames) {
                         List<EstimatedVehicleJourney> estimatedVehicleJourneies = estimatedJourneyVersionFrame.getEstimatedVehicleJourneies();
                         for (EstimatedVehicleJourney estimatedVehicleJourney : estimatedVehicleJourneies) {
+                            String operator = estimatedVehicleJourney.getOperatorRef().getValue();
+                            Integer count = operators.get(operator);
+                            if (count == null) {
+                                count = 0;
+                            }
+                            operators.put(operator, ++count);
                             String datedVehicleJourney = estimatedVehicleJourney.getDatedVehicleJourneyRef().getValue();
                             if (StringUtils.startsWithAny(datedVehicleJourney, "NSB", "GJB", "FLT")) {
                                 foundJourneys++;
@@ -84,8 +93,18 @@ public class BaneNorSiriStopAssignmentPopulaterTest {
             }
         }
 
-        assertEquals(1031, foundJourneys);
+        logger.info("These oprators are present (name: count):");
+        for (Map.Entry<String, Integer> entry : operators.entrySet()) {
+            String extrainfo = "";
+            if ("FLY".equals(entry.getKey())) {
+                extrainfo = "<- FLT";
+            } else if ("NG".equals(entry.getKey())) {
+                extrainfo = "<- GJB";
+            }
+            logger.info("  {}:\t {}  {}", entry.getKey(), entry.getValue(), extrainfo);
+        }
         logger.info("There are {} journeys mapped from route data, and {} that are not", foundJourneys, notFoundJourneys);
+        assertEquals(1031, foundJourneys);
         String filename = "/tmp/BaneNorSiri_"+System.currentTimeMillis()+".xml";
         logger.info("Writes resulting XML to file: {}", filename);
         marshallToFile(siri, filename);
