@@ -94,7 +94,7 @@ public class SiriVmMqttHandlerTest {
         assertEquals(10.98765422, obj.get(VehiclePosition.LONGITUDE));
         assertEquals(203, obj.get(VehiclePosition.DELAY));
         assertEquals("2017-12-24", obj.get(VehiclePosition.ODAY));
-        assertEquals("Nydalen T -> Helsfyr T", obj.get(VehiclePosition.JOURNEY));
+        assertEquals("Helsfyr T", obj.get(VehiclePosition.JOURNEY));
         assertEquals("RUT:Line:0037", obj.get(VehiclePosition.LINE));
         assertEquals("RUT:ServiceJourney:1234-123", obj.get(VehiclePosition.TRIP_ID));
         assertEquals("0937", obj.get(VehiclePosition.STARTTIME));
