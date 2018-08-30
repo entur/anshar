@@ -42,10 +42,10 @@ public class NetexUpdaterService {
     private static final String NETEX_FLT_URL = "https://storage.googleapis.com/marduk-production/outbound/netex/rb_flt-aggregated-netex.zip";
     private static final String STOPPLACE_URL = "https://storage.googleapis.com/marduk-production/tiamat/CurrentAndFuture_latest.zip";
 
-    private static Map<String, List<StopTime>> tripStops;
-    private static Map<String, Set<String>> trainNumberTrips;
-    private static Map<String, List<ServiceDate>> tripDates;
-    private static Map<String, String> parentStops;
+    private static Map<String, List<StopTime>> tripStops = new HashMap<>();
+    private static Map<String, Set<String>> trainNumberTrips = new HashMap<>();
+    private static Map<String, List<ServiceDate>> tripDates = new HashMap<>();
+    private static Map<String, String> parentStops = new HashMap<>();
 
     public static boolean isStopIdOrParentMatch(String stop1, String stop2) {
         return stop1.equals(stop2) || parentStops.get(stop2).equals(parentStops.get(stop1));
