@@ -268,7 +268,7 @@ public class SiriVmMqttHandler {
         vehiclePosition.put(VehiclePosition.DELAY, getDelay(monitoredVehicleJourney));
         //vehiclePosition.put(VehiclePosition.ODOMETER: odometer);
         vehiclePosition.put(VehiclePosition.ODAY, getDepartureDay(monitoredVehicleJourney));
-        vehiclePosition.put(VehiclePosition.JOURNEY, getJourney(monitoredVehicleJourney, headSign));
+        vehiclePosition.put(VehiclePosition.JOURNEY, headSign);
         vehiclePosition.put(VehiclePosition.LINE, route);
         vehiclePosition.put(VehiclePosition.TRIP_ID, tripId);
         vehiclePosition.put(VehiclePosition.STARTTIME, startTime);
@@ -493,25 +493,12 @@ public class SiriVmMqttHandler {
         return date;
     }
 
-    private String getJourney(MonitoredVehicleJourney monitoredVehicleJourney, String headSign) {
-        String origin = VehiclePosition.UNKNOWN;
-
-        List<NaturalLanguagePlaceNameStructure> originNames = monitoredVehicleJourney.getOriginNames();
-        if (originNames != null && originNames.size() > 0) {
-            NaturalLanguagePlaceNameStructure originName = originNames.get(0);
-            if (originName != null && originName.getValue() != null) {
-                origin = originName.getValue();
-            }
-        }
-
-        if (origin.isEmpty() | origin.equals(VehiclePosition.UNKNOWN)) {
-            throw new NullPointerException("VehicleActivityStructure.MonitoredVehicleJourney.OriginName not set");
-        }
+    private String getJourney(String headSign) {
         if (headSign.isEmpty() | headSign.equals(VehiclePosition.UNKNOWN)) {
             throw new NullPointerException("VehicleActivityStructure.MonitoredVehicleJourney.DestinationName not set");
         }
 
-        return origin.concat(JOURNEY_DELIM).concat(headSign);
+        return headSign;
     }
 
     private long getStopIndex(MonitoredVehicleJourney monitoredVehicleJourney) {
