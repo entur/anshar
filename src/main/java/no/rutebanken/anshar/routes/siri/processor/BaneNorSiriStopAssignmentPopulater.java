@@ -15,15 +15,16 @@
 
 package no.rutebanken.anshar.routes.siri.processor;
 
+import no.rutebanken.anshar.routes.siri.processor.routedata.StopTime;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import org.apache.commons.lang3.StringUtils;
-import org.onebusaway.gtfs.model.StopTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.org.siri.siri20.*;
 
 import java.util.List;
 
+import static no.rutebanken.anshar.routes.siri.processor.routedata.NetexUpdaterService.getStopTimes;
 import static no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter.getMappedId;
 
 /**
@@ -72,7 +73,7 @@ public class BaneNorSiriStopAssignmentPopulater extends ValueAdapter implements 
             return false;
         }
         String datedVehicleJourneyRefValue = datedVehicleJourneyRef.getValue();
-        List<StopTime> stopTimes = NSBGtfsUpdaterService.getStopTimes(datedVehicleJourneyRefValue);
+        List<StopTime> stopTimes = getStopTimes(datedVehicleJourneyRefValue);
         if (stopTimes == null) {
             String operator = estimatedVehicleJourney.getOperatorRef() != null ? estimatedVehicleJourney.getOperatorRef().getValue() : null;
             logger.debug("Found no stopplaces for DatedVehicleJourneyRef = {}, Operator = {}", datedVehicleJourneyRefValue, operator);
@@ -105,7 +106,7 @@ public class BaneNorSiriStopAssignmentPopulater extends ValueAdapter implements 
                     StopTime stopTime = stopTimes.get(sequence);
                     //Sometimes (when part of the route is in Sweden) the order of the call in the EstimatedCall does not match the stoptimes from route data
                     if (stopTime.getStopSequence() == sequence) {
-                        String aimedQuay = stopTime.getStop().getId().getId();
+                        String aimedQuay = stopTime.getStopId();
                         stopAssignment.setAimedQuayRef(createQuayRef(aimedQuay));
                         addedAimedQuay = true;
                     } else {

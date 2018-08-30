@@ -1,12 +1,18 @@
 package no.rutebanken.anshar.routes.siri.processor;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.LoggerContext;
+import no.rutebanken.anshar.routes.health.HealthManager;
+import no.rutebanken.anshar.routes.siri.processor.routedata.NetexUpdaterService;
+import no.rutebanken.anshar.routes.siri.transformer.ApplicationContextHolder;
+import no.rutebanken.anshar.routes.siri.transformer.impl.StopPlaceRegisterMappingFetcher;
+import no.rutebanken.anshar.subscription.SiriDataType;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.mockito.Mockito;
+import org.mockito.stubbing.Answer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationContext;
 import uk.org.siri.siri20.*;
 
 import javax.xml.bind.JAXBContext;
@@ -27,18 +33,43 @@ import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 
+@Ignore
 public class BaneNorSiriStopAssignmentPopulaterTest {
 
     private static final Logger logger = LoggerFactory.getLogger(BaneNorSiriStopAssignmentPopulaterTest.class);
 
     @Test
     public void testStopAssignmentPopulation() throws Exception {
-        //Important to use these gtfs files recorded while we produced the test siri file so ids match!
-        NSBGtfsUpdaterService.update("src/test/resources/rb_nsb-aggregated-gtfs.zip",
-                "src/test/resources/rb_gjb-aggregated-gtfs.zip",
-                "src/test/resources/rb_flt-aggregated-gtfs.zip");
+        //Important to use these files recorded while we produced the test siri file so ids match!
+//        NSBGtfsUpdaterService.update("src/test/resources/rb_nsb-aggregated-gtfs.zip",
+//                "src/test/resources/rb_gjb-aggregated-gtfs.zip",
+//                "src/test/resources/rb_flt-aggregated-gtfs.zip");
+        NetexUpdaterService.update("src/test/resources/rb_nsb-aggregated-netex.zip",
+                "src/test/resources/rb_gjb-aggregated-netex.zip",
+                "src/test/resources/rb_flt-aggregated-netex.zip",
+                "src/test/resources/CurrentAndFuture_latest.zip");
 
-        Siri siri = unmarshallSiriFile("src/test/resources/siriAfterBaneNorSiriEtRewriting.xml");
+        long start = System.currentTimeMillis();
+        StopPlaceRegisterMappingFetcher mappingFetcher = new StopPlaceRegisterMappingFetcher();
+        Map<String, String> stopPlaceMapping = mappingFetcher.fetchStopPlaceMapping("file:///home/jon/Documents/Entur/anshar/local_config/jbv_code_mapping.csv");
+        logger.info("Got {} stopplace mappings in {} ms", stopPlaceMapping.size(), (System.currentTimeMillis()-start));
+        BaneNorIdPlatformUpdaterService platformUpdaterService = Mockito.mock(BaneNorIdPlatformUpdaterService.class);
+        Mockito.when(platformUpdaterService.get(Mockito.anyString())).thenAnswer((Answer<String>) invocation -> stopPlaceMapping.get(invocation.getArguments()[0]));
+        ApplicationContextHolder applicationContextHolder = new ApplicationContextHolder();
+        ApplicationContext applicationContext = Mockito.mock(ApplicationContext.class);
+        applicationContextHolder.setApplicationContext(applicationContext);
+        Mockito.when(applicationContext.getBean(BaneNorIdPlatformUpdaterService.class)).thenReturn(platformUpdaterService);
+        Mockito.when(applicationContext.getBean(HealthManager.class)).thenReturn(Mockito.mock(HealthManager.class));
+
+        Siri siri = unmarshallSiriFile("/home/jon/Documents/Entur/anshar/testdata/raw_et_banenor.xml");
+
+        BaneNorIdPlatformPostProcessor platformPostProcessor = new BaneNorIdPlatformPostProcessor(SiriDataType.ESTIMATED_TIMETABLE, "BNR");
+        platformPostProcessor.process(siri);
+
+        BaneNorSiriEtRewriter siriEtRewriter = new BaneNorSiriEtRewriter();
+        siriEtRewriter.process(siri);
+
+//        Siri siri = unmarshallSiriFile("src/test/resources/siriAfterBaneNorSiriEtRewriting.xml");
         BaneNorSiriStopAssignmentPopulater populater = new BaneNorSiriStopAssignmentPopulater();
         populater.process(siri);
 
@@ -93,7 +124,7 @@ public class BaneNorSiriStopAssignmentPopulaterTest {
             }
         }
 
-        logger.info("These oprators are present (name: count):");
+        logger.info("These operators are present (name: count):");
         for (Map.Entry<String, Integer> entry : operators.entrySet()) {
             String extrainfo = "";
             if ("FLY".equals(entry.getKey())) {
@@ -104,24 +135,15 @@ public class BaneNorSiriStopAssignmentPopulaterTest {
             logger.info("  {}:\t {}  {}", entry.getKey(), entry.getValue(), extrainfo);
         }
         logger.info("There are {} journeys mapped from route data, and {} that are not", foundJourneys, notFoundJourneys);
-        assertEquals(1031, foundJourneys);
+        assertEquals(1030, foundJourneys);
         String filename = "/tmp/BaneNorSiri_"+System.currentTimeMillis()+".xml";
         logger.info("Writes resulting XML to file: {}", filename);
         marshallToFile(siri, filename);
     }
 
-    @Test
-    @Ignore //This is a manual test to make sure the static NSBGtfsUpdaterService works after some refactoring related to the BaneNorSiriStopAssignmentPopulater
-    public void testGtfsUpdater() throws InterruptedException {
-        LoggerContext logCtx = (LoggerContext) LoggerFactory.getILoggerFactory();
-        logCtx.getLogger("no.rutebanken.anshar.routes.siri.processor").setLevel(Level.DEBUG);
-        //temporary adjusting the FREQUENCY-variables might be an idea before running the test...
-        NSBGtfsUpdaterService.initializeUpdater();
-        Thread.sleep(3_600_000);
-    }
 
     @SuppressWarnings("SameParameterValue")
-    private Siri unmarshallSiriFile(String filename) throws JAXBException, XMLStreamException, FileNotFoundException {
+    static Siri unmarshallSiriFile(String filename) throws JAXBException, XMLStreamException, FileNotFoundException {
         JAXBContext jaxbContext = JAXBContext.newInstance(Siri.class);
         Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
         XMLInputFactory xmlif = XMLInputFactory.newInstance();
