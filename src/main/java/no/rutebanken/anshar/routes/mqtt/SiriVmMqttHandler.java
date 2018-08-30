@@ -268,7 +268,7 @@ public class SiriVmMqttHandler {
         vehiclePosition.put(VehiclePosition.DELAY, getDelay(monitoredVehicleJourney));
         //vehiclePosition.put(VehiclePosition.ODOMETER: odometer);
         vehiclePosition.put(VehiclePosition.ODAY, getDepartureDay(monitoredVehicleJourney));
-        vehiclePosition.put(VehiclePosition.JOURNEY, headSign);
+        vehiclePosition.put(VehiclePosition.JOURNEY, getJourney(headSign));
         vehiclePosition.put(VehiclePosition.LINE, route);
         vehiclePosition.put(VehiclePosition.TRIP_ID, tripId);
         vehiclePosition.put(VehiclePosition.STARTTIME, startTime);
