@@ -15,10 +15,7 @@
 
 package no.rutebanken.anshar.routes.siri.adapters;
 
-import no.rutebanken.anshar.routes.siri.processor.BaneNorIdPlatformPostProcessor;
-import no.rutebanken.anshar.routes.siri.processor.BaneNorSiriEtRewriter;
-import no.rutebanken.anshar.routes.siri.processor.BaneNorSiriStopAssignmentPopulater;
-import no.rutebanken.anshar.routes.siri.processor.OperatorFilterPostProcessor;
+import no.rutebanken.anshar.routes.siri.processor.*;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 
@@ -46,6 +43,12 @@ public class BaneNorEtValueAdapters extends MappingAdapter {
         valueAdapters.add(new OperatorFilterPostProcessor(operatorsToIgnore, operatorOverrideMapping));
 
 //        valueAdapters.add(new BaneNorArrivalDepartureCancellationProcessor());
+
+        /*
+         Need to remove already expired VehicleJourneys before matching with NeTEx routedata since vehicleRef-
+         values (privateCode/trainNumber) are reused for each departure-date.
+         */
+        valueAdapters.add(new BaneNorRemoveExpiredJourneysPostProcessor());
         valueAdapters.add(new BaneNorSiriEtRewriter());
         valueAdapters.add(new BaneNorSiriStopAssignmentPopulater());
 
