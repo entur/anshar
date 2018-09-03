@@ -346,6 +346,16 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
     }
 
     public long getExpiration(EstimatedVehicleJourney vehicleJourney) {
+        ZonedDateTime expiryTimestamp = getLatestArrivalTime(vehicleJourney);
+
+        if (expiryTimestamp != null) {
+            return ZonedDateTime.now().until(expiryTimestamp.plus(configuration.getEtGraceperiodMinutes(), ChronoUnit.MINUTES), ChronoUnit.MILLIS);
+        } else {
+            return -1;
+        }
+    }
+
+    public static ZonedDateTime getLatestArrivalTime(EstimatedVehicleJourney vehicleJourney) {
         ZonedDateTime expiryTimestamp = null;
         if (vehicleJourney != null) {
             if (vehicleJourney.getRecordedCalls() != null && !vehicleJourney.getRecordedCalls().getRecordedCalls().isEmpty()) {
@@ -384,12 +394,7 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
                 }
             }
         }
-
-        if (expiryTimestamp != null) {
-            return ZonedDateTime.now().until(expiryTimestamp.plus(configuration.getEtGraceperiodMinutes(), ChronoUnit.MINUTES), ChronoUnit.MILLIS);
-        } else {
-            return -1;
-        }
+        return expiryTimestamp;
     }
 
 

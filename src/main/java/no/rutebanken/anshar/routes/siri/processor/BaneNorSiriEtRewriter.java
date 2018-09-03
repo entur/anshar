@@ -15,9 +15,9 @@
 
 package no.rutebanken.anshar.routes.siri.processor;
 
+import no.rutebanken.anshar.routes.siri.processor.routedata.ServiceDate;
+import no.rutebanken.anshar.routes.siri.processor.routedata.StopTime;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
-import org.onebusaway.gtfs.model.StopTime;
-import org.onebusaway.gtfs.model.calendar.ServiceDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.org.siri.siri20.*;
@@ -26,7 +26,7 @@ import java.math.BigInteger;
 import java.time.ZonedDateTime;
 import java.util.*;
 
-import static no.rutebanken.anshar.routes.siri.processor.NSBGtfsUpdaterService.*;
+import static no.rutebanken.anshar.routes.siri.processor.routedata.NetexUpdaterService.*;
 import static no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer.SEPARATOR;
 
 /**
@@ -49,6 +49,7 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
         int newSize = 0;
 
         if (siri != null && siri.getServiceDelivery() != null) {
+
             List<EstimatedTimetableDeliveryStructure> etDeliveries = siri.getServiceDelivery().getEstimatedTimetableDeliveries();
             if (etDeliveries != null) {
                 for (EstimatedTimetableDeliveryStructure etDelivery : etDeliveries) {
@@ -82,7 +83,7 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
                                     }
                                 } else {
                                     // Match not found - keep data unchanged
-                                    restructuredJourneyList.put(etTrainNumber, Arrays.asList(estimatedVehicleJourney));
+                                    restructuredJourneyList.put(etTrainNumber, Collections.singletonList(estimatedVehicleJourney));
                                 }
                             }
 
@@ -151,11 +152,13 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
             departureTime = estimatedVehicleJourney.getEstimatedCalls().getEstimatedCalls().get(0).getAimedDepartureTime();
         }
 
-        ServiceDate serviceDate = new ServiceDate(departureTime.getYear(), departureTime.getMonthValue(), departureTime.getDayOfMonth());
-
-        Map<String, List<RecordedCall>> recordedTrip = remapRecordedCalls(serviceDate, etTrainNumber, estimatedVehicleJourney.getRecordedCalls());
-        Map<String, List<EstimatedCall>> remappedEstimatedCalls = remapEstimatedCalls(serviceDate, etTrainNumber, estimatedVehicleJourney.getEstimatedCalls());
-
+        Map<String, List<EstimatedCall>> remappedEstimatedCalls = new HashMap<>();
+        Map<String, List<RecordedCall>> recordedTrip = new HashMap<>();
+        if (departureTime != null) {
+            ServiceDate serviceDate = new ServiceDate(departureTime.getYear(), departureTime.getMonthValue(), departureTime.getDayOfMonth());
+            recordedTrip.putAll(remapRecordedCalls(serviceDate, etTrainNumber, estimatedVehicleJourney.getRecordedCalls()));
+            remappedEstimatedCalls.putAll(remapEstimatedCalls(serviceDate, etTrainNumber, estimatedVehicleJourney.getEstimatedCalls()));
+        }
         if (remappedEstimatedCalls.size() < 1) {
             restructuredJourneyList.add(estimatedVehicleJourney);
         } else {
@@ -210,7 +213,7 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
 
     private Map<String, List<EstimatedCall>> remapEstimatedCalls(ServiceDate serviceDate, String etTrainNumber, EstimatedVehicleJourney.EstimatedCalls estimatedCallsWrapper) {
 
-        Map<String, List<EstimatedCall>> matches = new HashMap();
+        Map<String, List<EstimatedCall>> matches = new HashMap<>();
 
         if (estimatedCallsWrapper == null) {
             return matches;
@@ -250,7 +253,7 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
 
     private Map<String, List<RecordedCall>> remapRecordedCalls(ServiceDate serviceDate, String etTrainNumber, EstimatedVehicleJourney.RecordedCalls recordedCallsWrapper) {
 
-        Map<String, List<RecordedCall>> matches = new HashMap();
+        Map<String, List<RecordedCall>> matches = new HashMap<>();
 
         if (recordedCallsWrapper == null) {
             return matches;
@@ -290,19 +293,23 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
 
     private boolean isMatch(boolean matchStopIdOnly, StopTime stopTime, String stopId, ZonedDateTime arrival, ZonedDateTime departure) {
 
-        int arrivalSecondsSinceMidnight = getSecondsSinceMidnight(arrival);
-        int departureSecondsSinceMidnight = getSecondsSinceMidnight(departure);
+        if (isStopIdOrParentMatch(stopId, stopTime.getStopId())) {
 
-        boolean arrivalMatch = arrivalSecondsSinceMidnight < 0 | arrivalSecondsSinceMidnight == stopTime.getArrivalTime();
-        boolean departureMatch = departureSecondsSinceMidnight < 0 | departureSecondsSinceMidnight == stopTime.getDepartureTime();
+            if (matchStopIdOnly) {
+                return true;
 
-        String gtfsStopId = stopTime.getStop().getId().getId();
+            } else {
+                int arrivalSecondsSinceMidnight = getSecondsSinceMidnight(arrival);
+                int departureSecondsSinceMidnight = getSecondsSinceMidnight(departure);
 
-        if (isStopIdOrParentMatch(stopId, gtfsStopId)) {
+                //allows for 60 seconds difference in each direction as they sometimes differs a little bit...
+                boolean arrivalMatch = arrivalSecondsSinceMidnight < 0 | Math.abs(arrivalSecondsSinceMidnight - stopTime.getArrivalTime()) < 60;
+                boolean departureMatch = departureSecondsSinceMidnight < 0 | Math.abs(departureSecondsSinceMidnight - stopTime.getDepartureTime()) < 60;
 
-            // stopId matches, possibly check arrival/departure
-            return (matchStopIdOnly || (arrivalMatch | departureMatch));
+                return (arrivalMatch || departureMatch);
+            }
         }
+
         return false;
     }
 
