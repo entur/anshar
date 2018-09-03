@@ -22,10 +22,7 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -51,7 +48,7 @@ public class BaneNorSiriStopAssignmentPopulaterTest {
 
         long start = System.currentTimeMillis();
         StopPlaceRegisterMappingFetcher mappingFetcher = new StopPlaceRegisterMappingFetcher();
-        Map<String, String> stopPlaceMapping = mappingFetcher.fetchStopPlaceMapping("file:///home/jon/Documents/Entur/anshar/local_config/jbv_code_mapping.csv");
+        Map<String, String> stopPlaceMapping = mappingFetcher.fetchStopPlaceMapping(new File("src/test/resources/jbv_code_mapping.csv").toURI().toString());
         logger.info("Got {} stopplace mappings in {} ms", stopPlaceMapping.size(), (System.currentTimeMillis()-start));
         BaneNorIdPlatformUpdaterService platformUpdaterService = Mockito.mock(BaneNorIdPlatformUpdaterService.class);
         Mockito.when(platformUpdaterService.get(Mockito.anyString())).thenAnswer((Answer<String>) invocation -> stopPlaceMapping.get(invocation.getArguments()[0]));
@@ -61,7 +58,7 @@ public class BaneNorSiriStopAssignmentPopulaterTest {
         Mockito.when(applicationContext.getBean(BaneNorIdPlatformUpdaterService.class)).thenReturn(platformUpdaterService);
         Mockito.when(applicationContext.getBean(HealthManager.class)).thenReturn(Mockito.mock(HealthManager.class));
 
-        Siri siri = unmarshallSiriFile("/home/jon/Documents/Entur/anshar/testdata/raw_et_banenor.xml");
+        Siri siri = unmarshallSiriFile("src/test/resources/raw_et_banenor.xml");
 
         BaneNorIdPlatformPostProcessor platformPostProcessor = new BaneNorIdPlatformPostProcessor(SiriDataType.ESTIMATED_TIMETABLE, "BNR");
         platformPostProcessor.process(siri);

@@ -130,10 +130,10 @@ public class RouteDataUpdaterTest {
     public void testStopPlaces() {
         NetexUpdaterService.update("src/test/resources/CurrentAndFuture_latest.zip");
         Map<String, String> parentStops = NetexUpdaterService.getParentStops();
-        assertEquals(910, parentStops.size());
+        assertEquals(100676, parentStops.size());
         logger.info("Got {} stopmappings", parentStops.size());
         HashSet<String> uniqueParents = new HashSet<>(parentStops.values());
-        assertEquals(449, uniqueParents.size());
+        assertEquals(57763, uniqueParents.size());
         logger.info("With {} uniqe parent stops", uniqueParents.size());
     }
 
