@@ -62,6 +62,19 @@ public class VehicleActivitiesTest {
     }
 
     @Test
+    public void testNullLocation() {
+        int previousSize = vehicleActivities.getAll().size();
+
+        VehicleActivityStructure element = createVehicleActivityStructure(
+                                                    ZonedDateTime.now().plusMinutes(1), UUID.randomUUID().toString());
+
+        element.getMonitoredVehicleJourney().setVehicleLocation(null);
+
+        vehicleActivities.add("test", element);
+        assertEquals("Activity without location was added", previousSize, vehicleActivities.getAll().size());
+    }
+
+    @Test
     public void testOrigoLocation() {
         int previousSize = vehicleActivities.getAll().size();
 
@@ -230,12 +243,12 @@ public class VehicleActivitiesTest {
         VehicleRef vRef = new VehicleRef();
         vRef.setValue(vehicleReference);
         vehicleJourney.setVehicleRef(vRef);
-        /*
+
         LocationStructure location = new LocationStructure();
         location.setLatitude(BigDecimal.valueOf(10.63));
         location.setLongitude(BigDecimal.valueOf(63.10));
         vehicleJourney.setVehicleLocation(location);
-*/
+
         CourseOfJourneyRefStructure journeyRefStructure = new CourseOfJourneyRefStructure();
         journeyRefStructure.setValue("yadayada");
         vehicleJourney.setCourseOfJourneyRef(journeyRefStructure);
