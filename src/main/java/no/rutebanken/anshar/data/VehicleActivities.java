@@ -329,26 +329,26 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
     private boolean isLocationValid(VehicleActivityStructure activity) {
         boolean keep = true;
         VehicleActivityStructure.MonitoredVehicleJourney monitoredVehicleJourney = activity.getMonitoredVehicleJourney();
-        if (monitoredVehicleJourney != null) {
+
+        if (monitoredVehicleJourney != null && monitoredVehicleJourney.getVehicleLocation() != null) {
+
             LocationStructure vehicleLocation = monitoredVehicleJourney.getVehicleLocation();
-            if (vehicleLocation != null) {
-                if(vehicleLocation.getLongitude() == null & vehicleLocation.getCoordinates() == null) {
-                    keep = false;
-                    logger.info("Null location {}", vehicleRefToString(monitoredVehicleJourney));
-                    logger.trace("Skipping invalid VehicleActivity - VehicleLocation is required, but is not set.");
-                }
-                if((vehicleLocation.getLongitude() != null && vehicleLocation.getLongitude().doubleValue() == 0) ||
-                        (vehicleLocation.getLatitude() != null && vehicleLocation.getLatitude().doubleValue() == 0)) {
-                    keep = false;
-                    logger.info("Invalid location [{}, {}], {}", vehicleLocation.getLongitude(), vehicleLocation.getLatitude(), vehicleRefToString(monitoredVehicleJourney));
-                    logger.trace("Skipping invalid VehicleActivity - VehicleLocation is included, but is not set correctly.");
-                }
-                if (vehicleLocation.getCoordinates() != null) {
-                    CoordinatesStructure coordinates = vehicleLocation.getCoordinates();
-                    List<String> values = coordinates.getValues();
-                    for (String value : values) {
-                        logger.info("Found coordinates: {}", value);
-                    }
+            if(vehicleLocation.getLongitude() == null & vehicleLocation.getCoordinates() == null) {
+                keep = false;
+                logger.info("Null location {}", vehicleRefToString(monitoredVehicleJourney));
+                logger.trace("Skipping invalid VehicleActivity - VehicleLocation is required, but is not set.");
+            }
+            if((vehicleLocation.getLongitude() != null && vehicleLocation.getLongitude().doubleValue() == 0) ||
+                    (vehicleLocation.getLatitude() != null && vehicleLocation.getLatitude().doubleValue() == 0)) {
+                keep = false;
+                logger.info("Invalid location [{}, {}], {}", vehicleLocation.getLongitude(), vehicleLocation.getLatitude(), vehicleRefToString(monitoredVehicleJourney));
+                logger.trace("Skipping invalid VehicleActivity - VehicleLocation is included, but is not set correctly.");
+            }
+            if (vehicleLocation.getCoordinates() != null) {
+                CoordinatesStructure coordinates = vehicleLocation.getCoordinates();
+                List<String> values = coordinates.getValues();
+                for (String value : values) {
+                    logger.info("Found coordinates: {}", value);
                 }
             }
         } else {
