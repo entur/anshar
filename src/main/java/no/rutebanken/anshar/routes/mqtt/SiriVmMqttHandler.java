@@ -389,7 +389,7 @@ public class SiriVmMqttHandler {
         if (vehicleLocation != null) {
             return vehicleLocation.getLatitude().doubleValue();
         }
-        return 0.0;
+        throw new NullPointerException("VehicleActivityStructure.MonitoredVehicleJourney.VehicleLocation.Latitude not set");
     }
 
     private double getLongitude(MonitoredVehicleJourney monitoredVehicleJourney) {
@@ -397,7 +397,7 @@ public class SiriVmMqttHandler {
         if (vehicleLocation != null) {
             return vehicleLocation.getLongitude().doubleValue();
         }
-        return 0.0;
+        throw new NullPointerException("VehicleActivityStructure.MonitoredVehicleJourney.VehicleLocation.Longitude not set");
     }
 
     private String getGeoHash(double latitude, double longitude) {
