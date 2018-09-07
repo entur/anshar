@@ -16,6 +16,7 @@
 package no.rutebanken.anshar.data;
 
 import no.rutebanken.anshar.App;
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,6 +38,11 @@ public class VehicleActivitiesTest {
 
     @Autowired
     private VehicleActivities vehicleActivities;
+    
+    @Before
+    public void init() {
+        vehicleActivities.clearAll();
+    }
 
     @Test
     public void testAddVehicle() {

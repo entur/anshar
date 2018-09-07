@@ -16,6 +16,7 @@
 package no.rutebanken.anshar.data;
 
 import no.rutebanken.anshar.App;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +43,11 @@ public class EstimatedTimetablesTest {
 
     @Autowired
     private EstimatedTimetables estimatedTimetables;
+
+    @Before
+    public void init() {
+        estimatedTimetables.clearAll();
+    }
 
     @Test
     public void testAddNull() {
@@ -168,9 +174,9 @@ public class EstimatedTimetablesTest {
 
         estimatedTimetables.add("test2", createEstimatedVehicleJourney("12345", "4321", 0, 30, departure_2, true));
         expectedSize++;
-        assertTrue("Adding Journey for other vendor did not add element.", estimatedTimetables.getAll().size() == expectedSize);
-        assertTrue("Getting Journey for vendor did not return correct element-count.", estimatedTimetables.getAll("test2").size() == previousSize+1);
-        assertTrue("Getting Journey for vendor did not return correct element-count.", estimatedTimetables.getAll("test").size() == expectedSize-1);
+        assertEquals("Adding Journey for other vendor did not add element.", expectedSize, estimatedTimetables.getAll().size());
+        assertEquals("Getting Journey for vendor did not return correct element-count.", previousSize+1, estimatedTimetables.getAll("test2").size());
+        assertEquals("Getting Journey for vendor did not return correct element-count.", expectedSize-1, estimatedTimetables.getAll("test").size());
 
     }
 
