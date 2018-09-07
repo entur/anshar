@@ -263,33 +263,32 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
                     boolean locationValid = isLocationValid(activity);
                     boolean activityMeaningful = isActivityMeaningful(activity);
 
-                    if (locationValid && activityMeaningful) {
-                        String key = createKey(datasetId, activity.getMonitoredVehicleJourney().getVehicleRef());
+                    String key = createKey(datasetId, activity.getMonitoredVehicleJourney().getVehicleRef());
 
-                        VehicleActivityStructure existing = vehicleActivities.get(key);
+                    VehicleActivityStructure existing = vehicleActivities.get(key);
 
-                        boolean keep = (existing == null); //No existing data i.e. keep
+                    boolean keep = (existing == null); //No existing data i.e. keep
 
-                        if (existing != null &&
-                                (activity.getRecordedAtTime() != null && existing.getRecordedAtTime() != null)) {
-                            //Newer data has already been processed
-                            keep = activity.getRecordedAtTime().isAfter(existing.getRecordedAtTime());
-                        }
-
-                        long expiration = getExpiration(activity);
-
-                        if (expiration > 0 && keep) {
-                            changes.add(key);
-                            addedData.add(activity);
-                            vehicleActivities.set(key, activity, expiration, TimeUnit.MILLISECONDS);
-                            siriVmMqttHandler.pushToMqttAsync(datasetId, activity);
-                        } else {
-                            outdatedCounter.increment();
-                        }
-                    } else {
-                        if (!locationValid) {invalidLocationCounter.increment();}
-                        if (!activityMeaningful) {notMeaningfulCounter.increment();}
+                    if (existing != null &&
+                            (activity.getRecordedAtTime() != null && existing.getRecordedAtTime() != null)) {
+                        //Newer data has already been processed
+                        keep = activity.getRecordedAtTime().isAfter(existing.getRecordedAtTime());
                     }
+
+                    long expiration = getExpiration(activity);
+
+                    if (expiration > 0 && keep) {
+                        changes.add(key);
+                        addedData.add(activity);
+                        vehicleActivities.set(key, activity, expiration, TimeUnit.MILLISECONDS);
+                        siriVmMqttHandler.pushToMqttAsync(datasetId, activity);
+                    } else {
+                        outdatedCounter.increment();
+                    }
+
+                    if (!locationValid) {invalidLocationCounter.increment();}
+                    if (!activityMeaningful) {notMeaningfulCounter.increment();}
+
                 });
 
         logger.info("Updated {} (of {}) :: Ignored elements - Missing location:{}, Missing values: {}, Skipped: {}", changes.size(), vmList.size(), invalidLocationCounter.getValue(), notMeaningfulCounter.getValue(), outdatedCounter.getValue());
