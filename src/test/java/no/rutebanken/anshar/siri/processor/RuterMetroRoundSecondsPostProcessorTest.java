@@ -73,9 +73,9 @@ public class RuterMetroRoundSecondsPostProcessorTest {
         ZonedDateTime time = ZonedDateTime.of(2018, 11, 11, 2, 2, 00, 0, ZoneId.systemDefault());
 
         et.getRecordedCalls().getRecordedCalls().get(0).setAimedArrivalTime(time.plusSeconds(45));
-        et.getRecordedCalls().getRecordedCalls().get(0).setAimedDepartureTime(time.plusSeconds(45));
+        et.getRecordedCalls().getRecordedCalls().get(0).setAimedDepartureTime(time.plusSeconds(46));
 
-        et.getEstimatedCalls().getEstimatedCalls().get(0).setAimedArrivalTime(time.plusSeconds(55));
+        et.getEstimatedCalls().getEstimatedCalls().get(0).setAimedArrivalTime(time.plusSeconds(45).plusNanos(1));
         et.getEstimatedCalls().getEstimatedCalls().get(0).setAimedDepartureTime(time.plusSeconds(59));
 
 
@@ -83,14 +83,14 @@ public class RuterMetroRoundSecondsPostProcessorTest {
 
         // Assert different times are set
         assertEquals(time.plusSeconds(45), et.getRecordedCalls().getRecordedCalls().get(0).getAimedArrivalTime());
-        assertEquals(time.plusSeconds(45), et.getRecordedCalls().getRecordedCalls().get(0).getAimedDepartureTime());
-        assertEquals(time.plusSeconds(55), et.getEstimatedCalls().getEstimatedCalls().get(0).getAimedArrivalTime());
+        assertEquals(time.plusSeconds(46), et.getRecordedCalls().getRecordedCalls().get(0).getAimedDepartureTime());
+        assertEquals(time.plusSeconds(45).plusNanos(1), et.getEstimatedCalls().getEstimatedCalls().get(0).getAimedArrivalTime());
         assertEquals(time.plusSeconds(59), et.getEstimatedCalls().getEstimatedCalls().get(0).getAimedDepartureTime());
 
         processor.process(siri);
 
         // Assert that last 3 have been rounded up
-        assertEquals(time.plusMinutes(1), et.getRecordedCalls().getRecordedCalls().get(0).getAimedArrivalTime());
+        assertEquals(time, et.getRecordedCalls().getRecordedCalls().get(0).getAimedArrivalTime());
         assertEquals(time.plusMinutes(1), et.getRecordedCalls().getRecordedCalls().get(0).getAimedDepartureTime());
         assertEquals(time.plusMinutes(1), et.getEstimatedCalls().getEstimatedCalls().get(0).getAimedArrivalTime());
         assertEquals(time.plusMinutes(1), et.getEstimatedCalls().getEstimatedCalls().get(0).getAimedDepartureTime());
@@ -121,7 +121,7 @@ public class RuterMetroRoundSecondsPostProcessorTest {
         assertNull(et.getRecordedCalls().getRecordedCalls().get(0).getAimedArrivalTime());
         assertEquals(time, et.getRecordedCalls().getRecordedCalls().get(0).getAimedDepartureTime());
         assertEquals(time, et.getEstimatedCalls().getEstimatedCalls().get(0).getAimedArrivalTime());
-        assertEquals(time.plusMinutes(1), et.getEstimatedCalls().getEstimatedCalls().get(0).getAimedDepartureTime());
+        assertEquals(time, et.getEstimatedCalls().getEstimatedCalls().get(0).getAimedDepartureTime());
     }
 
     @Test

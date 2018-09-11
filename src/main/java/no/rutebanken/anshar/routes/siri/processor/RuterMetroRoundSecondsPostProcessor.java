@@ -70,10 +70,16 @@ public class RuterMetroRoundSecondsPostProcessor extends ValueAdapter implements
 
         ZonedDateTime timeWithoutSeconds;
 
-        if (time.getSecond() >= SECONDS_ROUND_LIMIT) {
-            timeWithoutSeconds = time.plusSeconds(60-time.getSecond());
+        int second = time.getSecond();
+
+        double exactSecond = second + ((double)time.getNano()/1000000000);
+
+        if (exactSecond > SECONDS_ROUND_LIMIT) {
+            //Should be rounded up when larger than limit
+            timeWithoutSeconds = time.plusSeconds(60- second);
         } else {
-            timeWithoutSeconds = time.minusSeconds(time.getSecond());
+            // Minute should be rounded down when equal to or below limit
+            timeWithoutSeconds = time.minusSeconds(second);
         }
 
         return timeWithoutSeconds.minusNanos(time.getNano());
