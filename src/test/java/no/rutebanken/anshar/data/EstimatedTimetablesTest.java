@@ -25,11 +25,9 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import uk.org.siri.siri20.*;
 
 import java.math.BigInteger;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import static junit.framework.TestCase.assertFalse;
 import static junit.framework.TestCase.assertNotNull;
@@ -633,6 +631,47 @@ public class EstimatedTimetablesTest {
 
     }
 
+    @Test
+    public void testAdjustExpectedTimesForRuterMetro() {
+        List<String> linesToFix = Arrays.asList("RUT:Line:1", "RUT:Line:2", "RUT:Line:3", "RUT:Line:4", "RUT:Line:5");
+        String datasetId = "RUT_TST";
+
+
+        ZonedDateTime arrival = ZonedDateTime.now().plusMinutes(1);
+        ZonedDateTime departure = arrival.minusSeconds(5);
+
+
+        EstimatedVehicleJourney estimatedVehicleJourney = createEstimatedVehicleJourney(linesToFix.get(0), "8888", 0, 3, arrival, departure, true);
+        ZonedDateTime lastTimestamp = ZonedDateTime.now().plusYears(10);
+
+        //Verify that data has errors
+
+        for (EstimatedCall call : estimatedVehicleJourney.getEstimatedCalls().getEstimatedCalls()) {
+            assertFalse(call.getExpectedArrivalTime().isAfter(lastTimestamp));
+            lastTimestamp = call.getExpectedArrivalTime();
+            assertFalse(call.getExpectedDepartureTime().isAfter(lastTimestamp));
+        }
+
+        estimatedTimetables.add(datasetId, estimatedVehicleJourney);
+
+
+        Siri serviceDelivery = estimatedTimetables.createServiceDelivery(null, datasetId, 1000);
+        List<EstimatedVehicleJourney> estimatedVehicleJourneies = serviceDelivery.getServiceDelivery().getEstimatedTimetableDeliveries().get(0).getEstimatedJourneyVersionFrames().get(0).getEstimatedVehicleJourneies();
+        assertNotNull(estimatedVehicleJourneies);
+
+        lastTimestamp = ZonedDateTime.of(1,1,1,1,1,1,1, ZoneId.systemDefault());
+        
+        for (EstimatedVehicleJourney journey : estimatedVehicleJourneies) {
+            for (EstimatedCall call : journey.getEstimatedCalls().getEstimatedCalls()) {
+                assertTrue(call.getExpectedArrivalTime().isAfter(lastTimestamp));
+                lastTimestamp = call.getExpectedArrivalTime();
+                assertTrue(call.getExpectedDepartureTime().isAfter(lastTimestamp));
+                lastTimestamp = call.getExpectedDepartureTime();
+            }
+        }
+
+    }
+
     private EstimatedVehicleJourney createEstimatedVehicleJourney(String lineRefValue, String vehicleRefValue, int startOrder, int callCount, ZonedDateTime arrival, Boolean isComplete) {
         return createEstimatedVehicleJourney(lineRefValue, vehicleRefValue, startOrder, callCount, arrival, arrival, isComplete);
     }
@@ -659,6 +698,7 @@ public class EstimatedTimetablesTest {
                 call.setAimedDepartureTime(departure);
                 call.setExpectedDepartureTime(departure);
                 call.setOrder(BigInteger.valueOf(i));
+                call.setVisitNumber(BigInteger.valueOf(i));
             estimatedCalls.getEstimatedCalls().add(call);
         }
 

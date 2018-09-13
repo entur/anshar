@@ -30,7 +30,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 import uk.org.siri.siri20.*;
 
+import java.math.BigInteger;
 import java.time.Instant;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -502,6 +504,8 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
                     et.setIsCompleteStopSequence(existing.isIsCompleteStopSequence());
                 }
 
+                ensureIncreasingTimes(et);
+
                 long expiration = getExpiration(et);
                 if (expiration > 0) {
                     //Ignoring elements without EstimatedCalls
@@ -540,6 +544,67 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
         });
 
         return addedData;
+    }
+
+
+    private static final List<String> linesToFix = Arrays.asList("RUT:Line:1", "RUT:Line:2", "RUT:Line:3", "RUT:Line:4", "RUT:Line:5");
+
+    /**
+     * Temporary hack to ensure increasing times for Ruter Metro. Has to be called from here because of partial updates from Ruter
+     *
+     * Should be removed according to ROR-509
+     *
+     * @param estimatedVehicleJourney
+     */
+    private void ensureIncreasingTimes(EstimatedVehicleJourney estimatedVehicleJourney) {
+
+        if (estimatedVehicleJourney.getLineRef() == null) {
+            return;
+        }
+
+        String mappedLineRef = getMappedId(estimatedVehicleJourney.getLineRef().getValue());
+        if (!linesToFix.contains(mappedLineRef)) {
+            return;
+        }
+
+        ZonedDateTime lastTimestamp = ZonedDateTime.of(1, 1, 1, 0, 0, 0, 0, ZoneId.systemDefault());
+        BigInteger lastVisitNumber = BigInteger.ZERO;
+        List<Integer> updatedArrival = new ArrayList<>();
+        List<Integer> updatedDeparture = new ArrayList<>();
+
+        EstimatedVehicleJourney.EstimatedCalls estimatedCalls = estimatedVehicleJourney.getEstimatedCalls();
+        if (estimatedCalls != null && estimatedCalls.getEstimatedCalls() != null) {
+            for (EstimatedCall call : estimatedCalls.getEstimatedCalls()) {
+
+                // Ensure that we only update following stops
+                if (call.getVisitNumber().intValue() == (lastVisitNumber.intValue()+1)) {
+
+                    if (call.getExpectedArrivalTime() != null && lastTimestamp.isAfter(call.getExpectedArrivalTime())) {
+                        //Actual arrival is set to before departure from previous stop
+                        logger.info("Previous stop departed after expected arrival for stop[{}] - updating from {} to {}", call.getVisitNumber(), call.getExpectedArrivalTime(), lastTimestamp);
+                        call.setExpectedArrivalTime(lastTimestamp);
+                        updatedArrival.add(call.getVisitNumber().intValue());
+                    }
+
+                    lastTimestamp = call.getExpectedArrivalTime();
+
+                    if (call.getExpectedDepartureTime() != null && lastTimestamp.isAfter(call.getExpectedDepartureTime())) {
+                        //Actual arrival is set to before departure from previous stop
+                        logger.info("Arrived after expected departure for stop [{}] - updating departure from {} to {}", call.getVisitNumber(), call.getExpectedDepartureTime(), lastTimestamp);
+                        call.setExpectedDepartureTime(lastTimestamp);
+                        updatedDeparture.add(call.getVisitNumber().intValue());
+                    }
+
+                }
+
+                lastTimestamp = call.getExpectedDepartureTime();
+                lastVisitNumber = call.getVisitNumber();
+            }
+        }
+
+        if (!updatedArrival.isEmpty() && !updatedDeparture.isEmpty()){
+            logger.info("Updated arrival/departure {}/{} for DatedVehicleJourney {} on line {}", updatedArrival, updatedDeparture, estimatedVehicleJourney.getFramedVehicleJourneyRef().getDatedVehicleJourneyRef(), mappedLineRef);
+        }
     }
 
     RecordedCall mapToRecordedCall(EstimatedCall call) {
@@ -644,6 +709,14 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
     private String getOriginalId(String stopPointRef) {
         if (stopPointRef != null && stopPointRef.indexOf(SEPARATOR) > 0) {
             return OutboundIdAdapter.getOriginalId(stopPointRef);
+        }
+        return stopPointRef;
+    }
+
+
+    private String getMappedId(String stopPointRef) {
+        if (stopPointRef != null && stopPointRef.indexOf(SEPARATOR) > 0) {
+            return OutboundIdAdapter.getMappedId(stopPointRef);
         }
         return stopPointRef;
     }
