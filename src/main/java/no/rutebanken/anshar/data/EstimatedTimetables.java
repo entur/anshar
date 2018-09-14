@@ -586,7 +586,11 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
                         updatedArrival.add(call.getVisitNumber().intValue());
                     }
 
-                    lastTimestamp = call.getExpectedArrivalTime();
+                    if (call.getExpectedArrivalTime() != null) {
+                        lastTimestamp = call.getExpectedArrivalTime();
+                    } else if (call.getExpectedDepartureTime() != null) {
+                        lastTimestamp = call.getExpectedDepartureTime();
+                    }
 
                     if (call.getExpectedDepartureTime() != null && lastTimestamp.isAfter(call.getExpectedDepartureTime())) {
                         //Actual arrival is set to before departure from previous stop
