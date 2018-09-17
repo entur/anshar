@@ -27,6 +27,7 @@
 |mappingAdapterPreset|RUTER, ATB, KOLUMBUS, AKT|Adapters used to convert ids to common format|
 |filterPresets|BYBANEN|Specific filters to use|
 |idMappingPrefixes|RUT, ATB, KOL, AKT, NRI+++|List of prefixes to be used when mapping ids form NSR|
+|restartTime| "01:00"|Time of day that a subscription will be restarted in the format HH:mm |
 |active|true,false |Enables/disables subscription|
 
 Example:
@@ -52,6 +53,7 @@ anshar:
       mappingAdapterPreset: RUTER
       filterPresets: BYBANEN
       idMappingPrefixes: RUT,OPP,BRA
+      restartTime: "01:30"
       active: true
 ```
 

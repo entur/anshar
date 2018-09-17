@@ -25,6 +25,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -104,6 +105,30 @@ public class SubscriptionManagerTest {
         Thread.sleep(pendingSubscription.getHeartbeatInterval().toMillis()* subscriptionManager.HEALTHCHECK_INTERVAL_FACTOR + 150);
 
         assertTrue(subscriptionManager.isSubscriptionHealthy(subscriptionId));
+    }
+
+
+    @Test
+    public void testAutomaticRestartTrigger() throws InterruptedException {
+        int hour = ZonedDateTime.now().getHour();
+        int minute = ZonedDateTime.now().getMinute();
+
+        SubscriptionSetup subscription = createSubscription(1000000L);
+        subscription.setRestartTime(hour + ":" + (minute + 2) );
+
+        String subscriptionId = subscription.getSubscriptionId();
+
+        subscriptionManager.addSubscription(subscriptionId, subscription);
+        subscriptionManager.activatedTimestamp.set(subscriptionId, Instant.now().minusSeconds(3600));
+
+        assertTrue(subscriptionManager.isSubscriptionHealthy(subscriptionId));
+
+
+        subscription.setRestartTime(hour + ":" + (minute - 2) );
+        subscriptionManager.addSubscription(subscriptionId, subscription);
+        subscriptionManager.activatedTimestamp.set(subscriptionId, Instant.now().minusSeconds(3600));
+
+        assertFalse(subscriptionManager.isSubscriptionHealthy(subscriptionId));
     }
 
     @Test

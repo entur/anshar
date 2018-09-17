@@ -34,10 +34,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
 import java.util.Map;
@@ -65,7 +62,7 @@ public class SubscriptionManager {
 
     @Autowired
     @Qualifier("getActivatedTimestampMap")
-    private IMap<String, java.time.Instant> activatedTimestamp;
+    IMap<String, java.time.Instant> activatedTimestamp;
 
     @Value("${anshar.environment}")
     private String environment;
@@ -283,12 +280,22 @@ public class SubscriptionManager {
                 //Only actual subscriptions have an expiration - NOT request/response-"subscriptions"
 
                 //If active subscription has existed longer than "initial subscription duration" - restart
-                if (activatedTimestamp.get(subscriptionId) != null && activatedTimestamp.get(subscriptionId)
-                        .plusSeconds(
-                                activeSubscription.getDurationOfSubscription().getSeconds()
-                        ).isBefore(Instant.now())) {
-                    logger.info("Subscription  [{}] has lasted longer than initial subscription duration ", activeSubscription.toString());
-                    return false;
+                Instant activated = activatedTimestamp.get(subscriptionId);
+                if (activated != null) {
+                    if (activated.plusSeconds(
+                                activeSubscription.getDurationOfSubscription().getSeconds()).isBefore(Instant.now())) {
+                        logger.info("Subscription [{}] has lasted longer than initial subscription duration ", activeSubscription.toString());
+                        return false;
+                    }
+
+                    if (activeSubscription.getRestartTime() != null && activeSubscription.getRestartTime().indexOf(":") > 0) {
+                        // Allowing subscriptions to be restarted at specified time
+                        ZonedDateTime restartTime = ZonedDateTime.of(LocalDate.now(), LocalTime.parse(activeSubscription.getRestartTime()), ZoneId.systemDefault());
+                        if (restartTime.isBefore(ZonedDateTime.now()) && activated.atZone(ZoneId.systemDefault()).isBefore(restartTime)) {
+                            logger.info("Subscription [{}] configured for nightly restart at {}.", activeSubscription.toString(), restartTime);
+                            return false;
+                        }
+                    }
                 }
             }
 
