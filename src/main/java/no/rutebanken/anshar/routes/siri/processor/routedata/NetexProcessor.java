@@ -178,16 +178,20 @@ public class NetexProcessor {
             for (Journey_VersionStructure jStructure : datedServiceJourneyOrDeadRunOrServiceJourney) {
                 if (jStructure instanceof ServiceJourney) {
                     ServiceJourney sj = (ServiceJourney) jStructure;
-                    if (sj.getPrivateCode() != null) {
-                        String trainNumber = sj.getPrivateCode().getValue();
-                        Set<String> trips = trainNumberTrips.getOrDefault(trainNumber, new HashSet<>());
-                        trips.add(sj.getId());
-                        trainNumberTrips.put(trainNumber, trips);
+
+                    //Only process RAIL-mode
+                    if (AllVehicleModesOfTransportEnumeration.RAIL.equals(sj.getTransportMode())) {
+                        if (sj.getPrivateCode() != null) {
+                            String trainNumber = sj.getPrivateCode().getValue();
+                            Set<String> trips = trainNumberTrips.getOrDefault(trainNumber, new HashSet<>());
+                            trips.add(sj.getId());
+                            trainNumberTrips.put(trainNumber, trips);
+                        }
+                        if (sj.getJourneyPatternRef() != null && sj.getJourneyPatternRef().getValue() != null) {
+                            journeyPatternIdByServiceJourneyId.put(sj.getId(), sj.getJourneyPatternRef().getValue().getRef());
+                        }
+                        serviceJourneyById.put(sj.getId(), sj);
                     }
-                    if (sj.getJourneyPatternRef() != null && sj.getJourneyPatternRef().getValue() != null) {
-                        journeyPatternIdByServiceJourneyId.put(sj.getId(), sj.getJourneyPatternRef().getValue().getRef());
-                    }
-                    serviceJourneyById.put(sj.getId(), sj);
                 }
             }
         }
