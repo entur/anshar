@@ -72,7 +72,7 @@ public class Situations implements SiriRepository<PtSituationElement> {
     }
 
     public int getSize() {
-        return situations.size();
+        return situations.keySet().size();
     }
 
 

@@ -60,7 +60,7 @@ public class ProductionTimetables implements SiriRepository<ProductionTimetableD
     }
 
     public int getSize() {
-        return timetableDeliveries.size();
+        return timetableDeliveries.keySet().size();
     }
 
     public Collection<ProductionTimetableDeliveryStructure> getAll(String datasetId) {

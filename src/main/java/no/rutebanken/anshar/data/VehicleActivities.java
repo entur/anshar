@@ -75,7 +75,7 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
     }
 
     public int getSize() {
-        return vehicleActivities.size();
+        return vehicleActivities.keySet().size();
     }
 
     public Map<String, Integer> getDatasetSize() {

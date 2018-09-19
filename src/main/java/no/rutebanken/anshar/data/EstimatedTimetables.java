@@ -80,7 +80,7 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
     }
 
     public int getSize() {
-        return timetableDeliveries.size();
+        return timetableDeliveries.keySet().size();
     }
 
 
