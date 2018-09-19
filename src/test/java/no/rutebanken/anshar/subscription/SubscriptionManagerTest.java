@@ -27,6 +27,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
@@ -110,11 +111,13 @@ public class SubscriptionManagerTest {
 
     @Test
     public void testAutomaticRestartTrigger() throws InterruptedException {
-        int hour = ZonedDateTime.now().getHour();
-        int minute = ZonedDateTime.now().getMinute();
+
+        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+        String restartTime = ZonedDateTime.now().plusMinutes(2).format(timeFormatter);
 
         SubscriptionSetup subscription = createSubscription(1000000L);
-        subscription.setRestartTime(hour + ":" + (minute + 2) );
+
+        subscription.setRestartTime(restartTime);
 
         String subscriptionId = subscription.getSubscriptionId();
 
@@ -123,12 +126,36 @@ public class SubscriptionManagerTest {
 
         assertTrue(subscriptionManager.isSubscriptionHealthy(subscriptionId));
 
-
-        subscription.setRestartTime(hour + ":" + (minute - 2) );
+        restartTime = ZonedDateTime.now().minusMinutes(2).format(timeFormatter);
+        subscription.setRestartTime(restartTime);
         subscriptionManager.addSubscription(subscriptionId, subscription);
         subscriptionManager.activatedTimestamp.set(subscriptionId, Instant.now().minusSeconds(3600));
 
         assertFalse(subscriptionManager.isSubscriptionHealthy(subscriptionId));
+        assertTrue(subscriptionManager.isForceRestart(subscriptionId));
+    }
+
+    @Test
+    public void testForceRestartTrigger() throws InterruptedException {
+
+        SubscriptionSetup subscription = createSubscription(1000000L);
+
+        String subscriptionId = subscription.getSubscriptionId();
+
+        subscriptionManager.addSubscription(subscriptionId, subscription);
+        subscriptionManager.activatedTimestamp.set(subscriptionId, Instant.now().minusSeconds(3600));
+
+        assertTrue(subscriptionManager.isSubscriptionHealthy(subscriptionId));
+
+        subscriptionManager.forceRestart(subscriptionId);
+
+        assertTrue(subscriptionManager.isForceRestart(subscriptionId));
+
+        // Triggered restart does not affect health-status
+        assertTrue(subscriptionManager.isSubscriptionHealthy(subscriptionId));
+
+        //When a force restart is triggered, it is only triggered once
+        assertFalse(subscriptionManager.isForceRestart(subscriptionId));
     }
 
     @Test

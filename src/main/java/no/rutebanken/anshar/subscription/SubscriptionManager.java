@@ -72,6 +72,10 @@ public class SubscriptionManager {
     private IMap<String, Integer> hitcount;
 
     @Autowired
+    @Qualifier("getForceRestartMap")
+    private IMap<String, String> forceRestart;
+
+    @Autowired
     private IMap<String, BigInteger> objectCounter;
 
     @Autowired
@@ -173,7 +177,8 @@ public class SubscriptionManager {
                 logger.info("Remote Service startTime ({}) is before lastActivity ({}) for subscription [{}]",serviceStartedTime, lastActivity, setup);
                 return touchSubscription(subscriptionId);
             } else {
-                logger.info("Remote service has been restarted, allowing subscription to be restarted [{}]", setup);
+                logger.info("Remote service has been restarted, forcing subscription to be restarted [{}]", setup);
+                forceRestart(subscriptionId);
             }
         }
         return false;
@@ -248,6 +253,19 @@ public class SubscriptionManager {
         return lastActivity.get(subscriptionId) == null;
     }
 
+
+    void forceRestart(String subscriptionId) {
+        forceRestart.set(subscriptionId, subscriptionId);
+    }
+
+    public boolean isForceRestart(String subscriptionId) {
+        if (forceRestart.containsKey(subscriptionId)) {
+            logger.info("Subscription {} has triggered a forced restart", subscriptionId);
+            return forceRestart.remove(subscriptionId) != null;
+        }
+        return false;
+    }
+
     public Boolean isSubscriptionHealthy(String subscriptionId) {
         return isSubscriptionHealthy(subscriptionId, HEALTHCHECK_INTERVAL_FACTOR);
     }
@@ -293,6 +311,7 @@ public class SubscriptionManager {
                         ZonedDateTime restartTime = ZonedDateTime.of(LocalDate.now(), LocalTime.parse(activeSubscription.getRestartTime()), ZoneId.systemDefault());
                         if (restartTime.isBefore(ZonedDateTime.now()) && activated.atZone(ZoneId.systemDefault()).isBefore(restartTime)) {
                             logger.info("Subscription [{}] configured for nightly restart at {}.", activeSubscription.toString(), restartTime);
+                            forceRestart(subscriptionId);
                             return false;
                         }
                     }
