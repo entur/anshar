@@ -34,12 +34,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -64,7 +62,7 @@ public class SubscriptionManager {
 
     @Autowired
     @Qualifier("getActivatedTimestampMap")
-    private IMap<String, java.time.Instant> activatedTimestamp;
+    IMap<String, java.time.Instant> activatedTimestamp;
 
     @Value("${anshar.environment}")
     private String environment;
@@ -72,6 +70,10 @@ public class SubscriptionManager {
     @Autowired
     @Qualifier("getHitcountMap")
     private IMap<String, Integer> hitcount;
+
+    @Autowired
+    @Qualifier("getForceRestartMap")
+    private IMap<String, String> forceRestart;
 
     @Autowired
     private IMap<String, BigInteger> objectCounter;
@@ -175,7 +177,8 @@ public class SubscriptionManager {
                 logger.info("Remote Service startTime ({}) is before lastActivity ({}) for subscription [{}]",serviceStartedTime, lastActivity, setup);
                 return touchSubscription(subscriptionId);
             } else {
-                logger.info("Remote service has been restarted, allowing subscription to be restarted [{}]", setup);
+                logger.info("Remote service has been restarted, forcing subscription to be restarted [{}]", setup);
+                forceRestart(subscriptionId);
             }
         }
         return false;
@@ -250,6 +253,19 @@ public class SubscriptionManager {
         return lastActivity.get(subscriptionId) == null;
     }
 
+
+    void forceRestart(String subscriptionId) {
+        forceRestart.set(subscriptionId, subscriptionId);
+    }
+
+    public boolean isForceRestart(String subscriptionId) {
+        if (forceRestart.containsKey(subscriptionId)) {
+            logger.info("Subscription {} has triggered a forced restart", subscriptionId);
+            return forceRestart.remove(subscriptionId) != null;
+        }
+        return false;
+    }
+
     public Boolean isSubscriptionHealthy(String subscriptionId) {
         return isSubscriptionHealthy(subscriptionId, HEALTHCHECK_INTERVAL_FACTOR);
     }
@@ -282,12 +298,23 @@ public class SubscriptionManager {
                 //Only actual subscriptions have an expiration - NOT request/response-"subscriptions"
 
                 //If active subscription has existed longer than "initial subscription duration" - restart
-                if (activatedTimestamp.get(subscriptionId) != null && activatedTimestamp.get(subscriptionId)
-                        .plusSeconds(
-                                activeSubscription.getDurationOfSubscription().getSeconds()
-                        ).isBefore(Instant.now())) {
-                    logger.info("Subscription  [{}] has lasted longer than initial subscription duration ", activeSubscription.toString());
-                    return false;
+                Instant activated = activatedTimestamp.get(subscriptionId);
+                if (activated != null) {
+                    if (activated.plusSeconds(
+                                activeSubscription.getDurationOfSubscription().getSeconds()).isBefore(Instant.now())) {
+                        logger.info("Subscription [{}] has lasted longer than initial subscription duration ", activeSubscription.toString());
+                        return false;
+                    }
+
+                    if (activeSubscription.getRestartTime() != null && activeSubscription.getRestartTime().indexOf(":") > 0) {
+                        // Allowing subscriptions to be restarted at specified time
+                        ZonedDateTime restartTime = ZonedDateTime.of(LocalDate.now(), LocalTime.parse(activeSubscription.getRestartTime()), ZoneId.systemDefault());
+                        if (restartTime.isBefore(ZonedDateTime.now()) && activated.atZone(ZoneId.systemDefault()).isBefore(restartTime)) {
+                            logger.info("Subscription [{}] configured for nightly restart at {}.", activeSubscription.toString(), restartTime);
+                            forceRestart(subscriptionId);
+                            return false;
+                        }
+                    }
                 }
             }
 
@@ -304,12 +331,46 @@ public class SubscriptionManager {
     public JSONObject buildStats() {
         JSONObject result = new JSONObject();
         JSONArray stats = new JSONArray();
-        stats.addAll(subscriptions.keySet().stream()
-                .map(key -> getJsonObject(subscriptions.get(key)))
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList()));
 
-        result.put("subscriptions", stats);
+        JSONArray etSubscriptions = new JSONArray();
+        etSubscriptions.addAll(this.subscriptions.values().stream()
+                .filter(subscriptionSetup -> subscriptionSetup.getSubscriptionType() == SiriDataType.ESTIMATED_TIMETABLE)
+                .map(this::getJsonObject)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList())
+        );
+
+        JSONArray vmSubscriptions = new JSONArray();
+        vmSubscriptions.addAll(this.subscriptions.values().stream()
+                .filter(subscriptionSetup -> subscriptionSetup.getSubscriptionType() == SiriDataType.VEHICLE_MONITORING)
+                .map(this::getJsonObject)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList())
+        );
+
+        JSONArray sxSubscriptions = new JSONArray();
+        sxSubscriptions.addAll(this.subscriptions.values().stream()
+                .filter(subscriptionSetup -> subscriptionSetup.getSubscriptionType() == SiriDataType.SITUATION_EXCHANGE)
+                .map(this::getJsonObject)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList())
+        );
+
+        JSONObject etType = new JSONObject();
+        etType.put("typeName", ""+ SiriDataType.ESTIMATED_TIMETABLE);
+        etType.put("subscriptions", etSubscriptions);
+        JSONObject vmType = new JSONObject();
+        vmType.put("typeName", ""+ SiriDataType.VEHICLE_MONITORING);
+        vmType.put("subscriptions", vmSubscriptions);
+        JSONObject sxType = new JSONObject();
+        sxType.put("typeName", ""+ SiriDataType.SITUATION_EXCHANGE);
+        sxType.put("subscriptions", sxSubscriptions);
+
+        stats.add(etType);
+        stats.add(vmType);
+        stats.add(sxType);
+
+        result.put("types", stats);
 
         result.put("environment", environment);
         result.put("serverStarted", formatTimestamp(siriObjectFactory.serverStartTime));
@@ -320,6 +381,8 @@ public class SubscriptionManager {
         count.put("et", et.getSize());
         count.put("vm", vm.getSize());
 
+        count.put("distribution", getCountPerDataset(et.getDatasetSize(), vm.getDatasetSize(), sx.getDatasetSize()));
+
         count.put("sxChanges", sxChanges.size());
         count.put("etChanges", etChanges.size());
         count.put("vmChanges", vmChanges.size());
@@ -327,6 +390,25 @@ public class SubscriptionManager {
         result.put("elements", count);
 
         return result;
+    }
+
+    private JSONArray getCountPerDataset(Map<String, Integer> etDatasetSize, Map<String, Integer> vmDatasetSize, Map<String, Integer> sxDatasetSize) {
+        JSONArray etDatasetCount = new JSONArray();
+
+        Set<String> allKeys = new HashSet<>();
+        allKeys.addAll(etDatasetSize.keySet());
+        allKeys.addAll(vmDatasetSize.keySet());
+        allKeys.addAll(sxDatasetSize.keySet());
+
+        for (String datasetId : allKeys) {
+            JSONObject counter = new JSONObject();
+            counter.put("datasetId", datasetId);
+            counter.put("etCount", etDatasetSize.getOrDefault(datasetId,0));
+            counter.put("vmCount", vmDatasetSize.getOrDefault(datasetId,0));
+            counter.put("sxCount", sxDatasetSize.getOrDefault(datasetId,0));
+            etDatasetCount.add(counter);
+        }
+        return etDatasetCount;
     }
 
     private JSONObject getJsonObject(SubscriptionSetup setup) {

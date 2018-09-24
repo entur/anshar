@@ -17,6 +17,7 @@ package no.rutebanken.anshar.data;
 
 import no.rutebanken.anshar.App;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +41,12 @@ public class SituationsTest {
 
     @Autowired
     private SiriObjectFactory siriObjectFactory;
+
+    @Before
+    public void init() {
+        situations.clearAll();
+    }
+
 
     @Test
     public void testAddSituation() {

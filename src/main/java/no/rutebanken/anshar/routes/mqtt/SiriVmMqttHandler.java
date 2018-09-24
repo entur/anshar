@@ -16,8 +16,8 @@
 package no.rutebanken.anshar.routes.mqtt;
 
 import com.hazelcast.core.IMap;
-import javafx.util.Pair;
 import no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter;
+import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
@@ -181,12 +181,19 @@ public class SiriVmMqttHandler {
             return;
         }
 
+        // If monitored == false, ignore update
+        if (activity != null && activity.getMonitoredVehicleJourney() != null &&
+                activity.getMonitoredVehicleJourney().isMonitored() != null &&
+                !activity.getMonitoredVehicleJourney().isMonitored()) {
+            return;
+        }
+
         try {
             Pair<String, String> message = getMessage(datasetId, activity);
             publishMessage(message.getKey(), message.getValue());
 
         } catch (NullPointerException e) {
-            logger.warn("Incomplete Siri data", e);
+            logger.debug("Incomplete Siri data", e);
         } catch (Exception e) {
             logger.warn("Could not parse", e);
         }
@@ -218,12 +225,12 @@ public class SiriVmMqttHandler {
         String topic = getTopic(mode, vehicleId, route, tripId, direction, headSign, startTime, nextStop, lat, lng);
         String message = null;
         try {
-            message = getMessage(monitoredVehicleJourney, vehicleId, timestamp, tsi, route, tripId, direction, headSign, startTime, lat, lng);
+            message = getMessage(monitoredVehicleJourney, vehicleId, timestamp, tsi, route, tripId, direction, headSign, startTime, lat, lng, mode);
         } catch (JSONException e) {
            logger.info("Caught exception when generating MQTT-messsage - will be ignored", e);
         }
-
-        return new Pair<>(topic, message);
+        
+        return Pair.of(topic, message);
     }
 
     /**
@@ -246,11 +253,11 @@ public class SiriVmMqttHandler {
 
     private String getMessage(MonitoredVehicleJourney monitoredVehicleJourney, String vehicleId, String timeStamp,
                               long tsi, String route, String tripId, String direction, String headSign, String startTime, double lat,
-                              double lng) throws JSONException {
+                              double lng, String mode) throws JSONException {
         JSONObject vehiclePosition = new JSONObject();
         vehiclePosition.put(VehiclePosition.DESIGNATION, getDesignation(monitoredVehicleJourney));
         vehiclePosition.put(VehiclePosition.DIRECTION, direction);
-        vehiclePosition.put(VehiclePosition.OPERATOR, getOperator(monitoredVehicleJourney));
+        vehiclePosition.put(VehiclePosition.OPERATOR, getDataSource(monitoredVehicleJourney));
         vehiclePosition.put(VehiclePosition.VEHICLE_ID, vehicleId);
         vehiclePosition.put(VehiclePosition.TIMESTAMP, timeStamp);
         vehiclePosition.put(VehiclePosition.TSI, tsi);
@@ -261,12 +268,13 @@ public class SiriVmMqttHandler {
         vehiclePosition.put(VehiclePosition.DELAY, getDelay(monitoredVehicleJourney));
         //vehiclePosition.put(VehiclePosition.ODOMETER: odometer);
         vehiclePosition.put(VehiclePosition.ODAY, getDepartureDay(monitoredVehicleJourney));
-        vehiclePosition.put(VehiclePosition.JOURNEY, getJourney(monitoredVehicleJourney, headSign));
+        vehiclePosition.put(VehiclePosition.JOURNEY, getJourney(headSign));
         vehiclePosition.put(VehiclePosition.LINE, route);
         vehiclePosition.put(VehiclePosition.TRIP_ID, tripId);
         vehiclePosition.put(VehiclePosition.STARTTIME, startTime);
         vehiclePosition.put(VehiclePosition.STOP_INDEX, getStopIndex(monitoredVehicleJourney));
         vehiclePosition.put(VehiclePosition.SOURCE, ENTUR);
+        vehiclePosition.put(VehiclePosition.MODE, mode);
 
         return new JSONObject().put(VehiclePosition.ROOT, vehiclePosition).toString();
     }
@@ -280,13 +288,30 @@ public class SiriVmMqttHandler {
         if (framedVehicleJourneyRef != null && framedVehicleJourneyRef.getDatedVehicleJourneyRef() != null) {
             return OutboundIdAdapter.getMappedId(framedVehicleJourneyRef.getDatedVehicleJourneyRef());
         }
+        if (monitoredVehicleJourney.getCourseOfJourneyRef() != null) {
+            // Backup-solution for Kolumbus/AtB
+            return OutboundIdAdapter.getMappedId(monitoredVehicleJourney.getCourseOfJourneyRef().getValue());
+        }
         return VehiclePosition.UNKNOWN;
     }
 
 
     private String getMode(MonitoredVehicleJourney monitoredVehicleJourney) {
+        String vehicleMode = getVehicleMode(monitoredVehicleJourney);
+        if (vehicleMode != null) {
+            switch (vehicleMode) {
+                case "ferry":
+                    return "water";
+                default:
+                    return vehicleMode;
+            }
+        }
+
         if ("Sporvognsdrift".equals(getOperator(monitoredVehicleJourney))) {
             return "tram";
+        }
+        if ("Tide_sjø_AS".equals(getOperator(monitoredVehicleJourney))) {
+            return "water";
         }
         return "bus";
     }
@@ -364,7 +389,7 @@ public class SiriVmMqttHandler {
         if (vehicleLocation != null) {
             return vehicleLocation.getLatitude().doubleValue();
         }
-        return 0.0;
+        throw new NullPointerException("VehicleActivityStructure.MonitoredVehicleJourney.VehicleLocation.Latitude not set");
     }
 
     private double getLongitude(MonitoredVehicleJourney monitoredVehicleJourney) {
@@ -372,7 +397,7 @@ public class SiriVmMqttHandler {
         if (vehicleLocation != null) {
             return vehicleLocation.getLongitude().doubleValue();
         }
-        return 0.0;
+        throw new NullPointerException("VehicleActivityStructure.MonitoredVehicleJourney.VehicleLocation.Longitude not set");
     }
 
     private String getGeoHash(double latitude, double longitude) {
@@ -399,12 +424,24 @@ public class SiriVmMqttHandler {
         return VehiclePosition.UNKNOWN;
     }
 
+    private String getVehicleMode(MonitoredVehicleJourney monitoredVehicleJourney) {
+        List<VehicleModesEnumeration> vehicleModes = monitoredVehicleJourney.getVehicleModes();
+        if (vehicleModes != null && !vehicleModes.isEmpty()) {
+            return vehicleModes.get(0).value();
+        }
+        return null;
+    }
+
     private String getOperator(MonitoredVehicleJourney monitoredVehicleJourney) {
         OperatorRefStructure operatorRef = monitoredVehicleJourney.getOperatorRef();
         if (operatorRef != null && operatorRef.getValue() != null) {
             return operatorRef.getValue();
         }
         return VehiclePosition.UNKNOWN;
+    }
+
+    private String getDataSource(MonitoredVehicleJourney monitoredVehicleJourney) {
+        return monitoredVehicleJourney.getDataSource();
     }
 
     private String getTimestamp(VehicleActivityStructure monitoredVehicleJourney) {
@@ -456,17 +493,12 @@ public class SiriVmMqttHandler {
         return date;
     }
 
-    private String getJourney(MonitoredVehicleJourney monitoredVehicleJourney, String headSign) {
-        String origin = VehiclePosition.UNKNOWN;
-
-        List<NaturalLanguagePlaceNameStructure> originNames = monitoredVehicleJourney.getOriginNames();
-        if (originNames != null && originNames.size() > 0) {
-            NaturalLanguagePlaceNameStructure originName = originNames.get(0);
-            if (originName != null && originName.getValue() != null) {
-                origin = originName.getValue();
-            }
+    private String getJourney(String headSign) {
+        if (headSign.isEmpty() | headSign.equals(VehiclePosition.UNKNOWN)) {
+            throw new NullPointerException("VehicleActivityStructure.MonitoredVehicleJourney.DestinationName not set");
         }
-        return origin.concat(JOURNEY_DELIM).concat(headSign);
+
+        return headSign;
     }
 
     private long getStopIndex(MonitoredVehicleJourney monitoredVehicleJourney) {

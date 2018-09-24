@@ -15,7 +15,7 @@
 
 package no.rutebanken.anshar.routes.mqtt;
 
-import javafx.util.Pair;
+import org.apache.commons.lang3.tuple.Pair;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.junit.Test;
@@ -29,6 +29,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Calendar;
 
+import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
 
 public class SiriVmMqttHandlerTest {
@@ -38,11 +39,11 @@ public class SiriVmMqttHandlerTest {
 
         ZonedDateTime dateTime = ZonedDateTime.of(2017, 12, 24, 10, 11, 4, 0, ZoneId.of("GMT"));
 
+        String datasetId = "RUT";
         VehicleActivityStructure vehicle = createVehicle(dateTime, "veh123", "RUT:Line:7890", "Nettbus",
                 "RUT:ServiceJourney:4321-321", 1, "NSR:Quay:4321", 59.10234567, 10.98765421, 123, "DesttNNx tehd",
-                "7890", "not used in this test", 1);
+                "7890", "not used in this test", 1, datasetId);
 
-        String datasetId = "RUT";
         Pair<String, String> message = new SiriVmMqttHandler().getMessage(datasetId, vehicle);
         String topic = message.getKey();
 
@@ -50,13 +51,34 @@ public class SiriVmMqttHandlerTest {
     }
 
     @Test
+    public void testTopicFormatWithCourseOfJourney() {
+
+        ZonedDateTime dateTime = ZonedDateTime.of(2017, 12, 24, 10, 11, 4, 0, ZoneId.of("GMT"));
+        String datasetId = "RUT";
+
+        VehicleActivityStructure vehicle = createVehicle(dateTime, "veh123", "RUT:Line:7890", "Nettbus",
+                "RUT:ServiceJourney:4321-321", 1, "NSR:Quay:4321", 59.10234567, 10.98765421, 123, "DesttNNx tehd",
+                "7890", "not used in this test", 1, datasetId);
+
+        vehicle.getMonitoredVehicleJourney().setFramedVehicleJourneyRef(null);
+        CourseOfJourneyRefStructure courseOfJourney = new CourseOfJourneyRefStructure();
+        courseOfJourney.setValue("KOL:VehicleJourney:1234");
+        vehicle.getMonitoredVehicleJourney().setCourseOfJourneyRef(courseOfJourney);
+
+        Pair<String, String> message = new SiriVmMqttHandler().getMessage(datasetId, vehicle);
+        String topic = message.getKey();
+
+        assertEquals("/hfp/journey/bus/RUT:veh123/RUT:Line:7890/KOL:VehicleJourney:1234/1/DesttNNx tehd/1011/NSR:Quay:4321/59;10/19/08/27/", topic);
+    }
+
+    @Test
     public void testMessage() throws JSONException {
         ZonedDateTime dateTime = ZonedDateTime.of(2017, 12, 24, 9, 37, 4, 0, ZoneId.of("GMT"));
+        String datasetId = "RUT";
         VehicleActivityStructure vehicle = createVehicle(dateTime, "78123", "RUT:Line:0037", "Nobina",
                 "RUT:ServiceJourney:1234-123", 2, "NSR:Quay:6201", 59.10234566, 10.98765422, 203, "Helsfyr T",
-                "37", "Nydalen T", 18);
+                "37", "Nydalen T", 18, datasetId);
 
-        String datasetId = "RUT";
         Pair<String, String> message = new SiriVmMqttHandler().getMessage(datasetId, vehicle);
         String msg = message.getValue();
 
@@ -64,7 +86,7 @@ public class SiriVmMqttHandlerTest {
 
         assertEquals("37", obj.get(VehiclePosition.DESIGNATION));
         assertEquals("2", obj.get(VehiclePosition.DIRECTION));
-        assertEquals("Nobina", obj.get(VehiclePosition.OPERATOR));
+        assertEquals(datasetId, obj.get(VehiclePosition.OPERATOR));
         assertEquals("RUT:78123", obj.get(VehiclePosition.VEHICLE_ID));
         assertEquals("2017-12-24T09:37:04Z", obj.get(VehiclePosition.TIMESTAMP));
         assertEquals(1514108224, obj.get(VehiclePosition.TSI));
@@ -72,7 +94,7 @@ public class SiriVmMqttHandlerTest {
         assertEquals(10.98765422, obj.get(VehiclePosition.LONGITUDE));
         assertEquals(203, obj.get(VehiclePosition.DELAY));
         assertEquals("2017-12-24", obj.get(VehiclePosition.ODAY));
-        assertEquals("Nydalen T -> Helsfyr T", obj.get(VehiclePosition.JOURNEY));
+        assertEquals("Helsfyr T", obj.get(VehiclePosition.JOURNEY));
         assertEquals("RUT:Line:0037", obj.get(VehiclePosition.LINE));
         assertEquals("RUT:ServiceJourney:1234-123", obj.get(VehiclePosition.TRIP_ID));
         assertEquals("0937", obj.get(VehiclePosition.STARTTIME));
@@ -93,45 +115,36 @@ public class SiriVmMqttHandlerTest {
     @Test
     public void testNullTopic() {
         ZonedDateTime dateTime = ZonedDateTime.of(2017, 12, 24, 12, 34, 4, 0, ZoneId.of("GMT"));
-        VehicleActivityStructure vehicle = createVehicle(dateTime, "nullveh", null, null, null, 2, null,
-                59.10234567, 10.98765421, 123, null, null, null, 1);
-
         String datasetId = "RUT";
-        Pair<String, String> message = new SiriVmMqttHandler().getMessage(datasetId, vehicle);
-        String topic = message.getKey();
+        VehicleActivityStructure vehicle = createVehicle(dateTime, "nullveh", null, null, null, 2, null,
+                59.10234567, 10.98765421, 123, null, null, null, 1, datasetId);
 
-        assertEquals("/hfp/journey/bus/RUT:nullveh/XXX/XXX/2/XXX/1234/XXX/59;10/19/08/27/", topic);
+        boolean exceptionThrown = false;
+
+        try {
+            Pair<String, String> message = new SiriVmMqttHandler().getMessage(datasetId, vehicle);
+        } catch (NullPointerException npe) {
+            exceptionThrown = true;
+        }
+
+        assertTrue("Expected NullPointerException to be thrown for incomplete message", exceptionThrown);
     }
 
     @Test
     public void testNullMessage() throws JSONException {
         ZonedDateTime dateTime = ZonedDateTime.of(2017, 12, 24, 12, 34, 40, 0, ZoneId.of("GMT"));
-        VehicleActivityStructure vehicle = createVehicle(dateTime, "nullveh", null, null, null, 2, null,
-                59.10234567, 10.98765421, -12, null, null, null, 1);
-
         String datasetId = "RUT";
-        Pair<String, String> message = new SiriVmMqttHandler().getMessage(datasetId, vehicle);
+        VehicleActivityStructure vehicle = createVehicle(dateTime, "nullveh", null, null, null, 2, null,
+                59.10234567, 10.98765421, -12, null, null, null, 1, datasetId);
 
-        String msg = message.getValue();
+        boolean exceptionThrown = false;
+        try {
+            Pair<String, String> message = new SiriVmMqttHandler().getMessage(datasetId, vehicle);
+        } catch (NullPointerException npe) {
+            exceptionThrown = true;
+        }
 
-        JSONObject obj = new JSONObject(msg).getJSONObject(VehiclePosition.ROOT);
-
-        assertEquals("XXX", obj.get(VehiclePosition.DESIGNATION));
-        assertEquals("2", obj.get(VehiclePosition.DIRECTION));
-        assertEquals("XXX", obj.get(VehiclePosition.OPERATOR));
-        assertEquals("RUT:nullveh", obj.get(VehiclePosition.VEHICLE_ID));
-        assertEquals("2017-12-24T12:34:40Z", obj.get(VehiclePosition.TIMESTAMP));
-        assertEquals(1514118880, obj.get(VehiclePosition.TSI));
-        assertEquals(59.10234567, obj.get(VehiclePosition.LATITUDE));
-        assertEquals(10.98765421, obj.get(VehiclePosition.LONGITUDE));
-        assertEquals(-12, obj.get(VehiclePosition.DELAY));
-        assertEquals("2017-12-24", obj.get(VehiclePosition.ODAY));
-        assertEquals("XXX -> XXX", obj.get(VehiclePosition.JOURNEY));
-        assertEquals("XXX", obj.get(VehiclePosition.LINE));
-        assertEquals("XXX", obj.get(VehiclePosition.TRIP_ID));
-        assertEquals("1234", obj.get(VehiclePosition.STARTTIME));
-        assertEquals(1, obj.get(VehiclePosition.STOP_INDEX));
-        assertEquals("entur", obj.get(VehiclePosition.SOURCE));
+        assertTrue("Expected NullPointerException to be thrown for incomplete message", exceptionThrown);
     }
 
 
@@ -142,7 +155,7 @@ public class SiriVmMqttHandlerTest {
                                                    String destinationName, // -> destinationNames[0]
                                                    String publishedName, // -> publishedLineNames[0]
                                                    String origin, // -> orginNames[0]
-                                                   int stopIndex) { // -> monitoredCalls[0]
+                                                   int stopIndex, String dataSource) { // -> monitoredCalls[0]
         VehicleActivityStructure element = new VehicleActivityStructure();
         element.setRecordedAtTime(dateTime);
         element.setValidUntilTime(dateTime.plusMinutes(10));
@@ -159,6 +172,8 @@ public class SiriVmMqttHandlerTest {
         LineRef lineRef = new LineRef();
         lineRef.setValue(line);
         vehicleJourney.setLineRef(lineRef);
+
+        vehicleJourney.setDataSource(dataSource);
 
         OperatorRefStructure operatorRef = new OperationalUnitRefStructure();
         operatorRef.setValue(operator);

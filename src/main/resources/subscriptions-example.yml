@@ -24,6 +24,7 @@ anshar:
       mappingAdapterId: entur
       filterPresets:
       idMappingPrefixes:
+      restartTime: "01:30"
       active: false
     -
       internalId: 200
@@ -51,6 +52,7 @@ anshar:
       mappingAdapterId: entur
       filterPresets:
       idMappingPrefixes:
+      restartTime:
       active: false
     -
       internalId: 300

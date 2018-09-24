@@ -92,12 +92,27 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
         rest("anshar").tag("siri")
                 .consumes(MediaType.APPLICATION_XML).produces(MediaType.APPLICATION_XML)
 
+                .post("/anshar/services").to("direct:process.service.request")
+                        .description("Backwards compatible endpoint used for SIRI ServiceRequest.")
+
+                .post("/anshar/services/{" + PARAM_DATASET_ID + "}").to("direct:process.service.request")
+                        .description("Backwards compatible endpoint used for SIRI ServiceRequest limited to single dataprovider.")
+                        .param().required(false).name(PARAM_DATASET_ID).type(RestParamType.path).description("The id of the Codespace to limit data to").dataType("string").endParam()
+
+                .post("/anshar/subscribe").to("direct:process.subscription.request")
+                        .description("Backwards compatible endpoint used for SIRI SubscriptionRequest.")
+
+                .post("/anshar/subscribe/{" + PARAM_DATASET_ID + "}").to("direct:process.subscription.request")
+                    .description("Backwards compatible endpoint used for SIRI SubscriptionRequest limited to single dataprovider.")
+                    .param().required(false).name(PARAM_DATASET_ID).type(RestParamType.path).description("The id of the Codespace to limit data to").dataType("string").endParam()
+
                 .post("/services").to("direct:process.service.request")
-                        .description("Endpoint used for SIRI ServiceRequest.")
+                    .description("Endpoint used for SIRI ServiceRequest.")
 
                 .post("/services/{" + PARAM_DATASET_ID + "}").to("direct:process.service.request")
-                        .description("Endpoint used for SIRI ServiceRequest limited to single dataprovider.")
-                        .param().required(false).name(PARAM_DATASET_ID).type(RestParamType.path).description("The id of the Codespace to limit data to").dataType("string").endParam()
+                    .description("Endpoint used for SIRI ServiceRequest limited to single dataprovider.")
+                    .param().required(false).name(PARAM_DATASET_ID).type(RestParamType.path).description("The id of the Codespace to limit data to").dataType("string").endParam()
+
 
                 .post("/subscribe").to("direct:process.subscription.request")
                         .description("Endpoint used for SIRI SubscriptionRequest.")
@@ -137,6 +152,7 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
                 ;
 
         from("direct:process.subscription.request")
+                .to("log:subRequest:" + getClass().getSimpleName() + "?showAll=true&multiline=true&showStreams=true") //StreamCache allows stream to be read multiple times
                 .process(p -> {
                     String datasetId = p.getIn().getHeader(PARAM_DATASET_ID, String.class);
 
@@ -151,6 +167,7 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
 
                 })
                 .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
+                .to("log:subResponse:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .routeId("process.subscription")
         ;
 

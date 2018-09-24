@@ -194,6 +194,11 @@ public class ExtendedHazelcastService extends HazelCastService {
     }
 
     @Bean
+    public IMap<String, String> getForceRestartMap() {
+        return hazelcast.getMap("anshar.subscriptions.restart");
+    }
+
+    @Bean
     public IMap<String, Instant> getFailTrackerMap() {
         return hazelcast.getMap("anshar.activity.failtracker");
     }

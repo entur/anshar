@@ -15,13 +15,14 @@
 
 package no.rutebanken.anshar.metrics;
 
-import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.graphite.Graphite;
 import com.codahale.metrics.graphite.GraphiteReporter;
 import com.google.common.base.Strings;
 import no.rutebanken.anshar.subscription.SiriDataType;
+import no.rutebanken.anshar.subscription.SubscriptionManager;
+import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,8 +30,8 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
 public class MetricsServiceImpl implements MetricsService {
     private static final Logger logger = LoggerFactory.getLogger(MetricsServiceImpl.class);
@@ -77,16 +78,39 @@ public class MetricsServiceImpl implements MetricsService {
 
 
     @Override
-    public void registerIncomingData(SiriDataType subscriptionType, String agencyId, Map data) {
-        String counterName = "data.type." + subscriptionType;
+    public void registerIncomingData(SiriDataType subscriptionType, String agencyId, Function<String, Integer> function) {
+        String counterName = "data.type." + subscriptionType + ".codespace." + agencyId;
         if (!metrics.getGauges().containsKey(counterName)) {
-            metrics.gauge(counterName, () -> new Gauge() {
-                @Override
-                public Integer getValue() {
-                    return data.size();
-                }
-            });
+            metrics.gauge(counterName, () -> () -> function.apply(agencyId));
         }
     }
 
+    @Override
+    public void registerSubscription(SubscriptionManager manager, SubscriptionSetup subscription) {
+        String vendor = subscription.getVendor();
+        String datasetId = subscription.getDatasetId();
+        SiriDataType subscriptionType = subscription.getSubscriptionType();
+
+                                //e.g.: subscription.ET.RUT.ruterEt.failing
+        String gauge_baseName = "subscription." + subscriptionType + "." + datasetId + "." + vendor;
+
+        String gauge_failing = gauge_baseName + ".failing";
+        String gauge_data_failing = gauge_baseName + ".data_failing" ;
+
+        //Flag as failing when ACTIVE, and NOT HEALTHY
+        metrics.gauge(gauge_failing, () -> () -> manager.isActiveSubscription(subscription.getSubscriptionId()) &&
+                                                 !manager.isSubscriptionHealthy(subscription.getSubscriptionId()));
+
+        //Set flag as data failing when ACTIVE, and NOT receiving data
+
+        // ...in the last 5 minutes
+        metrics.gauge(gauge_data_failing + ".5min", () -> () -> manager.isActiveSubscription(subscription.getSubscriptionId()) &&
+                                                 !manager.isSubscriptionReceivingData(subscription.getSubscriptionId(), 5*60));
+        // ...the last 15 minutes
+        metrics.gauge(gauge_data_failing + ".15min", () -> () -> manager.isActiveSubscription(subscription.getSubscriptionId()) &&
+                                                 !manager.isSubscriptionReceivingData(subscription.getSubscriptionId(), 15*60));
+        // ...and the last 30 minutes
+        metrics.gauge(gauge_data_failing + ".30min", () -> () -> manager.isActiveSubscription(subscription.getSubscriptionId()) &&
+                                                 !manager.isSubscriptionReceivingData(subscription.getSubscriptionId(), 30*60));
+    }
 }

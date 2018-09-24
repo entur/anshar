@@ -16,6 +16,7 @@
 package no.rutebanken.anshar.data;
 
 import no.rutebanken.anshar.App;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,14 +25,11 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import uk.org.siri.siri20.*;
 
 import java.math.BigInteger;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
-import static junit.framework.TestCase.assertFalse;
-import static junit.framework.TestCase.assertNotNull;
+import static junit.framework.TestCase.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -42,6 +40,11 @@ public class EstimatedTimetablesTest {
 
     @Autowired
     private EstimatedTimetables estimatedTimetables;
+
+    @Before
+    public void init() {
+        estimatedTimetables.clearAll();
+    }
 
     @Test
     public void testAddNull() {
@@ -168,9 +171,9 @@ public class EstimatedTimetablesTest {
 
         estimatedTimetables.add("test2", createEstimatedVehicleJourney("12345", "4321", 0, 30, departure_2, true));
         expectedSize++;
-        assertTrue("Adding Journey for other vendor did not add element.", estimatedTimetables.getAll().size() == expectedSize);
-        assertTrue("Getting Journey for vendor did not return correct element-count.", estimatedTimetables.getAll("test2").size() == previousSize+1);
-        assertTrue("Getting Journey for vendor did not return correct element-count.", estimatedTimetables.getAll("test").size() == expectedSize-1);
+        assertEquals("Adding Journey for other vendor did not add element.", expectedSize, estimatedTimetables.getAll().size());
+        assertEquals("Getting Journey for vendor did not return correct element-count.", previousSize+1, estimatedTimetables.getAll("test2").size());
+        assertEquals("Getting Journey for vendor did not return correct element-count.", expectedSize-1, estimatedTimetables.getAll("test").size());
 
     }
 
@@ -627,6 +630,60 @@ public class EstimatedTimetablesTest {
 
     }
 
+    @Test
+    public void testAdjustExpectedTimesForRuterMetro() {
+        List<String> linesToFix = Arrays.asList("RUT:Line:1", "RUT:Line:2", "RUT:Line:3", "RUT:Line:4", "RUT:Line:5");
+        String datasetId = "RUT_TST";
+
+
+        ZonedDateTime arrival = ZonedDateTime.now().plusHours(1);
+        ZonedDateTime departure = arrival.minusSeconds(5);
+
+
+        EstimatedVehicleJourney estimatedVehicleJourney = createEstimatedVehicleJourney(linesToFix.get(0), "8888", 0, 3, arrival, departure, true);
+
+        FramedVehicleJourneyRefStructure framedVehicleRef = new FramedVehicleJourneyRefStructure();
+        framedVehicleRef.setDatedVehicleJourneyRef("123412341234");
+        estimatedVehicleJourney.setFramedVehicleJourneyRef(framedVehicleRef);
+
+        //Ensure that data has errors
+        int counter = 0;
+        for (EstimatedCall call : estimatedVehicleJourney.getEstimatedCalls().getEstimatedCalls()) {
+            if (counter == 0) {
+                call.setAimedArrivalTime(null);
+                call.setExpectedArrivalTime(null);
+                counter++;
+            } else {
+                call.setExpectedArrivalTime(arrival.minusMinutes(counter++));
+                call.setExpectedDepartureTime(arrival.minusMinutes(counter++));
+            }
+        }
+
+        estimatedTimetables.add(datasetId, estimatedVehicleJourney);
+
+
+        Siri serviceDelivery = estimatedTimetables.createServiceDelivery(null, datasetId, 1000);
+        List<EstimatedVehicleJourney> estimatedVehicleJourneies = serviceDelivery.getServiceDelivery().getEstimatedTimetableDeliveries().get(0).getEstimatedJourneyVersionFrames().get(0).getEstimatedVehicleJourneies();
+        assertNotNull(estimatedVehicleJourneies);
+
+        ZonedDateTime lastTimestamp = ZonedDateTime.of(1,1,1,1,1,1,1, ZoneId.systemDefault());
+        
+        for (EstimatedVehicleJourney journey : estimatedVehicleJourneies) {
+            counter = 0;
+            for (EstimatedCall call : journey.getEstimatedCalls().getEstimatedCalls()) {
+                if (counter++ == 0) {
+                    assertNull(call.getAimedArrivalTime());
+                    assertNull(call.getExpectedArrivalTime());
+                } else {
+                    assertTrue(call.getExpectedArrivalTime().equals(lastTimestamp) | call.getExpectedArrivalTime().isAfter(lastTimestamp));
+                    assertTrue(call.getExpectedDepartureTime().equals(call.getExpectedArrivalTime()) | call.getExpectedDepartureTime().isAfter(call.getExpectedArrivalTime()));
+                }
+                lastTimestamp = call.getExpectedDepartureTime();
+            }
+        }
+
+    }
+
     private EstimatedVehicleJourney createEstimatedVehicleJourney(String lineRefValue, String vehicleRefValue, int startOrder, int callCount, ZonedDateTime arrival, Boolean isComplete) {
         return createEstimatedVehicleJourney(lineRefValue, vehicleRefValue, startOrder, callCount, arrival, arrival, isComplete);
     }
@@ -653,6 +710,7 @@ public class EstimatedTimetablesTest {
                 call.setAimedDepartureTime(departure);
                 call.setExpectedDepartureTime(departure);
                 call.setOrder(BigInteger.valueOf(i));
+                call.setVisitNumber(BigInteger.valueOf(i));
             estimatedCalls.getEstimatedCalls().add(call);
         }
 
