@@ -72,7 +72,28 @@ public class Situations implements SiriRepository<PtSituationElement> {
     }
 
     public int getSize() {
-        return situations.size();
+        return situations.keySet().size();
+    }
+
+
+    public Map<String, Integer> getDatasetSize() {
+        Map<String, Integer> sizeMap = new HashMap<>();
+        long t1 = System.currentTimeMillis();
+        situations.keySet().forEach(key -> {
+            String datasetId = key.substring(0, key.indexOf(":"));
+
+            Integer count = sizeMap.getOrDefault(datasetId, 0);
+            sizeMap.put(datasetId, count+1);
+        });
+        logger.info("Calculating data-distribution (SX) took {} ms: {}", (System.currentTimeMillis()-t1), sizeMap);
+        return sizeMap;
+    }
+
+
+    public Integer getDatasetSize(String datasetId) {
+        return Math.toIntExact(situations.keySet().stream()
+                .filter(key -> datasetId.equals(key.substring(0, key.indexOf(":"))))
+                .count());
     }
 
 
@@ -244,7 +265,7 @@ public class Situations implements SiriRepository<PtSituationElement> {
         });
         logger.info("Updated {} (of {}) :: Already expired: {},", changes.size(), sxList.size(), alreadyExpiredCounter.getValue());
 
-        metricsService.registerIncomingData(SiriDataType.SITUATION_EXCHANGE, datasetId, situations);
+        metricsService.registerIncomingData(SiriDataType.SITUATION_EXCHANGE, datasetId, (id) -> getDatasetSize(id));
 
         changesMap.keySet().forEach(requestor -> {
             if (lastUpdateRequested.get(requestor) != null) {

@@ -75,8 +75,29 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
     }
 
     public int getSize() {
-        return vehicleActivities.size();
+        return vehicleActivities.keySet().size();
     }
+
+    public Map<String, Integer> getDatasetSize() {
+        Map<String, Integer> sizeMap = new HashMap<>();
+        long t1 = System.currentTimeMillis();
+        vehicleActivities.keySet().forEach(key -> {
+            String datasetId = key.substring(0, key.indexOf(":"));
+
+            Integer count = sizeMap.getOrDefault(datasetId, 0);
+            sizeMap.put(datasetId, count+1);
+        });
+        logger.info("Calculating data-distribution (VM) took {} ms: {}", (System.currentTimeMillis()-t1), sizeMap);
+        return sizeMap;
+    }
+
+
+    public Integer getDatasetSize(String datasetId) {
+        return Math.toIntExact(vehicleActivities.keySet().stream()
+                .filter(key -> datasetId.equals(key.substring(0, key.indexOf(":"))))
+                .count());
+    }
+
 
     public void clearAll() {
         logger.error("Deleting all data - should only be used in test!!!");
@@ -242,38 +263,37 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
                     boolean locationValid = isLocationValid(activity);
                     boolean activityMeaningful = isActivityMeaningful(activity);
 
-                    if (locationValid && activityMeaningful) {
-                        String key = createKey(datasetId, activity.getMonitoredVehicleJourney().getVehicleRef());
+                    String key = createKey(datasetId, activity.getMonitoredVehicleJourney().getVehicleRef());
 
-                        VehicleActivityStructure existing = vehicleActivities.get(key);
+                    VehicleActivityStructure existing = vehicleActivities.get(key);
 
-                        boolean keep = true;//(existing == null); //No existing data i.e. keep
+                    boolean keep = (existing == null); //No existing data i.e. keep
 
-//                        if (existing != null &&
-//                                (activity.getRecordedAtTime() != null && existing.getRecordedAtTime() != null)) {
-//                            //Newer data has already been processed
-//                            keep = activity.getRecordedAtTime().isAfter(existing.getRecordedAtTime());
-//                        }
-
-                        long expiration = getExpiration(activity);
-
-                        if (expiration > 0 && keep) {
-                            changes.add(key);
-                            addedData.add(activity);
-                            vehicleActivities.set(key, activity, expiration, TimeUnit.MILLISECONDS);
-                            siriVmMqttHandler.pushToMqttAsync(datasetId, activity);
-                        } else {
-                            outdatedCounter.increment();
-                        }
-                    } else {
-                        if (!locationValid) {invalidLocationCounter.increment();}
-                        if (!activityMeaningful) {notMeaningfulCounter.increment();}
+                    if (existing != null &&
+                            (activity.getRecordedAtTime() != null && existing.getRecordedAtTime() != null)) {
+                        //Newer data has already been processed
+                        keep = activity.getRecordedAtTime().isAfter(existing.getRecordedAtTime());
                     }
+
+                    long expiration = getExpiration(activity);
+
+                    if (expiration > 0 && keep) {
+                        changes.add(key);
+                        addedData.add(activity);
+                        vehicleActivities.set(key, activity, expiration, TimeUnit.MILLISECONDS);
+                        siriVmMqttHandler.pushToMqttAsync(datasetId, activity);
+                    } else {
+                        outdatedCounter.increment();
+                    }
+
+                    if (!locationValid) {invalidLocationCounter.increment();}
+                    if (!activityMeaningful) {notMeaningfulCounter.increment();}
+
                 });
 
         logger.info("Updated {} (of {}) :: Ignored elements - Missing location:{}, Missing values: {}, Skipped: {}", changes.size(), vmList.size(), invalidLocationCounter.getValue(), notMeaningfulCounter.getValue(), outdatedCounter.getValue());
 
-        metricsService.registerIncomingData(SiriDataType.VEHICLE_MONITORING, datasetId, vehicleActivities);
+        metricsService.registerIncomingData(SiriDataType.VEHICLE_MONITORING, datasetId, (id) -> getDatasetSize(id));
 
         changesMap.keySet().forEach(requestor -> {
             if (lastUpdateRequested.get(requestor) != null) {
@@ -308,26 +328,26 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
     private boolean isLocationValid(VehicleActivityStructure activity) {
         boolean keep = true;
         VehicleActivityStructure.MonitoredVehicleJourney monitoredVehicleJourney = activity.getMonitoredVehicleJourney();
-        if (monitoredVehicleJourney != null) {
+
+        if (monitoredVehicleJourney != null && monitoredVehicleJourney.getVehicleLocation() != null) {
+
             LocationStructure vehicleLocation = monitoredVehicleJourney.getVehicleLocation();
-            if (vehicleLocation != null) {
-                if(vehicleLocation.getLongitude() == null & vehicleLocation.getCoordinates() == null) {
-                    keep = false;
-                    logger.info("Null location {}", vehicleRefToString(monitoredVehicleJourney));
-                    logger.trace("Skipping invalid VehicleActivity - VehicleLocation is required, but is not set.");
-                }
-                if((vehicleLocation.getLongitude() != null && vehicleLocation.getLongitude().doubleValue() == 0) ||
-                        (vehicleLocation.getLatitude() != null && vehicleLocation.getLatitude().doubleValue() == 0)) {
-                    keep = false;
-                    logger.info("Invalid location [{}, {}], {}", vehicleLocation.getLongitude(), vehicleLocation.getLatitude(), vehicleRefToString(monitoredVehicleJourney));
-                    logger.trace("Skipping invalid VehicleActivity - VehicleLocation is included, but is not set correctly.");
-                }
-                if (vehicleLocation.getCoordinates() != null) {
-                    CoordinatesStructure coordinates = vehicleLocation.getCoordinates();
-                    List<String> values = coordinates.getValues();
-                    for (String value : values) {
-                        logger.info("Found coordinates: {}", value);
-                    }
+            if(vehicleLocation.getLongitude() == null & vehicleLocation.getCoordinates() == null) {
+                keep = false;
+                logger.info("Null location {}", vehicleRefToString(monitoredVehicleJourney));
+                logger.trace("Skipping invalid VehicleActivity - VehicleLocation is required, but is not set.");
+            }
+            if((vehicleLocation.getLongitude() != null && vehicleLocation.getLongitude().doubleValue() == 0) ||
+                    (vehicleLocation.getLatitude() != null && vehicleLocation.getLatitude().doubleValue() == 0)) {
+                keep = false;
+                logger.info("Invalid location [{}, {}], {}", vehicleLocation.getLongitude(), vehicleLocation.getLatitude(), vehicleRefToString(monitoredVehicleJourney));
+                logger.trace("Skipping invalid VehicleActivity - VehicleLocation is included, but is not set correctly.");
+            }
+            if (vehicleLocation.getCoordinates() != null) {
+                CoordinatesStructure coordinates = vehicleLocation.getCoordinates();
+                List<String> values = coordinates.getValues();
+                for (String value : values) {
+                    logger.info("Found coordinates: {}", value);
                 }
             }
         } else {

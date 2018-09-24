@@ -16,6 +16,7 @@
 package no.rutebanken.anshar.data;
 
 import no.rutebanken.anshar.App;
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,6 +38,11 @@ public class VehicleActivitiesTest {
 
     @Autowired
     private VehicleActivities vehicleActivities;
+    
+    @Before
+    public void init() {
+        vehicleActivities.clearAll();
+    }
 
     @Test
     public void testAddVehicle() {
@@ -46,35 +52,6 @@ public class VehicleActivitiesTest {
 
         vehicleActivities.add("test", element);
         assertEquals("Vehicle not added", previousSize + 1, vehicleActivities.getAll().size());
-    }
-
-    @Test
-    public void testEmptyLocation() {
-        int previousSize = vehicleActivities.getAll().size();
-
-        VehicleActivityStructure element = createVehicleActivityStructure(
-                                                    ZonedDateTime.now().plusMinutes(1), UUID.randomUUID().toString());
-
-        element.getMonitoredVehicleJourney().setVehicleLocation(new LocationStructure());
-
-        vehicleActivities.add("test", element);
-        assertEquals("Activity without location was added", previousSize, vehicleActivities.getAll().size());
-    }
-
-    @Test
-    public void testOrigoLocation() {
-        int previousSize = vehicleActivities.getAll().size();
-
-        VehicleActivityStructure element = createVehicleActivityStructure(
-                                                    ZonedDateTime.now().plusMinutes(1), UUID.randomUUID().toString());
-
-        LocationStructure location = new LocationStructure();
-        location.setLatitude(BigDecimal.ZERO);
-        location.setLongitude(BigDecimal.ZERO);
-        element.getMonitoredVehicleJourney().setVehicleLocation(location);
-
-        vehicleActivities.add("test", element);
-        assertEquals("Activity without location set to (0, 0) was added", previousSize, vehicleActivities.getAll().size());
     }
 
     @Test
@@ -230,12 +207,12 @@ public class VehicleActivitiesTest {
         VehicleRef vRef = new VehicleRef();
         vRef.setValue(vehicleReference);
         vehicleJourney.setVehicleRef(vRef);
-        /*
+
         LocationStructure location = new LocationStructure();
         location.setLatitude(BigDecimal.valueOf(10.63));
         location.setLongitude(BigDecimal.valueOf(63.10));
         vehicleJourney.setVehicleLocation(location);
-*/
+
         CourseOfJourneyRefStructure journeyRefStructure = new CourseOfJourneyRefStructure();
         journeyRefStructure.setValue("yadayada");
         vehicleJourney.setCourseOfJourneyRef(journeyRefStructure);

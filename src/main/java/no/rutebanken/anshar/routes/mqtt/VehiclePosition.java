@@ -40,6 +40,7 @@ interface VehiclePosition {
     String STOP_INDEX = "stop_index";
     String TRIP_ID = "trip_id";
     String SOURCE = "source";
+    String MODE = "mode";
 
     String UNKNOWN = "XXX";
 }

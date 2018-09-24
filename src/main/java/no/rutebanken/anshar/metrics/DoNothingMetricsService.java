@@ -16,12 +16,19 @@
 package no.rutebanken.anshar.metrics;
 
 import no.rutebanken.anshar.subscription.SiriDataType;
+import no.rutebanken.anshar.subscription.SubscriptionManager;
+import no.rutebanken.anshar.subscription.SubscriptionSetup;
 
-import java.util.Map;
+import java.util.function.Function;
 
 public class DoNothingMetricsService implements MetricsService {
     @Override
-    public void registerIncomingData(SiriDataType subscriptionType, String agencyId, Map data) {
+    public void registerIncomingData(SiriDataType subscriptionType, String agencyId, Function<String, Integer> function) {
+
+    }
+
+    @Override
+    public void registerSubscription(SubscriptionManager manager, SubscriptionSetup subscription) {
 
     }
 }
