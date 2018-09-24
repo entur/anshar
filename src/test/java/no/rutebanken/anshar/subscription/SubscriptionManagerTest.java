@@ -25,7 +25,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
@@ -104,6 +106,56 @@ public class SubscriptionManagerTest {
         Thread.sleep(pendingSubscription.getHeartbeatInterval().toMillis()* subscriptionManager.HEALTHCHECK_INTERVAL_FACTOR + 150);
 
         assertTrue(subscriptionManager.isSubscriptionHealthy(subscriptionId));
+    }
+
+
+    @Test
+    public void testAutomaticRestartTrigger() throws InterruptedException {
+
+        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+        String restartTime = ZonedDateTime.now().plusMinutes(2).format(timeFormatter);
+
+        SubscriptionSetup subscription = createSubscription(1000000L);
+
+        subscription.setRestartTime(restartTime);
+
+        String subscriptionId = subscription.getSubscriptionId();
+
+        subscriptionManager.addSubscription(subscriptionId, subscription);
+        subscriptionManager.activatedTimestamp.set(subscriptionId, Instant.now().minusSeconds(3600));
+
+        assertTrue(subscriptionManager.isSubscriptionHealthy(subscriptionId));
+
+        restartTime = ZonedDateTime.now().minusMinutes(2).format(timeFormatter);
+        subscription.setRestartTime(restartTime);
+        subscriptionManager.addSubscription(subscriptionId, subscription);
+        subscriptionManager.activatedTimestamp.set(subscriptionId, Instant.now().minusSeconds(3600));
+
+        assertFalse(subscriptionManager.isSubscriptionHealthy(subscriptionId));
+        assertTrue(subscriptionManager.isForceRestart(subscriptionId));
+    }
+
+    @Test
+    public void testForceRestartTrigger() throws InterruptedException {
+
+        SubscriptionSetup subscription = createSubscription(1000000L);
+
+        String subscriptionId = subscription.getSubscriptionId();
+
+        subscriptionManager.addSubscription(subscriptionId, subscription);
+        subscriptionManager.activatedTimestamp.set(subscriptionId, Instant.now().minusSeconds(3600));
+
+        assertTrue(subscriptionManager.isSubscriptionHealthy(subscriptionId));
+
+        subscriptionManager.forceRestart(subscriptionId);
+
+        assertTrue(subscriptionManager.isForceRestart(subscriptionId));
+
+        // Triggered restart does not affect health-status
+        assertTrue(subscriptionManager.isSubscriptionHealthy(subscriptionId));
+
+        //When a force restart is triggered, it is only triggered once
+        assertFalse(subscriptionManager.isForceRestart(subscriptionId));
     }
 
     @Test
@@ -216,11 +268,16 @@ public class SubscriptionManagerTest {
         }
 
         JSONObject jsonObject = subscriptionManager.buildStats();
-        assertNotNull(jsonObject.get("subscriptions"));
-        assertTrue(jsonObject.get("subscriptions") instanceof JSONArray);
 
-        JSONArray subscriptions = (JSONArray) jsonObject.get("subscriptions");
-        assertTrue(subscriptions.size() > 0);
+        assertNotNull(jsonObject.get("types"));
+        assertTrue(jsonObject.get("types") instanceof JSONArray);
+
+        JSONArray types = (JSONArray) jsonObject.get("types");
+
+        JSONArray subscriptions = new JSONArray();
+        for (int i = 0; i < types.size(); i++) {
+            subscriptions.addAll((JSONArray) ((JSONObject)types.get(i)).get("subscriptions"));
+        }
 
         boolean verifiedCounter = false;
         for (Object object : subscriptions) {
@@ -250,10 +307,15 @@ public class SubscriptionManagerTest {
         }
 
         JSONObject jsonObject = subscriptionManager.buildStats();
-        assertNotNull(jsonObject.get("subscriptions"));
-        assertTrue(jsonObject.get("subscriptions") instanceof JSONArray);
+        assertNotNull(jsonObject.get("types"));
+        assertTrue(jsonObject.get("types") instanceof JSONArray);
 
-        JSONArray subscriptions = (JSONArray) jsonObject.get("subscriptions");
+        JSONArray types = (JSONArray) jsonObject.get("types");
+
+        JSONArray subscriptions = new JSONArray();
+        for (int i = 0; i < types.size(); i++) {
+            subscriptions.addAll((JSONArray) ((JSONObject)types.get(i)).get("subscriptions"));
+        }
         assertTrue(subscriptions.size() > 0);
 
         boolean verifiedCounter = false;

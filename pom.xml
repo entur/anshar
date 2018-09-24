@@ -37,8 +37,8 @@
         <!-- versions for use in mvn plugins as we cannot inherit them from a BOM -->
         <fabric8.version>2.3.7</fabric8.version>
         <docker.maven.plugin.version>0.21.0</docker.maven.plugin.version>
-        <spring-boot-plugin.version>1.5.7.RELEASE</spring-boot-plugin.version>
-        <spring-boot.version>1.5.7.RELEASE</spring-boot.version>
+        <spring-boot-plugin.version>1.5.16.RELEASE</spring-boot-plugin.version>
+        <spring-boot.version>1.5.16.RELEASE</spring-boot.version>
 
         <!-- Docker & Fabric8 Configs -->
         <docker.from>eu.gcr.io/carbon-1287/java-base-image</docker.from>
@@ -233,6 +233,12 @@
         </dependency>
 
         <dependency>
+            <groupId>org.entur</groupId>
+            <artifactId>netex-java-model</artifactId>
+            <version>1.0.9-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
             <version>3.4</version>
@@ -272,6 +278,10 @@
             <version>0.0.4</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+        </dependency>
 
         <!-- GTFS library -->
         <dependency>
@@ -407,6 +417,21 @@
             </plugin>
         </plugins>
     </build>
+
+    <repositories>
+        <repository>
+            <id>central</id>
+            <name>Maven Repository Switchboard</name>
+            <layout>default</layout>
+            <url>https://repo.maven.apache.org/maven2</url>
+        </repository>
+        <repository>
+            <id>conveyal</id>
+            <name>conveyal</name>
+            <layout>default</layout>
+            <url>https://maven.conveyal.com</url>
+        </repository>
+    </repositories>
 
     <!--
   Default sample commands:

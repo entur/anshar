@@ -120,6 +120,12 @@ public abstract class SiriSubscriptionRouteBuilder extends BaseRouteBuilder {
         if (!isLeader(routeId)) {
             return false;
         }
+
+        if (subscriptionManager.isForceRestart(subscriptionSetup.getSubscriptionId())) {
+            // If restart is triggered - ignore all other checks
+            return true;
+        }
+
         boolean isActive = subscriptionManager.isActiveSubscription(subscriptionSetup.getSubscriptionId());
         boolean isHealthy = subscriptionManager.isSubscriptionHealthy(subscriptionSetup.getSubscriptionId());
 

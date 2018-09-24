@@ -150,4 +150,17 @@ public abstract class CustomValidator {
         String message = MessageFormat.format("Value [{0}] is invalid for field [{1}], expected {2}", actualValue, fieldname, expectedValues);
         return new ValidationEventImpl(severity, message, new ValidationEventLocatorImpl(node));
     }
+
+    /**
+     *
+     * @param node Node that is validated
+     * @param fieldname Name of attribute that fails validation
+     * @param missingFields Missing fields
+     * @param severity
+     * @return
+     */
+    protected ValidationEvent createMissingFieldEvent(Node node, String fieldname, List<String> missingFields, int severity) {
+        String message = MessageFormat.format("Missing, required attributes: {0} ", missingFields);
+        return new ValidationEventImpl(severity, message, new ValidationEventLocatorImpl(node));
+    }
 }

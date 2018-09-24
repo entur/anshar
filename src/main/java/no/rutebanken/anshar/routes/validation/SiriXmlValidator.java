@@ -109,7 +109,7 @@ public class SiriXmlValidator extends ApplicationContextHolder{
 
                 SchemaFactory sf = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
 
-                schema = sf.newSchema(getClass().getClassLoader().getResource("siri-2.0/xsd/siri.xsd"));
+                schema = sf.newSchema(Siri.class.getClassLoader().getResource("siri-2.0/xsd/siri.xsd"));
 
             } catch (JAXBException | SAXException e) {
                 e.printStackTrace();

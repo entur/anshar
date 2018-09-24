@@ -31,7 +31,7 @@ public class DatedVehicleJourneyRefValidator extends NsrGenericIdValidator {
     public DatedVehicleJourneyRefValidator() {
         FIELDNAME = "DatedVehicleJourneyRef";
         ID_PATTERN = "ServiceJourney";
-        path = ESTIMATED_VEHICLE_JOURNEY + "/" + FIELDNAME;
+        path = ESTIMATED_VEHICLE_JOURNEY + "/FramedVehicleJourneyRef/" + FIELDNAME;
     }
 
     @Override

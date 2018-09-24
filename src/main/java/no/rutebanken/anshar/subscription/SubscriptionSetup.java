@@ -63,6 +63,7 @@ public class SubscriptionSetup implements Serializable {
     private String contentType;
     private String vehicleMonitoringRefValue;
     private boolean validation;
+    private String restartTime;
 
     public SubscriptionSetup() {
     }
@@ -221,6 +222,7 @@ public class SubscriptionSetup implements Serializable {
         obj.put("inboundUrl", buildUrl(true));
         obj.put("validation", isValidation());
         obj.put("contentType", getContentType());
+        obj.put("restartTime", getRestartTime());
 
         return obj;
     }
@@ -443,6 +445,14 @@ public class SubscriptionSetup implements Serializable {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getRestartTime() {
+        return restartTime;
+    }
+
+    public void setRestartTime(String restartTime) {
+        this.restartTime = restartTime;
     }
 
     /**
