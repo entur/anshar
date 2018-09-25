@@ -15,7 +15,7 @@
 
 package no.rutebanken.anshar.subscription;
 
-import org.springframework.boot.env.PropertySourcesLoader;
+import org.springframework.boot.env.YamlPropertySourceLoader;
 import org.springframework.core.env.PropertySource;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
@@ -25,17 +25,21 @@ import org.springframework.core.io.support.PropertySourceFactory;
 import org.springframework.util.StringUtils;
 
 import java.io.IOException;
+import java.util.List;
 
 class YamlPropertySourceFactory implements PropertySourceFactory {
 
     @Override
     public PropertySource<?> createPropertySource(String name, EncodedResource resource) throws IOException {
-        PropertySource<?> propertySource;
-        if (name != null) {
-            propertySource = new PropertySourcesLoader().load(resource.getResource(), name, null);
-        } else {
-            propertySource = new PropertySourcesLoader().load(
-                    resource.getResource(), getNameForResource(resource.getResource()), null);
+        List<PropertySource<?>> propertySource = null;
+        try {
+            if (name != null) {
+                propertySource = new YamlPropertySourceLoader().load(name, resource.getResource());
+            } else {
+                propertySource = new YamlPropertySourceLoader().load(getNameForResource(resource.getResource()), resource.getResource());
+            }
+        } catch (Exception fileNotFoundException) {
+            //Ignore - look up in filesystem below
         }
 
         // Properties not found through classpath - resolve properties from absolute path
@@ -44,10 +48,13 @@ class YamlPropertySourceFactory implements PropertySourceFactory {
             if (!path.startsWith("/")) {
                 path = "/"+path;
             }
-            propertySource = new PropertySourcesLoader().load(new FileSystemResource(path));
+            propertySource = new YamlPropertySourceLoader().load(null, new FileSystemResource(path));
         }
 
-        return propertySource;
+        if (propertySource != null && !propertySource.isEmpty()) {
+            return propertySource.get(0);
+        }
+        return null;
     }
 
     private static String getNameForResource(Resource resource) {
