@@ -77,9 +77,9 @@ public class SubscriptionInitializer implements CamelContextAware, ApplicationCo
         camelContext.setUseMDCLogging(true);
 
 
-        final Map<String, Object> myFoos = applicationContext.getBeansWithAnnotation(Mapping.class);
+        final Map<String, Object> mappingBeans = applicationContext.getBeansWithAnnotation(Mapping.class);
         final Map<String, Class> mappingAdaptersById = new HashMap<>();
-        for (final Object myFoo : myFoos.values()) {
+        for (final Object myFoo : mappingBeans.values()) {
             final Class<?> mappingAdapterClass = myFoo.getClass();
             final Mapping annotation = mappingAdapterClass.getAnnotation(Mapping.class);
             mappingAdaptersById.put(annotation.id(), mappingAdapterClass);
