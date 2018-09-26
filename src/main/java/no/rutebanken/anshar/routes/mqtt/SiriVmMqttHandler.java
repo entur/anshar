@@ -354,15 +354,17 @@ public class SiriVmMqttHandler {
         List<NaturalLanguageStringStructure> destinationNames = monitoredVehicleJourney.getDestinationNames();
         if (destinationNames.size() > 0) {
             NaturalLanguageStringStructure destinationName = destinationNames.get(0);
-            if (destinationName != null && destinationName.getValue() != null) {
+            if (destinationName != null &&
+                    destinationName.getValue() != null &&
+                    !destinationName.getValue().isEmpty()) {
                 headsign = destinationName.getValue();
             }
         }
         if (destinationIdFallback &&
-                VehiclePosition.UNKNOWN.equals(headsign)) {
+                (VehiclePosition.UNKNOWN.equals(headsign))) {
             // Destination name does not exist, and fallback to id is configured
             if (monitoredVehicleJourney.getDestinationRef() != null) {
-                headsign = monitoredVehicleJourney.getDestinationRef().getValue();
+                headsign = OutboundIdAdapter.getMappedId(monitoredVehicleJourney.getDestinationRef().getValue());
             }
         }
         return headsign;
