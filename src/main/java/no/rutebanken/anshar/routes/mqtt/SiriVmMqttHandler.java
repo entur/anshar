@@ -325,6 +325,15 @@ public class SiriVmMqttHandler {
     }
 
     private String getRoute(MonitoredVehicleJourney monitoredVehicleJourney) {
+        //If publishedLineName exists - use it
+        List<NaturalLanguageStringStructure> publishedLineNames = monitoredVehicleJourney.getPublishedLineNames();
+        if (publishedLineNames != null && !publishedLineNames.isEmpty()) {
+            if (publishedLineNames.get(0) != null) {
+                return publishedLineNames.get(0).getValue();
+            }
+        }
+
+        // FAll back to LineRef
         LineRef lineRef = monitoredVehicleJourney.getLineRef();
         if (lineRef != null && lineRef.getValue() != null) {
             return OutboundIdAdapter.getMappedId(lineRef.getValue());
