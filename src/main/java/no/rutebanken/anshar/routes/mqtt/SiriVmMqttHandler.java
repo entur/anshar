@@ -76,6 +76,9 @@ public class SiriVmMqttHandler {
     @Value("${anshar.mqtt.subscribe:false}")
     private boolean mqttSubscribe;
 
+    @Value("${anshar.mqtt.destination.id.fallback:false}")
+    private boolean destinationIdFallback;
+
     @Value("${anshar.mqtt.host}")
     private String host;
 
@@ -356,15 +359,22 @@ public class SiriVmMqttHandler {
     }
 
     private String getHeadSign(MonitoredVehicleJourney monitoredVehicleJourney) {
-        String departureName = VehiclePosition.UNKNOWN;
+        String headsign = VehiclePosition.UNKNOWN;
         List<NaturalLanguageStringStructure> destinationNames = monitoredVehicleJourney.getDestinationNames();
         if (destinationNames.size() > 0) {
             NaturalLanguageStringStructure destinationName = destinationNames.get(0);
             if (destinationName != null && destinationName.getValue() != null) {
-                departureName = destinationName.getValue();
+                headsign = destinationName.getValue();
             }
         }
-        return departureName;
+        if (destinationIdFallback &&
+                VehiclePosition.UNKNOWN.equals(headsign)) {
+            // Destination name does not exist, and fallback to id is configured
+            if (monitoredVehicleJourney.getDestinationRef() != null) {
+                headsign = monitoredVehicleJourney.getDestinationRef().getValue();
+            }
+        }
+        return headsign;
     }
 
     private String getStartTime(MonitoredVehicleJourney monitoredVehicleJourney) {
