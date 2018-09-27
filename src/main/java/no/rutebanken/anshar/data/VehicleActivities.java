@@ -40,7 +40,7 @@ import java.util.stream.Collectors;
 import static no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer.SEPARATOR;
 
 @Repository
-public class VehicleActivities implements SiriRepository<VehicleActivityStructure> {
+public class VehicleActivities extends SiriRepository<VehicleActivityStructure> {
     private final Logger logger = LoggerFactory.getLogger(VehicleActivities.class);
 
     @Autowired
@@ -175,15 +175,7 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
         return siriObjectFactory.createVMServiceDelivery(matchingEstimatedVehicleJourneys);
     }
 
-    public Siri createServiceDelivery(String requestorId, String datasetId) {
-        int maxSize = configuration.getDefaultMaxSize();
-        if (datasetId != null) {
-            maxSize = Integer.MAX_VALUE;
-        }
-        return createServiceDelivery(requestorId, datasetId, maxSize);
-    }
-
-    public Siri createServiceDelivery(String requestorId, String datasetId, int maxSize) {
+    public Siri createServiceDelivery(String requestorId, String datasetId, List<String> excludedDatasetIds, int maxSize) {
 
         int trackingPeriodMinutes = configuration.getTrackingPeriodMinutes();
 
@@ -203,10 +195,7 @@ public class VehicleActivities implements SiriRepository<VehicleActivityStructur
             vehicleActivities.keySet().forEach(idSet::add);
         }
 
-        //Filter by datasetId
-        Set<String> requestedIds = idSet.stream()
-                .filter(key -> datasetId == null || key.startsWith(datasetId + ":"))
-                .collect(Collectors.toSet());
+        Set<String> requestedIds = filterIdsByDataset(idSet, excludedDatasetIds, datasetId);
 
         Set<String> sizeLimitedIds = requestedIds.stream().limit(maxSize).collect(Collectors.toSet());
 

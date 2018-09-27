@@ -25,6 +25,7 @@ import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.camel.Exchange;
 import org.apache.camel.InvalidPayloadException;
 import org.apache.camel.LoggingLevel;
+import org.apache.camel.Message;
 import org.apache.camel.builder.xml.Namespaces;
 import org.apache.camel.model.rest.RestParamType;
 import org.slf4j.Logger;
@@ -39,6 +40,7 @@ import javax.xml.bind.UnmarshalException;
 import java.io.InputStream;
 import java.net.ConnectException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static no.rutebanken.anshar.routes.HttpParameter.*;
@@ -93,6 +95,7 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
                 .consumes(MediaType.APPLICATION_XML).produces(MediaType.APPLICATION_XML)
 
                 .post("/anshar/services").to("direct:process.service.request")
+                        .param().required(false).name(PARAM_EXCLUDED_DATASET_ID).type(RestParamType.query).description("Comma-separated list of dataset-IDs to be excluded from response (SIRI ET and VM)").dataType("string").endParam()
                         .description("Backwards compatible endpoint used for SIRI ServiceRequest.")
 
                 .post("/anshar/services/{" + PARAM_DATASET_ID + "}").to("direct:process.service.request")
@@ -107,6 +110,7 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
                     .param().required(false).name(PARAM_DATASET_ID).type(RestParamType.path).description("The id of the Codespace to limit data to").dataType("string").endParam()
 
                 .post("/services").to("direct:process.service.request")
+                    .param().required(false).name(PARAM_EXCLUDED_DATASET_ID).type(RestParamType.query).description("Comma-separated list of dataset-IDs to be excluded from response (SIRI ET and VM)").dataType("string").endParam()
                     .description("Endpoint used for SIRI ServiceRequest.")
 
                 .post("/services/{" + PARAM_DATASET_ID + "}").to("direct:process.service.request")
@@ -173,18 +177,22 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
 
         from("direct:process.service.request")
                 .process(p -> {
-                    p.getOut().setHeaders(p.getIn().getHeaders());
+                    Message msg = p.getIn();
 
-                    String datasetId = p.getIn().getHeader(PARAM_DATASET_ID, String.class);
+                    p.getOut().setHeaders(msg.getHeaders());
+
+                    List<String> excludedIdList = getParameterValuesAsList(msg, PARAM_EXCLUDED_DATASET_ID);
+
+                    String datasetId = msg.getHeader(PARAM_DATASET_ID, String.class);
 
                     int maxSize = -1;
-                    if (p.getIn().getHeaders().containsKey(PARAM_MAX_SIZE)) {
-                        maxSize = Integer.parseInt((String) p.getIn().getHeader(PARAM_MAX_SIZE));
+                    if (msg.getHeaders().containsKey(PARAM_MAX_SIZE)) {
+                        maxSize = Integer.parseInt((String) msg.getHeader(PARAM_MAX_SIZE));
                     }
 
-                    String useOriginalId = p.getIn().getHeader(PARAM_USE_ORIGINAL_ID, String.class);
+                    String useOriginalId = msg.getHeader(PARAM_USE_ORIGINAL_ID, String.class);
 
-                    Siri response = handler.handleIncomingSiri(null, p.getIn().getBody(InputStream.class), datasetId, SiriHandler.getIdMappingPolicy(useOriginalId), maxSize);
+                    Siri response = handler.handleIncomingSiri(null, msg.getBody(InputStream.class), datasetId, excludedIdList, SiriHandler.getIdMappingPolicy(useOriginalId), maxSize);
                     if (response != null) {
                         logger.info("Found ServiceRequest-response, streaming response");
                         p.getOut().setBody(response);

@@ -27,6 +27,12 @@
 - E.g. _datasetId=RUT_
 - Limits the results to original dataset-provider
 
+### excludedDatasetIds
+- Comma-separated list of datasets to exclude from result
+- E.g. _excludedDatasetIds=RUT,NSB
+- Limits result by excluding the provided datasetIds
+- *Note:* Valid for VM and ET requests - both HTTP GET and POST
+
 ### requestorId
 - E.g. _requestorId=f5907670-9777-11e6-ae22-56b6b649961_
 - Value needs to be unique for as long as only updated data are needed, a generated UUID is a good choice

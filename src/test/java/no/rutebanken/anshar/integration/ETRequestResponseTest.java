@@ -29,7 +29,7 @@ import java.math.BigInteger;
 import java.time.ZonedDateTime;
 
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.*;
 
 public class ETRequestResponseTest extends BaseHttpTest {
 
@@ -66,6 +66,36 @@ public class ETRequestResponseTest extends BaseHttpTest {
         ;
     }
 
+
+    @Test
+    public void testETRequestWithExcludedIds() throws Exception {
+
+        //Test SIRI Request
+        Siri siriRequest = SiriObjectFactory.createServiceRequest(getSubscriptionSetup(SiriDataType.ESTIMATED_TIMETABLE));
+        given()
+                .when()
+                    .contentType(ContentType.XML)
+                    .body(SiriXml.toXml(siriRequest))
+                    .post("anshar/services?excludedDatasetIds=DUMMY")
+                .then()
+                    .statusCode(200)
+                    .root("Siri.ServiceDelivery.EstimatedTimetableDelivery.EstimatedJourneyVersionFrame.EstimatedVehicleJourney")
+                        .body("LineRef", equalTo(lineRef))
+                        .body("FramedVehicleJourneyRef.DatedVehicleJourneyRef", equalTo(datedVehicleRef))
+        ;
+
+        given()
+                .when()
+                    .contentType(ContentType.XML)
+                    .body(SiriXml.toXml(siriRequest))
+                    .post("anshar/services?excludedDatasetIds="+dataSource)
+                .then()
+                    .statusCode(200)
+                    .root("Siri.ServiceDelivery.EstimatedTimetableDelivery.EstimatedJourneyVersionFrame")
+                        .body("$", not(hasKey("EstimatedVehicleJourney")))
+        ;
+    }
+
     @Test
     public void testLiteETRequest() throws Exception {
 
@@ -79,6 +109,32 @@ public class ETRequestResponseTest extends BaseHttpTest {
                 .root("Siri.ServiceDelivery.EstimatedTimetableDelivery.EstimatedJourneyVersionFrame.EstimatedVehicleJourney")
                     .body("LineRef", equalTo(lineRef))
                     .body("FramedVehicleJourneyRef.DatedVehicleJourneyRef", equalTo(datedVehicleRef))
+        ;
+    }
+
+    @Test
+    public void testLiteETRequestWithExcludedDatasetIds() throws Exception {
+
+        //Test SIRI Lite Request
+        given()
+                .when()
+                    .get("anshar/rest/et?excludedDatasetIds=DUMMY")
+                .then()
+                    .statusCode(200)
+                    .contentType(ContentType.XML)
+                .root("Siri.ServiceDelivery.EstimatedTimetableDelivery.EstimatedJourneyVersionFrame.EstimatedVehicleJourney")
+                    .body("LineRef", equalTo(lineRef))
+                    .body("FramedVehicleJourneyRef.DatedVehicleJourneyRef", equalTo(datedVehicleRef))
+        ;
+
+        given()
+                .when()
+                    .get("anshar/rest/et?excludedDatasetIds="+dataSource)
+                .then()
+                    .statusCode(200)
+                    .contentType(ContentType.XML)
+                .root("Siri.ServiceDelivery.EstimatedTimetableDelivery.EstimatedJourneyVersionFrame")
+                        .body("$", not(hasKey("EstimatedVehicleJourney")))
         ;
     }
 

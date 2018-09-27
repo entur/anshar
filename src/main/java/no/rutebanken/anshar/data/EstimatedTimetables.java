@@ -44,7 +44,7 @@ import java.util.stream.Collectors;
 import static no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer.SEPARATOR;
 
 @Repository
-public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJourney> {
+public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney> {
     private final Logger logger = LoggerFactory.getLogger(EstimatedTimetables.class);
 
     @Autowired
@@ -159,8 +159,11 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
         return createServiceDelivery(requestorId, datasetId, maxSize, -1);
     }
 
-
     public Siri createServiceDelivery(String requestorId, String datasetId, int maxSize, long previewInterval) {
+        return createServiceDelivery(requestorId, datasetId, null, maxSize, previewInterval);
+    }
+
+    public Siri createServiceDelivery(String requestorId, String datasetId, List<String> excludedDatasetIds, int maxSize, long previewInterval) {
 
         int trackingPeriodMinutes = configuration.getTrackingPeriodMinutes();
 
@@ -183,9 +186,7 @@ public class EstimatedTimetables  implements SiriRepository<EstimatedVehicleJour
         }
 
         //Filter by datasetId
-        Set<String> requestedIds = idSet.stream()
-                .filter(key -> datasetId == null || key.startsWith(datasetId + ":"))
-                .collect(Collectors.toSet());
+        Set<String> requestedIds = filterIdsByDataset(idSet, excludedDatasetIds, datasetId);
 
         final ZonedDateTime previewExpiry = ZonedDateTime.now().plusSeconds(previewInterval / 1000);
 

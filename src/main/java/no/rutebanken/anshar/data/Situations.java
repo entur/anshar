@@ -40,7 +40,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Repository
-public class Situations implements SiriRepository<PtSituationElement> {
+public class Situations extends SiriRepository<PtSituationElement> {
     private final Logger logger = LoggerFactory.getLogger(Situations.class);
 
     @Autowired

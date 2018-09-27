@@ -27,6 +27,8 @@ import uk.org.siri.siri20.*;
 
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
+import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 
 import static org.junit.Assert.*;
@@ -220,4 +222,39 @@ public class VehicleActivitiesTest {
         element.setMonitoredVehicleJourney(vehicleJourney);
         return element;
     }
+
+
+    @Test
+    public void testExcludeDatasetIds() {
+
+        String prefix = "excludedOnly-";
+
+        VehicleActivityStructure activity_1 = createVehicleActivityStructure(ZonedDateTime.now(), prefix + "1234");
+        activity_1.getMonitoredVehicleJourney().setDataSource("test1");
+        vehicleActivities.add("test1", activity_1);
+
+        VehicleActivityStructure activity_2 = createVehicleActivityStructure(ZonedDateTime.now(), prefix + "2345");
+        activity_2.getMonitoredVehicleJourney().setDataSource("test2");
+        vehicleActivities.add("test2", activity_2);
+
+        VehicleActivityStructure activity_3 = createVehicleActivityStructure(ZonedDateTime.now(), prefix + "3456");
+        activity_3.getMonitoredVehicleJourney().setDataSource("test3");
+        vehicleActivities.add("test3", activity_3);
+
+        assertExcludedId("test1");
+        assertExcludedId("test2");
+        assertExcludedId("test3");
+    }
+
+    private void assertExcludedId(String excludedDatasetId) {
+        Siri serviceDelivery = vehicleActivities.createServiceDelivery(null, null, Arrays.asList(excludedDatasetId), 100);
+
+        List<VehicleActivityStructure> vehicleActivities = serviceDelivery.getServiceDelivery().getVehicleMonitoringDeliveries().get(0).getVehicleActivities();
+
+        assertEquals(2, vehicleActivities.size());
+        for (VehicleActivityStructure activity : vehicleActivities) {
+            assertFalse(activity.getMonitoredVehicleJourney().getDataSource().equals(excludedDatasetId));
+        }
+    }
+
 }

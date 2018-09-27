@@ -17,20 +17,39 @@ package no.rutebanken.anshar.data;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-interface SiriRepository<T> {
+abstract class SiriRepository<T> {
 
-    Collection<T> getAll();
+    abstract Collection<T> getAll();
 
-    int getSize();
+    abstract int getSize();
 
-    Collection<T> getAll(String datasetId);
+    abstract Collection<T> getAll(String datasetId);
 
-    Collection<T> getAllUpdates(String requestorId, String datasetId);
+    abstract Collection<T> getAllUpdates(String requestorId, String datasetId);
 
-    Collection<T> addAll(String datasetId, List<T> ptList);
+    abstract Collection<T> addAll(String datasetId, List<T> ptList);
 
-    T add(String datasetId, T timetableDelivery);
+    abstract T add(String datasetId, T timetableDelivery);
 
-    long getExpiration(T s);
+    abstract long getExpiration(T s);
+
+    Set<String> filterIdsByDataset(Set<String> idSet, List<String> excludedDatasetIds, String datasetId) {
+        Set<String> requestedIds;
+        if (excludedDatasetIds != null && !excludedDatasetIds.isEmpty()) {
+            requestedIds = idSet.stream()
+                    .filter(key -> {
+                        String datasetID = key.substring(0, key.indexOf(":"));
+                        return !(excludedDatasetIds.contains(datasetID));
+                    })
+                    .collect(Collectors.toSet());
+        } else {
+            requestedIds = idSet.stream()
+                    .filter(key -> datasetId == null || key.startsWith(datasetId + ":"))
+                    .collect(Collectors.toSet());
+        }
+        return requestedIds;
+    }
 }

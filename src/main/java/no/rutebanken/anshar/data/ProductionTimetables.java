@@ -32,7 +32,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Repository
-public class ProductionTimetables implements SiriRepository<ProductionTimetableDeliveryStructure> {
+public class ProductionTimetables extends SiriRepository<ProductionTimetableDeliveryStructure> {
     private final Logger logger = LoggerFactory.getLogger(ProductionTimetables.class);
 
     @Autowired

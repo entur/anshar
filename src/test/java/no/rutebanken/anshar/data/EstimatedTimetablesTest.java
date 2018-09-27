@@ -29,9 +29,9 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.*;
 
-import static junit.framework.TestCase.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static junit.framework.TestCase.assertNotNull;
+import static junit.framework.TestCase.assertNull;
+import static org.junit.Assert.*;
 
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -507,7 +507,7 @@ public class EstimatedTimetablesTest {
         // Added 3
         String requestorId = UUID.randomUUID().toString();
 
-        Siri serviceDelivery_1 = estimatedTimetables.createServiceDelivery(requestorId, datasetId, 2);
+        Siri serviceDelivery_1 = estimatedTimetables.createServiceDelivery(requestorId, datasetId, 2, -1);
 
         assertNotNull(serviceDelivery_1);
         assertNotNull(serviceDelivery_1.getServiceDelivery());
@@ -515,7 +515,7 @@ public class EstimatedTimetablesTest {
         assertTrue(serviceDelivery_1.getServiceDelivery().getEstimatedTimetableDeliveries().get(0).getEstimatedJourneyVersionFrames().get(0).getEstimatedVehicleJourneies().size() == 2);
         assertTrue(serviceDelivery_1.getServiceDelivery().isMoreData());
 
-        Siri serviceDelivery_2 = estimatedTimetables.createServiceDelivery(requestorId, datasetId, 2);
+        Siri serviceDelivery_2 = estimatedTimetables.createServiceDelivery(requestorId, datasetId, 2, -1);
 
         assertNotNull(serviceDelivery_2);
         assertNotNull(serviceDelivery_2.getServiceDelivery());
@@ -523,7 +523,7 @@ public class EstimatedTimetablesTest {
         assertTrue(serviceDelivery_2.getServiceDelivery().getEstimatedTimetableDeliveries().get(0).getEstimatedJourneyVersionFrames().get(0).getEstimatedVehicleJourneies().size() == 1);
         assertFalse(serviceDelivery_2.getServiceDelivery().isMoreData());
 
-        Siri serviceDelivery_3 = estimatedTimetables.createServiceDelivery(requestorId, datasetId, 2);
+        Siri serviceDelivery_3 = estimatedTimetables.createServiceDelivery(requestorId, datasetId, 2, -1);
 
         assertNotNull(serviceDelivery_3);
         assertNotNull(serviceDelivery_3.getServiceDelivery());
@@ -541,7 +541,7 @@ public class EstimatedTimetablesTest {
 
         estimatedTimetables.add(datasetId, journeyWithRecordedCallsOnly);
 
-        Siri serviceDelivery = estimatedTimetables.createServiceDelivery(datasetId + datasetId, datasetId, 2);
+        Siri serviceDelivery = estimatedTimetables.createServiceDelivery(datasetId + datasetId, datasetId, 2, -1);
         assertNotNull(serviceDelivery);
         assertNotNull(serviceDelivery.getServiceDelivery());
         assertNotNull(serviceDelivery.getServiceDelivery().getEstimatedTimetableDeliveries());
@@ -596,7 +596,7 @@ public class EstimatedTimetablesTest {
                 .getEstimatedJourneyVersionFrames().get(0).getEstimatedVehicleJourneies().size() == 3);
         assertFalse(serviceDelivery_30.getServiceDelivery().isMoreData());
 
-        Siri serviceDelivery_3 = estimatedTimetables.createServiceDelivery(null, datasetId, 10);
+        Siri serviceDelivery_3 = estimatedTimetables.createServiceDelivery(null, datasetId, 10, -1);
 
         assertNotNull(serviceDelivery_3);
         assertNotNull(serviceDelivery_3.getServiceDelivery());
@@ -608,7 +608,7 @@ public class EstimatedTimetablesTest {
 
 
         String requestorId = UUID.randomUUID().toString();
-        serviceDelivery_3 = estimatedTimetables.createServiceDelivery(requestorId, datasetId, 2);
+        serviceDelivery_3 = estimatedTimetables.createServiceDelivery(requestorId, datasetId, 2, -1);
 
         assertNotNull(serviceDelivery_3);
         assertNotNull(serviceDelivery_3.getServiceDelivery());
@@ -618,7 +618,7 @@ public class EstimatedTimetablesTest {
 
         assertTrue(serviceDelivery_3.getServiceDelivery().isMoreData());
 
-        serviceDelivery_3 = estimatedTimetables.createServiceDelivery(requestorId, datasetId, 2);
+        serviceDelivery_3 = estimatedTimetables.createServiceDelivery(requestorId, datasetId, 2, -1);
 
         assertNotNull(serviceDelivery_3);
         assertNotNull(serviceDelivery_3.getServiceDelivery());
@@ -662,7 +662,7 @@ public class EstimatedTimetablesTest {
         estimatedTimetables.add(datasetId, estimatedVehicleJourney);
 
 
-        Siri serviceDelivery = estimatedTimetables.createServiceDelivery(null, datasetId, 1000);
+        Siri serviceDelivery = estimatedTimetables.createServiceDelivery(null, datasetId, 1000, -1);
         List<EstimatedVehicleJourney> estimatedVehicleJourneies = serviceDelivery.getServiceDelivery().getEstimatedTimetableDeliveries().get(0).getEstimatedJourneyVersionFrames().get(0).getEstimatedVehicleJourneies();
         assertNotNull(estimatedVehicleJourneies);
 
@@ -683,6 +683,40 @@ public class EstimatedTimetablesTest {
         }
 
     }
+
+    @Test
+    public void testExcludeDatasetIds() {
+
+        String prefix = "excludedOnly-";
+
+        EstimatedVehicleJourney journey_1 = createEstimatedVehicleJourney("1", "9", 0, 10, ZonedDateTime.now().plusHours(1), true);
+        journey_1.setDataSource("test1");
+        estimatedTimetables.add("test1", journey_1);
+
+        EstimatedVehicleJourney journey_2 = createEstimatedVehicleJourney("2", "8", 0, 10, ZonedDateTime.now().plusHours(1), true);
+        journey_2.setDataSource("test2");
+        estimatedTimetables.add("test2", journey_2);
+
+        EstimatedVehicleJourney journey_3 = createEstimatedVehicleJourney("3", "7", 0, 10, ZonedDateTime.now().plusHours(1), true);
+        journey_3.setDataSource("test3");
+        estimatedTimetables.add("test3", journey_3);
+
+        assertExcludedId("test1");
+        assertExcludedId("test2");
+        assertExcludedId("test3");
+    }
+
+    private void assertExcludedId(String excludedDatasetId) {
+        Siri serviceDelivery = estimatedTimetables.createServiceDelivery(null, null, Arrays.asList(excludedDatasetId), 100, -1);
+
+        List<EstimatedVehicleJourney> journeys = serviceDelivery.getServiceDelivery().getEstimatedTimetableDeliveries().get(0).getEstimatedJourneyVersionFrames().get(0).getEstimatedVehicleJourneies();
+
+        assertEquals(2, journeys.size());
+        for (EstimatedVehicleJourney et : journeys) {
+            assertFalse(et.getDataSource().equals(excludedDatasetId));
+        }
+    }
+
 
     private EstimatedVehicleJourney createEstimatedVehicleJourney(String lineRefValue, String vehicleRefValue, int startOrder, int callCount, ZonedDateTime arrival, Boolean isComplete) {
         return createEstimatedVehicleJourney(lineRefValue, vehicleRefValue, startOrder, callCount, arrival, arrival, isComplete);

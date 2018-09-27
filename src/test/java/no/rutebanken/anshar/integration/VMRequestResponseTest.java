@@ -29,7 +29,7 @@ import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.*;
 
 public class VMRequestResponseTest extends BaseHttpTest {
 
@@ -65,6 +65,35 @@ public class VMRequestResponseTest extends BaseHttpTest {
     }
 
     @Test
+    public void testVMRequestExcludedIds() throws Exception {
+
+        //Test SIRI Request
+        Siri siriRequest = SiriObjectFactory.createServiceRequest(getSubscriptionSetup(SiriDataType.VEHICLE_MONITORING));
+        given()
+                .when()
+                    .contentType(ContentType.XML)
+                    .body(SiriXml.toXml(siriRequest))
+                    .post("anshar/services?excludedDatasetIds=DUMMY")
+                .then()
+                    .statusCode(200)
+                        .root("Siri.ServiceDelivery.VehicleMonitoringDelivery.VehicleActivity.MonitoredVehicleJourney")
+                        .body("VehicleRef", equalTo(vehicleReference))
+                        .body("DataSource", equalTo(dataSource))
+        ;
+
+        given()
+                .when()
+                .contentType(ContentType.XML)
+                .body(SiriXml.toXml(siriRequest))
+                .post("anshar/services?excludedDatasetIds="+dataSource)
+                .then()
+                .statusCode(200)
+                    .root("Siri.ServiceDelivery.VehicleMonitoringDelivery")
+                        .body("$", not(hasKey("VehicleActivity")))
+        ;
+    }
+
+    @Test
     public void testLiteVMRequest() throws Exception {
 
         //Test SIRI Lite Request
@@ -77,6 +106,33 @@ public class VMRequestResponseTest extends BaseHttpTest {
                 .root("Siri.ServiceDelivery.VehicleMonitoringDelivery.VehicleActivity.MonitoredVehicleJourney")
                 .body("VehicleRef", equalTo(vehicleReference))
                 .body("DataSource", equalTo(dataSource))
+        ;
+    }
+
+
+    @Test
+    public void testLiteVMRequestWithExcludedDatasetIds() throws Exception {
+
+        //Test SIRI Lite Request
+        given()
+                .when()
+                    .get("anshar/rest/vm?excludedDatasetIds=DUMMY")
+                .then()
+                    .statusCode(200)
+                .contentType(ContentType.XML)
+                    .root("Siri.ServiceDelivery.VehicleMonitoringDelivery.VehicleActivity.MonitoredVehicleJourney")
+                        .body("VehicleRef", equalTo(vehicleReference))
+                        .body("DataSource", equalTo(dataSource))
+        ;
+
+        given()
+                .when()
+                    .get("anshar/rest/vm?excludedDatasetIds="+dataSource)
+                .then()
+                    .statusCode(200)
+                    .contentType(ContentType.XML)
+                    .root("Siri.ServiceDelivery.VehicleMonitoringDelivery")
+                        .body("$", not(hasKey("VehicleActivity")))
         ;
     }
 
