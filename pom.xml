@@ -37,10 +37,8 @@
         <!-- versions for use in mvn plugins as we cannot inherit them from a BOM -->
         <fabric8.version>2.3.7</fabric8.version>
         <docker.maven.plugin.version>0.21.0</docker.maven.plugin.version>
-        <spring-boot-plugin.version>2.0.5.RELEASE</spring-boot-plugin.version>
-        <spring-boot.version>2.0.5.RELEASE</spring-boot.version>
-
-        <camel-version>2.22.1</camel-version>
+        <spring-boot-plugin.version>1.5.14.RELEASE</spring-boot-plugin.version>
+        <spring-boot.version>1.5.14.RELEASE</spring-boot.version>
 
         <!-- Docker & Fabric8 Configs -->
         <docker.from>eu.gcr.io/carbon-1287/java-base-image</docker.from>
@@ -143,75 +141,75 @@
         <dependency>
             <groupId>org.apache.camel</groupId>
             <artifactId>camel-core</artifactId>
-            <version>${camel-version}</version>
+            <!--<version>${camel-version}</version>-->
         </dependency>
 
         <dependency>
             <groupId>org.apache.camel</groupId>
             <artifactId>camel-http-common</artifactId>
-            <version>${camel-version}</version>
+            <!--<version>${camel-version}</version>-->
         </dependency>
 
         <dependency>
             <groupId>org.apache.camel</groupId>
             <artifactId>camel-http4</artifactId>
-            <version>${camel-version}</version>
+            <!--<version>${camel-version}</version>-->
         </dependency>
 
 
         <dependency>
             <groupId>org.apache.camel</groupId>
             <artifactId>camel-jetty9</artifactId>
-            <version>${camel-version}</version>
+            <!--<version>${camel-version}</version>-->
         </dependency>
 
         <dependency>
             <groupId>org.apache.camel</groupId>
             <artifactId>camel-jetty-common</artifactId>
-            <version>${camel-version}</version>
+            <!--<version>${camel-version}</version>-->
         </dependency>
 
         <dependency>
             <groupId>org.apache.camel</groupId>
             <artifactId>camel-jaxb</artifactId>
-            <version>${camel-version}</version>
+            <!--<version>${camel-version}</version>-->
         </dependency>
         <dependency>
             <groupId>org.apache.camel</groupId>
             <artifactId>camel-jms</artifactId>
-            <version>${camel-version}</version>
+            <!--<version>${camel-version}</version>-->
         </dependency>
 
         <dependency>
             <groupId>org.apache.camel</groupId>
             <artifactId>camel-spring-boot</artifactId>
-            <version>${camel-version}</version>
+            <!--<version>${camel-version}</version>-->
         </dependency>
         <dependency>
             <groupId>org.apache.camel</groupId>
             <artifactId>camel-quartz2</artifactId>
-            <version>${camel-version}</version>
+            <!--<version>${camel-version}</version>-->
         </dependency>
         <dependency>
             <groupId>org.apache.camel</groupId>
             <artifactId>camel-spring</artifactId>
-            <version>${camel-version}</version>
+            <!--<version>${camel-version}</version>-->
         </dependency>
         <dependency>
             <groupId>org.apache.camel</groupId>
             <artifactId>camel-hazelcast</artifactId>
-            <version>${camel-version}</version>
+            <!--<version>${camel-version}</version>-->
         </dependency>
         <dependency>
             <groupId>org.apache.camel</groupId>
             <artifactId>camel-freemarker</artifactId>
-            <version>${camel-version}</version>
+            <!--<version>${camel-version}</version>-->
         </dependency>
 
         <dependency>
             <groupId>org.apache.camel</groupId>
             <artifactId>camel-swagger-java</artifactId>
-            <version>${camel-version}</version>
+            <!--<version>${camel-version}</version>-->
         </dependency>
         <dependency>
             <groupId>io.dropwizard.metrics</groupId>
@@ -286,7 +284,7 @@
         <dependency>
             <groupId>org.apache.camel</groupId>
             <artifactId>camel-bean-validator</artifactId>
-            <version>${camel-version}</version>
+            <!--<version>${camel-version}</version>-->
         </dependency>
 
         <dependency>
@@ -355,13 +353,13 @@
         <dependency>
             <groupId>org.apache.camel</groupId>
             <artifactId>camel-test</artifactId>
-            <version>${camel-version}</version>
+            <!--<version>${camel-version}</version>-->
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.camel</groupId>
             <artifactId>camel-test-spring</artifactId>
-            <version>${camel-version}</version>
+            <!--<version>${camel-version}</version>-->
             <scope>test</scope>
         </dependency>
 

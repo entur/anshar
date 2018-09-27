@@ -43,6 +43,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static javax.ws.rs.core.HttpHeaders.CONTENT_ENCODING;
 import static no.rutebanken.anshar.routes.HttpParameter.*;
 
 @Service
@@ -302,7 +303,7 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
                 .log("Processing SX")
                 .process(p -> {
                     String subscriptionId = getSubscriptionIdFromPath(p.getIn().getHeader(PARAM_PATH, String.class));
-
+                    logger.info("CONTENT_ENCODING: [{}] ", p.getIn().getHeader(CONTENT_ENCODING, String.class));
                     InputStream xml = p.getIn().getBody(InputStream.class);
                     handler.handleIncomingSiri(subscriptionId, xml);
 
