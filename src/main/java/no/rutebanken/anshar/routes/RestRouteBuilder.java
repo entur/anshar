@@ -17,7 +17,13 @@ package no.rutebanken.anshar.routes;
 
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.component.jetty.JettyRestHttpBinding;
+import org.apache.camel.http.common.HttpMessage;
+import org.eclipse.jetty.server.Request;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import javax.servlet.http.HttpServletRequest;
 
 public class RestRouteBuilder extends RouteBuilder {
 
@@ -30,8 +36,25 @@ public class RestRouteBuilder extends RouteBuilder {
         restConfiguration("jetty")
                 .port(configuration.getInboundPort())
                 .apiContextPath("anshar/swagger.json")
+                .endpointProperty("httpBindingRef", "#contentEncodingRequestFilter")
                 .apiProperty("api.title", "Realtime").apiProperty("api.version", "1.0")
                 .apiProperty("cors", "true")
         ;
+    }
+}
+
+// To be removed according to task ROR-521
+@Component
+class ContentEncodingRequestFilter extends JettyRestHttpBinding {
+
+    private static final String headerToRemove = "Content-Encoding";
+    private static final String headerValueToRemove = "iso-8859-15";
+
+    @Override
+    public void readRequest(HttpServletRequest request, HttpMessage message) {
+        if (((Request) request).getHttpFields().contains(headerToRemove, headerValueToRemove)) {
+            ((Request) request).getHttpFields().remove(headerToRemove);
+        }
+        super.readRequest(request, message);
     }
 }
