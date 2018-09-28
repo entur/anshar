@@ -46,15 +46,16 @@ public class AdministrationRoute extends RestRouteBuilder {
     @Autowired
     private HealthManager healthManager;
 
+    @Autowired
+    private AdminRouteHelper helper;
+
     @Override
     public void configure() throws Exception {
         super.configure();
 
         rest("/anshar").tag("internal.admin")
                 .get("/stats").produces(MediaType.TEXT_HTML).to("direct:stats")
-                .put("/stop").to("direct:stop")
-                .put("/start").to("direct:start")
-                .put("/terminate").to("direct:terminate.outbound.subscription")
+                .put("/stats").to("direct:operation")
                 .get("/subscriptions").produces(MediaType.TEXT_HTML).to("direct:subscriptions")
                 .get("/clusterstats").produces(MediaType.APPLICATION_JSON).to("direct:clusterstats")
                 .get("/unmapped").produces(MediaType.TEXT_HTML).to("direct:unmapped")
@@ -73,6 +74,26 @@ public class AdministrationRoute extends RestRouteBuilder {
         ;
 
         //Stop subscription
+        from("direct:operation")
+                .process(p -> {
+                    System.err.println("");
+                })
+             .choice()
+                .when(header("operation").isEqualTo("stop"))
+                    .to("direct:stop")
+                .endChoice()
+                .when(header("operation").isEqualTo("start"))
+                    .to("direct:start")
+                .endChoice()
+                .when(header("operation").isEqualTo("terminate"))
+                    .to("direct:terminate.outbound.subscription")
+                .endChoice()
+                .when(header("operation").isEqualTo("flush"))
+                    .to("direct:flush.data.from.subscription")
+                .endChoice()
+            .end()
+        ;
+
         from("direct:stop")
                 .bean(subscriptionManager, "stopSubscription(${header.subscriptionId})")
                 .routeId("admin.stop")
@@ -95,6 +116,12 @@ public class AdministrationRoute extends RestRouteBuilder {
         from("direct:terminate.outbound.subscription")
                 .bean(serverSubscriptionManager, "terminateSubscription(${header.subscriptionId})")
                 .routeId("admin.terminate.subscription")
+        ;
+
+        //Return subscription status
+        from("direct:flush.data.from.subscription")
+                .bean(helper, "flushDataFromSubscription(${header.subscriptionId})")
+                .routeId("admin.flush.data")
         ;
 
         //Return cluster status

@@ -9,7 +9,7 @@
     <script>
         function administerSubscription(operation,id) {
 
-            var uri = operation + "?subscriptionId="+id;
+            var uri = "?operation=" + operation + "&subscriptionId="+id;
             var xhr = new XMLHttpRequest();
             xhr.open('PUT', uri, true);
             xhr.onreadystatechange = function() {
@@ -102,13 +102,24 @@
                                         </td>
                                     </tr>
                                 </table>
-                                <#if item.status=='deactivated'>
-                                    <button type="button" class="btn btn-danger" disabled onclick="administerSubscription('stop', '${item.subscriptionId}')">Stop</button>
-                                    <button type="button" class="btn btn-success" onclick="administerSubscription('start', '${item.subscriptionId}')">Start</button>
-                                <#else >
-                                    <button type="button" class="btn btn-danger"  onclick="administerSubscription('stop', '${item.subscriptionId}')">Stop</button>
-                                    <button type="button" class="btn btn-success" disabled onclick="administerSubscription('start', '${item.subscriptionId}')">Start</button>
-                                </#if>
+                                <table border="0" width="100%">
+                                    <tr>
+                                        <td>
+                                            <#if item.status=='deactivated'>
+                                                <button type="button" class="btn btn-danger" disabled onclick="administerSubscription('stop', '${item.subscriptionId}')">Stop</button>
+                                                <button type="button" class="btn btn-success" onclick="administerSubscription('start', '${item.subscriptionId}')">Start</button>
+                                            <#else >
+                                                <button type="button" class="btn btn-danger"  onclick="administerSubscription('stop', '${item.subscriptionId}')">Stop</button>
+                                                <button type="button" class="btn btn-success" disabled onclick="administerSubscription('start', '${item.subscriptionId}')">Start</button>
+                                            </#if>
+                                        </td>
+                                        <td>
+                                            <div align="right">
+                                                <span style="cursor: pointer"  class="glyphicon glyphicon-trash" onclick="administerSubscription('flush', '${item.subscriptionId}')"></span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </table>
                             </td>
                             </tr>
                         </#list>

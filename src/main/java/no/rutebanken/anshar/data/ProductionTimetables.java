@@ -78,6 +78,10 @@ public class ProductionTimetables extends SiriRepository<ProductionTimetableDeli
         return new ArrayList<>(datasetIdSpecific.values());
     }
 
+    @Override
+    void clearAllByDatasetId(String datasetId) {
+
+    }
 
     public Collection<ProductionTimetableDeliveryStructure> getAllUpdates(String requestorId, String datasetId) {
         if (requestorId != null) {

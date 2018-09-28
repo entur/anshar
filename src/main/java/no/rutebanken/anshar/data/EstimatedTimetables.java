@@ -103,6 +103,21 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                 .count());
     }
 
+    @Override
+    public void clearAllByDatasetId(String datasetId) {
+        String prefix = datasetId + ":";
+        Set<String> idsToRemove = timetableDeliveries.keySet()
+                .stream()
+                .filter(key -> key.startsWith(prefix))
+                .collect(Collectors.toSet());
+
+        logger.warn("Removing all data ({} ids) for {}", idsToRemove, datasetId);
+
+        for (String id : idsToRemove) {
+            timetableDeliveries.remove(id);
+        }
+    }
+
     public void clearAll() {
         logger.error("Deleting all data - should only be used in test!!!");
         timetableDeliveries.clear();

@@ -52,4 +52,6 @@ abstract class SiriRepository<T> {
         }
         return requestedIds;
     }
+
+    abstract void clearAllByDatasetId(String datasetId);
 }
