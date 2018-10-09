@@ -36,7 +36,6 @@ jobs:
   build:
     docker:
     - image: maven:3.5.4-jdk-8
-      cmd: ["/bin/bash"]
     environment:
       MAVEN_OPTS: -Xmx3G
     steps:
