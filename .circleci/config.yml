@@ -37,7 +37,7 @@ jobs:
     docker:
     - image: maven:3.5.4-jdk-8
     environment:
-      MAVEN_OPTS: -Xmx1950m
+      MAVEN_OPTS: -Xmx2G
     steps:
     - checkout
     - restore_cache:
