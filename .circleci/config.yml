@@ -48,7 +48,7 @@ jobs:
         - ~/.m2
         key: dep-cache-{{ checksum "pom.xml" }}
     # Cannot use -o because of snapshot dependencies.
-    - run: mvn test -s .circleci/settings.xml
+    - run: mvn install -s .circleci/settings.xml
     - run:
         name: Save test results
         command: |
@@ -83,7 +83,7 @@ jobs:
     - run: *docker-login
     - run:
         name: Docker build and push
-        command: mvn docker:build docker:push -s .circleci/settings.xml -DskipTests
+        command: mvn docker:build docker:push -s .circleci/settings.xml
     - run: *post-hook
 workflows:
   version: 2
