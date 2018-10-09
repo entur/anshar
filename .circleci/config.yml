@@ -37,7 +37,7 @@ jobs:
     docker:
     - image: maven:3.5.4-jdk-8
     environment:
-      MAVEN_OPTS: -Xmx1750m
+      MAVEN_OPTS: -Xmx1950m
     steps:
     - checkout
     - restore_cache:
@@ -48,7 +48,7 @@ jobs:
         - ~/.m2
         key: dep-cache-{{ checksum "pom.xml" }}
     # Cannot use -o because of snapshot dependencies.
-    - run: mvn install -s .circleci/settings.xml
+    - run: mvn install -s .circleci/settings.xml -DskipTests
     - run:
         name: Save test results
         command: |
