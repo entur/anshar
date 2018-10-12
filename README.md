@@ -1,4 +1,4 @@
-# anshar
+# anshar [![CircleCI](https://circleci.com/gh/entur/anshar/tree/master.svg?style=svg)](https://circleci.com/gh/entur/anshar/tree/master)
 
 A pub-sub hub for SIRI data. It will connect and subscribe on SIRI endpoints,
 and also supply external endpoints.
