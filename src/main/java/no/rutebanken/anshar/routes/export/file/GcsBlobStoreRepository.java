@@ -23,8 +23,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
-import java.io.InputStream;
-
 @Repository
 @Profile("gcs-blobstore")
 public class GcsBlobStoreRepository implements BlobStoreRepository {
@@ -48,8 +46,8 @@ public class GcsBlobStoreRepository implements BlobStoreRepository {
     }
 
     @Override
-    public void uploadBlob(String name, InputStream inputStream, boolean makePublic) {
+    public void uploadBlob(String name, byte[] bytes, boolean makePublic) {
         logger.info("Uploading file {} to container {}", name, containerName);
-        BlobStoreHelper.uploadBlob(storage, containerName, name, inputStream, makePublic);
+        BlobStoreHelper.uploadBlob(storage, containerName, name, bytes, makePublic);
     }
 }

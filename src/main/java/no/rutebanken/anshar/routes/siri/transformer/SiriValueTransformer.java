@@ -57,7 +57,7 @@ public class SiriValueTransformer {
                         }
                     });
 
-    private static final List<String> methodsToIgnore = Arrays.asList("getMonitoringError");
+    private static final List<String> methodsToIgnore = Collections.singletonList("getMonitoringError");
 
     /**
      *

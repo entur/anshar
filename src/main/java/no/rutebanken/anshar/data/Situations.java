@@ -141,7 +141,7 @@ public class Situations extends SiriRepository<PtSituationElement> {
         Set<String> idSet = changesMap.getOrDefault(requestorId, allIds);
 
         if (idSet == allIds) {
-            situations.keySet().forEach(idSet::add);
+            idSet.addAll(situations.keySet());
         }
 
         //Filter by datasetId

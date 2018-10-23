@@ -29,6 +29,7 @@ import org.springframework.stereotype.Service;
 
 import javax.ws.rs.core.MediaType;
 
+@SuppressWarnings("unchecked")
 @Service
 @Configuration
 public class AdministrationRoute extends RestRouteBuilder {

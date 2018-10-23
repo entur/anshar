@@ -206,7 +206,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
         Set<String> idSet = changesMap.getOrDefault(requestorId, allIds);
 
         if (idSet == allIds) {
-            vehicleActivities.keySet().forEach(idSet::add);
+            idSet.addAll(vehicleActivities.keySet());
         }
 
         Set<String> requestedIds = filterIdsByDataset(idSet, excludedDatasetIds, datasetId);

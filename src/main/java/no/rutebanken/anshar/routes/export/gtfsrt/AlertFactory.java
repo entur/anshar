@@ -1,4 +1,4 @@
-package no.rutebanken.anshar.routes.export.gtfsrt; /**
+/*
  * Copyright (C) 2011 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,6 +13,8 @@ package no.rutebanken.anshar.routes.export.gtfsrt; /**
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+package no.rutebanken.anshar.routes.export.gtfsrt;
 
 import com.google.transit.realtime.GtfsRealtime.*;
 import com.google.transit.realtime.GtfsRealtime.Alert.Cause;
@@ -107,7 +109,8 @@ public class AlertFactory {
             }
             return Cause.OTHER_CAUSE;
         }
-        /**
+
+        /*
          * There are really so many possibilities here that it's tricky to translate
          * them all
          */

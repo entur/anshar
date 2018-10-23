@@ -22,7 +22,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 
 @Service
 public class BlobStoreService {
@@ -42,14 +44,14 @@ public class BlobStoreService {
 		repository.setContainerName(containerName);
 	}
 
-	public void uploadBlob(@Header(value = RealtimeDataFileUploader.ZIP_FILE_PATH) String path) throws FileNotFoundException {
+	public void uploadBlob(@Header(value = RealtimeDataFileUploader.ZIP_FILE_PATH) String path) throws IOException {
 		File f = new File(path);
-		repository.uploadBlob(f.getName(), new BufferedInputStream(new FileInputStream(f)), true);
+		repository.uploadBlob(f.getName(), Files.readAllBytes(f.toPath()), true);
 	}
 
-	public void uploadBlob(String name, byte[] data) throws FileNotFoundException {
+	public void uploadBlob(String name, byte[] data) {
 		if (data != null) {
-			repository.uploadBlob(name, new BufferedInputStream(new ByteArrayInputStream(data)), true);
+			repository.uploadBlob(name, data, true);
 		}
 	}
 }

@@ -27,6 +27,7 @@ import java.util.List;
 
 import static no.rutebanken.anshar.routes.validation.validators.Constants.ESTIMATED_VEHICLE_JOURNEY;
 
+@SuppressWarnings("unchecked")
 @Validator(profileName = "norway", targetType = SiriDataType.ESTIMATED_TIMETABLE)
 @Component
 public class EstimatedVehicleJourneyValidator extends CustomValidator {

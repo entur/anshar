@@ -28,6 +28,7 @@ import java.util.List;
 import static no.rutebanken.anshar.routes.validation.validators.Constants.PT_SITUATION_ELEMENT;
 
 
+@SuppressWarnings("unchecked")
 @Validator(profileName = "norway", targetType = SiriDataType.SITUATION_EXCHANGE)
 @Component
 public class PtSituationElementValidator extends CustomValidator {

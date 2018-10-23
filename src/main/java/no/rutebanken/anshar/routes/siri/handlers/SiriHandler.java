@@ -110,7 +110,7 @@ public class SiriHandler {
     public Siri handleIncomingSiri(String subscriptionId, InputStream xml, String datasetId, List<String> excludedDatasetIdList, OutboundIdMappingPolicy outboundIdMappingPolicy, int maxSize) throws UnmarshalException {
         try {
             if (subscriptionId != null) {
-                return processSiriClientRequest(subscriptionId, xml);
+                processSiriClientRequest(subscriptionId, xml);
             } else {
                 Siri incoming = SiriValueTransformer.parseXml(xml);
 
@@ -228,7 +228,7 @@ public class SiriHandler {
      * @return
      * @throws JAXBException
      */
-    private Siri processSiriClientRequest(String subscriptionId, InputStream xml) {
+    private void processSiriClientRequest(String subscriptionId, InputStream xml) {
         SubscriptionSetup subscriptionSetup = subscriptionManager.get(subscriptionId);
 
         if (subscriptionSetup != null) {
@@ -370,7 +370,6 @@ public class SiriHandler {
         } else {
             logger.debug("ServiceDelivery for invalid subscriptionId [{}] ignored.", subscriptionId);
         }
-        return null;
     }
 
     /**

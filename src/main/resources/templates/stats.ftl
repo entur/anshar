@@ -203,7 +203,7 @@
 </body>
 <script>
     $(function () {
-        $('#tabs li:first-child a').tab('show')
+        $('#tabs').find('li:first-child a').tab('show')
     })
 </script>
 </html>

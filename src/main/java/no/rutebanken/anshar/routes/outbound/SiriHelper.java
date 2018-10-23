@@ -30,6 +30,7 @@ import uk.org.siri.siri20.*;
 
 import java.util.*;
 
+@SuppressWarnings("unchecked")
 @Component
 public class SiriHelper {
 
@@ -284,14 +285,7 @@ public class SiriHelper {
                 VehicleActivityStructure.MonitoredVehicleJourney monitoredVehicleJourney = vehicleActivity.getMonitoredVehicleJourney();
                 if (monitoredVehicleJourney != null) {
                     if (monitoredVehicleJourney.getLineRef() != null) {
-                        String completeValue = monitoredVehicleJourney.getLineRef().getValue();
-                        if (completeValue.contains(SiriValueTransformer.SEPARATOR)) {
-                            String mappedId = OutboundIdAdapter.getMappedId(completeValue);
-                            String originalId = OutboundIdAdapter.getOriginalId(completeValue);
-                            if (linerefValues.contains(mappedId) | linerefValues.contains(originalId)) {
-                                filteredActivities.add(vehicleActivity);
-                            }
-                        } else if (linerefValues.contains(completeValue)) {
+                        if (isLineRefMatch(linerefValues, monitoredVehicleJourney.getLineRef().getValue())) {
                             filteredActivities.add(vehicleActivity);
                         }
                     }
@@ -311,14 +305,7 @@ public class SiriHelper {
                 List<EstimatedVehicleJourney> estimatedVehicleJourneies = version.getEstimatedVehicleJourneies();
                 for (EstimatedVehicleJourney estimatedVehicleJourney : estimatedVehicleJourneies) {
                     if (estimatedVehicleJourney.getLineRef() != null) {
-                        String completeValue = estimatedVehicleJourney.getLineRef().getValue();
-                        if (completeValue.contains(SiriValueTransformer.SEPARATOR)) {
-                            String mappedId = OutboundIdAdapter.getMappedId(completeValue);
-                            String originalId = OutboundIdAdapter.getOriginalId(completeValue);
-                            if (linerefValues.contains(mappedId) | linerefValues.contains(originalId)) {
-                                matches.add(estimatedVehicleJourney);
-                            }
-                        } else if (linerefValues.contains(completeValue)) {
+                        if (isLineRefMatch(linerefValues, estimatedVehicleJourney.getLineRef().getValue())) {
                             matches.add(estimatedVehicleJourney);
                         }
                     }
@@ -327,6 +314,19 @@ public class SiriHelper {
                 version.getEstimatedVehicleJourneies().addAll(matches);
             }
         }
+    }
+
+    private static boolean isLineRefMatch(Set<String> linerefValues, String completeValue) {
+        if (completeValue.contains(SiriValueTransformer.SEPARATOR)) {
+            String mappedId = OutboundIdAdapter.getMappedId(completeValue);
+            String originalId = OutboundIdAdapter.getOriginalId(completeValue);
+            if (linerefValues.contains(mappedId) | linerefValues.contains(originalId)) {
+                return true;
+            }
+        } else if (linerefValues.contains(completeValue)) {
+            return true;
+        }
+        return false;
     }
 
     private static void filterVehicleRef(Siri siri, Set<String> vehiclerefValues) {
@@ -402,14 +402,7 @@ public class SiriHelper {
                             for (AffectedLineStructure affectedLine : affectedLines) {
                                 LineRef lineRef = affectedLine.getLineRef();
                                 if (!filteredSituationElements.contains(s) && lineRef != null) {
-                                    String completeValue = lineRef.getValue();
-                                    if (completeValue.contains(SiriValueTransformer.SEPARATOR)) {
-                                        String mappedId = OutboundIdAdapter.getMappedId(completeValue);
-                                        String originalId = OutboundIdAdapter.getOriginalId(completeValue);
-                                        if (linerefValues.contains(mappedId) | linerefValues.contains(originalId)) {
-                                            filteredSituationElements.add(s);
-                                        }
-                                    } else if (linerefValues.contains(completeValue)) {
+                                    if (isLineRefMatch(linerefValues, lineRef.getValue())) {
                                         filteredSituationElements.add(s);
                                     }
                                 }

@@ -45,6 +45,7 @@ import java.util.Map;
 
 import static no.rutebanken.anshar.routes.HttpParameter.*;
 
+@SuppressWarnings("unchecked")
 @Service
 @Configuration
 public class Siri20RequestHandlerRoute extends RestRouteBuilder {

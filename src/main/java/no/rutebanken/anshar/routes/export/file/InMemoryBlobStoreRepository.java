@@ -21,8 +21,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
-import java.io.InputStream;
-
 @Repository
 @Profile("in-memory-blobstore")
 public class InMemoryBlobStoreRepository implements BlobStoreRepository {
@@ -30,8 +28,8 @@ public class InMemoryBlobStoreRepository implements BlobStoreRepository {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Override
-    public void uploadBlob(String objectName, InputStream inputStream, boolean makePublic) {
-        logger.info("blob with name {} ignored for in-memory-blobstore", objectName);
+    public void uploadBlob(String objectName, byte[] bytes, boolean makePublic) {
+        logger.info("blob with name {}, size {} ignored for in-memory-blobstore", objectName, bytes.length);
     }
 
     @Override

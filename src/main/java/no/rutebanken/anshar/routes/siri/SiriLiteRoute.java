@@ -24,6 +24,7 @@ import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
 import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.subscription.helpers.MappingAdapterPresets;
+import org.apache.camel.Exchange;
 import org.apache.camel.model.rest.RestParamType;
 import org.apache.http.HttpHeaders;
 import org.rutebanken.siri20.util.SiriJson;
@@ -37,6 +38,8 @@ import uk.org.siri.siri20.Siri;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.MediaType;
+import javax.xml.bind.JAXBException;
+import java.io.IOException;
 import java.util.List;
 
 import static no.rutebanken.anshar.routes.HttpParameter.*;
@@ -112,14 +115,7 @@ public class SiriLiteRoute extends RestRouteBuilder {
 
                     HttpServletResponse out = p.getIn().getBody(HttpServletResponse.class);
 
-                    if (MediaType.APPLICATION_JSON.equals(p.getIn().getHeader(HttpHeaders.CONTENT_TYPE)) |
-                            MediaType.APPLICATION_JSON.equals(p.getIn().getHeader(HttpHeaders.ACCEPT))) {
-                        out.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
-                        SiriJson.toJson(response, out.getOutputStream());
-                    } else {
-                        out.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_XML);
-                        SiriXml.toXml(response, null, out.getOutputStream());
-                    }
+                    streamOutput(p, response, out);
                 })
                 .log("RequestTracer - Request done (SX)")
                 .routeId("incoming.rest.sx")
@@ -162,14 +158,7 @@ public class SiriLiteRoute extends RestRouteBuilder {
 
                     HttpServletResponse out = p.getIn().getBody(HttpServletResponse.class);
 
-                    if (MediaType.APPLICATION_JSON.equals(p.getIn().getHeader(HttpHeaders.CONTENT_TYPE)) |
-                            MediaType.APPLICATION_JSON.equals(p.getIn().getHeader(HttpHeaders.ACCEPT))) {
-                        out.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
-                        SiriJson.toJson(response, out.getOutputStream());
-                    } else {
-                        out.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_XML);
-                        SiriXml.toXml(response, null, out.getOutputStream());
-                    }
+                    streamOutput(p, response, out);
                 })
                 .log("RequestTracer - Request done (VM)")
                 .routeId("incoming.rest.vm")
@@ -219,19 +208,23 @@ public class SiriLiteRoute extends RestRouteBuilder {
 
                     HttpServletResponse out = p.getIn().getBody(HttpServletResponse.class);
 
-                    if (MediaType.APPLICATION_JSON.equals(p.getIn().getHeader(HttpHeaders.CONTENT_TYPE)) |
-                            MediaType.APPLICATION_JSON.equals(p.getIn().getHeader(HttpHeaders.ACCEPT))) {
-                        out.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
-                        SiriJson.toJson(response, out.getOutputStream());
-                    } else {
-                        out.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_XML);
-                        SiriXml.toXml(response, null, out.getOutputStream());
-                    }
+                    streamOutput(p, response, out);
                 })
                 .log("RequestTracer - Request done (ET)")
                 .routeId("incoming.rest.et")
         ;
 
+    }
+
+    private void streamOutput(Exchange p, Siri response, HttpServletResponse out) throws IOException, JAXBException {
+        if (MediaType.APPLICATION_JSON.equals(p.getIn().getHeader(HttpHeaders.CONTENT_TYPE)) |
+                MediaType.APPLICATION_JSON.equals(p.getIn().getHeader(HttpHeaders.ACCEPT))) {
+            out.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
+            SiriJson.toJson(response, out.getOutputStream());
+        } else {
+            out.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_XML);
+            SiriXml.toXml(response, null, out.getOutputStream());
+        }
     }
 
     /**

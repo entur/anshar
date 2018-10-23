@@ -45,6 +45,7 @@ import java.util.concurrent.ScheduledExecutorService;
 
 import static java.time.temporal.ChronoUnit.MILLIS;
 
+@SuppressWarnings("unchecked")
 @Service
 @Configuration
 public class ServerSubscriptionManager extends CamelRouteManager {

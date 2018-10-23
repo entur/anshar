@@ -219,7 +219,7 @@ public class NSBGtfsUpdaterService {
             bufferedOut = new BufferedOutputStream(fileOutput, 1024);
             byte data[] = new byte[1024];
             boolean fileComplete = false;
-            int count = 0;
+            int count;
             while (!fileComplete) {
                 count = httpIn.read(data, 0, 1024);
                 if (count <= 0) {
