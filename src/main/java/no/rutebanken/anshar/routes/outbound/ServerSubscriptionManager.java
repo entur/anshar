@@ -141,6 +141,7 @@ public class ServerSubscriptionManager extends CamelRouteManager {
             obj.put("datasetId",subscription.getDatasetId()!=null ? subscription.getDatasetId():"");
             obj.put("requestReceived", formatter.format(subscription.getRequestTimestamp()));
             obj.put("initialTerminationTime",formatter.format(subscription.getInitialTerminationTime()));
+            obj.put("clientTrackingName",subscription.getClientTrackingName()!=null ? subscription.getClientTrackingName():"");
 
             stats.add(obj);
         }
@@ -148,9 +149,9 @@ public class ServerSubscriptionManager extends CamelRouteManager {
         return stats;
     }
 
-    public Siri handleSubscriptionRequest(SubscriptionRequest subscriptionRequest, String datasetId, OutboundIdMappingPolicy outboundIdMappingPolicy) {
+    public Siri handleSubscriptionRequest(SubscriptionRequest subscriptionRequest, String datasetId, OutboundIdMappingPolicy outboundIdMappingPolicy, String clientTrackingName) {
 
-        OutboundSubscriptionSetup subscription = createSubscription(subscriptionRequest, datasetId, outboundIdMappingPolicy);
+        OutboundSubscriptionSetup subscription = createSubscription(subscriptionRequest, datasetId, outboundIdMappingPolicy, clientTrackingName);
 
         boolean hasError = false;
         String errorText = null;
@@ -185,7 +186,7 @@ public class ServerSubscriptionManager extends CamelRouteManager {
 
 
 
-    private OutboundSubscriptionSetup createSubscription(SubscriptionRequest subscriptionRequest, String datasetId, OutboundIdMappingPolicy outboundIdMappingPolicy) {
+    private OutboundSubscriptionSetup createSubscription(SubscriptionRequest subscriptionRequest, String datasetId, OutboundIdMappingPolicy outboundIdMappingPolicy, String clientTrackingName) {
 
         return new OutboundSubscriptionSetup(
                 ZonedDateTime.now(),
@@ -198,7 +199,8 @@ public class ServerSubscriptionManager extends CamelRouteManager {
                 findSubscriptionIdentifier(subscriptionRequest),
                 subscriptionRequest.getRequestorRef().getValue(),
                 findInitialTerminationTime(subscriptionRequest),
-                datasetId
+                datasetId,
+                clientTrackingName
                 );
     }
 

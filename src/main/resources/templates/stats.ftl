@@ -133,6 +133,7 @@
                         <th>SubscriptionRef</th>
                         <th>Address</th>
                         <th>DatasetId</th>
+                        <th>ClientName</th>
                         <th>Type</th>
                         <th>Heartbeat</th>
                         <th>Activated</th>
@@ -147,6 +148,7 @@
                         <td>${item.subscriptionRef}</td>
                         <td><a href="${item.address}">URL</a></td>
                         <td>${item.datasetId}</td>
+                        <td>${item.clientTrackingName}</td>
                         <td>${item.subscriptionType}</td>
                         <td>${item.heartbeatInterval}</td>
                         <td>${item.requestReceived}</td>

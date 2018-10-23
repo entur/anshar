@@ -87,6 +87,15 @@ public class AnsharConfiguration {
     @Value("${anshar.validation.profile.name}")
     private String validationProfileName;
 
+    @Value("${anshar.tracking.header.required.post:false}")
+    private boolean trackingHeaderRequiredforPost;
+
+    @Value("${anshar.tracking.header.required.get:false}")
+    private boolean trackingHeaderRequiredForGet;
+
+    @Value("${anshar.tracking.header.name:Client-Name}")
+    private String trackingHeaderName;
+
     public String getHazelcastManagementUrl() {
         return hazelcastManagementUrl;
     }
@@ -169,5 +178,17 @@ public class AnsharConfiguration {
 
     public String getValidationProfileName() {
         return validationProfileName;
+    }
+
+    public boolean isTrackingHeaderRequiredforPost() {
+        return trackingHeaderRequiredforPost;
+    }
+
+    public boolean isTrackingHeaderRequiredForGet() {
+        return trackingHeaderRequiredForGet;
+    }
+
+    public String getTrackingHeaderName() {
+        return trackingHeaderName;
     }
 }

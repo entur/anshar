@@ -38,11 +38,12 @@ public class OutboundSubscriptionSetup implements Serializable {
     private String requestorRef;
     private ZonedDateTime initialTerminationTime;
     private String datasetId;
+    private String clientTrackingName;
     private long changeBeforeUpdates;
 
     public OutboundSubscriptionSetup(ZonedDateTime requestTimestamp, SiriDataType subscriptionType, String address, long heartbeatInterval,
                                      long changeBeforeUpdates, Map<Class, Set<String>> filterMap, List<ValueAdapter> valueAdapters,
-                                     String subscriptionId, String requestorRef, ZonedDateTime initialTerminationTime, String datasetId) {
+                                     String subscriptionId, String requestorRef, ZonedDateTime initialTerminationTime, String datasetId, String clientTrackingName) {
         this.requestTimestamp = requestTimestamp;
         this.subscriptionType = subscriptionType;
         this.address = address;
@@ -54,6 +55,7 @@ public class OutboundSubscriptionSetup implements Serializable {
         this.requestorRef = requestorRef;
         this.initialTerminationTime = initialTerminationTime;
         this.datasetId = datasetId;
+        this.clientTrackingName = clientTrackingName;
     }
 
     OutboundSubscriptionSetup(SiriDataType subscriptionType, String address, int timeToLive, List<ValueAdapter> outboundAdapters, String subscriptionId) {
@@ -116,7 +118,11 @@ public class OutboundSubscriptionSetup implements Serializable {
         return valueAdapters;
     }
 
+    public String getClientTrackingName() {
+        return clientTrackingName;
+    }
+
     public String toString() {
-        return MessageFormat.format("[subscriptionId={0}, requestorRef={1}, address={2}]", subscriptionId, requestorRef, address);
+        return MessageFormat.format("[subscriptionId={0}, clientTrackingName={1}, requestorRef={2}, address={3}]", subscriptionId, clientTrackingName, requestorRef, address);
     }
 }

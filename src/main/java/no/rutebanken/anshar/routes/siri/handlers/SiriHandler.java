@@ -92,7 +92,7 @@ public class SiriHandler {
     }
 
     private Siri handleIncomingSiri(String subscriptionId, InputStream xml, String datasetId, int maxSize) throws UnmarshalException {
-        return handleIncomingSiri(subscriptionId, xml, datasetId, null, maxSize);
+        return handleIncomingSiri(subscriptionId, xml, datasetId, null, maxSize, null);
     }
 
     /**
@@ -103,18 +103,18 @@ public class SiriHandler {
      * @param outboundIdMappingPolicy Defines outbound idmapping-policy
      * @return
      */
-    public Siri handleIncomingSiri(String subscriptionId, InputStream xml, String datasetId, OutboundIdMappingPolicy outboundIdMappingPolicy, int maxSize) throws UnmarshalException {
-        return handleIncomingSiri(subscriptionId, xml, datasetId, null, outboundIdMappingPolicy, maxSize);
+    public Siri handleIncomingSiri(String subscriptionId, InputStream xml, String datasetId, OutboundIdMappingPolicy outboundIdMappingPolicy, int maxSize, String clientTrackingName) throws UnmarshalException {
+        return handleIncomingSiri(subscriptionId, xml, datasetId, null, outboundIdMappingPolicy, maxSize, clientTrackingName);
     }
 
-    public Siri handleIncomingSiri(String subscriptionId, InputStream xml, String datasetId, List<String> excludedDatasetIdList, OutboundIdMappingPolicy outboundIdMappingPolicy, int maxSize) throws UnmarshalException {
+    public Siri handleIncomingSiri(String subscriptionId, InputStream xml, String datasetId, List<String> excludedDatasetIdList, OutboundIdMappingPolicy outboundIdMappingPolicy, int maxSize, String clientTrackingName) throws UnmarshalException {
         try {
             if (subscriptionId != null) {
                 processSiriClientRequest(subscriptionId, xml);
             } else {
                 Siri incoming = SiriValueTransformer.parseXml(xml);
 
-                return processSiriServerRequest(incoming, datasetId, excludedDatasetIdList, outboundIdMappingPolicy, maxSize);
+                return processSiriServerRequest(incoming, datasetId, excludedDatasetIdList, outboundIdMappingPolicy, maxSize, clientTrackingName);
             }
         } catch (UnmarshalException e) {
             throw e;
@@ -131,7 +131,7 @@ public class SiriHandler {
      * @param excludedDatasetIdList
      * @throws JAXBException
      */
-    private Siri processSiriServerRequest(Siri incoming, String datasetId, List<String> excludedDatasetIdList, OutboundIdMappingPolicy outboundIdMappingPolicy, int maxSize) {
+    private Siri processSiriServerRequest(Siri incoming, String datasetId, List<String> excludedDatasetIdList, OutboundIdMappingPolicy outboundIdMappingPolicy, int maxSize, String clientTrackingName) {
 
         if (maxSize < 0) {
             maxSize = configuration.getDefaultMaxSize();
@@ -143,7 +143,7 @@ public class SiriHandler {
 
         if (incoming.getSubscriptionRequest() != null) {
             logger.info("Handling subscriptionrequest with ID-policy {}.", outboundIdMappingPolicy);
-            return serverSubscriptionManager.handleSubscriptionRequest(incoming.getSubscriptionRequest(), datasetId, outboundIdMappingPolicy);
+            return serverSubscriptionManager.handleSubscriptionRequest(incoming.getSubscriptionRequest(), datasetId, outboundIdMappingPolicy, clientTrackingName);
 
         } else if (incoming.getTerminateSubscriptionRequest() != null) {
             logger.info("Handling terminateSubscriptionrequest...");
