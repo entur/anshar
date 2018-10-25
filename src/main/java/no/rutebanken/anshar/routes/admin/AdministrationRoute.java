@@ -76,9 +76,6 @@ public class AdministrationRoute extends RestRouteBuilder {
 
         //Stop subscription
         from("direct:operation")
-                .process(p -> {
-                    System.err.println("");
-                })
              .choice()
                 .when(header("operation").isEqualTo("stop"))
                     .to("direct:stop")

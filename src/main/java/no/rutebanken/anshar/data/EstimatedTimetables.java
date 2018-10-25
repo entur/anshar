@@ -111,10 +111,10 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                 .filter(key -> key.startsWith(prefix))
                 .collect(Collectors.toSet());
 
-        logger.warn("Removing all data ({} ids) for {}", idsToRemove, datasetId);
+        logger.warn("Removing all data ({} ids) for {}", idsToRemove.size(), datasetId);
 
         for (String id : idsToRemove) {
-            timetableDeliveries.remove(id);
+            timetableDeliveries.delete(id);
         }
     }
 

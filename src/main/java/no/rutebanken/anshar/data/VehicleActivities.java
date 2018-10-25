@@ -106,10 +106,10 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
                 .filter(key -> key.startsWith(prefix))
                 .collect(Collectors.toSet());
 
-        logger.warn("Removing all data ({} ids) for {}", idsToRemove, datasetId);
+        logger.warn("Removing all data ({} ids) for {}", idsToRemove.size(), datasetId);
 
         for (String id : idsToRemove) {
-            vehicleActivities.remove(id);
+            vehicleActivities.delete(id);
         }
     }
 

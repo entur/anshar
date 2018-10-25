@@ -20,11 +20,14 @@ import no.rutebanken.anshar.data.Situations;
 import no.rutebanken.anshar.data.VehicleActivities;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class AdminRouteHelper {
+    private final Logger logger = LoggerFactory.getLogger(AdminRouteHelper.class);
 
     @Autowired
     private SubscriptionManager subscriptionManager;
@@ -48,6 +51,7 @@ public class AdminRouteHelper {
     }
 
     private void flushData(String datasetId, String dataType) {
+        long t1 = System.currentTimeMillis();
         switch (dataType) {
             case "ESTIMATED_TIMETABLE":
                 estimatedTimetables.clearAllByDatasetId(datasetId);
@@ -59,5 +63,6 @@ public class AdminRouteHelper {
                 situations.clearAllByDatasetId(datasetId);
                 break;
         }
+        logger.info("Flushing all data of type {} for {} took {} ms", dataType, datasetId, (System.currentTimeMillis()-t1));
     }
 }

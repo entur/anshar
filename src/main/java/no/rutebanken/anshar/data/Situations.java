@@ -104,10 +104,10 @@ public class Situations extends SiriRepository<PtSituationElement> {
                 .filter(key -> key.startsWith(prefix))
                 .collect(Collectors.toSet());
 
-        logger.warn("Removing all data ({} ids) for {}", idsToRemove, datasetId);
+        logger.warn("Removing all data ({} ids) for {}", idsToRemove.size(), datasetId);
 
         for (String id : idsToRemove) {
-            situations.remove(id);
+            situations.delete(id);
         }
     }
 
