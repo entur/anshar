@@ -161,7 +161,7 @@ public class ProductionTimetables extends SiriRepository<ProductionTimetableDeli
                 tmpChanges.addAll(changes);
                 changesMap.set(requestor, tmpChanges);
             } else {
-                changesMap.remove(requestor);
+                changesMap.delete(requestor);
             }
         });
 

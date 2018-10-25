@@ -555,7 +555,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                 tmpChanges.addAll(changes);
                 changesMap.set(requestor, tmpChanges);
             } else {
-                changesMap.remove(requestor);
+                changesMap.delete(requestor);
             }
         });
 

@@ -270,7 +270,7 @@ public class Situations extends SiriRepository<PtSituationElement> {
                 addedData.add(situation);
             } else if (situations.containsKey(key)) {
                 // Situation is no longer valid
-                situations.remove(key);
+                situations.delete(key);
             }
             if (expiration < 0) {
                 alreadyExpiredCounter.increment();
@@ -287,7 +287,7 @@ public class Situations extends SiriRepository<PtSituationElement> {
                 tmpChanges.addAll(changes);
                 changesMap.set(requestor, tmpChanges);
             } else {
-                changesMap.remove(requestor);
+                changesMap.delete(requestor);
             }
         });
         return addedData;

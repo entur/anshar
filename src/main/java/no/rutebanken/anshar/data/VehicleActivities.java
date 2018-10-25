@@ -304,7 +304,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
                 tmpChanges.addAll(changes);
                 changesMap.set(requestor, tmpChanges);
             } else {
-                changesMap.remove(requestor);
+                changesMap.delete(requestor);
             }
         });
 
