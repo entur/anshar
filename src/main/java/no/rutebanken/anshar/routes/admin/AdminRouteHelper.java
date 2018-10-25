@@ -25,6 +25,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 @Component
 public class AdminRouteHelper {
     private final Logger logger = LoggerFactory.getLogger(AdminRouteHelper.class);
@@ -44,9 +47,10 @@ public class AdminRouteHelper {
 
 
     public void flushDataFromSubscription(String subscriptionId) {
+        ExecutorService executor = Executors.newSingleThreadExecutor();
         SubscriptionSetup subscriptionSetup = subscriptionManager.get(subscriptionId);
         if (subscriptionSetup != null) {
-            flushData(subscriptionSetup.getDatasetId(), subscriptionSetup.getSubscriptionType().name());
+            executor.execute(() -> flushData(subscriptionSetup.getDatasetId(), subscriptionSetup.getSubscriptionType().name()));
         }
     }
 
