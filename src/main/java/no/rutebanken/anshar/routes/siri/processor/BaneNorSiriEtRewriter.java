@@ -24,6 +24,7 @@ import uk.org.siri.siri20.*;
 
 import java.math.BigInteger;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import static no.rutebanken.anshar.routes.siri.processor.routedata.NetexUpdaterService.*;
@@ -166,15 +167,21 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
             for (String id : remappedEstimatedCalls.keySet()) {
                 List<RecordedCall> recordedCalls = recordedTrip.get(id);
                 List<EstimatedCall> estimatedCalls = remappedEstimatedCalls.get(id);
-
+                String departureDate = null;
                 int order = 1;
                 if (recordedCalls != null) {
                     for (RecordedCall recordedCall : recordedCalls) {
                         recordedCall.setOrder(BigInteger.valueOf(order++));
+                        if (departureDate == null) {
+                            departureDate = recordedCall.getAimedDepartureTime().format(DateTimeFormatter.ISO_LOCAL_DATE);
+                        }
                     }
                 }
                 for (EstimatedCall estimatedCall : estimatedCalls) {
                     estimatedCall.setOrder(BigInteger.valueOf(order++));
+                    if (departureDate == null) {
+                        departureDate = estimatedCall.getAimedDepartureTime().format(DateTimeFormatter.ISO_LOCAL_DATE);
+                    }
                 }
 
                 EstimatedVehicleJourney journey = new EstimatedVehicleJourney();
@@ -186,6 +193,13 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
                 DatedVehicleJourneyRef datedVehicleJourneyRef = new DatedVehicleJourneyRef();
                 datedVehicleJourneyRef.setValue(id);
                 journey.setDatedVehicleJourneyRef(datedVehicleJourneyRef);
+
+                FramedVehicleJourneyRefStructure framedVehicleJourneyRefStructure = new FramedVehicleJourneyRefStructure();
+                DataFrameRefStructure dataFrameRef = new DataFrameRefStructure();
+                dataFrameRef.setValue(departureDate);
+                framedVehicleJourneyRefStructure.setDataFrameRef(dataFrameRef);
+                framedVehicleJourneyRefStructure.setDatedVehicleJourneyRef(id);
+                journey.setFramedVehicleJourneyRef(framedVehicleJourneyRefStructure);
 
                 journey.getVehicleModes().addAll(estimatedVehicleJourney.getVehicleModes());
                 journey.setOperatorRef(estimatedVehicleJourney.getOperatorRef());
