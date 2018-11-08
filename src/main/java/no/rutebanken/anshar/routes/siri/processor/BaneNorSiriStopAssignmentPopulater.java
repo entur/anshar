@@ -67,12 +67,12 @@ public class BaneNorSiriStopAssignmentPopulater extends ValueAdapter implements 
     }
 
     private boolean populateStopAssignments(EstimatedVehicleJourney estimatedVehicleJourney) {
-        DatedVehicleJourneyRef datedVehicleJourneyRef = estimatedVehicleJourney.getDatedVehicleJourneyRef();
-        if (datedVehicleJourneyRef == null) {
-            logger.debug("No DatedVehicleJourneyRef on journey");
+        FramedVehicleJourneyRefStructure framedVehicleJourneyRef = estimatedVehicleJourney.getFramedVehicleJourneyRef();
+        if (framedVehicleJourneyRef == null) {
+            logger.debug("No FramedVehicleJourneyRef on journey");
             return false;
         }
-        String datedVehicleJourneyRefValue = datedVehicleJourneyRef.getValue();
+        String datedVehicleJourneyRefValue = framedVehicleJourneyRef.getDatedVehicleJourneyRef();
         List<StopTime> stopTimes = getStopTimes(datedVehicleJourneyRefValue);
         if (stopTimes == null) {
             String operator = estimatedVehicleJourney.getOperatorRef() != null ? estimatedVehicleJourney.getOperatorRef().getValue() : null;
@@ -113,7 +113,7 @@ public class BaneNorSiriStopAssignmentPopulater extends ValueAdapter implements 
                         logger.warn("Got incorrect sequence in stoptime for DatedVehicleJourney={}: has {} (estimatedCall.order-1), but got {}", datedVehicleJourneyRefValue, sequence, stopTime.getStopSequence());
                     }
                 } else {
-                    logger.warn("Got a sequence number ({}) that is out of bounds (stopTimes.size()={}) for DatedVehicleJourney={}", sequence, stopTimes.size(), datedVehicleJourneyRef);
+                    logger.warn("Got a sequence number ({}) that is out of bounds (stopTimes.size()={}) for DatedVehicleJourney={}", sequence, stopTimes.size(), datedVehicleJourneyRefValue);
                 }
 
             }
