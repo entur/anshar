@@ -167,21 +167,22 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
             for (String id : remappedEstimatedCalls.keySet()) {
                 List<RecordedCall> recordedCalls = recordedTrip.get(id);
                 List<EstimatedCall> estimatedCalls = remappedEstimatedCalls.get(id);
-                String departureDate = null;
+
+                String departureDate;
+                if (departureTime != null) {
+                    departureDate = departureTime.format(DateTimeFormatter.ISO_LOCAL_DATE);
+                } else {
+                    departureDate = ZonedDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE);
+                }
+
                 int order = 1;
                 if (recordedCalls != null) {
                     for (RecordedCall recordedCall : recordedCalls) {
                         recordedCall.setOrder(BigInteger.valueOf(order++));
-                        if (departureDate == null) {
-                            departureDate = recordedCall.getAimedDepartureTime().format(DateTimeFormatter.ISO_LOCAL_DATE);
-                        }
                     }
                 }
                 for (EstimatedCall estimatedCall : estimatedCalls) {
                     estimatedCall.setOrder(BigInteger.valueOf(order++));
-                    if (departureDate == null) {
-                        departureDate = estimatedCall.getAimedDepartureTime().format(DateTimeFormatter.ISO_LOCAL_DATE);
-                    }
                 }
 
                 EstimatedVehicleJourney journey = new EstimatedVehicleJourney();
