@@ -153,14 +153,14 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
                     existingSet = new HashSet<>();
                 }
                 existingSet.removeAll(idSet);
-                changesMap.set(requestorId, existingSet);
+                changesMap.set(requestorId, existingSet, configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
 
                 logger.info("Returning {} changes to requestorRef {}", changes.size(), requestorId);
                 return changes;
             } else {
 
                 logger.info("Returning all to requestorRef {}", requestorId);
-                changesMap.set(requestorId, new HashSet<>());
+                changesMap.set(requestorId, new HashSet<>(), configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
             }
         }
 
@@ -229,7 +229,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
 
 
             //Update change-tracker
-            changesMap.set(requestorId, idSet);
+            changesMap.set(requestorId, idSet, trackingPeriodMinutes, TimeUnit.MINUTES);
             lastUpdateRequested.set(requestorId, Instant.now(), trackingPeriodMinutes, TimeUnit.MINUTES);
 
             MessageRefStructure msgRef = new MessageRefStructure();
@@ -302,7 +302,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
             if (lastUpdateRequested.get(requestor) != null) {
                 Set<String> tmpChanges = changesMap.get(requestor);
                 tmpChanges.addAll(changes);
-                changesMap.set(requestor, tmpChanges);
+                changesMap.set(requestor, tmpChanges, configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
             } else {
                 changesMap.delete(requestor);
             }

@@ -36,6 +36,9 @@
             <a class="nav-link" id="outbound-tab" data-toggle="tab" href="#outbound" role="tab" aria-controls="outbound" aria-selected="false">Outbound <span class="badge alert-success">${body.outbound?size}</span> <span class="glyphicon glyphicon-arrow-up"></span></a>
         </li>
         <li class="nav-item">
+            <a class="nav-link" id="polling-tab" data-toggle="tab" href="#polling" role="tab" aria-controls="polling" aria-selected="false">Polling clients <span class="glyphicon glyphicon-arrow-down"></span><span class="glyphicon glyphicon-arrow-up"></span></a>
+        </li>
+        <li class="nav-item">
             <a class="nav-link" id="distribution-tab" data-toggle="tab" href="#distribution" role="tab" aria-controls="distribution" aria-selected="false">Distribution <span class="glyphicon glyphicon-equalizer"></span></a>
         </li>
     </ul>
@@ -162,6 +165,28 @@
                 </table>
             </div>
         </div>
+        <div class="tab-pane" id="polling" role="tabpanel" aria-labelledby="polling-tab">
+            <table class="table">
+            <#list body.polling as polling>
+                <tr><th colspan="8"><h4>${polling.typeName}</h4></th></tr>
+
+                <tr>
+                    <th>#</th>
+                    <th>Id</th>
+                    <th>Previous request</th>
+                    <th>Total objects remaining</th>
+                </tr>
+                <#list polling.polling?sort_by("id") as item>
+                    <tr class="success">
+                        <th>${item?counter}</th>
+                        <td>${item.id}</td>
+                        <td>${item.lastRequest}</td>
+                        <td>${item.count}</td>
+                    </tr>
+                </#list>
+            </#list>
+            </table>
+        </div>
         <div class="tab-pane" id="distribution" role="tabpanel" aria-labelledby="distribution-tab">
             <div class="row">
                 <h4>Active data per codespace:</h4>
@@ -188,13 +213,6 @@
                         <td align="right">${body.elements.et}</td>
                         <td align="right">${body.elements.vm}</td>
                         <td align="right">${body.elements.sx}</td>
-                    </tr>
-                    <tr><td colspan="4"></td> </tr>
-                    <tr>
-                        <th>Polling clients</th>
-                        <td align="right">${body.elements.etChanges}</td>
-                        <td align="right">${body.elements.vmChanges}</td>
-                        <td align="right">${body.elements.sxChanges}</td>
                     </tr>
                     </tbody>
                 </table>

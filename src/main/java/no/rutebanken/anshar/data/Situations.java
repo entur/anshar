@@ -170,7 +170,7 @@ public class Situations extends SiriRepository<PtSituationElement> {
             siri.getServiceDelivery().setRequestMessageRef(msgRef);
 
             //Update change-tracker
-            changesMap.set(requestorId, idSet);
+            changesMap.set(requestorId, idSet, trackingPeriodMinutes, TimeUnit.MINUTES);
             lastUpdateRequested.set(requestorId, Instant.now(), trackingPeriodMinutes, TimeUnit.MINUTES);
 
             logger.info("Returning {}, {} left for requestorRef {}", sizeLimitedIds.size(), idSet.size(), requestorId);
@@ -215,7 +215,7 @@ public class Situations extends SiriRepository<PtSituationElement> {
                     existingSet = new HashSet<>();
                 }
                 existingSet.removeAll(idSet);
-                changesMap.set(requestorId, existingSet);
+                changesMap.set(requestorId, existingSet, configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
 
 
                 logger.info("Returning {} changes to requestorRef {}", changes.size(), requestorId);
@@ -223,7 +223,7 @@ public class Situations extends SiriRepository<PtSituationElement> {
             } else {
                 logger.info("Returning all to requestorRef {}", requestorId);
             }
-            changesMap.set(requestorId, new HashSet<>());
+            changesMap.set(requestorId, new HashSet<>(), configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
         }
 
         return getAll(datasetId);
@@ -285,7 +285,7 @@ public class Situations extends SiriRepository<PtSituationElement> {
             if (lastUpdateRequested.get(requestor) != null) {
                 Set<String> tmpChanges = changesMap.get(requestor);
                 tmpChanges.addAll(changes);
-                changesMap.set(requestor, tmpChanges);
+                changesMap.set(requestor, tmpChanges, configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
             } else {
                 changesMap.delete(requestor);
             }

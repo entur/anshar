@@ -100,16 +100,24 @@ public class SubscriptionManager {
     private IMap<String, Set<String>> sxChanges;
 
     @Autowired
+    @Qualifier("getLastSxUpdateRequest")
+    private IMap<String, Instant> lastSxUpdateRequested;
+
+    @Autowired
     @Qualifier("getEstimatedTimetableChangesMap")
     private IMap<String, Set<String>> etChanges;
 
     @Autowired
-    @Qualifier("getProductionTimetableChangesMap")
-    private IMap<String, Set<String>> ptChanges;
+    @Qualifier("getLastEtUpdateRequest")
+    private IMap<String, Instant> lastEtUpdateRequested;
 
     @Autowired
     @Qualifier("getVehicleChangesMap")
     private IMap<String, Set<String>> vmChanges;
+
+    @Autowired
+    @Qualifier("getLastVmUpdateRequest")
+    private IMap<String, Instant> lastVmUpdateRequested;
 
     public void addSubscription(String subscriptionId, SubscriptionSetup setup) {
 
@@ -372,6 +380,24 @@ public class SubscriptionManager {
 
         result.put("types", stats);
 
+        JSONArray pollingClients = new JSONArray();
+
+        JSONObject etPolling = new JSONObject();
+        etPolling.put("typeName", ""+ SiriDataType.ESTIMATED_TIMETABLE);
+        etPolling.put("polling", getIdAndCount(etChanges, lastEtUpdateRequested));
+        JSONObject vmPolling = new JSONObject();
+        vmPolling.put("typeName", ""+ SiriDataType.VEHICLE_MONITORING);
+        vmPolling.put("polling", getIdAndCount(vmChanges, lastVmUpdateRequested));
+        JSONObject sxPolling = new JSONObject();
+        sxPolling.put("typeName", ""+ SiriDataType.SITUATION_EXCHANGE);
+        sxPolling.put("polling", getIdAndCount(sxChanges, lastSxUpdateRequested));
+
+        pollingClients.add(etPolling);
+        pollingClients.add(vmPolling);
+        pollingClients.add(sxPolling);
+
+        result.put("polling", pollingClients);
+
         result.put("environment", environment);
         result.put("serverStarted", formatTimestamp(siriObjectFactory.serverStartTime));
         result.put("secondsSinceDataReceived", healthManager.getSecondsSinceDataReceived());
@@ -383,13 +409,21 @@ public class SubscriptionManager {
 
         count.put("distribution", getCountPerDataset(et.getDatasetSize(), vm.getDatasetSize(), sx.getDatasetSize()));
 
-        count.put("sxChanges", sxChanges.size());
-        count.put("etChanges", etChanges.size());
-        count.put("vmChanges", vmChanges.size());
-
         result.put("elements", count);
 
         return result;
+    }
+
+    private JSONArray getIdAndCount(Map<String, Set<String>> map, IMap<String, Instant> lastRequested) {
+        JSONArray count = new JSONArray();
+        for (String key : map.keySet()) {
+            JSONObject keyValue = new JSONObject();
+            keyValue.put("id", key);
+            keyValue.put("count", map.getOrDefault(key, new HashSet<>()).size());
+            keyValue.put("lastRequest", formatTimestamp(lastRequested.get(key)));
+            count.add(keyValue);
+        }
+        return count;
     }
 
     private JSONArray getCountPerDataset(Map<String, Integer> etDatasetSize, Map<String, Integer> vmDatasetSize, Map<String, Integer> sxDatasetSize) {
