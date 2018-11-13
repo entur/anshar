@@ -30,36 +30,39 @@
 
     <ul class="nav nav-tabs" id="tabs" role="tablist">
         <li class="nav-item">
-            <a class="nav-link active" id="inbound-tab" data-toggle="tab" href="#inbound" role="tab" aria-controls="inbound" aria-selected="true">Inbound <span class="badge alert-success"></span> <span class="glyphicon glyphicon-arrow-down"></span> </a>
+            <a class="nav-link active" id="inbound-tab" data-toggle="tab" href="#inbound" onclick="location.hash='inbound'" role="tab" aria-controls="inbound" aria-selected="true">Inbound <span class="badge alert-success"></span> <span class="glyphicon glyphicon-arrow-down"></span> </a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" id="outbound-tab" data-toggle="tab" href="#outbound" role="tab" aria-controls="outbound" aria-selected="false">Outbound <span class="badge alert-success">${body.outbound?size}</span> <span class="glyphicon glyphicon-arrow-up"></span></a>
+            <a class="nav-link" id="outbound-tab" data-toggle="tab" href="#outbound" onclick="location.hash='outbound'" role="tab" aria-controls="outbound" aria-selected="false">Outbound <span class="badge alert-success">${body.outbound?size}</span> <span class="glyphicon glyphicon-arrow-up"></span></a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" id="polling-tab" data-toggle="tab" href="#polling" role="tab" aria-controls="polling" aria-selected="false">Polling clients <span class="glyphicon glyphicon-arrow-down"></span><span class="glyphicon glyphicon-arrow-up"></span></a>
+            <a class="nav-link" id="polling-tab" data-toggle="tab" href="#polling" onclick="location.hash='polling'" role="tab" aria-controls="polling" aria-selected="false">Polling clients <span class="glyphicon glyphicon-arrow-down"></span><span class="glyphicon glyphicon-arrow-up"></span></a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" id="distribution-tab" data-toggle="tab" href="#distribution" role="tab" aria-controls="distribution" aria-selected="false">Distribution <span class="glyphicon glyphicon-equalizer"></span></a>
+            <a class="nav-link" id="distribution-tab" data-toggle="tab" href="#distribution" onclick="location.hash='distribution'" role="tab" aria-controls="distribution" aria-selected="false">Distribution <span class="glyphicon glyphicon-equalizer"></span></a>
         </li>
     </ul>
 
     <div class="tab-content">
         <div class="tab-pane" id="inbound" role="tabpanel" aria-labelledby="inbound-tab">
 
-        <table class="table">
             <#list body.types as type>
-                        <tr><th colspan="8"><h4>${type.typeName}</h4></th></tr>
+                <table class="table">
+                <thead>
+                    <tr><th colspan="8"><h4>${type.typeName}</h4></th></tr>
 
-                        <tr>
-                            <th>#</th>
-                            <th>Status</th>
-                            <th>Healthy</th>
-                            <th>Activated</th>
-                            <th>Vendor</th>
-                            <th>Last data received</th>
-                            <th>Requests</th>
-                            <th>Total objects received</th>
-                        </tr>
+                    <tr>
+                        <th>#</th>
+                        <th>Status</th>
+                        <th>Healthy</th>
+                        <th>Activated</th>
+                        <th>Vendor</th>
+                        <th>Last data received</th>
+                        <th>Requests</th>
+                        <th>Total objects received</th>
+                    </tr>
+                </thead>
+                <tbody>
                     <#list type.subscriptions?sort_by("vendor") as item>
                         <tr data-toggle="collapse" data-target="#accordion${type?counter}-${item?counter}" style="cursor: pointer" class="clickable ${item.healthy???then(item.healthy?then("success","danger"), "warning")}">
                             <th>${item?counter}</th>
@@ -123,12 +126,14 @@
                         </td>
                         </tr>
                     </#list>
-                </#list>
-            </table>
+
+                </tbody>
+                </table>
+            </#list>
         </div>
 
         <div class="tab-pane" id="outbound" role="tabpanel" aria-labelledby="outbound-tab">
-            <div class="row">
+
                 <table class="table table-striped">
                     <thead>
                     <tr>
@@ -163,11 +168,13 @@
                     </#list>
                     </tbody>
                 </table>
-            </div>
+
         </div>
         <div class="tab-pane" id="polling" role="tabpanel" aria-labelledby="polling-tab">
-            <table class="table">
+
             <#list body.polling as polling>
+            <table class="table">
+            <thead>
                 <tr><th colspan="8"><h4>${polling.typeName}</h4></th></tr>
 
                 <tr>
@@ -176,16 +183,19 @@
                     <th>Previous request</th>
                     <th>Total objects remaining</th>
                 </tr>
+            </thead>
+            <tbody>
                 <#list polling.polling?sort_by("id") as item>
-                    <tr class="success">
-                        <th>${item?counter}</th>
-                        <td>${item.id}</td>
-                        <td>${item.lastRequest}</td>
-                        <td>${item.count}</td>
-                    </tr>
+                <tr class="success">
+                    <th>${item?counter}</th>
+                    <td>${item.id}</td>
+                    <td>${item.lastRequest}</td>
+                    <td>${item.count}</td>
+                </tr>
                 </#list>
-            </#list>
+            </tbody>
             </table>
+            </#list>
         </div>
         <div class="tab-pane" id="distribution" role="tabpanel" aria-labelledby="distribution-tab">
             <div class="row">
@@ -225,7 +235,30 @@
 </body>
 <script>
     $(function () {
-        $('#tabs').find('li:first-child a').tab('show')
+        $(document).ready(function(){
+            //Manage hash in URL to open the right tab
+            var hash = window.location.hash;
+            // If a hash is provided
+            if(hash && hash.length>0)
+            {
+                $('ul.nav-tabs li a').each(function( index ) {
+                    if($(this).attr('href')==hash)
+                        $(this).parent('li').addClass('active');
+                    else
+                        $(this).parent('li').removeClass('active');
+                });
+                // Manage Tab content
+                var hash = hash.substring(1); // Remove the #
+                $('div.tab-content div').each(function( index ) {
+                    if($(this).attr('id')==hash)
+                        $(this).addClass('active');
+                    else
+                        $(this).removeClass('active');
+                });
+            } else {
+                $('.nav-tabs a[href="#inbound"]').tab('show')
+            }
+        });
     })
 </script>
 </html>
