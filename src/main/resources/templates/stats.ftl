@@ -194,27 +194,29 @@
                     <thead>
                     <tr>
                         <th>Codespace</th>
-                        <td align="right"><b>ET</b></td>
-                        <td align="right"><b>VM</b></td>
-                        <td align="right"><b>SX</b></td>
+                        <th class="text-right">ET</th>
+                        <th class="text-right">VM</th>
+                        <th class="text-right">SX</th>
                     </tr>
                     </thead>
                     <tbody>
                     <#list body.elements.distribution?sort_by("datasetId") as item>
                     <tr>
                         <th>${item.datasetId}</th>
-                        <td align="right">${item.etCount}</td>
-                        <td align="right">${item.vmCount}</td>
-                        <td align="right">${item.sxCount}</td>
+                        <td class="text-right">${item.etCount}</td>
+                        <td class="text-right">${item.vmCount}</td>
+                        <td class="text-right">${item.sxCount}</td>
                     </tr>
                     </#list>
+                    </tbody>
+                    <tfoot style="border-top: 2px solid #ddd;">
                     <tr>
                         <th>Total</th>
-                        <td align="right">${body.elements.et}</td>
-                        <td align="right">${body.elements.vm}</td>
-                        <td align="right">${body.elements.sx}</td>
+                        <th class="text-right">${body.elements.et}</th>
+                        <th class="text-right">${body.elements.vm}</th>
+                        <th class="text-right">${body.elements.sx}</th>
                     </tr>
-                    </tbody>
+                    </tfoot>
                 </table>
             </div>
         </div>
