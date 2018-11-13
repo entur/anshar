@@ -99,7 +99,7 @@
                                     <td>
                                         <table width="80%">
                                         <#list item.urllist?keys as label>
-                                           <tr><td>${label}</td><td>${item.urllist[label]}</td></tr>
+                                           <tr><td width="50%">${label}</td><td>${item.urllist[label]}</td></tr>
                                         </#list>
                                         </table>
                                     </td>
