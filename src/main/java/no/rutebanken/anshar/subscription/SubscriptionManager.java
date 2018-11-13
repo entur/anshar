@@ -403,11 +403,15 @@ public class SubscriptionManager {
         result.put("secondsSinceDataReceived", healthManager.getSecondsSinceDataReceived());
         JSONObject count = new JSONObject();
 
-        count.put("sx", sx.getSize());
-        count.put("et", et.getSize());
-        count.put("vm", vm.getSize());
+        Map<String, Integer> etDatasetSize = et.getDatasetSize();
+        Map<String, Integer> vmDatasetSize = vm.getDatasetSize();
+        Map<String, Integer> sxDatasetSize = sx.getDatasetSize();
 
-        count.put("distribution", getCountPerDataset(et.getDatasetSize(), vm.getDatasetSize(), sx.getDatasetSize()));
+        count.put("sx", sxDatasetSize.values().stream().mapToInt(Number::intValue).sum());
+        count.put("et", etDatasetSize.values().stream().mapToInt(Number::intValue).sum());
+        count.put("vm", vmDatasetSize.values().stream().mapToInt(Number::intValue).sum());
+
+        count.put("distribution", getCountPerDataset(etDatasetSize, vmDatasetSize, sxDatasetSize));
 
         result.put("elements", count);
 
