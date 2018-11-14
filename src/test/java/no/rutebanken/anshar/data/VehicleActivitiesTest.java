@@ -247,7 +247,7 @@ public class VehicleActivitiesTest {
     }
 
     private void assertExcludedId(String excludedDatasetId) {
-        Siri serviceDelivery = vehicleActivities.createServiceDelivery(null, null, Arrays.asList(excludedDatasetId), 100);
+        Siri serviceDelivery = vehicleActivities.createServiceDelivery(null, null, null, Arrays.asList(excludedDatasetId), 100);
 
         List<VehicleActivityStructure> vehicleActivities = serviceDelivery.getServiceDelivery().getVehicleMonitoringDeliveries().get(0).getVehicleActivities();
 

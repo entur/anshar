@@ -707,7 +707,7 @@ public class EstimatedTimetablesTest {
     }
 
     private void assertExcludedId(String excludedDatasetId) {
-        Siri serviceDelivery = estimatedTimetables.createServiceDelivery(null, null, Arrays.asList(excludedDatasetId), 100, -1);
+        Siri serviceDelivery = estimatedTimetables.createServiceDelivery(null, null, null, Arrays.asList(excludedDatasetId), 100, -1);
 
         List<EstimatedVehicleJourney> journeys = serviceDelivery.getServiceDelivery().getEstimatedTimetableDeliveries().get(0).getEstimatedJourneyVersionFrames().get(0).getEstimatedVehicleJourneies();
 

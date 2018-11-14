@@ -67,6 +67,9 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
     @Autowired
     private AnsharConfiguration configuration;
 
+    @Autowired
+    private RequestorRefRepository requestorRefRepository;
+
     /**
      * @return All vehicle activities
      */
@@ -189,7 +192,8 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
         return siriObjectFactory.createVMServiceDelivery(matchingEstimatedVehicleJourneys);
     }
 
-    public Siri createServiceDelivery(String requestorId, String datasetId, List<String> excludedDatasetIds, int maxSize) {
+    public Siri createServiceDelivery(String requestorId, String datasetId, String clientName, List<String> excludedDatasetIds, int maxSize) {
+        requestorRefRepository.touchRequestorRef(requestorId, datasetId, clientName, SiriDataType.VEHICLE_MONITORING);
 
         int trackingPeriodMinutes = configuration.getTrackingPeriodMinutes();
 

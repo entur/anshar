@@ -169,7 +169,7 @@ public class SiriHandler {
             }
 
             if (hasValues(serviceRequest.getSituationExchangeRequests())) {
-                serviceResponse = situations.createServiceDelivery(requestorRef, datasetId, maxSize);
+                serviceResponse = situations.createServiceDelivery(requestorRef, datasetId, clientTrackingName, maxSize);
             } else if (hasValues(serviceRequest.getVehicleMonitoringRequests())) {
 
                 Map<Class, Set<String>> filterMap = new HashMap<>();
@@ -192,7 +192,7 @@ public class SiriHandler {
                     requestorRef = null;
                 }
 
-                Siri siri = vehicleActivities.createServiceDelivery(requestorRef, datasetId, excludedDatasetIdList, maxSize);
+                Siri siri = vehicleActivities.createServiceDelivery(requestorRef, datasetId, clientTrackingName, excludedDatasetIdList, maxSize);
 
                 serviceResponse = SiriHelper.filterSiriPayload(siri, filterMap);
             } else if (hasValues(serviceRequest.getEstimatedTimetableRequests())) {
@@ -203,7 +203,7 @@ public class SiriHandler {
                     previewIntervalInMillis = previewInterval.getTimeInMillis(new Date());
                 }
 
-                serviceResponse = estimatedTimetables.createServiceDelivery(requestorRef, datasetId, excludedDatasetIdList, maxSize, previewIntervalInMillis);
+                serviceResponse = estimatedTimetables.createServiceDelivery(requestorRef, datasetId, clientTrackingName, excludedDatasetIdList, maxSize, previewIntervalInMillis);
             } else if (hasValues(serviceRequest.getProductionTimetableRequests())) {
                 serviceResponse = siriObjectFactory.createPTServiceDelivery(productionTimetables.getAllUpdates(requestorRef, datasetId));
             }

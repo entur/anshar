@@ -19,6 +19,7 @@ import com.hazelcast.config.SerializerConfig;
 import com.hazelcast.core.*;
 import com.hazelcast.nio.serialization.ByteArraySerializer;
 import no.rutebanken.anshar.config.AnsharConfiguration;
+import no.rutebanken.anshar.data.RequestorRefStats;
 import no.rutebanken.anshar.routes.outbound.OutboundSubscriptionSetup;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
@@ -285,5 +286,9 @@ public class ExtendedHazelcastService extends HazelCastService {
     @Bean
     public IMap<String,BigInteger> getObjectCounterMap() {
         return hazelcast.getMap("anshar.activity.objectcount");
+    }
+    @Bean
+    public IMap<String[], RequestorRefStats> getRequestorRefs() {
+        return hazelcast.getMap("anshar.activity.requestorref");
     }
 }

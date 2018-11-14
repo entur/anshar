@@ -101,14 +101,14 @@ public class SiriLiteRoute extends RestRouteBuilder {
                         String datasetId = p.getIn().getHeader(PARAM_DATASET_ID, String.class);
                         String originalId = p.getIn().getHeader(PARAM_USE_ORIGINAL_ID, String.class);
                         Integer maxSizeStr = p.getIn().getHeader(PARAM_MAX_SIZE, Integer.class);
-
+                        String etClientName = p.getIn().getHeader(configuration.getTrackingHeaderName(), String.class);
                         int maxSize = datasetId != null ? Integer.MAX_VALUE:configuration.getDefaultMaxSize();
 
                         if (maxSizeStr != null) {
                             maxSize = maxSizeStr.intValue();
                         }
 
-                        Siri response = situations.createServiceDelivery(requestorId, datasetId, maxSize);
+                        Siri response = situations.createServiceDelivery(requestorId, datasetId, etClientName, maxSize);
 
                         List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(SiriHandler.getIdMappingPolicy(originalId));
                         if ("test".equals(originalId)) {
@@ -138,6 +138,7 @@ public class SiriLiteRoute extends RestRouteBuilder {
                         String originalId = p.getIn().getHeader(PARAM_USE_ORIGINAL_ID, String.class);
                         String maxSizeStr = p.getIn().getHeader(PARAM_MAX_SIZE, String.class);
                         String lineRef = p.getIn().getHeader(PARAM_LINE_REF, String.class);
+                        String etClientName = p.getIn().getHeader(configuration.getTrackingHeaderName(), String.class);
                         List<String> excludedIdList = getParameterValuesAsList(p.getIn(), PARAM_EXCLUDED_DATASET_ID);
 
                         String requestorId = resolveRequestorId(p.getIn().getBody(HttpServletRequest.class));
@@ -155,7 +156,7 @@ public class SiriLiteRoute extends RestRouteBuilder {
                         if (lineRef != null) {
                             response = vehicleActivities.createServiceDelivery(lineRef);
                         } else {
-                            response = vehicleActivities.createServiceDelivery(requestorId, datasetId, excludedIdList, maxSize);
+                            response = vehicleActivities.createServiceDelivery(requestorId, datasetId, etClientName, excludedIdList, maxSize);
                         }
 
                         List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(SiriHandler.getIdMappingPolicy(originalId));
@@ -187,6 +188,7 @@ public class SiriLiteRoute extends RestRouteBuilder {
                         String originalId = p.getIn().getHeader(PARAM_USE_ORIGINAL_ID, String.class);
                         String maxSizeStr = p.getIn().getHeader(PARAM_MAX_SIZE, String.class);
                         String lineRef = p.getIn().getHeader(PARAM_LINE_REF, String.class);
+                        String etClientName = p.getIn().getHeader(configuration.getTrackingHeaderName(), String.class);
                         String previewIntervalMinutesStr = p.getIn().getHeader(PARAM_PREVIEW_INTERVAL, String.class);
                         List<String> excludedIdList = getParameterValuesAsList(p.getIn(), PARAM_EXCLUDED_DATASET_ID);
 
@@ -210,7 +212,7 @@ public class SiriLiteRoute extends RestRouteBuilder {
                         if (lineRef != null) {
                             response = estimatedTimetables.createServiceDelivery(lineRef);
                         } else {
-                            response = estimatedTimetables.createServiceDelivery(requestorId, datasetId, excludedIdList, maxSize, previewIntervalMillis);
+                            response = estimatedTimetables.createServiceDelivery(requestorId, datasetId, etClientName, excludedIdList, maxSize, previewIntervalMillis);
                         }
 
                         List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(SiriHandler.getIdMappingPolicy(originalId));

@@ -77,7 +77,7 @@
                         <tr id="accordion${type?counter}-${item?counter}" class="collapse ${item.healthy???then(item.healthy?then("success","danger"), "warning")}">
                         <td colspan="8">
                             <table class="table table-striped">
-                                <tr><th>Dataset ID</th><td>${item.datasetId}</td></tr>
+                                <tr><th>Dataset ID</th><td><a href="validation/${item.datasetId}" target="_blank">${item.datasetId}</a></td></tr>
                                 <tr><th>Vendor ID</th><td>${item.vendor}</td></tr>
                                 <tr><th>Servicetype</th><td>${item.serviceType}</td></tr>
                                 <tr><th>Inbound URL</th><td>${item.inboundUrl}</td></tr>
@@ -93,7 +93,6 @@
                                 <tr><th>Id</th><td>${item.subscriptionId}</td></tr>
                                 <tr><th>RequestorRef</th><td>${item.requestorRef}</td></tr>
                                 <tr><th>Mode</th><td>${item.subscriptionMode}</td></tr>
-                                <tr><th>Validation active</th><td>${item.validation?c}</td></tr>
                                 <tr>
                                     <th>URLs</th>
                                     <td>
@@ -172,24 +171,29 @@
         </div>
         <div class="tab-pane" id="polling" role="tabpanel" aria-labelledby="polling-tab">
 
-            <#list body.polling as polling>
+            <#list body.polling as pollingClient>
             <table class="table">
             <thead>
-                <tr><th colspan="8"><h4>${polling.typeName}</h4></th></tr>
+                <tr><th colspan="8"><h4>${pollingClient.typeName}</h4></th></tr>
 
                 <tr>
                     <th>#</th>
                     <th>Id</th>
-                    <th>Previous request</th>
+                    <th>ClientName</th>
+                    <th>Last requests</th>
                     <th>Total objects remaining</th>
                 </tr>
             </thead>
             <tbody>
-                <#list polling.polling?sort_by("id") as item>
+                <#list pollingClient.polling?sort_by("id") as item>
                 <tr class="success">
                     <th>${item?counter}</th>
                     <td>${item.id}</td>
-                    <td>${item.lastRequest}</td>
+                    <td>${item.clientTrackingName}</td>
+                    <td>
+                        <span title="<#list item.lastRequests as timestamp>
+- ${timestamp}</#list>">${item.lastRequests[0]}</span>
+                    </td>
                     <td>${item.count}</td>
                 </tr>
                 </#list>

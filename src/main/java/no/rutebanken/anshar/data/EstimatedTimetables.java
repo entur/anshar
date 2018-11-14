@@ -72,6 +72,9 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
     @Autowired
     private AnsharConfiguration configuration;
 
+    @Autowired
+    private RequestorRefRepository requestorRefRepository;
+
     /**
      * @return All ET-elements
      */
@@ -175,10 +178,12 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
     }
 
     public Siri createServiceDelivery(String requestorId, String datasetId, int maxSize, long previewInterval) {
-        return createServiceDelivery(requestorId, datasetId, null, maxSize, previewInterval);
+        return createServiceDelivery(requestorId, datasetId, null, null, maxSize, previewInterval);
     }
 
-    public Siri createServiceDelivery(String requestorId, String datasetId, List<String> excludedDatasetIds, int maxSize, long previewInterval) {
+    public Siri createServiceDelivery(String requestorId, String datasetId, String clientTrackingName, List<String> excludedDatasetIds, int maxSize, long previewInterval) {
+
+        requestorRefRepository.touchRequestorRef(requestorId, datasetId, clientTrackingName, SiriDataType.ESTIMATED_TIMETABLE);
 
         int trackingPeriodMinutes = configuration.getTrackingPeriodMinutes();
 

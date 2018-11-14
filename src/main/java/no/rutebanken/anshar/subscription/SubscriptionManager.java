@@ -17,10 +17,7 @@ package no.rutebanken.anshar.subscription;
 
 
 import com.hazelcast.core.IMap;
-import no.rutebanken.anshar.data.EstimatedTimetables;
-import no.rutebanken.anshar.data.ProductionTimetables;
-import no.rutebanken.anshar.data.Situations;
-import no.rutebanken.anshar.data.VehicleActivities;
+import no.rutebanken.anshar.data.*;
 import no.rutebanken.anshar.routes.health.HealthManager;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.subscription.helpers.RequestType;
@@ -41,6 +38,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static no.rutebanken.anshar.subscription.SiriDataType.*;
 
 @Service
 public class SubscriptionManager {
@@ -118,6 +117,9 @@ public class SubscriptionManager {
     @Autowired
     @Qualifier("getLastVmUpdateRequest")
     private IMap<String, Instant> lastVmUpdateRequested;
+
+    @Autowired
+    private RequestorRefRepository requestorRefRepository;
 
     public void addSubscription(String subscriptionId, SubscriptionSetup setup) {
 
@@ -342,7 +344,7 @@ public class SubscriptionManager {
 
         JSONArray etSubscriptions = new JSONArray();
         etSubscriptions.addAll(this.subscriptions.values().stream()
-                .filter(subscriptionSetup -> subscriptionSetup.getSubscriptionType() == SiriDataType.ESTIMATED_TIMETABLE)
+                .filter(subscriptionSetup -> subscriptionSetup.getSubscriptionType() == ESTIMATED_TIMETABLE)
                 .map(this::getJsonObject)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList())
@@ -350,7 +352,7 @@ public class SubscriptionManager {
 
         JSONArray vmSubscriptions = new JSONArray();
         vmSubscriptions.addAll(this.subscriptions.values().stream()
-                .filter(subscriptionSetup -> subscriptionSetup.getSubscriptionType() == SiriDataType.VEHICLE_MONITORING)
+                .filter(subscriptionSetup -> subscriptionSetup.getSubscriptionType() == VEHICLE_MONITORING)
                 .map(this::getJsonObject)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList())
@@ -358,20 +360,20 @@ public class SubscriptionManager {
 
         JSONArray sxSubscriptions = new JSONArray();
         sxSubscriptions.addAll(this.subscriptions.values().stream()
-                .filter(subscriptionSetup -> subscriptionSetup.getSubscriptionType() == SiriDataType.SITUATION_EXCHANGE)
+                .filter(subscriptionSetup -> subscriptionSetup.getSubscriptionType() == SITUATION_EXCHANGE)
                 .map(this::getJsonObject)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList())
         );
 
         JSONObject etType = new JSONObject();
-        etType.put("typeName", ""+ SiriDataType.ESTIMATED_TIMETABLE);
+        etType.put("typeName", ""+ ESTIMATED_TIMETABLE);
         etType.put("subscriptions", etSubscriptions);
         JSONObject vmType = new JSONObject();
-        vmType.put("typeName", ""+ SiriDataType.VEHICLE_MONITORING);
+        vmType.put("typeName", ""+ VEHICLE_MONITORING);
         vmType.put("subscriptions", vmSubscriptions);
         JSONObject sxType = new JSONObject();
-        sxType.put("typeName", ""+ SiriDataType.SITUATION_EXCHANGE);
+        sxType.put("typeName", ""+ SITUATION_EXCHANGE);
         sxType.put("subscriptions", sxSubscriptions);
 
         stats.add(etType);
@@ -383,14 +385,14 @@ public class SubscriptionManager {
         JSONArray pollingClients = new JSONArray();
 
         JSONObject etPolling = new JSONObject();
-        etPolling.put("typeName", ""+ SiriDataType.ESTIMATED_TIMETABLE);
-        etPolling.put("polling", getIdAndCount(etChanges, lastEtUpdateRequested));
+        etPolling.put("typeName", ""+ ESTIMATED_TIMETABLE);
+        etPolling.put("polling", getIdAndCount(etChanges, ESTIMATED_TIMETABLE));
         JSONObject vmPolling = new JSONObject();
-        vmPolling.put("typeName", ""+ SiriDataType.VEHICLE_MONITORING);
-        vmPolling.put("polling", getIdAndCount(vmChanges, lastVmUpdateRequested));
+        vmPolling.put("typeName", ""+ VEHICLE_MONITORING);
+        vmPolling.put("polling", getIdAndCount(vmChanges, VEHICLE_MONITORING));
         JSONObject sxPolling = new JSONObject();
-        sxPolling.put("typeName", ""+ SiriDataType.SITUATION_EXCHANGE);
-        sxPolling.put("polling", getIdAndCount(sxChanges, lastSxUpdateRequested));
+        sxPolling.put("typeName", ""+ SITUATION_EXCHANGE);
+        sxPolling.put("polling", getIdAndCount(sxChanges, SITUATION_EXCHANGE));
 
         pollingClients.add(etPolling);
         pollingClients.add(vmPolling);
@@ -418,13 +420,17 @@ public class SubscriptionManager {
         return result;
     }
 
-    private JSONArray getIdAndCount(Map<String, Set<String>> map, IMap<String, Instant> lastRequested) {
+    private JSONArray getIdAndCount(Map<String, Set<String>> map, SiriDataType dataType) {
         JSONArray count = new JSONArray();
         for (String key : map.keySet()) {
             JSONObject keyValue = new JSONObject();
             keyValue.put("id", key);
             keyValue.put("count", map.getOrDefault(key, new HashSet<>()).size());
-            keyValue.put("lastRequest", formatTimestamp(lastRequested.get(key)));
+
+            RequestorRefStats stats = requestorRefRepository.getStats(key, dataType);
+            keyValue.put("clientTrackingName", stats != null && stats.clientName != null ? stats.clientName:"");
+            keyValue.put("lastRequests", stats != null ? stats.lastRequests:"");
+
             count.add(keyValue);
         }
         return count;

@@ -64,6 +64,9 @@ public class Situations extends SiriRepository<PtSituationElement> {
     @Autowired
     private AnsharConfiguration configuration;
 
+    @Autowired
+    private RequestorRefRepository requestorRefRepository;
+
     /**
      * @return All situations
      */
@@ -116,15 +119,9 @@ public class Situations extends SiriRepository<PtSituationElement> {
         situations.clear();
     }
 
-    public Siri createServiceDelivery(String requestorId, String datasetId) {
-        int maxSize = configuration.getDefaultMaxSize();
-        if (datasetId != null) {
-            maxSize = Integer.MAX_VALUE;
-        }
-        return createServiceDelivery(requestorId, datasetId, maxSize);
-    }
+    public Siri createServiceDelivery(String requestorId, String datasetId, String clientName, int maxSize) {
 
-    public Siri createServiceDelivery(String requestorId, String datasetId, int maxSize) {
+        requestorRefRepository.touchRequestorRef(requestorId, datasetId, clientName, SiriDataType.SITUATION_EXCHANGE);
 
         int trackingPeriodMinutes = configuration.getTrackingPeriodMinutes();
 
