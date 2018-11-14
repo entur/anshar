@@ -181,7 +181,7 @@
                     <th>Id</th>
                     <th>ClientName</th>
                     <th>Last requests</th>
-                    <th>Total objects remaining</th>
+                    <th class="text-right">Total objects remaining</th>
                 </tr>
             </thead>
             <tbody>
@@ -194,7 +194,7 @@
                         <span title="<#list item.lastRequests as timestamp>
 - ${timestamp}</#list>">${item.lastRequests[0]}</span>
                     </td>
-                    <td>${item.count}</td>
+                    <td class="text-right">${item.count}</td>
                 </tr>
                 </#list>
             </tbody>
