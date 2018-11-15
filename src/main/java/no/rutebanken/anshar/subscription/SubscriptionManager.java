@@ -428,7 +428,9 @@ public class SubscriptionManager {
             keyValue.put("count", map.getOrDefault(key, new HashSet<>()).size());
 
             RequestorRefStats stats = requestorRefRepository.getStats(key, dataType);
+
             keyValue.put("clientTrackingName", stats != null && stats.clientName != null ? stats.clientName:"");
+            keyValue.put("datasetId", stats != null && stats.datasetId != null ? stats.datasetId:"");
             keyValue.put("lastRequests", stats != null ? stats.lastRequests:"");
 
             count.add(keyValue);

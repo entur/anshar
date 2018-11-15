@@ -28,7 +28,7 @@ public class RequestorRefStats implements Serializable {
 
     final String requestorRef;
     public final String clientName;
-    final String datasetId;
+    public final String datasetId;
     final SiriDataType dataType;
     public List<String> lastRequests;
 

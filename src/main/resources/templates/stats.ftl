@@ -177,11 +177,12 @@
                 <tr><th colspan="8"><h4>${pollingClient.typeName}</h4></th></tr>
 
                 <tr>
-                    <th>#</th>
-                    <th>Id</th>
-                    <th>ClientName</th>
-                    <th>Last requests</th>
-                    <th class="text-right">Total objects remaining</th>
+                    <th class="col-md-1">#</th>
+                    <th class="col-md-4">Id</th>
+                    <th class="col-md-2">ClientName</th>
+                    <th class="col-md-1">DatasetId</th>
+                    <th class="col-md-2">Last requests</th>
+                    <th class="col-md-2 text-right">Total objects remaining</th>
                 </tr>
             </thead>
             <tbody>
@@ -190,6 +191,7 @@
                     <th>${item?counter}</th>
                     <td>${item.id}</td>
                     <td>${item.clientTrackingName}</td>
+                    <td>${item.datasetId}</td>
                     <td>
                         <span title="<#list item.lastRequests as timestamp>
 - ${timestamp}</#list>">${item.lastRequests[0]}</span>
