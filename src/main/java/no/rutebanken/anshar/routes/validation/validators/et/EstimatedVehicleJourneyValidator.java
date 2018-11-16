@@ -22,8 +22,6 @@ import org.springframework.stereotype.Component;
 import org.w3c.dom.Node;
 
 import javax.xml.bind.ValidationEvent;
-import java.util.ArrayList;
-import java.util.List;
 
 import static no.rutebanken.anshar.routes.validation.validators.Constants.ESTIMATED_VEHICLE_JOURNEY;
 
@@ -50,40 +48,11 @@ public class EstimatedVehicleJourneyValidator extends CustomValidator {
 
     @Override
     public ValidationEvent isValid(Node node) {
-
-        List<String> missingFields = new ArrayList();
-
-        String nodeName = "LineRef";
-        if (getChildNodeByName(node, nodeName) == null) {
-            missingFields.add(nodeName);
-        }
-
-        nodeName = "DirectionRef";
-        if (getChildNodeByName(node, nodeName) == null) {
-            missingFields.add(nodeName);
-        }
-
-        nodeName = "FramedVehicleJourneyRef";
-        if (getChildNodeByName(node, nodeName) == null) {
-            if (getChildNodeByName(node, "EstimatedVehicleJourneyCode") == null) {
-                missingFields.add(nodeName);
-            }
-        }
-
-        nodeName = "DataSource";
-        if (getChildNodeByName(node, nodeName) == null) {
-            missingFields.add(nodeName);
-        }
-
-        nodeName = "IsCompleteStopSequence";
-        if (getChildNodeByName(node, nodeName) == null) {
-            missingFields.add(nodeName);
-        }
-
-        if (!missingFields.isEmpty()) {
-            return createMissingFieldEvent(node, FIELDNAME, missingFields, ValidationEvent.FATAL_ERROR);
-        }
-
-        return null;
+        return verifyRequiredFields(node, FIELDNAME,
+                "LineRef",
+                "DirectionRef",
+                "FramedVehicleJourneyRef",
+                "DataSource",
+                "IsCompleteStopSequence");
     }
 }

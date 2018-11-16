@@ -22,8 +22,6 @@ import org.springframework.stereotype.Component;
 import org.w3c.dom.Node;
 
 import javax.xml.bind.ValidationEvent;
-import java.util.ArrayList;
-import java.util.List;
 
 import static no.rutebanken.anshar.routes.validation.validators.Constants.PT_SITUATION_ELEMENT;
 
@@ -52,58 +50,16 @@ public class PtSituationElementValidator extends CustomValidator {
     @Override
     public ValidationEvent isValid(Node node) {
 
-        List<String> missingFields = new ArrayList();
-
-
-        String nodeName = "CreationTime";
-        if (getChildNodeByName(node, nodeName) == null) {
-            missingFields.add(nodeName);
-        }
-
-        nodeName = "ParticipantRef";
-        if (getChildNodeByName(node, nodeName) == null) {
-            missingFields.add(nodeName);
-        }
-
-        nodeName = "SituationNumber";
-        if (getChildNodeByName(node, nodeName) == null) {
-            missingFields.add(nodeName);
-        }
-
-        nodeName = "Source";
-        if (getChildNodeByName(node, nodeName) == null) {
-            missingFields.add(nodeName);
-        }
-
-        nodeName = "Progress";
-        if (getChildNodeByName(node, nodeName) == null) {
-            missingFields.add(nodeName);
-        }
-
-        nodeName = "ValidityPeriod";
-        if (getChildNodeByName(node, nodeName) == null) {
-            missingFields.add(nodeName);
-        }
-
-        nodeName = "ReportType";
-        if (getChildNodeByName(node, nodeName) == null) {
-            missingFields.add(nodeName);
-        }
-
-        nodeName = "Summary";
-        if (getChildNodeByName(node, nodeName) == null) {
-            missingFields.add(nodeName);
-        }
-
-        nodeName = "Affects";
-        if (getChildNodeByName(node, nodeName) == null) {
-            missingFields.add(nodeName);
-        }
-
-        if (!missingFields.isEmpty()) {
-            return createMissingFieldEvent(node, FIELDNAME, missingFields, ValidationEvent.FATAL_ERROR);
-        }
-
-        return null;
+        return verifyRequiredFields(node, FIELDNAME,
+                "CreationTime",
+                "ParticipantRef",
+                "SituationNumber",
+                "Source",
+                "Progress",
+                "ValidityPeriod",
+                "ReportType",
+                "Summary",
+                "Affects"
+                );
     }
 }
