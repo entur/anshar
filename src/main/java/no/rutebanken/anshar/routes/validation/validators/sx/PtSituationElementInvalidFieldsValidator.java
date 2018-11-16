@@ -50,6 +50,7 @@ public class PtSituationElementInvalidFieldsValidator extends CustomValidator {
                 "UnknownReason",
                 "PublicationWindow",
                 "ScopeType",
+                "Audience",
                 "Keywords",
                 "Detail",
                 "Consequences"
