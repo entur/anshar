@@ -151,9 +151,9 @@ public abstract class CustomValidator {
         return null;
     }
 
-    public ValidationEvent verifyRequiredFields(Node node, String fieldName, String... invalidNodenames) {
+    public ValidationEvent verifyRequiredFields(Node node, String fieldName, String... requiredNodenames) {
         List <String> missingFields = new ArrayList<>();
-        for (String name : invalidNodenames) {
+        for (String name : requiredNodenames) {
             if (getChildNodeByName(node, name) == null) {
                 missingFields.add(name);
             }
