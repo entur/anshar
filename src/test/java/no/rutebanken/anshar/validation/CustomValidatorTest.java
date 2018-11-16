@@ -15,15 +15,18 @@
 
 package no.rutebanken.anshar.validation;
 
+import no.rutebanken.anshar.routes.validation.validators.CustomValidator;
+import org.junit.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
+import javax.xml.bind.ValidationEvent;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
-import static junit.framework.TestCase.fail;
+import static junit.framework.TestCase.*;
 
 public class CustomValidatorTest {
 
@@ -57,5 +60,36 @@ public class CustomValidatorTest {
             fail(e.getMessage());
         }
         return null;
+    }
+
+    @Test
+    public void testInvalidFields() {
+        CustomValidator validator = new CustomValidator() {
+            @Override
+            public String getXpath() {
+                return null;
+            }
+
+            @Override
+            public ValidationEvent isValid(Node node) {
+                return null;
+            }
+        };
+
+        String validElementXml = createXml("allowedElement", "valid");
+        String invalidElementXml = createXml("invalidElement", "valid");
+
+
+        Node node = createXmlNode(mergeXml(validElementXml, invalidElementXml));
+
+        ValidationEvent event = validator.verifyNonExistingFields(node, "TestElement", "dummyElement");
+
+        assertNull(event);
+
+        event = validator.verifyNonExistingFields(node, "TestElement", "invalidElement");
+
+        assertNotNull(event);
+        assertTrue(event.getMessage().contains("invalidElement"));
+        assertFalse(event.getMessage().contains("allowedElement"));
     }
 }

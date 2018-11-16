@@ -137,6 +137,20 @@ public abstract class CustomValidator {
         return nodes;
     }
 
+
+    public ValidationEvent verifyNonExistingFields(Node node, String fieldName, String... invalidNodenames) {
+        List <String> invalidFields = new ArrayList<>();
+        for (String name : invalidNodenames) {
+            if (getChildNodeByName(node, name) != null) {
+                invalidFields.add(name);
+            }
+        }
+        if (!invalidFields.isEmpty()) {
+            return createInvalidFieldEvent(node, fieldName, invalidFields, ValidationEvent.WARNING);
+        }
+        return null;
+    }
+
     /**
      *
      * @param node Node that is validated
@@ -160,7 +174,20 @@ public abstract class CustomValidator {
      * @return
      */
     protected ValidationEvent createMissingFieldEvent(Node node, String fieldname, List<String> missingFields, int severity) {
-        String message = MessageFormat.format("Missing, required attributes: {0} ", missingFields);
+        String message = MessageFormat.format("Missing required attributes: {0} ", missingFields);
+        return new ValidationEventImpl(severity, message, new ValidationEventLocatorImpl(node));
+    }
+
+    /**
+     *
+     * @param node Node that is validated
+     * @param fieldname Name of attribute that fails validation
+     * @param missingFields Missing fields
+     * @param severity
+     * @return
+     */
+    protected ValidationEvent createInvalidFieldEvent(Node node, String fieldname, List<String> missingFields, int severity) {
+        String message = MessageFormat.format("Invalid attributes: {0} ", missingFields);
         return new ValidationEventImpl(severity, message, new ValidationEventLocatorImpl(node));
     }
 }
