@@ -33,10 +33,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigInteger;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static no.rutebanken.anshar.subscription.SiriDataType.*;
@@ -431,7 +428,16 @@ public class SubscriptionManager {
 
             keyValue.put("clientTrackingName", stats != null && stats.clientName != null ? stats.clientName:"");
             keyValue.put("datasetId", stats != null && stats.datasetId != null ? stats.datasetId:"");
-            keyValue.put("lastRequests", stats != null ? stats.lastRequests:"");
+
+            List<String> lastRequests = new ArrayList<>();
+            if (stats != null && stats.lastRequests != null) {
+                lastRequests = stats.lastRequests;
+            }
+            if (lastRequests.isEmpty()) {
+                lastRequests.add("");
+            }
+
+            keyValue.put("lastRequests", lastRequests);
 
             count.add(keyValue);
         }
