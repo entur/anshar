@@ -29,7 +29,7 @@
 
 ### excludedDatasetIds
 - Comma-separated list of datasets to exclude from result
-- E.g. _excludedDatasetIds=RUT,NSB
+- E.g. _excludedDatasetIds=RUT,NSB_
 - Limits result by excluding the provided datasetIds
 - *Note:* Valid for VM and ET requests - both HTTP GET and POST
 
