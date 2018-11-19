@@ -16,6 +16,11 @@
 package no.rutebanken.anshar.routes.validation.validators;
 
 public class Constants {
+
+    /*
+     * Defines xpaths used to resolve the correct elements when validating XML
+     */
+
     private static final String SERVICE_DELIVERY = "Siri/ServiceDelivery/";
 
     public static final String PT_SITUATION_ELEMENT = SERVICE_DELIVERY + "SituationExchangeDelivery/Situations/PtSituationElement";

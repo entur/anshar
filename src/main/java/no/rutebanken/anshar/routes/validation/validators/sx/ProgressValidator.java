@@ -24,6 +24,10 @@ import uk.org.siri.siri20.WorkflowStatusEnumeration;
 
 import static no.rutebanken.anshar.routes.validation.validators.Constants.PT_SITUATION_ELEMENT;
 
+/**
+ * Verifies that the value for field Progress is one of the allowed types
+ *
+ */
 @Validator(profileName = "norway", targetType = SiriDataType.SITUATION_EXCHANGE)
 @Component
 public class ProgressValidator extends LimitedSubsetValidator {

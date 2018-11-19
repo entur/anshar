@@ -24,6 +24,10 @@ import uk.org.siri.siri20.CallStatusEnumeration;
 
 import static no.rutebanken.anshar.routes.validation.validators.Constants.ESTIMATED_CALL;
 
+/**
+ * Verifies that the value for field DepartureStatus is one of the allowed types
+ *
+ */
 @Validator(profileName = "norway", targetType = SiriDataType.ESTIMATED_TIMETABLE)
 @Component
 public class EstimatedDepartureStatusValidator extends LimitedSubsetValidator {

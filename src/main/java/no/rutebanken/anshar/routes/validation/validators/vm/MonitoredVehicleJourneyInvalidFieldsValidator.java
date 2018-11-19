@@ -25,6 +25,9 @@ import javax.xml.bind.ValidationEvent;
 
 import static no.rutebanken.anshar.routes.validation.validators.Constants.MONITORED_VEHICLE_JOURNEY;
 
+/**
+ * Verifies that forbidden fields do not exist
+ */
 @Validator(profileName = "norway", targetType = SiriDataType.VEHICLE_MONITORING)
 @Component
 public class MonitoredVehicleJourneyInvalidFieldsValidator extends NsrQuayValidator {

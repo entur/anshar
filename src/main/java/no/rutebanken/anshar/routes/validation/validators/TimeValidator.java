@@ -29,6 +29,8 @@ public abstract class TimeValidator extends CustomValidator {
      *
      * if @comparisonFieldName-sibling is found, values are compared according to @mode
      *
+     * E.g.: Could be used to verify that arrival is valid, and is before departure
+     *
      * @param node
      * @param fieldname
      * @param comparisonFieldName

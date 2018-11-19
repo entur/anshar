@@ -29,6 +29,10 @@ import java.util.Set;
 
 import static no.rutebanken.anshar.routes.validation.validators.Constants.ACCESSIBILITY_ASSESSMENT;
 
+/**
+ * Verifies childnodes for element AccessibilityAssessment. Values must be set valid if they exist
+ *
+ */
 @Validator(profileName = "norway", targetType = SiriDataType.SITUATION_EXCHANGE)
 @Component
 public class AccessibilityAssessmentValidator extends CustomValidator {

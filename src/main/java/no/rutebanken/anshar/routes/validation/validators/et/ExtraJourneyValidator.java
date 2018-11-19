@@ -28,6 +28,14 @@ import java.util.Set;
 
 import static no.rutebanken.anshar.routes.validation.validators.Constants.ESTIMATED_VEHICLE_JOURNEY;
 
+/**
+ * Verifies required values when ExtraJourney set to <code>true</code>
+ *  - VehicleMode must be set to a valid value
+ *  - RouteRef must be set, and build up correctly
+ *  - GroupOfLinesRef must be set, and build up correctly
+ *  - EstimatedVehicleJourneyCode must be set, and build up correctly
+ *
+ */
 @Validator(profileName = "norway", targetType = SiriDataType.ESTIMATED_TIMETABLE)
 @Component
 public class ExtraJourneyValidator extends CustomValidator {
@@ -98,6 +106,9 @@ public class ExtraJourneyValidator extends CustomValidator {
             final String estimatedVehicleJourneyCode = getSiblingNodeValue(node, estimatedVehicleJourneyCodeRef);
             if (estimatedVehicleJourneyCode == null) {
                 return  createEvent(node, estimatedVehicleJourneyCodeRef, "not null when ExtraJourney=true", groupOfLines, ValidationEvent.ERROR);
+            }
+            if (!estimatedVehicleJourneyCode.contains(":VehicleJourney:")) {
+                return  createEvent(node, estimatedVehicleJourneyCode, "valid EstimatedVehicleJourneyCode - CODESPACE:VehicleJourney:ID", estimatedVehicleJourneyCode, ValidationEvent.ERROR);
             }
         }
 

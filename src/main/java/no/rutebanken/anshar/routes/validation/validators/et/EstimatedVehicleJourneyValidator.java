@@ -25,6 +25,10 @@ import javax.xml.bind.ValidationEvent;
 
 import static no.rutebanken.anshar.routes.validation.validators.Constants.ESTIMATED_VEHICLE_JOURNEY;
 
+/**
+ * Verifies that EstimatedVehicleJourney contains required fields
+ *
+ */
 @SuppressWarnings("unchecked")
 @Validator(profileName = "norway", targetType = SiriDataType.ESTIMATED_TIMETABLE)
 @Component

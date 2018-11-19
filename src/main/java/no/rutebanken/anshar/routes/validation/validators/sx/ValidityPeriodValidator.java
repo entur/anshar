@@ -27,6 +27,12 @@ import java.time.temporal.ChronoUnit;
 
 import static no.rutebanken.anshar.routes.validation.validators.Constants.PT_SITUATION_ELEMENT;
 
+/**
+ * Validates ValidityPeriod
+ *  - if Progress == open
+ *  - Verify that StartTime is present and a valid timestamp
+ *  - If EndTime is present, verify valid timestamp AND that EndTime is after StartTime
+ */
 @Validator(profileName = "norway", targetType = SiriDataType.SITUATION_EXCHANGE)
 @Component
 public class ValidityPeriodValidator extends CustomValidator {

@@ -25,6 +25,10 @@ import javax.xml.bind.ValidationEvent;
 
 import static no.rutebanken.anshar.routes.validation.validators.Constants.AFFECTED_VEHICLE_JOURNEY;
 
+/**
+ * Verifies that the value for field OperatorRef is present and specifies a Codespace ID
+ *
+ */
 @Validator(profileName = "norway", targetType = SiriDataType.SITUATION_EXCHANGE)
 @Component
 public class AffectedVehicleJourneyOperatorValidator extends CustomValidator {

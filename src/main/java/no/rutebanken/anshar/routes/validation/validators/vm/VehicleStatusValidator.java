@@ -24,6 +24,11 @@ import uk.org.siri.siri20.VehicleStatusEnumeration;
 
 import static no.rutebanken.anshar.routes.validation.validators.Constants.MONITORED_VEHICLE_JOURNEY;
 
+
+/**
+ * Verifies that the value for field VehicleStatus is one of the allowed types
+ *
+ */
 @Validator(profileName = "norway", targetType = SiriDataType.VEHICLE_MONITORING)
 @Component
 public class VehicleStatusValidator extends LimitedSubsetValidator {

@@ -24,6 +24,11 @@ import uk.org.siri.siri20.VehicleModesOfTransportEnumeration;
 
 import static no.rutebanken.anshar.routes.validation.validators.Constants.AFFECTED_NETWORK;
 
+
+/**
+ * Verifies that the value for field VehicleMode is one of the allowed types
+ *
+ */
 @Validator(profileName = "norway", targetType = SiriDataType.SITUATION_EXCHANGE)
 @Component
 public class VehicleModeValidator extends LimitedSubsetValidator {

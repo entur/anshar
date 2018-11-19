@@ -35,6 +35,12 @@ public abstract class StringStructureValidator extends CustomValidator {
         return FIELDNAME;
     }
 
+    /**
+     * Verifies the values of string-attributes that may appear more than once. If more than one is provided, a
+     * language-attribute is required
+     * @param node
+     * @return
+     */
     @Override
     public ValidationEvent isValid(Node node) {
         final List<Node> childNodesByName = getChildNodesByName(node, FIELDNAME);

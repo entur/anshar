@@ -32,6 +32,12 @@ public abstract class LimitedSubsetValidator extends CustomValidator {
         return FIELDNAME;
     }
 
+
+    /**
+     * Validates that the string-value of the provided node is present, and defined in the expectedValues-set
+     * @param node
+     * @return
+     */
     @Override
     public ValidationEvent isValid(Node node) {
         String nodeValue = getNodeValue(node);

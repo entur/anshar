@@ -28,6 +28,12 @@ import java.text.SimpleDateFormat;
 
 import static no.rutebanken.anshar.routes.validation.validators.Constants.AFFECTED_VEHICLE_JOURNEY;
 
+/**
+ * Verifies the values included in FramedVehicleJourneyRef
+ *  - DataFrameRef is a valid date
+ *  - DatedVehicleJourneyRef is build up correctly
+ *
+ */
 @Validator(profileName = "norway", targetType = SiriDataType.SITUATION_EXCHANGE)
 @Component
 public class FramedVehicleJourneyRefValidator extends CustomValidator {

@@ -31,6 +31,10 @@ public abstract class CustomValidator {
     public abstract String getXpath();
     public abstract ValidationEvent isValid(Node node);
 
+    /**
+     * General, default categoryname if implementing class does not override method
+     * @return
+     */
     public String getCategoryName() {
         return this.getClass().getSimpleName().replace("Validator", "");
     }

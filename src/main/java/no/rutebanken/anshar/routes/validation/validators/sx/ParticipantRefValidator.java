@@ -25,6 +25,10 @@ import javax.xml.bind.ValidationEvent;
 
 import static no.rutebanken.anshar.routes.validation.validators.Constants.PT_SITUATION_ELEMENT;
 
+/**
+ * Verifies that the value for field ParticipantRef is present and specifies a Codespace ID
+ *
+ */
 @Validator(profileName = "norway", targetType = SiriDataType.SITUATION_EXCHANGE)
 @Component
 public class ParticipantRefValidator extends CustomValidator {

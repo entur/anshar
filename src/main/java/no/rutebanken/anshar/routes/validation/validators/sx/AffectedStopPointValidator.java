@@ -22,6 +22,10 @@ import org.springframework.stereotype.Component;
 
 import static no.rutebanken.anshar.routes.validation.validators.Constants.AFFECTED_STOP_POINT;
 
+/**
+ * Verifies that the value for field StopPointRef is built up correctly
+ *
+ */
 @Validator(profileName = "norway", targetType = SiriDataType.SITUATION_EXCHANGE)
 @Component
 public class AffectedStopPointValidator extends NsrQuayValidator {

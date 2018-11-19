@@ -22,6 +22,12 @@ import org.springframework.stereotype.Component;
 
 import static no.rutebanken.anshar.routes.validation.validators.Constants.PT_SITUATION_ELEMENT;
 
+/**
+ * Verifies that the value for field Description is valid
+ *  - has text
+ *  - if more than one is defined, language-attribute is required
+ *
+ */
 @Validator(profileName = "norway", targetType = SiriDataType.SITUATION_EXCHANGE)
 @Component
 public class DescriptionValidator extends StringStructureValidator {

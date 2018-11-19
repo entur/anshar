@@ -27,6 +27,11 @@ import java.time.format.DateTimeParseException;
 
 import static no.rutebanken.anshar.routes.validation.validators.Constants.MONITORED_VEHICLE_JOURNEY;
 
+
+/**
+ * Verifies that the value for field Delay is a valid Duration
+ *
+ */
 @Validator(profileName = "norway", targetType = SiriDataType.VEHICLE_MONITORING)
 @Component
 public class DelayValidator extends CustomValidator {

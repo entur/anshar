@@ -24,6 +24,10 @@ import uk.org.siri.siri20.RoutePointTypeEnumeration;
 
 import static no.rutebanken.anshar.routes.validation.validators.Constants.AFFECTED_STOP_POINT;
 
+/**
+ * Verifies that the value for field StopCondition is one of the allowed types
+ *
+ */
 @Validator(profileName = "norway", targetType = SiriDataType.SITUATION_EXCHANGE)
 @Component
 public class StopConditionValidator extends LimitedSubsetValidator {

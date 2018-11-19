@@ -17,6 +17,9 @@ package no.rutebanken.anshar.routes.validation.validators.sx;
 
 import com.google.common.collect.Sets;
 import no.rutebanken.anshar.routes.validation.validators.CustomValidator;
+import no.rutebanken.anshar.routes.validation.validators.Validator;
+import no.rutebanken.anshar.subscription.SiriDataType;
+import org.springframework.stereotype.Component;
 import org.w3c.dom.Node;
 import uk.org.ifopt.siri20.AccessibilityFeatureEnumeration;
 import uk.org.ifopt.siri20.StopPlaceComponentTypeEnumeration;
@@ -26,6 +29,14 @@ import java.util.Set;
 
 import static no.rutebanken.anshar.routes.validation.validators.Constants.AFFECTED_COMPONENTS;
 
+/**
+ * Verifies the field AffectedComponent and childnodes
+ *  - ComponentType is present and is one of the allowed types
+ *  - ComponentRef is present and built up correctly
+ *  - AccessFeatureType is present and is one of the allowed types
+ */
+@Validator(profileName = "norway", targetType = SiriDataType.SITUATION_EXCHANGE)
+@Component
 public class AffectedComponentValidator extends CustomValidator {
 
 
@@ -37,15 +48,6 @@ public class AffectedComponentValidator extends CustomValidator {
     public String getXpath() {
         return path;
     }
-
-    /*
-
-        <AffectedComponent>
-            <ComponentRef>...</ComponentRef>
-            <ComponentType>...</ComponentType>
-            <AccessFeatureType>...</AccessFeatureType>
-        </AffectedComponent>
-     */
 
     private final Set<String> expectedComponentTypes = Sets.newHashSet(
             StopPlaceComponentTypeEnumeration.ACCESS_SPACE.value(),

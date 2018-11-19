@@ -25,6 +25,9 @@ import javax.xml.bind.ValidationEvent;
 
 import static no.rutebanken.anshar.routes.validation.validators.Constants.RECORDED_CALL;
 
+/**
+ * Verifies that forbidden fields do not exist
+ */
 @SuppressWarnings("unchecked")
 @Validator(profileName = "norway", targetType = SiriDataType.ESTIMATED_TIMETABLE)
 @Component

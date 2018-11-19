@@ -24,6 +24,11 @@ import uk.org.siri.siri20.OccupancyEnumeration;
 
 import static no.rutebanken.anshar.routes.validation.validators.Constants.MONITORED_VEHICLE_JOURNEY;
 
+
+/**
+ * Verifies that the value for field Occupancy is one of the allowed types
+ *
+ */
 @Validator(profileName = "norway", targetType = SiriDataType.VEHICLE_MONITORING)
 @Component
 public class MonitoredOccupancyValidator extends LimitedSubsetValidator {

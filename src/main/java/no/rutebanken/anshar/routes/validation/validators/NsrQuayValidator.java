@@ -29,6 +29,11 @@ public abstract class NsrQuayValidator extends CustomValidator {
         return FIELDNAME;
     }
 
+    /**
+     * Verifies that the value of the provided node is a valid Quay-reference
+     * @param node
+     * @return
+     */
     @Override
     public ValidationEvent isValid(Node node) {
         String nodeValue = getNodeValue(node);

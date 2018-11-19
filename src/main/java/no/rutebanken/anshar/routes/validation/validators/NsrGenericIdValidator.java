@@ -31,6 +31,11 @@ public abstract class NsrGenericIdValidator extends CustomValidator {
         return FIELDNAME;
     }
 
+    /**
+     * Verifies that the string-value of the provided node is built up using the pattern defined
+     * @param node
+     * @return
+     */
     @Override
     public ValidationEvent isValid(Node node) {
         String nodeValue = getNodeValue(node);

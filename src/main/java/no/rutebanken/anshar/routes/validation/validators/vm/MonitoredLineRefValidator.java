@@ -22,6 +22,11 @@ import org.springframework.stereotype.Component;
 
 import static no.rutebanken.anshar.routes.validation.validators.Constants.MONITORED_VEHICLE_JOURNEY;
 
+
+/**
+ * Verifies that the value for field LineRef is built up correctly
+ *
+ */
 @Validator(profileName = "norway", targetType = SiriDataType.VEHICLE_MONITORING)
 @Component
 public class MonitoredLineRefValidator extends NsrGenericIdValidator {

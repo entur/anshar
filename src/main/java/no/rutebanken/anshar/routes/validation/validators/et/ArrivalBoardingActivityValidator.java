@@ -24,6 +24,10 @@ import uk.org.siri.siri20.ArrivalBoardingActivityEnumeration;
 
 import static no.rutebanken.anshar.routes.validation.validators.Constants.ESTIMATED_CALL;
 
+/**
+ * Verifies that the value for field ArrivalBoardingActivity is one of the allowed types
+ *
+ */
 @Validator(profileName = "norway", targetType = SiriDataType.ESTIMATED_TIMETABLE)
 @Component
 public class ArrivalBoardingActivityValidator extends LimitedSubsetValidator {

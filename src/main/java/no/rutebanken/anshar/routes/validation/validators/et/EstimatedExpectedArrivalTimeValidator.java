@@ -25,7 +25,10 @@ import javax.xml.bind.ValidationEvent;
 
 import static no.rutebanken.anshar.routes.validation.validators.Constants.ESTIMATED_CALL;
 
-
+/**
+ * Verifies that the value for field ExpectedArrivalTime is a valid timestamp, and that it is before or equal to ExpectedDepartureTime
+ *
+ */
 @Validator(profileName = "norway", targetType = SiriDataType.ESTIMATED_TIMETABLE)
 @Component
 public class EstimatedExpectedArrivalTimeValidator extends TimeValidator {

@@ -22,6 +22,11 @@ import org.springframework.stereotype.Component;
 
 import static no.rutebanken.anshar.routes.validation.validators.Constants.AFFECTED_VEHICLE_JOURNEY;
 
+
+/**
+ * Verifies that the value for field AffectedVehicleJourney/VehicleJourneyRef is built up correctly
+ *
+ */
 @Validator(profileName = "norway", targetType = SiriDataType.SITUATION_EXCHANGE)
 @Component
 public class AffectedVehicleJourneyRefValidator extends NsrGenericIdValidator {
