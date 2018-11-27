@@ -302,7 +302,7 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
         return matches;
     }
 
-    private boolean isMatch(boolean matchStopIdOnly, StopTime stopTime, String stopId, ZonedDateTime arrival, ZonedDateTime departure) {
+    protected boolean isMatch(boolean matchStopIdOnly, StopTime stopTime, String stopId, ZonedDateTime arrival, ZonedDateTime departure) {
 
         if (isStopIdOrParentMatch(stopId, stopTime.getStopId())) {
 
@@ -313,9 +313,20 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
                 int arrivalSecondsSinceMidnight = getSecondsSinceMidnight(arrival);
                 int departureSecondsSinceMidnight = getSecondsSinceMidnight(departure);
 
+                int stopTimeArrivalTime = stopTime.getArrivalTime();
+                int stopTimeDepartureTime = stopTime.getDepartureTime();
+
+                // Trip may have started "yesterday" - subtract 24h to match SIRI timestamp
+                if (stopTimeArrivalTime > 86400) {
+                    stopTimeArrivalTime -= 86400;
+                }
+                if (stopTimeDepartureTime > 86400) {
+                    stopTimeDepartureTime -= 86400;
+                }
+
                 //allows for 60 seconds difference in each direction as they sometimes differs a little bit...
-                boolean arrivalMatch = arrivalSecondsSinceMidnight < 0 | Math.abs(arrivalSecondsSinceMidnight - stopTime.getArrivalTime()) < 60;
-                boolean departureMatch = departureSecondsSinceMidnight < 0 | Math.abs(departureSecondsSinceMidnight - stopTime.getDepartureTime()) < 60;
+                boolean arrivalMatch = arrivalSecondsSinceMidnight < 0 | Math.abs(arrivalSecondsSinceMidnight - stopTimeArrivalTime) < 60;
+                boolean departureMatch = departureSecondsSinceMidnight < 0 | Math.abs(departureSecondsSinceMidnight - stopTimeDepartureTime) < 60;
 
                 return (arrivalMatch || departureMatch);
             }

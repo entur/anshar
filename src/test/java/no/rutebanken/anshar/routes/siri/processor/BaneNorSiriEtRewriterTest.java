@@ -1,6 +1,8 @@
 package no.rutebanken.anshar.routes.siri.processor;
 
 import no.rutebanken.anshar.routes.siri.processor.routedata.NetexUpdaterService;
+import no.rutebanken.anshar.routes.siri.processor.routedata.StopTime;
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -10,17 +12,27 @@ import uk.org.siri.siri20.EstimatedVehicleJourney;
 import uk.org.siri.siri20.EstimatedVersionFrameStructure;
 import uk.org.siri.siri20.Siri;
 
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoField;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static no.rutebanken.anshar.routes.siri.processor.BaneNorSiriStopAssignmentPopulaterTest.unmarshallSiriFile;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
-@Ignore
 public class BaneNorSiriEtRewriterTest {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 
+    private BaneNorSiriEtRewriter rewriter;
+
+    @Before
+    public void init() {
+        rewriter = new BaneNorSiriEtRewriter();
+    }
+
+    @Ignore
     @Test
     public void testMapping() throws Exception {
         logger.info("Reads routedata...");
@@ -31,8 +43,6 @@ public class BaneNorSiriEtRewriterTest {
 //        NSBGtfsUpdaterService.update("src/test/resources/rb_nsb-aggregated-gtfs.zip",
 //                "src/test/resources/rb_gjb-aggregated-gtfs.zip",
 //                "src/test/resources/rb_flt-aggregated-gtfs.zip");
-
-        BaneNorSiriEtRewriter rewriter = new BaneNorSiriEtRewriter();
 
         Siri siri = unmarshallSiriFile("src/test/resources/siri-et-gir-npe.xml");
 //        Siri siri = unmarshallSiriFile("src/test/resources/siri-et-from-bnr.xml");
@@ -55,6 +65,36 @@ public class BaneNorSiriEtRewriterTest {
             }
         }
 
+    }
+
+    @Test
+    public void testIsMatch() {
+        StopTime stopTime = new StopTime("NSR:STOP:1234", 1, 3600, 3660);
+        ZonedDateTime arrivalTime = ZonedDateTime.now()
+                .with(ChronoField.HOUR_OF_DAY, 0)
+                .with(ChronoField.MINUTE_OF_HOUR, 0)
+                .with(ChronoField.SECOND_OF_DAY, 3600);
+        ZonedDateTime departureTime = ZonedDateTime.now()
+                .with(ChronoField.HOUR_OF_DAY, 0)
+                .with(ChronoField.MINUTE_OF_HOUR, 0)
+                .with(ChronoField.SECOND_OF_DAY, 3660);
+
+        assertTrue(rewriter.isMatch(false, stopTime, "NSR:STOP:1234", arrivalTime, departureTime));
+    }
+
+    @Test
+    public void testIsMatchForTripPassingMidnight() {
+        StopTime stopTime = new StopTime("NSR:STOP:1234", 1, 3600 + 86400, 3660+86400);
+        ZonedDateTime arrivalTime = ZonedDateTime.now()
+                .with(ChronoField.HOUR_OF_DAY, 0)
+                .with(ChronoField.MINUTE_OF_HOUR, 0)
+                .with(ChronoField.SECOND_OF_DAY, 3600);
+        ZonedDateTime departureTime = ZonedDateTime.now()
+                .with(ChronoField.HOUR_OF_DAY, 0)
+                .with(ChronoField.MINUTE_OF_HOUR, 0)
+                .with(ChronoField.SECOND_OF_DAY, 3660);
+
+        assertTrue(rewriter.isMatch(false, stopTime, "NSR:STOP:1234", arrivalTime, departureTime));
     }
 
     private HashMap<String, List<String>> mapTrainNumbersToStops(Siri siri) {

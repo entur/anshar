@@ -8,7 +8,7 @@ public class StopTime {
     private final int arrivalTime;
     private final int departureTime;
 
-    StopTime(String stopId, int stopSequence, int arrivalTime, int departureTime) {
+    public StopTime(String stopId, int stopSequence, int arrivalTime, int departureTime) {
         this.stopId = stopId;
         this.stopSequence = stopSequence;
         this.arrivalTime = arrivalTime;
