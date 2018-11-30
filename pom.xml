@@ -40,7 +40,7 @@
         <spring-boot-plugin.version>2.0.5.RELEASE</spring-boot-plugin.version>
         <spring-boot.version>2.0.5.RELEASE</spring-boot.version>
 
-        <camel-version>2.22.1</camel-version>
+        <camel-version>2.23.0</camel-version>
 
         <!-- Docker & Fabric8 Configs -->
         <docker.from>eu.gcr.io/carbon-1287/java-base-image</docker.from>
