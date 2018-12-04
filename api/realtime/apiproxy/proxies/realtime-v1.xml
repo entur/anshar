@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ProxyEndpoint name="realtime-v1">
+    <Description></Description>
+    <FaultRules/>
+    <Flows/>
+    <PostFlow name="PostFlow">
+        <Request/>
+        <Response/>
+    </PostFlow>
+    <PreFlow name="PreFlow">
+        <Request>
+            <Step>
+                <FaultRules/>
+                <Name>flowCallout.globalIpBlacklistTeamRutedata</Name>
+            </Step>
+            <Step>
+                <FaultRules/>
+                <Name>spikeArrest</Name>
+            </Step>
+            <Step>
+                <Condition>
+                    (proxy.pathsuffix JavaRegex "(?i:.*^/start.*)")
+                </Condition>
+                <Name>raiseFault.forAdminEndpoints</Name>
+            </Step>
+            <Step>
+                <Condition>
+                    (proxy.pathsuffix JavaRegex "(?i:.*^/stop.*)")
+                </Condition>
+                <Name>raiseFault.forAdminEndpoints</Name>
+            </Step>
+            <Step>
+                <Condition>
+                    (proxy.pathsuffix JavaRegex "(?i:.*^/stats.*)")
+                </Condition>
+                <Name>raiseFault.forAdminEndpoints</Name>
+            </Step>
+            <Step>
+                <Condition>
+                    (proxy.pathsuffix JavaRegex "(?i:.*^/terminate.*)")
+                </Condition>
+                <Name>raiseFault.forAdminEndpoints</Name>
+            </Step>
+            <Step>
+                <Condition>
+                    (proxy.pathsuffix JavaRegex "(?i:.*^/subscriptions.*)")
+                </Condition>
+                <Name>raiseFault.forAdminEndpoints</Name>
+            </Step>
+            <Step>
+                <Name>flowCallout.getEnvironmentConfiguration</Name>
+            </Step>
+        </Request>
+        <Response>
+        </Response>
+    </PreFlow>
+    <HTTPProxyConnection>
+        <BasePath>/realtime/v1</BasePath>
+        <Properties/>
+        <VirtualHost>entur</VirtualHost>
+    </HTTPProxyConnection>
+    <RouteRule name="realtime-v1">
+        <TargetEndpoint>realtime-v1</TargetEndpoint>
+    </RouteRule>
+</ProxyEndpoint>
