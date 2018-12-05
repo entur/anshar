@@ -22,6 +22,8 @@ import org.springframework.stereotype.Component;
 import org.w3c.dom.Node;
 
 import javax.xml.bind.ValidationEvent;
+import java.util.ArrayList;
+import java.util.List;
 
 import static no.rutebanken.anshar.routes.validation.validators.Constants.ESTIMATED_VEHICLE_JOURNEY;
 
@@ -52,11 +54,22 @@ public class EstimatedVehicleJourneyValidator extends CustomValidator {
 
     @Override
     public ValidationEvent isValid(Node node) {
-        return verifyRequiredFields(node, FIELDNAME,
-                "LineRef",
-                "DirectionRef",
-                "FramedVehicleJourneyRef",
-                "DataSource",
-                "IsCompleteStopSequence");
+        String extraJourneyValue = getChildNodeValue(node, "ExtraJourney");
+
+        List<String> fieldNames = new ArrayList<>();
+        if (extraJourneyValue != null && Boolean.valueOf(extraJourneyValue)) {
+            fieldNames.add("EstimatedVehicleJourneyCode");
+            fieldNames.add("RouteRef");
+            fieldNames.add("GroupOfLinesRef");
+            fieldNames.add("ExternalLineRef");
+        } else {
+            fieldNames.add("FramedVehicleJourneyRef");
+
+        }
+        fieldNames.add("LineRef");
+        fieldNames.add("DirectionRef");
+        fieldNames.add("DataSource");
+        fieldNames.add("IsCompleteStopSequence");
+        return verifyRequiredFields(node, FIELDNAME, fieldNames.toArray(new String[fieldNames.size()]));
     }
 }
