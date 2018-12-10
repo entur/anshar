@@ -759,15 +759,21 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
     private static String createKey(String datasetId, EstimatedVehicleJourney element) {
         StringBuilder key = new StringBuilder();
 
-        String datedVehicleJourney = element.getDatedVehicleJourneyRef() != null ? element.getDatedVehicleJourneyRef().getValue() : null;
-        if (datedVehicleJourney == null && element.getFramedVehicleJourneyRef() != null) {
+        if (element.getFramedVehicleJourneyRef() != null) {
             String dataFrameRef = element.getFramedVehicleJourneyRef().getDataFrameRef() != null ? element.getFramedVehicleJourneyRef().getDataFrameRef().getValue():"null";
 
             key.append(datasetId).append(":")
                     .append(dataFrameRef)
                     .append(":")
                     .append(element.getFramedVehicleJourneyRef().getDatedVehicleJourneyRef());
+        } else if (element.isExtraJourney() != null && element.getEstimatedVehicleJourneyCode() != null) {
+
+            key.append(datasetId).append(":ExtraJourney:")
+                    .append(element.isExtraJourney())
+                    .append(":")
+                    .append(element.getEstimatedVehicleJourneyCode());
         } else {
+
             key.append(datasetId).append(":")
                     .append((element.getOperatorRef() != null ? element.getOperatorRef().getValue() : "null"))
                     .append(":")
@@ -777,7 +783,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                     .append(":")
                     .append((element.getDirectionRef() != null ? element.getDirectionRef().getValue() : "null"))
                     .append(":")
-                    .append(datedVehicleJourney);
+                    .append(element.getDatedVehicleJourneyRef() != null ? element.getDatedVehicleJourneyRef().getValue() : null);
         }
 
         return key.toString();
