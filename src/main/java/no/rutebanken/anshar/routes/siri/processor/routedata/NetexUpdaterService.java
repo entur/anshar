@@ -17,7 +17,9 @@ package no.rutebanken.anshar.routes.siri.processor.routedata;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.io.*;
 import java.net.URL;
 import java.util.HashMap;
@@ -29,6 +31,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 @SuppressWarnings({"unchecked", "Duplicates"})
+@Service
 public class NetexUpdaterService {
 
     private static final Logger logger = LoggerFactory.getLogger(NetexUpdaterService.class);
@@ -80,7 +83,9 @@ public class NetexUpdaterService {
         return trainNumberTrips.keySet();
     }
 
+    @PostConstruct
     synchronized static void initializeUpdater() {
+        logger.info("Starting the NeTEx updater service");
         ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
         executor.scheduleWithFixedDelay(() -> {
                     long t1 = System.currentTimeMillis();
