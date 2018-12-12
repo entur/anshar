@@ -155,7 +155,13 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
                 if (existingSet == null) {
                     existingSet = new HashSet<>();
                 }
+
+                //Remove returned ids
                 existingSet.removeAll(idSet);
+
+                //Remove outdated ids
+                existingSet.removeIf(id -> !vehicleActivities.containsKey(id));
+
                 changesMap.set(requestorId, existingSet, configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
 
                 logger.info("Returning {} changes to requestorRef {}", changes.size(), requestorId);

@@ -211,7 +211,12 @@ public class Situations extends SiriRepository<PtSituationElement> {
                 if (existingSet == null) {
                     existingSet = new HashSet<>();
                 }
+                //Remove returned ids
                 existingSet.removeAll(idSet);
+
+                //Remove outdated ids
+                existingSet.removeIf(id -> !situations.containsKey(id));
+
                 changesMap.set(requestorId, existingSet, configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
 
 
@@ -282,6 +287,7 @@ public class Situations extends SiriRepository<PtSituationElement> {
             if (lastUpdateRequested.get(requestor) != null) {
                 Set<String> tmpChanges = changesMap.get(requestor);
                 tmpChanges.addAll(changes);
+
                 changesMap.set(requestor, tmpChanges, configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
             } else {
                 changesMap.delete(requestor);
