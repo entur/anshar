@@ -257,6 +257,9 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
             msgRef.setValue(requestorId);
             siri.getServiceDelivery().setRequestMessageRef(msgRef);
 
+            //Remove outdated ids
+            idSet.removeIf(id -> !timetableDeliveries.containsKey(id));
+
             //Update change-tracker
             changesMap.set(requestorId, idSet, trackingPeriodMinutes, TimeUnit.MINUTES);
             lastUpdateRequested.set(requestorId, Instant.now(), trackingPeriodMinutes, TimeUnit.MINUTES);
