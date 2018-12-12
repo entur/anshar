@@ -557,6 +557,8 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
         changesMap.keySet().forEach(requestor -> {
             if (lastUpdateRequested.get(requestor) != null) {
                 Set<String> tmpChanges = changesMap.get(requestor);
+                //Remove outdated ids
+                tmpChanges.removeIf(id -> !timetableDeliveries.containsKey(id));
                 tmpChanges.addAll(changes);
                 changesMap.set(requestor, tmpChanges, configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
             } else {
