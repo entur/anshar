@@ -167,8 +167,10 @@ public class Situations extends SiriRepository<PtSituationElement> {
             siri.getServiceDelivery().setRequestMessageRef(msgRef);
 
 
-            //Remove outdated ids
-            idSet.removeIf(id -> !situations.containsKey(id));
+            if (idSet.size() > situations.size()) {
+                //Remove outdated ids
+                idSet.removeIf(id -> !situations.containsKey(id));
+            }
 
             //Update change-tracker
             changesMap.set(requestorId, idSet, trackingPeriodMinutes, TimeUnit.MINUTES);
