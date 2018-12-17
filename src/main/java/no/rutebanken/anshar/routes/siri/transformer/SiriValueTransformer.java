@@ -20,6 +20,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.routes.siri.processor.PostProcessor;
+import no.rutebanken.anshar.routes.siri.processor.RemoveEmojiPostProcessor;
 import no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter;
 import org.rutebanken.siri20.util.SiriXml;
 import org.slf4j.Logger;
@@ -108,6 +109,8 @@ public class SiriValueTransformer {
                     logger.warn("Caught exception while transforming SIRI-object.", t);
                 }
             }
+
+            valueAdapters.add(new RemoveEmojiPostProcessor());
 
             for (PostProcessor processor : postProcessors) {
                 try {
