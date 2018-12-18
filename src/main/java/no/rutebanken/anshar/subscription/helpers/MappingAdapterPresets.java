@@ -16,6 +16,7 @@
 package no.rutebanken.anshar.subscription.helpers;
 
 import no.rutebanken.anshar.routes.siri.handlers.OutboundIdMappingPolicy;
+import no.rutebanken.anshar.routes.siri.processor.RemoveEmojiPostProcessor;
 import no.rutebanken.anshar.routes.siri.processor.RuterOutboundDatedVehicleRefAdapter;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter;
@@ -43,6 +44,9 @@ public class MappingAdapterPresets {
 
         //Adding postprocessor for Ruter DatedVehicleRef
         adapters.add(new RuterOutboundDatedVehicleRefAdapter(this.getClass(), outboundIdMappingPolicy));
+
+        // Adding postprocessor for removing emojis etc. from SX-messages
+        adapters.add(new RemoveEmojiPostProcessor(outboundIdMappingPolicy));
         return adapters;
     }
 }

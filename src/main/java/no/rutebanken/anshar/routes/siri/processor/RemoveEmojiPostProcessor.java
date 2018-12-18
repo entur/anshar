@@ -15,6 +15,7 @@
 
 package no.rutebanken.anshar.routes.siri.processor;
 
+import no.rutebanken.anshar.routes.siri.handlers.OutboundIdMappingPolicy;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +29,12 @@ import java.util.List;
 public class RemoveEmojiPostProcessor extends ValueAdapter implements PostProcessor {
     private Logger logger = LoggerFactory.getLogger(RemoveEmojiPostProcessor.class);
 
+    private OutboundIdMappingPolicy outboundIdMappingPolicy;
+
+    public RemoveEmojiPostProcessor(OutboundIdMappingPolicy outboundIdMappingPolicy) {
+        this.outboundIdMappingPolicy = outboundIdMappingPolicy;
+    }
+
     @Override
     protected String apply(String text) {
         return null;
@@ -35,17 +42,21 @@ public class RemoveEmojiPostProcessor extends ValueAdapter implements PostProces
 
     @Override
     public void process(Siri siri) {
-        if (siri != null && siri.getServiceDelivery() != null) {
 
-            List<SituationExchangeDeliveryStructure> situationExchangeDeliveries = siri.getServiceDelivery().getSituationExchangeDeliveries();
-            if (situationExchangeDeliveries != null) {
-                for (SituationExchangeDeliveryStructure situationExchangeDelivery : situationExchangeDeliveries) {
-                    SituationExchangeDeliveryStructure.Situations situations = situationExchangeDelivery.getSituations();
-                    if (situations != null && situations.getPtSituationElements() != null) {
-                        for (PtSituationElement ptSituationElement : situations.getPtSituationElements()) {
-                            removeEmojisFromTexts(ptSituationElement.getSummaries());
-                            removeEmojisFromTexts(ptSituationElement.getDescriptions());
-                            removeEmojisFromTexts(ptSituationElement.getDetails());
+        if (outboundIdMappingPolicy == OutboundIdMappingPolicy.DEFAULT) {
+            //Only remove emojis when requested
+            if (siri != null && siri.getServiceDelivery() != null) {
+
+                List<SituationExchangeDeliveryStructure> situationExchangeDeliveries = siri.getServiceDelivery().getSituationExchangeDeliveries();
+                if (situationExchangeDeliveries != null) {
+                    for (SituationExchangeDeliveryStructure situationExchangeDelivery : situationExchangeDeliveries) {
+                        SituationExchangeDeliveryStructure.Situations situations = situationExchangeDelivery.getSituations();
+                        if (situations != null && situations.getPtSituationElements() != null) {
+                            for (PtSituationElement ptSituationElement : situations.getPtSituationElements()) {
+                                removeEmojisFromTexts(ptSituationElement.getSummaries());
+                                removeEmojisFromTexts(ptSituationElement.getDescriptions());
+                                removeEmojisFromTexts(ptSituationElement.getDetails());
+                            }
                         }
                     }
                 }
@@ -65,7 +76,7 @@ public class RemoveEmojiPostProcessor extends ValueAdapter implements PostProces
                     cleanedValue += (char) i;
                 }
                 if (!cleanedValue.equals(value)) {
-                    logger.info("Removed emoji-like character from text {}.", value);
+                    logger.info("Removed emoji-like character from text [{}].", value);
                 }
                 text.setValue(cleanedValue);
 
