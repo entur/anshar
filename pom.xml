@@ -390,34 +390,6 @@
                 </executions>
             </plugin>
 
-              <plugin>
-                <groupId>io.fabric8</groupId>
-                <artifactId>fabric8-maven-plugin</artifactId>
-                <version>${fabric8.version}</version>
-                <executions>
-                    <execution>
-                        <id>json</id>
-                        <phase>generate-resources</phase>
-                        <goals>
-                            <goal>json</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>attach</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>attach</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                  <dependencies>
-                      <dependency>
-                          <groupId>com.fasterxml.jackson.core</groupId>
-                          <artifactId>jackson-core</artifactId>
-                          <version>2.9.7</version>
-                      </dependency>
-                  </dependencies>
-            </plugin>
 
             <plugin>
                 <groupId>io.fabric8</groupId>
