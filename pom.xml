@@ -88,11 +88,6 @@
                 <scope>import</scope>
             </dependency>
             <dependency>
-                <groupId>com.google.inject</groupId>
-                <artifactId>guice</artifactId>
-                <version>3.0</version>
-            </dependency>
-            <dependency>
                 <groupId>org.entur.helpers</groupId>
                 <artifactId>hazelcast-helper</artifactId>
                 <version>0.0.4-SNAPSHOT</version>
