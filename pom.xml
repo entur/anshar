@@ -43,7 +43,7 @@
         <camel-version>2.23.0</camel-version>
 
         <!-- Docker & Fabric8 Configs -->
-        <docker.from>eu.gcr.io/carbon-1287/openjdk11-base-image</docker.from>
+        <docker.from>eu.gcr.io/carbon-1287/java-base-image</docker.from>
         <fabric8.dockerUser>carbon-1287/</fabric8.dockerUser>
         <docker.image>eu.gcr.io/${fabric8.dockerUser}${project.artifactId}:${project.version}</docker.image>
         <docker.cleanup>none</docker.cleanup>
@@ -292,12 +292,6 @@
         </dependency>
 
         <dependency>
-            <groupId>javax.activation</groupId>
-            <artifactId>activation</artifactId>
-            <version>1.1.1</version>
-        </dependency>
-
-        <dependency>
             <groupId>com.esotericsoftware</groupId>
             <artifactId>kryo-shaded</artifactId>
             <version>4.0.0</version>
@@ -362,8 +356,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.8.0</version>
                 <configuration>
-                    <source>11</source>
-                    <target>11</target>
+                    <source>1.8</source>
+                    <target>1.8</target>
                 </configuration>
             </plugin>
             <plugin>
