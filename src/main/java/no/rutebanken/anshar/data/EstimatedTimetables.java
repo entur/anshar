@@ -430,13 +430,13 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
         return expiryTimestamp;
     }
 
-
     public Collection<EstimatedVehicleJourney> addAll(String datasetId, List<EstimatedVehicleJourney> etList) {
 
         Set<String> changes = new HashSet<>();
         Set<EstimatedVehicleJourney> addedData = new HashSet<>();
 
         Counter outdatedCounter = new CounterImpl(0);
+        Counter notUpdatedCounter = new CounterImpl(0);
 
         etList.forEach(et -> {
             String key = createKey(datasetId, et);
@@ -450,19 +450,23 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
 
             boolean keep = false;
 
-            if (existing != null &&
-                    (et.getRecordedAtTime() != null && existing.getRecordedAtTime() != null)) {
+            if (!isEqual(existing, et)) {
 
-                if (et.getRecordedAtTime().isAfter(existing.getRecordedAtTime())) {
-                    keep = true;
+                if (existing != null &&
+                        (et.getRecordedAtTime() != null && existing.getRecordedAtTime() != null)) {
+
+                    if (et.getRecordedAtTime().isAfter(existing.getRecordedAtTime())) {
+                        keep = true;
+                    } else {
+                        logger.info("Newer data has already been processed - ignoring ET-element");
+                    }
                 } else {
-                    logger.info("Newer data has already been processed - ignoring ET-element");
+                    keep = true;
                 }
+
             } else {
-                keep = true;
+                notUpdatedCounter.increment();
             }
-
-
             if (keep) {
 
                 if (et.isIsCompleteStopSequence() != null && !et.isIsCompleteStopSequence()) {
@@ -561,7 +565,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
             }
         });
 
-        logger.info("Updated {} (of {}), {} outdated", changes.size(), etList.size(), outdatedCounter.getValue());
+        logger.info("Updated {} (of {}), {} outdated, {} without changes", changes.size(), etList.size(), outdatedCounter.getValue(), notUpdatedCounter.getValue());
         metricsService.registerIncomingData(SiriDataType.ESTIMATED_TIMETABLE, datasetId, (id) -> getDatasetSize(id));
 
         changesMap.keySet().forEach(requestor -> {

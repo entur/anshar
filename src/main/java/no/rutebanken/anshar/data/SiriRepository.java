@@ -15,6 +15,13 @@
 
 package no.rutebanken.anshar.data;
 
+import javax.xml.bind.DatatypeConverter;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -54,4 +61,40 @@ abstract class SiriRepository<T> {
     }
 
     abstract void clearAllByDatasetId(String datasetId);
+
+
+    /**
+     * Compares object-equality by calculating and comparing MD5-checksum
+     * @param existing
+     * @param updated
+     * @return
+     */
+    static boolean isEqual(Serializable existing, Serializable updated) {
+        try {
+            String checksumExisting = getChecksum(existing);
+            String checksumUpdated = getChecksum(updated);
+
+            return checksumExisting.equals(checksumUpdated);
+
+        } catch (Throwable e) {
+            //ignore - data will be updated
+        }
+        return false;
+    }
+
+    private static String getChecksum(Serializable object) throws IOException, NoSuchAlgorithmException {
+        ByteArrayOutputStream baos = null;
+        ObjectOutputStream oos = null;
+        try {
+            baos = new ByteArrayOutputStream();
+            oos = new ObjectOutputStream(baos);
+            oos.writeObject(object);
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            byte[] thedigest = md.digest(baos.toByteArray());
+            return DatatypeConverter.printHexBinary(thedigest);
+        } finally {
+            oos.close();
+            baos.close();
+        }
+    }
 }
