@@ -236,6 +236,21 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
         for (String serviceJourneyId : serviceJourneyIds) {
             List<StopTime> stopTimes = getStopTimes(serviceJourneyId);
 
+            // Override known unmappable stops
+            if (estimatedCalls.size() == stopTimes.size()) {
+                for (int i = 0; i < estimatedCalls.size(); i++) {
+                    EstimatedCall call = estimatedCalls.get(i);
+                    StopPointRef stopPointRef = call.getStopPointRef();
+
+                    if (call.getArrivalPlatformName() == null &&
+                            call.getDeparturePlatformName() == null &&
+                            getMappedStopId(stopPointRef).equals(stopPointRef.getValue())) {
+                        stopPointRef.setValue(stopPointRef.getValue() + SEPARATOR + stopTimes.get(i).getStopId());
+                    }
+                }
+            }
+
+
             List<ServiceDate> serviceDates = getServiceDates(serviceJourneyId);
             if (serviceDates.contains(serviceDate)) {
                 boolean matchStopIdOnly = false;
@@ -275,6 +290,21 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
 
         for (String serviceJourneyId : serviceJourneyIds) {
             List<StopTime> stopTimes = getStopTimes(serviceJourneyId);
+
+            // Override known unmappable stops
+            if (recordedCalls.size() == stopTimes.size()) {
+                for (int i = 0; i < recordedCalls.size(); i++) {
+                    RecordedCall call = recordedCalls.get(i);
+                    StopPointRef stopPointRef = call.getStopPointRef();
+
+                    if (call.getArrivalPlatformName() == null &&
+                            call.getDeparturePlatformName() == null &&
+                            getMappedStopId(stopPointRef).equals(stopPointRef.getValue())) {
+                        stopPointRef.setValue(stopPointRef.getValue() + SEPARATOR + stopTimes.get(i).getStopId());
+                    }
+                }
+            }
+
 
             List<ServiceDate> serviceDates = getServiceDates(serviceJourneyId);
             if (serviceDates.contains(serviceDate)) {
