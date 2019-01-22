@@ -637,7 +637,11 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
 
                 }
 
-                lastTimestamp = call.getExpectedDepartureTime();
+                if (call.getExpectedDepartureTime() != null) {
+                    lastTimestamp = call.getExpectedDepartureTime();
+                } else {
+                    lastTimestamp = call.getExpectedArrivalTime();
+                }
                 lastVisitNumber = call.getVisitNumber();
             }
         }
