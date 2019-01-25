@@ -67,7 +67,7 @@ public class OrderValidator extends CustomValidator {
                 for (Node recordedCall : recordedCallNodes) {
                     String order = getChildNodeValue(recordedCall, FIELDNAME);
                     if (order == null || order.isEmpty()) {
-                        return  createEvent(node, recordedCallNodeName + "/" + FIELDNAME, "not empty", order, ValidationEvent.ERROR);
+                        return  createEvent(node, recordedCallNodeName + "/" + FIELDNAME, "it to be set", order, ValidationEvent.ERROR);
                     }
                     if (!order.equals(""+expectedOrderValue)) {
                         return  createEvent(node, recordedCallNodeName + "/" + FIELDNAME, "increasing positiveInteger (expected " + expectedOrderValue + ")", order, ValidationEvent.FATAL_ERROR);
@@ -84,7 +84,7 @@ public class OrderValidator extends CustomValidator {
                 for (Node estimatedCall : estimatedCallNodes) {
                     String order = getChildNodeValue(estimatedCall, FIELDNAME);
                     if (order == null || order.isEmpty()) {
-                        return  createEvent(node, estimatedCallNodeName + "/" + FIELDNAME, "not empty", order, ValidationEvent.ERROR);
+                        return  createEvent(node, estimatedCallNodeName + "/" + FIELDNAME, "it to be set", order, ValidationEvent.ERROR);
                     }
                     if (!order.equals(""+expectedOrderValue)) {
                         return  createEvent(node, estimatedCallNodeName + "/" + FIELDNAME, "increasing positiveInteger (expected " + expectedOrderValue + ")", order, ValidationEvent.FATAL_ERROR);

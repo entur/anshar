@@ -48,7 +48,7 @@ public abstract class StringStructureValidator extends CustomValidator {
         boolean requireLangAttribute = (childNodesByName.size() > 1);
 
         if (childNodesByName.isEmpty()) {
-            return createEvent(node, FIELDNAME, "not empty", null, ValidationEvent.FATAL_ERROR);
+            return createEvent(node, FIELDNAME, "it to be set", null, ValidationEvent.FATAL_ERROR);
         }
 
         Set<String> foundLangAttributes = new HashSet<>();
@@ -57,7 +57,7 @@ public abstract class StringStructureValidator extends CustomValidator {
             String nodeValue = getNodeValue(textNode);
 
             if (nodeValue == null || nodeValue.isEmpty()) {
-                return createEvent(textNode, FIELDNAME, "not empty", nodeValue, ValidationEvent.FATAL_ERROR);
+                return createEvent(textNode, FIELDNAME, "it to be set", nodeValue, ValidationEvent.FATAL_ERROR);
             }
 
             if (requireLangAttribute) {
