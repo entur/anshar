@@ -59,7 +59,6 @@ public class EstimatedVehicleJourneyOrderValidatorTest extends CustomValidatorTe
             call.setOrder(BigInteger.valueOf(i+1));
             estimatedCalls.add(call);
         }
-        journey.setIsCompleteStopSequence(Boolean.TRUE);
         assertNull("Valid Order flagged as invalid", validator.isValid(convertToXmlNode(journey)));
     }
 
@@ -86,7 +85,6 @@ public class EstimatedVehicleJourneyOrderValidatorTest extends CustomValidatorTe
             estimatedCalls.add(call);
         }
 
-        journey.setIsCompleteStopSequence(Boolean.TRUE);
         assertNull("Recorded- and EstimatedCalls with correct Order flagged as valid", validator.isValid(convertToXmlNode(journey)));
     }
 
@@ -105,7 +103,6 @@ public class EstimatedVehicleJourneyOrderValidatorTest extends CustomValidatorTe
             estimatedCalls.add(call);
         }
 
-        journey.setIsCompleteStopSequence(Boolean.TRUE);
         assertNotNull("Single missing Order flagged as valid", validator.isValid(convertToXmlNode(journey)));
     }
 
@@ -135,7 +132,6 @@ public class EstimatedVehicleJourneyOrderValidatorTest extends CustomValidatorTe
             estimatedCalls.add(call);
         }
 
-        journey.setIsCompleteStopSequence(Boolean.TRUE);
         assertNotNull("Single missing Order flagged as valid", validator.isValid(convertToXmlNode(journey)));
 
     }

@@ -41,8 +41,6 @@ public class OrderValidator extends CustomValidator {
     private static final String recordedCallNodeName = "RecordedCall";
     private static final String estimatedCallsParentNodeName = "EstimatedCalls";
     private static final String estimatedCallNodeName = "EstimatedCall";
-    private static final String isCompleteStopSequence = "IsCompleteStopSequence";
-
 
     public OrderValidator() {
     }
@@ -59,12 +57,6 @@ public class OrderValidator extends CustomValidator {
 
     @Override
     public ValidationEvent isValid(Node node) {
-
-
-        String isComplete = getChildNodeValue(node, isCompleteStopSequence);
-        if (isComplete == null || !Boolean.parseBoolean(isComplete)) {
-            return  createEvent(node, isCompleteStopSequence, isCompleteStopSequence + "=true is required, cannot validate Order ", isComplete, ValidationEvent.FATAL_ERROR);
-        }
 
         int expectedOrderValue = 1;
 
