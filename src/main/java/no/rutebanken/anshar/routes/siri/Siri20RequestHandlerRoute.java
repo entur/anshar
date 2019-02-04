@@ -118,6 +118,7 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
         ;
 
         from("direct:process.incoming.request")
+                .to("log:incoming:" + getClass().getSimpleName() + "?showAll=true&multiline=true&showStreams=true")
                 .choice()
                 .when(e -> subscriptionExistsAndIsActive(e))
                     //Valid subscription
