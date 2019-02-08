@@ -54,7 +54,8 @@ import javax.xml.xpath.XPathFactory;
 import java.io.*;
 import java.util.*;
 import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
+
+import static no.rutebanken.anshar.util.CompressionUtil.compress;
 
 @Component
 @Configuration
@@ -341,7 +342,7 @@ public class SiriXmlValidator extends ApplicationContextHolder{
         subscriptionValidationRefs.add(newUniqueReference);
 
         // GZIP'ing contents to reduce memory-footprint
-        byte[] byteArray = zipString(siriXml);
+        byte[] byteArray = compress(siriXml);
 
         // TODO: Add automatic expiry to clean up data over time?
 
@@ -362,15 +363,4 @@ public class SiriXmlValidator extends ApplicationContextHolder{
             logger.info("Reached max number of validations, validated {} deliveries, disabling validation for {}", subscriptionValidationRefs.size(), subscriptionSetup);
         }
     }
-
-    private byte[] zipString(String siriXml) throws IOException {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        GZIPOutputStream gzipOut = new GZIPOutputStream(baos);
-        ObjectOutputStream objectOut = new ObjectOutputStream(gzipOut);
-        objectOut.writeObject(siriXml);
-        objectOut.close();
-
-        return baos.toByteArray();
-    }
-
 }

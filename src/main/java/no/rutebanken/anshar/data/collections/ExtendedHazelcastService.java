@@ -37,11 +37,14 @@ import uk.org.siri.siri20.ProductionTimetableDeliveryStructure;
 import uk.org.siri.siri20.PtSituationElement;
 import uk.org.siri.siri20.VehicleActivityStructure;
 
-import java.io.*;
+import java.io.IOException;
 import java.math.BigInteger;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.*;
+
+import static no.rutebanken.anshar.util.CompressionUtil.compress;
+import static no.rutebanken.anshar.util.CompressionUtil.decompress;
 
 @Service
 public class ExtendedHazelcastService extends HazelCastService {
@@ -64,24 +67,12 @@ public class ExtendedHazelcastService extends HazelCastService {
                 .setImplementation(new ByteArraySerializer() {
                     @Override
                     public byte[] write(Object object) throws IOException {
-                        try(ByteArrayOutputStream b = new ByteArrayOutputStream()){
-                            try(ObjectOutputStream o = new ObjectOutputStream(b)){
-                                o.writeObject(object);
-                            }
-                            return b.toByteArray();
-                        }
+                        return compress(object);
                     }
 
                     @Override
                     public Object read(byte[] buffer) throws IOException {
-                        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(buffer);
-                        ObjectInputStream in = new ObjectInputStream(byteArrayInputStream);
-                        try {
-                            return in.readObject();
-                        } catch (ClassNotFoundException e) {
-                            e.printStackTrace();
-                        }
-                        return null;
+                        return decompress(buffer);
                     }
 
                     @Override
