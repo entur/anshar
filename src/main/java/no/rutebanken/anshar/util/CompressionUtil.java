@@ -15,11 +15,15 @@
 
 package no.rutebanken.anshar.util;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.*;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 public class CompressionUtil {
+    private static final Logger logger = LoggerFactory.getLogger(CompressionUtil.class);
 
     public static byte[] compress(Object o) throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -37,7 +41,7 @@ public class CompressionUtil {
         try {
             return in.readObject();
         } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+            logger.warn("Execption caught when decompressing Hazelcast object", e);
         }
         return null;
     }
