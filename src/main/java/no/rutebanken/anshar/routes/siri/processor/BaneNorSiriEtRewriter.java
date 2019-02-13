@@ -189,14 +189,7 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
 
                 journey.setLineRef(estimatedVehicleJourney.getLineRef());
                 journey.setDirectionRef(estimatedVehicleJourney.getDirectionRef());
-
-                //Setting ServiceJourneyId
-                FramedVehicleJourneyRefStructure framedVehicleJourneyRefStructure = new FramedVehicleJourneyRefStructure();
-                DataFrameRefStructure dataFrameRef = new DataFrameRefStructure();
-                dataFrameRef.setValue(departureDate);
-                framedVehicleJourneyRefStructure.setDataFrameRef(dataFrameRef);
-                framedVehicleJourneyRefStructure.setDatedVehicleJourneyRef(id);
-                journey.setFramedVehicleJourneyRef(framedVehicleJourneyRefStructure);
+                journey.setDatedVehicleJourneyRef(estimatedVehicleJourney.getDatedVehicleJourneyRef());
 
                 journey.getVehicleModes().addAll(estimatedVehicleJourney.getVehicleModes());
                 journey.setOperatorRef(estimatedVehicleJourney.getOperatorRef());
