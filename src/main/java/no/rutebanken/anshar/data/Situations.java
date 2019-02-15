@@ -47,6 +47,10 @@ public class Situations extends SiriRepository<PtSituationElement> {
     private IMap<String,PtSituationElement> situations;
 
     @Autowired
+    @Qualifier("getSxChecksumMap")
+    private IMap<String,String> checksumCache;
+
+    @Autowired
     @Qualifier("getSituationChangesMap")
     private IMap<String, Set<String>> changesMap;
 
@@ -111,12 +115,14 @@ public class Situations extends SiriRepository<PtSituationElement> {
 
         for (String id : idsToRemove) {
             situations.delete(id);
+            checksumCache.delete(id);
         }
     }
 
     public void clearAll() {
         logger.error("Deleting all data - should only be used in test!!!");
         situations.clear();
+        checksumCache.clear();
     }
 
     public Siri createServiceDelivery(String requestorId, String datasetId, String clientName, int maxSize) {
@@ -266,26 +272,48 @@ public class Situations extends SiriRepository<PtSituationElement> {
         Set<PtSituationElement> addedData = new HashSet<>();
 
         Counter alreadyExpiredCounter = new CounterImpl(0);
+        Counter ignoredCounter = new CounterImpl(0);
         sxList.forEach(situation -> {
             String key = createKey(datasetId, situation);
 
-            //TODO: Determine if newer situation has already been handled
-
-            long expiration = getExpiration(situation);
-            if (expiration > 0) { //expiration < 0 => already expired
-                situations.set(key, situation, expiration, TimeUnit.MILLISECONDS);
-                changes.add(key);
-                addedData.add(situation);
-            } else if (situations.containsKey(key)) {
-                // Situation is no longer valid
-                situations.delete(key);
+            String currentChecksum = null;
+            try {
+                currentChecksum = getChecksum(situation);
+            } catch (Exception e) {
+                //Ignore - data will be updated
             }
-            if (expiration < 0) {
-                alreadyExpiredCounter.increment();
+
+            String existingChecksum = checksumCache.get(key);
+            boolean updated;
+            if (existingChecksum != null) {
+                //Exists - compare values
+                updated =  !(currentChecksum.equals(existingChecksum));
+            } else {
+                //Does not exist
+                updated = true;
+            }
+
+            if (updated) {
+                long expiration = getExpiration(situation);
+                if (expiration > 0) { //expiration < 0 => already expired
+                    situations.set(key, situation, expiration, TimeUnit.MILLISECONDS);
+                    checksumCache.set(key, currentChecksum, expiration, TimeUnit.MILLISECONDS);
+                    changes.add(key);
+                    addedData.add(situation);
+                } else if (situations.containsKey(key)) {
+                    // Situation is no longer valid
+                    situations.delete(key);
+                    checksumCache.delete(key);
+                }
+                if (expiration < 0) {
+                    alreadyExpiredCounter.increment();
+                }
+            } else {
+                ignoredCounter.increment();
             }
 
         });
-        logger.info("Updated {} (of {}) :: Already expired: {},", changes.size(), sxList.size(), alreadyExpiredCounter.getValue());
+        logger.info("Updated {} (of {}) :: Already expired: {}, Unchanged: {}", changes.size(), sxList.size(), alreadyExpiredCounter.getValue(), ignoredCounter.getValue());
 
         metricsService.registerIncomingData(SiriDataType.SITUATION_EXCHANGE, datasetId, (id) -> getDatasetSize(id));
 

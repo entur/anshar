@@ -51,6 +51,10 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
     private IMap<String, EstimatedVehicleJourney> timetableDeliveries;
 
     @Autowired
+    @Qualifier("getEtChecksumMap")
+    private IMap<String,String> checksumCache;
+
+    @Autowired
     @Qualifier("getIdForPatternChangesMap")
     private IMap<String, String> idForPatternChanges;
 
@@ -118,12 +122,14 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
 
         for (String id : idsToRemove) {
             timetableDeliveries.delete(id);
+            checksumCache.delete(id);
         }
     }
 
     public void clearAll() {
         logger.error("Deleting all data - should only be used in test!!!");
         timetableDeliveries.clear();
+        checksumCache.clear();
     }
 
     @Autowired
@@ -441,16 +447,33 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
         etList.forEach(et -> {
             String key = createKey(datasetId, et);
 
-            EstimatedVehicleJourney existing = null;
-            if (!timetableDeliveries.containsKey(key)){
-                mapFutureRecordedCallsToEstimatedCalls(et);
+            String currentChecksum = null;
+            try {
+                currentChecksum = getChecksum(et);
+            } catch (Exception e) {
+                //Ignore - data will be updated
+            }
+
+            String existingChecksum = checksumCache.get(key);
+            boolean updated;
+            if (existingChecksum != null) {
+                //Exists - compare values
+                updated =  !(currentChecksum.equals(existingChecksum));
             } else {
-                existing = timetableDeliveries.get(key);
+                //Does not exist
+                updated = true;
             }
 
             boolean keep = false;
 
-            if (!isEqual(existing, et)) {
+            EstimatedVehicleJourney existing = null;
+            if (updated) {
+
+                if (!timetableDeliveries.containsKey(key)){
+                    mapFutureRecordedCallsToEstimatedCalls(et);
+                } else {
+                    existing = timetableDeliveries.get(key);
+                }
 
                 if (existing != null &&
                         (et.getRecordedAtTime() != null && existing.getRecordedAtTime() != null)) {
@@ -550,6 +573,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                         changes.add(key);
                         addedData.add(et);
                         timetableDeliveries.set(key, et, expiration, TimeUnit.MILLISECONDS);
+                        checksumCache.set(key, currentChecksum, expiration, TimeUnit.MILLISECONDS);
 
                         if (hasPatternChanges(et)) {
                             // Keep track of all valid ET with pattern-changes
@@ -557,6 +581,8 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                         }
 
                         idStartTimeMap.set(key, getFirstAimedTime(et), expiration, TimeUnit.MILLISECONDS);
+                    } else {
+                        System.err.println("Ignored");
                     }
                 } else {
                     outdatedCounter.increment();

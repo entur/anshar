@@ -123,6 +123,21 @@ public class ExtendedHazelcastService extends HazelCastService {
     }
 
     @Bean
+    public IMap<String, String> getSxChecksumMap() {
+        return hazelcast.getMap("anshar.sx.checksum.cache");
+    }
+
+    @Bean
+    public IMap<String, String> getEtChecksumMap() {
+        return hazelcast.getMap("anshar.et.checksum.cache");
+    }
+
+    @Bean
+    public IMap<String, String> getVmChecksumMap() {
+        return hazelcast.getMap("anshar.vm.checksum.cache");
+    }
+
+    @Bean
     public IMap<String, ZonedDateTime> getIdStartTimeMap() {
         return hazelcast.getMap("anshar.et.index.startTime");
     }

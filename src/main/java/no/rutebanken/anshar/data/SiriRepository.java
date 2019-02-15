@@ -82,7 +82,7 @@ abstract class SiriRepository<T> {
         return false;
     }
 
-    private static String getChecksum(Serializable object) throws IOException, NoSuchAlgorithmException {
+    static String getChecksum(Serializable object) throws IOException, NoSuchAlgorithmException {
         ByteArrayOutputStream baos = null;
         ObjectOutputStream oos = null;
         try {
