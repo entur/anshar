@@ -17,7 +17,6 @@ package no.rutebanken.anshar.data.collections;
 
 import com.hazelcast.config.SerializerConfig;
 import com.hazelcast.core.*;
-import com.hazelcast.nio.serialization.ByteArraySerializer;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.data.RequestorRefStats;
 import no.rutebanken.anshar.routes.outbound.OutboundSubscriptionSetup;
@@ -37,7 +36,6 @@ import uk.org.siri.siri20.ProductionTimetableDeliveryStructure;
 import uk.org.siri.siri20.PtSituationElement;
 import uk.org.siri.siri20.VehicleActivityStructure;
 
-import java.io.*;
 import java.math.BigInteger;
 import java.time.Instant;
 import java.time.ZonedDateTime;
@@ -59,41 +57,17 @@ public class ExtendedHazelcastService extends HazelCastService {
     @Override
     public List<SerializerConfig> getSerializerConfigs() {
 
-        return Arrays.asList(new SerializerConfig()
-                .setTypeClass(Object.class)
-                .setImplementation(new ByteArraySerializer() {
-                    @Override
-                    public byte[] write(Object object) throws IOException {
-                        try(ByteArrayOutputStream b = new ByteArrayOutputStream()){
-                            try(ObjectOutputStream o = new ObjectOutputStream(b)){
-                                o.writeObject(object);
-                            }
-                            return b.toByteArray();
-                        }
-                    }
+        return Arrays.asList(
+                new SerializerConfig()
+                    .setTypeClass(EstimatedVehicleJourney.class)
+                    .setImplementation(new KryoSerializer()),
+                new SerializerConfig()
+                    .setTypeClass(PtSituationElement.class)
+                    .setImplementation(new KryoSerializer()),
+                new SerializerConfig()
+                    .setTypeClass(VehicleActivityStructure.class)
+                    .setImplementation(new KryoSerializer())
 
-                    @Override
-                    public Object read(byte[] buffer) throws IOException {
-                        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(buffer);
-                        ObjectInputStream in = new ObjectInputStream(byteArrayInputStream);
-                        try {
-                            return in.readObject();
-                        } catch (ClassNotFoundException e) {
-                            e.printStackTrace();
-                        }
-                        return null;
-                    }
-
-                    @Override
-                    public int getTypeId() {
-                        return 1;
-                    }
-
-                    @Override
-                    public void destroy() {
-
-                    }
-                })
         );
     }
 
