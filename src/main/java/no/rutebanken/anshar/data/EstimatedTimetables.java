@@ -581,8 +581,6 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                         }
 
                         idStartTimeMap.set(key, getFirstAimedTime(et), expiration, TimeUnit.MILLISECONDS);
-                    } else {
-                        System.err.println("Ignored");
                     }
                 } else {
                     outdatedCounter.increment();
