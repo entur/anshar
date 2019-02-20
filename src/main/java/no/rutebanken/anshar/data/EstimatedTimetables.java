@@ -642,7 +642,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
         }
 
         ZonedDateTime lastTimestamp = ZonedDateTime.of(1, 1, 1, 0, 0, 0, 0, ZoneId.systemDefault());
-        BigInteger lastVisitNumber = BigInteger.ZERO;
+        int lastStopNumber = 0;
         List<Integer> updatedArrival = new ArrayList<>();
         List<Integer> updatedDeparture = new ArrayList<>();
 
@@ -651,13 +651,22 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
             for (EstimatedCall call : estimatedCalls.getEstimatedCalls()) {
 
                 // Ensure that we only update following stops
-                if (call.getVisitNumber().intValue() == (lastVisitNumber.intValue()+1)) {
+                int stopNumber;
+                if (call.getOrder() != null) {
+                    stopNumber = call.getOrder().intValue();
+                } else if (call.getVisitNumber() != null) {
+                    stopNumber = call.getVisitNumber().intValue();
+                } else {
+                    return;
+                }
+
+                if (stopNumber == (lastStopNumber+1)) {
 
                     if (call.getExpectedArrivalTime() != null && lastTimestamp.isAfter(call.getExpectedArrivalTime())) {
                         //Actual arrival is set to before departure from previous stop
                         logger.info("Previous stop departed after expected arrival for stop[{}] - updating from {} to {}", call.getVisitNumber(), call.getExpectedArrivalTime(), lastTimestamp);
                         call.setExpectedArrivalTime(lastTimestamp);
-                        updatedArrival.add(call.getVisitNumber().intValue());
+                        updatedArrival.add(stopNumber);
                     }
 
                     if (call.getExpectedArrivalTime() != null) {
@@ -670,7 +679,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                         //Actual arrival is set to before departure from previous stop
                         logger.info("Arrived after expected departure for stop [{}] - updating departure from {} to {}", call.getVisitNumber(), call.getExpectedDepartureTime(), lastTimestamp);
                         call.setExpectedDepartureTime(lastTimestamp);
-                        updatedDeparture.add(call.getVisitNumber().intValue());
+                        updatedDeparture.add(stopNumber);
                     }
 
                 }
@@ -680,7 +689,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                 } else {
                     lastTimestamp = call.getExpectedArrivalTime();
                 }
-                lastVisitNumber = call.getVisitNumber();
+                lastStopNumber = stopNumber;
             }
         }
 
