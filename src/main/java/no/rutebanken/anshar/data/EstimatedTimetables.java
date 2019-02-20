@@ -285,7 +285,14 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
      */
     private boolean hasPatternChanges(EstimatedVehicleJourney estimatedVehicleJourney) {
         if (estimatedVehicleJourney != null) {
+            String vehicleRef = null;
+            if (estimatedVehicleJourney.getVehicleRef() != null && estimatedVehicleJourney.getVehicleRef().getValue() != null) {
+                vehicleRef = estimatedVehicleJourney.getVehicleRef().getValue();
+            }
             if (estimatedVehicleJourney.isCancellation() != null && estimatedVehicleJourney.isCancellation()) {
+                if (vehicleRef != null) {
+                    logger.info("Cancellation: Journey cancelled for operator {}, vehicleRef [{}]", estimatedVehicleJourney.getDataSource(), vehicleRef);
+                }
                 return true;
             }
             if (estimatedVehicleJourney.isExtraJourney() != null && estimatedVehicleJourney.isExtraJourney()) {
@@ -295,6 +302,9 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                 List<EstimatedCall> estimatedCalls = estimatedVehicleJourney.getEstimatedCalls().getEstimatedCalls();
                 for (EstimatedCall estimatedCall : estimatedCalls) {
                     if (estimatedCall.isCancellation() != null && estimatedCall.isCancellation()) {
+                        if (vehicleRef != null) {
+                            logger.info("Cancellation: Stops cancelled for operator {}, vehicleRef [{}], first stopPointRef [{}]", estimatedVehicleJourney.getDataSource(), vehicleRef, estimatedCall.getStopPointRef().getValue());
+                        }
                         return true;
                     }
                 }
