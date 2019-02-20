@@ -291,7 +291,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
             }
             if (estimatedVehicleJourney.isCancellation() != null && estimatedVehicleJourney.isCancellation()) {
                 if (vehicleRef != null) {
-                    logger.info("Cancellation: Journey cancelled for operator {}, vehicleRef [{}]", estimatedVehicleJourney.getDataSource(), vehicleRef);
+                    logger.info("Cancellation:  Operator {}, vehicleRef [{}], Cancelled journey", estimatedVehicleJourney.getDataSource(), vehicleRef);
                 }
                 return true;
             }
@@ -300,14 +300,18 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
             }
             if (estimatedVehicleJourney.getEstimatedCalls() != null && estimatedVehicleJourney.getEstimatedCalls().getEstimatedCalls() != null) {
                 List<EstimatedCall> estimatedCalls = estimatedVehicleJourney.getEstimatedCalls().getEstimatedCalls();
+
+                ArrayList<String> stopPointRefs = new ArrayList<>();
                 for (EstimatedCall estimatedCall : estimatedCalls) {
                     if (estimatedCall.isCancellation() != null && estimatedCall.isCancellation()) {
-                        if (vehicleRef != null) {
-                            logger.info("Cancellation: Stops cancelled for operator {}, vehicleRef [{}], first stopPointRef [{}]", estimatedVehicleJourney.getDataSource(), vehicleRef, estimatedCall.getStopPointRef().getValue());
-                        }
-                        return true;
+                        stopPointRefs.add(estimatedCall.getStopPointRef().getValue());
                     }
                 }
+                boolean hasCancelledStops = !stopPointRefs.isEmpty();
+                if (hasCancelledStops && vehicleRef != null) {
+                    logger.info("Cancellation:  Operator {}, vehicleRef [{}], stopPointRefs {}", estimatedVehicleJourney.getDataSource(), vehicleRef, stopPointRefs);
+                }
+                return hasCancelledStops;
             }
         }
         return false;
