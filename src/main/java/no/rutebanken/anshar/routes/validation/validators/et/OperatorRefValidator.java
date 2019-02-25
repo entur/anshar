@@ -15,13 +15,10 @@
 
 package no.rutebanken.anshar.routes.validation.validators.et;
 
-import no.rutebanken.anshar.routes.validation.validators.CustomValidator;
+import no.rutebanken.anshar.routes.validation.validators.NsrGenericIdValidator;
 import no.rutebanken.anshar.routes.validation.validators.Validator;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import org.springframework.stereotype.Component;
-import org.w3c.dom.Node;
-
-import javax.xml.bind.ValidationEvent;
 
 import static no.rutebanken.anshar.routes.validation.validators.Constants.ESTIMATED_VEHICLE_JOURNEY;
 
@@ -31,25 +28,18 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.ESTIMA
  */
 @Validator(profileName = "norway", targetType = SiriDataType.ESTIMATED_TIMETABLE)
 @Component
-public class OperatorRefValidator extends CustomValidator {
+public class OperatorRefValidator extends NsrGenericIdValidator {
 
-    private static final String FIELDNAME = "OperatorRef";
-    private static final String path = ESTIMATED_VEHICLE_JOURNEY + "/" + FIELDNAME;
+    private static String path;
+
+    public OperatorRefValidator() {
+        FIELDNAME = "OperatorRef";
+        ID_PATTERN = "Operator";
+        path = ESTIMATED_VEHICLE_JOURNEY + "/" + FIELDNAME;
+    }
 
     @Override
     public String getXpath() {
         return path;
-    }
-
-    @Override
-    public ValidationEvent isValid(Node node) {
-        String nodeValue = getNodeValue(node);
-
-        if (nodeValue == null || nodeValue.length() != 3) {
-            //TODO: Check for valid Operator
-            return createEvent(node, FIELDNAME, "CODESPACE", nodeValue, ValidationEvent.WARNING);
-        }
-
-        return null;
     }
 }

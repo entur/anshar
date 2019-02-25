@@ -34,15 +34,15 @@ public class OperatorRefValidatorTest extends CustomValidatorTest {
     }
 
     @Test
-    public void testValidParticipant() throws Exception{
-        String xml = createXml(fieldName, "ENT");
+    public void testValidOperatorRef(){
+        String xml = createXml(fieldName, "ENT:Operator:123");
 
         assertNull("Valid "+fieldName+" flagged as invalid", validator.isValid(createXmlNode(xml)));
     }
 
     @Test
-    public void testInvalidParticipant() throws Exception{
-        String xml = createXml(fieldName, "N");
+    public void testInvalidOperatorRef() {
+        String xml = createXml(fieldName, "ENT");
 
         assertNotNull("Invalid "+fieldName+" flagged as valid", validator.isValid(createXmlNode(xml)));
     }
