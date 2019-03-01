@@ -85,13 +85,19 @@ public class BaneNorSiriStopAssignmentPopulater extends ValueAdapter implements 
         }
 
         List<StopTime> stopTimes = getStopTimes(datedVehicleJourneyRefValue);
+        String operator = estimatedVehicleJourney.getOperatorRef() != null ? estimatedVehicleJourney.getOperatorRef().getValue() : null;
         if (stopTimes == null) {
-            String operator = estimatedVehicleJourney.getOperatorRef() != null ? estimatedVehicleJourney.getOperatorRef().getValue() : null;
             logger.debug("Found no stopplaces for DatedVehicleJourneyRef = {}, Operator = {}", datedVehicleJourneyRefValue, operator);
             return false;
         }
         boolean addedAimedQuay = false;
         EstimatedVehicleJourney.EstimatedCalls estimatedCalls = estimatedVehicleJourney.getEstimatedCalls();
+
+        if (estimatedCalls == null) {
+            logger.debug("Found no estimatedCalls in DatedVehicleJourneyRef = {}, Operator = {}", datedVehicleJourneyRefValue, operator);
+            return false;
+        }
+
         for (EstimatedCall estimatedCall : estimatedCalls.getEstimatedCalls()) {
             if (estimatedCall.getStopPointRef() == null || estimatedCall.getOrder() == null) {
                 logger.debug("Got a call without stopPointRef ({}) or order {}", estimatedCall.getStopPointRef(), estimatedCall.getOrder());
@@ -138,17 +144,19 @@ public class BaneNorSiriStopAssignmentPopulater extends ValueAdapter implements 
     private String resolveServiceJourney(EstimatedVehicleJourney estimatedVehicleJourney) {
         String id = null;
 
-        String vehicleRef = estimatedVehicleJourney.getVehicleRef().getValue();
-        Set<String> serviceJourneyIds = getServiceJourney(vehicleRef);
-        if (serviceJourneyIds != null) {
-            ServiceDate serviceDate = getServiceDate(estimatedVehicleJourney);
-            int departureTimeAsSecondsOfDay = getDepartureTimeAsSecondsOfDay(estimatedVehicleJourney);
-            for (String serviceJourneyId : serviceJourneyIds) {
-                List<StopTime> stopTimes = getStopTimes(serviceJourneyId);
+        if (estimatedVehicleJourney.getVehicleRef() != null) {
+            String vehicleRef = estimatedVehicleJourney.getVehicleRef().getValue();
+            Set<String> serviceJourneyIds = getServiceJourney(vehicleRef);
+            if (serviceJourneyIds != null) {
+                ServiceDate serviceDate = getServiceDate(estimatedVehicleJourney);
+                int departureTimeAsSecondsOfDay = getDepartureTimeAsSecondsOfDay(estimatedVehicleJourney);
+                for (String serviceJourneyId : serviceJourneyIds) {
+                    List<StopTime> stopTimes = getStopTimes(serviceJourneyId);
 
-                if (getServiceDates(serviceJourneyId).contains(serviceDate) &&
-                        departureTimeAsSecondsOfDay == stopTimes.get(0).getArrivalTime()) {
-                    id = serviceJourneyId;
+                    if (getServiceDates(serviceJourneyId).contains(serviceDate) &&
+                            departureTimeAsSecondsOfDay == stopTimes.get(0).getArrivalTime()) {
+                        id = serviceJourneyId;
+                    }
                 }
             }
         }
