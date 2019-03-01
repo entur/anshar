@@ -15,6 +15,7 @@
 
 package no.rutebanken.anshar.routes.siri.processor;
 
+import no.rutebanken.anshar.routes.siri.processor.routedata.ServiceDate;
 import no.rutebanken.anshar.routes.siri.processor.routedata.StopTime;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import org.apache.commons.lang3.StringUtils;
@@ -22,9 +23,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.org.siri.siri20.*;
 
+import java.time.LocalTime;
+import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Set;
 
-import static no.rutebanken.anshar.routes.siri.processor.routedata.NetexUpdaterService.getStopTimes;
+import static no.rutebanken.anshar.routes.siri.processor.routedata.NetexUpdaterService.*;
 import static no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter.getMappedId;
 
 /**
@@ -67,12 +71,19 @@ public class BaneNorSiriStopAssignmentPopulater extends ValueAdapter implements 
     }
 
     private boolean populateStopAssignments(EstimatedVehicleJourney estimatedVehicleJourney) {
+
+        String datedVehicleJourneyRefValue;
         FramedVehicleJourneyRefStructure framedVehicleJourneyRef = estimatedVehicleJourney.getFramedVehicleJourneyRef();
-        if (framedVehicleJourneyRef == null) {
-            logger.debug("No FramedVehicleJourneyRef on journey");
+        if (framedVehicleJourneyRef != null) {
+            datedVehicleJourneyRefValue = framedVehicleJourneyRef.getDatedVehicleJourneyRef();
+        } else {
+            datedVehicleJourneyRefValue = resolveServiceJourney(estimatedVehicleJourney);
+        }
+
+        if (datedVehicleJourneyRefValue == null) {
             return false;
         }
-        String datedVehicleJourneyRefValue = framedVehicleJourneyRef.getDatedVehicleJourneyRef();
+
         List<StopTime> stopTimes = getStopTimes(datedVehicleJourneyRefValue);
         if (stopTimes == null) {
             String operator = estimatedVehicleJourney.getOperatorRef() != null ? estimatedVehicleJourney.getOperatorRef().getValue() : null;
@@ -122,6 +133,46 @@ public class BaneNorSiriStopAssignmentPopulater extends ValueAdapter implements 
             }
         }
         return addedAimedQuay;
+    }
+
+    private String resolveServiceJourney(EstimatedVehicleJourney estimatedVehicleJourney) {
+        String id = null;
+
+        String vehicleRef = estimatedVehicleJourney.getVehicleRef().getValue();
+        Set<String> serviceJourneyIds = getServiceJourney(vehicleRef);
+        if (serviceJourneyIds != null) {
+            ServiceDate serviceDate = getServiceDate(estimatedVehicleJourney);
+            int departureTimeAsSecondsOfDay = getDepartureTimeAsSecondsOfDay(estimatedVehicleJourney);
+            for (String serviceJourneyId : serviceJourneyIds) {
+                List<StopTime> stopTimes = getStopTimes(serviceJourneyId);
+
+                if (getServiceDates(serviceJourneyId).contains(serviceDate) &&
+                        departureTimeAsSecondsOfDay == stopTimes.get(0).getArrivalTime()) {
+                    id = serviceJourneyId;
+                }
+            }
+        }
+        return id;
+    }
+
+    private ServiceDate getServiceDate(EstimatedVehicleJourney estimatedVehicleJourney) {
+        ZonedDateTime departureTime = getFirstDepartureTime(estimatedVehicleJourney);
+        return new ServiceDate(departureTime.getYear(), departureTime.getMonthValue(), departureTime.getDayOfMonth());
+    }
+
+    private int getDepartureTimeAsSecondsOfDay(EstimatedVehicleJourney estimatedVehicleJourney) {
+        ZonedDateTime departureTime = getFirstDepartureTime(estimatedVehicleJourney);
+        return LocalTime.from(departureTime).toSecondOfDay();
+    }
+
+    private ZonedDateTime getFirstDepartureTime(EstimatedVehicleJourney estimatedVehicleJourney) {
+        ZonedDateTime departureTime;
+        if (estimatedVehicleJourney.getRecordedCalls() != null && !estimatedVehicleJourney.getRecordedCalls().getRecordedCalls().isEmpty()) {
+            departureTime = estimatedVehicleJourney.getRecordedCalls().getRecordedCalls().get(0).getAimedDepartureTime();
+        } else {
+            departureTime = estimatedVehicleJourney.getEstimatedCalls().getEstimatedCalls().get(0).getAimedDepartureTime();
+        }
+        return departureTime;
     }
 
     private QuayRefStructure createQuayRef(String value) {
