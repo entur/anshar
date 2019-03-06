@@ -207,4 +207,15 @@ public abstract class CustomValidator {
         String message = MessageFormat.format("Invalid attributes: {0} ", missingFields);
         return new ValidationEventImpl(severity, message, new ValidationEventLocatorImpl(node));
     }
+
+    /**
+     *
+     * @param node Node that is validated
+     * @param message Validation-message
+     * @param severity
+     * @return
+     */
+    protected ValidationEvent createCustomFieldEvent(Node node, String message, int severity) {
+        return new ValidationEventImpl(severity, message, new ValidationEventLocatorImpl(node));
+    }
 }
