@@ -157,7 +157,7 @@ public class IncreasingTimesValidator extends CustomValidator {
             throw new NegativeRuntimeException();
         }
 
-        if (departure < arrival) {
+        if (departure > 0 && departure < arrival) {
             // Negative dwell-time
             throw new NegativeDwelltimeException();
         }

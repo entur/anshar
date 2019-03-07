@@ -112,11 +112,6 @@ public class IncreasingTimesValidatorTest extends CustomValidatorTest {
             "            <ArrivalStatus>onTime</ArrivalStatus>\n" +
             "            <ArrivalPlatformName>6</ArrivalPlatformName>\n" +
             "            <ArrivalBoardingActivity>noAlighting</ArrivalBoardingActivity>\n" +
-            "            <AimedDepartureTime>2019-02-27T18:02:00+01:00</AimedDepartureTime>\n" +
-            "            <ExpectedDepartureTime>2019-02-27T18:02:00+01:00</ExpectedDepartureTime>\n" +
-            "            <DepartureStatus>onTime</DepartureStatus>\n" +
-            "            <DeparturePlatformName>6</DeparturePlatformName>\n" +
-            "            <DepartureBoardingActivity>boarding</DepartureBoardingActivity>\n" +
             "        </EstimatedCall>\n" +
             "    </EstimatedCalls>\n" +
             "    <IsCompleteStopSequence>true</IsCompleteStopSequence>\n" +
@@ -172,11 +167,6 @@ public class IncreasingTimesValidatorTest extends CustomValidatorTest {
                     "            <ArrivalStatus>onTime</ArrivalStatus>\n" +
                     "            <ArrivalPlatformName>6</ArrivalPlatformName>\n" +
                     "            <ArrivalBoardingActivity>noAlighting</ArrivalBoardingActivity>\n" +
-                    "            <AimedDepartureTime>2019-02-27T18:02:00+01:00</AimedDepartureTime>\n" +
-                    "            <ExpectedDepartureTime>2019-02-27T18:02:00+01:00</ExpectedDepartureTime>\n" +
-                    "            <DepartureStatus>onTime</DepartureStatus>\n" +
-                    "            <DeparturePlatformName>6</DeparturePlatformName>\n" +
-                    "            <DepartureBoardingActivity>boarding</DepartureBoardingActivity>\n" +
                     "        </EstimatedCall>\n" +
                     "    </EstimatedCalls>\n" +
                     "    <IsCompleteStopSequence>true</IsCompleteStopSequence>\n" +
@@ -233,11 +223,6 @@ public class IncreasingTimesValidatorTest extends CustomValidatorTest {
                     "            <ArrivalStatus>onTime</ArrivalStatus>\n" +
                     "            <ArrivalPlatformName>6</ArrivalPlatformName>\n" +
                     "            <ArrivalBoardingActivity>noAlighting</ArrivalBoardingActivity>\n" +
-                    "            <AimedDepartureTime>2019-02-27T18:02:00+01:00</AimedDepartureTime>\n" +
-                    "            <ExpectedDepartureTime>2019-02-27T18:02:00+01:00</ExpectedDepartureTime>\n" +
-                    "            <DepartureStatus>onTime</DepartureStatus>\n" +
-                    "            <DeparturePlatformName>6</DeparturePlatformName>\n" +
-                    "            <DepartureBoardingActivity>boarding</DepartureBoardingActivity>\n" +
                     "        </EstimatedCall>\n" +
                     "    </EstimatedCalls>\n" +
                     "    <IsCompleteStopSequence>true</IsCompleteStopSequence>\n" +
@@ -291,12 +276,7 @@ public class IncreasingTimesValidatorTest extends CustomValidatorTest {
                     "            <ExpectedArrivalTime>2019-02-27T18:01:00+01:00</ExpectedArrivalTime>\n" +
                     "            <ArrivalStatus>onTime</ArrivalStatus>\n" +
                     "            <ArrivalPlatformName>6</ArrivalPlatformName>\n" +
-                    "            <ArrivalBoardingActivity>noAlighting</ArrivalBoardingActivity>\n" +
-                    "            <AimedDepartureTime>2019-02-27T18:02:00+01:00</AimedDepartureTime>\n" +
-                    "            <ExpectedDepartureTime>2019-02-27T18:02:00+01:00</ExpectedDepartureTime>\n" +
-                    "            <DepartureStatus>onTime</DepartureStatus>\n" +
-                    "            <DeparturePlatformName>6</DeparturePlatformName>\n" +
-                    "            <DepartureBoardingActivity>boarding</DepartureBoardingActivity>\n" +
+                    "            <ArrivalBoardingActivity>alighting</ArrivalBoardingActivity>\n" +
                     "        </EstimatedCall>\n" +
                     "    </EstimatedCalls>\n" +
                     "    <IsCompleteStopSequence>true</IsCompleteStopSequence>\n" +
