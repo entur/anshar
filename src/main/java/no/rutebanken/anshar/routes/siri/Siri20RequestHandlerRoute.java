@@ -117,12 +117,6 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
                         .param().required(false).name("operation").endParam()
         ;
 
-        // Temporary route for logging raw inputdata from external subscriptions
-        from("jetty:http://0.0.0.0:" + configuration.getInboundPort() + "/anshar/tmplogger")
-                .to("file:" + configuration.getIncomingLogDirectory() + "/")
-                .routeId("admin.filelogger")
-        ;
-
         from("direct:process.incoming.request")
                 .to("log:incoming:" + getClass().getSimpleName() + "?showAll=true&multiline=true&showStreams=true")
                 .choice()
