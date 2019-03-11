@@ -49,8 +49,15 @@ public class BaneNorEtValueAdapters extends MappingAdapter {
          values (privateCode/trainNumber) are reused for each departure-date.
          */
         valueAdapters.add(new BaneNorRemoveExpiredJourneysPostProcessor());
+
+        // Rewrites stop-pattern based on plan-data from NSB which not always matches
         valueAdapters.add(new BaneNorSiriEtRewriter());
+
+        //Populates EstimatedCalls with StopAssignments to indicate platform-changes
         valueAdapters.add(new BaneNorSiriStopAssignmentPopulater());
+
+        //Ensures that arrival-/departure-times are always increasing
+        valueAdapters.add(new EnsureIncreasingTimesProcessor());
 
         return valueAdapters;
     }
