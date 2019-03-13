@@ -247,17 +247,25 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
             List<ServiceDate> serviceDates = getServiceDates(serviceJourneyId);
             if (serviceDates.contains(serviceDate)) {
                 boolean matchStopIdOnly = false;
+                Set<EstimatedCall> visitedCalls = new HashSet<>();
                 for (StopTime stopTime : stopTimes) {
                     for (EstimatedCall estimatedCall : estimatedCalls) {
+                        if (visitedCalls.contains(estimatedCall)) {
+                            continue;
+                        }
                         String stopId = getMappedStopId(estimatedCall.getStopPointRef());
 
-                        if (isMatch(matchStopIdOnly, stopTime, stopId, estimatedCall.getAimedArrivalTime(), estimatedCall.getAimedDepartureTime())) {
-                            if (!matchStopIdOnly) {
+                        boolean isExtraCall = (estimatedCall.isExtraCall() != null && estimatedCall.isExtraCall());
+
+                        if (isExtraCall || isMatch(matchStopIdOnly, stopTime, stopId, estimatedCall.getAimedArrivalTime(), estimatedCall.getAimedDepartureTime())) {
+                            if (!matchStopIdOnly & !isExtraCall) {
                                 //No longer check arrival-/departuretimes as they may deviate
                                 matchStopIdOnly = true;
                             }
                             List<EstimatedCall> calls = matches.getOrDefault(serviceJourneyId, new ArrayList<>());
                             calls.add(estimatedCall);
+
+                            visitedCalls.add(estimatedCall);
 
                             matches.put(serviceJourneyId, calls);
                             break;
@@ -302,18 +310,26 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
             List<ServiceDate> serviceDates = getServiceDates(serviceJourneyId);
             if (serviceDates.contains(serviceDate)) {
                 boolean matchStopIdOnly = false;
+                Set<RecordedCall> visitedCall = new HashSet<>();
                 for (StopTime stopTime : stopTimes) {
                     for (RecordedCall recordedCall : recordedCalls) {
+                        if (visitedCall.contains(recordedCall)) {
+                            continue;
+                        }
                         String stopId = getMappedStopId(recordedCall.getStopPointRef());
 
-                        if (isMatch(matchStopIdOnly, stopTime, stopId, recordedCall.getAimedArrivalTime(), recordedCall.getAimedDepartureTime())) {
+                        boolean isExtraCall = (recordedCall.isExtraCall() != null && recordedCall.isExtraCall());
 
-                            if (!matchStopIdOnly) {
+                        if (isExtraCall || isMatch(matchStopIdOnly, stopTime, stopId, recordedCall.getAimedArrivalTime(), recordedCall.getAimedDepartureTime())) {
+
+                            if (!matchStopIdOnly & !isExtraCall) {
                                 //No longer check arrival-/departuretimes as they may deviate
                                 matchStopIdOnly = true;
                             }
                             List<RecordedCall> calls = matches.getOrDefault(serviceJourneyId, new ArrayList<>());
                             calls.add(recordedCall);
+
+                            visitedCall.add(recordedCall);
 
                             matches.put(serviceJourneyId, calls);
                             break;

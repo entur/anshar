@@ -98,9 +98,27 @@ public class BaneNorSiriStopAssignmentPopulater extends ValueAdapter implements 
             return false;
         }
 
+        // We need to track number of ExtraCalls to find correct StopAssignment based on order.
+        // Since ExtraCalls are not planned (duh), they will not include StopAssignment
+        int extraCalls = 0;
+        if (estimatedVehicleJourney.getRecordedCalls() != null) {
+            for (RecordedCall recordedCall : estimatedVehicleJourney.getRecordedCalls().getRecordedCalls()) {
+                if (recordedCall.isExtraCall() != null && recordedCall.isExtraCall()) {
+                    extraCalls++;
+                }
+            }
+            if (extraCalls > 0) {
+                logger.info("Found {} ExtraCalls in RecordedCalls");
+            }
+        }
+
         for (EstimatedCall estimatedCall : estimatedCalls.getEstimatedCalls()) {
             if (estimatedCall.getStopPointRef() == null || estimatedCall.getOrder() == null) {
                 logger.debug("Got a call without stopPointRef ({}) or order {}", estimatedCall.getStopPointRef(), estimatedCall.getOrder());
+                continue;
+            }
+            if (estimatedCall.isExtraCall() != null && estimatedCall.isExtraCall()) {
+                extraCalls++;
                 continue;
             }
             String expectedQuay = getMappedId(estimatedCall.getStopPointRef().getValue());
@@ -118,7 +136,7 @@ public class BaneNorSiriStopAssignmentPopulater extends ValueAdapter implements 
                 stopAssignment = estimatedCall.getArrivalStopAssignment();
             }
             if (stopAssignment.getAimedQuayRef() == null || StringUtils.isEmpty(stopAssignment.getAimedQuayRef().getValue()) ) {
-                int sequence = order - 1; //Stops in GTFS starts with 0, while it starts with 1 in the EstimatedCall-structure
+                int sequence = order - 1 - extraCalls; //Stops in GTFS starts with 0, while it starts with 1 in the EstimatedCall-structure
                 if (stopTimes.size() > sequence) {
                     StopTime stopTime = stopTimes.get(sequence);
                     //Sometimes (when part of the route is in Sweden) the order of the call in the EstimatedCall does not match the stoptimes from route data
