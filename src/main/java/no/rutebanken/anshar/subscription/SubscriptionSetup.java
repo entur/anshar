@@ -17,6 +17,7 @@ package no.rutebanken.anshar.subscription;
 
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.subscription.helpers.FilterMapPresets;
+import no.rutebanken.anshar.subscription.helpers.DataNotReceivedAction;
 import no.rutebanken.anshar.subscription.helpers.RequestType;
 import no.rutebanken.anshar.subscription.helpers.SubscriptionPreset;
 import org.json.simple.JSONObject;
@@ -64,6 +65,16 @@ public class SubscriptionSetup implements Serializable {
     private String vehicleMonitoringRefValue;
     private boolean validation;
     private String restartTime;
+
+    private DataNotReceivedAction dataNotReceivedAction;
+
+    public DataNotReceivedAction getDataNotReceivedAction() {
+        return dataNotReceivedAction;
+    }
+
+    public void setDataNotReceivedAction(DataNotReceivedAction dataNotReceivedAction) {
+        this.dataNotReceivedAction = dataNotReceivedAction;
+    }
 
     public SubscriptionSetup() {
     }
@@ -454,6 +465,9 @@ public class SubscriptionSetup implements Serializable {
     public void setRestartTime(String restartTime) {
         this.restartTime = restartTime;
     }
+
+
+
 
     /**
      * Variant of equals that only compares fields crucial to detect updated subscription-config

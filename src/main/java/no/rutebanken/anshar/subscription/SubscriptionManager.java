@@ -260,6 +260,9 @@ public class SubscriptionManager {
         return lastActivity.get(subscriptionId) == null;
     }
 
+    public Instant getLastDataReceived(String subscriptionId) {
+        return dataReceived.get(subscriptionId);
+    }
 
     void forceRestart(String subscriptionId) {
         forceRestart.set(subscriptionId, subscriptionId);

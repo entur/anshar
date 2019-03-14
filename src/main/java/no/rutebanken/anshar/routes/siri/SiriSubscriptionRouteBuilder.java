@@ -17,14 +17,22 @@ package no.rutebanken.anshar.routes.siri;
 
 import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
 import no.rutebanken.anshar.config.AnsharConfiguration;
+import no.rutebanken.anshar.data.EstimatedTimetables;
 import no.rutebanken.anshar.routes.BaseRouteBuilder;
+import no.rutebanken.anshar.routes.health.HealthManager;
+import no.rutebanken.anshar.routes.siri.transformer.ApplicationContextHolder;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
+import no.rutebanken.anshar.subscription.helpers.DataNotReceivedAction;
 import no.rutebanken.anshar.subscription.helpers.RequestType;
+import org.apache.camel.Exchange;
+import org.apache.camel.component.http4.HttpMethods;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.ws.rs.core.MediaType;
 import java.time.Duration;
 import java.time.Instant;
 
@@ -37,12 +45,18 @@ public abstract class SiriSubscriptionRouteBuilder extends BaseRouteBuilder {
 
     SubscriptionSetup subscriptionSetup;
 
+    private Instant restartTriggered = Instant.MIN;
+
+    @Autowired
+    EstimatedTimetables estimatedTimetables;
+
     boolean hasBeenStarted;
 
     private Instant lastCheckStatus = Instant.now();
 
     public SiriSubscriptionRouteBuilder(AnsharConfiguration config, SubscriptionManager subscriptionManager) {
         super(config, subscriptionManager);
+        estimatedTimetables = ApplicationContextHolder.getContext().getBean(EstimatedTimetables.class);
     }
 
     String getTimeout() {
@@ -79,6 +93,13 @@ public abstract class SiriSubscriptionRouteBuilder extends BaseRouteBuilder {
         singletonFrom("quartz2://anshar/monitor_" + subscriptionSetup.getSubscriptionId() + "?fireNow=true&trigger.repeatInterval=" + 15000,
                 "monitor.subscription." + subscriptionSetup.getVendor())
                 .choice()
+                .when(p -> shouldPerformDataNotReceivedAction(p.getFromRouteId()))
+                    .log("Performing DataNotReceivedAction: " + subscriptionSetup)
+                    .setBody(simple(subscriptionSetup.getDataNotReceivedAction() != null ? subscriptionSetup.getDataNotReceivedAction().getJsonPostContent():""))
+                    .setHeader(Exchange.CONTENT_TYPE, constant(MediaType.APPLICATION_JSON))
+                    .setHeader(Exchange.HTTP_METHOD, constant(HttpMethods.POST))
+                    .to("log:datanotreceived:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
+                    .toD(subscriptionSetup.getDataNotReceivedAction() != null ? subscriptionSetup.getDataNotReceivedAction().getEndpoint():"empty", true)
                 .when(p -> shouldBeStarted(p.getFromRouteId()))
                     .log("Triggering start subscription: " + subscriptionSetup)
                     .process(p -> hasBeenStarted = true)
@@ -94,6 +115,42 @@ public abstract class SiriSubscriptionRouteBuilder extends BaseRouteBuilder {
                 .end()
         ;
 
+    }
+
+    private boolean shouldPerformDataNotReceivedAction(String routeId) {
+        if (!isLeader(routeId)) {
+            return false;
+        }
+        String subscriptionId = subscriptionSetup.getSubscriptionId();
+        if (subscriptionManager.isActiveSubscription(subscriptionId)) {
+            DataNotReceivedAction dataNotReceivedAction = subscriptionSetup.getDataNotReceivedAction();
+            if (dataNotReceivedAction != null && dataNotReceivedAction.isEnabled()) {
+                boolean isReceiving = subscriptionManager.isSubscriptionReceivingData(subscriptionId,
+                        dataNotReceivedAction.getInactivityMinutes() * 60);
+
+                if (!isReceiving) {
+                    Instant lastDataReceived = subscriptionManager.getLastDataReceived(subscriptionId);
+
+                    if (lastDataReceived != null && lastDataReceived.isBefore(restartTriggered)) {
+                        return false;
+                    }
+
+                    if (estimatedTimetables.getDatasetSize(subscriptionSetup.getDatasetId()) == 0) {
+                        return false;
+                    }
+
+                    //Clear data
+                    estimatedTimetables.clearAllByDatasetId(subscriptionSetup.getDatasetId());
+
+                    restartTriggered = Instant.now();
+
+                    logger.warn("Triggering DataNotReceivedAction: POST {} to {}", dataNotReceivedAction.getJsonPostContent(), dataNotReceivedAction.getEndpoint());
+
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private boolean shouldCheckStatus(String routeId) {
