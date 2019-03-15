@@ -310,12 +310,6 @@ public class SubscriptionManager {
                 //If active subscription has existed longer than "initial subscription duration" - restart
                 Instant activated = activatedTimestamp.get(subscriptionId);
                 if (activated != null) {
-                    if (activated.plusSeconds(
-                                activeSubscription.getDurationOfSubscription().getSeconds()).isBefore(Instant.now())) {
-                        logger.info("Subscription [{}] has lasted longer than initial subscription duration ", activeSubscription.toString());
-                        return false;
-                    }
-
                     if (activeSubscription.getRestartTime() != null && activeSubscription.getRestartTime().indexOf(":") > 0) {
                         // Allowing subscriptions to be restarted at specified time
                         ZonedDateTime restartTime = ZonedDateTime.of(LocalDate.now(), LocalTime.parse(activeSubscription.getRestartTime()), ZoneId.systemDefault());

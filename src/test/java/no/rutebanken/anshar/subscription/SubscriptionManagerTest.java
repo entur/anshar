@@ -43,7 +43,7 @@ public class SubscriptionManagerTest {
     private SubscriptionManager subscriptionManager;
 
     @Test
-    public void activeSubscriptionIsHealthy() throws InterruptedException {
+    public void activeSubscriptionIsHealthy()  {
         long subscriptionDurationSec = 1;
         SubscriptionSetup subscriptionSoonToExpire = createSubscription(subscriptionDurationSec);
         String subscriptionId = UUID.randomUUID().toString();
@@ -52,10 +52,6 @@ public class SubscriptionManagerTest {
         subscriptionManager.touchSubscription(subscriptionId);
 
         assertTrue(subscriptionManager.isSubscriptionHealthy(subscriptionId));
-
-        Thread.sleep(1000*subscriptionDurationSec * subscriptionManager.HEALTHCHECK_INTERVAL_FACTOR + 150);
-
-        assertFalse(subscriptionManager.isSubscriptionHealthy(subscriptionId));
     }
 
     @Test
