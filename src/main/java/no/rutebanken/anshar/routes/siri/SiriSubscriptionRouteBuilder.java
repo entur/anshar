@@ -124,7 +124,9 @@ public abstract class SiriSubscriptionRouteBuilder extends BaseRouteBuilder {
         String subscriptionId = subscriptionSetup.getSubscriptionId();
         if (subscriptionManager.isActiveSubscription(subscriptionId)) {
             DataNotReceivedAction dataNotReceivedAction = subscriptionSetup.getDataNotReceivedAction();
-            if (dataNotReceivedAction != null && dataNotReceivedAction.isEnabled()) {
+            if (dataNotReceivedAction != null) {
+                boolean enabled = dataNotReceivedAction.isEnabled();
+
                 boolean isReceiving = subscriptionManager.isSubscriptionReceivingData(subscriptionId,
                         dataNotReceivedAction.getInactivityMinutes() * 60);
 
@@ -144,9 +146,14 @@ public abstract class SiriSubscriptionRouteBuilder extends BaseRouteBuilder {
 
                     restartTriggered = Instant.now();
 
-                    logger.warn("Triggering DataNotReceivedAction: POST {} to {}", dataNotReceivedAction.getJsonPostContent(), dataNotReceivedAction.getEndpoint());
+                    if (enabled) {
+                        logger.warn("Triggering DataNotReceivedAction: POST {} to {}", dataNotReceivedAction.getJsonPostContent(), dataNotReceivedAction.getEndpoint());
+                    } else {
+                        logger.info("Should have triggered DataNotReceivedAction, but it has been disabled");
 
-                    return true;
+                    }
+
+                    return enabled & true;
                 }
             }
         }
