@@ -580,23 +580,27 @@ public class SubscriptionManager {
             dataReceived.put(subscriptionId, Instant.now());
 
             if (receivedByteCount > 0) {
-                this.receivedBytes.executeOnKey(subscriptionId, new EntryProcessor<String, Long>() {
-                    @Override
-                    public Object process(Map.Entry<String, Long> entry) {
-                        Long value = entry.getValue();
-                        if (value == null) {
-                            value = 0L;
+                if (receivedBytes.containsKey(subscriptionId)) {
+                    this.receivedBytes.executeOnKey(subscriptionId, new EntryProcessor<String, Long>() {
+                        @Override
+                        public Object process(Map.Entry<String, Long> entry) {
+                            Long value = entry.getValue();
+                            if (value == null) {
+                                value = 0L;
+                            }
+                            long newValue = value + receivedByteCount;
+                            entry.setValue(newValue);
+                            return newValue;
                         }
-                        long newValue = value + receivedByteCount;
-                        entry.setValue(newValue);
-                        return newValue;
-                    }
 
-                    @Override
-                    public EntryBackupProcessor<String, Long> getBackupProcessor() {
-                        return null;
-                    }
-                });
+                        @Override
+                        public EntryBackupProcessor<String, Long> getBackupProcessor() {
+                            return null;
+                        }
+                    });
+                } else {
+                    receivedBytes.put(subscriptionId, Long.valueOf(receivedByteCount));
+                }
             }
         }
     }
