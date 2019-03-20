@@ -17,10 +17,13 @@ package no.rutebanken.anshar.subscription;
 
 
 import com.hazelcast.core.IMap;
+import com.hazelcast.map.EntryBackupProcessor;
+import com.hazelcast.map.EntryProcessor;
 import no.rutebanken.anshar.data.*;
 import no.rutebanken.anshar.routes.health.HealthManager;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.subscription.helpers.RequestType;
+import org.apache.commons.io.FileUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -55,6 +58,10 @@ public class SubscriptionManager {
     @Autowired
     @Qualifier("getDataReceivedMap")
     private IMap<String, java.time.Instant> dataReceived;
+
+    @Autowired
+    @Qualifier("getReceivedBytesMap")
+    private IMap<String, Long> receivedBytes;
 
     @Autowired
     @Qualifier("getActivatedTimestampMap")
@@ -248,6 +255,9 @@ public class SubscriptionManager {
             logger.info("Pending subscription {} activated", subscriptions.get(subscriptionId));
             if (!dataReceived.containsKey(subscriptionId)) {
                 dataReceived(subscriptionId);
+            }
+            if (!receivedBytes.containsKey(subscriptionId)) {
+                receivedBytes.set(subscriptionId, 0L);
             }
             return true;
         }
@@ -480,6 +490,10 @@ public class SubscriptionManager {
         obj.put("hitcount",hitcount.get(setup.getSubscriptionId()));
         obj.put("objectcount", objectCounter.get(setup.getSubscriptionId()));
 
+        Long byteCount = receivedBytes.get(setup.getSubscriptionId());
+        obj.put("bytecount", byteCount);
+        obj.put("bytecountLabel", byteCount != null ? FileUtils.byteCountToDisplaySize(byteCount):null);
+
         JSONObject urllist = new JSONObject();
         for (RequestType s : setup.getUrlMap().keySet()) {
             urllist.put(s.name(), setup.getUrlMap().get(s));
@@ -558,9 +572,32 @@ public class SubscriptionManager {
     }
 
     public void dataReceived(String subscriptionId) {
+        dataReceived(subscriptionId, 0);
+    }
+    public void dataReceived(String subscriptionId, int receivedByteCount) {
         touchSubscription(subscriptionId);
         if (isActiveSubscription(subscriptionId)) {
             dataReceived.put(subscriptionId, Instant.now());
+
+            if (receivedByteCount > 0) {
+                this.receivedBytes.executeOnKey(subscriptionId, new EntryProcessor<String, Long>() {
+                    @Override
+                    public Object process(Map.Entry<String, Long> entry) {
+                        Long value = entry.getValue();
+                        if (value == null) {
+                            value = 0L;
+                        }
+                        long newValue = value + receivedByteCount;
+                        entry.setValue(newValue);
+                        return newValue;
+                    }
+
+                    @Override
+                    public EntryBackupProcessor<String, Long> getBackupProcessor() {
+                        return null;
+                    }
+                });
+            }
         }
     }
 

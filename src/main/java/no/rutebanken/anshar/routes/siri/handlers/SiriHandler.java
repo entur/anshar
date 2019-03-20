@@ -42,6 +42,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.UnmarshalException;
 import javax.xml.datatype.Duration;
 import javax.xml.stream.XMLStreamException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 
@@ -233,6 +234,13 @@ public class SiriHandler {
 
         if (subscriptionSetup != null) {
 
+            int receivedBytes;
+            try {
+                receivedBytes = xml.available();
+            } catch (IOException e) {
+                receivedBytes = 0;
+            }
+
             Siri originalInput = siriXmlValidator.parseXml(subscriptionSetup, xml);
 
             Siri incoming = SiriValueTransformer.transform(originalInput, subscriptionSetup.getMappingAdapters());
@@ -360,7 +368,7 @@ public class SiriHandler {
 
 
                 if (deliveryContainsData) {
-                    subscriptionManager.dataReceived(subscriptionId);
+                    subscriptionManager.dataReceived(subscriptionId, receivedBytes);
                 } else {
                     subscriptionManager.touchSubscription(subscriptionId);
                 }

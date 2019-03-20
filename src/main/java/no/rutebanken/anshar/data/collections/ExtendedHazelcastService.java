@@ -153,6 +153,12 @@ public class ExtendedHazelcastService extends HazelCastService {
 
 
     @Bean
+    public IMap<String, Long> getReceivedBytesMap() {
+        return hazelcast.getMap("anshar.subscriptions.data.received.bytes");
+    }
+
+
+    @Bean
     public IMap<String, Instant> getLastEtUpdateRequest() {
         return hazelcast.getMap("anshar.activity.last.et.update.request");
     }

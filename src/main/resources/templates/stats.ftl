@@ -49,7 +49,7 @@
             <#list body.types as type>
                 <table class="table">
                 <thead>
-                    <tr><th colspan="8"><h4>${type.typeName}</h4></th></tr>
+                    <tr><th colspan="9"><h4>${type.typeName}</h4></th></tr>
 
                     <tr>
                         <th>#</th>
@@ -59,7 +59,8 @@
                         <th>Vendor</th>
                         <th>Last data received</th>
                         <th>Requests</th>
-                        <th>Total objects received</th>
+                        <th>Objects received</th>
+                        <th>Bytes received</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -73,9 +74,10 @@
                             <td>${item.lastDataReceived!""} ${item.flagAsNotReceivingData?then("<span class=\"glyphicon glyphicon-alert text-warning\" title=\"Subscription is alive, but not receiving data\"></span>","")}</td>
                             <td align="right">${item.hitcount!0}</td>
                             <td align="right">${item.objectcount!0}</td>
+                            <td align="right">${item.bytecountLabel!""}</td>
                         </tr>
                         <tr id="accordion${type?counter}-${item?counter}" class="collapse ${item.healthy???then(item.healthy?then("success","danger"), "warning")}">
-                        <td colspan="8">
+                        <td colspan="9">
                             <table class="table table-striped">
                                 <tr><th>Dataset ID</th><td><a href="validation/${item.datasetId}" target="_blank">${item.datasetId}</a></td></tr>
                                 <tr><th>Vendor ID</th><td>${item.vendor}</td></tr>
