@@ -577,30 +577,11 @@ public class SubscriptionManager {
     public void dataReceived(String subscriptionId, int receivedByteCount) {
         touchSubscription(subscriptionId);
         if (isActiveSubscription(subscriptionId)) {
-            dataReceived.put(subscriptionId, Instant.now());
+            dataReceived.set(subscriptionId, Instant.now());
 
             if (receivedByteCount > 0) {
-                if (receivedBytes.containsKey(subscriptionId)) {
-                    this.receivedBytes.executeOnKey(subscriptionId, new EntryProcessor<String, Long>() {
-                        @Override
-                        public Object process(Map.Entry<String, Long> entry) {
-                            Long value = entry.getValue();
-                            if (value == null) {
-                                value = 0L;
-                            }
-                            long newValue = value + receivedByteCount;
-                            entry.setValue(newValue);
-                            return newValue;
-                        }
-
-                        @Override
-                        public EntryBackupProcessor<String, Long> getBackupProcessor() {
-                            return null;
-                        }
-                    });
-                } else {
-                    receivedBytes.put(subscriptionId, Long.valueOf(receivedByteCount));
-                }
+                receivedBytes.set(subscriptionId,
+                        receivedBytes.getOrDefault(subscriptionId, 0L) + receivedByteCount);
             }
         }
     }
