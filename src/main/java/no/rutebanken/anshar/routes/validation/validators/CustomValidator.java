@@ -190,7 +190,7 @@ public abstract class CustomValidator {
      * @param severity
      * @return
      */
-    private ValidationEvent createMissingFieldEvent(Node node, String fieldname, List<String> missingFields, int severity) {
+    protected ValidationEvent createMissingFieldEvent(Node node, String fieldname, List<String> missingFields, int severity) {
         String message = MessageFormat.format("Missing required attributes: {0} ", missingFields);
         return new ValidationEventImpl(severity, message, new ValidationEventLocatorImpl(node));
     }
