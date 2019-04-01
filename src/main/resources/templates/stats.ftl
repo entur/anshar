@@ -56,7 +56,7 @@
                         <th>Started</th>
                         <th>Ok</th>
                         <th class="col-md-2">Activated</th>
-                        <th class="col-md-4">Vendor</th>
+                        <th class="col-md-3">Vendor</th>
                         <th class="col-md-2">Last data received</th>
                         <th>Requests</th>
                         <th>Objects</th>
