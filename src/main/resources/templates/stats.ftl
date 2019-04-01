@@ -53,28 +53,42 @@
 
                     <tr>
                         <th>#</th>
-                        <th>Status</th>
-                        <th>Healthy</th>
-                        <th>Activated</th>
-                        <th>Vendor</th>
-                        <th>Last data received</th>
+                        <th>Started</th>
+                        <th>Ok</th>
+                        <th class="col-md-2">Activated</th>
+                        <th class="col-md-4">Vendor</th>
+                        <th class="col-md-2">Last data received</th>
                         <th>Requests</th>
-                        <th>Objects received</th>
-                        <th>Bytes received</th>
+                        <th>Objects</th>
+                        <th>Bytes</th>
                     </tr>
                 </thead>
                 <tbody>
                     <#list type.subscriptions?sort_by("vendor") as item>
                         <tr data-toggle="collapse" data-target="#accordion${type?counter}-${item?counter}" style="cursor: pointer" class="clickable ${item.healthy???then(item.healthy?then("success","danger"), "warning")}">
-                            <th>${item?counter}</th>
-                            <td>${item.status}</td>
-                            <td>${item.healthy???then(item.healthy?c,"")}</td>
-                            <td>${item.activated!""}</td>
-                            <td>${item.name}</td>
-                            <td>${item.lastDataReceived!""} ${item.flagAsNotReceivingData?then("<span class=\"glyphicon glyphicon-alert text-warning\" title=\"Subscription is alive, but not receiving data\"></span>","")}</td>
-                            <td align="right">${item.hitcount!0}</td>
-                            <td align="right">${item.objectcount!0}</td>
-                            <td align="right">${item.bytecountLabel!""}</td>
+                            <th style="vertical-align: middle">${item?counter}</th>
+                            <td align="center" style="vertical-align: middle">
+                                <#if item.status=='active'>
+                                    <span class="glyphicon glyphicon-ok-sign text-success"></span>
+                                <#else>
+                                    <span class="glyphicon glyphicon-minus-sign text-warning"></span>
+                                </#if>
+                            </td>
+                            <td align="center" style="vertical-align: middle">
+                                <#if item.healthy??>
+                                    <#if item.healthy>
+                                        <span class="glyphicon glyphicon-ok-sign text-success"></span>
+                                    <#else>
+                                        <span class="glyphicon glyphicon-remove-sign text-danger"></span>
+                                    </#if>
+                                </#if>
+                            </td>
+                            <td style="vertical-align: middle">${item.activated!""}</td>
+                            <td style="vertical-align: middle">${item.name}</td>
+                            <td style="vertical-align: middle">${item.lastDataReceived!""} ${item.flagAsNotReceivingData?then("<span class=\"glyphicon glyphicon-alert text-warning\" title=\"Subscription is alive, but not receiving data\"></span>","")}</td>
+                            <td align="right" style="vertical-align: middle">${item.hitcount!0}</td>
+                            <td align="right" style="vertical-align: middle">${item.objectcount!0}</td>
+                            <td align="right" style="vertical-align: middle">${item.bytecountLabel!""}</td>
                         </tr>
                         <tr id="accordion${type?counter}-${item?counter}" class="collapse ${item.healthy???then(item.healthy?then("success","danger"), "warning")}">
                         <td colspan="9">
