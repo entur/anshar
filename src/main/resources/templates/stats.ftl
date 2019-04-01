@@ -67,14 +67,14 @@
                     <#list type.subscriptions?sort_by("vendor") as item>
                         <tr data-toggle="collapse" data-target="#accordion${type?counter}-${item?counter}" style="cursor: pointer" class="clickable ${item.healthy???then(item.healthy?then("success","danger"), "warning")}">
                             <th style="vertical-align: middle">${item?counter}</th>
-                            <td align="center" style="vertical-align: middle">
+                            <td align="center" style="vertical-align: middle; font-size: larger">
                                 <#if item.status=='active'>
                                     <span class="glyphicon glyphicon-ok-sign text-success"></span>
                                 <#else>
                                     <span class="glyphicon glyphicon-minus-sign text-warning"></span>
                                 </#if>
                             </td>
-                            <td align="center" style="vertical-align: middle">
+                            <td align="center" style="vertical-align: middle; font-size: larger">
                                 <#if item.healthy??>
                                     <#if item.healthy>
                                         <span class="glyphicon glyphicon-ok-sign text-success"></span>
