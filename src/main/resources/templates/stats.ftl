@@ -58,9 +58,9 @@
                         <th class="col-md-2">Activated</th>
                         <th class="col-md-3">Vendor</th>
                         <th class="col-md-2">Last data received</th>
-                        <th>Requests</th>
-                        <th>Objects</th>
-                        <th>Bytes</th>
+                        <th>Requests<br />processed</th>
+                        <th>Objects<br />processed</th>
+                        <th>Bytes<br />processed</th>
                     </tr>
                 </thead>
                 <tbody>
