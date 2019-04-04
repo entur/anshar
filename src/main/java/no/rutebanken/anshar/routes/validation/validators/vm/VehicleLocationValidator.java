@@ -33,9 +33,9 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.MONITO
  */
 @Validator(profileName = "norway", targetType = SiriDataType.VEHICLE_MONITORING)
 @Component
-public class LocationValidator extends CustomValidator {
+public class VehicleLocationValidator extends CustomValidator {
 
-    private static final String FIELDNAME = "Location";
+    private static final String FIELDNAME = "VehicleLocation";
     private static final String srsNameAttributeNAme = "srsName";
 
     private static final String LAT_FIELDNAME = "Latitude";
@@ -53,13 +53,6 @@ public class LocationValidator extends CustomValidator {
 
     @Override
     public ValidationEvent isValid(Node node) {
-        String srsNameAttribute = getNodeAttributeValue(node, srsNameAttributeNAme);
-
-        if (srsNameAttribute != null && !srsNameAttribute.isEmpty()) {
-            if (!expectedValues.contains(srsNameAttribute)) {
-                return  createEvent(node, srsNameAttributeNAme, "one of " + expectedValues, srsNameAttribute, ValidationEvent.ERROR);
-            }
-        }
 
         String longitude = getChildNodeValue(node, LON_FIELDNAME);
         String latitude = getChildNodeValue(node, LAT_FIELDNAME);
@@ -67,12 +60,14 @@ public class LocationValidator extends CustomValidator {
 
         if (longitude != null && latitude != null) {
             Double lon = Double.parseDouble(longitude);
+            Double lat = Double.parseDouble(latitude);
+
             if (lon > 180 | lon < -180) {
                 return  createEvent(node, LON_FIELDNAME, "Valid longitude", longitude, ValidationEvent.FATAL_ERROR);
-            }
-            Double lat = Double.parseDouble(latitude);
-            if (lat > 90 | lat < -90) {
+            } else if (lat > 90 | lat < -90) {
                 return  createEvent(node, LAT_FIELDNAME, "Valid latitude", latitude, ValidationEvent.FATAL_ERROR);
+            } else if (lat == 0 | lon == 0) {
+                return  createEvent(node, FIELDNAME, "Valid location", "Latitude: " + latitude + ", Longitude: " + longitude, ValidationEvent.FATAL_ERROR);
             }
 
         } else if (coordinates != null) {
@@ -81,6 +76,13 @@ public class LocationValidator extends CustomValidator {
             return  createEvent(node, FIELDNAME, "Valid location", null, ValidationEvent.FATAL_ERROR);
         }
 
+        String srsNameAttribute = getNodeAttributeValue(node, srsNameAttributeNAme);
+
+        if (srsNameAttribute != null && !srsNameAttribute.isEmpty()) {
+            if (!expectedValues.contains(srsNameAttribute)) {
+                return  createEvent(node, srsNameAttributeNAme, "one of " + expectedValues, srsNameAttribute, ValidationEvent.ERROR);
+            }
+        }
 
 
         return null;

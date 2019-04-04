@@ -15,7 +15,7 @@
 
 package no.rutebanken.anshar.validation.vm;
 
-import no.rutebanken.anshar.routes.validation.validators.vm.LocationValidator;
+import no.rutebanken.anshar.routes.validation.validators.vm.VehicleLocationValidator;
 import no.rutebanken.anshar.validation.CustomValidatorTest;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -24,17 +24,17 @@ import javax.xml.bind.ValidationEvent;
 
 import static junit.framework.TestCase.*;
 
-public class LocationValidatorTest extends CustomValidatorTest {
+public class VehicleLocationValidatorTest extends CustomValidatorTest {
 
-    private static LocationValidator validator;
-    private String fieldName = "Location";
+    private static VehicleLocationValidator validator;
+    private String fieldName = "VehicleLocation";
     private final String srsAttributeFieldName = "srsName";
     private final String latFieldName = "Latitude";
     private final String lonFieldName = "Longitude";
 
     @BeforeClass
     public static void init() {
-        validator = new LocationValidator();
+        validator = new VehicleLocationValidator();
     }
 
     @Test
@@ -76,7 +76,7 @@ public class LocationValidatorTest extends CustomValidatorTest {
 
     @Test
     public void testInvalidSrsName() throws Exception {
-        String xml = createLocationXml("EPSG:32633", 0.0, 0.0);
+        String xml = createLocationXml("EPSG:32633", 10.0, 59.0);
 
         ValidationEvent valid = validator.isValid(createXmlNode(xml));
 
