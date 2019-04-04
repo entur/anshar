@@ -60,7 +60,7 @@
                         <th class="col-md-2">Last data received</th>
                         <th>Requests<br />processed</th>
                         <th>Objects<br />processed</th>
-                        <th>Bytes<br />processed</th>
+                        <th>Data<br />processed</th>
                     </tr>
                 </thead>
                 <tbody>
