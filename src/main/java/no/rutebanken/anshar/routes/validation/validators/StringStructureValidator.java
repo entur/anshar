@@ -25,9 +25,10 @@ import java.util.Set;
 public abstract class StringStructureValidator extends CustomValidator {
 
 
-    protected static String FIELDNAME;
+    protected String FIELDNAME;
 
     private static final String ATTRIBUTE = "lang";
+    private boolean required;
 
 
     @Override
@@ -47,7 +48,7 @@ public abstract class StringStructureValidator extends CustomValidator {
 
         boolean requireLangAttribute = (childNodesByName.size() > 1);
 
-        if (childNodesByName.isEmpty()) {
+        if (required && childNodesByName.isEmpty()) {
             return createEvent(node, FIELDNAME, "it to be set", null, ValidationEvent.FATAL_ERROR);
         }
 
@@ -61,7 +62,10 @@ public abstract class StringStructureValidator extends CustomValidator {
             }
 
             if (requireLangAttribute) {
-                final String lang = getNodeAttributeValue(textNode, ATTRIBUTE);
+                String lang = getNodeAttributeValue(textNode, ATTRIBUTE);
+                if (lang == null) {
+                    lang = getNodeAttributeValue(textNode, "xml:" + ATTRIBUTE);
+                }
                 if (lang == null || lang.isEmpty()) {
                     return createEvent(textNode, FIELDNAME, "lang-attribute when more than one " + FIELDNAME, lang, ValidationEvent.FATAL_ERROR);
                 } else if (foundLangAttributes.contains(lang)) {
