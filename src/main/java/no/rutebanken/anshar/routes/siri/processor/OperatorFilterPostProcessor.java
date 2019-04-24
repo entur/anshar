@@ -68,14 +68,17 @@ public class OperatorFilterPostProcessor extends ValueAdapter implements PostPro
                                                 if (lineRef != null) {
                                                     String operatorRef = et.getOperatorRef().getValue();
 
-                                                    String updatedOperatorRef;
+                                                    String updatedLineRef;
                                                     if (lineRef.contains(":Line:")) {
-                                                        updatedOperatorRef = lineRef;
+                                                        updatedLineRef = lineRef;
                                                     } else {
-                                                        updatedOperatorRef = operatorOverrideMapping.getOrDefault(operatorRef, operatorRef) + ":Line:" + lineRef;
+                                                        updatedLineRef = operatorOverrideMapping.getOrDefault(operatorRef, operatorRef) + ":Line:" + lineRef;
                                                     }
 
-                                                    et.getLineRef().setValue(lineRef + SiriValueTransformer.SEPARATOR + updatedOperatorRef);
+                                                    et.getLineRef().setValue(lineRef + SiriValueTransformer.SEPARATOR + updatedLineRef);
+
+                                                    // TODO: Should we also update OperatorRef?
+//                                                    et.getOperatorRef().setValue(operatorOverrideMapping.getOrDefault(operatorRef, operatorRef));
                                                 }
                                             }
                                         });
