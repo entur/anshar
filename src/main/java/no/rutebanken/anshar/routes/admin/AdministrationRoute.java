@@ -57,7 +57,6 @@ public class AdministrationRoute extends RestRouteBuilder {
         rest("/anshar").tag("internal.admin")
                 .get("/stats").produces(MediaType.TEXT_HTML).to("direct:stats")
                 .put("/stats").to("direct:operation")
-                .get("/subscriptions").produces(MediaType.TEXT_HTML).to("direct:subscriptions")
                 .get("/clusterstats").produces(MediaType.APPLICATION_JSON).to("direct:clusterstats")
                 .get("/unmapped").produces(MediaType.TEXT_HTML).to("direct:unmapped")
         ;
@@ -101,13 +100,6 @@ public class AdministrationRoute extends RestRouteBuilder {
         from("direct:start")
                 .bean(subscriptionManager, "startSubscription(${header.subscriptionId})")
                 .routeId("admin.start")
-        ;
-
-        //Return subscription status
-        from("direct:subscriptions")
-                .bean(serverSubscriptionManager, "getSubscriptionsAsJson")
-                .to("freemarker:templates/subscriptions.ftl")
-                .routeId("admin.subscriptions")
         ;
 
         //Return subscription status
