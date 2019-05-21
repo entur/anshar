@@ -51,6 +51,6 @@ public class EstimatedCallInvalidFieldsValidator extends CustomValidator {
 
     @Override
     public ValidationEvent isValid(Node node) {
-        return verifyNonExistingFields(node, FIELDNAME,"EarliestExpectedDepartureTime", "PredictionInaccurate", "VisitNumber");
+        return verifyNonExistingFields(node, FIELDNAME,"EarliestExpectedDepartureTime", "VisitNumber");
     }
 }

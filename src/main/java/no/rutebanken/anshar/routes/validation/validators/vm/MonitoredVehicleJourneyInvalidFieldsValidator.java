@@ -53,7 +53,6 @@ public class MonitoredVehicleJourneyInvalidFieldsValidator extends NsrQuayValida
                 "Via",
                 "JourneyNote",
                 "MonitoringError",
-                "InCongestion",
                 "InPanic",
                 "BlockRef",
                 "PreviousCalls",
