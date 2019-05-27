@@ -36,6 +36,11 @@ public class BaneNorEtValueAdapters extends MappingAdapter {
 
         Map<String, String> operatorOverrideMapping = new HashMap<>();
         operatorOverrideMapping.put("NG", "GJB");
+
+//        TODO: Possible necessary changes for NSB => VY
+//        operatorOverrideMapping.put("NSB", "VY");
+//        operatorOverrideMapping.put("NG", "VY");
+
         operatorOverrideMapping.put("FLY", "FLT");
         operatorOverrideMapping.put("SJ", "SJV");
 
