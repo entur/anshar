@@ -49,7 +49,7 @@ public class SubscriptionManager {
 
     @Autowired
     @Qualifier("getSubscriptionsMap")
-    private IMap<String, SubscriptionSetup> subscriptions;
+    public IMap<String, SubscriptionSetup> subscriptions;
 
     @Autowired
     @Qualifier("getLastActivityMap")

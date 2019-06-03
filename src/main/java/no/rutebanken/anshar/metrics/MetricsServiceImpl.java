@@ -20,6 +20,7 @@ import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.graphite.Graphite;
 import com.codahale.metrics.graphite.GraphiteReporter;
 import com.google.common.base.Strings;
+import io.micrometer.prometheus.PrometheusConfig;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
@@ -43,6 +44,8 @@ public class MetricsServiceImpl implements MetricsService {
     private final Graphite graphite;
 
     private final Object LOCK = new Object();
+
+    public PrometheusMetricsServiceImpl prometheusMetricsService = new PrometheusMetricsServiceImpl(PrometheusConfig.DEFAULT);
 
     public MetricsServiceImpl(String graphiteServerDns, int graphitePort) {
 
@@ -83,10 +86,16 @@ public class MetricsServiceImpl implements MetricsService {
         if (!metrics.getGauges().containsKey(counterName)) {
             metrics.gauge(counterName, () -> () -> function.apply(agencyId));
         }
+
+        prometheusMetricsService.registerIncomingData(subscriptionType, agencyId, function);
     }
 
     @Override
     public void registerSubscription(SubscriptionManager manager, SubscriptionSetup subscription) {
+        if (prometheusMetricsService.manager == null) {
+            prometheusMetricsService.manager = manager;
+        }
+
         String vendor = subscription.getVendor();
         String datasetId = subscription.getDatasetId();
         SiriDataType subscriptionType = subscription.getSubscriptionType();

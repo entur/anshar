@@ -192,7 +192,6 @@ public class SubscriptionInitializer implements CamelContextAware, ApplicationCo
         } else {
             logger.error("Subscriptions not configured correctly - no subscriptions will be started");
         }
-
     }
 
     List<RouteBuilder> getRouteBuilders(SubscriptionSetup subscriptionSetup) {
