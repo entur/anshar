@@ -86,8 +86,6 @@ public class MetricsServiceImpl implements MetricsService {
         if (!metrics.getGauges().containsKey(counterName)) {
             metrics.gauge(counterName, () -> () -> function.apply(agencyId));
         }
-
-        prometheusMetricsService.registerIncomingData(subscriptionType, agencyId, function);
     }
 
     @Override

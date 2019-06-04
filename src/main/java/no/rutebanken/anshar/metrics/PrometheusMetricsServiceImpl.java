@@ -17,20 +17,23 @@ package no.rutebanken.anshar.metrics;
 
 import com.hazelcast.core.IMap;
 import io.micrometer.core.instrument.ImmutableTag;
+import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.Tag;
 import io.micrometer.prometheus.PrometheusConfig;
 import io.micrometer.prometheus.PrometheusMeterRegistry;
+import no.rutebanken.anshar.data.EstimatedTimetables;
+import no.rutebanken.anshar.data.Situations;
+import no.rutebanken.anshar.data.VehicleActivities;
+import no.rutebanken.anshar.routes.siri.transformer.ApplicationContextHolder;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.util.*;
-import java.util.function.Function;
 import java.util.function.ToDoubleFunction;
 
 public class PrometheusMetricsServiceImpl extends PrometheusMeterRegistry {
@@ -38,6 +41,7 @@ public class PrometheusMetricsServiceImpl extends PrometheusMeterRegistry {
 
     private final String METRICS_PREFIX = "app.anshar.";
     protected SubscriptionManager manager;
+    private final String DATA_COUNTER_NAME = METRICS_PREFIX + "data";
 
     public PrometheusMetricsServiceImpl(PrometheusConfig config) {
         super(config);
@@ -52,27 +56,59 @@ public class PrometheusMetricsServiceImpl extends PrometheusMeterRegistry {
         this.close();
     }
 
-    final static Map<String, Integer> gaugeValues = new HashMap<>();
+    final Map<String, Integer> gaugeValues = new HashMap<>();
 
-    public void registerIncomingData(SiriDataType subscriptionType, String agencyId, Function<String, Integer> function) {
-        String counterName = METRICS_PREFIX + "data.type";
+    public void gaugeDataset(SiriDataType subscriptionType, String agencyId, Integer count) {
 
         List<Tag> counterTags = new ArrayList<>();
         counterTags.add(new ImmutableTag("dataType", subscriptionType.name()));
         counterTags.add(new ImmutableTag("agency", agencyId));
 
-        gaugeValues.put(counterName, function.apply(agencyId));
+        String key = "" + subscriptionType + agencyId;
+        gaugeValues.put(key, count);
 
-        gauge(counterName, counterTags, gaugeValues, (name) -> gaugeValues.get(counterName));
+        gauge(DATA_COUNTER_NAME, counterTags, key, value -> gaugeValues.get(key));
+    }
+
+    @Override
+    public String scrape() {
+        update();
+        return super.scrape();
     }
 
     public void update() {
+
+        for (Meter meter : getMeters()) {
+            if (DATA_COUNTER_NAME.equals(meter.getId().getName())) {
+                this.remove(meter);
+            }
+        }
+
+        long t = System.currentTimeMillis();
+        EstimatedTimetables estimatedTimetables = ApplicationContextHolder.getContext().getBean(EstimatedTimetables.class);
+        Map<String, Integer> datasetSize = estimatedTimetables.getLocalDatasetSize();
+        for (String codespaceId : datasetSize.keySet()) {
+            gaugeDataset(SiriDataType.ESTIMATED_TIMETABLE, codespaceId, datasetSize.get(codespaceId));
+        }
+
+        Situations situations = ApplicationContextHolder.getContext().getBean(Situations.class);
+        datasetSize = situations.getLocalDatasetSize();
+        for (String codespaceId : datasetSize.keySet()) {
+            gaugeDataset(SiriDataType.SITUATION_EXCHANGE, codespaceId, datasetSize.get(codespaceId));
+        }
+
+        VehicleActivities vehicleActivities = ApplicationContextHolder.getContext().getBean(VehicleActivities.class);
+        datasetSize = vehicleActivities.getLocalDatasetSize();
+        for (String codespaceId : datasetSize.keySet()) {
+            gaugeDataset(SiriDataType.VEHICLE_MONITORING, codespaceId, datasetSize.get(codespaceId));
+        }
+
+        logger.info("Calculating distribution: {} ms", (System.currentTimeMillis()-t));
+
         long t1 = System.currentTimeMillis();
         IMap<String, SubscriptionSetup> subscriptions = manager.subscriptions;
         for (SubscriptionSetup subscription : subscriptions.values()) {
 
-            String vendor = subscription.getVendor();
-            String datasetId = subscription.getDatasetId();
             SiriDataType subscriptionType = subscription.getSubscriptionType();
 
             //e.g.: subscription.ET.RUT.ruterEt.failing
@@ -85,21 +121,22 @@ public class PrometheusMetricsServiceImpl extends PrometheusMeterRegistry {
             List<Tag> counterTags = new ArrayList<>();
             counterTags.add(new ImmutableTag("dataType", subscriptionType.name()));
             counterTags.add(new ImmutableTag("agency", subscription.getDatasetId()));
+            counterTags.add(new ImmutableTag("vendor", subscription.getVendor()));
 
 
             //Flag as failing when ACTIVE, and NOT HEALTHY
-            gauge(gauge_failing, counterTags, (manager.isActiveSubscription(subscription.getSubscriptionId()) &&
-                    !manager.isSubscriptionHealthy(subscription.getSubscriptionId())) ? 1 : 0);
+            gauge(gauge_failing, getTagsWithTimeLimit(counterTags, "now"), subscription.getSubscriptionId(), value ->
+                    isSubscriptionFailing(manager, subscription, 0));
 
             //Set flag as data failing when ACTIVE, and NOT receiving data
 
-            gauge(gauge_data_failing + ".5min", getTagsWithTimeLimit(counterTags, "5min"), subscription.getSubscriptionId(), value ->
+            gauge(gauge_data_failing, getTagsWithTimeLimit(counterTags, "5min"), subscription.getSubscriptionId(), value ->
                     isSubscriptionFailing(manager, subscription, 5*60));
 
-            gauge(gauge_data_failing + ".15min", getTagsWithTimeLimit(counterTags, "15min"), subscription.getSubscriptionId(), value ->
+            gauge(gauge_data_failing, getTagsWithTimeLimit(counterTags, "15min"), subscription.getSubscriptionId(), value ->
                     isSubscriptionFailing(manager, subscription, 15*60));
 
-            gauge(gauge_data_failing + ".30min", getTagsWithTimeLimit(counterTags, "30min"), subscription.getSubscriptionId(), value ->
+            gauge(gauge_data_failing, getTagsWithTimeLimit(counterTags, "30min"), subscription.getSubscriptionId(), value ->
                     isSubscriptionFailing(manager, subscription, 30*60));
         }
         logger.info("Calculating metrics took {} ms", (System.currentTimeMillis()-t1));

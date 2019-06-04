@@ -97,6 +97,20 @@ public class Situations extends SiriRepository<PtSituationElement> {
     }
 
 
+    public Map<String, Integer> getLocalDatasetSize() {
+        Map<String, Integer> sizeMap = new HashMap<>();
+        long t1 = System.currentTimeMillis();
+        situations.localKeySet().forEach(key -> {
+            String datasetId = key.substring(0, key.indexOf(":"));
+
+            Integer count = sizeMap.getOrDefault(datasetId, 0);
+            sizeMap.put(datasetId, count+1);
+        });
+        logger.info("Calculating data-distribution (SX) took {} ms: {}", (System.currentTimeMillis()-t1), sizeMap);
+        return sizeMap;
+    }
+
+
     public Integer getDatasetSize(String datasetId) {
         return Math.toIntExact(situations.keySet().stream()
                 .filter(key -> datasetId.equals(key.substring(0, key.indexOf(":"))))

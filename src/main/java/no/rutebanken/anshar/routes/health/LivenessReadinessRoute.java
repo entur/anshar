@@ -123,7 +123,6 @@ public class LivenessReadinessRoute extends RestRouteBuilder {
         from("direct:scrape")
                 .process(p -> {
                     if (prometheusRegistry != null) {
-                        prometheusRegistry.update();
                         p.getOut().setBody(prometheusRegistry.scrape());
                     }
                 })
