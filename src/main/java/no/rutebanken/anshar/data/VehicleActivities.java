@@ -103,7 +103,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
             Integer count = sizeMap.getOrDefault(datasetId, 0);
             sizeMap.put(datasetId, count+1);
         });
-        logger.info("Calculating data-distribution (VM) took {} ms: {}", (System.currentTimeMillis()-t1), sizeMap);
+        logger.debug("Calculating data-distribution (VM) took {} ms: {}", (System.currentTimeMillis()-t1), sizeMap);
         return sizeMap;
     }
 

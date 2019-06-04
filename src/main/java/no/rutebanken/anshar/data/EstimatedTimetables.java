@@ -113,7 +113,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                         Integer count = sizeMap.getOrDefault(datasetId, 0);
                         sizeMap.put(datasetId, count+1);
                     });
-        logger.info("Calculating local data-distribution (ET) took {} ms: {}", (System.currentTimeMillis()-t1), sizeMap);
+        logger.debug("Calculating local data-distribution (ET) took {} ms: {}", (System.currentTimeMillis()-t1), sizeMap);
         return sizeMap;
     }
 
