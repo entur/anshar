@@ -126,7 +126,8 @@ public class PrometheusMetricsServiceImpl extends PrometheusMeterRegistry {
 
             //Flag as failing when ACTIVE, and NOT HEALTHY
             gauge(gauge_failing, getTagsWithTimeLimit(counterTags, "now"), subscription.getSubscriptionId(), value ->
-                    isSubscriptionFailing(manager, subscription, 0));
+                    (manager.isActiveSubscription(subscription.getSubscriptionId()) &&
+                            !manager.isSubscriptionHealthy(subscription.getSubscriptionId())) ? 1:0);
 
             //Set flag as data failing when ACTIVE, and NOT receiving data
 
