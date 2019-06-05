@@ -33,8 +33,10 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.PreDestroy;
 import java.io.IOException;
-import java.util.*;
-import java.util.function.ToDoubleFunction;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class PrometheusMetricsServiceImpl extends PrometheusMeterRegistry {
     private static final Logger logger = LoggerFactory.getLogger(PrometheusMetricsServiceImpl.class);
@@ -125,27 +127,28 @@ public class PrometheusMetricsServiceImpl extends PrometheusMeterRegistry {
 
 
             //Flag as failing when ACTIVE, and NOT HEALTHY
-            gauge(gauge_failing, getTagsWithTimeLimit(counterTags, "now"), subscription.getSubscriptionId(), value ->
+            gauge(gauge_failing, getTagsWithTimeLimit(counterTags, "now", subscription.getVendor()), subscription.getSubscriptionId(), value ->
                     (manager.isActiveSubscription(subscription.getSubscriptionId()) &&
                             !manager.isSubscriptionHealthy(subscription.getSubscriptionId())) ? 1:0);
 
             //Set flag as data failing when ACTIVE, and NOT receiving data
 
-            gauge(gauge_data_failing, getTagsWithTimeLimit(counterTags, "5min"), subscription.getSubscriptionId(), value ->
+            gauge(gauge_data_failing, getTagsWithTimeLimit(counterTags, "5min", subscription.getVendor()), subscription.getSubscriptionId(), value ->
                     isSubscriptionFailing(manager, subscription, 5*60));
 
-            gauge(gauge_data_failing, getTagsWithTimeLimit(counterTags, "15min"), subscription.getSubscriptionId(), value ->
+            gauge(gauge_data_failing, getTagsWithTimeLimit(counterTags, "15min", subscription.getVendor()), subscription.getSubscriptionId(), value ->
                     isSubscriptionFailing(manager, subscription, 15*60));
 
-            gauge(gauge_data_failing, getTagsWithTimeLimit(counterTags, "30min"), subscription.getSubscriptionId(), value ->
+            gauge(gauge_data_failing, getTagsWithTimeLimit(counterTags, "30min", subscription.getVendor()), subscription.getSubscriptionId(), value ->
                     isSubscriptionFailing(manager, subscription, 30*60));
         }
         logger.info("Calculating metrics took {} ms", (System.currentTimeMillis()-t1));
     }
 
-    private List<Tag> getTagsWithTimeLimit(List<Tag> counterTags, String timeLimit) {
+    private List<Tag> getTagsWithTimeLimit(List<Tag> counterTags, String timeLimit, String vendor) {
         List<Tag> counterTagsClone = new ArrayList<>(counterTags);
         counterTagsClone.add(new ImmutableTag("timelimit", timeLimit));
+        counterTagsClone.add(new ImmutableTag("vendor", vendor));
         return counterTagsClone;
     }
 
