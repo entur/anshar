@@ -17,7 +17,6 @@ package no.rutebanken.anshar.data;
 
 import com.hazelcast.core.IMap;
 import no.rutebanken.anshar.config.AnsharConfiguration;
-import no.rutebanken.anshar.metrics.MetricsService;
 import no.rutebanken.anshar.routes.mqtt.SiriVmMqttHandler;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.subscription.SiriDataType;
@@ -60,9 +59,6 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
 
     @Autowired
     private SiriObjectFactory siriObjectFactory;
-
-    @Autowired
-    private MetricsService metricsService;
 
     @Autowired
     private AnsharConfiguration configuration;
@@ -323,8 +319,6 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
                 });
 
         logger.info("Updated {} (of {}) :: Ignored elements - Missing location:{}, Missing values: {}, Skipped: {}", changes.size(), vmList.size(), invalidLocationCounter.getValue(), notMeaningfulCounter.getValue(), outdatedCounter.getValue());
-
-        metricsService.registerIncomingData(SiriDataType.VEHICLE_MONITORING, datasetId, (id) -> getDatasetSize(id));
 
         changesMap.keySet().forEach(requestor -> {
             if (lastUpdateRequested.get(requestor) != null) {

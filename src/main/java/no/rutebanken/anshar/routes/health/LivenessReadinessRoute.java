@@ -16,10 +16,6 @@
 package no.rutebanken.anshar.routes.health;
 
 import com.hazelcast.core.ISet;
-import io.micrometer.prometheus.PrometheusConfig;
-import io.micrometer.prometheus.PrometheusMeterRegistry;
-import no.rutebanken.anshar.metrics.MetricsService;
-import no.rutebanken.anshar.metrics.MetricsServiceImpl;
 import no.rutebanken.anshar.metrics.PrometheusMetricsServiceImpl;
 import no.rutebanken.anshar.routes.RestRouteBuilder;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
@@ -85,8 +81,6 @@ public class LivenessReadinessRoute extends RestRouteBuilder {
     private SubscriptionManager subscriptionManager;
 
     @Autowired
-    private MetricsService metricsService;
-
     private PrometheusMetricsServiceImpl prometheusRegistry;
 
     public static boolean triggerRestart;
@@ -95,9 +89,6 @@ public class LivenessReadinessRoute extends RestRouteBuilder {
     private void init() {
         startMonitorTime = LocalTime.parse(startMonitorTimeStr);
         endMonitorTime = LocalTime.parse(endMonitorTimeStr);
-        if (metricsService instanceof MetricsServiceImpl) {
-            prometheusRegistry = ((MetricsServiceImpl) metricsService).prometheusMetricsService;
-        }
     }
 
     @Override

@@ -17,7 +17,6 @@ package no.rutebanken.anshar.data;
 
 import com.hazelcast.core.IMap;
 import no.rutebanken.anshar.config.AnsharConfiguration;
-import no.rutebanken.anshar.metrics.MetricsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,9 +44,6 @@ public class ProductionTimetables extends SiriRepository<ProductionTimetableDeli
     @Autowired
     @Qualifier("getLastPtUpdateRequest")
     private IMap<String, Instant> lastUpdateRequested;
-
-    @Autowired
-    private MetricsService metricsService;
 
     @Autowired
     private AnsharConfiguration configuration;
@@ -152,8 +148,6 @@ public class ProductionTimetables extends SiriRepository<ProductionTimetableDeli
                 //Newer update has already been processed
             }
         });
-
-//        metricsService.registerIncomingData(SiriDataType.PRODUCTION_TIMETABLE, datasetId, timetableDeliveries);
 
         changesMap.keySet().forEach(requestor -> {
             if (lastUpdateRequested.get(requestor) != null) {

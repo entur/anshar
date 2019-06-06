@@ -17,7 +17,6 @@ package no.rutebanken.anshar.data;
 
 import com.hazelcast.core.IMap;
 import no.rutebanken.anshar.config.AnsharConfiguration;
-import no.rutebanken.anshar.metrics.MetricsService;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter;
 import no.rutebanken.anshar.subscription.SiriDataType;
@@ -30,7 +29,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 import uk.org.siri.siri20.*;
 
-import java.math.BigInteger;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -69,9 +67,6 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
     @Autowired
     @Qualifier("getLastEtUpdateRequest")
     private IMap<String, Instant> lastUpdateRequested;
-
-    @Autowired
-    private MetricsService metricsService;
 
     @Autowired
     private AnsharConfiguration configuration;
@@ -617,7 +612,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
         });
 
         logger.info("Updated {} (of {}), {} outdated, {} without changes", changes.size(), etList.size(), outdatedCounter.getValue(), notUpdatedCounter.getValue());
-        metricsService.registerIncomingData(SiriDataType.ESTIMATED_TIMETABLE, datasetId, (id) -> getDatasetSize(id));
+//        metricsService.registerIncomingData(SiriDataType.ESTIMATED_TIMETABLE, datasetId, (id) -> getDatasetSize(id));
 
         changesMap.keySet().forEach(requestor -> {
             if (lastUpdateRequested.get(requestor) != null) {

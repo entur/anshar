@@ -30,6 +30,8 @@ import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.PreDestroy;
 import java.io.IOException;
@@ -38,19 +40,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Component
 public class PrometheusMetricsServiceImpl extends PrometheusMeterRegistry {
     private static final Logger logger = LoggerFactory.getLogger(PrometheusMetricsServiceImpl.class);
 
     private final String METRICS_PREFIX = "app.anshar.";
+
+    @Autowired
     protected SubscriptionManager manager;
+
     private final String DATA_COUNTER_NAME = METRICS_PREFIX + "data";
 
-    public PrometheusMetricsServiceImpl(PrometheusConfig config) {
-        super(config);
-    }
-
-    public void setSubscriptionManager(SubscriptionManager manager) {
-        this.manager = manager;
+    public PrometheusMetricsServiceImpl() {
+        super(PrometheusConfig.DEFAULT);
     }
 
     @PreDestroy

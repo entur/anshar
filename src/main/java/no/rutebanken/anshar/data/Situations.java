@@ -17,7 +17,6 @@ package no.rutebanken.anshar.data;
 
 import com.hazelcast.core.IMap;
 import no.rutebanken.anshar.config.AnsharConfiguration;
-import no.rutebanken.anshar.metrics.MetricsService;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import org.quartz.utils.counter.Counter;
@@ -61,9 +60,6 @@ public class Situations extends SiriRepository<PtSituationElement> {
 
     @Autowired
     private SiriObjectFactory siriObjectFactory;
-
-    @Autowired
-    private MetricsService metricsService;
 
     @Autowired
     private AnsharConfiguration configuration;
@@ -328,8 +324,6 @@ public class Situations extends SiriRepository<PtSituationElement> {
 
         });
         logger.info("Updated {} (of {}) :: Already expired: {}, Unchanged: {}", changes.size(), sxList.size(), alreadyExpiredCounter.getValue(), ignoredCounter.getValue());
-
-        metricsService.registerIncomingData(SiriDataType.SITUATION_EXCHANGE, datasetId, (id) -> getDatasetSize(id));
 
         changesMap.keySet().forEach(requestor -> {
             if (lastUpdateRequested.get(requestor) != null) {
