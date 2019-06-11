@@ -15,7 +15,6 @@
 
 package no.rutebanken.anshar.routes.siri.adapters;
 
-import no.rutebanken.anshar.routes.siri.processor.RuterDatedVehicleRefPostProcessor;
 import no.rutebanken.anshar.routes.siri.processor.RuterMetroRoundSecondsPostProcessor;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
@@ -31,7 +30,7 @@ public class RuterMetroValueAdapters extends MappingAdapter {
     public List<ValueAdapter> getValueAdapters(SubscriptionSetup subscriptionSetup) {
 
         List<ValueAdapter> valueAdapters = new ArrayList<>();
-        valueAdapters.add(new RuterDatedVehicleRefPostProcessor());
+//        valueAdapters.add(new RuterDatedVehicleRefPostProcessor());
 
         valueAdapters.addAll(createNsrIdMappingAdapters(subscriptionSetup.getSubscriptionType(), subscriptionSetup.getDatasetId(), subscriptionSetup.getIdMappingPrefixes()));
 

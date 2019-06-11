@@ -15,7 +15,6 @@
 
 package no.rutebanken.anshar.routes.siri.adapters;
 
-import no.rutebanken.anshar.routes.siri.processor.RuterDatedVehicleRefPostProcessor;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.routes.siri.transformer.impl.LeftPaddingAdapter;
 import no.rutebanken.anshar.routes.siri.transformer.impl.RuterSubstringAdapter;
@@ -40,7 +39,7 @@ public class RuterValueAdapters extends MappingAdapter {
                 valueAdapters.add(new RuterSubstringAdapter(StopPointRef.class, ':', '0', 2));
                 valueAdapters.add(new RuterSubstringAdapter(JourneyPlaceRefStructure.class, ':', '0', 2));
                 valueAdapters.add(new RuterSubstringAdapter(DestinationRef.class, ':', '0', 2));
-                valueAdapters.add(new RuterDatedVehicleRefPostProcessor());
+//                valueAdapters.add(new RuterDatedVehicleRefPostProcessor());
 
         valueAdapters.addAll(createNsrIdMappingAdapters(subscriptionSetup.getSubscriptionType(), subscriptionSetup.getDatasetId(), subscriptionSetup.getIdMappingPrefixes()));
 
