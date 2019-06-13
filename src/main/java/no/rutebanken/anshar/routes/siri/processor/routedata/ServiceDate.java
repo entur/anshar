@@ -1,5 +1,6 @@
 package no.rutebanken.anshar.routes.siri.processor.routedata;
 
+import java.time.ZonedDateTime;
 import java.util.Objects;
 
 public class ServiceDate {
@@ -11,6 +12,10 @@ public class ServiceDate {
         this.year = year;
         this.month = month;
         this.day = day;
+    }
+
+    public ServiceDate(ZonedDateTime departureTime) {
+        this(departureTime.getYear(), departureTime.getMonthValue(), departureTime.getDayOfMonth());
     }
 
     @Override
@@ -30,10 +35,6 @@ public class ServiceDate {
 
     @Override
     public String toString() {
-        return "ServiceDate{" +
-                "year=" + year +
-                ", month=" + month +
-                ", day=" + day +
-                '}';
+        return "ServiceDate[" + year + "-" + month + "-" + day + "]";
     }
 }

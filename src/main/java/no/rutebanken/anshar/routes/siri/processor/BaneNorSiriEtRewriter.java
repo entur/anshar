@@ -71,7 +71,32 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
                                 String etTrainNumber = estimatedVehicleJourney.getVehicleRef().getValue();
 
                                 if (isKnownTrainNr(etTrainNumber )) {
-                                    restructuredJourneyList.put(etTrainNumber, reStructureEstimatedJourney(estimatedVehicleJourney, etTrainNumber));
+
+                                    boolean foundMatch = false;
+                                    ZonedDateTime firstDepartureTime = getFirstDepartureTime(estimatedVehicleJourney);
+                                    ServiceDate serviceDate = new ServiceDate(firstDepartureTime);
+
+                                    if (estimatedVehicleJourney.isExtraJourney() != null && estimatedVehicleJourney.isExtraJourney()) {
+                                        //Extra journey - ignore comparison to planned data
+                                        foundMatch = true;
+                                    } else {
+                                        Set<String> serviceJourneys = getServiceJourney(etTrainNumber);
+                                        for (String serviceJourney : serviceJourneys) {
+                                            List<ServiceDate> serviceDates = getServiceDates(serviceJourney);
+                                            if (serviceDates.contains(serviceDate)) {
+                                                foundMatch = true;
+                                                break;
+                                            }
+                                        }
+                                    }
+
+
+                                    if (foundMatch) {
+                                        restructuredJourneyList.put(etTrainNumber, reStructureEstimatedJourney(estimatedVehicleJourney, etTrainNumber));
+                                    } else {
+                                        logger.warn("Ignoring realtime-data for departure not found in NeTEx for given day - train number {}, {}", etTrainNumber, serviceDate);
+                                    }
+
                                 }  else if (etTrainNumber.length() == 5 && (etTrainNumber.startsWith("905") | etTrainNumber.startsWith("908"))) {
                                     //Extra journey - map EstimatedCall as the original train
                                     String extraTrainOriginalTrainNumber = etTrainNumber.substring(2);
@@ -146,17 +171,12 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
 
     private List<EstimatedVehicleJourney> reStructureEstimatedJourney(EstimatedVehicleJourney estimatedVehicleJourney, String etTrainNumber) {
         List<EstimatedVehicleJourney> restructuredJourneyList = new ArrayList<>();
-        ZonedDateTime departureTime;
-        if (estimatedVehicleJourney.getRecordedCalls() != null && !estimatedVehicleJourney.getRecordedCalls().getRecordedCalls().isEmpty()) {
-            departureTime = estimatedVehicleJourney.getRecordedCalls().getRecordedCalls().get(0).getAimedDepartureTime();
-        } else {
-            departureTime = estimatedVehicleJourney.getEstimatedCalls().getEstimatedCalls().get(0).getAimedDepartureTime();
-        }
+        ZonedDateTime departureTime = getFirstDepartureTime(estimatedVehicleJourney);
 
         Map<String, List<EstimatedCall>> remappedEstimatedCalls = new HashMap<>();
         Map<String, List<RecordedCall>> recordedTrip = new HashMap<>();
         if (departureTime != null) {
-            ServiceDate serviceDate = new ServiceDate(departureTime.getYear(), departureTime.getMonthValue(), departureTime.getDayOfMonth());
+            ServiceDate serviceDate = new ServiceDate(departureTime);
             recordedTrip.putAll(remapRecordedCalls(serviceDate, etTrainNumber, estimatedVehicleJourney.getRecordedCalls()));
             remappedEstimatedCalls.putAll(remapEstimatedCalls(serviceDate, etTrainNumber, estimatedVehicleJourney.getEstimatedCalls()));
         }
@@ -213,6 +233,16 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
             }
         }
         return restructuredJourneyList;
+    }
+
+    private ZonedDateTime getFirstDepartureTime(EstimatedVehicleJourney estimatedVehicleJourney) {
+        ZonedDateTime departureTime;
+        if (estimatedVehicleJourney.getRecordedCalls() != null && !estimatedVehicleJourney.getRecordedCalls().getRecordedCalls().isEmpty()) {
+            departureTime = estimatedVehicleJourney.getRecordedCalls().getRecordedCalls().get(0).getAimedDepartureTime();
+        } else {
+            departureTime = estimatedVehicleJourney.getEstimatedCalls().getEstimatedCalls().get(0).getAimedDepartureTime();
+        }
+        return departureTime;
     }
 
     private Map<String, List<EstimatedCall>> remapEstimatedCalls(ServiceDate serviceDate, String etTrainNumber, EstimatedVehicleJourney.EstimatedCalls estimatedCallsWrapper) {

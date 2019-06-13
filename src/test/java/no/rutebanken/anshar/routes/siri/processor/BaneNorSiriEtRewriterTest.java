@@ -17,6 +17,7 @@ import java.time.temporal.ChronoField;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static junit.framework.TestCase.assertFalse;
 import static no.rutebanken.anshar.routes.siri.processor.BaneNorSiriStopAssignmentPopulaterTest.unmarshallSiriFile;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -32,7 +33,7 @@ public class BaneNorSiriEtRewriterTest {
         rewriter = new BaneNorSiriEtRewriter();
     }
 
-    @Ignore
+    @Ignore("Ignored because of excessive memory-usage which breaks CircleCI")
     @Test
     public void testMapping() throws Exception {
         logger.info("Reads routedata...");
@@ -44,12 +45,23 @@ public class BaneNorSiriEtRewriterTest {
 //                "src/test/resources/rb_gjb-aggregated-gtfs.zip",
 //                "src/test/resources/rb_flt-aggregated-gtfs.zip");
 
-        Siri siri = unmarshallSiriFile("src/test/resources/siri-et-gir-npe.xml");
-//        Siri siri = unmarshallSiriFile("src/test/resources/siri-et-from-bnr.xml");
+//        Siri siri = unmarshallSiriFile("src/test/resources/siri-et-gir-npe.xml");
+        Siri siri = unmarshallSiriFile("src/test/resources/siri-et-from-bnr.xml");
         HashMap<String, List<String>> trainNumbersToStopsBefore = mapTrainNumbersToStops(siri);
 
         rewriter.process(siri);
         HashMap<String, List<String>> trainNumbersToStopsAfter = mapTrainNumbersToStops(siri);
+
+        // Trainnumber 861 and 863 are NOT in NeTEx-data - they should NOT be included in trainNumbersToStopsAfter
+        assertTrue(trainNumbersToStopsBefore.containsKey("861"));
+        assertFalse(trainNumbersToStopsAfter.containsKey("861"));
+
+        assertTrue(trainNumbersToStopsBefore.containsKey("863"));
+        assertFalse(trainNumbersToStopsAfter.containsKey("863"));
+
+        // Remove from trainNumbersToStopsBefore before content-comparison
+        trainNumbersToStopsBefore.remove("861");
+        trainNumbersToStopsBefore.remove("863");
 
         assertEquals(trainNumbersToStopsBefore.size(), trainNumbersToStopsAfter.size());
         for (Map.Entry<String, List<String>> before : trainNumbersToStopsBefore.entrySet()) {
@@ -64,6 +76,28 @@ public class BaneNorSiriEtRewriterTest {
                         "\n  After : {}", beforeStops, afterStops);
             }
         }
+
+    }
+
+    @Test
+    public void testIgnoreUnknownDepartures() throws Exception {
+        logger.info("Reads routedata...");
+        NetexUpdaterService.update("src/test/resources/rb_nsb-aggregated-netex.zip",
+                "src/test/resources/RailStations.zip");
+        Siri siri = unmarshallSiriFile("src/test/resources/siri-et-from-bnr.xml");
+
+        HashMap<String, List<String>> trainNumbersToStopsBefore = mapTrainNumbersToStops(siri);
+
+        rewriter.process(siri);
+
+        HashMap<String, List<String>> trainNumbersToStopsAfter = mapTrainNumbersToStops(siri);
+
+        // Trainnumber 861 and 863 are NOT in NeTEx-data - they should NOT be included in trainNumbersToStopsAfter
+        assertTrue(trainNumbersToStopsBefore.containsKey("861"));
+        assertFalse(trainNumbersToStopsAfter.containsKey("861"));
+
+        assertTrue(trainNumbersToStopsBefore.containsKey("863"));
+        assertFalse(trainNumbersToStopsAfter.containsKey("863"));
 
     }
 
