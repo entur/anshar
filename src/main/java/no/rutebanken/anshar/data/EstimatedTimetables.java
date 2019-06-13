@@ -299,7 +299,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
             }
             if (estimatedVehicleJourney.isCancellation() != null && estimatedVehicleJourney.isCancellation()) {
                 if (vehicleRef != null) {
-                    logger.info("Cancellation:  Operator {}, vehicleRef [{}], Cancelled journey", estimatedVehicleJourney.getDataSource(), vehicleRef);
+                    logger.info("Cancellation:  Operator {}, vehicleRef {}, Cancelled journey", estimatedVehicleJourney.getDataSource(), vehicleRef);
                 }
                 return true;
             }
@@ -317,7 +317,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                 }
                 boolean hasCancelledStops = !stopPointRefs.isEmpty();
                 if (hasCancelledStops && vehicleRef != null) {
-                    logger.info("Cancellation:  Operator {}, vehicleRef [{}], stopPointRefs {}", estimatedVehicleJourney.getDataSource(), vehicleRef, stopPointRefs);
+                    logger.info("Cancellation:  Operator {}, vehicleRef {}, stopPointRefs {}", estimatedVehicleJourney.getDataSource(), vehicleRef, stopPointRefs);
                 }
                 return hasCancelledStops;
             }
