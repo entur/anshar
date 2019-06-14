@@ -183,9 +183,13 @@ public class NetexProcessor {
                     if (AllVehicleModesOfTransportEnumeration.RAIL.equals(sj.getTransportMode())) {
                         if (sj.getPrivateCode() != null) {
                             String trainNumber = sj.getPrivateCode().getValue();
-                            Set<String> trips = trainNumberTrips.getOrDefault(trainNumber, new HashSet<>());
-                            trips.add(sj.getId());
-                            trainNumberTrips.put(trainNumber, trips);
+                            if (sj.getServiceAlteration() != null && sj.getServiceAlteration() == ServiceAlterationEnumeration.CANCELLATION) {
+                                //Ignore planned cancellations
+                            } else {
+                                Set<String> trips = trainNumberTrips.getOrDefault(trainNumber, new HashSet<>());
+                                trips.add(sj.getId());
+                                trainNumberTrips.put(trainNumber, trips);
+                            }
                         }
                         if (sj.getJourneyPatternRef() != null && sj.getJourneyPatternRef().getValue() != null) {
                             journeyPatternIdByServiceJourneyId.put(sj.getId(), sj.getJourneyPatternRef().getValue().getRef());
