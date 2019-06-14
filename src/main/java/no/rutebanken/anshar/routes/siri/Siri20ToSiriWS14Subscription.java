@@ -75,6 +75,7 @@ public class Siri20ToSiriWS14Subscription extends SiriSubscriptionRouteBuilder {
                 .removeHeaders("CamelHttp*") // Remove any incoming HTTP headers as they interfere with the outgoing definition
                 .setHeader(Exchange.CONTENT_TYPE, constant(subscriptionSetup.getContentType())) // Necessary when talking to Microsoft web services
                 .setHeader(Exchange.HTTP_METHOD, constant(HttpMethods.POST))
+                .process(addCustomHeaders())
                 .to("log:sent:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .doTry()
                     .to(getCamelUrl(urlMap.get(RequestType.SUBSCRIBE), getTimeout()))
@@ -133,6 +134,7 @@ public class Siri20ToSiriWS14Subscription extends SiriSubscriptionRouteBuilder {
                 .removeHeaders("CamelHttp*") // Remove any incoming HTTP headers as they interfere with the outgoing definition
                 .setHeader(Exchange.CONTENT_TYPE, constant(subscriptionSetup.getContentType())) // Necessary when talking to Microsoft web services
                 .setHeader(Exchange.HTTP_METHOD, constant(org.apache.camel.component.http4.HttpMethods.POST))
+                .process(addCustomHeaders())
                 .to("log:sent:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .to(getCamelUrl(urlMap.get(RequestType.DELETE_SUBSCRIPTION), getTimeout()))
                 .choice().when(simple("${in.body} != null"))

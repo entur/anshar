@@ -16,6 +16,8 @@ anshar:
       incrementalUpdates:
       urlMap:
         GET_VEHICLE_MONITORING: https4://api.entur.org/anshar/1.0/anshar/services
+      customHeaders:
+        ET-Client-Name: anshar-default-VM-client
       version: 2.0
       contentType: text/xml;charset=UTF-8
       subscriptionId: anshar-example-${random.uuid}
@@ -44,6 +46,8 @@ anshar:
       urlMap:
         SUBSCRIBE: https4://api.entur.org/anshar/1.0/anshar/subscribe
         DELETE_SUBSCRIPTION: https4://api.entur.org/anshar/1.0/anshar/subscribe
+      customHeaders:
+        ET-Client-Name: anshar-default-ET-client
       version: 2.0
       contentType: text/xml;charset=UTF-8
       subscriptionId: anshar-example-${random.uuid}
@@ -72,6 +76,8 @@ anshar:
       urlMap:
         SUBSCRIBE: https4://api.entur.org/anshar/1.0/anshar/subscribe
         DELETE_SUBSCRIPTION: https4://api.entur.org/anshar/1.0/anshar/subscribe
+      customHeaders:
+        ET-Client-Name: anshar-default-SX-client
       version: 2.0
       contentType: text/xml;charset=UTF-8
       subscriptionId: anshar-example-${random.uuid}

@@ -20,6 +20,8 @@
 |  CHECK_STATUS|localhost:8080/siri/service/checkstatus.xml|URL used to check status|
 |  GET_VEHICLE_MONITORING|localhost:8080/siri/vm |URL to SIRI VM-ServiceRequest|
 |  GET_SITUATION_EXCHANGE|localhost:8080/siri/sx |URL to SIRI SX-ServiceRequest|
+|customHeaders|header-name : header:value |List of headers that will be aded to all outgoing requests for subscription.|
+|  header-name: header-value | | |
 |version|1.4, 2.0  |SIRI-version remote service implements|
 |subscriptionId|Random uuid|Unique ID used to identify subscription|
 |requestorRef|Any String, may be provided by remote serviceprovider |Used to identify against remote server|

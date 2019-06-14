@@ -19,13 +19,13 @@ import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.data.EstimatedTimetables;
 import no.rutebanken.anshar.routes.BaseRouteBuilder;
-import no.rutebanken.anshar.routes.health.HealthManager;
 import no.rutebanken.anshar.routes.siri.transformer.ApplicationContextHolder;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import no.rutebanken.anshar.subscription.helpers.DataNotReceivedAction;
 import no.rutebanken.anshar.subscription.helpers.RequestType;
 import org.apache.camel.Exchange;
+import org.apache.camel.Processor;
 import org.apache.camel.component.http4.HttpMethods;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,6 +74,17 @@ public abstract class SiriSubscriptionRouteBuilder extends BaseRouteBuilder {
 
     String getTimeToLive() {
         return config.getTimeToLive();
+    }
+
+
+    protected Processor addCustomHeaders() {
+        return exchange -> {
+            if (subscriptionSetup.getCustomHeaders() != null && !subscriptionSetup.getCustomHeaders().isEmpty()) {
+                exchange.getOut().setHeaders(exchange.getIn().getHeaders());
+                exchange.getOut().setBody(exchange.getIn().getBody());
+                exchange.getOut().setHeaders(subscriptionSetup.getCustomHeaders());
+            }
+        };
     }
 
     void initTriggerRoutes() {

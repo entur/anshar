@@ -16,8 +16,8 @@
 package no.rutebanken.anshar.subscription;
 
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
-import no.rutebanken.anshar.subscription.helpers.FilterMapPresets;
 import no.rutebanken.anshar.subscription.helpers.DataNotReceivedAction;
+import no.rutebanken.anshar.subscription.helpers.FilterMapPresets;
 import no.rutebanken.anshar.subscription.helpers.RequestType;
 import no.rutebanken.anshar.subscription.helpers.SubscriptionPreset;
 import org.json.simple.JSONObject;
@@ -54,6 +54,7 @@ public class SubscriptionSetup implements Serializable {
     private boolean dataSupplyRequestForInitialDelivery;
     private SubscriptionMode subscriptionMode;
     private Map<Class, Set<Object>> filterMap;
+    private Map<String, Object> customHeaders;
     private List<String> idMappingPrefixes;
     private String mappingAdapterId;
     private SubscriptionPreset[] filterMapPresets;
@@ -466,8 +467,13 @@ public class SubscriptionSetup implements Serializable {
         this.restartTime = restartTime;
     }
 
+    public Map<String, Object> getCustomHeaders() {
+        return customHeaders;
+    }
 
-
+    public void setCustomHeaders(Map<String, Object> customHeaders) {
+        this.customHeaders = customHeaders;
+    }
 
     /**
      * Variant of equals that only compares fields crucial to detect updated subscription-config
