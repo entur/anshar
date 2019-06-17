@@ -82,7 +82,8 @@ public abstract class SiriSubscriptionRouteBuilder extends BaseRouteBuilder {
             if (subscriptionSetup.getCustomHeaders() != null && !subscriptionSetup.getCustomHeaders().isEmpty()) {
                 exchange.getOut().setHeaders(exchange.getIn().getHeaders());
                 exchange.getOut().setBody(exchange.getIn().getBody());
-                exchange.getOut().setHeaders(subscriptionSetup.getCustomHeaders());
+                exchange.getOut().setMessageId(exchange.getIn().getMessageId());
+                exchange.getOut().getHeaders().putAll(subscriptionSetup.getCustomHeaders());
             }
         };
     }
