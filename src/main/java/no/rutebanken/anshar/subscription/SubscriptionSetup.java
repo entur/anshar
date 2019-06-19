@@ -68,6 +68,7 @@ public class SubscriptionSetup implements Serializable {
     private String restartTime;
 
     private DataNotReceivedAction dataNotReceivedAction;
+    private String validationFilter;
 
     public DataNotReceivedAction getDataNotReceivedAction() {
         return dataNotReceivedAction;
@@ -345,6 +346,18 @@ public class SubscriptionSetup implements Serializable {
 
     public void setValidation(boolean validation) {
         this.validation = validation;
+        if (!this.validation) {
+            //Reset validationFilter when validation is disabled
+            setValidationFilter(null);
+        }
+    }
+
+    public void setValidationFilter(String validationFilter) {
+        this.validationFilter = validationFilter;
+    }
+
+    public String getValidationFilter() {
+        return validationFilter;
     }
 
     public enum ServiceType {SOAP, REST}

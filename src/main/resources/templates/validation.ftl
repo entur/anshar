@@ -9,10 +9,33 @@
     <script>
         function toggleValidation(id) {
 
+
             var uri = "toggle?subscriptionId="+id;
+
+            var filterValue = findGetParameter("filter");
+
+            if (filterValue) {
+                uri += "&filter="+filterValue;
+
+                console.log("Adding custom filter for validation: " + filterValue)
+            }
+
             var xhr = new XMLHttpRequest();
             xhr.open('PUT', uri, true);
             xhr.send(null);
+        }
+
+        function findGetParameter(parameterName) {
+            var result = null,
+                tmp = [];
+            location.search
+                .substr(1)
+                .split("&")
+                .forEach(function (item) {
+                    tmp = item.split("=");
+                    if (tmp[0] === parameterName) result = decodeURIComponent(tmp[1]);
+                });
+            return result;
         }
     </script>
 

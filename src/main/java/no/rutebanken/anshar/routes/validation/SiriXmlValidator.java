@@ -185,6 +185,13 @@ public class SiriXmlValidator extends ApplicationContextHolder{
 
                         String originalXml = writer.toString();
 
+                        if (subscriptionSetup.getValidationFilter() != null && !subscriptionSetup.getValidationFilter().isEmpty()) {
+                            if (!originalXml.contains(subscriptionSetup.getValidationFilter())) {
+                                logger.info("Incoming XML does not contain \"{}\", skip validation for this request.", subscriptionSetup.getValidationFilter());
+                                return;
+                            }
+                        }
+
                         StringReader sr= new StringReader(originalXml);
 
                         SiriValidationEventHandler handler = new SiriValidationEventHandler();
