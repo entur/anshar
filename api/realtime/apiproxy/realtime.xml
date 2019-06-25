@@ -10,7 +10,6 @@
         <Policy>flowCallout.replaceTargetUrl</Policy>
         <Policy>spikeArrest</Policy>
         <Policy>raiseFault.forAdminEndpoints</Policy>
-        <Policy>flowCallout.generalSecurityHeaders</Policy>
     </Policies>
     <ProxyEndpoints>
         <ProxyEndpoint>realtime-v1</ProxyEndpoint>
