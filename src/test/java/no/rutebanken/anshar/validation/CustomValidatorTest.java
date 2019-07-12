@@ -19,16 +19,24 @@ import no.rutebanken.anshar.routes.validation.validators.CustomValidator;
 import org.junit.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import javax.xml.bind.ValidationEvent;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
 import static junit.framework.TestCase.*;
 
 public class CustomValidatorTest {
+
+    XPathFactory xpathFactory = XPathFactory.newInstance();
+    XPath xpath = xpathFactory.newXPath();
 
     protected String createXml(String fieldName, String value) {
         return "<" + fieldName + ">" + value + "</" + fieldName + ">";
@@ -91,5 +99,19 @@ public class CustomValidatorTest {
         assertNotNull(event);
         assertTrue(event.getMessage().contains("invalidElement"));
         assertFalse(event.getMessage().contains("allowedElement"));
+    }
+
+    protected Document createXmlDocument(String xml) throws Exception {
+        DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder builder = builderFactory.newDocumentBuilder();
+
+        InputStream stream = new ByteArrayInputStream(xml.getBytes("utf-8"));
+
+        return builder.parse(stream);
+
+    }
+
+    protected NodeList getMatchingNodelist(Document xmlDocument, String ruteXpath) throws XPathExpressionException {
+        return (NodeList) xpath.evaluate(ruteXpath, xmlDocument, XPathConstants.NODESET);
     }
 }

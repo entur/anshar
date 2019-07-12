@@ -28,7 +28,7 @@ public class Constants {
 
     public static final String AFFECTED_NETWORK = AFFECTS + "/Networks/AffectedNetwork";
     public static final String AFFECTED_LINE = AFFECTED_NETWORK + "/AffectedLine";
-    public static final String AFFECTED_ROUTE = AFFECTED_LINE + "/Routes";
+    public static final String AFFECTED_ROUTE = AFFECTED_LINE + "/Routes/AffectedRoute";
 
     public static final String AFFECTED_STOP_POINT = AFFECTS + "/StopPoints/AffectedStopPoint";
     public static final String AFFECTED_STOP_PLACE = AFFECTS + "/StopPlaces/AffectedStopPlace";
