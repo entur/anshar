@@ -44,11 +44,17 @@ public class OutboundIdAdapter extends ValueAdapter {
     }
 
     public static String getOriginalId(String text) {
-        return text.substring(0, text.indexOf(SiriValueTransformer.SEPARATOR));
+        if (text.contains(SiriValueTransformer.SEPARATOR)) {
+            return text.substring(0, text.indexOf(SiriValueTransformer.SEPARATOR));
+        }
+        return text;
     }
 
     public static String getMappedId(String text) {
-        return text.substring(text.indexOf(SiriValueTransformer.SEPARATOR)+1);
+        if (text.contains(SiriValueTransformer.SEPARATOR)) {
+            return text.substring(text.indexOf(SiriValueTransformer.SEPARATOR) + 1);
+        }
+        return text;
     }
 
     @Override
