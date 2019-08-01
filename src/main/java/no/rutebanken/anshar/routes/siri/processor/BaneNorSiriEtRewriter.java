@@ -17,6 +17,7 @@ package no.rutebanken.anshar.routes.siri.processor;
 
 import no.rutebanken.anshar.routes.siri.processor.routedata.ServiceDate;
 import no.rutebanken.anshar.routes.siri.processor.routedata.StopTime;
+import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +29,7 @@ import java.util.*;
 
 import static no.rutebanken.anshar.routes.siri.processor.routedata.NetexUpdaterService.*;
 import static no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer.SEPARATOR;
+import static no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter.getOriginalId;
 
 /**
  * Rewrites the SIRI ET-feed from BaneNOR to match the planned routes received from NSB
@@ -36,6 +38,18 @@ import static no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer.
 public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor {
 
     private static final Logger logger = LoggerFactory.getLogger(BaneNorSiriEtRewriter.class);
+
+    /*
+     * List of provided stops without actual realtime-data.
+     * Reported platform for these stops will be overwritten by planned platform from NeTEx-data
+     */
+    private static final transient List<String> foreignStops = Arrays.asList(
+                                                                        "GTB",  // Gøteborg,
+                                                                        "TRL",  // Trollhættan
+                                                                        "ED",   // Ed
+                                                                        "CG",   // Charlottenberg
+                                                                        "STR",  // Storlien
+                                                                        "ØXN"); // Øxnared
 
     @Override
     protected String apply(String value) {
@@ -314,6 +328,27 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
                                 //No longer check arrival-/departuretimes as they may deviate
                                 matchStopIdOnly = true;
                             }
+
+                            String originalId = getOriginalId(estimatedCall.getStopPointRef().getValue());
+                            if (foreignStops.contains(originalId)) {
+                                stopId = stopTime.getStopId();
+
+                                String publicCode = getPublicCode(stopId);
+                                if (publicCode != null && !publicCode.isEmpty()) {
+                                    NaturalLanguageStringStructure platform = new NaturalLanguageStringStructure();
+                                    platform.setValue(publicCode);
+                                    if (estimatedCall.getDeparturePlatformName() != null && !"".equals(estimatedCall.getDeparturePlatformName().getValue())) {
+                                        estimatedCall.setDeparturePlatformName(platform);
+                                    }
+                                    if (estimatedCall.getArrivalPlatformName() != null && !"".equals(estimatedCall.getArrivalPlatformName().getValue())) {
+                                        estimatedCall.setArrivalPlatformName(platform);
+                                    }
+                                }
+                                StopPointRef stopPointRef = new StopPointRef();
+                                stopPointRef.setValue(originalId + SiriValueTransformer.SEPARATOR + stopId);
+                                estimatedCall.setStopPointRef(stopPointRef);
+                            }
+
                             List<EstimatedCall> calls = matches.getOrDefault(serviceJourneyId, new ArrayList<>());
                             calls.add(estimatedCall);
 
@@ -368,6 +403,7 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
                         if (visitedCall.contains(recordedCall)) {
                             continue;
                         }
+
                         String stopId = getMappedStopId(recordedCall.getStopPointRef());
 
                         boolean isExtraCall = (recordedCall.isExtraCall() != null && recordedCall.isExtraCall());
@@ -378,6 +414,27 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
                                 //No longer check arrival-/departuretimes as they may deviate
                                 matchStopIdOnly = true;
                             }
+
+                            String originalId = getOriginalId(recordedCall.getStopPointRef().getValue());
+                            if (foreignStops.contains(originalId)) {
+                                stopId = stopTime.getStopId();
+
+                                String publicCode = getPublicCode(stopId);
+                                if (publicCode != null && !publicCode.isEmpty()) {
+                                    NaturalLanguageStringStructure platform = new NaturalLanguageStringStructure();
+                                    platform.setValue(publicCode);
+                                    if (recordedCall.getDeparturePlatformName() != null && !"".equals(recordedCall.getDeparturePlatformName().getValue())) {
+                                        recordedCall.setDeparturePlatformName(platform);
+                                    }
+                                    if (recordedCall.getArrivalPlatformName() != null && !"".equals(recordedCall.getArrivalPlatformName().getValue())) {
+                                        recordedCall.setArrivalPlatformName(platform);
+                                    }
+                                }
+                                StopPointRef stopPointRef = new StopPointRef();
+                                stopPointRef.setValue(originalId + SiriValueTransformer.SEPARATOR + stopId);
+                                recordedCall.setStopPointRef(stopPointRef);
+                            }
+
                             List<RecordedCall> calls = matches.getOrDefault(serviceJourneyId, new ArrayList<>());
                             calls.add(recordedCall);
 

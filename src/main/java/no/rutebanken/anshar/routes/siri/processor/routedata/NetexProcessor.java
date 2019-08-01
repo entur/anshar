@@ -40,6 +40,7 @@ public class NetexProcessor {
     private Map<String, DayTypeAssignment> dayTypeAssignmentByDayTypeId = new HashMap<>();
     private Map<String, ServiceJourney> serviceJourneyById = new HashMap<>();
     private Map<String, String> quayIdByStopPointRef = new HashMap<>();
+    private Map<String, String> publicCodeByQuayId = new HashMap<>();
     private Map<String, String> journeyPatternIdByServiceJourneyId = new HashMap<>();
     private Map<String, List<PointInLinkSequence_VersionedChildStructure>> pointsInSequenceByJourneyPatternId = new HashMap<>();
 
@@ -70,6 +71,10 @@ public class NetexProcessor {
 
     public Map<String, String> getParentStops() {
         return parentStops;
+    }
+
+    public Map<String, String> getPublicCodeByQuayId() {
+        return publicCodeByQuayId;
     }
 
     private Unmarshaller createUnmarshaller() throws JAXBException {
@@ -258,7 +263,11 @@ public class NetexProcessor {
                         List<Object> quayRefOrQuay = stopPlace.getQuays().getQuayRefOrQuay();
                         for (Object o : quayRefOrQuay) {
                             if (o instanceof Quay) {
-                                parentStops.put(((Quay)o).getId(), parentId);
+                                Quay quay = (Quay) o;
+                                parentStops.put(quay.getId(), parentId);
+                                if (quay.getPublicCode() != null && !quay.getPublicCode().isEmpty()) {
+                                    publicCodeByQuayId.put(quay.getId(), quay.getPublicCode());
+                                }
                             }
                         }
                     }

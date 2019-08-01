@@ -50,6 +50,7 @@ public class NetexUpdaterService {
     private static Map<String, Set<String>> trainNumberTrips = new HashMap<>();
     private static Map<String, List<ServiceDate>> tripDates = new HashMap<>();
     private static Map<String, String> parentStops = new HashMap<>();
+    private static Map<String, String> quayPublicCodes = new HashMap<>();
 
     public static boolean isStopIdOrParentMatch(String stop1, String stop2) {
         return stop1.equals(stop2) || parentStops.get(stop2).equals(parentStops.get(stop1));
@@ -69,6 +70,13 @@ public class NetexUpdaterService {
 
     public static Set<String> getServiceJourney(String trainNumber) {
         return trainNumberTrips.get(trainNumber);
+    }
+
+    public static String getPublicCode(String quayRef) {
+        if (quayRef != null) {
+            return quayPublicCodes.get(quayRef);
+        }
+        return null;
     }
 
     public static boolean isKnownTrainNr(String trainNumber) {
@@ -139,9 +147,10 @@ public class NetexUpdaterService {
         Map<String, Set<String>> tmpTrainNumberTrips = new HashMap<>();
         Map<String, List<ServiceDate>> tmpTripDates = new HashMap<>();
         Map<String, String> tmpParentStops = new HashMap<>();
+        Map<String, String> tmpQuayPublicCodes = new HashMap<>();
 
         for (String path : paths) {
-            readNeTEx(path, tmpTripStops, tmpTrainNumberTrips, tmpTripDates, tmpParentStops);
+            readNeTEx(path, tmpTripStops, tmpTrainNumberTrips, tmpTripDates, tmpParentStops, tmpQuayPublicCodes);
         }
 
         // Swapping updated data
@@ -149,6 +158,7 @@ public class NetexUpdaterService {
         trainNumberTrips = tmpTrainNumberTrips;
         tripDates = tmpTripDates;
         parentStops = tmpParentStops;
+        quayPublicCodes = tmpQuayPublicCodes;
         logger.info("Read and merged {} NeTEx files in {} ms", paths.length, (System.currentTimeMillis()-start));
     }
 
@@ -193,7 +203,7 @@ public class NetexUpdaterService {
     }
 
     private static void readNeTEx(String path, Map<String, List<StopTime>> tripStops, Map<String, Set<String>> trainNumberTrips,
-                                  Map<String, List<ServiceDate>> tripDates, Map<String, String> parentStops) {
+                                  Map<String, List<ServiceDate>> tripDates, Map<String, String> parentStops, Map<String, String> quayPublicCodes) {
         try {
 
             NetexProcessor netexProcessor = new NetexProcessor();
@@ -202,6 +212,7 @@ public class NetexUpdaterService {
             trainNumberTrips.putAll(netexProcessor.getTrainNumberTrips());
             tripDates.putAll(netexProcessor.getTripDates());
             parentStops.putAll(netexProcessor.getParentStops());
+            quayPublicCodes.putAll(netexProcessor.getPublicCodeByQuayId());
         } catch (IOException e) {
             logger.error("Could not load NeTEx file from path {}", path);
         }
