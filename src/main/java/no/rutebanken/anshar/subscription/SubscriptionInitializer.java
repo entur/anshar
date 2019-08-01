@@ -23,6 +23,7 @@ import no.rutebanken.anshar.routes.siri.adapters.Mapping;
 import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
 import no.rutebanken.anshar.routes.siri.processor.CodespaceProcessor;
 import no.rutebanken.anshar.routes.siri.processor.ReportTypeProcessor;
+import no.rutebanken.anshar.routes.siri.transformer.ApplicationContextHolder;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.subscription.helpers.RequestType;
 import org.apache.camel.CamelContext;
@@ -30,17 +31,14 @@ import org.apache.camel.CamelContextAware;
 import org.apache.camel.builder.RouteBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.util.*;
 
 @Service
-public class SubscriptionInitializer implements CamelContextAware, ApplicationContextAware {
+public class SubscriptionInitializer implements CamelContextAware {
     private final Logger logger = LoggerFactory.getLogger(SubscriptionInitializer.class);
 
     @Autowired
@@ -60,8 +58,6 @@ public class SubscriptionInitializer implements CamelContextAware, ApplicationCo
 
     private CamelContext camelContext;
 
-    private ApplicationContext applicationContext;
-
     @Override
     public CamelContext getCamelContext() {
         return camelContext;
@@ -77,7 +73,7 @@ public class SubscriptionInitializer implements CamelContextAware, ApplicationCo
         camelContext.setUseMDCLogging(true);
 
 
-        final Map<String, Object> mappingBeans = applicationContext.getBeansWithAnnotation(Mapping.class);
+        final Map<String, Object> mappingBeans = ApplicationContextHolder.getContext().getBeansWithAnnotation(Mapping.class);
         final Map<String, Class> mappingAdaptersById = new HashMap<>();
         for (final Object myFoo : mappingBeans.values()) {
             final Class<?> mappingAdapterClass = myFoo.getClass();
@@ -290,10 +286,5 @@ public class SubscriptionInitializer implements CamelContextAware, ApplicationCo
         }
 
         return true;
-    }
-
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.applicationContext = applicationContext;
     }
 }
