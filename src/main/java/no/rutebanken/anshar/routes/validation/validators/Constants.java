@@ -21,9 +21,9 @@ public class Constants {
      * Defines xpaths used to resolve the correct elements when validating XML
      */
 
-    private static final String SERVICE_DELIVERY = "Siri/ServiceDelivery/";
+    public static final String SERVICE_DELIVERY = "Siri/ServiceDelivery";
 
-    public static final String PT_SITUATION_ELEMENT = SERVICE_DELIVERY + "SituationExchangeDelivery/Situations/PtSituationElement";
+    public static final String PT_SITUATION_ELEMENT = SERVICE_DELIVERY + "/SituationExchangeDelivery/Situations/PtSituationElement";
     private static final String AFFECTS = PT_SITUATION_ELEMENT + "/Affects";
 
     public static final String AFFECTED_NETWORK = AFFECTS + "/Networks/AffectedNetwork";
@@ -37,7 +37,7 @@ public class Constants {
     public static final String AFFECTED_VEHICLE_JOURNEY = AFFECTS + "/VehicleJourneys/AffectedVehicleJourney";
 
 
-    public static final String ESTIMATED_VEHICLE_JOURNEY = SERVICE_DELIVERY + "EstimatedTimetableDelivery/EstimatedJourneyVersionFrame/EstimatedVehicleJourney";
+    public static final String ESTIMATED_VEHICLE_JOURNEY = SERVICE_DELIVERY + "/EstimatedTimetableDelivery/EstimatedJourneyVersionFrame/EstimatedVehicleJourney";
     public static final String ESTIMATED_CALL = ESTIMATED_VEHICLE_JOURNEY + "/EstimatedCalls/EstimatedCall";
     public static final String RECORDED_CALL = ESTIMATED_VEHICLE_JOURNEY + "/RecordedCalls/RecordedCall";
 
