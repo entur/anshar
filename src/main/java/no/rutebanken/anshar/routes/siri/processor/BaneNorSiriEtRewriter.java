@@ -49,7 +49,7 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
                                                                         "ED",   // Ed
                                                                         "CG",   // Charlottenberg
                                                                         "STR",  // Storlien
-                                                                        "ØXN"); // Øxnared
+                                                                        "ØXN"); // Øxnered
 
     @Override
     protected String apply(String value) {
