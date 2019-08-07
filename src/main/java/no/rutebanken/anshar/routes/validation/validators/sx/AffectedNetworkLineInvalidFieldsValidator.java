@@ -15,12 +15,15 @@
 
 package no.rutebanken.anshar.routes.validation.validators.sx;
 
-import no.rutebanken.anshar.routes.validation.validators.NsrGenericIdValidator;
+import no.rutebanken.anshar.routes.validation.validators.CustomValidator;
 import no.rutebanken.anshar.routes.validation.validators.Validator;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import org.springframework.stereotype.Component;
+import org.w3c.dom.Node;
 
-import static no.rutebanken.anshar.routes.validation.validators.Constants.AFFECTED_VEHICLE_JOURNEY;
+import javax.xml.bind.ValidationEvent;
+
+import static no.rutebanken.anshar.routes.validation.validators.Constants.AFFECTED_LINE;
 
 /**
  * Verifies that the value for field OperatorRef is present and specifies a Codespace ID
@@ -28,20 +31,26 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.AFFECT
  */
 @Validator(profileName = "norway", targetType = SiriDataType.SITUATION_EXCHANGE)
 @Component
-public class AffectedVehicleJourneyOperatorValidator extends NsrGenericIdValidator {
+public class AffectedNetworkLineInvalidFieldsValidator extends CustomValidator {
 
 
-    private static String path;
+    private static final String FIELDNAME = "AffectedLine";
 
-    public AffectedVehicleJourneyOperatorValidator() {
-        FIELDNAME = "Operator/OperatorRef";
-        ID_PATTERN = "Operator";
-        path = AFFECTED_VEHICLE_JOURNEY + "/" + FIELDNAME;
-    }
+    private static final String path = AFFECTED_LINE;
 
     @Override
     public String getXpath() {
         return path;
     }
 
+    @Override
+    public String getCategoryName() {
+        return FIELDNAME;
+    }
+
+    @Override
+    public ValidationEvent isValid(Node node) {
+        return verifyNonExistingFields(node, FIELDNAME,"AffectedOperator");
+    }
 }
+
