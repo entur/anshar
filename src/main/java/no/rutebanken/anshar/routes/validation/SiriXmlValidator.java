@@ -152,23 +152,10 @@ public class SiriXmlValidator extends ApplicationContextHolder{
                         long t1 = System.currentTimeMillis();
 
                         /*
-                         * Resolving SIRI-datatype
+                         * Setting SIRI-datatype based on subscription
                          */
-                        SiriDataType type;
-                        if (siri.getServiceDelivery() != null) {
-                            if (siri.getServiceDelivery().getEstimatedTimetableDeliveries() != null &&
-                                    !siri.getServiceDelivery().getEstimatedTimetableDeliveries().isEmpty()) {
-                                type = SiriDataType.ESTIMATED_TIMETABLE;
-                            } else if (siri.getServiceDelivery().getSituationExchangeDeliveries() != null &&
-                                    !siri.getServiceDelivery().getSituationExchangeDeliveries().isEmpty()) {
-                                type = SiriDataType.SITUATION_EXCHANGE;
-                            } else if (siri.getServiceDelivery().getVehicleMonitoringDeliveries() != null &&
-                                    !siri.getServiceDelivery().getVehicleMonitoringDeliveries().isEmpty()) {
-                                type = SiriDataType.VEHICLE_MONITORING;
-                            } else {
-                                return;
-                            }
-                        } else {
+                        SiriDataType type = subscriptionSetup.getSubscriptionType();
+                        if (type == null) {
                             return;
                         }
 
