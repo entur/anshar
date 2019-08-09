@@ -145,7 +145,7 @@ public class SiriXmlValidator extends ApplicationContextHolder{
 
             Siri siri = unmarshaller.unmarshal(reader, Siri.class).getValue();
 
-            if (subscriptionSetup.isValidation()) {
+            if (siri.getServiceDelivery() != null && subscriptionSetup.isValidation()) {
 
                 new Thread(() -> {
                     try {
