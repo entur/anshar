@@ -95,7 +95,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                         Integer count = sizeMap.getOrDefault(datasetId, 0);
                         sizeMap.put(datasetId, count+1);
                     });
-        logger.info("Calculating data-distribution (ET) took {} ms: {}", (System.currentTimeMillis()-t1), sizeMap);
+        logger.debug("Calculating data-distribution (ET) took {} ms: {}", (System.currentTimeMillis()-t1), sizeMap);
         return sizeMap;
     }
 
@@ -507,7 +507,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                 if (existing != null &&
                         (et.getRecordedAtTime() != null && existing.getRecordedAtTime() != null)) {
 
-                    if (et.getRecordedAtTime().isAfter(existing.getRecordedAtTime())) {
+                    if (et.getRecordedAtTime().isAfter(existing.getRecordedAtTime()) || et.getRecordedAtTime().equals(existing.getRecordedAtTime()) ) {
                         keep = true;
                     } else {
                         logger.info("Newer data has already been processed - ignoring ET-element");
