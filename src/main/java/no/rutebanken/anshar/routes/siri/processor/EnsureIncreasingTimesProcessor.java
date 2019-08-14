@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory;
 import uk.org.siri.siri20.*;
 
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.List;
 
 import static no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter.getOriginalId;
 
@@ -70,6 +70,13 @@ public class EnsureIncreasingTimesProcessor extends ValueAdapter implements Post
                                         } else {
                                             latestTimestamp = recordedCall.getActualArrivalTime();
                                         }
+                                    } else if (recordedCall.getExpectedArrivalTime() != null) {
+                                        if (latestTimestamp != null && recordedCall.getExpectedArrivalTime().isBefore(latestTimestamp)) {
+                                            recordedCall.setExpectedArrivalTime(latestTimestamp);
+                                            runtimeCount++;
+                                        } else {
+                                            latestTimestamp = recordedCall.getExpectedArrivalTime();
+                                        }
                                     }
                                     if (recordedCall.getActualDepartureTime() != null) {
                                         if (latestTimestamp != null && recordedCall.getActualDepartureTime().isBefore(latestTimestamp)) {
@@ -77,6 +84,13 @@ public class EnsureIncreasingTimesProcessor extends ValueAdapter implements Post
                                             dwelltimeCount++;
                                         } else {
                                             latestTimestamp = recordedCall.getActualDepartureTime();
+                                        }
+                                    } else if (recordedCall.getExpectedDepartureTime() != null) {
+                                        if (latestTimestamp != null && recordedCall.getExpectedDepartureTime().isBefore(latestTimestamp)) {
+                                            recordedCall.setExpectedDepartureTime(latestTimestamp);
+                                            dwelltimeCount++;
+                                        } else {
+                                            latestTimestamp = recordedCall.getExpectedDepartureTime();
                                         }
                                     }
                                 }
