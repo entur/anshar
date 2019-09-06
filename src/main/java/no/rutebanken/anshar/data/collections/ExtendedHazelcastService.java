@@ -66,6 +66,9 @@ public class ExtendedHazelcastService extends HazelCastService {
                     .setImplementation(new KryoSerializer()),
                 new SerializerConfig()
                     .setTypeClass(VehicleActivityStructure.class)
+                    .setImplementation(new KryoSerializer()),
+                new SerializerConfig()
+                    .setTypeClass(JSONObject.class)
                     .setImplementation(new KryoSerializer())
 
         );
