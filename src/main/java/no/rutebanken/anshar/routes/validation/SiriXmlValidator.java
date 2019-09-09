@@ -29,7 +29,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
@@ -53,6 +52,7 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPInputStream;
 
 import static no.rutebanken.anshar.util.CompressionUtil.compress;
@@ -94,12 +94,6 @@ public class SiriXmlValidator extends ApplicationContextHolder{
 
     @Autowired
     private SubscriptionManager subscriptionManager;
-
-    @Value("${anshar.validation.total.max.size.mb:4}")
-    private int maxTotalXmlSize;
-
-    @Value("${anshar.validation.total.max.count:10}")
-    private int maxNumberOfValidations;
 
     private final Map<SiriDataType, Set<CustomValidator>> validationRules = new HashMap<>();
 
@@ -338,20 +332,19 @@ public class SiriXmlValidator extends ApplicationContextHolder{
         // GZIP'ing contents to reduce memory-footprint
         byte[] byteArray = compress(siriXml);
 
-        // TODO: Add automatic expiry to clean up data over time?
-
-        validatedSiri.set(newUniqueReference, byteArray);
-        validationResults.set(newUniqueReference, jsonObject);
-        validationResultRefs.set(subscriptionSetup.getSubscriptionId(), subscriptionValidationRefs);
         final Long totalXmlSize = (validationSize.getOrDefault(subscriptionSetup.getSubscriptionId(), 0L) + byteArray.length);
-        validationSize.set(subscriptionSetup.getSubscriptionId(), totalXmlSize);
 
-        if (totalXmlSize > (maxTotalXmlSize * 1024*1024)) {
+        validatedSiri.set(newUniqueReference, byteArray, configuration.getNumberOfHoursToKeepValidation(), TimeUnit.HOURS);
+        validationResults.set(newUniqueReference, jsonObject, configuration.getNumberOfHoursToKeepValidation(), TimeUnit.HOURS);
+        validationResultRefs.set(subscriptionSetup.getSubscriptionId(), subscriptionValidationRefs, configuration.getNumberOfHoursToKeepValidation(), TimeUnit.HOURS);
+        validationSize.set(subscriptionSetup.getSubscriptionId(), totalXmlSize, configuration.getNumberOfHoursToKeepValidation(), TimeUnit.HOURS);
+
+        if (totalXmlSize > (configuration.getMaxTotalXmlSizeOfValidation() * 1024*1024)) {
             subscriptionSetup.setValidation(false);
             subscriptionManager.updateSubscription(subscriptionSetup);
-            logger.info("Reached max size - {}mb - for validations, validated {} deliveries,  disabling validation for {}", maxTotalXmlSize, subscriptionValidationRefs.size(), subscriptionSetup);
+            logger.info("Reached max size - {}mb - for validations, validated {} deliveries,  disabling validation for {}", configuration.getMaxTotalXmlSizeOfValidation(), subscriptionValidationRefs.size(), subscriptionSetup);
         }
-        if (subscriptionValidationRefs.size() >= maxNumberOfValidations) {
+        if (subscriptionValidationRefs.size() >= configuration.getMaxNumberOfValidations()) {
             subscriptionSetup.setValidation(false);
             subscriptionManager.updateSubscription(subscriptionSetup);
             logger.info("Reached max number of validations, validated {} deliveries, disabling validation for {}", subscriptionValidationRefs.size(), subscriptionSetup);

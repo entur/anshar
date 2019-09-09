@@ -96,6 +96,15 @@ public class AnsharConfiguration {
     @Value("${anshar.tracking.header.name:Client-Name}")
     private String trackingHeaderName;
 
+    @Value("${anshar.validation.total.max.size.mb:4}")
+    private int maxTotalXmlSizeOfValidation;
+
+    @Value("${anshar.validation.total.max.count:10}")
+    private int maxNumberOfValidations;
+
+    @Value("${anshar.validation.data.persist.hours:6}")
+    private int numberOfHoursToKeepValidation;
+
     public String getHazelcastManagementUrl() {
         return hazelcastManagementUrl;
     }
@@ -190,5 +199,17 @@ public class AnsharConfiguration {
 
     public String getTrackingHeaderName() {
         return trackingHeaderName;
+    }
+
+    public int getMaxTotalXmlSizeOfValidation() {
+        return maxTotalXmlSizeOfValidation;
+    }
+
+    public int getMaxNumberOfValidations() {
+        return maxNumberOfValidations;
+    }
+
+    public int getNumberOfHoursToKeepValidation() {
+        return numberOfHoursToKeepValidation;
     }
 }

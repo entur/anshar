@@ -145,7 +145,8 @@
     <div class="row">
         <sup><span class="glyphicon glyphicon-info-sign text-info"></span></sup>
         Switching on validation will remove all previous validation reports, and start validation of all incoming ServiceDeliveries<br />
-        Validation will automatically be disabled when size limit has been reached
+        Validation will automatically be disabled when size limit has been reached. <br />
+        Validationresults will be kept for ${body.config.persistPeriodHours} hours.
     </div>
 </div>
 

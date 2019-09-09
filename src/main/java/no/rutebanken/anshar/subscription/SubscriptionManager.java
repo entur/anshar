@@ -17,8 +17,7 @@ package no.rutebanken.anshar.subscription;
 
 
 import com.hazelcast.core.IMap;
-import com.hazelcast.map.EntryBackupProcessor;
-import com.hazelcast.map.EntryProcessor;
+import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.data.*;
 import no.rutebanken.anshar.routes.health.HealthManager;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
@@ -46,6 +45,9 @@ public class SubscriptionManager {
 
     final int HEALTHCHECK_INTERVAL_FACTOR = 5;
     private final Logger logger = LoggerFactory.getLogger(SubscriptionManager.class);
+
+    @Autowired
+    private AnsharConfiguration configuration;
 
     @Autowired
     @Qualifier("getSubscriptionsMap")
@@ -219,6 +221,11 @@ public class SubscriptionManager {
                 .collect(Collectors.toList()));
 
         jsonSubscriptions.put("subscriptions", filteredSubscriptions);
+        JSONObject configObject = new JSONObject();
+
+        configObject.put("persistPeriodHours", configuration.getNumberOfHoursToKeepValidation());
+        jsonSubscriptions.put("config", configObject);
+
         return jsonSubscriptions;
     }
 
