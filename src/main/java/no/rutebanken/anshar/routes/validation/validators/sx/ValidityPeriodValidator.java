@@ -41,6 +41,9 @@ public class ValidityPeriodValidator extends CustomValidator {
     private static final String FIELDNAME = "ValidityPeriod";
     private static final String path = PT_SITUATION_ELEMENT + "/" + FIELDNAME;
 
+    private final String START_TIME_FIELD_NAME = "StartTime";
+    private final String END_TIME_FIELD_NAME = "EndTime";
+
 
     @Override
     public String getXpath() {
@@ -62,37 +65,37 @@ public class ValidityPeriodValidator extends CustomValidator {
         }
 
 
-        final String startTimeValue = getChildNodeValue(node, "StartTime");
+        final String startTimeValue = getChildNodeValue(node, START_TIME_FIELD_NAME);
         final ZonedDateTime startTime;
 
         if (startTimeValue != null && !startTimeValue.isEmpty()) {
             startTime = ZonedDateTime.parse(startTimeValue);
             if (startTime == null) {
-                return createEvent(node, FIELDNAME, "valid date", startTimeValue, ValidationEvent.FATAL_ERROR);
+                return createEvent(node, START_TIME_FIELD_NAME, "valid date", startTimeValue, ValidationEvent.FATAL_ERROR);
             }
         } else {
-            return createEvent(node, FIELDNAME, "StartTime not null", null, ValidationEvent.FATAL_ERROR);
+            return createEvent(node, START_TIME_FIELD_NAME, "StartTime not null", null, ValidationEvent.FATAL_ERROR);
         }
 
-        final String endTimeValue = getChildNodeValue(node, "EndTime");
+        final String endTimeValue = getChildNodeValue(node, END_TIME_FIELD_NAME);
         if (progressClosed) {
 
             if (endTimeValue == null || endTimeValue.isEmpty()) {
-                return createEvent(node, FIELDNAME, "EndTime when Progress is 'closed'", endTimeValue, ValidationEvent.FATAL_ERROR);
+                return createEvent(node, END_TIME_FIELD_NAME, "EndTime when Progress is 'closed'", endTimeValue, ValidationEvent.FATAL_ERROR);
             }
 
             final ZonedDateTime endTime = ZonedDateTime.parse(endTimeValue);
             if (endTime == null) {
-                return createEvent(node, FIELDNAME, "valid date", endTimeValue, ValidationEvent.FATAL_ERROR);
+                return createEvent(node, END_TIME_FIELD_NAME, "valid date", endTimeValue, ValidationEvent.FATAL_ERROR);
             } else if (endTime.minus(5, ChronoUnit.HOURS).isBefore(startTime)){
-                return createEvent(node, FIELDNAME, "EndTime to be at least 5 hours after Startime when Progress is closed", endTimeValue, ValidationEvent.ERROR);
+                return createEvent(node, END_TIME_FIELD_NAME, "EndTime should be at least 5 hours after StarTime when Progress is closed", endTimeValue, ValidationEvent.ERROR);
 
             }
 
         } else if (endTimeValue != null && !endTimeValue.isEmpty()) {
             final ZonedDateTime parsedValue = ZonedDateTime.parse(endTimeValue);
             if (parsedValue != null && parsedValue.isBefore(ZonedDateTime.now())) {
-                return createEvent(node, FIELDNAME, "date after 'now'", endTimeValue, ValidationEvent.WARNING);
+                return createEvent(node, END_TIME_FIELD_NAME, "date after 'now'", endTimeValue, ValidationEvent.WARNING);
             }
         }
 
