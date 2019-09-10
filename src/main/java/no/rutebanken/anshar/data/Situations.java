@@ -145,7 +145,6 @@ public class Situations extends SiriRepository<PtSituationElement> {
 
         if (requestorId == null) {
             requestorId = UUID.randomUUID().toString();
-//            trackingPeriodMinutes = configuration.getAdHocTrackingPeriodMinutes();
             isAdHocRequest = true;
         }
 

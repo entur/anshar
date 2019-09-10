@@ -17,7 +17,6 @@ package no.rutebanken.anshar.subscription;
 
 import com.google.common.base.Preconditions;
 import no.rutebanken.anshar.config.AnsharConfiguration;
-import no.rutebanken.anshar.metrics.PrometheusMetricsServiceImpl;
 import no.rutebanken.anshar.routes.siri.*;
 import no.rutebanken.anshar.routes.siri.adapters.Mapping;
 import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
@@ -52,9 +51,6 @@ public class SubscriptionInitializer implements CamelContextAware {
 
     @Autowired
     private AnsharConfiguration configuration;
-
-    @Autowired
-    private PrometheusMetricsServiceImpl metricsService;
 
     private CamelContext camelContext;
 
