@@ -24,6 +24,7 @@ import uk.org.siri.siri20.PtSituationElement;
 import uk.org.siri.siri20.Siri;
 import uk.org.siri.siri20.SituationExchangeDeliveryStructure;
 
+import java.util.Arrays;
 import java.util.List;
 
 public class RemoveEmojiPostProcessor extends ValueAdapter implements PostProcessor {
@@ -34,6 +35,9 @@ public class RemoveEmojiPostProcessor extends ValueAdapter implements PostProces
     public RemoveEmojiPostProcessor(OutboundIdMappingPolicy outboundIdMappingPolicy) {
         this.outboundIdMappingPolicy = outboundIdMappingPolicy;
     }
+
+    private static transient List<Character> specialCharactersToKeep = Arrays.asList((char)8211, (char)8212);
+
 
     @Override
     protected String apply(String text) {
@@ -69,13 +73,18 @@ public class RemoveEmojiPostProcessor extends ValueAdapter implements PostProces
             for (DefaultedTextStructure text : textStructures) {
                 String value = text.getValue();
 
-                int[] ints = value.chars().map(i -> i > 500 ? ' ':i).toArray();
-
                 String cleanedValue = new String();
-                for (int i : ints) {
-                    cleanedValue += (char) i;
+
+                boolean characterRemoved = false;
+                for (char c : value.toCharArray()) {
+                    if (c <= 500 || specialCharactersToKeep.contains(c)) {
+                        cleanedValue += (char) c;
+                    } else {
+                        characterRemoved = true;
+                    }
                 }
-                if (!cleanedValue.equals(value)) {
+
+                if (characterRemoved) {
                     logger.info("Removed emoji-like character from text [{}].", value);
                 }
                 text.setValue(cleanedValue);
