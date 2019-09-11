@@ -51,6 +51,7 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPInputStream;
@@ -222,7 +223,7 @@ public class SiriXmlValidator extends ApplicationContextHolder{
         DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder = builderFactory.newDocumentBuilder();
 
-        InputStream stream = new ByteArrayInputStream(siri.getBytes("utf-8"));
+        InputStream stream = new ByteArrayInputStream(siri.getBytes(StandardCharsets.UTF_8));
 
         Document xmlDocument = builder.parse(stream);
 

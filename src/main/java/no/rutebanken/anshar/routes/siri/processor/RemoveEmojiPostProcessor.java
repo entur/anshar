@@ -73,7 +73,7 @@ public class RemoveEmojiPostProcessor extends ValueAdapter implements PostProces
             for (DefaultedTextStructure text : textStructures) {
                 String value = text.getValue();
 
-                String cleanedValue = new String();
+                String cleanedValue = "";
 
                 boolean characterRemoved = false;
                 for (char c : value.toCharArray()) {

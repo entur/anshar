@@ -320,13 +320,8 @@ public class SiriHelper {
         if (completeValue.contains(SiriValueTransformer.SEPARATOR)) {
             String mappedId = OutboundIdAdapter.getMappedId(completeValue);
             String originalId = OutboundIdAdapter.getOriginalId(completeValue);
-            if (linerefValues.contains(mappedId) | linerefValues.contains(originalId)) {
-                return true;
-            }
-        } else if (linerefValues.contains(completeValue)) {
-            return true;
-        }
-        return false;
+            return linerefValues.contains(mappedId) | linerefValues.contains(originalId);
+        } else return linerefValues.contains(completeValue);
     }
 
     private static void filterVehicleRef(Siri siri, Set<String> vehiclerefValues) {

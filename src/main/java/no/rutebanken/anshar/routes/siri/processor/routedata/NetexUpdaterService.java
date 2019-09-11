@@ -172,7 +172,7 @@ public class NetexUpdaterService {
             // check the http connection before we do anything to the fs
             httpIn = new BufferedInputStream(new URL(url).openStream());
             bufferedOut = new BufferedOutputStream(new FileOutputStream(tmpFile), 1024);
-            byte data[] = new byte[1024];
+            byte[] data = new byte[1024];
             boolean fileComplete = false;
             int count;
             while (!fileComplete) {

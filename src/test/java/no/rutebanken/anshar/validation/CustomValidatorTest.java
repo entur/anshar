@@ -30,6 +30,7 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 
 import static junit.framework.TestCase.*;
 
@@ -60,7 +61,7 @@ public class CustomValidatorTest {
             DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder builder = builderFactory.newDocumentBuilder();
 
-            InputStream stream = new ByteArrayInputStream(xml.getBytes("utf-8"));
+            InputStream stream = new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8));
 
             Document xmlDocument = builder.parse(stream);
             return xmlDocument.getFirstChild();
@@ -105,7 +106,7 @@ public class CustomValidatorTest {
         DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder = builderFactory.newDocumentBuilder();
 
-        InputStream stream = new ByteArrayInputStream(xml.getBytes("utf-8"));
+        InputStream stream = new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8));
 
         return builder.parse(stream);
 
