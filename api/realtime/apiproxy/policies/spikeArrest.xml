@@ -3,6 +3,6 @@
     <DisplayName>spikeArrest</DisplayName>
     <FaultRules/>
     <Properties/>
-    <Rate>600pm</Rate>
+    <Rate>6000pm</Rate>
     <UseEffectiveCount>false</UseEffectiveCount>
 </SpikeArrest>
