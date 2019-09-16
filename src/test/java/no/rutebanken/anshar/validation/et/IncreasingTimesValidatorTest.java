@@ -63,6 +63,14 @@ public class IncreasingTimesValidatorTest extends CustomValidatorTest {
         assertNotNull("Negative dwell-times flagged as valid", valid);
     }
 
+    @Test
+    public void testNegativeDwellTimesWithCancellation() {
+
+        ValidationEvent valid = validator.isValid(createXmlNode(negativeDwellTimeWithCancellationEstimatedCalls));
+
+        assertNull("Negative dwell-times flagged as invalid even though departure is cancelled", valid);
+    }
+
 
     private static final String increasingEstimatedCalls =
             "<EstimatedVehicleJourney>\n" +
@@ -282,5 +290,58 @@ public class IncreasingTimesValidatorTest extends CustomValidatorTest {
                     "    <IsCompleteStopSequence>true</IsCompleteStopSequence>\n" +
                     "</EstimatedVehicleJourney>";
 
+
+    private static final String negativeDwellTimeWithCancellationEstimatedCalls =
+            "<EstimatedVehicleJourney>\n" +
+                    "    <LineRef>NSB:Line:-</LineRef>\n" +
+                    "    <DirectionRef>Kristiansand</DirectionRef>\n" +
+                    "    <DatedVehicleJourneyRef>734:2019-02-27</DatedVehicleJourneyRef>\n" +
+                    "    <VehicleMode>rail</VehicleMode>\n" +
+                    "    <OperatorRef>NSB</OperatorRef>\n" +
+                    "    <ServiceFeatureRef>passengerTrain</ServiceFeatureRef>\n" +
+                    "    <DataSource>BNR</DataSource>\n" +
+                    "    <VehicleRef>734</VehicleRef>\n" +
+                    "    <EstimatedCalls>\n" +
+                    "        <EstimatedCall>\n" +
+                    "            <StopPointRef>NSR:Quay:968</StopPointRef>\n" +
+                    "            <Order>1</Order>\n" +
+                    "            <StopPointName>Stavanger</StopPointName>\n" +
+                    "            <RequestStop>false</RequestStop>\n" +
+                    "            <AimedDepartureTime>2019-02-27T17:48:00+01:00</AimedDepartureTime>\n" +
+                    "            <ExpectedDepartureTime>2019-02-27T17:48:00+01:00</ExpectedDepartureTime>\n" +
+                    "            <DepartureStatus>onTime</DepartureStatus>\n" +
+                    "            <DeparturePlatformName>1</DeparturePlatformName>\n" +
+                    "            <DepartureBoardingActivity>boarding</DepartureBoardingActivity>\n" +
+                    "        </EstimatedCall>\n" +
+                    "        <EstimatedCall>\n" +
+                    "            <StopPointRef>NSR:Quay:609</StopPointRef>\n" +
+                    "            <Order>2</Order>\n" +
+                    "            <StopPointName>Jåttåvågen</StopPointName>\n" +
+                    "            <RequestStop>false</RequestStop>\n" +
+                    "            <AimedArrivalTime>2019-02-27T17:54:00+01:00</AimedArrivalTime>\n" +
+                    "            <ExpectedArrivalTime>2019-02-27T17:54:00+01:00</ExpectedArrivalTime>\n" +
+                    "            <ArrivalStatus>onTime</ArrivalStatus>\n" +
+                    "            <ArrivalPlatformName>2</ArrivalPlatformName>\n" +
+                    "            <ArrivalBoardingActivity>noAlighting</ArrivalBoardingActivity>\n" +
+                    "            <AimedDepartureTime>2019-02-27T17:55:00+01:00</AimedDepartureTime>\n" +
+                    "            <ExpectedDepartureTime>2019-02-27T17:53:00+01:00</ExpectedDepartureTime>\n" +      //    <<== Departure before arrival
+                    "            <DepartureStatus>cancelled</DepartureStatus>\n" +                                  //    <<== ...but departure is cancelled
+                    "            <DeparturePlatformName>2</DeparturePlatformName>\n" +
+                    "            <DepartureBoardingActivity>boarding</DepartureBoardingActivity>\n" +
+                    "        </EstimatedCall>\n" +
+                    "        <EstimatedCall>\n" +
+                    "            <StopPointRef>NSR:Quay:1146</StopPointRef>\n" +
+                    "            <Order>3</Order>\n" +
+                    "            <StopPointName>Sandnes Sentrum</StopPointName>\n" +
+                    "            <RequestStop>false</RequestStop>\n" +
+                    "            <AimedArrivalTime>2019-02-27T18:01:00+01:00</AimedArrivalTime>\n" +
+                    "            <ExpectedArrivalTime>2019-02-27T18:01:00+01:00</ExpectedArrivalTime>\n" +
+                    "            <ArrivalStatus>cancelled</ArrivalStatus>\n" +
+                    "            <ArrivalPlatformName>6</ArrivalPlatformName>\n" +
+                    "            <ArrivalBoardingActivity>noAlighting</ArrivalBoardingActivity>\n" +
+                    "        </EstimatedCall>\n" +
+                    "    </EstimatedCalls>\n" +
+                    "    <IsCompleteStopSequence>true</IsCompleteStopSequence>\n" +
+                    "</EstimatedVehicleJourney>";
 
 }

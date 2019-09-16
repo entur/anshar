@@ -74,4 +74,16 @@ public class EstimatedAimedArrivalTimeValidatorTest extends CustomValidatorTest 
         final ValidationEvent valid = validator.isValid(createXmlNode(xml).getFirstChild());
         assertNotNull("Invalid "+fieldName+" flagged as valid", valid);
     }
+
+    @Test
+    public void testAimedArrivalAfterAimedDepartureWithCancellation() throws Exception{
+        String arrival = createXml(fieldName, "2018-04-16T10:02:00+02:00");
+        String departure = createXml(comparisonField, "2018-04-16T10:00:00+02:00");
+        String departureStatus = createXml("DepartureStatus", "cancelled");
+
+        String xml = "<dummy>" + arrival + departure + departureStatus + "</dummy>";
+
+        final ValidationEvent valid = validator.isValid(createXmlNode(xml).getFirstChild());
+        assertNull("Cancelled departure flagged as invalid", valid);
+    }
 }

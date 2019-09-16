@@ -38,6 +38,13 @@ public abstract class TimeValidator extends CustomValidator {
      * @return
      */
     protected ValidationEvent checkTimeValidity(Node node, String fieldname, String comparisonFieldName, TimeValidator.Mode mode) {
+
+        if (containsCancellation(node)) {
+            // Do not validate increasing time as arrival, departure or both has been cancelled
+            return null;
+        }
+
+
         String field =  getSiblingNodeValue(node, fieldname);
 
         if (field != null) {
@@ -79,6 +86,35 @@ public abstract class TimeValidator extends CustomValidator {
                 case AFTER:
                     return time_1.isAfter(time_2);
             }
+        }
+        return false;
+    }
+
+    private boolean containsCancellation(Node node) {
+        return isCancelled(node) | isArrivalCancelled(node) | isDepartureCancelled(node);
+    }
+
+    private boolean isCancelled(Node node) {
+        String cancellation = getSiblingNodeValue(node, "Cancellation");
+        if (cancellation != null) {
+            return cancellation.toLowerCase().equals("true");
+        }
+
+        return false;
+    }
+
+    private boolean isArrivalCancelled(Node node) {
+        String arrivalStatus = getSiblingNodeValue(node, "ArrivalStatus");
+        if (arrivalStatus != null && !arrivalStatus.isEmpty()) {
+            return arrivalStatus.toLowerCase().equals("cancelled");
+        }
+        return false;
+    }
+
+    private boolean isDepartureCancelled(Node node) {
+        String departureStatus = getSiblingNodeValue(node, "DepartureStatus");
+        if (departureStatus != null && !departureStatus.isEmpty()) {
+            return departureStatus.toLowerCase().equals("cancelled");
         }
         return false;
     }

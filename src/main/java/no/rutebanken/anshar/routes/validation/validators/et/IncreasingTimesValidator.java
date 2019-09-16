@@ -24,7 +24,6 @@ import org.w3c.dom.Node;
 import javax.xml.bind.ValidationEvent;
 import java.text.MessageFormat;
 import java.time.ZonedDateTime;
-import java.util.Arrays;
 import java.util.List;
 
 import static no.rutebanken.anshar.routes.validation.validators.Constants.ESTIMATED_VEHICLE_JOURNEY;
@@ -85,9 +84,13 @@ public class IncreasingTimesValidator extends CustomValidator {
                     try {
                         previousDeparture = validateIncreasingTimes(previousDeparture, call);
                     } catch (NegativeDwelltimeException e) {
-                        return createCustomFieldEvent(node, "Departure before arrival - at " + getIdentifierString(stopPointRef, lineRef, vehicleRef), ValidationEvent.FATAL_ERROR);
+                        if (!isDepartureCancelled(call)) {
+                            return createCustomFieldEvent(node, "Departure before arrival - at " + getIdentifierString(stopPointRef, lineRef, vehicleRef), ValidationEvent.FATAL_ERROR);
+                        }
                     } catch (NegativeRuntimeException e) {
-                        return createCustomFieldEvent(node, "Arrival before departure from previous stop - at " + getIdentifierString(stopPointRef, lineRef, vehicleRef), ValidationEvent.FATAL_ERROR);
+                        if (!isArrivalCancelled(call)) {
+                            return createCustomFieldEvent(node, "Arrival before departure from previous stop - at " + getIdentifierString(stopPointRef, lineRef, vehicleRef), ValidationEvent.FATAL_ERROR);
+                        }
                     }
                 }
             }
@@ -103,9 +106,13 @@ public class IncreasingTimesValidator extends CustomValidator {
                     try {
                         previousDeparture = validateIncreasingTimes(previousDeparture, call);
                     } catch (NegativeDwelltimeException e) {
-                        return createCustomFieldEvent(node, "Departure before arrival - at " + getIdentifierString(stopPointRef, lineRef, vehicleRef), ValidationEvent.FATAL_ERROR);
+                        if (!isDepartureCancelled(call)) { // Do not flag negative dwell-time as an error when departure is cancelled.
+                            return createCustomFieldEvent(node, "Departure before arrival - at " + getIdentifierString(stopPointRef, lineRef, vehicleRef), ValidationEvent.FATAL_ERROR);
+                        }
                     } catch (NegativeRuntimeException e) {
-                        return createCustomFieldEvent(node, "Arrival before departure from previous stop - at " + getIdentifierString(stopPointRef, lineRef, vehicleRef), ValidationEvent.FATAL_ERROR);
+                        if (!isArrivalCancelled(call)) { // Do not flag negative run-time as an error when arrival is cancelled.
+                            return createCustomFieldEvent(node, "Arrival before departure from previous stop - at " + getIdentifierString(stopPointRef, lineRef, vehicleRef), ValidationEvent.FATAL_ERROR);
+                        }
                     }
                 }
             }
@@ -113,6 +120,30 @@ public class IncreasingTimesValidator extends CustomValidator {
 
 
         return null;
+    }
+
+    private boolean isArrivalCancelled(Node call) {
+
+        String arrivalStatus = getChildNodeValue(call, "ArrivalStatus");
+
+        String cancellation = getChildNodeValue(call, "Cancellation");
+
+        boolean isArrivalCancelled = (arrivalStatus != null) && arrivalStatus.toLowerCase().equals("cancelled");
+        boolean isCancelled = (cancellation != null) && cancellation.toLowerCase().equals("true");
+
+        return isArrivalCancelled | isCancelled;
+    }
+
+    private boolean isDepartureCancelled(Node call) {
+
+
+        String departureStatus = getChildNodeValue(call, "DepartureStatus");
+        String cancellation = getChildNodeValue(call, "Cancellation");
+
+        boolean isDepartureCancelled = (departureStatus != null) && departureStatus.toLowerCase().equals("cancelled");
+        boolean isCancelled = (cancellation != null) && cancellation.toLowerCase().equals("true");
+
+        return isDepartureCancelled | isCancelled;
     }
 
     private String getIdentifierString(String stopPointRef, String lineRef, String vehicleRef) {
