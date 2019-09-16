@@ -37,10 +37,10 @@
         <!-- versions for use in mvn plugins as we cannot inherit them from a BOM -->
         <fabric8.version>2.3.7</fabric8.version>
         <docker.maven.plugin.version>0.21.0</docker.maven.plugin.version>
-        <spring-boot-plugin.version>2.1.2.RELEASE</spring-boot-plugin.version>
-        <spring-boot.version>2.1.2.RELEASE</spring-boot.version>
+        <spring-boot-plugin.version>2.1.8.RELEASE</spring-boot-plugin.version>
+        <spring-boot.version>2.1.8.RELEASE</spring-boot.version>
 
-        <camel-version>2.23.1</camel-version>
+        <camel-version>2.24.2</camel-version>
 
         <!-- Docker & Fabric8 Configs -->
         <docker.from>eu.gcr.io/carbon-1287/openjdk11-base-image</docker.from>
@@ -124,7 +124,7 @@
         <dependency>
             <groupId>net.logstash.logback</groupId>
             <artifactId>logstash-logback-encoder</artifactId>
-            <version>6.0</version>
+            <version>6.2</version>
         </dependency>
 
         <dependency>
@@ -230,7 +230,7 @@
         <dependency>
             <groupId>org.eclipse.paho</groupId>
             <artifactId>org.eclipse.paho.client.mqttv3</artifactId>
-            <version>1.1.1</version>
+            <version>1.2.1</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
