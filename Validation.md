@@ -29,5 +29,5 @@ rules to provide a complete report.
 ### Auto shut off
 The validator stores all validation results and a zipped byte-array of the actual XML in a distributed
 map. To avoid memory-issues, the validator is automatically switched off when either 20 XML-documents have been validated,
-or the combined size of the zipped XML has reached 4 MB - both values are configurable. The results and all related data is
-available until validation is switched on again.
+or the combined size of the zipped XML has reached 4 MB - both values are configurable. The results will be automatically deleted
+after a configurable amount of time.

@@ -2,13 +2,13 @@
 
 # SIRI Subscription
 - Supports SIRI 2.0 SubscriptionRequest
-- HTTP POST https://api.entur.org/anshar/1.0/anshar/subscribe
-- Vendor-specific subscriptions can be obtained by specifying datasetId in url (e.g. http://mottak-test.rutebanken.org/anshar/subscribe/RUT) 
+- HTTP POST https://api.entur.io/realtime/v1/subscribe
+- Vendor-specific subscriptions can be obtained by specifying datasetId in url (e.g. http://api.entur.io/realtime/v1/subscribe/RUT) 
  
 # SIRI GetServiceRequest
 - Supports SIRI 2.0 ServiceRequests
-- HTTP POST https://api.entur.org/anshar/1.0/anshar/services
-- Vendor-specific data can be obtained by specifying datasetId in url (e.g. http://mottak-test.rutebanken.org/anshar/services/RUT)
+- HTTP POST https://api.entur.io/realtime/v1/services
+- Vendor-specific data can be obtained by specifying datasetId in url (e.g. http://api.entur.io/realtime/v1/services/RUT)
 - *NOTE:* For periodic requests (currently within 5 minutes), RequestorRef may be reused to only get "changes since last request" - see requestorId below.
 
 # SIRI common
@@ -17,9 +17,9 @@
 # REST API
 
 ## Example URL's
-- HTTP GET https://api.entur.org/anshar/1.0/rest/sx
-- HTTP GET https://api.entur.org/anshar/1.0/rest/vm
-- HTTP GET https://api.entur.org/anshar/1.0/rest/et
+- HTTP GET https://api.entur.io/realtime/v1/rest/sx
+- HTTP GET https://api.entur.io/realtime/v1/rest/vm
+- HTTP GET https://api.entur.io/realtime/v1/rest/et
 
 ## Optional parameters
 
