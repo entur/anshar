@@ -287,7 +287,7 @@ public class SubscriptionManager {
 
     public boolean isForceRestart(String subscriptionId) {
         if (forceRestart.containsKey(subscriptionId)) {
-            logger.info("Subscription {} has triggered a forced restart", subscriptionId);
+            logger.info("Subscription {} has triggered a forced restart", subscriptions.get(subscriptionId));
             return forceRestart.remove(subscriptionId) != null;
         }
         return false;
