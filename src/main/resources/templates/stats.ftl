@@ -275,11 +275,11 @@
                         </tr>
 
                         <tr data-toggle="collapse" data-target="#accordion_admin_start" style="cursor: pointer" class="clickable success">
-                            <td colspan="2">Start ALL subscriptions</td>
+                            <td colspan="2">Restart ALL active subscriptions</td>
                         </tr>
                         <tr id="accordion_admin_start" class="collapse ">
                             <td>
-                                CAUTION - Triggers immediate restart of ALL subscriptions!!!<br />
+                                CAUTION - Triggers immediate restart of ALL active subscriptions!!!<br />
                                 Use case: Server has just been started, and all subscriptions should be activated ASAP instead of waiting for health-trigger.
                             </td>
                             <td>
