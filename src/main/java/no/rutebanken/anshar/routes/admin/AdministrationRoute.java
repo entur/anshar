@@ -85,6 +85,12 @@ public class AdministrationRoute extends RestRouteBuilder {
                 .when(header("operation").isEqualTo("terminate"))
                     .to("direct:terminate.outbound.subscription")
                 .endChoice()
+                .when(header("operation").isEqualTo("terminateAll"))
+                    .to("direct:terminate.all.subscriptions")
+                .endChoice()
+                .when(header("operation").isEqualTo("startAll"))
+                    .to("direct:restart.all.subscriptions")
+                .endChoice()
                 .when(header("operation").isEqualTo("flush"))
                     .to("direct:flush.data.from.subscription")
                 .endChoice()
@@ -106,6 +112,19 @@ public class AdministrationRoute extends RestRouteBuilder {
         from("direct:terminate.outbound.subscription")
                 .bean(serverSubscriptionManager, "terminateSubscription(${header.subscriptionId})")
                 .routeId("admin.terminate.subscription")
+        ;
+
+        //Return subscription status
+        from("direct:terminate.all.subscriptions")
+                .bean(subscriptionManager, "terminateAllSubscriptions()")
+                .routeId("admin.terminate.all.subscriptions")
+        ;
+
+
+        //Return subscription status
+        from("direct:restart.all.subscriptions")
+                .bean(subscriptionManager, "triggerRestartAllActiveSubscriptions()")
+                .routeId("admin.start.all.subscriptions")
         ;
 
         //Return subscription status

@@ -41,6 +41,9 @@
         <li class="nav-item">
             <a class="nav-link" id="distribution-tab" data-toggle="tab" href="#distribution" onclick="location.hash='distribution'" role="tab" aria-controls="distribution" aria-selected="false">Distribution <span class="glyphicon glyphicon-equalizer"></span></a>
         </li>
+        <li class="nav-item text-right">
+            <a class="nav-link" id="admin-tab" data-toggle="tab" href="#admin" onclick="location.hash='admin'" role="tab" aria-controls="admin" aria-selected="false">Admin <span class="glyphicon glyphicon-wrench"></span></a>
+        </li>
     </ul>
 
     <div class="tab-content">
@@ -249,6 +252,41 @@
                         <th class="text-right">${body.elements.sx}</th>
                     </tr>
                     </tfoot>
+                </table>
+            </div>
+        </div>
+        <div class="tab-pane" id="admin" role="tabpanel" aria-labelledby="admin-tab">
+            <div class="row">
+                <h4>Admin-tools</h4>
+                <table class="table table-striped">
+                    <tbody>
+                        <tr data-toggle="collapse" data-target="#accordion_admin_terminate" style="cursor: pointer" class="clickable danger">
+                            <td colspan="2">Terminate ALL subscriptions</td>
+                        </tr>
+                        <tr id="accordion_admin_terminate" class="collapse ">
+                            <td>
+                                CAUTION - terminates ALL subscriptions!!! <br />
+                                Will stop <i>all</i> incoming data immediately.<br />
+                                Use case: Server is to be taken down controlled, and all subscriptions should be stopped.
+                            </td>
+                            <td>
+                                <span style="cursor: pointer"  class="glyphicon glyphicon-stop text-danger" onclick="administerSubscription('terminateAll', '')"></span>
+                            </td>
+                        </tr>
+
+                        <tr data-toggle="collapse" data-target="#accordion_admin_start" style="cursor: pointer" class="clickable success">
+                            <td colspan="2">Start ALL subscriptions</td>
+                        </tr>
+                        <tr id="accordion_admin_start" class="collapse ">
+                            <td>
+                                CAUTION - Triggers immediate restart of ALL subscriptions!!!<br />
+                                Use case: Server has just been started, and all subscriptions should be activated ASAP instead of waiting for health-trigger.
+                            </td>
+                            <td>
+                                <span style="cursor: pointer"  class="glyphicon glyphicon-play text-success" onclick="administerSubscription('startAll', '')"></span>
+                            </td>
+                        </tr>
+                    </tbody>
                 </table>
             </div>
         </div>

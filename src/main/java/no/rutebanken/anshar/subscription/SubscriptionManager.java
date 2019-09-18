@@ -526,6 +526,29 @@ public class SubscriptionManager {
         return null;
     }
 
+    /**
+     * Terminating all subscriptions - to be used before a full restart to
+     */
+    public void terminateAllSubscriptions() {
+        logger.warn("Terminating ALL subscriptions");
+        for (String subscriptionId : subscriptions.keySet()) {
+            stopSubscription(subscriptionId);
+        }
+    }
+
+
+    /**
+     * Terminating all subscriptions - to be used before a full restart to
+     */
+    public void triggerRestartAllActiveSubscriptions() {
+        logger.warn("Triggering restart of ALL active subscriptions");
+        for (String subscriptionId : subscriptions.keySet()) {
+            if (isActiveSubscription(subscriptionId)) {
+                forceRestart(subscriptionId);
+            }
+        }
+    }
+
     public void stopSubscription(String subscriptionId) {
         if (subscriptionId != null) {
             SubscriptionSetup subscriptionSetup = subscriptions.get(subscriptionId);
