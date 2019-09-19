@@ -223,72 +223,70 @@
             </#list>
         </div>
         <div class="tab-pane" id="distribution" role="tabpanel" aria-labelledby="distribution-tab">
-            <div class="row">
-                <h4>Active data per codespace:</h4>
-                <table class="table table-striped">
-                    <thead>
-                    <tr>
-                        <th>Codespace</th>
-                        <th class="text-right">ET</th>
-                        <th class="text-right">VM</th>
-                        <th class="text-right">SX</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <#list body.elements.distribution?sort_by("datasetId") as item>
-                    <tr>
-                        <th>${item.datasetId}</th>
-                        <td class="text-right">${item.etCount}</td>
-                        <td class="text-right">${item.vmCount}</td>
-                        <td class="text-right">${item.sxCount}</td>
-                    </tr>
-                    </#list>
-                    </tbody>
-                    <tfoot style="border-top: 2px solid #ddd;">
-                    <tr>
-                        <th>Total</th>
-                        <th class="text-right">${body.elements.et}</th>
-                        <th class="text-right">${body.elements.vm}</th>
-                        <th class="text-right">${body.elements.sx}</th>
-                    </tr>
-                    </tfoot>
-                </table>
-            </div>
+            <table class="table table-striped">
+                <thead>
+                <tr><th colspan="2"><h4>Active data per codespace:</h4></th></tr>
+                <tr>
+                    <th>Codespace</th>
+                    <th class="text-right">ET</th>
+                    <th class="text-right">VM</th>
+                    <th class="text-right">SX</th>
+                </tr>
+                </thead>
+                <tbody>
+                <#list body.elements.distribution?sort_by("datasetId") as item>
+                <tr>
+                    <th>${item.datasetId}</th>
+                    <td class="text-right">${item.etCount}</td>
+                    <td class="text-right">${item.vmCount}</td>
+                    <td class="text-right">${item.sxCount}</td>
+                </tr>
+                </#list>
+                </tbody>
+                <tfoot style="border-top: 2px solid #ddd;">
+                <tr>
+                    <th>Total</th>
+                    <th class="text-right">${body.elements.et}</th>
+                    <th class="text-right">${body.elements.vm}</th>
+                    <th class="text-right">${body.elements.sx}</th>
+                </tr>
+                </tfoot>
+            </table>
         </div>
         <div class="tab-pane" id="admin" role="tabpanel" aria-labelledby="admin-tab">
-            <div class="row">
-                <h4>Admin-tools</h4>
-                <table class="table table-striped">
-                    <tbody>
-                        <tr data-toggle="collapse" data-target="#accordion_admin_terminate" style="cursor: pointer" class="clickable danger">
-                            <td colspan="2">Terminate ALL subscriptions</td>
-                        </tr>
-                        <tr id="accordion_admin_terminate" class="collapse ">
-                            <td>
-                                CAUTION - terminates ALL subscriptions!!! <br />
-                                Will stop <i>all</i> incoming data immediately.<br />
-                                Use case: Server is to be taken down controlled, and all subscriptions should be stopped.
-                            </td>
-                            <td>
-                                <span style="cursor: pointer"  class="glyphicon glyphicon-stop text-danger" onclick="administerSubscription('terminateAll', '')"></span>
-                            </td>
-                        </tr>
+            <table class="table table-striped">
+                <thead>
+                    <tr><th colspan="2"><h4>Admin tools:</h4></th></tr>
+                </thead>
+                <tbody>
+                    <tr data-toggle="collapse" data-target="#accordion_admin_terminate" style="cursor: pointer" class="clickable danger">
+                        <td colspan="2">Terminate ALL subscriptions</td>
+                    </tr>
+                    <tr id="accordion_admin_terminate" class="collapse ">
+                        <td>
+                            CAUTION - terminates ALL subscriptions!!! <br />
+                            Will stop <i>all</i> incoming data immediately.<br />
+                            Use case: Server is to be taken down controlled, and all subscriptions should be stopped.
+                        </td>
+                        <td>
+                            <span style="cursor: pointer"  class="glyphicon glyphicon-stop text-danger" onclick="administerSubscription('terminateAll', '')"></span>
+                        </td>
+                    </tr>
 
-                        <tr data-toggle="collapse" data-target="#accordion_admin_start" style="cursor: pointer" class="clickable success">
-                            <td colspan="2">Restart ALL active subscriptions</td>
-                        </tr>
-                        <tr id="accordion_admin_start" class="collapse ">
-                            <td>
-                                CAUTION - Triggers immediate restart of ALL active subscriptions!!!<br />
-                                Use case: Server has just been started, and all subscriptions should be activated ASAP instead of waiting for health-trigger.
-                            </td>
-                            <td>
-                                <span style="cursor: pointer"  class="glyphicon glyphicon-play text-success" onclick="administerSubscription('startAll', '')"></span>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+                    <tr data-toggle="collapse" data-target="#accordion_admin_start" style="cursor: pointer" class="clickable success">
+                        <td colspan="2">Restart ALL active subscriptions</td>
+                    </tr>
+                    <tr id="accordion_admin_start" class="collapse ">
+                        <td>
+                            CAUTION - Triggers immediate restart of ALL active subscriptions!!!<br />
+                            Use case: Server has just been started, and all subscriptions should be activated ASAP instead of waiting for health-trigger.
+                        </td>
+                        <td>
+                            <span style="cursor: pointer"  class="glyphicon glyphicon-play text-success" onclick="administerSubscription('startAll', '')"></span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
