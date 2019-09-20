@@ -29,6 +29,10 @@ public class OutboundIdAdapter extends ValueAdapter {
         this.outboundIdMappingPolicy = outboundIdMappingPolicy;
     }
 
+    public static String createCombinedId(String originalId, String mappedId) {
+        return originalId + SiriValueTransformer.SEPARATOR + mappedId;
+    }
+
     public String apply(String text) {
         if (text == null || text.isEmpty()) {
             return text;

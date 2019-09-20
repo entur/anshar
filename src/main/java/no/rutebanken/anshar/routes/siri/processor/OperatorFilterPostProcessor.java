@@ -15,7 +15,6 @@
 
 package no.rutebanken.anshar.routes.siri.processor;
 
-import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import uk.org.siri.siri20.EstimatedTimetableDeliveryStructure;
 import uk.org.siri.siri20.EstimatedVersionFrameStructure;
@@ -24,6 +23,8 @@ import uk.org.siri.siri20.Siri;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter.createCombinedId;
 
 public class OperatorFilterPostProcessor extends ValueAdapter implements PostProcessor {
     private final List<String> operatorsToIgnore;
@@ -75,7 +76,7 @@ public class OperatorFilterPostProcessor extends ValueAdapter implements PostPro
                                                         updatedLineRef = operatorOverrideMapping.getOrDefault(operatorRef, operatorRef) + ":Line:" + lineRef;
                                                     }
 
-                                                    et.getLineRef().setValue(lineRef + SiriValueTransformer.SEPARATOR + updatedLineRef);
+                                                    et.getLineRef().setValue(createCombinedId(lineRef, updatedLineRef));
 
                                                     // TODO: Should we also update OperatorRef?
 //                                                    et.getOperatorRef().setValue(operatorOverrideMapping.getOrDefault(operatorRef, operatorRef));

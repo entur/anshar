@@ -18,7 +18,6 @@ package no.rutebanken.anshar.data;
 import com.hazelcast.core.IMap;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
-import no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import org.quartz.utils.counter.Counter;
 import org.quartz.utils.counter.CounterImpl;
@@ -39,6 +38,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer.SEPARATOR;
+import static no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter.getOriginalId;
 
 @Repository
 public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney> {
@@ -521,7 +521,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
             if (keep) {
 
                 if (et.isIsCompleteStopSequence() != null && !et.isIsCompleteStopSequence()) {
-                    //Not complete - merge partial update into existing
+                    logger.info("Received ET from {} is not complete - merge partial update into existing. [{}]", datasetId, key);
                     if (existing != null) {
                         EstimatedVehicleJourney.EstimatedCalls existingEstimatedCallWrapper = existing.getEstimatedCalls();
                         EstimatedVehicleJourney.EstimatedCalls updatedEstimatedCallWrapper = et.getEstimatedCalls();
@@ -729,21 +729,6 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
             et.setEstimatedCalls(new EstimatedVehicleJourney.EstimatedCalls());
             et.getEstimatedCalls().getEstimatedCalls().addAll(estimatedCalls);
         }
-    }
-
-    private String getOriginalId(String stopPointRef) {
-        if (stopPointRef != null && stopPointRef.indexOf(SEPARATOR) > 0) {
-            return OutboundIdAdapter.getOriginalId(stopPointRef);
-        }
-        return stopPointRef;
-    }
-
-
-    private String getMappedId(String stopPointRef) {
-        if (stopPointRef != null && stopPointRef.indexOf(SEPARATOR) > 0) {
-            return OutboundIdAdapter.getMappedId(stopPointRef);
-        }
-        return stopPointRef;
     }
 
 

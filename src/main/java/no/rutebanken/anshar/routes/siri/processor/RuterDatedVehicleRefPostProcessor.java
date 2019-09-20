@@ -15,12 +15,13 @@
 
 package no.rutebanken.anshar.routes.siri.processor;
 
-import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import uk.org.siri.siri20.*;
 
 import java.util.List;
 import java.util.StringTokenizer;
+
+import static no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter.createCombinedId;
 
 public class RuterDatedVehicleRefPostProcessor extends ValueAdapter implements PostProcessor {
 
@@ -79,7 +80,7 @@ public class RuterDatedVehicleRefPostProcessor extends ValueAdapter implements P
             StringTokenizer tokenizer = new StringTokenizer(datedVehicleJourneyRef, DELIMITER);
             if (tokenizer.countTokens() >= 2) {
                 String newValue = SERVICE_JOURNEY_PREFIX + tokenizer.nextToken() + "-" + tokenizer.nextToken();
-                result = datedVehicleJourneyRef + SiriValueTransformer.SEPARATOR + newValue;
+                result = createCombinedId(datedVehicleJourneyRef, newValue);
             }
         }
         return result;

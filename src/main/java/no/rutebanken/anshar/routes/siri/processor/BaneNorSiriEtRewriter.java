@@ -17,7 +17,6 @@ package no.rutebanken.anshar.routes.siri.processor;
 
 import no.rutebanken.anshar.routes.siri.processor.routedata.ServiceDate;
 import no.rutebanken.anshar.routes.siri.processor.routedata.StopTime;
-import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +28,7 @@ import java.util.*;
 
 import static no.rutebanken.anshar.routes.siri.processor.routedata.NetexUpdaterService.*;
 import static no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer.SEPARATOR;
+import static no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter.createCombinedId;
 import static no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter.getOriginalId;
 
 /**
@@ -304,7 +304,7 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
                     if (call.getArrivalPlatformName() == null &&
                             call.getDeparturePlatformName() == null &&
                             getMappedStopId(stopPointRef).equals(stopPointRef.getValue())) {
-                        stopPointRef.setValue(stopPointRef.getValue() + SEPARATOR + stopTimes.get(i).getStopId());
+                        stopPointRef.setValue(createCombinedId(stopPointRef.getValue(), stopTimes.get(i).getStopId()));
                     }
                 }
             }
@@ -345,7 +345,7 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
                                     }
                                 }
                                 StopPointRef stopPointRef = new StopPointRef();
-                                stopPointRef.setValue(originalId + SiriValueTransformer.SEPARATOR + stopId);
+                                stopPointRef.setValue(createCombinedId(originalId, stopId));
                                 estimatedCall.setStopPointRef(stopPointRef);
                             }
 
@@ -388,7 +388,7 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
                     if (call.getArrivalPlatformName() == null &&
                             call.getDeparturePlatformName() == null &&
                             getMappedStopId(stopPointRef).equals(stopPointRef.getValue())) {
-                        stopPointRef.setValue(stopPointRef.getValue() + SEPARATOR + stopTimes.get(i).getStopId());
+                        stopPointRef.setValue(createCombinedId(stopPointRef.getValue(), stopTimes.get(i).getStopId()));
                     }
                 }
             }
@@ -431,7 +431,7 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
                                     }
                                 }
                                 StopPointRef stopPointRef = new StopPointRef();
-                                stopPointRef.setValue(originalId + SiriValueTransformer.SEPARATOR + stopId);
+                                stopPointRef.setValue(createCombinedId(originalId, stopId));
                                 recordedCall.setStopPointRef(stopPointRef);
                             }
 

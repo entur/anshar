@@ -15,7 +15,6 @@
 
 package no.rutebanken.anshar.routes.siri.processor;
 
-import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.routes.siri.transformer.impl.StopPlaceRegisterMapper;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
@@ -28,6 +27,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import static no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter.createCombinedId;
 
 public class OstfoldIdPlatformPostProcessor extends ValueAdapter implements PostProcessor {
 
@@ -104,7 +105,7 @@ public class OstfoldIdPlatformPostProcessor extends ValueAdapter implements Post
 
                                         String nsrId = getNsrId(stopPointRefValue, platform);
                                         if (nsrId != null) {
-                                            et.getStopPointRef().setValue(stopPointRefValue + SiriValueTransformer.SEPARATOR + nsrId);
+                                            et.getStopPointRef().setValue(createCombinedId(stopPointRefValue, nsrId));
                                         }
                                     }
                                 }
@@ -123,7 +124,7 @@ public class OstfoldIdPlatformPostProcessor extends ValueAdapter implements Post
 
                                         String nsrId = getNsrId(stopPointRefValue, platform);
                                         if (nsrId != null) {
-                                            rc.getStopPointRef().setValue(stopPointRefValue + SiriValueTransformer.SEPARATOR + nsrId);
+                                            rc.getStopPointRef().setValue(createCombinedId(stopPointRefValue, nsrId));
                                         }
                                     }
                                 }

@@ -15,11 +15,12 @@
 
 package no.rutebanken.anshar.routes.siri.processor;
 
-import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import uk.org.siri.siri20.*;
 
 import java.util.List;
+
+import static no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter.createCombinedId;
 
 public class CodespaceProcessor extends ValueAdapter implements PostProcessor {
 
@@ -91,6 +92,6 @@ public class CodespaceProcessor extends ValueAdapter implements PostProcessor {
         if (original == null || original.equals(codespace)) {
             return codespace;
         }
-        return original + SiriValueTransformer.SEPARATOR + codespace;
+        return createCombinedId(original, codespace);
     }
 }

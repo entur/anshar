@@ -17,8 +17,8 @@ package no.rutebanken.anshar.routes.siri.processor;
 
 import no.rutebanken.anshar.routes.health.HealthManager;
 import no.rutebanken.anshar.routes.siri.transformer.ApplicationContextHolder;
-import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
+import no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import uk.org.siri.siri20.*;
 
@@ -69,7 +69,7 @@ public class BaneNorIdPlatformPostProcessor extends ValueAdapter implements Post
             healthManager.removeUnmappedId(type, datasetId, id);
             unmappedAlreadyAdded.remove(id);
         }
-        return stopPointRefValue + SiriValueTransformer.SEPARATOR + nsrId;
+        return OutboundIdAdapter.createCombinedId(stopPointRefValue, nsrId);
     }
 
     @Override
