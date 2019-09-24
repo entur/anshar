@@ -115,8 +115,8 @@ public class ExtendedHazelcastService extends HazelCastService {
     }
 
     @Bean
-    public IMap<String, ZonedDateTime> getIdStartTimeMap() {
-        return hazelcast.getMap("anshar.et.index.startTime");
+    public ReplicatedMap<String, ZonedDateTime> getIdStartTimeMap() {
+        return hazelcast.getReplicatedMap("anshar.et.index.startTime");
     }
 
     @Bean

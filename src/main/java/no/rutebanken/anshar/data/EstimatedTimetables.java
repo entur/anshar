@@ -16,6 +16,7 @@
 package no.rutebanken.anshar.data;
 
 import com.hazelcast.core.IMap;
+import com.hazelcast.core.ReplicatedMap;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.subscription.SiriDataType;
@@ -56,7 +57,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
 
     @Autowired
     @Qualifier("getIdStartTimeMap")
-    private IMap<String, ZonedDateTime> idStartTimeMap;
+    private ReplicatedMap<String, ZonedDateTime> idStartTimeMap;
 
     @Autowired
     @Qualifier("getEstimatedTimetableChangesMap")
@@ -226,7 +227,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
 
         if (previewInterval >= 0) {
             long t1 = System.currentTimeMillis();
-            startTimes.addAll(idStartTimeMap.keySet(entry -> ((ZonedDateTime)entry.getValue()).isBefore(previewExpiry)));
+            startTimes.addAll(idStartTimeMap.entrySet().stream().filter(entry -> entry.getValue().isBefore(previewExpiry)).map(e -> e.getKey()).collect(Collectors.toSet()));
             logger.info("Found {} ids starting within {} ms in {} ms", startTimes.size(), previewInterval, (System.currentTimeMillis()-t1));
         }
 
@@ -535,7 +536,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                             idForPatternChanges.set(key, key, expiration, TimeUnit.MILLISECONDS);
                         }
 
-                        idStartTimeMap.set(key, getFirstAimedTime(et), expiration, TimeUnit.MILLISECONDS);
+                        idStartTimeMap.put(key, getFirstAimedTime(et), expiration, TimeUnit.MILLISECONDS);
                     }
                 } else {
                     outdatedCounter.increment();
