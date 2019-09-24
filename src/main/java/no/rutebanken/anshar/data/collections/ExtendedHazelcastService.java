@@ -85,18 +85,18 @@ public class ExtendedHazelcastService extends HazelCastService {
     }
 
     @Bean
-    public ReplicatedMap<String, EstimatedVehicleJourney> getEstimatedTimetablesMap(){
-        return hazelcast.getReplicatedMap("anshar.et");
+    public IMap<String, EstimatedVehicleJourney> getEstimatedTimetablesMap(){
+        return hazelcast.getMap("anshar.et");
     }
 
     @Bean
-    public ReplicatedMap<String, Set<String>> getEstimatedTimetableChangesMap() {
-        return hazelcast.getReplicatedMap("anshar.et.changes");
+    public IMap<String, Set<String>> getEstimatedTimetableChangesMap() {
+        return hazelcast.getMap("anshar.et.changes");
     }
 
     @Bean
-    public ReplicatedMap<String, String> getIdForPatternChangesMap() {
-        return hazelcast.getReplicatedMap("anshar.et.index.pattern");
+    public IMap<String, String> getIdForPatternChangesMap() {
+        return hazelcast.getMap("anshar.et.index.pattern");
     }
 
     @Bean
@@ -105,8 +105,8 @@ public class ExtendedHazelcastService extends HazelCastService {
     }
 
     @Bean
-    public ReplicatedMap<String, String> getEtChecksumMap() {
-        return hazelcast.getReplicatedMap("anshar.et.checksum.cache");
+    public IMap<String, String> getEtChecksumMap() {
+        return hazelcast.getMap("anshar.et.checksum.cache");
     }
 
     @Bean
@@ -115,8 +115,8 @@ public class ExtendedHazelcastService extends HazelCastService {
     }
 
     @Bean
-    public ReplicatedMap<String, ZonedDateTime> getIdStartTimeMap() {
-        return hazelcast.getReplicatedMap("anshar.et.index.startTime");
+    public IMap<String, ZonedDateTime> getIdStartTimeMap() {
+        return hazelcast.getMap("anshar.et.index.startTime");
     }
 
     @Bean
@@ -162,8 +162,8 @@ public class ExtendedHazelcastService extends HazelCastService {
 
 
     @Bean
-    public ReplicatedMap<String, Instant> getLastEtUpdateRequest() {
-        return hazelcast.getReplicatedMap("anshar.activity.last.et.update.request");
+    public IMap<String, Instant> getLastEtUpdateRequest() {
+        return hazelcast.getMap("anshar.activity.last.et.update.request");
     }
 
     @Bean
