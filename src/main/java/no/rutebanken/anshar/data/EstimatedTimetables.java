@@ -38,7 +38,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer.SEPARATOR;
-import static no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter.getOriginalId;
 
 @Repository
 public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney> {
@@ -520,76 +519,6 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
             }
             if (keep) {
 
-                if (et.isIsCompleteStopSequence() != null && !et.isIsCompleteStopSequence()) {
-                    logger.info("Received ET from {} is not complete - merge partial update into existing. [{}]", datasetId, key);
-                    if (existing != null) {
-                        EstimatedVehicleJourney.EstimatedCalls existingEstimatedCallWrapper = existing.getEstimatedCalls();
-                        EstimatedVehicleJourney.EstimatedCalls updatedEstimatedCallWrapper = et.getEstimatedCalls();
-
-                        EstimatedVehicleJourney.RecordedCalls existingRecordedCallWrapper = existing.getRecordedCalls();
-                        if (existingRecordedCallWrapper == null) {
-                            existingRecordedCallWrapper = new EstimatedVehicleJourney.RecordedCalls();
-                            existing.setRecordedCalls(existingRecordedCallWrapper);
-                        }
-                        EstimatedVehicleJourney.RecordedCalls updatedRecordedCallWrapper = et.getRecordedCalls();
-
-                        List<RecordedCall> recordedCallsList = new ArrayList<>();
-                        List<EstimatedCall> estimatedCallsList = new ArrayList<>();
-
-                        // Merge existing and updated RecordedCalls
-                        if (existingRecordedCallWrapper.getRecordedCalls() != null ) {
-                            recordedCallsList.addAll(existingRecordedCallWrapper.getRecordedCalls());
-                        }
-                        if (updatedRecordedCallWrapper != null && updatedRecordedCallWrapper.getRecordedCalls() != null ) {
-                            recordedCallsList.addAll(updatedRecordedCallWrapper.getRecordedCalls());
-                        }
-
-                        //Keep estimatedCalls not in RecordedCalls
-                        if (existingEstimatedCallWrapper != null && existingEstimatedCallWrapper.getEstimatedCalls() != null ) {
-                            for (EstimatedCall call : existingEstimatedCallWrapper.getEstimatedCalls()) {
-                                String originalId = getOriginalId(call.getStopPointRef().getValue());
-
-                                if (recordedCallsList.stream().anyMatch(rc -> originalId.equals(getOriginalId(rc.getStopPointRef().getValue())))) {
-                                    //EstimatedCall found in RecordedCalls - all previous EstimatedCalls should have been Recorded
-                                    for (int i = 0; i < estimatedCallsList.size(); i++) {
-                                        recordedCallsList.add(i, mapToRecordedCall(estimatedCallsList.get(i)));
-                                    }
-                                    estimatedCallsList.clear();
-                                } else {
-                                    estimatedCallsList.add(call);
-                                }
-                            }
-                        }
-
-
-                        LinkedHashMap<String, EstimatedCall> estimatedCallsMap = new LinkedHashMap<>();
-                        for (EstimatedCall call : estimatedCallsList) {
-                            estimatedCallsMap.put(getOriginalId(call.getStopPointRef().getValue()), call);
-                        }
-
-                        //Add or replace existing calls
-                        if (updatedEstimatedCallWrapper != null && updatedEstimatedCallWrapper.getEstimatedCalls() != null ) {
-                            for (EstimatedCall call : updatedEstimatedCallWrapper.getEstimatedCalls()) {
-                                estimatedCallsMap.put(getOriginalId(call.getStopPointRef().getValue()), call);
-                            }
-                        }
-
-                        EstimatedVehicleJourney.EstimatedCalls joinedEstimatedCalls = new EstimatedVehicleJourney.EstimatedCalls();
-                        joinedEstimatedCalls.getEstimatedCalls().addAll(estimatedCallsMap.values());
-
-                        EstimatedVehicleJourney.RecordedCalls joinedRecordedCalls = new EstimatedVehicleJourney.RecordedCalls();
-                        joinedRecordedCalls.getRecordedCalls().addAll(recordedCallsList);
-
-                        et.setEstimatedCalls(joinedEstimatedCalls);
-                        et.setRecordedCalls(joinedRecordedCalls);
-                    }
-                }
-
-                if (existing != null && existing.isIsCompleteStopSequence() != null) {
-                    //If updates are merged in, the journey is still complete...
-                    et.setIsCompleteStopSequence(existing.isIsCompleteStopSequence());
-                }
-
                 long expiration = getExpiration(et);
                 if (expiration > 0) {
                     //Ignoring elements without EstimatedCalls
@@ -675,7 +604,11 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
     private void mapFutureRecordedCallsToEstimatedCalls(EstimatedVehicleJourney et) {
         if (et.getRecordedCalls() != null && et.getRecordedCalls().getRecordedCalls() != null && et.getRecordedCalls().getRecordedCalls().size() > 0 &&
                 (et.getEstimatedCalls() == null || (et.getEstimatedCalls().getEstimatedCalls() != null && et.getEstimatedCalls().getEstimatedCalls().size() == 0))) {
-
+            if (et.isCancellation() != null && et.isCancellation()) {
+                logger.info("NOT rewriting EstimatedVehicleJourney with only RecordedCalls - journey is cancelled. Line {}, VehicleRef {}.",
+                        (et.getLineRef() != null ? et.getLineRef().getValue():null), (et.getVehicleRef() != null ? et.getVehicleRef().getValue():null));
+                return;
+            }
             List<RecordedCall> predictedRecordedCalls = et.getRecordedCalls().getRecordedCalls();
             List<RecordedCall> recordedCalls = new ArrayList<>();
             List<EstimatedCall> estimatedCalls = new ArrayList<>();
