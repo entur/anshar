@@ -15,7 +15,7 @@
 
 package no.rutebanken.anshar.data;
 
-import com.hazelcast.core.IMap;
+import com.hazelcast.core.ReplicatedMap;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.subscription.SiriDataType;
@@ -44,27 +44,27 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
     private final Logger logger = LoggerFactory.getLogger(EstimatedTimetables.class);
 
     @Autowired
-    private IMap<String, EstimatedVehicleJourney> timetableDeliveries;
+    private ReplicatedMap<String, EstimatedVehicleJourney> timetableDeliveries;
 
     @Autowired
     @Qualifier("getEtChecksumMap")
-    private IMap<String,String> checksumCache;
+    private ReplicatedMap<String,String> checksumCache;
 
     @Autowired
     @Qualifier("getIdForPatternChangesMap")
-    private IMap<String, String> idForPatternChanges;
+    private ReplicatedMap<String, String> idForPatternChanges;
 
     @Autowired
     @Qualifier("getIdStartTimeMap")
-    private IMap<String, ZonedDateTime> idStartTimeMap;
+    private ReplicatedMap<String, ZonedDateTime> idStartTimeMap;
 
     @Autowired
     @Qualifier("getEstimatedTimetableChangesMap")
-    private IMap<String, Set<String>> changesMap;
+    private ReplicatedMap<String, Set<String>> changesMap;
 
     @Autowired
     @Qualifier("getLastEtUpdateRequest")
-    private IMap<String, Instant> lastUpdateRequested;
+    private ReplicatedMap<String, Instant> lastUpdateRequested;
 
     @Autowired
     private AnsharConfiguration configuration;
@@ -100,7 +100,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
     public Map<String, Integer> getLocalDatasetSize() {
         Map<String, Integer> sizeMap = new HashMap<>();
         long t1 = System.currentTimeMillis();
-        timetableDeliveries.localKeySet().forEach(key -> {
+        timetableDeliveries.keySet().forEach(key -> {
                         String datasetId = key.substring(0, key.indexOf(":"));
 
                         Integer count = sizeMap.getOrDefault(datasetId, 0);
@@ -127,8 +127,8 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
         logger.warn("Removing all data ({} ids) for {}", idsToRemove.size(), datasetId);
 
         for (String id : idsToRemove) {
-            timetableDeliveries.delete(id);
-            checksumCache.delete(id);
+            timetableDeliveries.remove(id);
+            checksumCache.remove(id);
         }
     }
 
@@ -213,7 +213,8 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
 
         if (idSet == allIds) {
             timetableDeliveries
-                    .keySet(p -> datasetId == null || ((String)p.getKey()).startsWith(datasetId + ":"))
+                    .keySet().stream()
+                    .filter(key -> datasetId == null || key.startsWith(datasetId + ":"))
                     .forEach(idSet::add);
         }
 
@@ -226,7 +227,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
 
         if (previewInterval >= 0) {
             long t1 = System.currentTimeMillis();
-            startTimes.addAll(idStartTimeMap.keySet(entry -> ((ZonedDateTime)entry.getValue()).isBefore(previewExpiry)));
+            startTimes.addAll(idStartTimeMap.entrySet().stream().filter(entry -> entry.getValue().isBefore(previewExpiry)).map(e -> e.getKey()).collect(Collectors.toSet()));
             logger.info("Found {} ids starting within {} ms in {} ms", startTimes.size(), previewInterval, (System.currentTimeMillis()-t1));
         }
 
@@ -251,6 +252,9 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                 .limit(maxSize)
                 .collect(Collectors.toSet());
 
+        logger.info("Filtering by startTime or patternchange: {} ms", (System.currentTimeMillis()-t1));
+
+        t1 = System.currentTimeMillis();
         //Remove collected objects
         sizeLimitedIds.forEach(idSet::remove);
 
@@ -259,7 +263,11 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
 
         Boolean isMoreData = (previewIntervalExclusionCounter.get() + sizeLimitedIds.size()) < requestedIds.size();
 
-        Collection<EstimatedVehicleJourney> values = timetableDeliveries.getAll(sizeLimitedIds).values();
+        Collection<EstimatedVehicleJourney> values = new ArrayList<>();
+        for (String id : sizeLimitedIds) {
+            values.add(timetableDeliveries.get(id));
+        }
+//        Collection<EstimatedVehicleJourney> values = timetableDeliveries.getAll(sizeLimitedIds).values();
         logger.info("Fetching data: {} ms", (System.currentTimeMillis()-t1));
         t1 = System.currentTimeMillis();
 
@@ -282,8 +290,8 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
             }
 
             //Update change-tracker
-            changesMap.set(requestorId, idSet, trackingPeriodMinutes, TimeUnit.MINUTES);
-            lastUpdateRequested.set(requestorId, Instant.now(), trackingPeriodMinutes, TimeUnit.MINUTES);
+            changesMap.put(requestorId, idSet, trackingPeriodMinutes, TimeUnit.MINUTES);
+            lastUpdateRequested.put(requestorId, Instant.now(), trackingPeriodMinutes, TimeUnit.MINUTES);
 
             logger.info("Returning {}, {} left for requestorRef {}", sizeLimitedIds.size(), idSet.size(), requestorId);
         }
@@ -334,7 +342,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
         if (requestorId != null) {
 
             Set<String> idSet = changesMap.get(requestorId);
-            lastUpdateRequested.set(requestorId, Instant.now(), configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
+            lastUpdateRequested.put(requestorId, Instant.now(), configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
 
             if (idSet != null) {
                 Set<String> datasetFilteredIdSet = new HashSet<>();
@@ -345,7 +353,10 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                     datasetFilteredIdSet.addAll(idSet);
                 }
 
-                Collection<EstimatedVehicleJourney> changes = timetableDeliveries.getAll(datasetFilteredIdSet).values();
+                Collection<EstimatedVehicleJourney> changes = new ArrayList<>();
+                for (String id : datasetFilteredIdSet) {
+                    changes.add(timetableDeliveries.get(id));
+                }
 
                 Set<String> existingSet = changesMap.get(requestorId);
                 if (existingSet == null) {
@@ -357,7 +368,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                 //Remove outdated ids
                 existingSet.removeIf(id -> !timetableDeliveries.containsKey(id));
 
-                changesMap.set(requestorId, existingSet, configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
+                changesMap.put(requestorId, existingSet, configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
 
 
                 logger.info("Returning {} changes to requestorRef {}", changes.size(), requestorId);
@@ -365,7 +376,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
             } else {
 
                 logger.info("Returning all to requestorRef {}", requestorId);
-                changesMap.set(requestorId, new HashSet<>(), configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
+                changesMap.put(requestorId, new HashSet<>(), configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
             }
         }
 
@@ -376,33 +387,34 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
         if (datasetId == null || datasetId.isEmpty()) {
             return getAll();
         }
-        return  timetableDeliveries.values(e -> ((String) e.getKey()).startsWith(datasetId + ":"));
+        return timetableDeliveries.entrySet().stream().filter(e -> e.getKey().startsWith(datasetId + ":")).map(e -> e.getValue()).collect(Collectors.toList());
     }
 
     private ZonedDateTime getFirstAimedTime(EstimatedVehicleJourney vehicleJourney) {
 
         if (vehicleJourney.getRecordedCalls() != null && !vehicleJourney.getRecordedCalls().getRecordedCalls().isEmpty()) {
             List<RecordedCall> recordedCalls = vehicleJourney.getRecordedCalls().getRecordedCalls();
-            RecordedCall firstRecordedCall = recordedCalls.get(0);
 
-            if (firstRecordedCall.getAimedDepartureTime() != null) {
-                return firstRecordedCall.getAimedDepartureTime();
-            }
+            for (RecordedCall firstRecordedCall : recordedCalls) {
+                if (firstRecordedCall.getAimedDepartureTime() != null) {
+                    return firstRecordedCall.getAimedDepartureTime();
+                }
 
-            if (firstRecordedCall.getAimedArrivalTime() != null) {
-                return firstRecordedCall.getAimedArrivalTime();
+                if (firstRecordedCall.getAimedArrivalTime() != null) {
+                    return firstRecordedCall.getAimedArrivalTime();
+                }
             }
         }
 
         if (vehicleJourney.getEstimatedCalls() != null && !vehicleJourney.getEstimatedCalls().getEstimatedCalls().isEmpty()) {
             List<EstimatedCall> estimatedCalls = vehicleJourney.getEstimatedCalls().getEstimatedCalls();
-            EstimatedCall firstEstimatedCall = estimatedCalls.get(0);
-
-            if (firstEstimatedCall.getAimedDepartureTime() != null) {
-                return firstEstimatedCall.getAimedDepartureTime();
-            }
-            if (firstEstimatedCall.getAimedArrivalTime() != null) {
-                return firstEstimatedCall.getAimedArrivalTime();
+            for (EstimatedCall firstEstimatedCall : estimatedCalls) {
+                if (firstEstimatedCall.getAimedDepartureTime() != null) {
+                    return firstEstimatedCall.getAimedDepartureTime();
+                }
+                if (firstEstimatedCall.getAimedArrivalTime() != null) {
+                    return firstEstimatedCall.getAimedArrivalTime();
+                }
             }
         }
 
@@ -527,15 +539,15 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                             !et.getEstimatedCalls().getEstimatedCalls().isEmpty()) {
                         changes.add(key);
                         addedData.add(et);
-                        timetableDeliveries.set(key, et, expiration, TimeUnit.MILLISECONDS);
-                        checksumCache.set(key, currentChecksum, expiration, TimeUnit.MILLISECONDS);
+                        timetableDeliveries.put(key, et, expiration, TimeUnit.MILLISECONDS);
+                        checksumCache.put(key, currentChecksum, expiration, TimeUnit.MILLISECONDS);
 
                         if (hasPatternChanges(et)) {
                             // Keep track of all valid ET with pattern-changes
-                            idForPatternChanges.set(key, key, expiration, TimeUnit.MILLISECONDS);
+                            idForPatternChanges.put(key, key, expiration, TimeUnit.MILLISECONDS);
                         }
 
-                        idStartTimeMap.set(key, getFirstAimedTime(et), expiration, TimeUnit.MILLISECONDS);
+                        idStartTimeMap.put(key, getFirstAimedTime(et), expiration, TimeUnit.MILLISECONDS);
                     }
                 } else {
                     outdatedCounter.increment();
@@ -551,9 +563,9 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                 Set<String> tmpChanges = changesMap.get(requestor);
                 tmpChanges.addAll(changes);
 
-                changesMap.set(requestor, tmpChanges, configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
+                changesMap.put(requestor, tmpChanges, configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
             } else {
-                changesMap.delete(requestor);
+                changesMap.remove(requestor);
             }
         });
 

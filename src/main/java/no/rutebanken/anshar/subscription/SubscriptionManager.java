@@ -17,6 +17,7 @@ package no.rutebanken.anshar.subscription;
 
 
 import com.hazelcast.core.IMap;
+import com.hazelcast.core.ReplicatedMap;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.data.*;
 import no.rutebanken.anshar.routes.health.HealthManager;
@@ -96,8 +97,6 @@ public class SubscriptionManager {
     @Autowired
     private EstimatedTimetables et;
     @Autowired
-    private ProductionTimetables pt;
-    @Autowired
     private VehicleActivities vm;
 
     @Autowired
@@ -105,24 +104,12 @@ public class SubscriptionManager {
     private IMap<String, Set<String>> sxChanges;
 
     @Autowired
-    @Qualifier("getLastSxUpdateRequest")
-    private IMap<String, Instant> lastSxUpdateRequested;
-
-    @Autowired
     @Qualifier("getEstimatedTimetableChangesMap")
-    private IMap<String, Set<String>> etChanges;
-
-    @Autowired
-    @Qualifier("getLastEtUpdateRequest")
-    private IMap<String, Instant> lastEtUpdateRequested;
+    private ReplicatedMap<String, Set<String>> etChanges;
 
     @Autowired
     @Qualifier("getVehicleChangesMap")
     private IMap<String, Set<String>> vmChanges;
-
-    @Autowired
-    @Qualifier("getLastVmUpdateRequest")
-    private IMap<String, Instant> lastVmUpdateRequested;
 
     @Autowired
     private RequestorRefRepository requestorRefRepository;
