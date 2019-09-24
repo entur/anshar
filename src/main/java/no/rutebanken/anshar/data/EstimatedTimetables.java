@@ -212,8 +212,8 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
         Set<String> idSet = changesMap.getOrDefault(requestorId, allIds);
 
         if (idSet == allIds) {
-            timetableDeliveries.keySet().stream()
-                    .filter(key -> datasetId == null || key.startsWith(datasetId + ":"))
+            timetableDeliveries
+                    .keySet(p -> datasetId == null || ((String)p.getKey()).startsWith(datasetId + ":"))
                     .forEach(idSet::add);
         }
 
