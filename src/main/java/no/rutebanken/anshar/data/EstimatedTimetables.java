@@ -252,10 +252,14 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                 .limit(maxSize)
                 .collect(Collectors.toSet());
 
+        long t2 = System.currentTimeMillis();
         //Remove collected objects
         sizeLimitedIds.forEach(idSet::remove);
 
-        logger.info("Limiting size: {} ms", (System.currentTimeMillis()-t1));
+        long t3 = System.currentTimeMillis();
+
+        logger.info("Filter by startTime: {}, limiting size: {} ms", (t2 - t1), (t3 - t2));
+
         t1 = System.currentTimeMillis();
 
         Boolean isMoreData = (previewIntervalExclusionCounter.get() + sizeLimitedIds.size()) < requestedIds.size();
