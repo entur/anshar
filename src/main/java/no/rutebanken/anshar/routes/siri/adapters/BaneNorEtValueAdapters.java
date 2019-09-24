@@ -47,7 +47,7 @@ public class BaneNorEtValueAdapters extends MappingAdapter {
         List<String> operatorsToIgnore = new ArrayList<>();//Arrays.asList("BN", "");
         valueAdapters.add(new OperatorFilterPostProcessor(operatorsToIgnore, operatorOverrideMapping));
 
-//        valueAdapters.add(new BaneNorArrivalDepartureCancellationProcessor());
+        valueAdapters.add(new BaneNorRemoveFreightTrainPostProcessor());
 
         /*
          Need to remove already expired VehicleJourneys before matching with NeTEx routedata since vehicleRef-
