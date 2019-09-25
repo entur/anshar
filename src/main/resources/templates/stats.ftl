@@ -282,7 +282,7 @@
                             Use case: Server has just been started, and all subscriptions should be activated ASAP instead of waiting for health-trigger.
                         </td>
                         <td>
-                            <span style="cursor: pointer"  class="glyphicon glyphicon-play text-success" onclick="administerSubscription('startAll', '')"></span>
+                            <span style="cursor: pointer"  class="glyphicon glyphicon-refresh text-success" onclick="administerSubscription('startAll', '')"></span>
                         </td>
                     </tr>
                 </tbody>
