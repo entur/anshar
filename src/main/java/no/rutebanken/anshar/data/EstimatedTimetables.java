@@ -53,7 +53,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
 
     @Autowired
     @Qualifier("getIdForPatternChangesMap")
-    private IMap<String, String> idForPatternChanges;
+    private ReplicatedMap<String, String> idForPatternChanges;
 
     @Autowired
     @Qualifier("getIdStartTimeMap")
@@ -537,7 +537,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
 
                         if (hasPatternChanges(et)) {
                             // Keep track of all valid ET with pattern-changes
-                            idForPatternChanges.set(key, key, expiration, TimeUnit.MILLISECONDS);
+                            idForPatternChanges.put(key, key, expiration, TimeUnit.MILLISECONDS);
                         }
 
                         idStartTimeMap.put(key, getFirstAimedTime(et), expiration, TimeUnit.MILLISECONDS);

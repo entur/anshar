@@ -95,8 +95,8 @@ public class ExtendedHazelcastService extends HazelCastService {
     }
 
     @Bean
-    public IMap<String, String> getIdForPatternChangesMap() {
-        return hazelcast.getMap("anshar.et.index.pattern");
+    public ReplicatedMap<String, String> getIdForPatternChangesMap() {
+        return hazelcast.getReplicatedMap("anshar.et.index.pattern");
     }
 
     @Bean
