@@ -135,7 +135,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
         }
     }
 
-    void clearAll() {
+    public void clearAll() {
         logger.error("Deleting all data - should only be used in test!!!");
         timetableDeliveries.clear();
         checksumCache.clear();
