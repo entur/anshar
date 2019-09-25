@@ -8,8 +8,7 @@ aliases:
 - &docker-login
   name: Docker login
   command: |
-    echo 'export GCLOUD_SERVICE_KEY="$GCLOUD_SERVICE_KEY"' >> $BASH_ENV
-    /tools/docker_login.sh
+    docker login -u _json_key --password-stdin https://eu.gcr.io <<< "${DOCKER_PASSWORD}"
 - &post-hook
   name: Notify about build and docker image pushed
   command: |
@@ -20,10 +19,10 @@ aliases:
 jobs:
   build:
     docker:
-    - image: eu.gcr.io/carbon-1287/circleci-toolbox-image-java11
+    - image: eu.gcr.io/entur-system-1287/circleci-toolbox-image-java11
       auth:
         username: _json_key
-        password: $GCLOUD_SERVICE_KEY
+        password: $DOCKER_PASSWORD
     environment:
       MAVEN_OPTS: -Xmx3G
     steps:
@@ -55,10 +54,10 @@ jobs:
         - .circleci
   deploy-docker:
     docker:
-    - image: eu.gcr.io/carbon-1287/circleci-toolbox-image-java11
+    - image: eu.gcr.io/entur-system-1287/circleci-toolbox-image-java11
       auth:
         username: _json_key
-        password: $GCLOUD_SERVICE_KEY
+        password: $DOCKER_PASSWORD
     environment:
       DEBIAN_FRONTEND: "noninteractive"
     steps:
