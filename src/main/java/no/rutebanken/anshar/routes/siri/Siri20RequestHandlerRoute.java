@@ -189,6 +189,7 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
                         }
                     })
                     .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
+                    .to("log:serResponse:" + getClass().getSimpleName() + "?showAll=true&multiline=true&showStreams=true")
                 .otherwise()
                     .to("direct:anshar.invalid.tracking.header.response")
                 .routeId("process.service")

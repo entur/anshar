@@ -269,7 +269,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
         t1 = System.currentTimeMillis();
 
         Siri siri = siriObjectFactory.createETServiceDelivery(values);
-        logger.info("Creating SIRI-delivery: {} ms", (System.currentTimeMillis()-t1));
+        logger.debug("Creating SIRI-delivery: {} ms", (System.currentTimeMillis()-t1));
 
         siri.getServiceDelivery().setMoreData(isMoreData);
 
