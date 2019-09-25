@@ -130,13 +130,17 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
         for (String id : idsToRemove) {
             timetableDeliveries.delete(id);
             checksumCache.delete(id);
+            idStartTimeMap.remove(id);
+            idForPatternChanges.remove(id);
         }
     }
 
-    public void clearAll() {
+    void clearAll() {
         logger.error("Deleting all data - should only be used in test!!!");
         timetableDeliveries.clear();
         checksumCache.clear();
+        idStartTimeMap.clear();
+        idForPatternChanges.clear();
     }
 
     @Autowired
