@@ -15,7 +15,7 @@
 
 package no.rutebanken.anshar.data;
 
-import com.hazelcast.core.IMap;
+import com.hazelcast.core.ReplicatedMap;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.subscription.SiriDataType;
@@ -43,20 +43,20 @@ public class Situations extends SiriRepository<PtSituationElement> {
     private final Logger logger = LoggerFactory.getLogger(Situations.class);
 
     @Autowired
-    private IMap<String,PtSituationElement> situations;
+    private ReplicatedMap<String,PtSituationElement> situations;
 
     @Autowired
     @Qualifier("getSxChecksumMap")
-    private IMap<String,String> checksumCache;
+    private ReplicatedMap<String,String> checksumCache;
 
     @Autowired
     @Qualifier("getSituationChangesMap")
-    private IMap<String, Set<String>> changesMap;
+    private ReplicatedMap<String, Set<String>> changesMap;
 
 
     @Autowired
     @Qualifier("getLastSxUpdateRequest")
-    private IMap<String, Instant> lastUpdateRequested;
+    private ReplicatedMap<String, Instant> lastUpdateRequested;
 
     @Autowired
     private SiriObjectFactory siriObjectFactory;
@@ -93,18 +93,18 @@ public class Situations extends SiriRepository<PtSituationElement> {
     }
 
 
-    public Map<String, Integer> getLocalDatasetSize() {
-        Map<String, Integer> sizeMap = new HashMap<>();
-        long t1 = System.currentTimeMillis();
-        situations.localKeySet().forEach(key -> {
-            String datasetId = key.substring(0, key.indexOf(":"));
-
-            Integer count = sizeMap.getOrDefault(datasetId, 0);
-            sizeMap.put(datasetId, count+1);
-        });
-        logger.debug("Calculating data-distribution (SX) took {} ms: {}", (System.currentTimeMillis()-t1), sizeMap);
-        return sizeMap;
-    }
+//    public Map<String, Integer> getLocalDatasetSize() {
+//        Map<String, Integer> sizeMap = new HashMap<>();
+//        long t1 = System.currentTimeMillis();
+//        situations.localKeySet().forEach(key -> {
+//            String datasetId = key.substring(0, key.indexOf(":"));
+//
+//            Integer count = sizeMap.getOrDefault(datasetId, 0);
+//            sizeMap.put(datasetId, count+1);
+//        });
+//        logger.debug("Calculating data-distribution (SX) took {} ms: {}", (System.currentTimeMillis()-t1), sizeMap);
+//        return sizeMap;
+//    }
 
 
     public Integer getDatasetSize(String datasetId) {
@@ -124,8 +124,8 @@ public class Situations extends SiriRepository<PtSituationElement> {
         logger.warn("Removing all data ({} ids) for {}", idsToRemove.size(), datasetId);
 
         for (String id : idsToRemove) {
-            situations.delete(id);
-            checksumCache.delete(id);
+            situations.remove(id);
+            checksumCache.remove(id);
         }
     }
 
@@ -173,7 +173,7 @@ public class Situations extends SiriRepository<PtSituationElement> {
         logger.info("Limiting size: {} ms", (System.currentTimeMillis()-t1));
         t1 = System.currentTimeMillis();
 
-        Collection<PtSituationElement> values = situations.getAll(sizeLimitedIds).values();
+        Collection<PtSituationElement> values = getValuesByIds(situations, sizeLimitedIds);
         logger.info("Fetching data: {} ms", (System.currentTimeMillis()-t1));
         t1 = System.currentTimeMillis();
 
@@ -197,15 +197,14 @@ public class Situations extends SiriRepository<PtSituationElement> {
             }
 
             //Update change-tracker
-            changesMap.set(requestorId, idSet, trackingPeriodMinutes, TimeUnit.MINUTES);
-            lastUpdateRequested.set(requestorId, Instant.now(), trackingPeriodMinutes, TimeUnit.MINUTES);
+            changesMap.put(requestorId, idSet, trackingPeriodMinutes, TimeUnit.MINUTES);
+            lastUpdateRequested.put(requestorId, Instant.now(), trackingPeriodMinutes, TimeUnit.MINUTES);
 
             logger.info("Returning {}, {} left for requestorRef {}", sizeLimitedIds.size(), idSet.size(), requestorId);
         }
 
         return siri;
     }
-
     /**
      * @return All vehicle activities that are still valid
      */
@@ -214,7 +213,7 @@ public class Situations extends SiriRepository<PtSituationElement> {
             return getAll();
         }
 
-        return  situations.values(e -> ((String) e.getKey()).startsWith(datasetId + ":"));
+        return getValuesByDatasetId(situations, datasetId);
     }
 
 
@@ -225,7 +224,7 @@ public class Situations extends SiriRepository<PtSituationElement> {
         if (requestorId != null) {
 
             Set<String> idSet = changesMap.get(requestorId);
-            lastUpdateRequested.set(requestorId, Instant.now(), configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
+            lastUpdateRequested.put(requestorId, Instant.now(), configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
             if (idSet != null) {
                 Set<String> datasetFilteredIdSet = new HashSet<>();
 
@@ -234,7 +233,7 @@ public class Situations extends SiriRepository<PtSituationElement> {
                 } else {
                     datasetFilteredIdSet.addAll(idSet);
                 }
-                Collection<PtSituationElement> changes = situations.getAll(datasetFilteredIdSet).values();
+                Collection<PtSituationElement> changes = getValuesByIds(situations, datasetFilteredIdSet);
 
                 // Data may have been updated
                 Set<String> existingSet = changesMap.get(requestorId);
@@ -247,7 +246,7 @@ public class Situations extends SiriRepository<PtSituationElement> {
                 //Remove outdated ids
                 existingSet.removeIf(id -> !situations.containsKey(id));
 
-                changesMap.set(requestorId, existingSet, configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
+                changesMap.put(requestorId, existingSet, configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
 
 
                 logger.info("Returning {} changes to requestorRef {}", changes.size(), requestorId);
@@ -255,7 +254,7 @@ public class Situations extends SiriRepository<PtSituationElement> {
             } else {
                 logger.info("Returning all to requestorRef {}", requestorId);
             }
-            changesMap.set(requestorId, new HashSet<>(), configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
+            changesMap.put(requestorId, new HashSet<>(), configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
         }
 
         return getAll(datasetId);
@@ -315,14 +314,14 @@ public class Situations extends SiriRepository<PtSituationElement> {
             if (updated) {
                 long expiration = getExpiration(situation);
                 if (expiration > 0) { //expiration < 0 => already expired
-                    situations.set(key, situation, expiration, TimeUnit.MILLISECONDS);
-                    checksumCache.set(key, currentChecksum, expiration, TimeUnit.MILLISECONDS);
+                    situations.put(key, situation, expiration, TimeUnit.MILLISECONDS);
+                    checksumCache.put(key, currentChecksum, expiration, TimeUnit.MILLISECONDS);
                     changes.add(key);
                     addedData.add(situation);
                 } else if (situations.containsKey(key)) {
                     // Situation is no longer valid
-                    situations.delete(key);
-                    checksumCache.delete(key);
+                    situations.remove(key);
+                    checksumCache.remove(key);
                 }
                 if (expiration < 0) {
                     alreadyExpiredCounter.increment();
@@ -339,9 +338,9 @@ public class Situations extends SiriRepository<PtSituationElement> {
                 Set<String> tmpChanges = changesMap.get(requestor);
                 tmpChanges.addAll(changes);
 
-                changesMap.set(requestor, tmpChanges, configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
+                changesMap.put(requestor, tmpChanges, configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
             } else {
-                changesMap.delete(requestor);
+                changesMap.remove(requestor);
             }
         });
         return addedData;

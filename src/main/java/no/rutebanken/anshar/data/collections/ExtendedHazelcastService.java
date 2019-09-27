@@ -75,23 +75,23 @@ public class ExtendedHazelcastService extends HazelCastService {
     }
 
     @Bean
-    public IMap<String, PtSituationElement> getSituationsMap(){
-        return hazelcast.getMap("anshar.sx");
+    public ReplicatedMap<String, PtSituationElement> getSituationsMap(){
+        return hazelcast.getReplicatedMap("anshar.sx");
     }
 
     @Bean
-    public IMap<String, Set<String>> getSituationChangesMap() {
-        return hazelcast.getMap("anshar.sx.changes");
+    public ReplicatedMap<String, Set<String>> getSituationChangesMap() {
+        return hazelcast.getReplicatedMap("anshar.sx.changes");
     }
 
     @Bean
-    public IMap<String, EstimatedVehicleJourney> getEstimatedTimetablesMap(){
-        return hazelcast.getMap("anshar.et");
+    public ReplicatedMap<String, EstimatedVehicleJourney> getEstimatedTimetablesMap(){
+        return hazelcast.getReplicatedMap("anshar.et");
     }
 
     @Bean
-    public IMap<String, Set<String>> getEstimatedTimetableChangesMap() {
-        return hazelcast.getMap("anshar.et.changes");
+    public ReplicatedMap<String, Set<String>> getEstimatedTimetableChangesMap() {
+        return hazelcast.getReplicatedMap("anshar.et.changes");
     }
 
     @Bean
@@ -100,13 +100,13 @@ public class ExtendedHazelcastService extends HazelCastService {
     }
 
     @Bean
-    public IMap<String, String> getSxChecksumMap() {
-        return hazelcast.getMap("anshar.sx.checksum.cache");
+    public ReplicatedMap<String, String> getSxChecksumMap() {
+        return hazelcast.getReplicatedMap("anshar.sx.checksum.cache");
     }
 
     @Bean
-    public IMap<String, String> getEtChecksumMap() {
-        return hazelcast.getMap("anshar.et.checksum.cache");
+    public ReplicatedMap<String, String> getEtChecksumMap() {
+        return hazelcast.getReplicatedMap("anshar.et.checksum.cache");
     }
 
     @Bean
@@ -120,13 +120,13 @@ public class ExtendedHazelcastService extends HazelCastService {
     }
 
     @Bean
-    public IMap<String, VehicleActivityStructure> getVehiclesMap(){
-        return hazelcast.getMap("anshar.vm");
+    public ReplicatedMap<String, VehicleActivityStructure> getVehiclesMap(){
+        return hazelcast.getReplicatedMap("anshar.vm");
     }
 
     @Bean
-    public IMap<String, Set<String>> getVehicleChangesMap() {
-        return hazelcast.getMap("anshar.vm.changes");
+    public ReplicatedMap<String, Set<String>> getVehicleChangesMap() {
+        return hazelcast.getReplicatedMap("anshar.vm.changes");
     }
 
     @Bean
@@ -140,18 +140,18 @@ public class ExtendedHazelcastService extends HazelCastService {
     }
 
     @Bean
-    public IMap<String,SubscriptionSetup> getSubscriptionsMap() {
-        return hazelcast.getMap("anshar.subscriptions.active");
+    public ReplicatedMap<String,SubscriptionSetup> getSubscriptionsMap() {
+        return hazelcast.getReplicatedMap("anshar.subscriptions.active");
     }
 
     @Bean
-    public IMap<String, Instant> getLastActivityMap() {
-        return hazelcast.getMap("anshar.activity.last");
+    public ReplicatedMap<String, Instant> getLastActivityMap() {
+        return hazelcast.getReplicatedMap("anshar.activity.last");
     }
 
     @Bean
-    public IMap<String, Instant> getDataReceivedMap() {
-        return hazelcast.getMap("anshar.subscriptions.data.received");
+    public ReplicatedMap<String, Instant> getDataReceivedMap() {
+        return hazelcast.getReplicatedMap("anshar.subscriptions.data.received");
     }
 
 
@@ -173,13 +173,13 @@ public class ExtendedHazelcastService extends HazelCastService {
 
 
     @Bean
-    public IMap<String, Instant> getLastSxUpdateRequest() {
-        return hazelcast.getMap("anshar.activity.last.sx.update.request");
+    public ReplicatedMap<String, Instant> getLastSxUpdateRequest() {
+        return hazelcast.getReplicatedMap("anshar.activity.last.sx.update.request");
     }
 
     @Bean
-    public IMap<String, Instant> getLastVmUpdateRequest() {
-        return hazelcast.getMap("anshar.activity.last.vm.update.request");
+    public ReplicatedMap<String, Instant> getLastVmUpdateRequest() {
+        return hazelcast.getReplicatedMap("anshar.activity.last.vm.update.request");
     }
 
     @Bean

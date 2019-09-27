@@ -17,6 +17,7 @@ package no.rutebanken.anshar.subscription;
 
 
 import com.hazelcast.core.IMap;
+import com.hazelcast.core.ReplicatedMap;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.data.*;
 import no.rutebanken.anshar.routes.health.HealthManager;
@@ -51,15 +52,15 @@ public class SubscriptionManager {
 
     @Autowired
     @Qualifier("getSubscriptionsMap")
-    public IMap<String, SubscriptionSetup> subscriptions;
+    public ReplicatedMap<String, SubscriptionSetup> subscriptions;
 
     @Autowired
     @Qualifier("getLastActivityMap")
-    private IMap<String, java.time.Instant> lastActivity;
+    private ReplicatedMap<String, java.time.Instant> lastActivity;
 
     @Autowired
     @Qualifier("getDataReceivedMap")
-    private IMap<String, java.time.Instant> dataReceived;
+    private ReplicatedMap<String, java.time.Instant> dataReceived;
 
     @Autowired
     @Qualifier("getReceivedBytesMap")
@@ -96,33 +97,19 @@ public class SubscriptionManager {
     @Autowired
     private EstimatedTimetables et;
     @Autowired
-    private ProductionTimetables pt;
-    @Autowired
     private VehicleActivities vm;
 
     @Autowired
     @Qualifier("getSituationChangesMap")
-    private IMap<String, Set<String>> sxChanges;
-
-    @Autowired
-    @Qualifier("getLastSxUpdateRequest")
-    private IMap<String, Instant> lastSxUpdateRequested;
+    private ReplicatedMap<String, Set<String>> sxChanges;
 
     @Autowired
     @Qualifier("getEstimatedTimetableChangesMap")
-    private IMap<String, Set<String>> etChanges;
-
-    @Autowired
-    @Qualifier("getLastEtUpdateRequest")
-    private IMap<String, Instant> lastEtUpdateRequested;
+    private ReplicatedMap<String, Set<String>> etChanges;
 
     @Autowired
     @Qualifier("getVehicleChangesMap")
-    private IMap<String, Set<String>> vmChanges;
-
-    @Autowired
-    @Qualifier("getLastVmUpdateRequest")
-    private IMap<String, Instant> lastVmUpdateRequested;
+    private ReplicatedMap<String, Set<String>> vmChanges;
 
     @Autowired
     private RequestorRefRepository requestorRefRepository;
@@ -580,9 +567,10 @@ public class SubscriptionManager {
                 .filter(subscriptionId -> !isSubscriptionReceivingData(subscriptionId, allowedInactivitySeconds))
                 .collect(Collectors.toSet());
         if (subscriptionIds != null && !subscriptionIds.isEmpty()) {
-            return subscriptions.getAll(subscriptionIds)
-                    .values()
+
+            return subscriptions.values()
                     .stream()
+                    .filter(subscriptionSetup -> subscriptionIds.contains(subscriptionSetup.getSubscriptionId()))
                     .map(SubscriptionSetup::getVendor)
                     .collect(Collectors.toSet());
         }
@@ -607,7 +595,7 @@ public class SubscriptionManager {
     public void dataReceived(String subscriptionId, int receivedByteCount) {
         touchSubscription(subscriptionId);
         if (isActiveSubscription(subscriptionId)) {
-            dataReceived.set(subscriptionId, Instant.now());
+            dataReceived.put(subscriptionId, Instant.now());
 
             if (receivedByteCount > 0) {
                 receivedBytes.set(subscriptionId,
@@ -621,6 +609,6 @@ public class SubscriptionManager {
      * @param subscriptionSetup
      */
     public void updateSubscription(SubscriptionSetup subscriptionSetup) {
-        subscriptions.set(subscriptionSetup.getSubscriptionId(), subscriptionSetup);
+        subscriptions.put(subscriptionSetup.getSubscriptionId(), subscriptionSetup);
     }
 }

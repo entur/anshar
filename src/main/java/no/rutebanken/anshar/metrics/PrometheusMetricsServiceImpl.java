@@ -15,7 +15,7 @@
 
 package no.rutebanken.anshar.metrics;
 
-import com.hazelcast.core.IMap;
+import com.hazelcast.core.ReplicatedMap;
 import io.micrometer.core.instrument.ImmutableTag;
 import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.Tag;
@@ -90,19 +90,19 @@ public class PrometheusMetricsServiceImpl extends PrometheusMeterRegistry {
 
         long t = System.currentTimeMillis();
         EstimatedTimetables estimatedTimetables = ApplicationContextHolder.getContext().getBean(EstimatedTimetables.class);
-        Map<String, Integer> datasetSize = estimatedTimetables.getLocalDatasetSize();
+        Map<String, Integer> datasetSize = estimatedTimetables.getDatasetSize();
         for (String codespaceId : datasetSize.keySet()) {
             gaugeDataset(SiriDataType.ESTIMATED_TIMETABLE, codespaceId, datasetSize.get(codespaceId));
         }
 
         Situations situations = ApplicationContextHolder.getContext().getBean(Situations.class);
-        datasetSize = situations.getLocalDatasetSize();
+        datasetSize = situations.getDatasetSize();
         for (String codespaceId : datasetSize.keySet()) {
             gaugeDataset(SiriDataType.SITUATION_EXCHANGE, codespaceId, datasetSize.get(codespaceId));
         }
 
         VehicleActivities vehicleActivities = ApplicationContextHolder.getContext().getBean(VehicleActivities.class);
-        datasetSize = vehicleActivities.getLocalDatasetSize();
+        datasetSize = vehicleActivities.getDatasetSize();
         for (String codespaceId : datasetSize.keySet()) {
             gaugeDataset(SiriDataType.VEHICLE_MONITORING, codespaceId, datasetSize.get(codespaceId));
         }
@@ -110,13 +110,12 @@ public class PrometheusMetricsServiceImpl extends PrometheusMeterRegistry {
         logger.info("Calculating distribution: {} ms", (System.currentTimeMillis()-t));
 
         long t1 = System.currentTimeMillis();
-        IMap<String, SubscriptionSetup> subscriptions = manager.subscriptions;
+        ReplicatedMap<String, SubscriptionSetup> subscriptions = manager.subscriptions;
         for (SubscriptionSetup subscription : subscriptions.values()) {
 
             SiriDataType subscriptionType = subscription.getSubscriptionType();
 
-            //e.g.: subscription.ET.RUT.ruterEt.failing
-            String gauge_baseName = METRICS_PREFIX + "subscription";//." + subscriptionType + "." + datasetId + "." + vendor;
+            String gauge_baseName = METRICS_PREFIX + "subscription";
 
             String gauge_failing = gauge_baseName + ".failing";
             String gauge_data_failing = gauge_baseName + ".data_failing" ;

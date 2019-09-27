@@ -16,6 +16,7 @@
 package no.rutebanken.anshar.routes.validation;
 
 import com.hazelcast.core.IMap;
+import com.hazelcast.core.ReplicatedMap;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.routes.siri.transformer.ApplicationContextHolder;
 import no.rutebanken.anshar.routes.validation.validators.CustomValidator;
@@ -91,7 +92,7 @@ public class SiriXmlValidator extends ApplicationContextHolder{
 
     @Autowired
     @Qualifier("getSubscriptionsMap")
-    private IMap<String, SubscriptionSetup> subscriptions;
+    private ReplicatedMap<String, SubscriptionSetup> subscriptions;
 
     @Autowired
     private SubscriptionManager subscriptionManager;

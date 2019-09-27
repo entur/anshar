@@ -22,9 +22,7 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 abstract class SiriRepository<T> {
@@ -42,6 +40,33 @@ abstract class SiriRepository<T> {
     abstract T add(String datasetId, T timetableDelivery);
 
     abstract long getExpiration(T s);
+
+    /**
+     * Helper method to retrieve multiple values by ids
+     * @param collection
+     * @param ids
+     * @return
+     */
+    Collection<T> getValuesByIds(Map<String, T> collection, Set<String> ids) {
+        Collection<T> result = new ArrayList<>();
+        for (String id : ids) {
+            T value = collection.get(id);
+            if (value != null) {
+                result.add(value);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Returns values from provided Map where key starts with the provided datasetId
+     * @param collection
+     * @param datasetId
+     * @return
+     */
+    Set<T> getValuesByDatasetId(Map<String, T> collection, String datasetId) {
+        return collection.entrySet().stream().filter(e -> e.getKey().startsWith(datasetId + ":")).map(e -> e.getValue()).collect(Collectors.toSet());
+    }
 
     Set<String> filterIdsByDataset(Set<String> idSet, List<String> excludedDatasetIds, String datasetId) {
         Set<String> requestedIds;
