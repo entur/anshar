@@ -45,7 +45,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
     private final Logger logger = LoggerFactory.getLogger(EstimatedTimetables.class);
 
     @Autowired
-    private ReplicatedMap<String, EstimatedVehicleJourney> timetableDeliveries;
+    private IMap<String, EstimatedVehicleJourney> timetableDeliveries;
 
     @Autowired
     @Qualifier("getEtChecksumMap")
@@ -97,19 +97,19 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
         logger.debug("Calculating data-distribution (ET) took {} ms: {}", (System.currentTimeMillis()-t1), sizeMap);
         return sizeMap;
     }
-//
-//    public Map<String, Integer> getLocalDatasetSize() {
-//        Map<String, Integer> sizeMap = new HashMap<>();
-//        long t1 = System.currentTimeMillis();
-//        timetableDeliveries.localKeySet().forEach(key -> {
-//                        String datasetId = key.substring(0, key.indexOf(":"));
-//
-//                        Integer count = sizeMap.getOrDefault(datasetId, 0);
-//                        sizeMap.put(datasetId, count+1);
-//                    });
-//        logger.debug("Calculating local data-distribution (ET) took {} ms: {}", (System.currentTimeMillis()-t1), sizeMap);
-//        return sizeMap;
-//    }
+
+    public Map<String, Integer> getLocalDatasetSize() {
+        Map<String, Integer> sizeMap = new HashMap<>();
+        long t1 = System.currentTimeMillis();
+        timetableDeliveries.localKeySet().forEach(key -> {
+                        String datasetId = key.substring(0, key.indexOf(":"));
+
+                        Integer count = sizeMap.getOrDefault(datasetId, 0);
+                        sizeMap.put(datasetId, count+1);
+                    });
+        logger.debug("Calculating local data-distribution (ET) took {} ms: {}", (System.currentTimeMillis()-t1), sizeMap);
+        return sizeMap;
+    }
 
     public Integer getDatasetSize(String datasetId) {
         return Math.toIntExact(timetableDeliveries.keySet().stream()
@@ -128,7 +128,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
         logger.warn("Removing all data ({} ids) for {}", idsToRemove.size(), datasetId);
 
         for (String id : idsToRemove) {
-            timetableDeliveries.remove(id);
+            timetableDeliveries.delete(id);
             checksumCache.remove(id);
             idStartTimeMap.remove(id);
             idForPatternChanges.remove(id);
@@ -536,7 +536,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                             !et.getEstimatedCalls().getEstimatedCalls().isEmpty()) {
                         changes.add(key);
                         addedData.add(et);
-                        timetableDeliveries.put(key, et, expiration, TimeUnit.MILLISECONDS);
+                        timetableDeliveries.set(key, et, expiration, TimeUnit.MILLISECONDS);
                         checksumCache.put(key, currentChecksum, expiration, TimeUnit.MILLISECONDS);
 
                         if (hasPatternChanges(et)) {

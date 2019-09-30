@@ -15,6 +15,7 @@
 
 package no.rutebanken.anshar.data;
 
+import com.hazelcast.core.IMap;
 import com.hazelcast.core.ReplicatedMap;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.routes.mqtt.SiriVmMqttHandler;
@@ -43,7 +44,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
     private final Logger logger = LoggerFactory.getLogger(VehicleActivities.class);
 
     @Autowired
-    private ReplicatedMap<String, VehicleActivityStructure> vehicleActivities;
+    private IMap<String, VehicleActivityStructure> vehicleActivities;
 
     @Autowired
     @Qualifier("getVehicleChangesMap")
@@ -90,18 +91,18 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
         return sizeMap;
     }
 
-//    public Map<String, Integer> getLocalDatasetSize() {
-//        Map<String, Integer> sizeMap = new HashMap<>();
-//        long t1 = System.currentTimeMillis();
-//        vehicleActivities.localKeySet().forEach(key -> {
-//            String datasetId = key.substring(0, key.indexOf(":"));
-//
-//            Integer count = sizeMap.getOrDefault(datasetId, 0);
-//            sizeMap.put(datasetId, count+1);
-//        });
-//        logger.debug("Calculating data-distribution (VM) took {} ms: {}", (System.currentTimeMillis()-t1), sizeMap);
-//        return sizeMap;
-//    }
+    public Map<String, Integer> getLocalDatasetSize() {
+        Map<String, Integer> sizeMap = new HashMap<>();
+        long t1 = System.currentTimeMillis();
+        vehicleActivities.localKeySet().forEach(key -> {
+            String datasetId = key.substring(0, key.indexOf(":"));
+
+            Integer count = sizeMap.getOrDefault(datasetId, 0);
+            sizeMap.put(datasetId, count+1);
+        });
+        logger.debug("Calculating data-distribution (VM) took {} ms: {}", (System.currentTimeMillis()-t1), sizeMap);
+        return sizeMap;
+    }
 
 
     public Integer getDatasetSize(String datasetId) {
@@ -121,7 +122,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
         logger.warn("Removing all data ({} ids) for {}", idsToRemove.size(), datasetId);
 
         for (String id : idsToRemove) {
-            vehicleActivities.remove(id);
+            vehicleActivities.delete(id);
         }
     }
 
@@ -308,7 +309,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
                     if (expiration > 0 && keep) {
                         changes.add(key);
                         addedData.add(activity);
-                        vehicleActivities.put(key, activity, expiration, TimeUnit.MILLISECONDS);
+                        vehicleActivities.set(key, activity, expiration, TimeUnit.MILLISECONDS);
                         siriVmMqttHandler.pushToMqttAsync(datasetId, activity);
                     } else {
                         outdatedCounter.increment();

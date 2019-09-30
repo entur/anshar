@@ -75,8 +75,8 @@ public class ExtendedHazelcastService extends HazelCastService {
     }
 
     @Bean
-    public ReplicatedMap<String, PtSituationElement> getSituationsMap(){
-        return hazelcast.getReplicatedMap("anshar.sx");
+    public IMap<String, PtSituationElement> getSituationsMap(){
+        return hazelcast.getMap("anshar.sx");
     }
 
     @Bean
@@ -85,8 +85,8 @@ public class ExtendedHazelcastService extends HazelCastService {
     }
 
     @Bean
-    public ReplicatedMap<String, EstimatedVehicleJourney> getEstimatedTimetablesMap(){
-        return hazelcast.getReplicatedMap("anshar.et");
+    public IMap<String, EstimatedVehicleJourney> getEstimatedTimetablesMap(){
+        return hazelcast.getMap("anshar.et");
     }
 
     @Bean
@@ -120,8 +120,8 @@ public class ExtendedHazelcastService extends HazelCastService {
     }
 
     @Bean
-    public ReplicatedMap<String, VehicleActivityStructure> getVehiclesMap(){
-        return hazelcast.getReplicatedMap("anshar.vm");
+    public IMap<String, VehicleActivityStructure> getVehiclesMap(){
+        return hazelcast.getMap("anshar.vm");
     }
 
     @Bean

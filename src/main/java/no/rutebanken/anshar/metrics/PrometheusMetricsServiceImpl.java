@@ -90,24 +90,22 @@ public class PrometheusMetricsServiceImpl extends PrometheusMeterRegistry {
 
         long t = System.currentTimeMillis();
         EstimatedTimetables estimatedTimetables = ApplicationContextHolder.getContext().getBean(EstimatedTimetables.class);
-        Map<String, Integer> datasetSize = estimatedTimetables.getDatasetSize();
+        Map<String, Integer> datasetSize = estimatedTimetables.getLocalDatasetSize();
         for (String codespaceId : datasetSize.keySet()) {
             gaugeDataset(SiriDataType.ESTIMATED_TIMETABLE, codespaceId, datasetSize.get(codespaceId));
         }
 
         Situations situations = ApplicationContextHolder.getContext().getBean(Situations.class);
-        datasetSize = situations.getDatasetSize();
+        datasetSize = situations.getLocalDatasetSize();
         for (String codespaceId : datasetSize.keySet()) {
             gaugeDataset(SiriDataType.SITUATION_EXCHANGE, codespaceId, datasetSize.get(codespaceId));
         }
 
         VehicleActivities vehicleActivities = ApplicationContextHolder.getContext().getBean(VehicleActivities.class);
-        datasetSize = vehicleActivities.getDatasetSize();
+        datasetSize = vehicleActivities.getLocalDatasetSize();
         for (String codespaceId : datasetSize.keySet()) {
             gaugeDataset(SiriDataType.VEHICLE_MONITORING, codespaceId, datasetSize.get(codespaceId));
         }
-
-        logger.info("Calculating distribution: {} ms", (System.currentTimeMillis()-t));
 
         long t1 = System.currentTimeMillis();
         ReplicatedMap<String, SubscriptionSetup> subscriptions = manager.subscriptions;
@@ -143,7 +141,6 @@ public class PrometheusMetricsServiceImpl extends PrometheusMeterRegistry {
             gauge(gauge_data_failing, getTagsWithTimeLimit(counterTags, "30min"), subscription.getSubscriptionId(), value ->
                     isSubscriptionFailing(manager, subscription, 30*60));
         }
-        logger.info("Calculating metrics took {} ms", (System.currentTimeMillis()-t1));
     }
 
     private List<Tag> getTagsWithTimeLimit(List<Tag> counterTags, String timeLimit) {

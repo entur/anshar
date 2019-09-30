@@ -15,6 +15,7 @@
 
 package no.rutebanken.anshar.data;
 
+import com.hazelcast.core.IMap;
 import com.hazelcast.core.ReplicatedMap;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
@@ -43,7 +44,7 @@ public class Situations extends SiriRepository<PtSituationElement> {
     private final Logger logger = LoggerFactory.getLogger(Situations.class);
 
     @Autowired
-    private ReplicatedMap<String,PtSituationElement> situations;
+    private IMap<String,PtSituationElement> situations;
 
     @Autowired
     @Qualifier("getSxChecksumMap")
@@ -93,18 +94,18 @@ public class Situations extends SiriRepository<PtSituationElement> {
     }
 
 
-//    public Map<String, Integer> getLocalDatasetSize() {
-//        Map<String, Integer> sizeMap = new HashMap<>();
-//        long t1 = System.currentTimeMillis();
-//        situations.localKeySet().forEach(key -> {
-//            String datasetId = key.substring(0, key.indexOf(":"));
-//
-//            Integer count = sizeMap.getOrDefault(datasetId, 0);
-//            sizeMap.put(datasetId, count+1);
-//        });
-//        logger.debug("Calculating data-distribution (SX) took {} ms: {}", (System.currentTimeMillis()-t1), sizeMap);
-//        return sizeMap;
-//    }
+    public Map<String, Integer> getLocalDatasetSize() {
+        Map<String, Integer> sizeMap = new HashMap<>();
+        long t1 = System.currentTimeMillis();
+        situations.localKeySet().forEach(key -> {
+            String datasetId = key.substring(0, key.indexOf(":"));
+
+            Integer count = sizeMap.getOrDefault(datasetId, 0);
+            sizeMap.put(datasetId, count+1);
+        });
+        logger.debug("Calculating data-distribution (SX) took {} ms: {}", (System.currentTimeMillis()-t1), sizeMap);
+        return sizeMap;
+    }
 
 
     public Integer getDatasetSize(String datasetId) {
@@ -314,13 +315,13 @@ public class Situations extends SiriRepository<PtSituationElement> {
             if (updated) {
                 long expiration = getExpiration(situation);
                 if (expiration > 0) { //expiration < 0 => already expired
-                    situations.put(key, situation, expiration, TimeUnit.MILLISECONDS);
+                    situations.set(key, situation, expiration, TimeUnit.MILLISECONDS);
                     checksumCache.put(key, currentChecksum, expiration, TimeUnit.MILLISECONDS);
                     changes.add(key);
                     addedData.add(situation);
                 } else if (situations.containsKey(key)) {
                     // Situation is no longer valid
-                    situations.remove(key);
+                    situations.delete(key);
                     checksumCache.remove(key);
                 }
                 if (expiration < 0) {
