@@ -461,7 +461,7 @@ public class SubscriptionManager {
             keyValue.put("lastRequests", lastRequests);
             keyValue.put("firstRequest", firstRequestTimestamp);
             keyValue.put("requestCount", requestCount);
-            keyValue.put("requestsPerMinute", requestsPerMinute);
+            keyValue.put("requestsPerMinute", ((double)Math.round(requestsPerMinute * 10)) / 10); // rounding frequency to one decimal
 
             count.add(keyValue);
         }

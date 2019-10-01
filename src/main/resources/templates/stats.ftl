@@ -201,7 +201,8 @@
                     <th class="col-md-2">ClientName</th>
                     <th class="col-md-1">DatasetId</th>
                     <th class="col-md-2">Last requests</th>
-                    <th class="col-md-2 text-right">Total objects remaining</th>
+                    <th class="col-md-1">Requests per min</th>
+                    <th class="col-md-1 text-right">Objects remaining</th>
                 </tr>
             </thead>
             <tbody>
@@ -209,14 +210,14 @@
                 <tr class="success">
                     <th>${item?counter}</th>
                     <td><span title="First request: ${item.firstRequest}
-Request count: ${item.requestCount}
-Requests/min : ${item.requestsPerMinute}">${item.id}</span></td>
+Request count: ${item.requestCount}">${item.id}</span></td>
                     <td>${item.clientTrackingName}</td>
                     <td>${item.datasetId}</td>
                     <td>
                         <span title="<#list item.lastRequests as timestamp>
 - ${timestamp}</#list>">${item.lastRequests[0]}</span>
                     </td>
+                    <td>${item.requestsPerMinute}</td>
                     <td class="text-right">${item.count}</td>
                 </tr>
                 </#list>
