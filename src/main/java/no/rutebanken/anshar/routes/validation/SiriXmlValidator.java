@@ -280,7 +280,7 @@ public class SiriXmlValidator extends ApplicationContextHolder{
     }
 
     private JSONObject getJsonValidationResults(String validationRef) {
-        JSONObject jsonObject = validationResults.get(validationRef);
+        JSONObject jsonObject = validationResults.getOrDefault(validationRef, new JSONObject());
         jsonObject.put("validationRef", validationRef);
         return jsonObject;
     }
