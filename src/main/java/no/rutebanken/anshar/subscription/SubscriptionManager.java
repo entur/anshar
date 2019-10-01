@@ -430,7 +430,7 @@ public class SubscriptionManager {
             String datasetId = "";
             String firstRequestTimestamp = "";
             int requestCount = 0;
-            double requestsPerMinute = 0.0;
+            double requestsPerSecond = 0.0;
             List<String> lastRequests = new ArrayList<>();
             if (stats != null) {
                 if (stats.clientName != null) {
@@ -446,9 +446,9 @@ public class SubscriptionManager {
                 firstRequestTimestamp = formatter.format(stats.firstRequestTimestamp);
                 requestCount = stats.requestCount;
 
-                long trackingDurationMinutes = (ZonedDateTime.now().toEpochSecond() - stats.firstRequestTimestamp.toEpochSecond()) / 60;
-                if (trackingDurationMinutes >= 1) {
-                    requestsPerMinute = requestCount / trackingDurationMinutes;
+                long trackingDurationSeconds = ZonedDateTime.now().toEpochSecond() - stats.firstRequestTimestamp.toEpochSecond();
+                if (trackingDurationSeconds >= 1) {
+                    requestsPerSecond = (double) requestCount / trackingDurationSeconds;
                 }
             }
 
@@ -461,6 +461,8 @@ public class SubscriptionManager {
             keyValue.put("lastRequests", lastRequests);
             keyValue.put("firstRequest", firstRequestTimestamp);
             keyValue.put("requestCount", requestCount);
+
+            double requestsPerMinute = requestsPerSecond * 60;
             keyValue.put("requestsPerMinute", ((double)Math.round(requestsPerMinute * 10)) / 10); // rounding frequency to one decimal
 
             count.add(keyValue);
