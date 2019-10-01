@@ -208,7 +208,9 @@
                 <#list pollingClient.polling?sort_by("id") as item>
                 <tr class="success">
                     <th>${item?counter}</th>
-                    <td>${item.id}</td>
+                    <td><span title="First request: ${item.firstRequest}
+Request count: ${item.requestCount}
+Requests/min : ${item.requestsPerMinute}">${item.id}</span></td>
                     <td>${item.clientTrackingName}</td>
                     <td>${item.datasetId}</td>
                     <td>

@@ -20,6 +20,7 @@ import no.rutebanken.anshar.subscription.SiriDataType;
 import java.io.Serializable;
 import java.time.Instant;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +33,9 @@ public class RequestorRefStats implements Serializable {
     final SiriDataType dataType;
     public List<String> lastRequests;
 
+    public final ZonedDateTime firstRequestTimestamp;
+    public int requestCount;
+
     private static transient final int maxListSize = 5;
     private static transient final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneId.systemDefault());
 
@@ -40,10 +44,13 @@ public class RequestorRefStats implements Serializable {
         this.clientName = clientName;
         this.datasetId = datasetId;
         this.dataType = dataType;
+
         this.lastRequests = new ArrayList<>();
+        this.firstRequestTimestamp = ZonedDateTime.now();
     }
 
     protected void touch(Instant time) {
+        requestCount++;
         lastRequests.add(0, formatter.format(time));
         if(lastRequests.size() > maxListSize) {
             //remove last element

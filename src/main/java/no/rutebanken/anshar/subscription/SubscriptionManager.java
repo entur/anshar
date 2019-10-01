@@ -426,19 +426,42 @@ public class SubscriptionManager {
             keyValue.put("count", map.getOrDefault(key, new HashSet<>()).size());
 
             RequestorRefStats stats = requestorRefRepository.getStats(key, dataType);
-
-            keyValue.put("clientTrackingName", stats != null && stats.clientName != null ? stats.clientName:"");
-            keyValue.put("datasetId", stats != null && stats.datasetId != null ? stats.datasetId:"");
-
+            String clientTrackingName = "";
+            String datasetId = "";
+            String firstRequestTimestamp = "";
+            int requestCount = 0;
+            double requestsPerMinute = 0.0;
             List<String> lastRequests = new ArrayList<>();
-            if (stats != null && stats.lastRequests != null) {
-                lastRequests = stats.lastRequests;
+            if (stats != null) {
+                if (stats.clientName != null) {
+                    clientTrackingName = stats.clientName;
+                }
+                if (stats.datasetId != null) {
+                    datasetId = stats.datasetId;
+                }
+                if (stats.lastRequests != null) {
+                    lastRequests = stats.lastRequests;
+                }
+
+                firstRequestTimestamp = formatter.format(stats.firstRequestTimestamp);
+                requestCount = stats.requestCount;
+
+                long trackingDurationMinutes = (ZonedDateTime.now().toEpochSecond() - stats.firstRequestTimestamp.toEpochSecond()) / 60;
+                if (trackingDurationMinutes >= 1) {
+                    requestsPerMinute = requestCount / trackingDurationMinutes;
+                }
             }
+
             if (lastRequests.isEmpty()) {
                 lastRequests.add("");
             }
 
+            keyValue.put("clientTrackingName", clientTrackingName);
+            keyValue.put("datasetId", datasetId);
             keyValue.put("lastRequests", lastRequests);
+            keyValue.put("firstRequest", firstRequestTimestamp);
+            keyValue.put("requestCount", requestCount);
+            keyValue.put("requestsPerMinute", requestsPerMinute);
 
             count.add(keyValue);
         }
