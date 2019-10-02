@@ -290,8 +290,6 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                 idSet.removeIf(id -> !timetableDeliveries.containsKey(id));
             }
 
-            //Update change-tracker
-            changesMap.put(requestorId, idSet, trackingPeriodMinutes, TimeUnit.MINUTES);
             lastUpdateRequested.put(requestorId, Instant.now(), trackingPeriodMinutes, TimeUnit.MINUTES);
 
             logger.info("Returning {}, {} left for requestorRef {}", sizeLimitedIds.size(), idSet.size(), requestorId);
