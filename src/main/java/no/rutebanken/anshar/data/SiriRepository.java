@@ -69,18 +69,26 @@ abstract class SiriRepository<T> {
     }
 
     Set<String> filterIdsByDataset(Set<String> idSet, List<String> excludedDatasetIds, String datasetId) {
-        Set<String> requestedIds;
+        Set<String> requestedIds = new HashSet<>();
         if (excludedDatasetIds != null && !excludedDatasetIds.isEmpty()) {
-            requestedIds = idSet.stream()
-                    .filter(key -> {
-                        String datasetID = key.substring(0, key.indexOf(":"));
-                        return !(excludedDatasetIds.contains(datasetID));
-                    })
-                    .collect(Collectors.toSet());
+
+            for (String id : idSet) {
+                String datasetIdPrefix = id.substring(0, id.indexOf(":"));
+                if (!excludedDatasetIds.contains(datasetIdPrefix)) {
+                    requestedIds.add(id);
+                }
+            }
+
+        } else if (datasetId != null && !datasetId.isEmpty()){
+
+            String prefix = datasetId + ":";
+            for (String id : idSet) {
+                if (id.startsWith(prefix)) {
+                    requestedIds.add(id);
+                }
+            }
         } else {
-            requestedIds = idSet.stream()
-                    .filter(key -> datasetId == null || key.startsWith(datasetId + ":"))
-                    .collect(Collectors.toSet());
+            requestedIds.addAll(idSet);
         }
         return requestedIds;
     }
