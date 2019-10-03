@@ -196,7 +196,7 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
         ;
 
         from("activemq:queue:" + CamelRouteNames.TRANSFORM_QUEUE + activeMqConsumerParameters)
-               // .to("log:raw:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
+                .log("Transformation start")
                 .choice()
                     .when(header(TRANSFORM_SOAP).isEqualTo(simple(TRANSFORM_SOAP)))
                         .to("xslt:xsl/siri_soap_raw.xsl?saxon=true&allowStAX=false&resultHandlerFactory=#streamResultHandlerFactory") // Extract SOAP version and convert to raw SIRI
@@ -207,11 +207,13 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
                         .to("xslt:xsl/siri_14_20.xsl?saxon=true&allowStAX=false&resultHandlerFactory=#streamResultHandlerFactory") // Convert from v1.4 to 2.0
                     .endChoice()
                 .end()
+                .log("Transformation done")
                 .to("seda:" + CamelRouteNames.ROUTER_QUEUE)
                 .routeId("incoming.transform")
         ;
 
         from("seda:" + CamelRouteNames.ROUTER_QUEUE)
+                .log("Rerouting SIRI-XML")
                 .choice()
                 .when().xpath("/siri:Siri/siri:HeartbeatNotification", ns)
                     .to("activemq:queue:" + CamelRouteNames.HEARTBEAT_QUEUE + activeMQParameters)
@@ -237,6 +239,7 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
                 .otherwise()
                     .to("activemq:queue:" + CamelRouteNames.DEFAULT_PROCESSOR_QUEUE + activeMQParameters)
                 .end()
+                .log("Finished rerouting SIRI-XML")
                 .routeId("incoming.redirect")
         ;
 
