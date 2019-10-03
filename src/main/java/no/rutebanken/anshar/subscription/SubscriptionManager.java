@@ -101,15 +101,15 @@ public class SubscriptionManager {
 
     @Autowired
     @Qualifier("getSituationChangesMap")
-    private ReplicatedMap<String, Set<String>> sxChanges;
+    private IMap<String, Set<String>> sxChanges;
 
     @Autowired
     @Qualifier("getEstimatedTimetableChangesMap")
-    private ReplicatedMap<String, Set<String>> etChanges;
+    private IMap<String, Set<String>> etChanges;
 
     @Autowired
     @Qualifier("getVehicleChangesMap")
-    private ReplicatedMap<String, Set<String>> vmChanges;
+    private IMap<String, Set<String>> vmChanges;
 
     @Autowired
     private RequestorRefRepository requestorRefRepository;
