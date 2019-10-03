@@ -24,6 +24,7 @@ import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.camel.Exchange;
 import org.apache.camel.Message;
+import org.apache.camel.Processor;
 import org.apache.camel.builder.xml.Namespaces;
 import org.apache.camel.model.rest.RestParamType;
 import org.slf4j.Logger;
@@ -64,6 +65,8 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
     public void configure() throws Exception {
 
         super.configure();
+
+        SiriXmlProcessor siriXmlProcessor = new SiriXmlProcessor();
 
         Namespaces ns = new Namespaces("siri", "http://www.siri.org.uk/siri")
                 .add("xsd", "http://www.w3.org/2001/XMLSchema");
@@ -297,38 +300,19 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
 
         from("activemq:queue:" + CamelRouteNames.SITUATION_EXCHANGE_QUEUE + activeMqConsumerParameters)
                 .log("Processing SX")
-                .process(p -> {
-                    String subscriptionId = getSubscriptionIdFromPath(p.getIn().getHeader(PARAM_PATH, String.class));
-
-                    InputStream xml = p.getIn().getBody(InputStream.class);
-                    handler.handleIncomingSiri(subscriptionId, xml);
-
-                })
+                .process(siriXmlProcessor)
                 .routeId("incoming.processor.sx")
         ;
 
         from("activemq:queue:" + CamelRouteNames.VEHICLE_MONITORING_QUEUE + activeMqConsumerParameters)
                 .log("Processing VM")
-                .process(p -> {
-
-                    String subscriptionId = getSubscriptionIdFromPath(p.getIn().getHeader(PARAM_PATH, String.class));
-
-                    InputStream xml = p.getIn().getBody(InputStream.class);
-                    handler.handleIncomingSiri(subscriptionId, xml);
-
-                })
+                .process(siriXmlProcessor)
                 .routeId("incoming.processor.vm")
         ;
 
         from("activemq:queue:" + CamelRouteNames.ESTIMATED_TIMETABLE_QUEUE + activeMqConsumerParameters)
                 .log("Processing ET")
-                .process(p -> {
-
-                    String subscriptionId = getSubscriptionIdFromPath(p.getIn().getHeader(PARAM_PATH, String.class));
-                    InputStream xml = p.getIn().getBody(InputStream.class);
-                    handler.handleIncomingSiri(subscriptionId, xml);
-
-                })
+                .process(siriXmlProcessor)
                 .routeId("incoming.processor.et")
         ;
     }
@@ -399,5 +383,15 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
         }
 
         return values;
+    }
+
+
+    class SiriXmlProcessor implements Processor {
+        @Override
+        public void process(Exchange exchange) throws Exception {
+            String subscriptionId = getSubscriptionIdFromPath(exchange.getIn().getHeader(PARAM_PATH, String.class));
+            InputStream xml = exchange.getIn().getBody(InputStream.class);
+            handler.handleIncomingSiri(subscriptionId, xml);
+        }
     }
 }
