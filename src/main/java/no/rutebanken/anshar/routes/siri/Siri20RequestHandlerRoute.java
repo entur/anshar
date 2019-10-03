@@ -24,7 +24,6 @@ import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.camel.Exchange;
 import org.apache.camel.Message;
-import org.apache.camel.Processor;
 import org.apache.camel.builder.xml.Namespaces;
 import org.apache.camel.model.rest.RestParamType;
 import org.slf4j.Logger;
@@ -65,8 +64,6 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
     public void configure() throws Exception {
 
         super.configure();
-
-        SiriXmlProcessor siriXmlProcessor = new SiriXmlProcessor();
 
         Namespaces ns = new Namespaces("siri", "http://www.siri.org.uk/siri")
                 .add("xsd", "http://www.w3.org/2001/XMLSchema");
@@ -199,6 +196,7 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
         ;
 
         from("activemq:queue:" + CamelRouteNames.TRANSFORM_QUEUE + activeMqConsumerParameters)
+                .log("Transformation start")
                 .choice()
                     .when(header(TRANSFORM_SOAP).isEqualTo(simple(TRANSFORM_SOAP)))
                         .to("xslt:xsl/siri_soap_raw.xsl?saxon=true&allowStAX=false&resultHandlerFactory=#streamResultHandlerFactory") // Extract SOAP version and convert to raw SIRI
@@ -209,26 +207,44 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
                         .to("xslt:xsl/siri_14_20.xsl?saxon=true&allowStAX=false&resultHandlerFactory=#streamResultHandlerFactory") // Convert from v1.4 to 2.0
                     .endChoice()
                 .end()
+                .log("Transformation done")
                 .to("seda:" + CamelRouteNames.ROUTER_QUEUE)
                 .routeId("incoming.transform")
         ;
 
         from("seda:" + CamelRouteNames.ROUTER_QUEUE)
+                .log("Rerouting SIRI-XML")
                 .choice()
-                .when().xpath("/siri:Siri/siri:ServiceDelivery", ns)
-                    .to("seda:" + CamelRouteNames.SERVICE_DELIVERY_QUEUE)
+                .when().xpath("/siri:Siri/siri:HeartbeatNotification", ns)
+                    .to("activemq:queue:" + CamelRouteNames.HEARTBEAT_QUEUE + activeMQParameters)
+                .endChoice()
+                .when().xpath("/siri:Siri/siri:CheckStatusResponse", ns)
+                    .to("activemq:queue:" + CamelRouteNames.HEARTBEAT_QUEUE + activeMQParameters)
+                .endChoice()
+                .when().xpath("/siri:Siri/siri:ServiceDelivery/siri:SituationExchangeDelivery", ns)
+                    .to("activemq:queue:" + CamelRouteNames.SITUATION_EXCHANGE_QUEUE + activeMQParameters)
+                .endChoice()
+                .when().xpath("/siri:Siri/siri:ServiceDelivery/siri:VehicleMonitoringDelivery", ns)
+                    .to("activemq:queue:" + CamelRouteNames.VEHICLE_MONITORING_QUEUE + activeMQParameters)
+                .endChoice()
+                .when().xpath("/siri:Siri/siri:ServiceDelivery/siri:EstimatedTimetableDelivery", ns)
+                    .to("activemq:queue:" + CamelRouteNames.ESTIMATED_TIMETABLE_QUEUE + activeMQParameters)
+                .endChoice()
+                .when().xpath("/siri:Siri/siri:ServiceDelivery/siri:ProductionTimetableDelivery", ns)
+                    .to("activemq:queue:" + CamelRouteNames.PRODUCTION_TIMETABLE_QUEUE + activeMQParameters)
                 .endChoice()
                 .when().xpath("/siri:Siri/siri:DataReadyNotification", ns)
-                    .to("seda:" + CamelRouteNames.FETCHED_DELIVERY_QUEUE)
+                    .to("activemq:queue:" + CamelRouteNames.FETCHED_DELIVERY_QUEUE + activeMQParameters)
                 .endChoice()
                 .otherwise()
-                    .to("seda:" + CamelRouteNames.DEFAULT_PROCESSOR_QUEUE)
+                    .to("activemq:queue:" + CamelRouteNames.DEFAULT_PROCESSOR_QUEUE + activeMQParameters)
                 .end()
+                .log("Finished rerouting SIRI-XML")
                 .routeId("incoming.redirect")
         ;
 
 
-        from("seda:" + CamelRouteNames.DEFAULT_PROCESSOR_QUEUE)
+        from("activemq:queue:" + CamelRouteNames.DEFAULT_PROCESSOR_QUEUE + activeMqConsumerParameters)
                 .log("Processing request in default-queue [" + CamelRouteNames.DEFAULT_PROCESSOR_QUEUE + "].")
                 .process(p -> {
 
@@ -245,7 +261,19 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
                 .routeId("incoming.processor.default")
         ;
 
-        from("seda:" + CamelRouteNames.FETCHED_DELIVERY_QUEUE)
+        from("activemq:queue:" + CamelRouteNames.HEARTBEAT_QUEUE + activeMqConsumerParameters)
+                .process(p -> {
+                    String subscriptionId = getSubscriptionIdFromPath(p.getIn().getHeader(PARAM_PATH, String.class));
+
+                    InputStream xml = p.getIn().getBody(InputStream.class);
+                    handler.handleIncomingSiri(subscriptionId, xml);
+
+                })
+                .routeId("incoming.processor.heartbeat")
+        ;
+
+
+        from("activemq:queue:" + CamelRouteNames.FETCHED_DELIVERY_QUEUE + activeMqConsumerParameters)
                 .log("Processing fetched delivery")
                 .process(p -> {
                     String routeName = null;
@@ -266,19 +294,6 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
                 .endChoice()
                 .routeId("incoming.processor.fetched_delivery")
         ;
-
-        from("seda:" + CamelRouteNames.SERVICE_DELIVERY_QUEUE)
-                .log("Processing SIRI")
-                .process(siriXmlProcessor)
-                .routeId("incoming.processor.siri")
-        ;
-
-
-
-
-        /*
-           TODO: ActiveMQ-routes below should be deleted - keeping for now to process messages already present.
-         */
 
         from("activemq:queue:" + CamelRouteNames.SITUATION_EXCHANGE_QUEUE + activeMqConsumerParameters)
                 .log("Processing SX")
@@ -384,15 +399,5 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
         }
 
         return values;
-    }
-
-
-    class SiriXmlProcessor implements Processor {
-        @Override
-        public void process(Exchange exchange) throws Exception {
-            String subscriptionId = getSubscriptionIdFromPath(exchange.getIn().getHeader(PARAM_PATH, String.class));
-            InputStream xml = exchange.getIn().getBody(InputStream.class);
-            handler.handleIncomingSiri(subscriptionId, xml);
-        }
     }
 }

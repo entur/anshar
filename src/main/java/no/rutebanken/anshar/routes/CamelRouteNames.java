@@ -34,6 +34,5 @@ public class CamelRouteNames {
     public static final String PRODUCTION_TIMETABLE_QUEUE = DEFAULT_PROCESSOR_QUEUE + ".pt";
     public static final String HEARTBEAT_QUEUE = DEFAULT_PROCESSOR_QUEUE + ".heartbeat";
     public static final String FETCHED_DELIVERY_QUEUE = DEFAULT_PROCESSOR_QUEUE + ".fetched.delivery";
-    public static final String SERVICE_DELIVERY_QUEUE = DEFAULT_PROCESSOR_QUEUE + ".service.delivery";
 
 }
