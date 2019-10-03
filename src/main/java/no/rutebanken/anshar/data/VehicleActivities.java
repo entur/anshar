@@ -48,7 +48,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
 
     @Autowired
     @Qualifier("getVehicleChangesMap")
-    private ReplicatedMap<String, Set<String>> changesMap;
+    private IMap<String, Set<String>> changesMap;
 
 
     @Autowired
@@ -174,14 +174,14 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
                     existingSet.removeIf(id -> !vehicleActivities.containsKey(id));
                 }
 
-                changesMap.put(requestorId, existingSet, configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
+                changesMap.set(requestorId, existingSet, configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
 
                 logger.info("Returning {} changes to requestorRef {}", changes.size(), requestorId);
                 return changes;
             } else {
 
                 logger.info("Returning all to requestorRef {}", requestorId);
-                changesMap.put(requestorId, new HashSet<>(), configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
+                changesMap.set(requestorId, new HashSet<>(), configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
             }
         }
 
@@ -255,7 +255,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
             idSet.removeIf(id -> !vehicleActivities.containsKey(id));
 
             //Update change-tracker
-            changesMap.put(requestorId, idSet, trackingPeriodMinutes, TimeUnit.MINUTES);
+            changesMap.set(requestorId, idSet, trackingPeriodMinutes, TimeUnit.MINUTES);
             lastUpdateRequested.put(requestorId, Instant.now(), trackingPeriodMinutes, TimeUnit.MINUTES);
 
             MessageRefStructure msgRef = new MessageRefStructure();
@@ -326,9 +326,9 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
             if (lastUpdateRequested.get(requestor) != null) {
                 Set<String> tmpChanges = changesMap.get(requestor);
                 tmpChanges.addAll(changes);
-                changesMap.put(requestor, tmpChanges, configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
+                changesMap.set(requestor, tmpChanges, configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
             } else {
-                changesMap.remove(requestor);
+                changesMap.delete(requestor);
             }
         });
 

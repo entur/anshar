@@ -61,7 +61,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
 
     @Autowired
     @Qualifier("getEstimatedTimetableChangesMap")
-    private ReplicatedMap<String, Set<String>> changesMap;
+    private IMap<String, Set<String>> changesMap;
 
     @Autowired
     @Qualifier("getLastEtUpdateRequest")
@@ -291,7 +291,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
             }
 
             //Update change-tracker
-            changesMap.put(requestorId, idSet, trackingPeriodMinutes, TimeUnit.MINUTES);
+            changesMap.set(requestorId, idSet, trackingPeriodMinutes, TimeUnit.MINUTES);
             lastUpdateRequested.put(requestorId, Instant.now(), trackingPeriodMinutes, TimeUnit.MINUTES);
 
             logger.info("Returning {}, {} left for requestorRef {}", sizeLimitedIds.size(), idSet.size(), requestorId);
@@ -366,7 +366,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                 //Remove outdated ids
                 existingSet.removeIf(id -> !timetableDeliveries.containsKey(id));
 
-                changesMap.put(requestorId, existingSet, configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
+                changesMap.set(requestorId, existingSet, configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
 
 
                 logger.info("Returning {} changes to requestorRef {}", changes.size(), requestorId);
@@ -374,7 +374,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
             } else {
 
                 logger.info("Returning all to requestorRef {}", requestorId);
-                changesMap.put(requestorId, new HashSet<>(), configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
+                changesMap.set(requestorId, new HashSet<>(), configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
             }
         }
 
@@ -560,9 +560,9 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                 Set<String> tmpChanges = changesMap.get(requestor);
                 tmpChanges.addAll(changes);
 
-                changesMap.put(requestor, tmpChanges, configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
+                changesMap.set(requestor, tmpChanges, configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
             } else {
-                changesMap.remove(requestor);
+                changesMap.delete(requestor);
             }
         });
 

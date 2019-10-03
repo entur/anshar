@@ -40,14 +40,18 @@ import java.math.BigInteger;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class ExtendedHazelcastService extends HazelCastService {
 
     private Logger logger = LoggerFactory.getLogger(ExtendedHazelcastService.class);
 
+    private AnsharConfiguration cfg;
+
     public ExtendedHazelcastService(@Autowired KubernetesService kubernetesService, @Autowired AnsharConfiguration cfg) {
         super(kubernetesService, cfg.getHazelcastManagementUrl());
+        this.cfg = cfg;
     }
 
     public HazelcastInstance getHazelcastInstance() {
@@ -80,8 +84,8 @@ public class ExtendedHazelcastService extends HazelCastService {
     }
 
     @Bean
-    public ReplicatedMap<String, Set<String>> getSituationChangesMap() {
-        return hazelcast.getReplicatedMap("anshar.sx.changes");
+    public IMap<String, Set<String>> getSituationChangesMap() {
+        return migrateReplicatedMapToIMap("anshar.sx.changes");
     }
 
     @Bean
@@ -90,8 +94,29 @@ public class ExtendedHazelcastService extends HazelCastService {
     }
 
     @Bean
-    public ReplicatedMap<String, Set<String>> getEstimatedTimetableChangesMap() {
-        return hazelcast.getReplicatedMap("anshar.et.changes");
+    public IMap<String, Set<String>> getEstimatedTimetableChangesMap() {
+        //return hazelcast.getMap("anshar.et.changes");
+        return migrateReplicatedMapToIMap("anshar.et.changes");
+    }
+
+    /**
+     * Temporary method that migrates existing data from ReplicatedMap to IMap
+     * @param mapName
+     * @return
+     */
+    private IMap<String, Set<String>> migrateReplicatedMapToIMap(String mapName) {
+        IMap<String, Set<String>> hazelcastMap = hazelcast.getMap(mapName);
+
+        ReplicatedMap<String, Set<String>> replicatedMap = hazelcast.getReplicatedMap(mapName);
+        if (!replicatedMap.isEmpty()) {
+
+            // TTL-values are specifically for the change-tracker maps used in this migration
+            replicatedMap.forEach((key, value) -> hazelcastMap.set(key, value, cfg.getTrackingPeriodMinutes(), TimeUnit.MINUTES));
+            replicatedMap.clear();
+
+            logger.info("Migrated {} objects from ReplicatedMap to IMap for {}.", hazelcastMap.size(), mapName);
+        }
+        return hazelcastMap;
     }
 
     @Bean
@@ -125,8 +150,8 @@ public class ExtendedHazelcastService extends HazelCastService {
     }
 
     @Bean
-    public ReplicatedMap<String, Set<String>> getVehicleChangesMap() {
-        return hazelcast.getReplicatedMap("anshar.vm.changes");
+    public IMap<String, Set<String>> getVehicleChangesMap() {
+        return migrateReplicatedMapToIMap("anshar.vm.changes");
     }
 
     @Bean
