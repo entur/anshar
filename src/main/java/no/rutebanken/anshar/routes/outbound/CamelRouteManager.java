@@ -116,7 +116,7 @@ public class CamelRouteManager implements CamelContextAware {
                     if (e.getCause() != null) {
                         msg = e.getCause().getMessage();
                     }
-                    logger.warn("Exception caught when pushing SIRI-data: {}", msg);
+                    logger.info("Exception caught when pushing SIRI-data: {}", msg);
                 }
                 subscriptionManager.pushFailedForSubscription(subscriptionRequest.getSubscriptionId());
             } finally {
