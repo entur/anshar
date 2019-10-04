@@ -34,6 +34,8 @@ import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -322,14 +324,19 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
 
         logger.info("Updated {} (of {}) :: Ignored elements - Missing location:{}, Missing values: {}, Skipped: {}", changes.size(), vmList.size(), invalidLocationCounter.getValue(), notMeaningfulCounter.getValue(), outdatedCounter.getValue());
 
-        changesMap.keySet().forEach(requestor -> {
-            if (lastUpdateRequested.get(requestor) != null) {
-                Set<String> tmpChanges = changesMap.get(requestor);
-                tmpChanges.addAll(changes);
-                changesMap.set(requestor, tmpChanges, configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
-            } else {
-                changesMap.delete(requestor);
-            }
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+
+        executorService.submit(() -> {
+            changesMap.keySet().forEach(requestor -> {
+                if (lastUpdateRequested.get(requestor) != null) {
+                    Set<String> tmpChanges = changesMap.get(requestor);
+                    tmpChanges.addAll(changes);
+
+                    changesMap.set(requestor, tmpChanges, configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
+                } else {
+                    changesMap.delete(requestor);
+                }
+            });
         });
 
         return addedData;

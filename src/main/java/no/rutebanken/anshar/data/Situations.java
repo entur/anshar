@@ -36,6 +36,8 @@ import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -334,16 +336,21 @@ public class Situations extends SiriRepository<PtSituationElement> {
         });
         logger.info("Updated {} (of {}) :: Already expired: {}, Unchanged: {}", changes.size(), sxList.size(), alreadyExpiredCounter.getValue(), ignoredCounter.getValue());
 
-        changesMap.keySet().forEach(requestor -> {
-            if (lastUpdateRequested.get(requestor) != null) {
-                Set<String> tmpChanges = changesMap.get(requestor);
-                tmpChanges.addAll(changes);
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
 
-                changesMap.set(requestor, tmpChanges, configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
-            } else {
-                changesMap.delete(requestor);
-            }
+        executorService.submit(() -> {
+            changesMap.keySet().forEach(requestor -> {
+                if (lastUpdateRequested.get(requestor) != null) {
+                    Set<String> tmpChanges = changesMap.get(requestor);
+                    tmpChanges.addAll(changes);
+
+                    changesMap.set(requestor, tmpChanges, configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
+                } else {
+                    changesMap.delete(requestor);
+                }
+            });
         });
+
         return addedData;
     }
 

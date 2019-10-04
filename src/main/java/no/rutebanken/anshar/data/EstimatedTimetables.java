@@ -33,6 +33,8 @@ import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
@@ -555,22 +557,25 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
 
         logger.info("Updated {} (of {}), {} outdated, {} without changes", changes.size(), etList.size(), outdatedCounter.getValue(), notUpdatedCounter.getValue());
 
-        long t1 = System.currentTimeMillis();
-        changesMap.keySet().forEach(requestor -> {
-            if (lastUpdateRequested.get(requestor) != null) {
-                logger.info("Updating changes for {}", requestor);
-                Set<String> tmpChanges = changesMap.get(requestor);
-                logger.info("Current changes for {}: {}", requestor, tmpChanges.size());
-                tmpChanges.addAll(changes);
-                logger.info("Updated changes for {}: {}", requestor, tmpChanges.size());
 
-                changesMap.set(requestor, tmpChanges, configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
-                logger.info("Updated changes for {}: {}", requestor, tmpChanges.size());
-            } else {
-                changesMap.delete(requestor);
-            }
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+
+        executorService.submit(() -> {
+            changesMap.keySet().forEach(requestor -> {
+                if (lastUpdateRequested.get(requestor) != null) {
+                    logger.info("Updating changes for {}", requestor);
+                    Set<String> tmpChanges = changesMap.get(requestor);
+                    logger.info("Current changes for {}: {}", requestor, tmpChanges.size());
+                    tmpChanges.addAll(changes);
+                    logger.info("Updated changes for {}: {}", requestor, tmpChanges.size());
+
+                    changesMap.set(requestor, tmpChanges, configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
+                    logger.info("Updated changes for {}: {}", requestor, tmpChanges.size());
+                } else {
+                    changesMap.delete(requestor);
+                }
+            });
         });
-        logger.info("Updated tracking for {} clients took {} ms", changesMap.size(), (System.currentTimeMillis()-t1));
 
         return addedData;
     }

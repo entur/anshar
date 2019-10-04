@@ -69,13 +69,16 @@ public class EstimatedTimetablesTest {
         estimatedTimetables.add("test", createEstimatedVehicleJourney("1234-update", "4321", 0, 30, ZonedDateTime.now().plusHours(1), true));
         estimatedTimetables.add("test", createEstimatedVehicleJourney("2345-update", "4321", 0, 30, ZonedDateTime.now().plusHours(1), true));
         estimatedTimetables.add("test", createEstimatedVehicleJourney("3456-update", "4321", 0, 30, ZonedDateTime.now().plusHours(1), true));
+
+        sleep(250);
+
         // Added 3
         String requestorId = UUID.randomUUID().toString();
 
         assertEquals(previousSize + 3, estimatedTimetables.getAllUpdates(requestorId, null).size());
 
         estimatedTimetables.add("test", createEstimatedVehicleJourney("4567-update", "4321", 0, 30, ZonedDateTime.now().plusHours(1), true));
-
+        sleep(250);
         //Added one
         assertEquals(1, estimatedTimetables.getAllUpdates(requestorId, null).size());
 
@@ -85,6 +88,15 @@ public class EstimatedTimetablesTest {
 
         //Verify that all elements still exist
         assertEquals(previousSize+4, estimatedTimetables.getAll().size());
+    }
+
+    private void sleep(int millis) {
+        try {
+            // Wait for updates to be processed...
+            Thread.sleep(millis);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     @Test
@@ -103,6 +115,8 @@ public class EstimatedTimetablesTest {
         estimatedTimetables.add("test", createEstimatedVehicleJourney("1234-partialupdate", "4321", 0, 30, ZonedDateTime.now().plusHours(1), true));
         estimatedTimetables.add("test", createEstimatedVehicleJourney("2345-partialupdate", "4321", 0, 30, ZonedDateTime.now().plusHours(1), true));
         estimatedTimetables.add("test", createEstimatedVehicleJourney("3456-partialupdate", "4321", 0, 30, ZonedDateTime.now().plusHours(1), true));
+
+        sleep(250);
 
         Siri siri = estimatedTimetables.createServiceDelivery(requestorId, null, 2);
 
@@ -129,6 +143,8 @@ public class EstimatedTimetablesTest {
                 .getEstimatedVehicleJourneies().size());
 
         estimatedTimetables.add("test", createEstimatedVehicleJourney("4567-partialupdate", "4321", 0, 30, ZonedDateTime.now().plusHours(1), true));
+
+        sleep(250);
 
         siri = estimatedTimetables.createServiceDelivery(requestorId, null, 2);
 
