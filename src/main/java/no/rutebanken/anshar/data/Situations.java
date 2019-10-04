@@ -59,7 +59,7 @@ public class Situations extends SiriRepository<PtSituationElement> {
 
     @Autowired
     @Qualifier("getLastSxUpdateRequest")
-    private ReplicatedMap<String, Instant> lastUpdateRequested;
+    private IMap<String, Instant> lastUpdateRequested;
 
     @Autowired
     private SiriObjectFactory siriObjectFactory;
@@ -201,7 +201,7 @@ public class Situations extends SiriRepository<PtSituationElement> {
 
             //Update change-tracker
             changesMap.set(requestorId, idSet, trackingPeriodMinutes, TimeUnit.MINUTES);
-            lastUpdateRequested.put(requestorId, Instant.now(), trackingPeriodMinutes, TimeUnit.MINUTES);
+            lastUpdateRequested.set(requestorId, Instant.now(), trackingPeriodMinutes, TimeUnit.MINUTES);
 
             logger.info("Returning {}, {} left for requestorRef {}", sizeLimitedIds.size(), idSet.size(), requestorId);
         }
@@ -227,7 +227,7 @@ public class Situations extends SiriRepository<PtSituationElement> {
         if (requestorId != null) {
 
             Set<String> idSet = changesMap.get(requestorId);
-            lastUpdateRequested.put(requestorId, Instant.now(), configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
+            lastUpdateRequested.set(requestorId, Instant.now(), configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
             if (idSet != null) {
                 Set<String> datasetFilteredIdSet = new HashSet<>();
 

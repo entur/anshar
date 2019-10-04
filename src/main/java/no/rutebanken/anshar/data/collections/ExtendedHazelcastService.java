@@ -198,13 +198,13 @@ public class ExtendedHazelcastService extends HazelCastService {
 
 
     @Bean
-    public ReplicatedMap<String, Instant> getLastSxUpdateRequest() {
-        return hazelcast.getReplicatedMap("anshar.activity.last.sx.update.request");
+    public IMap<String, Instant> getLastSxUpdateRequest() {
+        return hazelcast.getMap("anshar.activity.last.sx.update.request");
     }
 
     @Bean
-    public ReplicatedMap<String, Instant> getLastVmUpdateRequest() {
-        return hazelcast.getReplicatedMap("anshar.activity.last.vm.update.request");
+    public IMap<String, Instant> getLastVmUpdateRequest() {
+        return hazelcast.getMap("anshar.activity.last.vm.update.request");
     }
 
     @Bean

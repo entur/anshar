@@ -16,7 +16,6 @@
 package no.rutebanken.anshar.data;
 
 import com.hazelcast.core.IMap;
-import com.hazelcast.core.ReplicatedMap;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.routes.mqtt.SiriVmMqttHandler;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
@@ -55,7 +54,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
 
     @Autowired
     @Qualifier("getLastVmUpdateRequest")
-    private ReplicatedMap<String, Instant> lastUpdateRequested;
+    private IMap<String, Instant> lastUpdateRequested;
 
     @Autowired
     private SiriVmMqttHandler siriVmMqttHandler;
@@ -151,7 +150,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
         if (requestorId != null) {
 
             Set<String> idSet = changesMap.get(requestorId);
-            lastUpdateRequested.put(requestorId, Instant.now(), configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
+            lastUpdateRequested.set(requestorId, Instant.now(), configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
             if (idSet != null) {
                 Set<String> datasetFilteredIdSet = new HashSet<>();
 
@@ -258,7 +257,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
 
             //Update change-tracker
             changesMap.set(requestorId, idSet, trackingPeriodMinutes, TimeUnit.MINUTES);
-            lastUpdateRequested.put(requestorId, Instant.now(), trackingPeriodMinutes, TimeUnit.MINUTES);
+            lastUpdateRequested.set(requestorId, Instant.now(), trackingPeriodMinutes, TimeUnit.MINUTES);
 
             MessageRefStructure msgRef = new MessageRefStructure();
             msgRef.setValue(requestorId);
