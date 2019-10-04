@@ -41,6 +41,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
 import static java.time.temporal.ChronoUnit.MILLIS;
@@ -318,7 +320,23 @@ public class ServerSubscriptionManager extends CamelRouteManager {
         return siriObjectFactory.createCheckStatusResponse();
     }
 
-    public void pushUpdatedVehicleActivities(List<VehicleActivityStructure> addedOrUpdated, String datasetId) {
+
+    public void pushUpdatesAsync(SiriDataType datatype, List updates, String datasetId) {
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        switch (datatype) {
+            case ESTIMATED_TIMETABLE:
+                executorService.submit(() -> pushUpdatedEstimatedTimetables(updates, datasetId));
+                break;
+            case SITUATION_EXCHANGE:
+                executorService.submit(() -> pushUpdatedSituations(updates, datasetId));
+                break;
+            case VEHICLE_MONITORING:
+                executorService.submit(() -> pushUpdatedVehicleActivities(updates, datasetId));
+                break;
+        }
+    }
+
+    private void pushUpdatedVehicleActivities(List<VehicleActivityStructure> addedOrUpdated, String datasetId) {
 
         if (addedOrUpdated == null || addedOrUpdated.isEmpty()) {
             return;
@@ -341,7 +359,7 @@ public class ServerSubscriptionManager extends CamelRouteManager {
     }
 
 
-    public void pushUpdatedSituations(List<PtSituationElement> addedOrUpdated, String datasetId) {
+    private void pushUpdatedSituations(List<PtSituationElement> addedOrUpdated, String datasetId) {
 
         if (addedOrUpdated == null || addedOrUpdated.isEmpty()) {
             return;
@@ -361,28 +379,8 @@ public class ServerSubscriptionManager extends CamelRouteManager {
                         pushSiriData(delivery, subscription)
         );
     }
-    public void pushUpdatedProductionTimetables(List<ProductionTimetableDeliveryStructure> addedOrUpdated, String datasetId) {
 
-        if (addedOrUpdated == null || addedOrUpdated.isEmpty()) {
-            return;
-        }
-
-        Siri delivery = siriObjectFactory.createPTServiceDelivery(addedOrUpdated);
-
-        if (activeMqTopicEnabled) {
-            pushSiriData(delivery, activeMQ_PT);
-        }
-
-        subscriptions.values().stream().filter(subscriptionRequest ->
-                        (subscriptionRequest.getSubscriptionType().equals(SiriDataType.PRODUCTION_TIMETABLE) &
-                                (subscriptionRequest.getDatasetId() == null || (subscriptionRequest.getDatasetId().equals(datasetId))))
-
-        ).forEach(subscription ->
-            pushSiriData(delivery, subscription)
-        );
-    }
-
-    public void pushUpdatedEstimatedTimetables(List<EstimatedVehicleJourney> addedOrUpdated, String datasetId) {
+    private void pushUpdatedEstimatedTimetables(List<EstimatedVehicleJourney> addedOrUpdated, String datasetId) {
 
         if (addedOrUpdated == null || addedOrUpdated.isEmpty()) {
             return;

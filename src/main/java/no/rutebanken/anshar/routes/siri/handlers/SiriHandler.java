@@ -289,7 +289,7 @@ public class SiriHandler {
                     }
                     deliveryContainsData = addedOrUpdated.size() > 0;
 
-                    serverSubscriptionManager.pushUpdatedSituations(addedOrUpdated, subscriptionSetup.getDatasetId());
+                    serverSubscriptionManager.pushUpdatesAsync(SiriDataType.ESTIMATED_TIMETABLE, addedOrUpdated, subscriptionSetup.getDatasetId());
 
                     subscriptionManager.incrementObjectCounter(subscriptionSetup, addedOrUpdated.size());
 
@@ -314,7 +314,8 @@ public class SiriHandler {
                     }
 
                     deliveryContainsData = deliveryContainsData | (addedOrUpdated.size() > 0);
-                    serverSubscriptionManager.pushUpdatedVehicleActivities(addedOrUpdated, subscriptionSetup.getDatasetId());
+
+                    serverSubscriptionManager.pushUpdatesAsync(SiriDataType.VEHICLE_MONITORING, addedOrUpdated, subscriptionSetup.getDatasetId());
 
                     subscriptionManager.incrementObjectCounter(subscriptionSetup, addedOrUpdated.size());
 
@@ -341,31 +342,13 @@ public class SiriHandler {
                     }
 
                     deliveryContainsData = deliveryContainsData | (addedOrUpdated.size() > 0);
-                    serverSubscriptionManager.pushUpdatedEstimatedTimetables(addedOrUpdated, subscriptionSetup.getDatasetId());
+
+                    serverSubscriptionManager.pushUpdatesAsync(SiriDataType.SITUATION_EXCHANGE, addedOrUpdated, subscriptionSetup.getDatasetId());
 
                     subscriptionManager.incrementObjectCounter(subscriptionSetup, addedOrUpdated.size());
 
                     logger.info("Active ET-elements: {}, current delivery: {}, {}", estimatedTimetables.getSize(), addedOrUpdated.size(), subscriptionSetup);
                 }
-                if (subscriptionSetup.getSubscriptionType().equals(SiriDataType.PRODUCTION_TIMETABLE)) {
-                    List<ProductionTimetableDeliveryStructure> productionTimetableDeliveries = incoming.getServiceDelivery().getProductionTimetableDeliveries();
-                    logger.info("Got PT-delivery: Subscription [{}]", subscriptionSetup);
-                    List<ProductionTimetableDeliveryStructure> addedOrUpdated = new ArrayList<>();
-
-                    if (productionTimetableDeliveries != null) {
-                        addedOrUpdated.addAll(
-                                productionTimetables.addAll(subscriptionSetup.getDatasetId(), productionTimetableDeliveries)
-                        );
-                    }
-
-                    deliveryContainsData = deliveryContainsData | (addedOrUpdated.size() > 0);
-                    serverSubscriptionManager.pushUpdatedProductionTimetables(addedOrUpdated, subscriptionSetup.getDatasetId());
-
-                    subscriptionManager.incrementObjectCounter(subscriptionSetup, addedOrUpdated.size());
-
-                    logger.info("Active PT-elements: {}, current delivery: {}, {}", productionTimetables.getSize(), addedOrUpdated.size(), subscriptionSetup);
-                }
-
 
                 if (deliveryContainsData) {
                     subscriptionManager.dataReceived(subscriptionId, receivedBytes);
