@@ -555,6 +555,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
 
         logger.info("Updated {} (of {}), {} outdated, {} without changes", changes.size(), etList.size(), outdatedCounter.getValue(), notUpdatedCounter.getValue());
 
+        long t1 = System.currentTimeMillis();
         changesMap.keySet().forEach(requestor -> {
             if (lastUpdateRequested.get(requestor) != null) {
                 Set<String> tmpChanges = changesMap.get(requestor);
@@ -565,6 +566,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                 changesMap.delete(requestor);
             }
         });
+        logger.info("Updated tracking for {} clients took {} ms", changesMap.size(), (System.currentTimeMillis()-t1));
 
         return addedData;
     }
