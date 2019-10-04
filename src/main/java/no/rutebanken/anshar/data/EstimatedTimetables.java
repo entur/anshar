@@ -563,14 +563,10 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
         executorService.submit(() -> {
             changesMap.keySet().forEach(requestor -> {
                 if (lastUpdateRequested.get(requestor) != null) {
-                    logger.info("Updating changes for {}", requestor);
                     Set<String> tmpChanges = changesMap.get(requestor);
-                    logger.info("Current changes for {}: {}", requestor, tmpChanges.size());
                     tmpChanges.addAll(changes);
-                    logger.info("Updated changes for {}: {}", requestor, tmpChanges.size());
 
                     changesMap.set(requestor, tmpChanges, configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
-                    logger.info("Updated changes for {}: {}", requestor, tmpChanges.size());
                 } else {
                     changesMap.delete(requestor);
                 }
