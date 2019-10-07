@@ -40,7 +40,6 @@ import java.math.BigInteger;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 @Service
 public class ExtendedHazelcastService extends HazelCastService {
@@ -178,33 +177,33 @@ public class ExtendedHazelcastService extends HazelCastService {
 
     @Bean
     public IMap<String, Instant> getLastSxUpdateRequest() {
-        return migrateReplicatedMapToIMap("anshar.activity.last.sx.update.request");
+        return hazelcast.getMap("anshar.activity.last.sx.update.request");
     }
 
     @Bean
     public IMap<String, Instant> getLastVmUpdateRequest() {
-        return migrateReplicatedMapToIMap("anshar.activity.last.vm.update.request");
+        return hazelcast.getMap("anshar.activity.last.vm.update.request");
     }
 
-    /**
-     * Temporary method that migrates existing data from ReplicatedMap to IMap
-     * @param mapName
-     * @return
-     */
-    private IMap<String, Instant> migrateReplicatedMapToIMap(String mapName) {
-        IMap<String, Instant> hazelcastMap = hazelcast.getMap(mapName);
-
-        ReplicatedMap<String, Instant> replicatedMap = hazelcast.getReplicatedMap(mapName);
-        if (!replicatedMap.isEmpty()) {
-
-            // TTL-values are specifically for the change-tracker maps used in this migration
-            replicatedMap.forEach((key, value) -> hazelcastMap.set(key, value, cfg.getTrackingPeriodMinutes(), TimeUnit.MINUTES));
-            replicatedMap.clear();
-
-            logger.info("Migrated {} objects from ReplicatedMap to IMap for {}.", hazelcastMap.size(), mapName);
-        }
-        return hazelcastMap;
-    }
+//    /**
+//     * Temporary method that migrates existing data from ReplicatedMap to IMap
+//     * @param mapName
+//     * @return
+//     */
+//    private IMap<String, Instant> migrateReplicatedMapToIMap(String mapName) {
+//        IMap<String, Instant> hazelcastMap = hazelcast.getMap(mapName);
+//
+//        ReplicatedMap<String, Instant> replicatedMap = hazelcast.getReplicatedMap(mapName);
+//        if (!replicatedMap.isEmpty()) {
+//
+//            // TTL-values are specifically for the change-tracker maps used in this migration
+//            replicatedMap.forEach((key, value) -> hazelcastMap.set(key, value, cfg.getTrackingPeriodMinutes(), TimeUnit.MINUTES));
+//            replicatedMap.clear();
+//
+//            logger.info("Migrated {} objects from ReplicatedMap to IMap for {}.", hazelcastMap.size(), mapName);
+//        }
+//        return hazelcastMap;
+//    }
 
     @Bean
     public IMap<String, Instant> getActivatedTimestampMap() {
