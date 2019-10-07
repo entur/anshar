@@ -85,7 +85,7 @@ public class ExtendedHazelcastService extends HazelCastService {
 
     @Bean
     public IMap<String, Set<String>> getSituationChangesMap() {
-        return migrateReplicatedMapToIMap("anshar.sx.changes");
+        return hazelcast.getMap("anshar.sx.changes");
     }
 
     @Bean
@@ -95,28 +95,7 @@ public class ExtendedHazelcastService extends HazelCastService {
 
     @Bean
     public IMap<String, Set<String>> getEstimatedTimetableChangesMap() {
-        //return hazelcast.getMap("anshar.et.changes");
-        return migrateReplicatedMapToIMap("anshar.et.changes");
-    }
-
-    /**
-     * Temporary method that migrates existing data from ReplicatedMap to IMap
-     * @param mapName
-     * @return
-     */
-    private IMap<String, Set<String>> migrateReplicatedMapToIMap(String mapName) {
-        IMap<String, Set<String>> hazelcastMap = hazelcast.getMap(mapName);
-
-        ReplicatedMap<String, Set<String>> replicatedMap = hazelcast.getReplicatedMap(mapName);
-        if (!replicatedMap.isEmpty()) {
-
-            // TTL-values are specifically for the change-tracker maps used in this migration
-            replicatedMap.forEach((key, value) -> hazelcastMap.set(key, value, cfg.getTrackingPeriodMinutes(), TimeUnit.MINUTES));
-            replicatedMap.clear();
-
-            logger.info("Migrated {} objects from ReplicatedMap to IMap for {}.", hazelcastMap.size(), mapName);
-        }
-        return hazelcastMap;
+        return hazelcast.getMap("anshar.et.changes");
     }
 
     @Bean
@@ -151,7 +130,7 @@ public class ExtendedHazelcastService extends HazelCastService {
 
     @Bean
     public IMap<String, Set<String>> getVehicleChangesMap() {
-        return migrateReplicatedMapToIMap("anshar.vm.changes");
+        return hazelcast.getMap("anshar.vm.changes");
     }
 
     @Bean
@@ -199,12 +178,32 @@ public class ExtendedHazelcastService extends HazelCastService {
 
     @Bean
     public IMap<String, Instant> getLastSxUpdateRequest() {
-        return hazelcast.getMap("anshar.activity.last.sx.update.request");
+        return migrateReplicatedMapToIMap("anshar.activity.last.sx.update.request");
     }
 
     @Bean
     public IMap<String, Instant> getLastVmUpdateRequest() {
-        return hazelcast.getMap("anshar.activity.last.vm.update.request");
+        return migrateReplicatedMapToIMap("anshar.activity.last.vm.update.request");
+    }
+
+    /**
+     * Temporary method that migrates existing data from ReplicatedMap to IMap
+     * @param mapName
+     * @return
+     */
+    private IMap<String, Instant> migrateReplicatedMapToIMap(String mapName) {
+        IMap<String, Instant> hazelcastMap = hazelcast.getMap(mapName);
+
+        ReplicatedMap<String, Instant> replicatedMap = hazelcast.getReplicatedMap(mapName);
+        if (!replicatedMap.isEmpty()) {
+
+            // TTL-values are specifically for the change-tracker maps used in this migration
+            replicatedMap.forEach((key, value) -> hazelcastMap.set(key, value, cfg.getTrackingPeriodMinutes(), TimeUnit.MINUTES));
+            replicatedMap.clear();
+
+            logger.info("Migrated {} objects from ReplicatedMap to IMap for {}.", hazelcastMap.size(), mapName);
+        }
+        return hazelcastMap;
     }
 
     @Bean
