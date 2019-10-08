@@ -289,7 +289,7 @@ public class SiriHandler {
                     }
                     deliveryContainsData = addedOrUpdated.size() > 0;
 
-                    serverSubscriptionManager.pushUpdatesAsync(SiriDataType.ESTIMATED_TIMETABLE, addedOrUpdated, subscriptionSetup.getDatasetId());
+                    serverSubscriptionManager.pushUpdatesAsync(subscriptionSetup.getSubscriptionType(), addedOrUpdated, subscriptionSetup.getDatasetId());
 
                     subscriptionManager.incrementObjectCounter(subscriptionSetup, addedOrUpdated.size());
 
@@ -315,7 +315,7 @@ public class SiriHandler {
 
                     deliveryContainsData = deliveryContainsData | (addedOrUpdated.size() > 0);
 
-                    serverSubscriptionManager.pushUpdatesAsync(SiriDataType.VEHICLE_MONITORING, addedOrUpdated, subscriptionSetup.getDatasetId());
+                    serverSubscriptionManager.pushUpdatesAsync(subscriptionSetup.getSubscriptionType(), addedOrUpdated, subscriptionSetup.getDatasetId());
 
                     subscriptionManager.incrementObjectCounter(subscriptionSetup, addedOrUpdated.size());
 
@@ -343,7 +343,7 @@ public class SiriHandler {
 
                     deliveryContainsData = deliveryContainsData | (addedOrUpdated.size() > 0);
 
-                    serverSubscriptionManager.pushUpdatesAsync(SiriDataType.SITUATION_EXCHANGE, addedOrUpdated, subscriptionSetup.getDatasetId());
+                    serverSubscriptionManager.pushUpdatesAsync(subscriptionSetup.getSubscriptionType(), addedOrUpdated, subscriptionSetup.getDatasetId());
 
                     subscriptionManager.incrementObjectCounter(subscriptionSetup, addedOrUpdated.size());
 
