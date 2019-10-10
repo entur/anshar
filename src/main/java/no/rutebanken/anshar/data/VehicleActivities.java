@@ -323,6 +323,8 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
 
         logger.info("Updated {} (of {}) :: Ignored elements - Missing location:{}, Missing values: {}, Skipped: {}", changes.size(), vmList.size(), invalidLocationCounter.getValue(), notMeaningfulCounter.getValue(), outdatedCounter.getValue());
 
+        markDataReceived(SiriDataType.VEHICLE_MONITORING, datasetId, vmList.size(), changes.size(), outdatedCounter.getValue(), (invalidLocationCounter.getValue() + notMeaningfulCounter.getValue()));
+
         ExecutorService executorService = Executors.newSingleThreadExecutor();
 
         executorService.submit(() -> {

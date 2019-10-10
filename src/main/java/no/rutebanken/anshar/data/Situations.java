@@ -336,6 +336,8 @@ public class Situations extends SiriRepository<PtSituationElement> {
         });
         logger.info("Updated {} (of {}) :: Already expired: {}, Unchanged: {}", changes.size(), sxList.size(), alreadyExpiredCounter.getValue(), ignoredCounter.getValue());
 
+        markDataReceived(SiriDataType.SITUATION_EXCHANGE, datasetId, sxList.size(), changes.size(), alreadyExpiredCounter.getValue(), ignoredCounter.getValue());
+
         ExecutorService executorService = Executors.newSingleThreadExecutor();
 
         executorService.submit(() -> {

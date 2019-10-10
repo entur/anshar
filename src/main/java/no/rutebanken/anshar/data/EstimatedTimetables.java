@@ -557,6 +557,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
 
         logger.info("Updated {} (of {}), {} outdated, {} without changes", changes.size(), etList.size(), outdatedCounter.getValue(), notUpdatedCounter.getValue());
 
+        markDataReceived(SiriDataType.ESTIMATED_TIMETABLE, datasetId, etList.size(), changes.size(), outdatedCounter.getValue(), notUpdatedCounter.getValue());
 
         ExecutorService executorService = Executors.newSingleThreadExecutor();
 
@@ -575,6 +576,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
 
         return addedData;
     }
+
 
 
     RecordedCall mapToRecordedCall(EstimatedCall call) {

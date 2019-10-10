@@ -104,7 +104,6 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
             }
         }
 
-        long t = System.currentTimeMillis();
         EstimatedTimetables estimatedTimetables = ApplicationContextHolder.getContext().getBean(EstimatedTimetables.class);
         Map<String, Integer> datasetSize = estimatedTimetables.getLocalDatasetSize();
         for (String codespaceId : datasetSize.keySet()) {

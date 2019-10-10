@@ -15,6 +15,10 @@
 
 package no.rutebanken.anshar.data;
 
+import no.rutebanken.anshar.metrics.PrometheusMetricsService;
+import no.rutebanken.anshar.routes.siri.transformer.ApplicationContextHolder;
+import no.rutebanken.anshar.subscription.SiriDataType;
+
 import javax.xml.bind.DatatypeConverter;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -40,6 +44,16 @@ abstract class SiriRepository<T> {
     abstract T add(String datasetId, T timetableDelivery);
 
     abstract long getExpiration(T s);
+
+    PrometheusMetricsService metrics;
+
+    void markDataReceived(SiriDataType dataType, String datasetId, long totalSize, long updatedSize, long expiredSize, long ignoredSize) {
+        if (metrics == null) {
+            metrics = ApplicationContextHolder.getContext().getBean(PrometheusMetricsService.class);
+        }
+        metrics.registerIncomingData(dataType, datasetId, totalSize, updatedSize, expiredSize, ignoredSize);
+    }
+
 
     /**
      * Helper method to retrieve multiple values by ids
