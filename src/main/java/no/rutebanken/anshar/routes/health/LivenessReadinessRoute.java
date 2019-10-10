@@ -16,7 +16,7 @@
 package no.rutebanken.anshar.routes.health;
 
 import com.hazelcast.core.ISet;
-import no.rutebanken.anshar.metrics.PrometheusMetricsServiceImpl;
+import no.rutebanken.anshar.metrics.PrometheusMetricsService;
 import no.rutebanken.anshar.routes.RestRouteBuilder;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import org.apache.camel.Exchange;
@@ -81,7 +81,7 @@ public class LivenessReadinessRoute extends RestRouteBuilder {
     private SubscriptionManager subscriptionManager;
 
     @Autowired
-    private PrometheusMetricsServiceImpl prometheusRegistry;
+    private PrometheusMetricsService prometheusRegistry;
 
     public static boolean triggerRestart;
 

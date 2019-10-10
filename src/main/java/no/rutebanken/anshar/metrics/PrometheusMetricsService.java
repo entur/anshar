@@ -41,8 +41,8 @@ import java.util.List;
 import java.util.Map;
 
 @Component
-public class PrometheusMetricsServiceImpl extends PrometheusMeterRegistry {
-    private static final Logger logger = LoggerFactory.getLogger(PrometheusMetricsServiceImpl.class);
+public class PrometheusMetricsService extends PrometheusMeterRegistry {
+    private static final Logger logger = LoggerFactory.getLogger(PrometheusMetricsService.class);
 
     private final String METRICS_PREFIX = "app.anshar.";
 
@@ -50,14 +50,30 @@ public class PrometheusMetricsServiceImpl extends PrometheusMeterRegistry {
     protected SubscriptionManager manager;
 
     private final String DATA_COUNTER_NAME = METRICS_PREFIX + "data";
+    private final String DATA_TOTAL_COUNTER_NAME = METRICS_PREFIX + "data.total";
+    private final String DATA_SUCCESS_COUNTER_NAME = METRICS_PREFIX + "data.success";
+    private final String DATA_EXPIRED_COUNTER_NAME = METRICS_PREFIX + "data.expired";
+    private final String DATA_IGNORED_COUNTER_NAME = METRICS_PREFIX + "data.ignored";
 
-    public PrometheusMetricsServiceImpl() {
+    public PrometheusMetricsService() {
         super(PrometheusConfig.DEFAULT);
     }
 
     @PreDestroy
     public void shutdown() throws IOException {
         this.close();
+    }
+
+    public void registerIncomingData(SiriDataType dataType, String agencyId, long total, long updated, long expired, long ignored) {
+
+        List<Tag> counterTags = new ArrayList<>();
+        counterTags.add(new ImmutableTag("dataType", dataType.name()));
+        counterTags.add(new ImmutableTag("agency", agencyId));
+
+        counter(DATA_TOTAL_COUNTER_NAME,   counterTags).increment(total);
+        counter(DATA_SUCCESS_COUNTER_NAME, counterTags).increment(updated);
+        counter(DATA_EXPIRED_COUNTER_NAME, counterTags).increment(expired);
+        counter(DATA_IGNORED_COUNTER_NAME, counterTags).increment(ignored);
     }
 
     final Map<String, Integer> gaugeValues = new HashMap<>();
