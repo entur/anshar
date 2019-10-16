@@ -40,7 +40,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static no.rutebanken.anshar.routes.HttpParameter.*;
+import static no.rutebanken.anshar.routes.HttpParameter.PARAM_DATASET_ID;
+import static no.rutebanken.anshar.routes.HttpParameter.PARAM_EXCLUDED_DATASET_ID;
+import static no.rutebanken.anshar.routes.HttpParameter.PARAM_MAX_SIZE;
+import static no.rutebanken.anshar.routes.HttpParameter.PARAM_PATH;
+import static no.rutebanken.anshar.routes.HttpParameter.PARAM_SUBSCRIPTION_ID;
+import static no.rutebanken.anshar.routes.HttpParameter.PARAM_USE_ORIGINAL_ID;
+import static no.rutebanken.anshar.routes.HttpParameter.getParameterValuesAsList;
 
 @SuppressWarnings("unchecked")
 @Service
@@ -211,18 +217,18 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
                     .endChoice()
                 .end()
                 .log("Transformation done")
-                .to("seda:" + CamelRouteNames.ROUTER_QUEUE)
+                .to("direct:" + CamelRouteNames.ROUTER_QUEUE)
                 .routeId("incoming.transform")
         ;
 
-        from("seda:" + CamelRouteNames.ROUTER_QUEUE)
+        from("direct:" + CamelRouteNames.ROUTER_QUEUE)
                 .log("Rerouting SIRI-XML")
                 .choice()
                 .when().xpath("/siri:Siri/siri:HeartbeatNotification", ns)
-                    .to("activemq:queue:" + CamelRouteNames.HEARTBEAT_QUEUE + activeMQParameters)
+                    .to("direct:" + CamelRouteNames.HEARTBEAT_QUEUE)
                 .endChoice()
                 .when().xpath("/siri:Siri/siri:CheckStatusResponse", ns)
-                    .to("activemq:queue:" + CamelRouteNames.HEARTBEAT_QUEUE + activeMQParameters)
+                    .to("direct:" + CamelRouteNames.HEARTBEAT_QUEUE)
                 .endChoice()
                 .when().xpath("/siri:Siri/siri:ServiceDelivery/siri:SituationExchangeDelivery", ns)
                     .to("activemq:queue:" + CamelRouteNames.SITUATION_EXCHANGE_QUEUE + activeMQParameters)
@@ -264,7 +270,7 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
                 .routeId("incoming.processor.default")
         ;
 
-        from("activemq:queue:" + CamelRouteNames.HEARTBEAT_QUEUE + activeMqConsumerParameters)
+        from("direct:" + CamelRouteNames.HEARTBEAT_QUEUE)
                 .process(p -> {
                     String subscriptionId = getSubscriptionIdFromPath(p.getIn().getHeader(PARAM_PATH, String.class));
 

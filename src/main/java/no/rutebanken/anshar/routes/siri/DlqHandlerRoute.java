@@ -46,9 +46,6 @@ public class DlqHandlerRoute extends RouteBuilder implements CamelContextAware {
         from("activemq:queue:DLQ." + CamelRouteNames.PRODUCTION_TIMETABLE_QUEUE)
                 .routeId("DLQ.PRODUCTION_TIMETABLE_QUEUE")
                 .to("direct:ignore");
-        from("activemq:queue:DLQ." + CamelRouteNames.HEARTBEAT_QUEUE)
-                .routeId("DLQ.HEARTBEAT_QUEUE")
-                .to("direct:ignore");
         from("activemq:queue:DLQ." + CamelRouteNames.FETCHED_DELIVERY_QUEUE)
                 .routeId("DLQ.FETCHED_DELIVERY_QUEUE")
                 .to("direct:ignore");
