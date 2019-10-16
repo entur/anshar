@@ -27,12 +27,25 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
-import uk.org.siri.siri20.*;
+import uk.org.siri.siri20.EstimatedCall;
+import uk.org.siri.siri20.EstimatedVehicleJourney;
+import uk.org.siri.siri20.MessageRefStructure;
+import uk.org.siri.siri20.RecordedCall;
+import uk.org.siri.siri20.Siri;
 
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -486,10 +499,16 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
             String key = createKey(datasetId, et);
 
             String currentChecksum = null;
+            ZonedDateTime recordedAtTime = et.getRecordedAtTime();
             try {
+                // Calculate checksum without "RecordedTime" - thus ignoring "fake" updates
+                et.setRecordedAtTime(null);
                 currentChecksum = getChecksum(et);
             } catch (Exception e) {
                 //Ignore - data will be updated
+            } finally {
+                //Set original RecordedTime back
+                et.setRecordedAtTime(recordedAtTime);
             }
 
             String existingChecksum = checksumCache.get(key);
