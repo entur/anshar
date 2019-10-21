@@ -46,8 +46,6 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.UUID;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
@@ -578,24 +576,10 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
 
         markDataReceived(SiriDataType.ESTIMATED_TIMETABLE, datasetId, etList.size(), changes.size(), outdatedCounter.getValue(), notUpdatedCounter.getValue());
 
-        ExecutorService executorService = Executors.newSingleThreadExecutor();
-
-        executorService.submit(() -> {
-            changesMap.keySet().forEach(requestor -> {
-                if (lastUpdateRequested.get(requestor) != null) {
-                    Set<String> tmpChanges = changesMap.get(requestor);
-                    tmpChanges.addAll(changes);
-
-                    changesMap.set(requestor, tmpChanges, configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
-                } else {
-                    changesMap.delete(requestor);
-                }
-            });
-        });
+        updateChangeTrackers(changesMap, lastUpdateRequested, changes);
 
         return addedData;
     }
-
 
 
     RecordedCall mapToRecordedCall(EstimatedCall call) {

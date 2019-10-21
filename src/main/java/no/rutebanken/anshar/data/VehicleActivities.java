@@ -27,14 +27,31 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
-import uk.org.siri.siri20.*;
+import uk.org.siri.siri20.AbstractItemStructure;
+import uk.org.siri.siri20.CoordinatesStructure;
+import uk.org.siri.siri20.CourseOfJourneyRefStructure;
+import uk.org.siri.siri20.DirectionRefStructure;
+import uk.org.siri.siri20.LineRef;
+import uk.org.siri.siri20.LocationStructure;
+import uk.org.siri.siri20.MessageRefStructure;
+import uk.org.siri.siri20.Siri;
+import uk.org.siri.siri20.VehicleActivityStructure;
+import uk.org.siri.siri20.VehicleRef;
 
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -325,20 +342,8 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
 
         markDataReceived(SiriDataType.VEHICLE_MONITORING, datasetId, vmList.size(), changes.size(), outdatedCounter.getValue(), (invalidLocationCounter.getValue() + notMeaningfulCounter.getValue()));
 
-        ExecutorService executorService = Executors.newSingleThreadExecutor();
 
-        executorService.submit(() -> {
-            changesMap.keySet().forEach(requestor -> {
-                if (lastUpdateRequested.get(requestor) != null) {
-                    Set<String> tmpChanges = changesMap.get(requestor);
-                    tmpChanges.addAll(changes);
-
-                    changesMap.set(requestor, tmpChanges, configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
-                } else {
-                    changesMap.delete(requestor);
-                }
-            });
-        });
+        updateChangeTrackers(changesMap, lastUpdateRequested, changes);
 
         return addedData;
     }

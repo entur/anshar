@@ -15,9 +15,12 @@
 
 package no.rutebanken.anshar.data;
 
+import com.hazelcast.core.IMap;
 import no.rutebanken.anshar.metrics.PrometheusMetricsService;
 import no.rutebanken.anshar.routes.siri.transformer.ApplicationContextHolder;
 import no.rutebanken.anshar.subscription.SiriDataType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.xml.bind.DatatypeConverter;
 import java.io.ByteArrayOutputStream;
@@ -26,7 +29,15 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.*;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 abstract class SiriRepository<T> {
@@ -45,6 +56,8 @@ abstract class SiriRepository<T> {
 
     abstract long getExpiration(T s);
 
+    private final Logger logger = LoggerFactory.getLogger(SiriRepository.class);
+
     PrometheusMetricsService metrics;
 
     void markDataReceived(SiriDataType dataType, String datasetId, long totalSize, long updatedSize, long expiredSize, long ignoredSize) {
@@ -54,6 +67,19 @@ abstract class SiriRepository<T> {
         metrics.registerIncomingData(dataType, datasetId, totalSize, updatedSize, expiredSize, ignoredSize);
     }
 
+    void updateChangeTrackers(IMap<String, Set<String>> changesMap, IMap<String, Instant> lastUpdateRequested, Set<String> changes) {
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+
+        executorService.submit(() -> {
+            long t1 = System.currentTimeMillis();
+
+            changesMap.removeAll(p -> !lastUpdateRequested.containsKey(p.getKey()));
+
+            changesMap.executeOnEntries(new AppendChangesToSetEntryProcessor(changes));
+
+            logger.info("Updating changes for {} requestors took {} ms. ({})", changesMap.size(), (System.currentTimeMillis()-t1), this.getClass().getSimpleName());
+        });
+    }
 
     /**
      * Helper method to retrieve multiple values by ids
