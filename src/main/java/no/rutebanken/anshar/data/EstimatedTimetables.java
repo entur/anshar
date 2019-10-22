@@ -92,7 +92,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
 
     @PostConstruct
     private void initializeUpdateCommitter() {
-        super.initBufferCommitter(changesMap, configuration.getChangeBufferCommitFrequency());
+        super.initBufferCommitter(lastUpdateRequested, changesMap, configuration.getChangeBufferCommitFrequency());
     }
 
     /**

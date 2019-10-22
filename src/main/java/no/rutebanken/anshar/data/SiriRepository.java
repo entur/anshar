@@ -66,7 +66,7 @@ abstract class SiriRepository<T> {
 
     private ScheduledExecutorService singleThreadScheduledExecutor;
 
-    void initBufferCommitter(IMap<String, Set<String>> changesMap, int commitFrequency) {
+    void initBufferCommitter(IMap<String, Instant> lastUpdateRequested, IMap<String, Set<String>> changesMap, int commitFrequency) {
         if (singleThreadScheduledExecutor == null) {
             singleThreadScheduledExecutor = Executors.newSingleThreadScheduledExecutor();
 
@@ -82,6 +82,12 @@ abstract class SiriRepository<T> {
 
                     final Set<String> bufferedChanges = new HashSet<>(dirtyChanges);
                     dirtyChanges.clear();
+
+                    changesMap.keySet().forEach(key -> {
+                        if (lastUpdateRequested.containsKey(key)) {
+                            changesMap.delete(key);
+                        }
+                    });
 
                     changesMap.executeOnEntries(new AppendChangesToSetEntryProcessor(bufferedChanges));
                     logger.info("Updating changes for {} requestors {}, committing {} changes - update took {}/{} ms",
