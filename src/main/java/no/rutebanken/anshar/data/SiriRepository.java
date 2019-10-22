@@ -70,7 +70,7 @@ abstract class SiriRepository<T> {
         if (singleThreadScheduledExecutor == null) {
             singleThreadScheduledExecutor = Executors.newSingleThreadScheduledExecutor();
 
-            singleThreadScheduledExecutor.scheduleAtFixedRate(() -> {
+            singleThreadScheduledExecutor.scheduleWithFixedDelay(() -> {
 
                 /**
                  * Commits local change-buffer to cluster periodically
