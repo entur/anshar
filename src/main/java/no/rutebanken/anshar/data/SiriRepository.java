@@ -36,6 +36,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -81,15 +83,14 @@ abstract class SiriRepository<T> {
             }
         });
 
-        // TODO: Necessary to do this in separate executor?
-//        ExecutorService executorService = Executors.newSingleThreadExecutor();
-//        executorService.submit(() -> {
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        executorService.submit(() -> {
             long t1 = System.currentTimeMillis();
 
             changesMap.executeOnEntries(new AppendChangesToSetEntryProcessor(changes));
 
             logger.info("Updating changes for {} requestors took {} ms. ({})", changesMap.size(), (System.currentTimeMillis()-t1), this.getClass().getSimpleName());
-//        });
+        });
     }
 
     void updateChangeTrackers(IMap<String, Instant> lastUpdateRequested, IMap<String, Set<String>> changesMap, String key, Set<String> changes, int trackingPeriodMinutes, TimeUnit timeUnit) {
