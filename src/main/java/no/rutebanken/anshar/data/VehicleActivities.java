@@ -88,7 +88,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
 
     @PostConstruct
     private void initializeUpdateCommitter() {
-        super.initBufferCommitter(changesMap);
+        super.initBufferCommitter(changesMap, configuration.getChangeBufferCommitFrequency());
     }
 
     /**

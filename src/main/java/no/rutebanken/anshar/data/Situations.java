@@ -78,7 +78,7 @@ public class Situations extends SiriRepository<PtSituationElement> {
 
     @PostConstruct
     private void initializeUpdateCommitter() {
-        super.initBufferCommitter(changesMap);
+        super.initBufferCommitter(changesMap, configuration.getChangeBufferCommitFrequency());
     }
 
     /**

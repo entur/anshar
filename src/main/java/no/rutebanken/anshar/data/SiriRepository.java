@@ -44,8 +44,6 @@ import java.util.stream.Collectors;
 
 abstract class SiriRepository<T> {
 
-    private static final int BUFFER_COMMIT_INTERVAL_SECONDS = 2;
-
     abstract Collection<T> getAll();
 
     abstract int getSize();
@@ -68,7 +66,7 @@ abstract class SiriRepository<T> {
 
     private ScheduledExecutorService singleThreadScheduledExecutor;
 
-    void initBufferCommitter(IMap<String, Set<String>> changesMap) {
+    void initBufferCommitter(IMap<String, Set<String>> changesMap, int commitFrequency) {
         if (singleThreadScheduledExecutor == null) {
             singleThreadScheduledExecutor = Executors.newSingleThreadScheduledExecutor();
 
@@ -92,7 +90,7 @@ abstract class SiriRepository<T> {
                             changesMap.size(), this.getClass().getSimpleName(), bufferedChanges.size(), (t2-t1), (System.currentTimeMillis()-t2));
                 }
 
-            }, 0, BUFFER_COMMIT_INTERVAL_SECONDS, TimeUnit.SECONDS);
+            }, 0, commitFrequency, TimeUnit.SECONDS);
         }
     }
 

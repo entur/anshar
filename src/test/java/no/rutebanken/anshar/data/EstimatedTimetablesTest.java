@@ -22,14 +22,30 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import uk.org.siri.siri20.*;
+import uk.org.siri.siri20.EstimatedCall;
+import uk.org.siri.siri20.EstimatedTimetableDeliveryStructure;
+import uk.org.siri.siri20.EstimatedVehicleJourney;
+import uk.org.siri.siri20.Extensions;
+import uk.org.siri.siri20.LineRef;
+import uk.org.siri.siri20.NaturalLanguageStringStructure;
+import uk.org.siri.siri20.RecordedCall;
+import uk.org.siri.siri20.Siri;
+import uk.org.siri.siri20.StopPointRef;
+import uk.org.siri.siri20.VehicleRef;
 
 import java.math.BigInteger;
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.UUID;
 
 import static junit.framework.TestCase.assertNotNull;
-import static org.junit.Assert.*;
+import static no.rutebanken.anshar.helpers.SleepUtil.sleep;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -90,15 +106,6 @@ public class EstimatedTimetablesTest {
         assertEquals(previousSize+4, estimatedTimetables.getAll().size());
     }
 
-    private void sleep(int millis) {
-        try {
-            // Wait for updates to be processed...
-            Thread.sleep(millis);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
-
     @Test
     public void testGetPartialUpdatesOnly() {
         int previousSize = estimatedTimetables.getAll().size();
@@ -112,9 +119,10 @@ public class EstimatedTimetablesTest {
         // Verify that no more updates exist
         assertEquals(0, estimatedTimetables.getAllUpdates(requestorId, null).size());
 
-        estimatedTimetables.add("test", createEstimatedVehicleJourney("1234-partialupdate", "4321", 0, 30, ZonedDateTime.now().plusHours(1), true));
-        estimatedTimetables.add("test", createEstimatedVehicleJourney("2345-partialupdate", "4321", 0, 30, ZonedDateTime.now().plusHours(1), true));
-        estimatedTimetables.add("test", createEstimatedVehicleJourney("3456-partialupdate", "4321", 0, 30, ZonedDateTime.now().plusHours(1), true));
+        String datasetId = UUID.randomUUID().toString();
+        estimatedTimetables.add(datasetId, createEstimatedVehicleJourney("1234-partialupdate", "4321", 0, 30, ZonedDateTime.now().plusHours(1), true));
+        estimatedTimetables.add(datasetId, createEstimatedVehicleJourney("2345-partialupdate", "4321", 0, 30, ZonedDateTime.now().plusHours(1), true));
+        estimatedTimetables.add(datasetId, createEstimatedVehicleJourney("3456-partialupdate", "4321", 0, 30, ZonedDateTime.now().plusHours(1), true));
 
         sleep(250);
 
@@ -142,7 +150,7 @@ public class EstimatedTimetablesTest {
                 .getEstimatedJourneyVersionFrames().get(0)
                 .getEstimatedVehicleJourneies().size());
 
-        estimatedTimetables.add("test", createEstimatedVehicleJourney("4567-partialupdate", "4321", 0, 30, ZonedDateTime.now().plusHours(1), true));
+        estimatedTimetables.add(datasetId, createEstimatedVehicleJourney("4567-partialupdate", "4321", 0, 30, ZonedDateTime.now().plusHours(1), true));
 
         sleep(250);
 

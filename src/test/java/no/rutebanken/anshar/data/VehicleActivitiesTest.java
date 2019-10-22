@@ -23,7 +23,12 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import uk.org.siri.siri20.*;
+import uk.org.siri.siri20.CourseOfJourneyRefStructure;
+import uk.org.siri.siri20.LocationStructure;
+import uk.org.siri.siri20.ProgressBetweenStopsStructure;
+import uk.org.siri.siri20.Siri;
+import uk.org.siri.siri20.VehicleActivityStructure;
+import uk.org.siri.siri20.VehicleRef;
 
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
@@ -31,7 +36,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-import static org.junit.Assert.*;
+import static no.rutebanken.anshar.helpers.SleepUtil.sleep;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringBootTest(webEnvironment= SpringBootTest.WebEnvironment.MOCK, classes = App.class)
@@ -204,13 +213,6 @@ public class VehicleActivitiesTest {
         assertEquals(previousSize+4, vehicleActivities.getAll().size());
     }
 
-    private void sleep(int millis) {
-        try {
-            Thread.sleep(millis);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
     private VehicleActivityStructure createVehicleActivityStructure(ZonedDateTime recordedAtTime, String vehicleReference) {
         VehicleActivityStructure element = new VehicleActivityStructure();
         element.setRecordedAtTime(recordedAtTime);

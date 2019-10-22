@@ -29,6 +29,7 @@ import uk.org.siri.siri20.SituationNumber;
 
 import java.time.ZonedDateTime;
 
+import static no.rutebanken.anshar.helpers.SleepUtil.sleep;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -127,15 +128,6 @@ public class SituationsTest {
 
         //Verify that all elements still exist
         assertEquals(previousSize+4, situations.getAll().size());
-    }
-
-    private void sleep(int millis) {
-        try {
-            // Wait for updates to be processed...
-            Thread.sleep(millis);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
     }
 
     private PtSituationElement createPtSituationElement(String participantRef, String situationNumber, ZonedDateTime startTime, ZonedDateTime endTime) {

@@ -105,6 +105,10 @@ public class AnsharConfiguration {
     @Value("${anshar.validation.data.persist.hours:6}")
     private int numberOfHoursToKeepValidation;
 
+
+    @Value("${anshar.tracking.data.buffer.commit.frequency.seconds:2}")
+    private int changeBufferCommitFrequency;
+
     public String getHazelcastManagementUrl() {
         return hazelcastManagementUrl;
     }
@@ -211,5 +215,9 @@ public class AnsharConfiguration {
 
     public int getNumberOfHoursToKeepValidation() {
         return numberOfHoursToKeepValidation;
+    }
+
+    public int getChangeBufferCommitFrequency() {
+        return changeBufferCommitFrequency;
     }
 }

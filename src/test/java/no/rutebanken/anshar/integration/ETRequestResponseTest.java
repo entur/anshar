@@ -23,13 +23,22 @@ import org.junit.Before;
 import org.junit.Test;
 import org.rutebanken.siri20.util.SiriXml;
 import org.springframework.beans.factory.annotation.Autowired;
-import uk.org.siri.siri20.*;
+import uk.org.siri.siri20.EstimatedCall;
+import uk.org.siri.siri20.EstimatedVehicleJourney;
+import uk.org.siri.siri20.FramedVehicleJourneyRefStructure;
+import uk.org.siri.siri20.LineRef;
+import uk.org.siri.siri20.Siri;
+import uk.org.siri.siri20.StopPointRef;
+import uk.org.siri.siri20.VehicleRef;
 
 import java.math.BigInteger;
 import java.time.ZonedDateTime;
 
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.*;
+import static no.rutebanken.anshar.helpers.SleepUtil.sleep;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasKey;
+import static org.hamcrest.Matchers.not;
 
 public class ETRequestResponseTest extends BaseHttpTest {
 
@@ -46,6 +55,7 @@ public class ETRequestResponseTest extends BaseHttpTest {
         super.init();
         repo.clearAll();
         repo.add(dataSource, createEstimatedVehicleJourney("1234", 0, callCount, ZonedDateTime.now().plusMinutes(30), Boolean.TRUE));
+        sleep(250);
     }
 
     @Test
