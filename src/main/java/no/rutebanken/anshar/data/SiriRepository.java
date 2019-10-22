@@ -32,16 +32,19 @@ import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 abstract class SiriRepository<T> {
+
+    private static final int BUFFER_COMMIT_INTERVAL_SECONDS = 2;
 
     abstract Collection<T> getAll();
 
@@ -59,38 +62,54 @@ abstract class SiriRepository<T> {
 
     private final Logger logger = LoggerFactory.getLogger(SiriRepository.class);
 
-    PrometheusMetricsService metrics;
+    private PrometheusMetricsService metrics;
+
+    private final Set<String> dirtyChanges = Collections.synchronizedSet(new HashSet<>());
+
+    private ScheduledExecutorService singleThreadScheduledExecutor;
+
+    void initBufferCommitter(IMap<String, Set<String>> changesMap) {
+        if (singleThreadScheduledExecutor == null) {
+            singleThreadScheduledExecutor = Executors.newSingleThreadScheduledExecutor();
+
+            singleThreadScheduledExecutor.scheduleAtFixedRate(() -> {
+
+                /**
+                 * Commits local change-buffer to cluster periodically
+                 */
+
+                if (!dirtyChanges.isEmpty()) {
+
+                    long t1 = System.currentTimeMillis();
+
+                    final Set<String> bufferedChanges = new HashSet<>(dirtyChanges);
+                    dirtyChanges.clear();
+
+                    long t2 = System.currentTimeMillis();
+
+                    changesMap.executeOnEntries(new AppendChangesToSetEntryProcessor(bufferedChanges));
+                    logger.info("Updating changes for {} requestors {}, committing {} changes - clone/update took {}/{} ms",
+                            changesMap.size(), this.getClass().getSimpleName(), bufferedChanges.size(), (t2-t1), (System.currentTimeMillis()-t2));
+                }
+
+            }, 0, BUFFER_COMMIT_INTERVAL_SECONDS, TimeUnit.SECONDS);
+        }
+    }
+
+    /**
+     * Adds ids to local change-buffer
+     * @param changes
+     */
+    void markIdsAsUpdated(Set<String> changes) {
+        dirtyChanges.addAll(changes);
+        logger.info("Added {} updates to {}-dirtybuffer, now has {} updates", changes.size(), this.getClass().getSimpleName(), dirtyChanges.size());
+    }
 
     void markDataReceived(SiriDataType dataType, String datasetId, long totalSize, long updatedSize, long expiredSize, long ignoredSize) {
         if (metrics == null) {
             metrics = ApplicationContextHolder.getContext().getBean(PrometheusMetricsService.class);
         }
         metrics.registerIncomingData(dataType, datasetId, totalSize, updatedSize, expiredSize, ignoredSize);
-    }
-
-    /**
-     * Removes trackers no longer queried, and appends a Set of ids to all remaining trackers.
-     *
-     * @param changesMap
-     * @param lastUpdateRequested
-     * @param changes
-     */
-    void addIdsToChangeTrackers(IMap<String, Set<String>> changesMap, IMap<String, Instant> lastUpdateRequested, Set<String> changes) {
-
-        changesMap.keySet().forEach(key -> {
-            if (!lastUpdateRequested.containsKey(key)) {
-                changesMap.delete(key);
-            }
-        });
-
-        ExecutorService executorService = Executors.newSingleThreadExecutor();
-        executorService.submit(() -> {
-            long t1 = System.currentTimeMillis();
-
-            changesMap.executeOnEntries(new AppendChangesToSetEntryProcessor(changes));
-
-            logger.info("Updating changes for {} requestors took {} ms. ({})", changesMap.size(), (System.currentTimeMillis()-t1), this.getClass().getSimpleName());
-        });
     }
 
     void updateChangeTrackers(IMap<String, Instant> lastUpdateRequested, IMap<String, Set<String>> changesMap, String key, Set<String> changes, int trackingPeriodMinutes, TimeUnit timeUnit) {

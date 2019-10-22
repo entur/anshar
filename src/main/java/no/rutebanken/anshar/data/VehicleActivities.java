@@ -38,6 +38,7 @@ import uk.org.siri.siri20.Siri;
 import uk.org.siri.siri20.VehicleActivityStructure;
 import uk.org.siri.siri20.VehicleRef;
 
+import javax.annotation.PostConstruct;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
@@ -84,6 +85,11 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
 
     @Autowired
     private RequestorRefRepository requestorRefRepository;
+
+    @PostConstruct
+    private void initializeUpdateCommitter() {
+        super.initBufferCommitter(changesMap);
+    }
 
     /**
      * @return All vehicle activities
@@ -343,11 +349,10 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
 
         markDataReceived(SiriDataType.VEHICLE_MONITORING, datasetId, vmList.size(), changes.size(), outdatedCounter.getValue(), (invalidLocationCounter.getValue() + notMeaningfulCounter.getValue()));
 
-        addIdsToChangeTrackers(changesMap, lastUpdateRequested, changes);
+        markIdsAsUpdated(changes);
 
         return addedData;
     }
-
 
     public VehicleActivityStructure add(String datasetId, VehicleActivityStructure activity) {
         if (activity == null ||

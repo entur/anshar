@@ -33,6 +33,7 @@ import uk.org.siri.siri20.MessageRefStructure;
 import uk.org.siri.siri20.RecordedCall;
 import uk.org.siri.siri20.Siri;
 
+import javax.annotation.PostConstruct;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
@@ -85,6 +86,14 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
 
     @Autowired
     private RequestorRefRepository requestorRefRepository;
+
+    @Autowired
+    private SiriObjectFactory siriObjectFactory;
+
+    @PostConstruct
+    private void initializeUpdateCommitter() {
+        super.initBufferCommitter(changesMap);
+    }
 
     /**
      * @return All ET-elements
@@ -156,8 +165,6 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
         idForPatternChanges.clear();
     }
 
-    @Autowired
-    private SiriObjectFactory siriObjectFactory;
 
     public Siri createServiceDelivery(String lineRef) {
         SortedSet<EstimatedVehicleJourney> matchingEstimatedVehicleJourneys = new TreeSet<>((o1, o2) -> {
@@ -576,7 +583,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
 
         markDataReceived(SiriDataType.ESTIMATED_TIMETABLE, datasetId, etList.size(), changes.size(), outdatedCounter.getValue(), notUpdatedCounter.getValue());
 
-        addIdsToChangeTrackers(changesMap, lastUpdateRequested, changes);
+        markIdsAsUpdated(changes);
 
         return addedData;
     }

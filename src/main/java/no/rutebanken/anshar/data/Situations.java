@@ -32,6 +32,7 @@ import uk.org.siri.siri20.MessageRefStructure;
 import uk.org.siri.siri20.PtSituationElement;
 import uk.org.siri.siri20.Siri;
 
+import javax.annotation.PostConstruct;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
@@ -74,6 +75,11 @@ public class Situations extends SiriRepository<PtSituationElement> {
 
     @Autowired
     private RequestorRefRepository requestorRefRepository;
+
+    @PostConstruct
+    private void initializeUpdateCommitter() {
+        super.initBufferCommitter(changesMap);
+    }
 
     /**
      * @return All situations
@@ -344,7 +350,7 @@ public class Situations extends SiriRepository<PtSituationElement> {
 
         markDataReceived(SiriDataType.SITUATION_EXCHANGE, datasetId, sxList.size(), changes.size(), alreadyExpiredCounter.getValue(), ignoredCounter.getValue());
 
-        addIdsToChangeTrackers(changesMap, lastUpdateRequested, changes);
+        markIdsAsUpdated(changes);
 
         return addedData;
     }
