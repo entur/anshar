@@ -192,14 +192,15 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
                     existingSet.removeIf(id -> !vehicleActivities.containsKey(id));
                 }
 
-                changesMap.set(requestorId, existingSet, configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
+                updateChangeTrackers(lastUpdateRequested, changesMap, requestorId, existingSet, configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
 
                 logger.info("Returning {} changes to requestorRef {}", changes.size(), requestorId);
                 return changes;
             } else {
 
                 logger.info("Returning all to requestorRef {}", requestorId);
-                changesMap.set(requestorId, new HashSet<>(), configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
+                updateChangeTrackers(lastUpdateRequested, changesMap, requestorId, new HashSet<>(), configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
+
             }
         }
 
@@ -273,8 +274,8 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
             idSet.removeIf(id -> !vehicleActivities.containsKey(id));
 
             //Update change-tracker
-            changesMap.set(requestorId, idSet, trackingPeriodMinutes, TimeUnit.MINUTES);
-            lastUpdateRequested.set(requestorId, Instant.now(), trackingPeriodMinutes, TimeUnit.MINUTES);
+            updateChangeTrackers(lastUpdateRequested, changesMap, requestorId, idSet, trackingPeriodMinutes, TimeUnit.MINUTES);
+
 
             MessageRefStructure msgRef = new MessageRefStructure();
             msgRef.setValue(requestorId);
@@ -342,8 +343,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
 
         markDataReceived(SiriDataType.VEHICLE_MONITORING, datasetId, vmList.size(), changes.size(), outdatedCounter.getValue(), (invalidLocationCounter.getValue() + notMeaningfulCounter.getValue()));
 
-
-        updateChangeTrackers(changesMap, lastUpdateRequested, changes);
+        addIdsToChangeTrackers(changesMap, lastUpdateRequested, changes);
 
         return addedData;
     }

@@ -205,8 +205,7 @@ public class Situations extends SiriRepository<PtSituationElement> {
             }
 
             //Update change-tracker
-            changesMap.set(requestorId, idSet, trackingPeriodMinutes, TimeUnit.MINUTES);
-            lastUpdateRequested.set(requestorId, Instant.now(), trackingPeriodMinutes, TimeUnit.MINUTES);
+            updateChangeTrackers(lastUpdateRequested, changesMap, requestorId, idSet, trackingPeriodMinutes, TimeUnit.MINUTES);
 
             logger.info("Returning {}, {} left for requestorRef {}", sizeLimitedIds.size(), idSet.size(), requestorId);
         }
@@ -254,7 +253,7 @@ public class Situations extends SiriRepository<PtSituationElement> {
                 //Remove outdated ids
                 existingSet.removeIf(id -> !situations.containsKey(id));
 
-                changesMap.set(requestorId, existingSet, configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
+                updateChangeTrackers(lastUpdateRequested, changesMap, requestorId, existingSet, configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
 
 
                 logger.info("Returning {} changes to requestorRef {}", changes.size(), requestorId);
@@ -262,7 +261,9 @@ public class Situations extends SiriRepository<PtSituationElement> {
             } else {
                 logger.info("Returning all to requestorRef {}", requestorId);
             }
-            changesMap.set(requestorId, new HashSet<>(), configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
+
+            updateChangeTrackers(lastUpdateRequested, changesMap, requestorId, new HashSet<>(), configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
+
         }
 
         return getAll(datasetId);
@@ -343,7 +344,7 @@ public class Situations extends SiriRepository<PtSituationElement> {
 
         markDataReceived(SiriDataType.SITUATION_EXCHANGE, datasetId, sxList.size(), changes.size(), alreadyExpiredCounter.getValue(), ignoredCounter.getValue());
 
-        updateChangeTrackers(changesMap, lastUpdateRequested, changes);
+        addIdsToChangeTrackers(changesMap, lastUpdateRequested, changes);
 
         return addedData;
     }

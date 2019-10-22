@@ -379,7 +379,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                 //Remove outdated ids
                 existingSet.removeIf(id -> !timetableDeliveries.containsKey(id));
 
-                changesMap.set(requestorId, existingSet, configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
+                updateChangeTrackers(lastUpdateRequested, changesMap, requestorId, existingSet, configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
 
 
                 logger.info("Returning {} changes to requestorRef {}", changes.size(), requestorId);
@@ -387,7 +387,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
             } else {
 
                 logger.info("Returning all to requestorRef {}", requestorId);
-                changesMap.set(requestorId, new HashSet<>(), configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
+                updateChangeTrackers(lastUpdateRequested, changesMap, requestorId, new HashSet<>(), configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
             }
         }
 
@@ -576,7 +576,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
 
         markDataReceived(SiriDataType.ESTIMATED_TIMETABLE, datasetId, etList.size(), changes.size(), outdatedCounter.getValue(), notUpdatedCounter.getValue());
 
-        updateChangeTrackers(changesMap, lastUpdateRequested, changes);
+        addIdsToChangeTrackers(changesMap, lastUpdateRequested, changes);
 
         return addedData;
     }

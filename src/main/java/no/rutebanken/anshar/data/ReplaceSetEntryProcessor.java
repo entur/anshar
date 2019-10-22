@@ -6,32 +6,28 @@ import com.hazelcast.map.EntryProcessor;
 import java.util.Map;
 import java.util.Set;
 
-public class AppendChangesToSetEntryProcessor implements EntryProcessor<String, Set<String>>,
+public class ReplaceSetEntryProcessor implements EntryProcessor<String, Set<String>>,
                                                                 EntryBackupProcessor<String, Set<String>> {
 
-    private Set<String> changes;
+    private final Set<String> changes;
 
-    public AppendChangesToSetEntryProcessor(Set<String> changes) {
+    public ReplaceSetEntryProcessor(Set<String> changes) {
         this.changes = changes;
     }
 
     @Override
     public Object process(Map.Entry<String, Set<String>> entry) {
-        Set<String> value = entry.getValue();
-        value.addAll(changes);
-        entry.setValue(value);
+        entry.setValue(changes);
         return null;
     }
 
     @Override
     public EntryBackupProcessor getBackupProcessor() {
-        return AppendChangesToSetEntryProcessor.this;
+        return ReplaceSetEntryProcessor.this;
     }
 
     @Override
     public void processBackup(Map.Entry<String, Set<String>> entry) {
-        Set<String> value = entry.getValue();
-        value.addAll(changes);
-        entry.setValue(value);
+        entry.setValue(changes);
     }
 }

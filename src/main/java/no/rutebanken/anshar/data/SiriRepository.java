@@ -36,8 +36,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 abstract class SiriRepository<T> {
@@ -67,18 +66,41 @@ abstract class SiriRepository<T> {
         metrics.registerIncomingData(dataType, datasetId, totalSize, updatedSize, expiredSize, ignoredSize);
     }
 
-    void updateChangeTrackers(IMap<String, Set<String>> changesMap, IMap<String, Instant> lastUpdateRequested, Set<String> changes) {
-        ExecutorService executorService = Executors.newSingleThreadExecutor();
+    /**
+     * Removes trackers no longer queried, and appends a Set of ids to all remaining trackers.
+     *
+     * @param changesMap
+     * @param lastUpdateRequested
+     * @param changes
+     */
+    void addIdsToChangeTrackers(IMap<String, Set<String>> changesMap, IMap<String, Instant> lastUpdateRequested, Set<String> changes) {
 
-        executorService.submit(() -> {
+        changesMap.keySet().forEach(key -> {
+            if (!lastUpdateRequested.containsKey(key)) {
+                changesMap.delete(key);
+            }
+        });
+
+        // TODO: Necessary to do this in separate executor?
+//        ExecutorService executorService = Executors.newSingleThreadExecutor();
+//        executorService.submit(() -> {
             long t1 = System.currentTimeMillis();
-
-            changesMap.removeAll(p -> !lastUpdateRequested.containsKey(p.getKey()));
 
             changesMap.executeOnEntries(new AppendChangesToSetEntryProcessor(changes));
 
             logger.info("Updating changes for {} requestors took {} ms. ({})", changesMap.size(), (System.currentTimeMillis()-t1), this.getClass().getSimpleName());
-        });
+//        });
+    }
+
+    void updateChangeTrackers(IMap<String, Instant> lastUpdateRequested, IMap<String, Set<String>> changesMap, String key, Set<String> changes, int trackingPeriodMinutes, TimeUnit timeUnit) {
+        long t1 = System.currentTimeMillis();
+
+        changesMap.executeOnKey(key, new ReplaceSetEntryProcessor(changes));
+        changesMap.setTtl(key, trackingPeriodMinutes, timeUnit);
+
+        lastUpdateRequested.set(key, Instant.now(), trackingPeriodMinutes, timeUnit);
+
+        logger.info("Replacing changes for requestor {} took {} ms. ({})", key, (System.currentTimeMillis()-t1), this.getClass().getSimpleName());
     }
 
     /**
