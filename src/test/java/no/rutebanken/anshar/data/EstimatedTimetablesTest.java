@@ -86,6 +86,7 @@ public class EstimatedTimetablesTest {
         estimatedTimetables.add("test", createEstimatedVehicleJourney("2345-update", "4321", 0, 30, ZonedDateTime.now().plusHours(1), true));
         estimatedTimetables.add("test", createEstimatedVehicleJourney("3456-update", "4321", 0, 30, ZonedDateTime.now().plusHours(1), true));
 
+        estimatedTimetables.forceCommit();
         sleep(250);
 
         // Added 3
@@ -94,6 +95,8 @@ public class EstimatedTimetablesTest {
         assertEquals(previousSize + 3, estimatedTimetables.getAllUpdates(requestorId, null).size());
 
         estimatedTimetables.add("test", createEstimatedVehicleJourney("4567-update", "4321", 0, 30, ZonedDateTime.now().plusHours(1), true));
+        estimatedTimetables.forceCommit();
+
         sleep(250);
         //Added one
         assertEquals(1, estimatedTimetables.getAllUpdates(requestorId, null).size());
@@ -109,9 +112,10 @@ public class EstimatedTimetablesTest {
     @Test
     public void testGetPartialUpdatesOnly() {
         int previousSize = estimatedTimetables.getAll().size();
+        estimatedTimetables.forceCommit();
 
         // Added 3
-        String requestorId = UUID.randomUUID().toString();
+        String requestorId = "testGetPartialUpdatesOnly";
 
         //Get all existing
         assertEquals(previousSize, estimatedTimetables.getAllUpdates(requestorId, null).size());
@@ -125,6 +129,8 @@ public class EstimatedTimetablesTest {
         estimatedTimetables.add(datasetId, createEstimatedVehicleJourney("3456-partialupdate", "4321", 0, 30, ZonedDateTime.now().plusHours(1), true));
 
         sleep(250);
+
+        estimatedTimetables.forceCommit();
 
         Siri siri = estimatedTimetables.createServiceDelivery(requestorId, null, 2);
 
@@ -153,6 +159,7 @@ public class EstimatedTimetablesTest {
         estimatedTimetables.add(datasetId, createEstimatedVehicleJourney("4567-partialupdate", "4321", 0, 30, ZonedDateTime.now().plusHours(1), true));
 
         sleep(250);
+        estimatedTimetables.forceCommit();
 
         siri = estimatedTimetables.createServiceDelivery(requestorId, null, 2);
 

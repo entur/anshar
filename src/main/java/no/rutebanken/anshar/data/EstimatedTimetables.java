@@ -167,6 +167,17 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
         lastUpdateRequested.clear();
     }
 
+    void forceCommit() {
+        logger.error("!!!!!! Force-committing changes - should only be used in test !!!!!!");
+        while (!dirtyChanges.isEmpty()) {
+            changesMap.keySet().forEach(key -> {
+                Set<String> changes = changesMap.get(key);
+                changes.addAll(dirtyChanges);
+                dirtyChanges.clear();
+                changesMap.set(key, changes);
+            });
+        }
+    }
 
     public Siri createServiceDelivery(String lineRef) {
         SortedSet<EstimatedVehicleJourney> matchingEstimatedVehicleJourneys = new TreeSet<>((o1, o2) -> {

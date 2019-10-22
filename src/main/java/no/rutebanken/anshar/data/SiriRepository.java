@@ -62,7 +62,7 @@ abstract class SiriRepository<T> {
 
     private PrometheusMetricsService metrics;
 
-    private final Set<String> dirtyChanges = Collections.synchronizedSet(new HashSet<>());
+    final Set<String> dirtyChanges = Collections.synchronizedSet(new HashSet<>());
 
     private ScheduledExecutorService singleThreadScheduledExecutor;
 
