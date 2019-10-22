@@ -103,8 +103,10 @@ abstract class SiriRepository<T> {
      * @param changes
      */
     void markIdsAsUpdated(Set<String> changes) {
-        dirtyChanges.addAll(changes);
-        logger.info("Added {} updates to {}-dirtybuffer, now has {} updates", changes.size(), this.getClass().getSimpleName(), dirtyChanges.size());
+        if (!changes.isEmpty()) {
+            dirtyChanges.addAll(changes);
+            logger.info("Added {} updates to {}-dirtybuffer, now has {} updates", changes.size(), this.getClass().getSimpleName(), dirtyChanges.size());
+        }
     }
 
     void markDataReceived(SiriDataType dataType, String datasetId, long totalSize, long updatedSize, long expiredSize, long ignoredSize) {
