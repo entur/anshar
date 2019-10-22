@@ -83,11 +83,9 @@ abstract class SiriRepository<T> {
                     final Set<String> bufferedChanges = new HashSet<>(dirtyChanges);
                     dirtyChanges.clear();
 
-                    long t2 = System.currentTimeMillis();
-
                     changesMap.executeOnEntries(new AppendChangesToSetEntryProcessor(bufferedChanges));
-                    logger.info("Updating changes for {} requestors {}, committing {} changes - clone/update took {}/{} ms",
-                            changesMap.size(), this.getClass().getSimpleName(), bufferedChanges.size(), (t2-t1), (System.currentTimeMillis()-t2));
+                    logger.info("Updating changes for {} requestors {}, committing {} changes - update took {}/{} ms",
+                            changesMap.size(), this.getClass().getSimpleName(), bufferedChanges.size(), (System.currentTimeMillis()-t1));
                 }
 
             }, 0, commitFrequency, TimeUnit.SECONDS);
