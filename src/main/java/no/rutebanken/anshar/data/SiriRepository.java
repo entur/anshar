@@ -84,13 +84,13 @@ abstract class SiriRepository<T> {
                     dirtyChanges.clear();
 
                     changesMap.keySet().forEach(key -> {
-                        if (lastUpdateRequested.containsKey(key)) {
+                        if (!lastUpdateRequested.containsKey(key)) {
                             changesMap.delete(key);
                         }
                     });
 
                     changesMap.executeOnEntries(new AppendChangesToSetEntryProcessor(bufferedChanges));
-                    logger.info("Updating changes for {} requestors {}, committing {} changes - update took {}/{} ms",
+                    logger.info("Updating changes for {} requestors {}, committing {} changes - update took {} ms",
                             changesMap.size(), this.getClass().getSimpleName(), bufferedChanges.size(), (System.currentTimeMillis()-t1));
                 }
 
