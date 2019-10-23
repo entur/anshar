@@ -90,7 +90,7 @@ abstract class SiriRepository<T> {
                     });
 
                     changesMap.executeOnEntries(new AppendChangesToSetEntryProcessor(bufferedChanges));
-                    logger.info("Updating changes for {} requestors ({}), committing {} changes - update took {} ms",
+                    logger.info("Updating changes for {} requestors ({}), committed {} changes, update took {} ms",
                             changesMap.size(), this.getClass().getSimpleName(), bufferedChanges.size(), (System.currentTimeMillis()-t1));
                 }
 
@@ -105,7 +105,7 @@ abstract class SiriRepository<T> {
     void markIdsAsUpdated(Set<String> changes) {
         if (!changes.isEmpty()) {
             dirtyChanges.addAll(changes);
-            logger.info("Added {} updates to {}-dirtybuffer, now has {} updates", changes.size(), this.getClass().getSimpleName(), dirtyChanges.size());
+            logger.info("Added {} updates to {} dirty-buffer, now has {} pending updates", changes.size(), this.getClass().getSimpleName(), dirtyChanges.size());
         }
     }
 
