@@ -90,7 +90,7 @@ abstract class SiriRepository<T> {
                     });
 
                     changesMap.executeOnEntries(new AppendChangesToSetEntryProcessor(bufferedChanges));
-                    logger.info("Updating changes for {} requestors {}, committing {} changes - update took {} ms",
+                    logger.info("Updating changes for {} requestors ({}), committing {} changes - update took {} ms",
                             changesMap.size(), this.getClass().getSimpleName(), bufferedChanges.size(), (System.currentTimeMillis()-t1));
                 }
 
