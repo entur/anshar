@@ -70,6 +70,8 @@ abstract class SiriRepository<T> {
         if (singleThreadScheduledExecutor == null) {
             singleThreadScheduledExecutor = Executors.newSingleThreadScheduledExecutor();
 
+            logger.info("Initializing scheduled change-buffer-updater with commit every {} seconds", commitFrequency);
+
             singleThreadScheduledExecutor.scheduleWithFixedDelay(() -> {
 
                 /**
@@ -92,6 +94,8 @@ abstract class SiriRepository<T> {
                     changesMap.executeOnEntries(new AppendChangesToSetEntryProcessor(bufferedChanges));
                     logger.info("Updating changes for {} requestors ({}), committed {} changes, update took {} ms",
                             changesMap.size(), this.getClass().getSimpleName(), bufferedChanges.size(), (System.currentTimeMillis()-t1));
+                } else {
+                    logger.info("No changes - ignoring commit");
                 }
 
             }, 0, commitFrequency, TimeUnit.SECONDS);
