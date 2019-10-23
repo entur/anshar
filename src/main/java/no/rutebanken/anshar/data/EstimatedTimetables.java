@@ -324,8 +324,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
             }
 
             //Update change-tracker
-            changesMap.set(requestorId, idSet, trackingPeriodMinutes, TimeUnit.MINUTES);
-            lastUpdateRequested.put(requestorId, Instant.now(), trackingPeriodMinutes, TimeUnit.MINUTES);
+            updateChangeTrackers(lastUpdateRequested, changesMap, requestorId, idSet, trackingPeriodMinutes, TimeUnit.MINUTES);
 
             logger.info("Returning {}, {} left for requestorRef {}", sizeLimitedIds.size(), idSet.size(), requestorId);
         }
