@@ -77,25 +77,29 @@ abstract class SiriRepository<T> {
                 /**
                  * Commits local change-buffer to cluster periodically
                  */
+                try {
+                    if (!dirtyChanges.isEmpty()) {
 
-                if (!dirtyChanges.isEmpty()) {
+                        long t1 = System.currentTimeMillis();
 
-                    long t1 = System.currentTimeMillis();
+                        final Set<String> bufferedChanges = new HashSet<>(dirtyChanges);
+                        dirtyChanges.clear();
 
-                    final Set<String> bufferedChanges = new HashSet<>(dirtyChanges);
-                    dirtyChanges.clear();
+                        changesMap.keySet().forEach(key -> {
+                            if (!lastUpdateRequested.containsKey(key)) {
+                                changesMap.delete(key);
+                            }
+                        });
 
-                    changesMap.keySet().forEach(key -> {
-                        if (!lastUpdateRequested.containsKey(key)) {
-                            changesMap.delete(key);
-                        }
-                    });
-
-                    changesMap.executeOnEntries(new AppendChangesToSetEntryProcessor(bufferedChanges));
-                    logger.info("Updating changes for {} requestors ({}), committed {} changes, update took {} ms",
-                            changesMap.size(), this.getClass().getSimpleName(), bufferedChanges.size(), (System.currentTimeMillis()-t1));
-                } else {
-                    logger.info("No changes - ignoring commit");
+                        changesMap.executeOnEntries(new AppendChangesToSetEntryProcessor(bufferedChanges));
+                        logger.info("Updating changes for {} requestors ({}), committed {} changes, update took {} ms",
+                                changesMap.size(), this.getClass().getSimpleName(), bufferedChanges.size(), (System.currentTimeMillis() - t1));
+                    } else {
+                        logger.info("No changes - ignoring commit");
+                    }
+                } catch (Throwable t) {
+                    //Catch everything to avoid executor being killed
+                    logger.info("Exception caught when comitting changes", t);
                 }
 
             }, 0, commitFrequency, TimeUnit.SECONDS);
