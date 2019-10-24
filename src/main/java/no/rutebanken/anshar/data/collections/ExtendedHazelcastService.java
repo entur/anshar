@@ -21,6 +21,7 @@ import com.hazelcast.core.DistributedObject;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 import com.hazelcast.core.ISet;
+import com.hazelcast.core.LifecycleEvent;
 import com.hazelcast.core.Member;
 import com.hazelcast.core.ReplicatedMap;
 import no.rutebanken.anshar.config.AnsharConfiguration;
@@ -63,11 +64,12 @@ public class ExtendedHazelcastService extends HazelCastService {
         this.cfg = cfg;
     }
 
-    public void addPreDestroyHook(Runnable destroyFunction) {
+    public void addBeforeShuttingDownHook(Runnable destroyFunction) {
         hazelcast.getLifecycleService().addLifecycleListener(lifecycleEvent -> {
-            logger.info("State has changed to {} - committing all changes.", lifecycleEvent.getState());
-            // Always trigger a commit, regardless of what the new state is
-            destroyFunction.run();
+            if (lifecycleEvent.getState().equals(LifecycleEvent.LifecycleState.SHUTTING_DOWN)) {
+                logger.info("Shutting down - committing all changes.");
+                destroyFunction.run();
+            }
         });
     }
 
