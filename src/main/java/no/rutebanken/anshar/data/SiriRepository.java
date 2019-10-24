@@ -84,7 +84,11 @@ abstract class SiriRepository<T> {
             }, 0, commitFrequency, TimeUnit.SECONDS);
         }
 
-        hazelcastService.addPreDestroyHook(() -> commitChanges());
+        hazelcastService.addBeforeShuttingDownHook(() -> {
+            while (!dirtyChanges.isEmpty()) {
+                commitChanges();
+            }
+        });
     }
 
     /**
