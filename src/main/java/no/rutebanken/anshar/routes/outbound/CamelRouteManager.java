@@ -15,9 +15,16 @@
 
 package no.rutebanken.anshar.routes.outbound;
 
+import no.rutebanken.anshar.metrics.PrometheusMetricsService;
 import no.rutebanken.anshar.routes.dataformat.SiriDataFormatHelper;
 import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
-import org.apache.camel.*;
+import org.apache.camel.CamelContext;
+import org.apache.camel.CamelContextAware;
+import org.apache.camel.Exchange;
+import org.apache.camel.ExchangePattern;
+import org.apache.camel.LoggingLevel;
+import org.apache.camel.ProducerTemplate;
+import org.apache.camel.Route;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.RouteDefinition;
 import org.slf4j.Logger;
@@ -25,7 +32,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import uk.org.siri.siri20.*;
+import uk.org.siri.siri20.EstimatedTimetableDeliveryStructure;
+import uk.org.siri.siri20.ServiceDelivery;
+import uk.org.siri.siri20.Siri;
+import uk.org.siri.siri20.SituationExchangeDeliveryStructure;
+import uk.org.siri.siri20.VehicleMonitoringDeliveryStructure;
 
 import javax.ws.rs.core.MediaType;
 import java.net.ConnectException;
@@ -52,6 +63,9 @@ public class CamelRouteManager implements CamelContextAware {
 
     @Autowired
     private ServerSubscriptionManager subscriptionManager;
+
+    @Autowired
+    private PrometheusMetricsService metrics;
 
     @Override
     public CamelContext getCamelContext() {
@@ -228,6 +242,7 @@ public class CamelRouteManager implements CamelContextAware {
                         .setHeader("SubscriptionId", constant(subscriptionRequest.getSubscriptionId()))
                         .setHeader("CamelHttpMethod", constant("POST"))
                         .setHeader(Exchange.CONTENT_TYPE, constant(MediaType.APPLICATION_XML))
+                        .bean(metrics, "countOutgoingData(${body})")
                         .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
                         .to("log:push:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                         .to(remoteEndPoint + options)

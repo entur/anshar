@@ -20,6 +20,7 @@ import no.rutebanken.anshar.data.EstimatedTimetables;
 import no.rutebanken.anshar.data.ProductionTimetables;
 import no.rutebanken.anshar.data.Situations;
 import no.rutebanken.anshar.data.VehicleActivities;
+import no.rutebanken.anshar.metrics.PrometheusMetricsService;
 import no.rutebanken.anshar.routes.ServiceNotSupportedException;
 import no.rutebanken.anshar.routes.health.HealthManager;
 import no.rutebanken.anshar.routes.outbound.ServerSubscriptionManager;
@@ -36,7 +37,23 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import uk.org.siri.siri20.*;
+import uk.org.siri.siri20.ErrorCodeStructure;
+import uk.org.siri.siri20.ErrorDescriptionStructure;
+import uk.org.siri.siri20.EstimatedTimetableDeliveryStructure;
+import uk.org.siri.siri20.EstimatedVehicleJourney;
+import uk.org.siri.siri20.LineRef;
+import uk.org.siri.siri20.PtSituationElement;
+import uk.org.siri.siri20.ServiceDeliveryErrorConditionElement;
+import uk.org.siri.siri20.ServiceRequest;
+import uk.org.siri.siri20.Siri;
+import uk.org.siri.siri20.SituationExchangeDeliveryStructure;
+import uk.org.siri.siri20.SubscriptionResponseStructure;
+import uk.org.siri.siri20.TerminateSubscriptionRequestStructure;
+import uk.org.siri.siri20.TerminateSubscriptionResponseStructure;
+import uk.org.siri.siri20.VehicleActivityStructure;
+import uk.org.siri.siri20.VehicleMonitoringDeliveryStructure;
+import uk.org.siri.siri20.VehicleMonitoringRequestStructure;
+import uk.org.siri.siri20.VehicleRef;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.UnmarshalException;
@@ -44,7 +61,13 @@ import javax.xml.datatype.Duration;
 import javax.xml.stream.XMLStreamException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @Service
 public class SiriHandler {
@@ -83,6 +106,9 @@ public class SiriHandler {
 
     @Autowired
     private SiriXmlValidator siriXmlValidator;
+
+    @Autowired
+    private PrometheusMetricsService metrics;
 
     public SiriHandler() {
 
@@ -210,6 +236,7 @@ public class SiriHandler {
             }
 
             if (serviceResponse != null) {
+                metrics.countOutgoingData(serviceResponse);
                 return SiriValueTransformer.transform(serviceResponse, mappingAdapterPresets.getOutboundAdapters(outboundIdMappingPolicy));
             }
         }

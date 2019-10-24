@@ -32,6 +32,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import uk.org.siri.siri20.EstimatedTimetableDeliveryStructure;
+import uk.org.siri.siri20.EstimatedVersionFrameStructure;
+import uk.org.siri.siri20.Siri;
+import uk.org.siri.siri20.SituationExchangeDeliveryStructure;
+import uk.org.siri.siri20.VehicleMonitoringDeliveryStructure;
 
 import javax.annotation.PreDestroy;
 import java.io.IOException;
@@ -54,6 +59,7 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
     private final String DATA_SUCCESS_COUNTER_NAME = METRICS_PREFIX + "data.success";
     private final String DATA_EXPIRED_COUNTER_NAME = METRICS_PREFIX + "data.expired";
     private final String DATA_IGNORED_COUNTER_NAME = METRICS_PREFIX + "data.ignored";
+    private final String DATA_OUTBOUND_COUNTER_NAME = METRICS_PREFIX + "data.outbound";
 
     public PrometheusMetricsService() {
         super(PrometheusConfig.DEFAULT);
@@ -74,6 +80,51 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
         counter(DATA_SUCCESS_COUNTER_NAME, counterTags).increment(updated);
         counter(DATA_EXPIRED_COUNTER_NAME, counterTags).increment(expired);
         counter(DATA_IGNORED_COUNTER_NAME, counterTags).increment(ignored);
+    }
+
+    public void countOutgoingData(Siri siri) {
+        SiriDataType dataType = null;
+        int count = 0;
+        if (siri != null && siri.getServiceDelivery() != null) {
+            if (siri.getServiceDelivery().getEstimatedTimetableDeliveries() != null &&
+                    !siri.getServiceDelivery().getEstimatedTimetableDeliveries().isEmpty()) {
+                EstimatedTimetableDeliveryStructure timetableDeliveryStructure = siri.getServiceDelivery().getEstimatedTimetableDeliveries().get(0);
+                if (timetableDeliveryStructure != null && timetableDeliveryStructure.getEstimatedJourneyVersionFrames() != null &&
+                        !timetableDeliveryStructure.getEstimatedJourneyVersionFrames().isEmpty()) {
+                    EstimatedVersionFrameStructure estimatedVersionFrameStructure = timetableDeliveryStructure.getEstimatedJourneyVersionFrames().get(0);
+                    if (estimatedVersionFrameStructure != null &&  estimatedVersionFrameStructure.getEstimatedVehicleJourneies() != null) {
+
+                        dataType = SiriDataType.ESTIMATED_TIMETABLE;
+                        count = estimatedVersionFrameStructure.getEstimatedVehicleJourneies().size();
+                    }
+                }
+            } else if (siri.getServiceDelivery().getVehicleMonitoringDeliveries() != null &&
+                        !siri.getServiceDelivery().getVehicleMonitoringDeliveries().isEmpty()) {
+                VehicleMonitoringDeliveryStructure deliveryStructure = siri.getServiceDelivery().getVehicleMonitoringDeliveries().get(0);
+                if (deliveryStructure != null) {
+                    dataType = SiriDataType.VEHICLE_MONITORING;
+                    count = deliveryStructure.getVehicleActivities().size();
+                }
+            } else if (siri.getServiceDelivery().getSituationExchangeDeliveries() != null &&
+                        !siri.getServiceDelivery().getSituationExchangeDeliveries().isEmpty()) {
+                SituationExchangeDeliveryStructure deliveryStructure = siri.getServiceDelivery().getSituationExchangeDeliveries().get(0);
+                if (deliveryStructure != null && deliveryStructure.getSituations() != null) {
+                    dataType = SiriDataType.SITUATION_EXCHANGE;
+                    count = deliveryStructure.getSituations().getPtSituationElements().size();
+                }
+            }
+        }
+
+        countOutgoingData(dataType, count);
+    }
+
+    private void countOutgoingData(SiriDataType dataType, long objectCount) {
+        if (dataType != null && objectCount > 0) {
+            List<Tag> counterTags = new ArrayList<>();
+            counterTags.add(new ImmutableTag("dataType", dataType.name()));
+
+            counter(DATA_OUTBOUND_COUNTER_NAME, counterTags).increment(objectCount);
+        }
     }
 
     final Map<String, Integer> gaugeValues = new HashMap<>();

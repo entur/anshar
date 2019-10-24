@@ -16,7 +16,12 @@
 package no.rutebanken.anshar.routes.siri;
 
 import no.rutebanken.anshar.config.AnsharConfiguration;
-import no.rutebanken.anshar.data.*;
+import no.rutebanken.anshar.data.EstimatedTimetables;
+import no.rutebanken.anshar.data.RequestorRefRepository;
+import no.rutebanken.anshar.data.RequestorRefStats;
+import no.rutebanken.anshar.data.Situations;
+import no.rutebanken.anshar.data.VehicleActivities;
+import no.rutebanken.anshar.metrics.PrometheusMetricsService;
 import no.rutebanken.anshar.routes.RestRouteBuilder;
 import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
 import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
@@ -42,7 +47,13 @@ import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.util.List;
 
-import static no.rutebanken.anshar.routes.HttpParameter.*;
+import static no.rutebanken.anshar.routes.HttpParameter.PARAM_DATASET_ID;
+import static no.rutebanken.anshar.routes.HttpParameter.PARAM_EXCLUDED_DATASET_ID;
+import static no.rutebanken.anshar.routes.HttpParameter.PARAM_LINE_REF;
+import static no.rutebanken.anshar.routes.HttpParameter.PARAM_MAX_SIZE;
+import static no.rutebanken.anshar.routes.HttpParameter.PARAM_PREVIEW_INTERVAL;
+import static no.rutebanken.anshar.routes.HttpParameter.PARAM_USE_ORIGINAL_ID;
+import static no.rutebanken.anshar.routes.HttpParameter.getParameterValuesAsList;
 
 @Service
 public class SiriLiteRoute extends RestRouteBuilder {
@@ -65,6 +76,9 @@ public class SiriLiteRoute extends RestRouteBuilder {
 
     @Autowired
     private RequestorRefRepository requestorRefRepository;
+
+    @Autowired
+    private PrometheusMetricsService metrics;
 
     private static final int REQUESTS_PER_MINUTE_LIMIT = 5;
 
@@ -263,6 +277,9 @@ public class SiriLiteRoute extends RestRouteBuilder {
     }
 
     private void streamOutput(Exchange p, Siri response, HttpServletResponse out) throws IOException, JAXBException {
+
+        metrics.countOutgoingData(response);
+
         if (MediaType.APPLICATION_JSON.equals(p.getIn().getHeader(HttpHeaders.CONTENT_TYPE)) |
                 MediaType.APPLICATION_JSON.equals(p.getIn().getHeader(HttpHeaders.ACCEPT))) {
             out.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
