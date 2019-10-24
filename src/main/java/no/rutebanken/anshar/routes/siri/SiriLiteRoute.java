@@ -27,6 +27,7 @@ import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
 import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.subscription.SiriDataType;
+import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import no.rutebanken.anshar.subscription.helpers.MappingAdapterPresets;
 import org.apache.camel.Exchange;
 import org.apache.camel.model.rest.RestParamType;
@@ -278,7 +279,7 @@ public class SiriLiteRoute extends RestRouteBuilder {
 
     private void streamOutput(Exchange p, Siri response, HttpServletResponse out) throws IOException, JAXBException {
 
-        metrics.countOutgoingData(response);
+        metrics.countOutgoingData(response, SubscriptionSetup.SubscriptionMode.LITE);
 
         if (MediaType.APPLICATION_JSON.equals(p.getIn().getHeader(HttpHeaders.CONTENT_TYPE)) |
                 MediaType.APPLICATION_JSON.equals(p.getIn().getHeader(HttpHeaders.ACCEPT))) {

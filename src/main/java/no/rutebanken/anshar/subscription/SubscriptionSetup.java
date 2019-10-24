@@ -27,7 +27,12 @@ import org.slf4j.LoggerFactory;
 import java.io.Serializable;
 import java.text.MessageFormat;
 import java.time.Duration;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class SubscriptionSetup implements Serializable {
 
@@ -362,7 +367,7 @@ public class SubscriptionSetup implements Serializable {
 
     public enum ServiceType {SOAP, REST}
 
-    public enum SubscriptionMode {SUBSCRIBE, REQUEST_RESPONSE, POLLING_FETCHED_DELIVERY, FETCHED_DELIVERY}
+    public enum SubscriptionMode {SUBSCRIBE, REQUEST_RESPONSE, POLLING_FETCHED_DELIVERY, FETCHED_DELIVERY, LITE}
 
     public void setIdMappingPrefixes(List<String> idMappingPrefixes) {
         this.idMappingPrefixes = idMappingPrefixes;

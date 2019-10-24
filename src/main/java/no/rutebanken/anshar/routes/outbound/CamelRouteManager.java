@@ -242,7 +242,7 @@ public class CamelRouteManager implements CamelContextAware {
                         .setHeader("SubscriptionId", constant(subscriptionRequest.getSubscriptionId()))
                         .setHeader("CamelHttpMethod", constant("POST"))
                         .setHeader(Exchange.CONTENT_TYPE, constant(MediaType.APPLICATION_XML))
-                        .bean(metrics, "countOutgoingData(${body})")
+                        .bean(metrics, "countOutgoingData(${body}, SUBSCRIBE)")
                         .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
                         .to("log:push:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                         .to(remoteEndPoint + options)

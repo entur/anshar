@@ -82,7 +82,7 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
         counter(DATA_IGNORED_COUNTER_NAME, counterTags).increment(ignored);
     }
 
-    public void countOutgoingData(Siri siri) {
+    public void countOutgoingData(Siri siri, SubscriptionSetup.SubscriptionMode mode) {
         SiriDataType dataType = null;
         int count = 0;
         if (siri != null && siri.getServiceDelivery() != null) {
@@ -115,13 +115,14 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
             }
         }
 
-        countOutgoingData(dataType, count);
+        countOutgoingData(dataType, mode, count);
     }
 
-    private void countOutgoingData(SiriDataType dataType, long objectCount) {
+    private void countOutgoingData(SiriDataType dataType, SubscriptionSetup.SubscriptionMode mode, long objectCount) {
         if (dataType != null && objectCount > 0) {
             List<Tag> counterTags = new ArrayList<>();
             counterTags.add(new ImmutableTag("dataType", dataType.name()));
+            counterTags.add(new ImmutableTag("mode", mode.name()));
 
             counter(DATA_OUTBOUND_COUNTER_NAME, counterTags).increment(objectCount);
         }

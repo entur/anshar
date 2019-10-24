@@ -236,7 +236,7 @@ public class SiriHandler {
             }
 
             if (serviceResponse != null) {
-                metrics.countOutgoingData(serviceResponse);
+                metrics.countOutgoingData(serviceResponse, SubscriptionSetup.SubscriptionMode.REQUEST_RESPONSE);
                 return SiriValueTransformer.transform(serviceResponse, mappingAdapterPresets.getOutboundAdapters(outboundIdMappingPolicy));
             }
         }
