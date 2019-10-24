@@ -18,6 +18,7 @@ package no.rutebanken.anshar.data;
 import com.hazelcast.core.IMap;
 import com.hazelcast.core.ReplicatedMap;
 import no.rutebanken.anshar.config.AnsharConfiguration;
+import no.rutebanken.anshar.data.collections.ExtendedHazelcastService;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import org.quartz.utils.counter.Counter;
@@ -76,9 +77,12 @@ public class Situations extends SiriRepository<PtSituationElement> {
     @Autowired
     private RequestorRefRepository requestorRefRepository;
 
+    @Autowired
+    ExtendedHazelcastService hazelcastService;
+
     @PostConstruct
     private void initializeUpdateCommitter() {
-        super.initBufferCommitter(lastUpdateRequested, changesMap, configuration.getChangeBufferCommitFrequency());
+        super.initBufferCommitter(hazelcastService, lastUpdateRequested, changesMap, configuration.getChangeBufferCommitFrequency());
     }
 
     /**

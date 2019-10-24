@@ -18,6 +18,7 @@ package no.rutebanken.anshar.data;
 import com.hazelcast.core.IMap;
 import com.hazelcast.core.ReplicatedMap;
 import no.rutebanken.anshar.config.AnsharConfiguration;
+import no.rutebanken.anshar.data.collections.ExtendedHazelcastService;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import org.quartz.utils.counter.Counter;
@@ -90,9 +91,12 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
     @Autowired
     private SiriObjectFactory siriObjectFactory;
 
+    @Autowired
+    ExtendedHazelcastService hazelcastService;
+
     @PostConstruct
     private void initializeUpdateCommitter() {
-        super.initBufferCommitter(lastUpdateRequested, changesMap, configuration.getChangeBufferCommitFrequency());
+        super.initBufferCommitter(hazelcastService, lastUpdateRequested, changesMap, configuration.getChangeBufferCommitFrequency());
     }
 
     /**
@@ -165,18 +169,6 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
         idForPatternChanges.clear();
         changesMap.clear();
         lastUpdateRequested.clear();
-    }
-
-    void forceCommit() {
-        logger.error("!!!!!! Force-committing changes - should only be used in test !!!!!!");
-        while (!dirtyChanges.isEmpty()) {
-            changesMap.keySet().forEach(key -> {
-                Set<String> changes = changesMap.get(key);
-                changes.addAll(dirtyChanges);
-                dirtyChanges.clear();
-                changesMap.set(key, changes);
-            });
-        }
     }
 
     public Siri createServiceDelivery(String lineRef) {

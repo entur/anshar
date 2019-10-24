@@ -17,6 +17,7 @@ package no.rutebanken.anshar.data;
 
 import com.hazelcast.core.IMap;
 import no.rutebanken.anshar.config.AnsharConfiguration;
+import no.rutebanken.anshar.data.collections.ExtendedHazelcastService;
 import no.rutebanken.anshar.routes.mqtt.SiriVmMqttHandler;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.subscription.SiriDataType;
@@ -86,9 +87,12 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
     @Autowired
     private RequestorRefRepository requestorRefRepository;
 
+    @Autowired
+    ExtendedHazelcastService hazelcastService;
+
     @PostConstruct
     private void initializeUpdateCommitter() {
-        super.initBufferCommitter(lastUpdateRequested, changesMap, configuration.getChangeBufferCommitFrequency());
+        super.initBufferCommitter(hazelcastService, lastUpdateRequested, changesMap, configuration.getChangeBufferCommitFrequency());
     }
 
     /**

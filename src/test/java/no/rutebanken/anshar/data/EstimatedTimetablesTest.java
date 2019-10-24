@@ -86,7 +86,7 @@ public class EstimatedTimetablesTest {
         estimatedTimetables.add("test", createEstimatedVehicleJourney("2345-update", "4321", 0, 30, ZonedDateTime.now().plusHours(1), true));
         estimatedTimetables.add("test", createEstimatedVehicleJourney("3456-update", "4321", 0, 30, ZonedDateTime.now().plusHours(1), true));
 
-        estimatedTimetables.forceCommit();
+        estimatedTimetables.commitChanges();
         sleep(250);
 
         // Added 3
@@ -95,7 +95,7 @@ public class EstimatedTimetablesTest {
         assertEquals(previousSize + 3, estimatedTimetables.getAllUpdates(requestorId, null).size());
 
         estimatedTimetables.add("test", createEstimatedVehicleJourney("4567-update", "4321", 0, 30, ZonedDateTime.now().plusHours(1), true));
-        estimatedTimetables.forceCommit();
+        estimatedTimetables.commitChanges();
 
         sleep(250);
         //Added one
@@ -112,7 +112,7 @@ public class EstimatedTimetablesTest {
     @Test
     public void testGetPartialUpdatesOnly() {
         int previousSize = estimatedTimetables.getAll().size();
-        estimatedTimetables.forceCommit();
+        estimatedTimetables.commitChanges();
 
         // Added 3
         String requestorId = "testGetPartialUpdatesOnly";
@@ -130,7 +130,7 @@ public class EstimatedTimetablesTest {
 
         sleep(250);
 
-        estimatedTimetables.forceCommit();
+        estimatedTimetables.commitChanges();
 
         Siri siri = estimatedTimetables.createServiceDelivery(requestorId, null, 2);
 
@@ -159,7 +159,7 @@ public class EstimatedTimetablesTest {
         estimatedTimetables.add(datasetId, createEstimatedVehicleJourney("4567-partialupdate", "4321", 0, 30, ZonedDateTime.now().plusHours(1), true));
 
         sleep(250);
-        estimatedTimetables.forceCommit();
+        estimatedTimetables.commitChanges();
 
         siri = estimatedTimetables.createServiceDelivery(requestorId, null, 2);
 

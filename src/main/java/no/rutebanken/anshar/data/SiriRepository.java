@@ -16,6 +16,7 @@
 package no.rutebanken.anshar.data;
 
 import com.hazelcast.core.IMap;
+import no.rutebanken.anshar.data.collections.ExtendedHazelcastService;
 import no.rutebanken.anshar.metrics.PrometheusMetricsService;
 import no.rutebanken.anshar.routes.siri.transformer.ApplicationContextHolder;
 import no.rutebanken.anshar.subscription.SiriDataType;
@@ -44,6 +45,9 @@ import java.util.stream.Collectors;
 
 abstract class SiriRepository<T> {
 
+    private IMap<String, Instant> lastUpdateRequested;
+    private IMap<String, Set<String>> changesMap;
+
     abstract Collection<T> getAll();
 
     abstract int getSize();
@@ -66,45 +70,54 @@ abstract class SiriRepository<T> {
 
     private ScheduledExecutorService singleThreadScheduledExecutor;
 
-    void initBufferCommitter(IMap<String, Instant> lastUpdateRequested, IMap<String, Set<String>> changesMap, int commitFrequency) {
+    void initBufferCommitter(ExtendedHazelcastService hazelcastService, IMap<String, Instant> lastUpdateRequested, IMap<String, Set<String>> changesMap, int commitFrequency) {
+        this.lastUpdateRequested = lastUpdateRequested;
+        this.changesMap = changesMap;
+
         if (singleThreadScheduledExecutor == null) {
             singleThreadScheduledExecutor = Executors.newSingleThreadScheduledExecutor();
 
             logger.info("Initializing scheduled change-buffer-updater with commit every {} seconds", commitFrequency);
 
             singleThreadScheduledExecutor.scheduleWithFixedDelay(() -> {
-
-                /**
-                 * Commits local change-buffer to cluster periodically
-                 */
-                try {
-                    if (!dirtyChanges.isEmpty()) {
-
-                        long t1 = System.currentTimeMillis();
-
-                        final Set<String> bufferedChanges = new HashSet<>(dirtyChanges);
-                        dirtyChanges.clear();
-
-                        changesMap.keySet().forEach(key -> {
-                            if (!lastUpdateRequested.containsKey(key)) {
-                                changesMap.delete(key);
-                            }
-                        });
-
-                        changesMap.executeOnEntries(new AppendChangesToSetEntryProcessor(bufferedChanges));
-                        logger.info("Updating changes for {} requestors ({}), committed {} changes, update took {} ms",
-                                changesMap.size(), this.getClass().getSimpleName(), bufferedChanges.size(), (System.currentTimeMillis() - t1));
-                    } else {
-                        logger.info("No changes - ignoring commit");
-                    }
-                } catch (Throwable t) {
-                    //Catch everything to avoid executor being killed
-                    logger.info("Exception caught when comitting changes", t);
-                }
-
+                commitChanges();
             }, 0, commitFrequency, TimeUnit.SECONDS);
         }
+
+        hazelcastService.addPreDestroyHook(() -> commitChanges());
     }
+
+    /**
+     * Commits local change-buffer to cluster
+     */
+    void commitChanges() {
+
+        try {
+            if (!dirtyChanges.isEmpty()) {
+
+                long t1 = System.currentTimeMillis();
+
+                final Set<String> bufferedChanges = new HashSet<>(dirtyChanges);
+                dirtyChanges.clear();
+
+                changesMap.keySet().forEach(key -> {
+                    if (!lastUpdateRequested.containsKey(key)) {
+                        changesMap.delete(key);
+                    }
+                });
+
+                changesMap.executeOnEntries(new AppendChangesToSetEntryProcessor(bufferedChanges));
+                logger.info("Updating changes for {} requestors ({}), committed {} changes, update took {} ms",
+                        changesMap.size(), this.getClass().getSimpleName(), bufferedChanges.size(), (System.currentTimeMillis() - t1));
+            } else {
+                logger.info("No changes - ignoring commit ({})", this.getClass().getSimpleName());
+            }
+        } catch (Throwable t) {
+            //Catch everything to avoid executor being killed
+            logger.info("Exception caught when comitting changes", t);
+        }
+    }
+
 
     /**
      * Adds ids to local change-buffer
