@@ -29,5 +29,7 @@ public enum SubscriptionPreset {
     NSB,
     NSR,
     HED,
-    OPP
+    OPP,
+    VKT,
+    TEL
 }

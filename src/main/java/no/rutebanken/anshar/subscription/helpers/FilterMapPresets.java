@@ -40,6 +40,12 @@ public class FilterMapPresets {
             case OPP:
                 filters.put(OperatorRefStructure.class, getOperatorFilter("51")); // 51 - Fara's internal OperatorRef for Oppland
                 break;
+            case VKT:
+                filters.put(OperatorRefStructure.class, getOperatorFilter("70")); // 70 - Fara's internal OperatorRef for Vestfold
+                break;
+            case TEL:
+                filters.put(OperatorRefStructure.class, getOperatorFilter("80")); // 80 - Fara's internal OperatorRef for Telemark
+                break;
         }
 
         return filters;
