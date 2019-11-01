@@ -23,7 +23,9 @@ import no.rutebanken.anshar.data.Situations;
 import no.rutebanken.anshar.data.VehicleActivities;
 import no.rutebanken.anshar.metrics.PrometheusMetricsService;
 import no.rutebanken.anshar.routes.RestRouteBuilder;
+import no.rutebanken.anshar.routes.siri.handlers.OutboundIdMappingPolicy;
 import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
+import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.subscription.SiriDataType;
@@ -81,6 +83,9 @@ public class SiriLiteRoute extends RestRouteBuilder {
     @Autowired
     private PrometheusMetricsService metrics;
 
+    @Autowired
+    private SiriObjectFactory siriObjectFactory;
+
     private static final int REQUESTS_PER_MINUTE_LIMIT = 5;
 
     @Override
@@ -105,6 +110,8 @@ public class SiriLiteRoute extends RestRouteBuilder {
                         .param().required(false).name(PARAM_EXCLUDED_DATASET_ID).type(RestParamType.query).description("Comma-separated list of dataset-IDs to be excluded from response").dataType("string").endParam()
                         .param().required(false).name(PARAM_USE_ORIGINAL_ID).type(RestParamType.query).description("Option to return original Ids").dataType("boolean").endParam()
                         .param().required(false).name(PARAM_MAX_SIZE).type(RestParamType.query).description("Specify max number of returned elements").dataType("integer").endParam()
+
+                .get("/et-monitored").to("direct:anshar.rest.et.monitored")
         ;
 
         // Dataproviders
@@ -258,6 +265,34 @@ public class SiriLiteRoute extends RestRouteBuilder {
                 .otherwise()
                     .to("direct:anshar.invalid.tracking.header.response")
                 .routeId("incoming.rest.et")
+        ;
+
+        from("direct:anshar.rest.et.monitored")
+                .log("RequestTracer - Incoming request (ET)")
+                .to("log:restRequest:" + getClass().getSimpleName() + "?showAll=false&showHeaders=true")
+                .choice()
+                .when(exchange -> isRequestingTooFrequent(exchange, SiriDataType.ESTIMATED_TIMETABLE))
+                .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("429"))
+                .endChoice()
+                .when(e -> isTrackingHeaderAcceptable(e))
+                .process(p -> {
+
+
+                    Siri response = siriObjectFactory.createETServiceDelivery(estimatedTimetables.getAllMonitored());
+
+
+                    List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(OutboundIdMappingPolicy.DEFAULT);
+
+                    response = SiriValueTransformer.transform(response, outboundAdapters);
+
+                    HttpServletResponse out = p.getIn().getBody(HttpServletResponse.class);
+
+                    streamOutput(p, response, out);
+                })
+                .log("RequestTracer - Request done (ET)")
+                .otherwise()
+                .to("direct:anshar.invalid.tracking.header.response")
+                .routeId("incoming.rest.et.monitored")
         ;
 
     }

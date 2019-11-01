@@ -17,6 +17,7 @@ package no.rutebanken.anshar.data;
 
 import com.hazelcast.core.IMap;
 import com.hazelcast.core.ReplicatedMap;
+import com.hazelcast.query.Predicates;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.data.collections.ExtendedHazelcastService;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
@@ -31,8 +32,10 @@ import org.springframework.stereotype.Repository;
 import uk.org.siri.siri20.EstimatedCall;
 import uk.org.siri.siri20.EstimatedVehicleJourney;
 import uk.org.siri.siri20.MessageRefStructure;
+import uk.org.siri.siri20.QuayRefStructure;
 import uk.org.siri.siri20.RecordedCall;
 import uk.org.siri.siri20.Siri;
+import uk.org.siri.siri20.StopAssignmentStructure;
 
 import javax.annotation.PostConstruct;
 import java.time.Instant;
@@ -104,6 +107,22 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
      */
     public Collection<EstimatedVehicleJourney> getAll() {
         return timetableDeliveries.values();
+    }
+
+    /**
+     * @return All updates that are flagged as monitored OR that has cancellations or changes in stop-pattern
+     */
+    public Collection<EstimatedVehicleJourney> getAllMonitored() {
+
+        long t1 = System.currentTimeMillis();
+        Collection<EstimatedVehicleJourney> monitoredVehicleJourneys = timetableDeliveries.values(Predicates.equal("monitored", "true"));
+        logger.info("Got {} monitored journeys in {} ms", monitoredVehicleJourneys.size(), (System.currentTimeMillis()-t1));
+
+        t1 = System.currentTimeMillis();
+        monitoredVehicleJourneys.addAll(timetableDeliveries.getAll(idForPatternChanges.keySet()).values());
+        logger.info("Added {} altered journeys in {} ms, total size: {}", idForPatternChanges.size(), (System.currentTimeMillis()-t1), monitoredVehicleJourneys.size());
+
+        return monitoredVehicleJourneys;
     }
 
     public int getSize() {
@@ -325,7 +344,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
     }
 
     /**
-     * Returns true if EstimatedVehicleJourney has any cancellations
+     * Returns true if EstimatedVehicleJourney has any cancellations or quay-changes
      * @param estimatedVehicleJourney
      * @return
      */
@@ -347,17 +366,36 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
             if (estimatedVehicleJourney.getEstimatedCalls() != null && estimatedVehicleJourney.getEstimatedCalls().getEstimatedCalls() != null) {
                 List<EstimatedCall> estimatedCalls = estimatedVehicleJourney.getEstimatedCalls().getEstimatedCalls();
 
-                ArrayList<String> stopPointRefs = new ArrayList<>();
+                ArrayList<String> cancelledStops = new ArrayList<>();
+                ArrayList<String> quayChanges = new ArrayList<>();
                 for (EstimatedCall estimatedCall : estimatedCalls) {
                     if (estimatedCall.isCancellation() != null && estimatedCall.isCancellation()) {
-                        stopPointRefs.add(estimatedCall.getStopPointRef().getValue());
+                        cancelledStops.add(estimatedCall.getStopPointRef().getValue());
+                    }
+                    StopAssignmentStructure stopAssignment = estimatedCall.getDepartureStopAssignment();
+                    if (stopAssignment == null) {
+                        stopAssignment = estimatedCall.getArrivalStopAssignment();
+                    }
+                    if (stopAssignment != null) {
+                        QuayRefStructure aimedQuayRef = stopAssignment.getAimedQuayRef();
+                        QuayRefStructure expectedQuayRef = stopAssignment.getExpectedQuayRef();
+                        if (aimedQuayRef != null && expectedQuayRef != null) {
+                            if (!aimedQuayRef.getValue().equals(expectedQuayRef.getValue())) {
+                                quayChanges.add(aimedQuayRef.getValue() + " => " + expectedQuayRef.getValue());
+                            }
+                        }
                     }
                 }
-                boolean hasCancelledStops = !stopPointRefs.isEmpty();
+                boolean hasCancelledStops = !cancelledStops.isEmpty();
                 if (hasCancelledStops && vehicleRef != null) {
-                    logger.info("Cancellation:  Operator {}, vehicleRef {}, stopPointRefs {}", estimatedVehicleJourney.getDataSource(), vehicleRef, stopPointRefs);
+                    logger.info("Cancellation:  Operator {}, vehicleRef {}, stopPointRefs {}", estimatedVehicleJourney.getDataSource(), vehicleRef, cancelledStops);
                 }
-                return hasCancelledStops;
+
+                boolean hasQuayChanges = !quayChanges.isEmpty();
+                if (hasQuayChanges) {
+                    logger.info("Quay changed:  Operator {}, vehicleRef {}, stopPointRefs {}", estimatedVehicleJourney.getDataSource(), vehicleRef, quayChanges);
+                }
+                return hasCancelledStops | hasQuayChanges;
             }
         }
         return false;
@@ -522,9 +560,11 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
 
             String existingChecksum = checksumCache.get(key);
             boolean updated;
+            boolean hasChanges = false;
             if (existingChecksum != null) {
                 //Exists - compare values
                 updated =  !(currentChecksum.equals(existingChecksum));
+                hasChanges = true;
             } else {
                 //Does not exist
                 updated = true;
@@ -572,7 +612,9 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                         if (hasPatternChanges(et)) {
                             // Keep track of all valid ET with pattern-changes
                             idForPatternChanges.put(key, key, expiration, TimeUnit.MILLISECONDS);
+
                         }
+
 
                         idStartTimeMap.put(key, getFirstAimedTime(et), expiration, TimeUnit.MILLISECONDS);
                     }

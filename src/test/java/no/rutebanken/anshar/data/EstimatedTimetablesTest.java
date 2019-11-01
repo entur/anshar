@@ -15,6 +15,7 @@
 
 package no.rutebanken.anshar.data;
 
+import junit.framework.TestCase;
 import no.rutebanken.anshar.App;
 import org.junit.Before;
 import org.junit.Test;
@@ -497,6 +498,31 @@ public class EstimatedTimetablesTest {
         assertExcludedId("test2");
         assertExcludedId("test3");
     }
+
+    @Test
+    public void testGetAllMonitored() {
+        String lineRefValue = "GetAll:Line:1";
+
+        EstimatedVehicleJourney monitoredTarget = null;
+        for (int i = 0; i < 10; i++) {
+            EstimatedVehicleJourney estimatedVehicleJourney = createEstimatedVehicleJourney(lineRefValue, UUID.randomUUID() + " - " + i, 1, 20, ZonedDateTime.now().plusMinutes(2), true);
+            if (i == 5) {
+                estimatedVehicleJourney.setMonitored(true);
+                monitoredTarget = estimatedVehicleJourney;
+            }
+            estimatedTimetables.add("GetAll", estimatedVehicleJourney);
+        }
+        estimatedTimetables.commitChanges();
+
+        assertNotNull(monitoredTarget);
+        Collection<EstimatedVehicleJourney> allMonitored = estimatedTimetables.getAllMonitored();
+        assertNotNull(allMonitored);
+        TestCase.assertEquals(1, allMonitored.size());
+        TestCase.assertEquals(monitoredTarget.getVehicleRef().getValue(), allMonitored.iterator().next().getVehicleRef().getValue());
+
+    }
+
+
 
     private void assertExcludedId(String excludedDatasetId) {
         Siri serviceDelivery = estimatedTimetables.createServiceDelivery(null, null, null, Arrays.asList(excludedDatasetId), 100, -1);
