@@ -18,6 +18,7 @@ package no.rutebanken.anshar.routes.outbound;
 import no.rutebanken.anshar.metrics.PrometheusMetricsService;
 import no.rutebanken.anshar.routes.dataformat.SiriDataFormatHelper;
 import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
+import no.rutebanken.anshar.subscription.SiriDataType;
 import org.apache.camel.CamelContext;
 import org.apache.camel.CamelContextAware;
 import org.apache.camel.Exchange;
@@ -107,6 +108,24 @@ public class CamelRouteManager implements CamelContextAware {
                     deliverySize = Integer.MAX_VALUE;
                 }
 
+                if (subscriptionRequest.getAddress().contains("activemq.internal") &&
+                        subscriptionRequest.getSubscriptionType() == SiriDataType.ESTIMATED_TIMETABLE) {
+                    // Only send monitored updates
+                    filteredPayload.getServiceDelivery().getEstimatedTimetableDeliveries().get(0)
+                            .getEstimatedJourneyVersionFrames().get(0).getEstimatedVehicleJourneies().removeIf(et -> {
+                        if (et.isMonitored() != null) {
+                            return et.isMonitored();
+                        }
+                        return false;
+                    });
+                    if (filteredPayload.getServiceDelivery().getEstimatedTimetableDeliveries().get(0)
+                            .getEstimatedJourneyVersionFrames().get(0).getEstimatedVehicleJourneies().isEmpty()) {
+                        // No longer any updates to send.
+                        return;
+                    }
+                    logger.info("Sending {} messages to topic", filteredPayload.getServiceDelivery().getEstimatedTimetableDeliveries().get(0)
+                            .getEstimatedJourneyVersionFrames().get(0).getEstimatedVehicleJourneies().size());
+                }
 
                 List<Siri> splitSiri = siriHelper.splitDeliveries(filteredPayload, deliverySize);
 
