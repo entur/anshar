@@ -119,10 +119,13 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
         logger.info("Got {} monitored journeys in {} ms", monitoredVehicleJourneys.size(), (System.currentTimeMillis()-t1));
 
         t1 = System.currentTimeMillis();
-        monitoredVehicleJourneys.addAll(timetableDeliveries.getAll(idForPatternChanges.keySet()).values());
-        logger.info("Added {} altered journeys in {} ms, total size: {}", idForPatternChanges.size(), (System.currentTimeMillis()-t1), monitoredVehicleJourneys.size());
+        Collection<EstimatedVehicleJourney> alteredJourneys = timetableDeliveries.getAll(idForPatternChanges.keySet()).values();
+        logger.info("Got {} altered journeys in {} ms", alteredJourneys.size(), (System.currentTimeMillis()-t1), monitoredVehicleJourneys.size());
 
-        return monitoredVehicleJourneys;
+        Set<EstimatedVehicleJourney> result = new HashSet<>();
+        result.addAll(monitoredVehicleJourneys);
+        result.addAll(alteredJourneys);
+        return result;
     }
 
     public int getSize() {
@@ -560,11 +563,12 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
 
             String existingChecksum = checksumCache.get(key);
             boolean updated;
-            boolean hasChanges = false;
             if (existingChecksum != null) {
                 //Exists - compare values
                 updated =  !(currentChecksum.equals(existingChecksum));
-                hasChanges = true;
+                if (et.isMonitored() == null) {
+                    et.setMonitored(true);
+                }
             } else {
                 //Does not exist
                 updated = true;

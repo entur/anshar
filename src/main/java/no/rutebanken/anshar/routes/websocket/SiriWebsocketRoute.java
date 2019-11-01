@@ -45,7 +45,6 @@ public class SiriWebsocketRoute extends RouteBuilder implements CamelContextAwar
                         if (siri != null && siri.getServiceRequest() != null && siri.getServiceRequest().getEstimatedTimetableRequests() != null) {
 
                             p.getOut().setBody(siriObjectFactory.createETServiceDelivery(estimatedTimetables.getAllMonitored()));
-                        } else {
                         }
                     } catch (Throwable t) {
                         p.getOut().setBody(null);
