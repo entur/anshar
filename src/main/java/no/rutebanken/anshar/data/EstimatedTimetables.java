@@ -118,14 +118,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
         Collection<EstimatedVehicleJourney> monitoredVehicleJourneys = timetableDeliveries.values(Predicates.equal("monitored", "true"));
         logger.info("Got {} monitored journeys in {} ms", monitoredVehicleJourneys.size(), (System.currentTimeMillis()-t1));
 
-        t1 = System.currentTimeMillis();
-        Collection<EstimatedVehicleJourney> alteredJourneys = timetableDeliveries.getAll(idForPatternChanges.keySet()).values();
-        logger.info("Got {} altered journeys in {} ms", alteredJourneys.size(), (System.currentTimeMillis()-t1), monitoredVehicleJourneys.size());
-
-        Set<EstimatedVehicleJourney> result = new HashSet<>();
-        result.addAll(monitoredVehicleJourneys);
-        result.addAll(alteredJourneys);
-        return result;
+        return monitoredVehicleJourneys;
     }
 
     public int getSize() {
@@ -608,16 +601,21 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                     if (et.getEstimatedCalls() != null &&
                             et.getEstimatedCalls().getEstimatedCalls() != null &&
                             !et.getEstimatedCalls().getEstimatedCalls().isEmpty()) {
+
+                        if (hasPatternChanges(et)) {
+                            // Keep track of all valid ET with pattern-changes
+                            idForPatternChanges.put(key, key, expiration, TimeUnit.MILLISECONDS);
+                            if (et.isMonitored() == null) {
+                                et.setMonitored(true);
+                            }
+                        }
+
                         changes.add(key);
                         addedData.add(et);
                         timetableDeliveries.set(key, et, expiration, TimeUnit.MILLISECONDS);
                         checksumCache.put(key, currentChecksum, expiration, TimeUnit.MILLISECONDS);
 
-                        if (hasPatternChanges(et)) {
-                            // Keep track of all valid ET with pattern-changes
-                            idForPatternChanges.put(key, key, expiration, TimeUnit.MILLISECONDS);
 
-                        }
 
 
                         idStartTimeMap.put(key, getFirstAimedTime(et), expiration, TimeUnit.MILLISECONDS);
