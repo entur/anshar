@@ -2,7 +2,11 @@ package no.rutebanken.anshar.routes.websocket;
 
 import no.rutebanken.anshar.data.EstimatedTimetables;
 import no.rutebanken.anshar.routes.dataformat.SiriDataFormatHelper;
+import no.rutebanken.anshar.routes.siri.handlers.OutboundIdMappingPolicy;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
+import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
+import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
+import no.rutebanken.anshar.subscription.helpers.MappingAdapterPresets;
 import org.apache.camel.CamelContext;
 import org.apache.camel.CamelContextAware;
 import org.apache.camel.Exchange;
@@ -13,6 +17,8 @@ import org.rutebanken.siri20.util.SiriXml;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uk.org.siri.siri20.Siri;
+
+import java.util.List;
 
 import static org.eclipse.jetty.http.HttpStatus.Code.BAD_REQUEST;
 
@@ -30,6 +36,7 @@ public class SiriWebsocketRoute extends RouteBuilder implements CamelContextAwar
     @Override
     public void configure() throws Exception {
 
+        List<ValueAdapter> outboundAdapters = new MappingAdapterPresets().getOutboundAdapters(OutboundIdMappingPolicy.DEFAULT);
 
         // Handling changes sent to all websocket-clients
         from("activemq:topic:anshar.outbound.estimated_timetable")
@@ -44,7 +51,9 @@ public class SiriWebsocketRoute extends RouteBuilder implements CamelContextAwar
                         Siri siri = SiriXml.parseXml(p.getIn().getBody(String.class));
                         if (siri != null && siri.getServiceRequest() != null && siri.getServiceRequest().getEstimatedTimetableRequests() != null) {
 
-                            p.getOut().setBody(siriObjectFactory.createETServiceDelivery(estimatedTimetables.getAllMonitored()));
+                            Siri etServiceDelivery = siriObjectFactory.createETServiceDelivery(estimatedTimetables.getAllMonitored());
+
+                            p.getOut().setBody( SiriValueTransformer.transform(etServiceDelivery, outboundAdapters));
                         }
                     } catch (Throwable t) {
                         p.getOut().setBody(null);
