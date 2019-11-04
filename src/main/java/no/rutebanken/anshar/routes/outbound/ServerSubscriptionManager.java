@@ -29,7 +29,16 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
-import uk.org.siri.siri20.*;
+import uk.org.siri.siri20.AbstractSubscriptionStructure;
+import uk.org.siri.siri20.CheckStatusRequestStructure;
+import uk.org.siri.siri20.EstimatedTimetableSubscriptionStructure;
+import uk.org.siri.siri20.EstimatedVehicleJourney;
+import uk.org.siri.siri20.PtSituationElement;
+import uk.org.siri.siri20.Siri;
+import uk.org.siri.siri20.SituationExchangeSubscriptionStructure;
+import uk.org.siri.siri20.SubscriptionRequest;
+import uk.org.siri.siri20.VehicleActivityStructure;
+import uk.org.siri.siri20.VehicleMonitoringSubscriptionStructure;
 
 import javax.annotation.PostConstruct;
 import javax.xml.datatype.Duration;
@@ -43,7 +52,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 
 import static java.time.temporal.ChronoUnit.MILLIS;
 
@@ -81,7 +89,7 @@ public class ServerSubscriptionManager extends CamelRouteManager {
     private String initialTerminationTimePassed = "Error";
 
     @Value("${anshar.outbound.activemq.topic.prefix}")
-    private String activeMqTopicPrefix = "activemq:topic:";
+    private String activeMqTopicPrefix;
 
     @Value("${anshar.outbound.activemq.topic.timeToLive.millisec}")
     private int activeMqTopicTimeToLive = 30000;
@@ -99,9 +107,6 @@ public class ServerSubscriptionManager extends CamelRouteManager {
     private OutboundSubscriptionSetup activeMQ_VM;
     private OutboundSubscriptionSetup activeMQ_ET;
     private OutboundSubscriptionSetup activeMQ_PT;
-
-    private ScheduledExecutorService executor;
-
 
     @PostConstruct
     private void initializeActiveMqProducers() {

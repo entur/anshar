@@ -32,6 +32,10 @@ public class SiriWebsocketRoute extends RouteBuilder implements CamelContextAwar
     @Value("${anshar.default.max.elements.per.websocket.delivery:100}")
     private int maximumSizePerDelivery;
 
+
+    @Value("${anshar.outbound.activemq.topic.prefix}")
+    private String activeMqTopicPrefix;
+
     @Autowired
     private EstimatedTimetables estimatedTimetables;
 
@@ -40,6 +44,7 @@ public class SiriWebsocketRoute extends RouteBuilder implements CamelContextAwar
 
     @Autowired
     SiriObjectFactory siriObjectFactory;
+
     SiriHelper siriHelper;
 
     @Override
@@ -50,7 +55,7 @@ public class SiriWebsocketRoute extends RouteBuilder implements CamelContextAwar
         siriHelper = new SiriHelper(siriObjectFactory);
 
         // Handling changes sent to all websocket-clients
-        from("activemq:topic:anshar.outbound.estimated_timetable")
+        from(activeMqTopicPrefix + "estimated_timetable")
                 .routeId("distribute.to.websocket.estimated_timetable")
                 .bean(metrics, "countOutgoingData(${body}, WEBSOCKET)")
                 .to("websocket://et?sendToAll=true")
