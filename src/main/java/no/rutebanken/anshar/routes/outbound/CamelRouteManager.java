@@ -108,7 +108,7 @@ public class CamelRouteManager implements CamelContextAware {
                     deliverySize = Integer.MAX_VALUE;
                 }
 
-                if (subscriptionRequest.getAddress().contains("activemq.internal") &&
+                if (subscriptionRequest.getAddress().contains("activemq:topic") &&
                         subscriptionRequest.getSubscriptionType() == SiriDataType.ESTIMATED_TIMETABLE) {
                     // Only send monitored updates
                     filteredPayload.getServiceDelivery().getEstimatedTimetableDeliveries().get(0)
