@@ -28,8 +28,7 @@ public class SiriWebsocketRoute extends RouteBuilder implements CamelContextAwar
 
     private CamelContext camelContext;
 
-
-    @Value("${anshar.outbound.maximumSizePerDelivery:1000}")
+    @Value("${anshar.default.max.elements.per.websocket.delivery:100}")
     private int maximumSizePerDelivery;
 
     @Autowired

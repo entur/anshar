@@ -57,8 +57,11 @@ public class CamelRouteManager implements CamelContextAware {
     @Autowired
     private SiriHelper siriHelper;
 
-    @Value("${anshar.outbound.maximumSizePerDelivery:1000}")
+    @Value("${anshar.default.max.elements.per.delivery:1000}")
     private int maximumSizePerDelivery;
+
+    @Value("${anshar.default.max.elements.per.websocket.delivery:100}")
+    private int maximumWebSocketSizePerDelivery;
 
     private final Map<OutboundSubscriptionSetup, SiriPushRouteBuilder> outboundRoutes = new HashMap<>();
 
@@ -125,6 +128,7 @@ public class CamelRouteManager implements CamelContextAware {
                     }
                     logger.info("Sending {} messages to topic", filteredPayload.getServiceDelivery().getEstimatedTimetableDeliveries().get(0)
                             .getEstimatedJourneyVersionFrames().get(0).getEstimatedVehicleJourneies().size());
+                    deliverySize = maximumWebSocketSizePerDelivery;
                 }
 
                 List<Siri> splitSiri = siriHelper.splitDeliveries(filteredPayload, deliverySize);
