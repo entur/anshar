@@ -115,12 +115,8 @@ public class CamelRouteManager implements CamelContextAware {
                         subscriptionRequest.getSubscriptionType() == SiriDataType.ESTIMATED_TIMETABLE) {
                     // Only send monitored updates
                     filteredPayload.getServiceDelivery().getEstimatedTimetableDeliveries().get(0)
-                            .getEstimatedJourneyVersionFrames().get(0).getEstimatedVehicleJourneies().removeIf(et -> {
-                        if (et.isMonitored() != null) {
-                            return et.isMonitored();
-                        }
-                        return false;
-                    });
+                            .getEstimatedJourneyVersionFrames().get(0).getEstimatedVehicleJourneies().removeIf(et -> (et.isMonitored() == null || !et.isMonitored()));
+
                     if (filteredPayload.getServiceDelivery().getEstimatedTimetableDeliveries().get(0)
                             .getEstimatedJourneyVersionFrames().get(0).getEstimatedVehicleJourneies().isEmpty()) {
                         // No longer any updates to send.
