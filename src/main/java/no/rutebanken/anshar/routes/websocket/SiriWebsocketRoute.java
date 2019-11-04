@@ -1,6 +1,7 @@
 package no.rutebanken.anshar.routes.websocket;
 
 import no.rutebanken.anshar.data.EstimatedTimetables;
+import no.rutebanken.anshar.metrics.PrometheusMetricsService;
 import no.rutebanken.anshar.routes.outbound.SiriHelper;
 import no.rutebanken.anshar.routes.siri.handlers.OutboundIdMappingPolicy;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
@@ -35,6 +36,9 @@ public class SiriWebsocketRoute extends RouteBuilder implements CamelContextAwar
     private EstimatedTimetables estimatedTimetables;
 
     @Autowired
+    private PrometheusMetricsService metrics;
+
+    @Autowired
     SiriObjectFactory siriObjectFactory;
     SiriHelper siriHelper;
 
@@ -48,6 +52,7 @@ public class SiriWebsocketRoute extends RouteBuilder implements CamelContextAwar
         // Handling changes sent to all websocket-clients
         from("activemq:topic:anshar.outbound.estimated_timetable")
                 .routeId("distribute.to.websocket.estimated_timetable")
+                .bean(metrics, "countOutgoingData(${body}, WEBSOCKET)")
                 .to("websocket://et?sendToAll=true")
                 .log("Changes sent - ET");
 
@@ -58,11 +63,14 @@ public class SiriWebsocketRoute extends RouteBuilder implements CamelContextAwar
         serviceDeliveryProducer.setProducer(producerTemplate);
 
         from("direct:send.ws.connect.response")
-                .to("log:wsConnect" + getClass().getSimpleName() + "?showAll=true&multiline=true")
+                .routeId("send.ws.connect.response")
+                .to("log:wsConnectResponse" + getClass().getSimpleName() + "?showAll=true&multiline=true")
+                .bean(metrics, "countOutgoingData(${body}, WEBSOCKET)")
                 .to("websocket://et");
 
         // Route that handles initial data
         from("websocket://et")
+                .routeId("ws.connected")
                 .process( p -> {
                     p.getOut().setHeaders(p.getIn().getHeaders());
                     try {
