@@ -44,6 +44,9 @@
         <li class="nav-item text-right">
             <a class="nav-link" id="admin-tab" data-toggle="tab" href="#admin" onclick="location.hash='admin'" role="tab" aria-controls="admin" aria-selected="false">Admin <span class="glyphicon glyphicon-wrench"></span></a>
         </li>
+        <li class="nav-item">
+            <a class="nav-link" id="map-tab" data-toggle="tab" href="#map" onclick="location.hash='map'" role="tab" aria-controls="map" aria-selected="false">Vehicles <span class="glyphicon glyphicon-globe"></span></a>
+        </li>
     </ul>
 
     <div class="tab-content">
@@ -291,10 +294,18 @@ Request count: ${item.requestCount}">${item.id}</span></td>
                 </tbody>
             </table>
         </div>
+        <div class="tab-pane" id="map" role="tabpanel" aria-labelledby="map-tab" align="center">
+
+            <button type="button" class="btn btn-success text-success" onclick="showMap()">Show map</button> <br />
+            <iframe id="mapFrame" width="90%" height="90%" align="center" frameborder="0"></iframe>
+        </div>
     </div>
 </div>
 </body>
 <script>
+    function showMap() {
+        document.getElementById("mapFrame"). src = "http://jsfiddle.net/lassetyr/cj0xaoyw/show";
+    }
     $(function () {
         $(document).ready(function(){
             //Manage hash in URL to open the right tab
