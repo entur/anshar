@@ -2,12 +2,9 @@ package no.rutebanken.anshar.routes.websocket;
 
 import no.rutebanken.anshar.data.EstimatedTimetables;
 import no.rutebanken.anshar.metrics.PrometheusMetricsService;
+import no.rutebanken.anshar.routes.dataformat.SiriDataFormatHelper;
 import no.rutebanken.anshar.routes.outbound.SiriHelper;
-import no.rutebanken.anshar.routes.siri.handlers.OutboundIdMappingPolicy;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
-import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
-import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
-import no.rutebanken.anshar.subscription.helpers.MappingAdapterPresets;
 import org.apache.camel.CamelContext;
 import org.apache.camel.CamelContextAware;
 import org.apache.camel.Exchange;
@@ -50,8 +47,6 @@ public class SiriWebsocketRoute extends RouteBuilder implements CamelContextAwar
     @Override
     public void configure() {
 
-        List<ValueAdapter> outboundAdapters = new MappingAdapterPresets().getOutboundAdapters(OutboundIdMappingPolicy.DEFAULT);
-
         siriHelper = new SiriHelper(siriObjectFactory);
 
         // Handling changes sent to all websocket-clients
@@ -69,8 +64,10 @@ public class SiriWebsocketRoute extends RouteBuilder implements CamelContextAwar
 
         from("direct:send.ws.connect.response")
                 .routeId("send.ws.connect.response")
-                .to("log:wsConnectResponse" + getClass().getSimpleName() + "?showAll=true&multiline=true")
+//                .to("log:wsConnectResponse:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .bean(metrics, "countOutgoingData(${body}, WEBSOCKET)")
+                .to("direct:siri.transform.output")
+                .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
                 .to("websocket://et");
 
         // Route that handles initial data
@@ -84,7 +81,7 @@ public class SiriWebsocketRoute extends RouteBuilder implements CamelContextAwar
 
                             Siri etServiceDelivery = siriObjectFactory.createETServiceDelivery(estimatedTimetables.getAllMonitored());
 
-                            p.getOut().setBody(SiriValueTransformer.transform(etServiceDelivery, outboundAdapters));
+                            p.getOut().setBody(etServiceDelivery);
                         }
                     } catch (Throwable t) {
                         p.getOut().setBody(null);
@@ -120,13 +117,21 @@ public class SiriWebsocketRoute extends RouteBuilder implements CamelContextAwar
         public void process(Exchange inExchange) {
             Siri siri = inExchange.getIn().getBody(Siri.class);
             List<Siri> serviceDeliveries = siriHelper.splitDeliveries(siri, maximumSizePerDelivery);
+
             log.info("Split initial WS-delivery into {} deliveries.", serviceDeliveries.size());
+
             for (Siri serviceDelivery : serviceDeliveries) {
                 producer.send(outExchange -> {
                     outExchange.getOut().setBody(serviceDelivery);
                     outExchange.getOut().setHeaders(inExchange.getIn().getHeaders());
                 });
             }
+
+            log.info("All current data has been sent - send DataReadyNotification to indicate data-completeness");
+            producer.send(outExchange -> {
+                outExchange.getOut().setBody(siriObjectFactory.createDataReadyNotification());
+                outExchange.getOut().setHeaders(inExchange.getIn().getHeaders());
+            });
         }
     }
 

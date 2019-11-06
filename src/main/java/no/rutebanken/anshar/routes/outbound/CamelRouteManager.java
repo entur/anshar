@@ -17,7 +17,6 @@ package no.rutebanken.anshar.routes.outbound;
 
 import no.rutebanken.anshar.metrics.PrometheusMetricsService;
 import no.rutebanken.anshar.routes.dataformat.SiriDataFormatHelper;
-import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import org.apache.camel.CamelContext;
 import org.apache.camel.CamelContextAware;
@@ -47,6 +46,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import static no.rutebanken.anshar.routes.siri.transformer.SiriOutputTransformerRoute.OUTPUT_ADAPTERS_HEADER_NAME;
 
 @Service
 public class CamelRouteManager implements CamelContextAware {
@@ -101,10 +102,6 @@ public class CamelRouteManager implements CamelContextAware {
             try {
 
                 Siri filteredPayload = SiriHelper.filterSiriPayload(payload, subscriptionRequest.getFilterMap());
-
-                // Use original/mapped ids based on subscription
-                filteredPayload = SiriValueTransformer.transform(filteredPayload, subscriptionRequest.getValueAdapters());
-
 
                 int deliverySize = this.maximumSizePerDelivery;
                 if (subscriptionRequest.getDatasetId() != null) {
@@ -251,6 +248,7 @@ public class CamelRouteManager implements CamelContextAware {
             if (isActiveMQ) {
                 definition = from(routeName)
                         .routeId(routeName)
+                        .to("direct:siri.transform.output")
                         .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
                         .to(ExchangePattern.InOnly, remoteEndPoint + options)
                         .log(LoggingLevel.INFO, "Pushed data to ActiveMQ-topic: [" + remoteEndPoint + "]");
@@ -262,6 +260,8 @@ public class CamelRouteManager implements CamelContextAware {
                         .setHeader("CamelHttpMethod", constant("POST"))
                         .setHeader(Exchange.CONTENT_TYPE, constant(MediaType.APPLICATION_XML))
                         .bean(metrics, "countOutgoingData(${body}, SUBSCRIBE)")
+                        .setHeader(OUTPUT_ADAPTERS_HEADER_NAME, constant(subscriptionRequest.getValueAdapters()))
+                        .to("direct:siri.transform.output")
                         .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
                         .to("log:push:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                         .to(remoteEndPoint + options)
