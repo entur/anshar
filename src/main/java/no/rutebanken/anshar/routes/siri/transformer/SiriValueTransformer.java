@@ -31,7 +31,13 @@ import javax.xml.stream.XMLStreamException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class SiriValueTransformer {
 
@@ -172,7 +178,9 @@ public class SiriValueTransformer {
                             } else {
                                 alteredValue = adapter.apply(value);
                             }
-                            alteredValue = originalId + SEPARATOR + alteredValue;
+                            if (!originalId.equals(alteredValue)) { //No need to map already correct ids
+                                alteredValue = originalId + SEPARATOR + alteredValue;
+                            }
                         }
 
 
