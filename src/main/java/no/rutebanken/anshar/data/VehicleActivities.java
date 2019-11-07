@@ -16,6 +16,7 @@
 package no.rutebanken.anshar.data;
 
 import com.hazelcast.core.IMap;
+import com.hazelcast.core.ReplicatedMap;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.data.collections.ExtendedHazelcastService;
 import no.rutebanken.anshar.routes.mqtt.SiriVmMqttHandler;
@@ -70,6 +71,9 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
     @Qualifier("getVehicleChangesMap")
     private IMap<String, Set<String>> changesMap;
 
+    @Autowired
+    @Qualifier("getVmChecksumMap")
+    private ReplicatedMap<String,String> checksumCache;
 
     @Autowired
     @Qualifier("getLastVmUpdateRequest")
@@ -314,44 +318,75 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
         Counter invalidLocationCounter = new CounterImpl(0);
         Counter notMeaningfulCounter = new CounterImpl(0);
         Counter outdatedCounter = new CounterImpl(0);
+        Counter notUpdatedCounter = new CounterImpl(0);
+
         vmList.stream()
                 .filter(activity -> activity.getMonitoredVehicleJourney() != null)
                 .filter(activity -> activity.getMonitoredVehicleJourney().getVehicleRef() != null)
                 .forEach(activity -> {
-                    boolean locationValid = isLocationValid(activity);
-                    boolean activityMeaningful = isActivityMeaningful(activity);
 
                     String key = createKey(datasetId, activity.getMonitoredVehicleJourney().getVehicleRef());
 
-                    VehicleActivityStructure existing = vehicleActivities.get(key);
-
-                    boolean keep = (existing == null); //No existing data i.e. keep
-
-                    if (existing != null &&
-                            (activity.getRecordedAtTime() != null && existing.getRecordedAtTime() != null)) {
-                        //Newer data has already been processed
-                        keep = activity.getRecordedAtTime().isAfter(existing.getRecordedAtTime());
+                    String currentChecksum = null;
+                    ZonedDateTime recordedAtTime = activity.getRecordedAtTime();
+                    try {
+                        // Calculate checksum without "RecordedTime" - thus ignoring "fake" updates
+                        activity.setRecordedAtTime(null);
+                        currentChecksum = getChecksum(activity);
+                    } catch (Exception e) {
+                        //Ignore - data will be updated
+                    } finally {
+                        //Set original RecordedTime back
+                        activity.setRecordedAtTime(recordedAtTime);
                     }
 
-                    long expiration = getExpiration(activity);
+                    String existingChecksum = checksumCache.get(key);
 
-                    if (expiration > 0 && keep) {
-                        changes.add(key);
-                        addedData.add(activity);
-                        vehicleActivities.set(key, activity, expiration, TimeUnit.MILLISECONDS);
-                        siriVmMqttHandler.pushToMqttAsync(datasetId, activity);
+                    boolean updated;
+                    if (existingChecksum != null) {
+                        //Exists - compare values
+                        updated =  !(currentChecksum.equals(existingChecksum));
                     } else {
-                        outdatedCounter.increment();
+                        //Does not exist
+                        updated = true;
                     }
 
-                    if (!locationValid) {invalidLocationCounter.increment();}
-                    if (!activityMeaningful) {notMeaningfulCounter.increment();}
+                    if (updated) {
+                        VehicleActivityStructure existing = vehicleActivities.get(key);
+
+                        boolean keep = (existing == null); //No existing data i.e. keep
+
+                        if (existing != null &&
+                                (activity.getRecordedAtTime() != null && existing.getRecordedAtTime() != null)) {
+                            //Newer data has already been processed
+                            keep = activity.getRecordedAtTime().isAfter(existing.getRecordedAtTime());
+                        }
+
+                        long expiration = getExpiration(activity);
+
+                        if (expiration > 0 && keep) {
+                            changes.add(key);
+                            addedData.add(activity);
+                            vehicleActivities.set(key, activity, expiration, TimeUnit.MILLISECONDS);
+                            checksumCache.put(key, currentChecksum, expiration, TimeUnit.MILLISECONDS);
+                            siriVmMqttHandler.pushToMqttAsync(datasetId, activity);
+
+                        } else {
+                            outdatedCounter.increment();
+                        }
+
+                        if (!isLocationValid(activity)) {invalidLocationCounter.increment();}
+                        if (!isActivityMeaningful(activity)) {notMeaningfulCounter.increment();}
+
+                    } else {
+                        notUpdatedCounter.increment();
+                    }
 
                 });
 
-        logger.info("Updated {} (of {}) :: Ignored elements - Missing location:{}, Missing values: {}, Skipped: {}", changes.size(), vmList.size(), invalidLocationCounter.getValue(), notMeaningfulCounter.getValue(), outdatedCounter.getValue());
+        logger.info("Updated {} (of {}) :: Ignored elements - Missing location:{}, Missing values: {}, Skipped: {}, Not updated", changes.size(), vmList.size(), invalidLocationCounter.getValue(), notMeaningfulCounter.getValue(), outdatedCounter.getValue(), notUpdatedCounter.getValue());
 
-        markDataReceived(SiriDataType.VEHICLE_MONITORING, datasetId, vmList.size(), changes.size(), outdatedCounter.getValue(), (invalidLocationCounter.getValue() + notMeaningfulCounter.getValue()));
+        markDataReceived(SiriDataType.VEHICLE_MONITORING, datasetId, vmList.size(), changes.size(), outdatedCounter.getValue(), (invalidLocationCounter.getValue() + notMeaningfulCounter.getValue() + notUpdatedCounter.getValue()));
 
         markIdsAsUpdated(changes);
 

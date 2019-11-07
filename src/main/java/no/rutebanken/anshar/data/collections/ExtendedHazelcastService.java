@@ -133,8 +133,8 @@ public class ExtendedHazelcastService extends HazelCastService {
     }
 
     @Bean
-    public IMap<String, String> getVmChecksumMap() {
-        return hazelcast.getMap("anshar.vm.checksum.cache");
+    public ReplicatedMap<String, String> getVmChecksumMap() {
+        return hazelcast.getReplicatedMap("anshar.vm.checksum.cache");
     }
 
     @Bean
