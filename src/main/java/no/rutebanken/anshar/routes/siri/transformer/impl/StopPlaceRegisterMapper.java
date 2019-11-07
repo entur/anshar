@@ -55,7 +55,7 @@ public class StopPlaceRegisterMapper extends ValueAdapter {
 
 
     public String apply(String id) {
-        if (id == null || id.isEmpty()) {
+        if (id == null || id.isEmpty() || id.startsWith("NSR:")) {
             return id;
         }
         StopPlaceUpdaterService stopPlaceService = ApplicationContextHolder.getContext().getBean(StopPlaceUpdaterService.class);

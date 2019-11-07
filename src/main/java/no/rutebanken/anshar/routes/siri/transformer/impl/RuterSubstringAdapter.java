@@ -26,6 +26,9 @@ public class RuterSubstringAdapter extends ValueAdapter {
 
     public String apply(String text) {
         if (text != null) {
+            if (text.startsWith("NSR:")) {
+                return text;
+            }
             if (text.contains(valueSeparator)) {
                 lengthAfterSeparator = 2;
                 if (text.substring(text.indexOf(valueSeparator)).length() > lengthAfterSeparator) {
