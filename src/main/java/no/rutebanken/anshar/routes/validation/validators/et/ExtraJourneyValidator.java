@@ -107,8 +107,8 @@ public class ExtraJourneyValidator extends CustomValidator {
             if (estimatedVehicleJourneyCode == null) {
                 return  createEvent(node, estimatedVehicleJourneyCodeRef, "not null when ExtraJourney=true", groupOfLines, ValidationEvent.ERROR);
             }
-            if (!estimatedVehicleJourneyCode.contains(":VehicleJourney:")) {
-                return  createEvent(node, estimatedVehicleJourneyCode, "valid EstimatedVehicleJourneyCode - CODESPACE:VehicleJourney:ID", estimatedVehicleJourneyCode, ValidationEvent.ERROR);
+            if (!estimatedVehicleJourneyCode.contains(":ServiceJourney:")) {
+                return  createEvent(node, estimatedVehicleJourneyCode, "valid EstimatedVehicleJourneyCode - CODESPACE:ServiceJourney:ID", estimatedVehicleJourneyCode, ValidationEvent.ERROR);
             }
         }
 

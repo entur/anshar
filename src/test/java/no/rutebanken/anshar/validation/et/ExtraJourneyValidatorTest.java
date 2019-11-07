@@ -41,7 +41,7 @@ public class ExtraJourneyValidatorTest extends CustomValidatorTest{
     private final String validGroupOfLinesRef = "NSR:Network:TEST";
     private final String invalidGroupOfLines = "TEST";
 
-    private final String estimatedVehicleJourneyCode = "NSR:VehicleJourney:1234-1234-1234-EXTRA";
+    private final String estimatedVehicleJourneyCode = "NSR:ServiceJourney:1234-1234-1234-EXTRA";
 
     @BeforeClass
     public static void init() {
