@@ -27,19 +27,11 @@
             </Siri>
         </xsl:for-each>
 
-        <!--<xsl:for-each select="/siri:Siri/siri:ServiceDelivery/siri:SituationExchangeDelivery/siri:Situations/siri:PtSituationElement">-->
-            <!--<siri:Siri>-->
-                <!--<siri:ServiceDelivery>-->
-                    <!--<xsl:copy-of select="/siri:Siri/siri:ServiceDelivery/siri:ResponseTimestamp"></xsl:copy-of>-->
-                    <!--<xsl:copy-of select="/siri:Siri/siri:ServiceDelivery/siri:ProducerRef"></xsl:copy-of>-->
-                    <!--<siri:SituationExchangeDelivery>-->
-                        <!--<siri:Situations>-->
-                            <!--<xsl:copy-of select="."></xsl:copy-of>-->
-                        <!--</siri:Situations>-->
-                    <!--</siri:SituationExchangeDelivery>-->
-                <!--</siri:ServiceDelivery>-->
-            <!--</siri:Siri>-->
-        <!--</xsl:for-each>-->
+        <xsl:for-each select="/siri:Siri/siri:DataReadyNotification">
+            <Siri xmlns="http://www.siri.org.uk/siri" xmlns:ns2="http://www.ifopt.org.uk/acsb" version="2.0">>
+                <xsl:copy-of select="."></xsl:copy-of>
+            </Siri>
+        </xsl:for-each>
 
     </xsl:template>
 
