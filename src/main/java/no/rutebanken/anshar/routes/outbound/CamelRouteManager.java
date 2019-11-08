@@ -246,12 +246,16 @@ public class CamelRouteManager implements CamelContextAware {
             }
 
             if (isActiveMQ) {
-                definition = from(routeName)
-                        .routeId(routeName)
-                        .to("direct:siri.transform.output")
-                        .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
-                        .to(ExchangePattern.InOnly, remoteEndPoint + options)
-                        .log(LoggingLevel.INFO, "Pushed data to ActiveMQ-topic: [" + remoteEndPoint + "]");
+                if (subscriptionRequest.getSubscriptionType() == SiriDataType.ESTIMATED_TIMETABLE){
+                    definition = from(routeName)
+                            .routeId(routeName)
+                            .to("direct:siri.transform.output")
+                            .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
+                            .setHeader("asyncConsumer", simple("true"))
+                            .setHeader("timeToLive", simple("" + subscriptionRequest.getTimeToLive()))
+                            .to(ExchangePattern.InOnly, "direct:send.to.topic.estimated_timetable")
+                            .log(LoggingLevel.INFO, "Pushed data to ActiveMQ-topic: [" + remoteEndPoint + "]");
+                }
             } else {
                 definition = from(routeName)
                         .routeId(routeName)

@@ -49,6 +49,11 @@ public class SiriWebsocketRoute extends RouteBuilder implements CamelContextAwar
 
         siriHelper = new SiriHelper(siriObjectFactory);
 
+        from("direct:send.to.topic.estimated_timetable")
+                .to("xslt:xsl/prepareSiriSplit.xsl")
+                .split().tokenizeXML("Siri").streaming()
+                .to(activeMqTopicPrefix + "estimated_timetable");
+
         // Handling changes sent to all websocket-clients
         from(activeMqTopicPrefix + "estimated_timetable")
                 .routeId("distribute.to.websocket.estimated_timetable")
@@ -64,10 +69,11 @@ public class SiriWebsocketRoute extends RouteBuilder implements CamelContextAwar
 
         from("direct:send.ws.connect.response")
                 .routeId("send.ws.connect.response")
-//                .to("log:wsConnectResponse:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .bean(metrics, "countOutgoingData(${body}, WEBSOCKET)")
                 .to("direct:siri.transform.output")
                 .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
+                .to("xslt:xsl/prepareSiriSplit.xsl")
+                .split().tokenizeXML("Siri").streaming()
                 .to("websocket://et");
 
         // Route that handles initial data
