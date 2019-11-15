@@ -187,7 +187,8 @@ public class ServerSubscriptionManager extends CamelRouteManager {
                 );
     }
 
-    private long getHeartbeatInterval(SubscriptionRequest subscriptionRequest) {
+    // public for unittest
+    public long getHeartbeatInterval(SubscriptionRequest subscriptionRequest) {
         long heartbeatInterval = 0;
         if (subscriptionRequest.getSubscriptionContext() != null &&
                 subscriptionRequest.getSubscriptionContext().getHeartbeatInterval() != null) {
