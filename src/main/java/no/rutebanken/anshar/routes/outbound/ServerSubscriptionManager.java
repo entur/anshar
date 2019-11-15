@@ -81,7 +81,10 @@ public class ServerSubscriptionManager extends CamelRouteManager {
     private MappingAdapterPresets mappingAdapterPresets;
 
     @Value("${anshar.outbound.heartbeatinterval.minimum}")
-    private long minimumHeartbeatInterval = 60000;
+    private long minimumHeartbeatInterval = 10000;
+
+    @Value("${anshar.outbound.heartbeatinterval.maximum}")
+    private long maximumHeartbeatInterval = 300000;
 
     @Value("${anshar.outbound.error.consumeraddress}")
     private String errorConsumerAddressMissing = "Error";
@@ -191,7 +194,10 @@ public class ServerSubscriptionManager extends CamelRouteManager {
             Duration interval = subscriptionRequest.getSubscriptionContext().getHeartbeatInterval();
             heartbeatInterval = interval.getTimeInMillis(new Date(0));
         }
-        return Math.max(heartbeatInterval, minimumHeartbeatInterval);
+        heartbeatInterval = Math.max(heartbeatInterval, minimumHeartbeatInterval);
+        heartbeatInterval = Math.min(heartbeatInterval, maximumHeartbeatInterval);
+
+        return heartbeatInterval;
     }
 
     private SiriDataType getSubscriptionType(SubscriptionRequest subscriptionRequest) {
