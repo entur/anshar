@@ -24,6 +24,8 @@ public class SiriWebsocketRoute extends RouteBuilder implements CamelContextAwar
 
     private CamelContext camelContext;
 
+    public static final String SIRI_ET_TOPIC_ROUTE = "activemq:topic:anshar.outbound.estimated_timetable";
+
     @Autowired
     private EstimatedTimetables estimatedTimetables;
 
@@ -41,6 +43,9 @@ public class SiriWebsocketRoute extends RouteBuilder implements CamelContextAwar
         siriHelper = new SiriHelper(siriObjectFactory);
 
         final String routeIdPrefix = "websocket.route.client.";
+
+        from(SIRI_ET_TOPIC_ROUTE)
+                .to("websocket://et?port={{anshar.websocket.port:9292}}");
 
         from("direct:send.ws.connect.response")
                 .routeId(routeIdPrefix + "initial.response")
