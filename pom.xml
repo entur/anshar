@@ -118,12 +118,6 @@
                 </exclusions>
             </dependency>
 
-            <dependency>
-                <groupId>org.entur.helpers</groupId>
-                <artifactId>entur-google-pubsub</artifactId>
-                <version>${entur.helpers.version}</version>
-            </dependency>
-
             <!-- Need to add this explicitly, to avoid old dep. Problem with either maven or nexus... -->
             <dependency>
                 <groupId>io.fabric8</groupId>
@@ -148,10 +142,10 @@
             <groupId>org.entur.helpers</groupId>
             <artifactId>gcp-storage</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.entur.helpers</groupId>
-            <artifactId>camel-entur-google-pubsub</artifactId>
-        </dependency>
+        <!--<dependency>-->
+            <!--<groupId>org.entur.helpers</groupId>-->
+            <!--<artifactId>camel-entur-google-pubsub</artifactId>-->
+        <!--</dependency>-->
         <dependency>
             <groupId>org.apache.camel</groupId>
             <artifactId>camel-core</artifactId>
