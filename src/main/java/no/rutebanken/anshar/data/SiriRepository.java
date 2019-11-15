@@ -114,7 +114,7 @@ abstract class SiriRepository<T> {
                 logger.info("Updating changes for {} requestors ({}), committed {} changes, update took {} ms",
                         changesMap.size(), this.getClass().getSimpleName(), bufferedChanges.size(), (System.currentTimeMillis() - t1));
             } else {
-                logger.info("No changes - ignoring commit ({})", this.getClass().getSimpleName());
+                logger.debug("No changes - ignoring commit ({})", this.getClass().getSimpleName());
             }
         } catch (Throwable t) {
             //Catch everything to avoid executor being killed

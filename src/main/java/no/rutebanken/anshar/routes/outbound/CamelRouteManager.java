@@ -61,9 +61,6 @@ public class CamelRouteManager implements CamelContextAware {
     @Value("${anshar.default.max.elements.per.delivery:1000}")
     private int maximumSizePerDelivery;
 
-    @Value("${anshar.default.max.elements.per.websocket.delivery:100}")
-    private int maximumWebSocketSizePerDelivery;
-
     private final Map<OutboundSubscriptionSetup, SiriPushRouteBuilder> outboundRoutes = new HashMap<>();
 
     @Autowired
@@ -97,6 +94,9 @@ public class CamelRouteManager implements CamelContextAware {
             return;
         }
 
+        // TODO: Use ProducerTemplate and headers instead of creating new routes for each subscription
+
+
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         executorService.submit(() -> {
             try {
@@ -106,22 +106,6 @@ public class CamelRouteManager implements CamelContextAware {
                 int deliverySize = this.maximumSizePerDelivery;
                 if (subscriptionRequest.getDatasetId() != null) {
                     deliverySize = Integer.MAX_VALUE;
-                }
-
-                if (subscriptionRequest.getAddress().contains("activemq:topic") &&
-                        subscriptionRequest.getSubscriptionType() == SiriDataType.ESTIMATED_TIMETABLE) {
-                    // Only send monitored updates
-                    filteredPayload.getServiceDelivery().getEstimatedTimetableDeliveries().get(0)
-                            .getEstimatedJourneyVersionFrames().get(0).getEstimatedVehicleJourneies().removeIf(et -> (et.isMonitored() == null || !et.isMonitored()));
-
-                    if (filteredPayload.getServiceDelivery().getEstimatedTimetableDeliveries().get(0)
-                            .getEstimatedJourneyVersionFrames().get(0).getEstimatedVehicleJourneies().isEmpty()) {
-                        // No longer any updates to send.
-                        return;
-                    }
-                    logger.info("Sending {} messages to topic", filteredPayload.getServiceDelivery().getEstimatedTimetableDeliveries().get(0)
-                            .getEstimatedJourneyVersionFrames().get(0).getEstimatedVehicleJourneies().size());
-                    deliverySize = maximumWebSocketSizePerDelivery;
                 }
 
                 List<Siri> splitSiri = siriHelper.splitDeliveries(filteredPayload, deliverySize);
@@ -252,9 +236,8 @@ public class CamelRouteManager implements CamelContextAware {
                             .to("direct:siri.transform.output")
                             .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
                             .setHeader("asyncConsumer", simple("true"))
-                            .setHeader("timeToLive", simple("" + subscriptionRequest.getTimeToLive()))
-                            .to(ExchangePattern.InOnly, "direct:send.to.topic.estimated_timetable")
-                            .log(LoggingLevel.INFO, "Pushed data to ActiveMQ-topic: [" + remoteEndPoint + "]");
+                            .to(ExchangePattern.InOnly, "direct:send.to.pubsub.topic.estimated_timetable")
+                    ;
                 }
             } else {
                 definition = from(routeName)

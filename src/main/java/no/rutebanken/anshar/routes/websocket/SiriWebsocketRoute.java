@@ -8,16 +8,14 @@ import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import org.apache.camel.CamelContext;
 import org.apache.camel.CamelContextAware;
 import org.apache.camel.Exchange;
-import org.apache.camel.Processor;
-import org.apache.camel.ProducerTemplate;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.builder.xml.Namespaces;
 import org.rutebanken.siri20.util.SiriXml;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uk.org.siri.siri20.Siri;
 
-import java.util.List;
+import java.util.function.Function;
 
 import static org.eclipse.jetty.http.HttpStatus.Code.BAD_REQUEST;
 
@@ -25,13 +23,6 @@ import static org.eclipse.jetty.http.HttpStatus.Code.BAD_REQUEST;
 public class SiriWebsocketRoute extends RouteBuilder implements CamelContextAware {
 
     private CamelContext camelContext;
-
-    @Value("${anshar.default.max.elements.per.websocket.delivery:100}")
-    private int maximumSizePerDelivery;
-
-
-    @Value("${anshar.outbound.activemq.topic.prefix}")
-    private String activeMqTopicPrefix;
 
     @Autowired
     private EstimatedTimetables estimatedTimetables;
@@ -49,36 +40,36 @@ public class SiriWebsocketRoute extends RouteBuilder implements CamelContextAwar
 
         siriHelper = new SiriHelper(siriObjectFactory);
 
-        from("direct:send.to.topic.estimated_timetable")
-                .to("xslt:xsl/prepareSiriSplit.xsl")
-                .split().tokenizeXML("Siri").streaming()
-                .to(activeMqTopicPrefix + "estimated_timetable");
-
-        // Handling changes sent to all websocket-clients
-        from(activeMqTopicPrefix + "estimated_timetable")
-                .routeId("distribute.to.websocket.estimated_timetable")
-                .bean(metrics, "countOutgoingData(${body}, WEBSOCKET)")
-                .to("websocket://et?sendToAll=true")
-                .log("Changes sent - ET");
-
-        ProducerTemplate producerTemplate = camelContext.createProducerTemplate();
-        producerTemplate.setDefaultEndpointUri("direct:send.ws.connect.response");
-
-        InitialServiceDeliveryProducer serviceDeliveryProducer = new InitialServiceDeliveryProducer();
-        serviceDeliveryProducer.setProducer(producerTemplate);
+        final String routeIdPrefix = "websocket.route.client.";
 
         from("direct:send.ws.connect.response")
-                .routeId("send.ws.connect.response")
+                .routeId(routeIdPrefix + "initial.response")
                 .bean(metrics, "countOutgoingData(${body}, WEBSOCKET)")
                 .to("direct:siri.transform.output")
                 .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
-                .to("xslt:xsl/prepareSiriSplit.xsl")
+                .to("xslt:xsl/splitAndFilterNotMonitored.xsl")
                 .split().tokenizeXML("Siri").streaming()
-                .to("websocket://et");
+                .to("direct:map.jaxb.to.protobuf")
+                .to("websocket://et?port={{anshar.websocket.port:9292}}");
+
+
+        Namespaces ns = new Namespaces("siri", "http://www.siri.org.uk/siri");
 
         // Route that handles initial data
-        from("websocket://et")
-                .routeId("ws.connected")
+        from("websocket://et?port={{anshar.websocket.port:9292}}")
+                .routeId(routeIdPrefix + "connected")
+                .choice()
+                .when().xpath("/siri:Siri/siri:ServiceRequest/siri:EstimatedTimetableRequest", ns)
+                    .wireTap("direct:process.initial.websocket.connection")
+                .endChoice()
+                .otherwise()
+                    .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(BAD_REQUEST))
+                .end()
+                .log("Connected ET-client");
+
+        from("direct:process.initial.websocket.connection")
+                .routeId(routeIdPrefix + "initialize")
+                .log("Finding initial data for websocket-client")
                 .process( p -> {
                     p.getOut().setHeaders(p.getIn().getHeaders());
                     try {
@@ -91,16 +82,17 @@ public class SiriWebsocketRoute extends RouteBuilder implements CamelContextAwar
                         }
                     } catch (Throwable t) {
                         p.getOut().setBody(null);
-                        p.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, BAD_REQUEST);
                     }
 
                 })
+                .log("Finding initial data for websocket-client - done")
                 .choice()
-                .when(body().isNotNull())
-                    .process(serviceDeliveryProducer)
-                .end()
-                .log("Connected ET-client");
-
+                    .when(body().isNotNull())
+                        .to("direct:send.ws.connect.response")
+                        .log("Sending DataReadyNotification to indicate that initial delivery is finished.")
+                        .setBody((Function<Exchange, ? extends Object>) (Function<Exchange, Object>) exchange -> siriObjectFactory.createDataReadyNotification())
+                        .to("direct:send.ws.connect.response")
+                .end();
     }
 
     @Override
@@ -112,34 +104,5 @@ public class SiriWebsocketRoute extends RouteBuilder implements CamelContextAwar
     public CamelContext getCamelContext() {
         return camelContext;
     }
-
-    public class InitialServiceDeliveryProducer implements Processor {
-        ProducerTemplate producer;
-
-        public void setProducer(ProducerTemplate producer) {
-            this.producer = producer;
-        }
-
-        public void process(Exchange inExchange) {
-            Siri siri = inExchange.getIn().getBody(Siri.class);
-            List<Siri> serviceDeliveries = siriHelper.splitDeliveries(siri, maximumSizePerDelivery);
-
-            log.info("Split initial WS-delivery into {} deliveries.", serviceDeliveries.size());
-
-            for (Siri serviceDelivery : serviceDeliveries) {
-                producer.send(outExchange -> {
-                    outExchange.getOut().setBody(serviceDelivery);
-                    outExchange.getOut().setHeaders(inExchange.getIn().getHeaders());
-                });
-            }
-
-            log.info("All current data has been sent - send DataReadyNotification to indicate data-completeness");
-            producer.send(outExchange -> {
-                outExchange.getOut().setBody(siriObjectFactory.createDataReadyNotification());
-                outExchange.getOut().setHeaders(inExchange.getIn().getHeaders());
-            });
-        }
-    }
-
 }
 

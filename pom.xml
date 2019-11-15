@@ -58,6 +58,7 @@
         <fabric8.iconRef>camel</fabric8.iconRef>
 
         <metrics.version>3.2.3</metrics.version>
+        <entur.helpers.version>0.0.7-SNAPSHOT</entur.helpers.version>
     </properties>
 
     <!-- Repository needs to be set up in nexus: repositories>
@@ -89,13 +90,18 @@
             </dependency>
             <dependency>
                 <groupId>org.entur.helpers</groupId>
+                <artifactId>camel-entur-google-pubsub</artifactId>
+                <version>${entur.helpers.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.entur.helpers</groupId>
                 <artifactId>hazelcast-helper</artifactId>
-                <version>0.0.4-SNAPSHOT</version>
+                <version>${entur.helpers.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.entur.helpers</groupId>
                 <artifactId>gcp-storage</artifactId>
-                <version>0.0.4-SNAPSHOT</version>
+                <version>${entur.helpers.version}</version>
                 <exclusions>
                     <exclusion>
                         <groupId>javax.servlet</groupId>
@@ -111,6 +117,13 @@
                     </exclusion>
                 </exclusions>
             </dependency>
+
+            <dependency>
+                <groupId>org.entur.helpers</groupId>
+                <artifactId>entur-google-pubsub</artifactId>
+                <version>${entur.helpers.version}</version>
+            </dependency>
+
             <!-- Need to add this explicitly, to avoid old dep. Problem with either maven or nexus... -->
             <dependency>
                 <groupId>io.fabric8</groupId>
@@ -134,6 +147,10 @@
         <dependency>
             <groupId>org.entur.helpers</groupId>
             <artifactId>gcp-storage</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.entur.helpers</groupId>
+            <artifactId>camel-entur-google-pubsub</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.camel</groupId>
@@ -262,6 +279,11 @@
 
         <dependency>
             <groupId>org.entur</groupId>
+            <artifactId>siri-protobuf-mapper</artifactId>
+            <version>0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.entur</groupId>
             <artifactId>netex-java-model</artifactId>
             <version>1.0.9-SNAPSHOT</version>
         </dependency>
@@ -281,6 +303,7 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
+            <version>28.1-jre</version>
         </dependency>
 
         <dependency>
