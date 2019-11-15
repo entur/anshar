@@ -15,16 +15,14 @@
 
 package no.rutebanken.anshar;
 
-import org.entur.pubsub.camel.config.GooglePubSubCamelComponentConfig;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.annotation.Import;
 
 /**
  * A spring-boot application that includes a Camel route builder to setup the Camel routes
  */
 @SpringBootApplication
-@Import(GooglePubSubCamelComponentConfig.class)
+//@Import(GooglePubSubCamelComponentConfig.class)
 public class App {
 
     // must have a main method spring-boot can run
