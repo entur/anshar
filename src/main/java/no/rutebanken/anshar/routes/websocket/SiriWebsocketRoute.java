@@ -45,7 +45,7 @@ public class SiriWebsocketRoute extends RouteBuilder implements CamelContextAwar
         final String routeIdPrefix = "websocket.route.client.";
 
         from(SIRI_ET_TOPIC_ROUTE)
-                .to("websocket://et?port={{anshar.websocket.port:9292}}");
+                .to("websocket://et?sendToAll=true&port={{anshar.websocket.port:9292}}");
 
         from("direct:send.ws.connect.response")
                 .routeId(routeIdPrefix + "initial.response")
