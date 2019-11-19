@@ -34,6 +34,7 @@ import no.rutebanken.anshar.subscription.helpers.MappingAdapterPresets;
 import org.apache.camel.Exchange;
 import org.apache.camel.model.rest.RestParamType;
 import org.apache.http.HttpHeaders;
+import org.entur.protobuf.mapper.SiriMapper;
 import org.rutebanken.siri20.util.SiriJson;
 import org.rutebanken.siri20.util.SiriXml;
 import org.slf4j.Logger;
@@ -320,6 +321,10 @@ public class SiriLiteRoute extends RestRouteBuilder {
                 MediaType.APPLICATION_JSON.equals(p.getIn().getHeader(HttpHeaders.ACCEPT))) {
             out.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
             SiriJson.toJson(response, out.getOutputStream());
+        } else if ("application/x-protobuf".equals(p.getIn().getHeader(HttpHeaders.CONTENT_TYPE)) |
+                "application/x-protobuf".equals(p.getIn().getHeader(HttpHeaders.ACCEPT))) {
+            out.setHeader(HttpHeaders.CONTENT_TYPE, "application/x-protobuf");
+            out.getOutputStream().write(SiriMapper.map(response).toByteArray());
         } else {
             out.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_XML);
             SiriXml.toXml(response, null, out.getOutputStream());
