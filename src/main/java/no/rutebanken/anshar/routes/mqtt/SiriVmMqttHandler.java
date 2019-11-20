@@ -31,8 +31,19 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
-import uk.org.siri.siri20.*;
+import uk.org.siri.siri20.DirectionRefStructure;
+import uk.org.siri.siri20.FramedVehicleJourneyRefStructure;
+import uk.org.siri.siri20.LineRef;
+import uk.org.siri.siri20.LocationStructure;
+import uk.org.siri.siri20.MonitoredCallStructure;
+import uk.org.siri.siri20.NaturalLanguageStringStructure;
+import uk.org.siri.siri20.OnwardCallsStructure;
+import uk.org.siri.siri20.OperatorRefStructure;
+import uk.org.siri.siri20.StopPointRef;
+import uk.org.siri.siri20.VehicleActivityStructure;
 import uk.org.siri.siri20.VehicleActivityStructure.MonitoredVehicleJourney;
+import uk.org.siri.siri20.VehicleModesEnumeration;
+import uk.org.siri.siri20.VehicleRef;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -44,7 +55,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
 
 @Configuration
 @Component
@@ -176,7 +187,7 @@ public class SiriVmMqttHandler {
 
 
     public void pushToMqttAsync(String datasetId, VehicleActivityStructure activity) {
-        CompletableFuture.runAsync(() -> pushToMqtt(datasetId, activity));
+        Executors.newSingleThreadExecutor().submit(() -> pushToMqtt(datasetId, activity));
     }
 
     public void pushToMqtt(String datasetId, VehicleActivityStructure activity) {
