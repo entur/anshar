@@ -323,8 +323,10 @@ public class SiriLiteRoute extends RestRouteBuilder {
             SiriJson.toJson(response, out.getOutputStream());
         } else if ("application/x-protobuf".equals(p.getIn().getHeader(HttpHeaders.CONTENT_TYPE)) |
                 "application/x-protobuf".equals(p.getIn().getHeader(HttpHeaders.ACCEPT))) {
+            final byte[] bytes = SiriMapper.map(response).toByteArray();
             out.setHeader(HttpHeaders.CONTENT_TYPE, "application/x-protobuf");
-            out.getOutputStream().write(SiriMapper.map(response).toByteArray());
+            out.setHeader(HttpHeaders.CONTENT_LENGTH, ""+bytes.length);
+            out.getOutputStream().write(bytes);
         } else {
             out.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_XML);
             SiriXml.toXml(response, null, out.getOutputStream());
