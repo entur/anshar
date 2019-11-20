@@ -56,6 +56,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Configuration
 @Component
@@ -102,6 +103,8 @@ public class SiriVmMqttHandler {
     @Value("${anshar.mqtt.reconnectInterval.millis:30000}")
     private long reconnectInterval;
 
+    AtomicInteger connectCounter = new AtomicInteger();
+
     @Autowired
     @Qualifier("getHitcountMap")
     private IMap<String, Integer> hitcount;
@@ -141,7 +144,9 @@ public class SiriVmMqttHandler {
 
         if (!mqttClient.isConnected() &&
                 (System.currentTimeMillis() - lastConnectionAttempt) > reconnectInterval) {
+            logger.info("Calling connect - currently {} waiting attempts.", connectCounter.incrementAndGet());
             connect();
+            logger.info("Called connect - currently {} waiting attempts.", connectCounter.decrementAndGet());
         }
 
         try {
@@ -157,6 +162,8 @@ public class SiriVmMqttHandler {
                     logger.info("MQTT: Published {} updates, total size {}, last message:[{}]",
                             publishedCount, readableFileSize(publishedSize.longValue()), content);
                 }
+            } else {
+                logger.info("Not connected after all...");
             }
         } catch (MqttException e) {
             logger.info("Unable to publish to MQTT", e);
