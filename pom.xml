@@ -179,12 +179,6 @@
 
         <dependency>
             <groupId>org.apache.camel</groupId>
-            <artifactId>camel-websocket</artifactId>
-            <version>${camel-version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.camel</groupId>
             <artifactId>camel-jaxb</artifactId>
             <version>${camel-version}</version>
         </dependency>
