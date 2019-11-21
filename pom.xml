@@ -391,6 +391,9 @@
                         <exclude>**/*KT.java</exclude>
                     </excludes>
                     <argLine>-Xmx1024m</argLine>
+                    <environmentVariables>
+                        <PUBSUB_EMULATOR_HOST>localhost:8889</PUBSUB_EMULATOR_HOST>
+                    </environmentVariables>
                 </configuration>
             </plugin>
 
@@ -407,6 +410,31 @@
                 </executions>
             </plugin>
 
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-pubsub-emulator</id>
+                        <phase>test-compile</phase>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <artifactItems>
+                        <artifactItem>
+                            <groupId>com.google.cloud</groupId>
+                            <artifactId>pubsub-emulator</artifactId>
+                            <version>0.1-SNAPSHOT</version>
+                            <type>jar</type>
+                            <overWrite>true</overWrite>
+                            <outputDirectory>${project.build.directory}/pubsub-emulator</outputDirectory>
+                        </artifactItem>
+                    </artifactItems>
+                </configuration>
+            </plugin>
 
             <plugin>
                 <groupId>io.fabric8</groupId>

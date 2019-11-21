@@ -54,11 +54,6 @@ import java.util.concurrent.Executors;
 public class SiriVmMqttHandler {
     private final Logger logger = LoggerFactory.getLogger(SiriVmMqttHandler.class);
 
-    private static final String MQTT_COUNTER_KEY = "Anshar.MQTT.message.count";
-    private static final String MQTT_SIZE_KEY = "Anshar.MQTT.message.size";
-    private static final String MQTT_START_TIME_IN_SECONDS_KEY = "Anshar.MQTT.start.time";
-
-
     private static final String TOPIC_PREFIX = "/hfp/journey/";
 
     private static final String ZERO = "0";
