@@ -15,19 +15,14 @@
 
 package no.rutebanken.anshar.routes.mqtt;
 
-import com.hazelcast.core.IMap;
 import no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter;
+import org.apache.camel.Produce;
+import org.apache.camel.ProducerTemplate;
 import org.apache.commons.lang3.tuple.Pair;
-import org.eclipse.paho.client.mqttv3.MqttClient;
-import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
-import org.eclipse.paho.client.mqttv3.MqttException;
-import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
@@ -45,8 +40,6 @@ import uk.org.siri.siri20.VehicleActivityStructure.MonitoredVehicleJourney;
 import uk.org.siri.siri20.VehicleModesEnumeration;
 import uk.org.siri.siri20.VehicleRef;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import javax.xml.datatype.Duration;
 import java.math.BigInteger;
 import java.text.DecimalFormat;
@@ -54,9 +47,7 @@ import java.time.DateTimeException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Configuration
 @Component
@@ -85,113 +76,11 @@ public class SiriVmMqttHandler {
     @Value("${anshar.mqtt.enabled:false}")
     private boolean mqttEnabled;
 
-    @Value("${anshar.mqtt.subscribe:false}")
-    private boolean mqttSubscribe;
-
     @Value("${anshar.mqtt.destination.id.fallback:false}")
     private boolean destinationIdFallback;
 
-    @Value("${anshar.mqtt.host}")
-    private String host;
-
-    @Value("${anshar.mqtt.username}")
-    private String username;
-
-    @Value("${anshar.mqtt.password}")
-    private String password;
-
-    @Value("${anshar.mqtt.reconnectInterval.millis:30000}")
-    private long reconnectInterval;
-
-    AtomicInteger connectCounter = new AtomicInteger();
-
-    @Autowired
-    @Qualifier("getHitcountMap")
-    private IMap<String, Integer> hitcount;
-
-    private MqttClient mqttClient;
-
-    private long lastConnectionAttempt;
-
-    private static final String clientId = UUID.randomUUID().toString();
-
-    private final int connectionTimeout = 10;
-
-    @PostConstruct
-    private void initialize() {
-        try {
-            mqttClient = new MqttClient(host, clientId, null);
-
-            logger.info("Initializing MQTT-client with clientId {}, enabled: {}", clientId, mqttEnabled);
-        } catch (MqttException e) {
-            throw new ExceptionInInitializerError(e);
-        }
-    }
-
-    @PreDestroy
-    private void disconnect() {
-        if (mqttClient.isConnected()) {
-            try {
-                logger.info("Disconnecting from MQTT on address {}", host);
-                mqttClient.disconnectForcibly();
-            } catch (MqttException e) {
-                //Disconnect failed - ignore
-            }
-        }
-    }
-
-    private void publishMessage(String topic, String content) {
-
-        if (!mqttClient.isConnected() &&
-                (System.currentTimeMillis() - lastConnectionAttempt) > reconnectInterval) {
-            logger.info("Calling connect - currently {} waiting attempts.", connectCounter.incrementAndGet());
-            connect();
-            logger.info("Called connect - currently {} waiting attempts.", connectCounter.decrementAndGet());
-        }
-
-        try {
-            if (mqttClient.isConnected()) {
-                MqttMessage message = new MqttMessage(content.getBytes());
-                message.setQos(1);
-                mqttClient.publish(topic, message);
-
-                Integer publishedCount = hitcount.merge(MQTT_COUNTER_KEY, 1, Integer::sum);
-                Integer publishedSize = hitcount.merge(MQTT_SIZE_KEY, content.length(), Integer::sum);
-
-                if (publishedCount != null && publishedCount % 1000 == 0) {
-                    logger.info("MQTT: Published {} updates, total size {}, last message:[{}]",
-                            publishedCount, readableFileSize(publishedSize.longValue()), content);
-                }
-            } else {
-                logger.info("Not connected after all...");
-            }
-        } catch (MqttException e) {
-            logger.info("Unable to publish to MQTT", e);
-        }
-    }
-
-    private synchronized void connect() {
-        if (mqttClient.isConnected()) {
-            logger.info("Already connected to mqtt - ignoring connect-request");
-            return;
-        }
-
-        MqttConnectOptions connOpts = new MqttConnectOptions();
-        connOpts.setUserName(username);
-        connOpts.setPassword(password.toCharArray());
-        connOpts.setConnectionTimeout(connectionTimeout);
-        connOpts.setMaxInflight(32000); //Half of the mqtt-specification
-        connOpts.setCleanSession(false);
-        try {
-            lastConnectionAttempt = System.currentTimeMillis();
-            logger.info("Connecting to MQTT on address {} using {} seconds timeout", host, connectionTimeout);
-            mqttClient.connect(connOpts);
-            logger.info("Connected to MQTT on address {} with user {}", host, username);
-        } catch (MqttException e) {
-            logger.warn("Failed to connect to MQTT ", e);
-        }
-    }
-
+    @Produce(uri = "direct:send.to.mqtt")
+    ProducerTemplate mqttProducer;
 
     public void pushToMqttAsync(String datasetId, VehicleActivityStructure activity) {
         Executors.newSingleThreadExecutor().submit(() -> pushToMqtt(datasetId, activity));
@@ -211,7 +100,8 @@ public class SiriVmMqttHandler {
 
         try {
             Pair<String, String> message = getMessage(datasetId, activity);
-            publishMessage(message.getKey(), message.getValue());
+
+            mqttProducer.sendBodyAndHeader(message.getValue(), "topic", message.getKey());
 
         } catch (NullPointerException e) {
             logger.debug("Incomplete Siri data", e);
