@@ -49,17 +49,19 @@ public class MqttProducerRoute extends RouteBuilder {
             from("direct:send.to.mqtt")
                     .routeId("send.to.mqtt")
                     .setHeader(PahoConstants.CAMEL_PAHO_OVERRIDE_TOPIC, simple("${header.topic}"))
-                    .to("direct:log.mqtt.traffic")
+                    .wireTap("direct:log.mqtt.traffic")
                     .to("paho:default/topic?qos=1&clientId=" + clientId);
 
             from("direct:log.mqtt.traffic")
                     .routeId("log.mqtt")
-                    .bean(counter, "incrementAndGet")
+                    .process(p -> {
+                        if (counter.incrementAndGet() % 1000 == 0) {
+                            p.getOut().setHeader("counter", counter.get());
+                        }
+                    })
                     .choice()
-                    .when(p -> counter.get() % 1000 == 0)
-                        .log(
-                                String.format("MQTT: Published %s updates, last message:${body}",
-                                counter.get()))
+                    .when(header("counter").isNotNull())
+                        .log("MQTT: Published ${header.counter} updates, last message:${body}")
                     .endChoice()
                     .end();
 
