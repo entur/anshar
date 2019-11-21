@@ -57,11 +57,12 @@ public class MqttProducerRoute extends RouteBuilder {
                     .process(p -> {
                         if (counter.incrementAndGet() % 1000 == 0) {
                             p.getOut().setHeader("counter", counter.get());
+                            p.getOut().setBody(p.getIn().getBody());
                         }
                     })
                     .choice()
                     .when(header("counter").isNotNull())
-                        .log("MQTT: Published ${header.counter} updates, last message:${body}")
+                        .log("MQTT: Published ${header.counter} updates, last message: ${body}")
                     .endChoice()
                     .end();
 
