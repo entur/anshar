@@ -12,6 +12,7 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.builder.xml.Namespaces;
 import org.rutebanken.siri20.util.SiriXml;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uk.org.siri.siri20.Siri;
 
@@ -24,7 +25,8 @@ public class SiriWebsocketRoute extends RouteBuilder implements CamelContextAwar
 
     private CamelContext camelContext;
 
-    public static final String SIRI_ET_TOPIC_ROUTE = "activemq:topic:anshar.outbound.estimated_timetable";
+    @Value("${anshar.outbound.camel.route.topic.et.name}")
+    private String etPubsubTopic;
 
     @Autowired
     private EstimatedTimetables estimatedTimetables;
@@ -44,7 +46,7 @@ public class SiriWebsocketRoute extends RouteBuilder implements CamelContextAwar
 
         final String routeIdPrefix = "websocket.route.client.";
 
-        from(SIRI_ET_TOPIC_ROUTE)
+        from(etPubsubTopic)
                 .to("websocket://et?sendToAll=true&port={{anshar.websocket.port:9292}}");
 
         from("direct:send.ws.connect.response")

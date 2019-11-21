@@ -142,10 +142,10 @@
             <groupId>org.entur.helpers</groupId>
             <artifactId>gcp-storage</artifactId>
         </dependency>
-        <!--<dependency>-->
-            <!--<groupId>org.entur.helpers</groupId>-->
-            <!--<artifactId>camel-entur-google-pubsub</artifactId>-->
-        <!--</dependency>-->
+        <dependency>
+            <groupId>org.entur.helpers</groupId>
+            <artifactId>camel-entur-google-pubsub</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.apache.camel</groupId>
             <artifactId>camel-core</artifactId>

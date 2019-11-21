@@ -375,7 +375,6 @@ public class ServerSubscriptionManager extends CamelRouteManager {
 
         if (pushToTopicEnabled) {
             siriEtTopicProducer.sendBody(delivery);
-//            pushSiriData(delivery, activeMQ_ET);
         }
 
         subscriptions.values().stream().filter(subscriptionRequest ->
