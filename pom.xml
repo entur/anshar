@@ -391,9 +391,6 @@
                         <exclude>**/*KT.java</exclude>
                     </excludes>
                     <argLine>-Xmx1024m</argLine>
-                    <environmentVariables>
-                        <PUBSUB_EMULATOR_HOST>localhost:8889</PUBSUB_EMULATOR_HOST>
-                    </environmentVariables>
                 </configuration>
             </plugin>
 
