@@ -477,6 +477,11 @@
             <layout>default</layout>
             <url>https://maven.conveyal.com</url>
         </repository>
+        <repository>
+            <id>github</id>
+            <name>Entur Github package repo</name>
+            <url>https://maven.pkg.github.com/entur/siri-protobuf-mapper</url>
+        </repository>
     </repositories>
 
     <!--
