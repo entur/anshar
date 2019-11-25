@@ -265,18 +265,18 @@
         <dependency>
             <groupId>org.entur</groupId>
             <artifactId>siri-java-model</artifactId>
-            <version>0.13-SNAPSHOT</version>
+            <version>0.12</version>
         </dependency>
 
         <dependency>
             <groupId>org.entur</groupId>
             <artifactId>siri-protobuf-mapper</artifactId>
-            <version>0.1-SNAPSHOT</version>
+            <version>0.1.1</version>
         </dependency>
         <dependency>
             <groupId>org.entur</groupId>
             <artifactId>netex-java-model</artifactId>
-            <version>1.0.9-SNAPSHOT</version>
+            <version>1.0.8</version>
         </dependency>
 
         <dependency>
