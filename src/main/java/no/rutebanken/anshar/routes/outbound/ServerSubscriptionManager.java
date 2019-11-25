@@ -67,10 +67,6 @@ public class ServerSubscriptionManager extends CamelRouteManager {
     IMap<String, OutboundSubscriptionSetup> subscriptions;
 
     @Autowired
-    @Qualifier("getLockMap")
-    private IMap<String, Instant> lockMap;
-
-    @Autowired
     @Qualifier("getFailTrackerMap")
     private IMap<String, Instant> failTrackerMap;
 
