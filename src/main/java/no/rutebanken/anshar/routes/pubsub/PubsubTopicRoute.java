@@ -17,6 +17,10 @@ public class PubsubTopicRoute extends RouteBuilder {
     @Override
     public void configure() {
 
+        /**
+         * Splits SIRI ET-ServiceDelivery into singular messages (i.e. one ET-message per ServiceDelivery), converts
+         * message to protobuf, and posts to Cloud Pubsub
+         */
         from("direct:send.to.pubsub.topic.estimated_timetable")
                 .to("xslt:xsl/splitAndFilterNotMonitored.xsl")
                 .split().tokenizeXML("Siri").streaming()
@@ -25,6 +29,9 @@ public class PubsubTopicRoute extends RouteBuilder {
                 .to(etPubsubTopic)
         ;
 
+        /**
+         * Logs traffic periodically
+         */
         from("direct:log.pubsub.traffic")
                 .routeId("log.pubsub")
                 .process(p -> {
