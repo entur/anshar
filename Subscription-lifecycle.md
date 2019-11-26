@@ -1,4 +1,6 @@
-In this case Entur is client, and Operator is the server.
+# Lifecycle for a SIRI Subscription
+
+(In this case Entur is client, and Operator is the server.)
 
 ## Initiating Subscription
 The client sends a SubscriptionRequest to server to initiate a subscription. The SubscriptionRequest will include a unique SubscriptionId, the desired HeartbeatInterval and an Address defining the endpoint where all data for this specific subscription should be sent. 
