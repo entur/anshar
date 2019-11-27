@@ -64,7 +64,7 @@ public class Siri20ToSiriRS20RequestResponse extends SiriSubscriptionRouteBuilde
             .setExchangePattern(ExchangePattern.InOut) // Make sure we wait for a response
             .removeHeaders("CamelHttp*") // Remove any incoming HTTP headers as they interfere with the outgoing definition
             .setHeader(Exchange.CONTENT_TYPE, constant(subscriptionSetup.getContentType())) // Necessary when talking to Microsoft web services
-            .setHeader(Exchange.HTTP_METHOD, constant(HttpMethods.POST))
+            .setHeader(Exchange.HTTP_METHOD, constant(HttpMethods.GET))
             .process(addCustomHeaders())
             .to("log:request:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
             .doTry()
