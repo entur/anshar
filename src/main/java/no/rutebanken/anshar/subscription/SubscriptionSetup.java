@@ -66,7 +66,6 @@ public class SubscriptionSetup implements Serializable {
     private String addressFieldName;
     private String soapenvNamespace;
     private Boolean incrementalUpdates;
-    private boolean overrideHttps;
     private String contentType;
     private String vehicleMonitoringRefValue;
     private boolean validation;
@@ -315,14 +314,6 @@ public class SubscriptionSetup implements Serializable {
 
     public void setIncrementalUpdates(Boolean incrementalUpdates) {
         this.incrementalUpdates = incrementalUpdates;
-    }
-
-    public boolean getOverrideHttps() {
-        return overrideHttps;
-    }
-
-    public void setOverrideHttps(boolean overrideHttps) {
-        this.overrideHttps = overrideHttps;
     }
 
     public String getContentType() {

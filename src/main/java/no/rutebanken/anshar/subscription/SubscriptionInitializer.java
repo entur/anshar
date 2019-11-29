@@ -17,7 +17,13 @@ package no.rutebanken.anshar.subscription;
 
 import com.google.common.base.Preconditions;
 import no.rutebanken.anshar.config.AnsharConfiguration;
-import no.rutebanken.anshar.routes.siri.*;
+import no.rutebanken.anshar.routes.siri.Siri20ToSiriRS14Subscription;
+import no.rutebanken.anshar.routes.siri.Siri20ToSiriRS20RequestResponse;
+import no.rutebanken.anshar.routes.siri.Siri20ToSiriRS20Subscription;
+import no.rutebanken.anshar.routes.siri.Siri20ToSiriWS14RequestResponse;
+import no.rutebanken.anshar.routes.siri.Siri20ToSiriWS14Subscription;
+import no.rutebanken.anshar.routes.siri.Siri20ToSiriWS20RequestResponse;
+import no.rutebanken.anshar.routes.siri.Siri20ToSiriWS20Subscription;
 import no.rutebanken.anshar.routes.siri.adapters.Mapping;
 import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
 import no.rutebanken.anshar.routes.siri.processor.CodespaceProcessor;
@@ -34,7 +40,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.ServiceConfigurationError;
+import java.util.Set;
 
 @Service
 public class SubscriptionInitializer implements CamelContextAware {
@@ -88,11 +100,8 @@ public class SubscriptionInitializer implements CamelContextAware {
 
             // Validation and consistency-verification
             for (SubscriptionSetup subscriptionSetup : subscriptionSetups) {
-                if (subscriptionSetup.getOverrideHttps() && configuration.getInboundUrl().startsWith("https://")) {
-                    subscriptionSetup.setAddress(configuration.getInboundUrl().replaceFirst("https:", "http:"));
-                } else {
-                    subscriptionSetup.setAddress(configuration.getInboundUrl());
-                }
+
+                subscriptionSetup.setAddress(configuration.getInboundUrl());
 
                 if (!isValid(subscriptionSetup)) {
                     throw new ServiceConfigurationError("Configuration is not valid for subscription " + subscriptionSetup);
