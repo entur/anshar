@@ -32,22 +32,20 @@ public class SiriOutputTransformerRoute extends RouteBuilder {
     public void configure() {
         List<ValueAdapter> outboundAdapters = new MappingAdapterPresets().getOutboundAdapters(OutboundIdMappingPolicy.DEFAULT);
 
-        from("direct:siri.transform.data")
+        from("direct:siri.transform.output")
                 .process(p -> {
-                    List<ValueAdapter> adapters;
+                    List<ValueAdapter> adapters = outboundAdapters;
 
                     if (p.getIn().getHeader(OUTPUT_ADAPTERS_HEADER_NAME) != null) {
                         adapters = (List<ValueAdapter>) p.getIn().getHeader(OUTPUT_ADAPTERS_HEADER_NAME);
                         p.getIn().removeHeader(OUTPUT_ADAPTERS_HEADER_NAME);
-                    } else {
-                        adapters = outboundAdapters;
                     }
 
                     p.getOut().setBody(SiriValueTransformer.transform(p.getIn().getBody(Siri.class), adapters));
                     p.getOut().setHeaders(p.getIn().getHeaders());
                 })
                 .routeId("siri.transformer.route")
-                .log("Transformed SIRI");
+                .log("Transformed SIRI to output");
     }
 
 }

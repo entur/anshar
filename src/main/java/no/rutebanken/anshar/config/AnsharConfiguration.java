@@ -109,9 +109,6 @@ public class AnsharConfiguration {
     @Value("${anshar.tracking.data.buffer.commit.frequency.seconds:2}")
     private int changeBufferCommitFrequency;
 
-    @Value("${anshar.message.queue.camel.route.prefix}")
-    private String messageQueueCamelRoutePrefix;
-
     public String getHazelcastManagementUrl() {
         return hazelcastManagementUrl;
     }
@@ -222,9 +219,5 @@ public class AnsharConfiguration {
 
     public int getChangeBufferCommitFrequency() {
         return changeBufferCommitFrequency;
-    }
-
-    public String getMessageQueueCamelRoutePrefix() {
-        return messageQueueCamelRoutePrefix;
     }
 }
