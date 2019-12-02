@@ -15,7 +15,13 @@
 
 package no.rutebanken.anshar.routes.siri.adapters;
 
-import no.rutebanken.anshar.routes.siri.processor.*;
+import no.rutebanken.anshar.routes.siri.processor.BaneNorIdPlatformPostProcessor;
+import no.rutebanken.anshar.routes.siri.processor.BaneNorRemoveExpiredJourneysPostProcessor;
+import no.rutebanken.anshar.routes.siri.processor.BaneNorRemoveFreightTrainPostProcessor;
+import no.rutebanken.anshar.routes.siri.processor.BaneNorSiriEtRewriter;
+import no.rutebanken.anshar.routes.siri.processor.BaneNorSiriStopAssignmentPopulater;
+import no.rutebanken.anshar.routes.siri.processor.EnsureIncreasingTimesProcessor;
+import no.rutebanken.anshar.routes.siri.processor.OperatorFilterPostProcessor;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 
@@ -43,6 +49,7 @@ public class BaneNorEtValueAdapters extends MappingAdapter {
 
         operatorOverrideMapping.put("FLY", "FLT");
         operatorOverrideMapping.put("SJ", "SJV");
+        operatorOverrideMapping.put("GAG", "GOA");
 
         List<String> operatorsToIgnore = new ArrayList<>();//Arrays.asList("BN", "");
         valueAdapters.add(new OperatorFilterPostProcessor(operatorsToIgnore, operatorOverrideMapping));
