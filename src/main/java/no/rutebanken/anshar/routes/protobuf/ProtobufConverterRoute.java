@@ -16,7 +16,7 @@ public class ProtobufConverterRoute extends RouteBuilder {
                     p.getOut().setBody(p.getIn().getBody(String.class));
                     p.getOut().setHeaders(p.getIn().getHeaders());
                 })
-                .bean(SiriMapper.class, "map")
+                .bean(SiriMapper.class, "mapToPbf")
                 .process(p -> {
                     final SiriType body = p.getIn().getBody(SiriType.class);
                     p.getOut().setBody(body.toByteArray());
