@@ -59,6 +59,7 @@ public class AdministrationRoute extends RestRouteBuilder {
                 .put("/stats").to("direct:operation")
                 .get("/clusterstats").produces(MediaType.APPLICATION_JSON).to("direct:clusterstats")
                 .get("/unmapped").produces(MediaType.TEXT_HTML).to("direct:unmapped")
+                .get("/unmapped/{datasetId}").produces(MediaType.TEXT_HTML).to("direct:unmapped")
         ;
 
         //Return subscription status
