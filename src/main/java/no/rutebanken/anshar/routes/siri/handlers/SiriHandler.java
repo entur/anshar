@@ -33,6 +33,7 @@ import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import no.rutebanken.anshar.subscription.helpers.MappingAdapterPresets;
 import org.json.simple.JSONObject;
+import org.rutebanken.siri20.util.SiriXml;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -383,6 +384,11 @@ public class SiriHandler {
                     subscriptionManager.touchSubscription(subscriptionId);
                 }
             } else {
+                try {
+                    logger.info("Unsupported SIRI-request:" + SiriXml.toXml(incoming));
+                } catch (JAXBException e) {
+                    //Ignore
+                }
                 throw new RuntimeException(new ServiceNotSupportedException());
             }
         } else {
