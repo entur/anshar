@@ -42,6 +42,7 @@ public class MessagingRoute extends RestRouteBuilder {
         final String pubsubQueueName = messageQueueCamelRoutePrefix + CamelRouteNames.TRANSFORM_QUEUE;
 
         from("direct:enqueue.message")
+                .to("direct:transform.siri")
                 .process(p -> { // Remove lots of unecessary headers
                     p.getOut().setBody(p.getIn().getBody());
                     p.getOut().setHeader("subscriptionId", p.getIn().getHeader("subscriptionId"));
@@ -53,22 +54,25 @@ public class MessagingRoute extends RestRouteBuilder {
                 .to(pubsubQueueName + activeMQParameters)
         ;
 
+        from("direct:transform.siri")
+                .choice()
+                    .when(header(TRANSFORM_SOAP).isEqualTo(simple(TRANSFORM_SOAP)))
+                    .log("Transforming SOAP")
+                    .to("xslt:xsl/siri_soap_raw.xsl?saxon=true&allowStAX=false&resultHandlerFactory=#streamResultHandlerFactory") // Extract SOAP version and convert to raw SIRI
+                .endChoice()
+                .end()
+                .choice()
+                    .when(header(TRANSFORM_VERSION).isEqualTo(simple(TRANSFORM_VERSION)))
+                    .log("Transforming version")
+                    .to("xslt:xsl/siri_14_20.xsl?saxon=true&allowStAX=false&resultHandlerFactory=#streamResultHandlerFactory") // Convert from v1.4 to 2.0
+                .endChoice()
+                .end()
+        ;
+
         from(pubsubQueueName + activeMqConsumerParameters)
                 .to("direct:decompress.jaxb")
 //                .to("direct:map.protobuf.to.jaxb")
                 .log("Processing data from " + pubsubQueueName)
-                .choice()
-                    .when(header(TRANSFORM_SOAP).isEqualTo(simple(TRANSFORM_SOAP)))
-                        .log("Transforming SOAP")
-                        .to("xslt:xsl/siri_soap_raw.xsl?saxon=true&allowStAX=false&resultHandlerFactory=#streamResultHandlerFactory") // Extract SOAP version and convert to raw SIRI
-                    .endChoice()
-                .end()
-                .choice()
-                    .when(header(TRANSFORM_VERSION).isEqualTo(simple(TRANSFORM_VERSION)))
-                        .log("Transforming version")
-                        .to("xslt:xsl/siri_14_20.xsl?saxon=true&allowStAX=false&resultHandlerFactory=#streamResultHandlerFactory") // Convert from v1.4 to 2.0
-                    .endChoice()
-                .end()
                 .to("direct:" + CamelRouteNames.ROUTER_QUEUE)
                 .routeId("incoming.transform")
         ;

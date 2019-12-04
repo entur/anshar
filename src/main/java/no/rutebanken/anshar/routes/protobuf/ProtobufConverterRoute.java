@@ -27,7 +27,7 @@ public class ProtobufConverterRoute extends RouteBuilder {
         from("direct:decompress.jaxb")
                 .bean(kryoSerializer, "read")
                 .process(p -> {
-                    final Siri body = p.getIn().getBody(Siri.class);
+                    final String body = p.getIn().getBody(String.class);
                     p.getOut().setBody(body);
                     p.getOut().setHeaders(p.getIn().getHeaders());
                 })
