@@ -47,11 +47,16 @@ public class MessagingRoute extends RestRouteBuilder {
                     p.getOut().setBody(p.getIn().getBody());
                     p.getOut().setHeader("subscriptionId", p.getIn().getHeader("subscriptionId"));
                 })
-//                .to("xslt:xsl/split.xsl")
-//                .split().tokenizeXML("Siri").streaming()
-                .to("direct:compress.jaxb")
+//                .to("xslt:xsl/split.xsl").split().tokenizeXML("Siri").streaming()
+                .choice()
+                    .when().xpath("/siri:Siri/siri:DataReadyNotification", ns)
+                    .to("direct:"+CamelRouteNames.FETCHED_DELIVERY_QUEUE)
+                .endChoice()
+                .otherwise()
+                    .to("direct:compress.jaxb")
 //                .to("direct:map.jaxb.to.protobuf")
-                .to(pubsubQueueName + activeMQParameters)
+                  .to(pubsubQueueName + activeMQParameters)
+                .end()
         ;
 
         from("direct:transform.siri")
@@ -73,20 +78,20 @@ public class MessagingRoute extends RestRouteBuilder {
                 .to("direct:decompress.jaxb")
 //                .to("direct:map.protobuf.to.jaxb")
                 .log("Processing data from " + pubsubQueueName)
-                .to("direct:" + CamelRouteNames.ROUTER_QUEUE)
+                .to("direct:" + CamelRouteNames.DEFAULT_PROCESSOR_QUEUE)
                 .routeId("incoming.transform")
         ;
-
-        from("direct:" + CamelRouteNames.ROUTER_QUEUE)
-                .choice()
-                .when().xpath("/siri:Siri/siri:DataReadyNotification", ns)
-                    .to("direct:"+CamelRouteNames.FETCHED_DELIVERY_QUEUE)
-                .endChoice()
-                .otherwise()
-                    .to("direct:"+CamelRouteNames.DEFAULT_PROCESSOR_QUEUE)
-                .end()
-                .routeId("incoming.redirect")
-        ;
+//
+//        from("direct:" + CamelRouteNames.ROUTER_QUEUE)
+//                .choice()
+//                .when().xpath("/siri:Siri/siri:DataReadyNotification", ns)
+//                    .to("direct:"+CamelRouteNames.FETCHED_DELIVERY_QUEUE)
+//                .endChoice()
+//                .otherwise()
+//                    .to("direct:"+CamelRouteNames.DEFAULT_PROCESSOR_QUEUE)
+//                .end()
+//                .routeId("incoming.redirect")
+//        ;
 
         from("direct:" + CamelRouteNames.DEFAULT_PROCESSOR_QUEUE)
                 .process(p -> {
