@@ -42,6 +42,7 @@ public class MessagingRoute extends RestRouteBuilder {
         final String pubsubQueueName = messageQueueCamelRoutePrefix + CamelRouteNames.TRANSFORM_QUEUE;
 
         from("direct:enqueue.message")
+                .setBody(body().convertToString())
                 .to("direct:transform.siri")
                 .process(p -> { // Remove lots of unecessary headers
                     p.getOut().setBody(p.getIn().getBody());

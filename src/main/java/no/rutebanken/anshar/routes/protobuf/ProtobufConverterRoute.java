@@ -17,6 +17,7 @@ public class ProtobufConverterRoute extends RouteBuilder {
 
 
         from("direct:compress.jaxb")
+                .setBody(body().convertToString())
                 .process(p -> {
                     p.getOut().setBody(p.getIn().getBody(String.class));
                     p.getOut().setHeaders(p.getIn().getHeaders());
