@@ -78,10 +78,12 @@ public class SiriVmMqttHandler {
     ProducerTemplate mqttProducer;
 
     public void pushToMqttAsync(String datasetId, VehicleActivityStructure activity) {
-        Executors.newSingleThreadExecutor().submit(() -> pushToMqtt(datasetId, activity));
+        if (mqttEnabled) {
+            Executors.newSingleThreadExecutor().submit(() -> pushToMqtt(datasetId, activity));
+        }
     }
 
-    public void pushToMqtt(String datasetId, VehicleActivityStructure activity) {
+    private void pushToMqtt(String datasetId, VehicleActivityStructure activity) {
         if (!mqttEnabled) {
             return;
         }

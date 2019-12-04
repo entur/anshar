@@ -20,17 +20,14 @@ import org.apache.camel.Exchange;
 import org.apache.camel.InvalidPayloadException;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
-import org.apache.camel.component.jetty.JettyRestHttpBinding;
-import org.apache.camel.http.common.HttpMessage;
-import org.eclipse.jetty.server.Request;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.xml.bind.UnmarshalException;
 import java.net.ConnectException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class RestRouteBuilder extends RouteBuilder {
 
@@ -45,7 +42,7 @@ public class RestRouteBuilder extends RouteBuilder {
         restConfiguration("jetty")
                 .port(configuration.getInboundPort())
                 .apiContextPath("anshar/swagger.json")
-                .endpointProperty("httpBindingRef", "#contentEncodingRequestFilter")
+//                .endpointProperty("httpBindingRef", "#contentEncodingRequestFilter")
                 .apiProperty("api.title", "Realtime").apiProperty("api.version", "1.0")
                 .apiProperty("cors", "true")
         ;
@@ -93,20 +90,60 @@ public class RestRouteBuilder extends RouteBuilder {
         return false;
     }
 
+    protected String getSubscriptionIdFromPath(String path) {
+        if (configuration.getIncomingPathPattern().startsWith("/")) {
+            if (!path.startsWith("/")) {
+                path = "/"+path;
+            }
+        } else {
+            if (path.startsWith("/")) {
+                path = path.substring(1);
+            }
+        }
+
+
+        Map<String, String> values = calculatePathVariableMap(path);
+        logger.trace("Incoming delivery {}", values);
+
+        return values.get("subscriptionId");
+    }
+
+    private Map<String, String> calculatePathVariableMap(String path) {
+        String[] parameters = path.split("/");
+        String[] parameterNames = configuration.getIncomingPathPattern().split("/");
+
+        Map<String, String> values = new HashMap<>();
+        for (int i = 0; i < parameterNames.length; i++) {
+
+            String value = (parameters.length > i ? parameters[i] : null);
+
+            if (parameterNames[i].startsWith("{")) {
+                parameterNames[i] = parameterNames[i].substring(1);
+            }
+            if (parameterNames[i].endsWith("}")) {
+                parameterNames[i] = parameterNames[i].substring(0, parameterNames[i].lastIndexOf("}"));
+            }
+
+            values.put(parameterNames[i], value);
+        }
+
+        return values;
+    }
+
 }
 
 // To be removed according to task ROR-521
-@Component
-class ContentEncodingRequestFilter extends JettyRestHttpBinding {
-
-    private static final String headerToRemove = "Content-Encoding";
-    private static final String headerValueToRemove = "iso-8859-15";
-
-    @Override
-    public void readRequest(HttpServletRequest request, HttpMessage message) {
-        if (((Request) request).getHttpFields().contains(headerToRemove, headerValueToRemove)) {
-            ((Request) request).getHttpFields().remove(headerToRemove);
-        }
-        super.readRequest(request, message);
-    }
-}
+//@Component
+//class ContentEncodingRequestFilter extends JettyRestHttpBinding {
+//
+//    private static final String headerToRemove = "Content-Encoding";
+//    private static final String headerValueToRemove = "iso-8859-15";
+//
+//    @Override
+//    public void readRequest(HttpServletRequest request, HttpMessage message) {
+//        if (((Request) request).getHttpFields().contains(headerToRemove, headerValueToRemove)) {
+//            ((Request) request).getHttpFields().remove(headerToRemove);
+//        }
+//        super.readRequest(request, message);
+//    }
+//}

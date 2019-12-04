@@ -110,9 +110,11 @@ abstract class SiriRepository<T> {
                     }
                 });
 
-                changesMap.executeOnEntries(new AppendChangesToSetEntryProcessor(bufferedChanges));
-                logger.info("Updating changes for {} requestors ({}), committed {} changes, update took {} ms",
-                        changesMap.size(), this.getClass().getSimpleName(), bufferedChanges.size(), (System.currentTimeMillis() - t1));
+                if (!changesMap.isEmpty()) {
+                    changesMap.executeOnEntries(new AppendChangesToSetEntryProcessor(bufferedChanges));
+                    logger.info("Updating changes for {} requestors ({}), committed {} changes, update took {} ms",
+                            changesMap.size(), this.getClass().getSimpleName(), bufferedChanges.size(), (System.currentTimeMillis() - t1));
+                }
             } else {
                 logger.debug("No changes - ignoring commit ({})", this.getClass().getSimpleName());
             }

@@ -39,7 +39,7 @@ public class OutboundSiriDistributionRoute extends RouteBuilder {
                 .setHeader("CamelHttpMethod", constant("POST"))
                 .setHeader(Exchange.CONTENT_TYPE, constant(MediaType.APPLICATION_XML))
                 .bean(metrics, "countOutgoingData(${body}, SUBSCRIBE)")
-                .to("direct:siri.transform.output")
+                .to("direct:siri.transform.data")
                 .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
                 .to("log:push:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .toD("${header.endpoint}" + options)
