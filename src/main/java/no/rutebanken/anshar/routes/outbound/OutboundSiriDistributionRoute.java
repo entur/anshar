@@ -22,7 +22,7 @@ public class OutboundSiriDistributionRoute extends RouteBuilder {
     @Override
     public void configure() {
 
-        int timeout = 5000;
+        int timeout = 15000;
 
         String options = "?httpClient.socketTimeout=" + timeout + "&httpClient.connectTimeout=" + timeout;
 
