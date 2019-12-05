@@ -19,7 +19,8 @@ public class ProtobufConverterRoute extends RouteBuilder {
         from("direct:compress.jaxb")
                 .setBody(body().convertToString())
                 .process(p -> {
-                    p.getOut().setBody(p.getIn().getBody(String.class));
+                    final String body = fixEncodingErrorsInXml(p.getIn().getBody(String.class), p.getIn().getHeader("subscriptionId", String.class));
+                    p.getOut().setBody(body);
                     p.getOut().setHeaders(p.getIn().getHeaders());
                 })
                 .bean(kryoSerializer, "write")
@@ -61,6 +62,44 @@ public class ProtobufConverterRoute extends RouteBuilder {
                 })
         ;
 
+    }
+
+    /*
+     * Temporarily replaces characters when receiving data created by wrong encoding - KOLDATA-479
+     */
+    private String fixEncodingErrorsInXml(String body, String subscriptionId) {
+
+        boolean replacedChars = false;
+        if (body.indexOf("Ã¦") >= 0) {
+            body = body.replaceAll("Ã¦", "æ");
+            replacedChars = true;
+        }
+        if (body.indexOf("Ã†") >= 0) {
+            body = body.replaceAll("Ã†", "Æ");
+            replacedChars = true;
+        }
+        if (body.indexOf("Ã¸") >= 0) {
+            body = body.replaceAll("Ã¸", "ø");
+            replacedChars = true;
+        }
+        if (body.indexOf("Ã\u0098") >= 0) {
+            body = body.replaceAll("Ã\u0098", "Ø");
+            replacedChars = true;
+        }
+        if (body.indexOf("Ã¥") >= 0) {
+            body = body.replaceAll("Ã¥", "å");
+            replacedChars = true;
+        }
+        if (body.indexOf("Ã\u0085") >= 0) {
+            body = body.replaceAll("Ã\u0085", "Å");
+            replacedChars = true;
+        }
+
+        if (replacedChars) {
+            log.info("Fixed encoding errors for subscriptionId: {}", subscriptionId);
+        }
+
+        return body;
     }
 }
 
