@@ -71,6 +71,10 @@ public class ServerSubscriptionManager extends CamelRouteManager {
     private IMap<String, Instant> failTrackerMap;
 
     @Autowired
+    @Qualifier("getHeartbeatTimestampMap")
+    private IMap<String, Instant> heartbeatTimestampMap;
+
+    @Autowired
     private SiriObjectFactory siriObjectFactory;
 
     @Autowired
@@ -235,6 +239,7 @@ public class ServerSubscriptionManager extends CamelRouteManager {
     private OutboundSubscriptionSetup removeSubscription(String subscriptionId) {
         logger.info("Removing subscription {}", subscriptionId);
         failTrackerMap.delete(subscriptionId);
+        heartbeatTimestampMap.remove(subscriptionId);
         return subscriptions.remove(subscriptionId);
     }
 
