@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.ws.rs.core.MediaType;
-import java.net.ConnectException;
 
 @Service
 public class OutboundSiriDistributionRoute extends RouteBuilder {
@@ -23,13 +22,13 @@ public class OutboundSiriDistributionRoute extends RouteBuilder {
     @Override
     public void configure() {
 
-        int timeout = 30000;
+        int timeout = 5000;
 
         String options = "?httpClient.socketTimeout=" + timeout + "&httpClient.connectTimeout=" + timeout;
 
-        onException(ConnectException.class)
-                .maximumRedeliveries(3)
-                .log("Failed to connect to recipient");
+//        onException(ConnectException.class)
+//                .maximumRedeliveries(3)
+//                .log("Failed to connect to recipient");
 
         errorHandler(noErrorHandler());
 
