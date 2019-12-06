@@ -15,6 +15,7 @@
 
 package no.rutebanken.anshar.routes.outbound;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.apache.camel.Produce;
 import org.apache.camel.ProducerTemplate;
 import org.slf4j.Logger;
@@ -29,11 +30,13 @@ import uk.org.siri.siri20.SituationExchangeDeliveryStructure;
 import uk.org.siri.siri20.VehicleMonitoringDeliveryStructure;
 
 import java.net.SocketException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 import static no.rutebanken.anshar.routes.siri.transformer.SiriOutputTransformerRoute.OUTPUT_ADAPTERS_HEADER_NAME;
 
@@ -46,6 +49,9 @@ public class CamelRouteManager {
 
     @Value("${anshar.default.max.elements.per.delivery:1000}")
     private int maximumSizePerDelivery;
+
+    @Value("${anshar.default.max.threads.per.outbound.subscription:20}")
+    private int maximumThreadsPerOutboundSubscription;
 
     @Autowired
     private ServerSubscriptionManager subscriptionManager;
@@ -65,9 +71,14 @@ public class CamelRouteManager {
             return;
         }
 
-        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        ExecutorService executorService = getOrCreateExecutorService(subscriptionRequest);
         executorService.submit(() -> {
             try {
+
+                if (!subscriptionManager.subscriptions.containsKey(subscriptionRequest.getSubscriptionId())) {
+                    // Short circuit if subscription has been terminated while waiting
+                    return;
+                }
 
                 Siri filteredPayload = SiriHelper.filterSiriPayload(payload, subscriptionRequest.getFilterMap());
 
@@ -98,11 +109,45 @@ public class CamelRouteManager {
                     logger.info("Exception caught when pushing SIRI-data: {}", msg);
                 }
                 subscriptionManager.pushFailedForSubscription(subscriptionRequest.getSubscriptionId());
-            } finally {
-                executorService.shutdown();
-            }
 
+                removeDeadSubscriptionExecutors();
+            }
         });
+    }
+
+    Map<String, ExecutorService> threadFactoryMap = new HashMap<>();
+    private ExecutorService getOrCreateExecutorService(OutboundSubscriptionSetup subscriptionRequest) {
+
+        final String subscriptionId = subscriptionRequest.getSubscriptionId();
+        if (!threadFactoryMap.containsKey(subscriptionId)) {
+            ThreadFactory factory = new ThreadFactoryBuilder().setNameFormat("outbound"+subscriptionId).build();
+
+            threadFactoryMap.put(subscriptionId, Executors.newFixedThreadPool(maximumThreadsPerOutboundSubscription, factory));
+        }
+
+        return threadFactoryMap.get(subscriptionId);
+    }
+
+
+    /**
+     * Clean up dead ExecutorServices
+     */
+    private void removeDeadSubscriptionExecutors() {
+        List<String> idsToRemove = new ArrayList<>();
+        for (String id : threadFactoryMap.keySet()) {
+            if (!subscriptionManager.subscriptions.containsKey(id)) {
+                final ExecutorService service = threadFactoryMap.get(id);
+                idsToRemove.add(id);
+                // Force shutdown since outbound subscription has been stopped
+                service.shutdownNow();
+            }
+        }
+        if (!idsToRemove.isEmpty()) {
+            for (String id : idsToRemove) {
+                logger.info("Remove executor for subscription {)", id);
+                threadFactoryMap.remove(id);
+            }
+        }
     }
 
     private void postDataToSubscription(Siri payload, OutboundSubscriptionSetup subscription) {
