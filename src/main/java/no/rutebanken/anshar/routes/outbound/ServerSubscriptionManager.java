@@ -148,6 +148,16 @@ public class ServerSubscriptionManager extends CamelRouteManager {
             errorText = initialTerminationTimePassed;
         }
 
+        if (subscriptions.containsKey(subscription.getSubscriptionId())) {
+
+            final OutboundSubscriptionSetup subscriptionSetup = subscriptions.get(subscription.getSubscriptionId());
+
+            if (subscription.getSubscriptionType() != subscriptionSetup.getSubscriptionType()) {
+                hasError = true;
+                errorText = "A different subscription with id=" + subscription.getSubscriptionId() + " already exists";
+            }
+        }
+
         if (hasError) {
             Siri subscriptionResponse = siriObjectFactory.createSubscriptionResponse(subscription.getSubscriptionId(), false, errorText);
             return subscriptionResponse;
