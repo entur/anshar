@@ -42,7 +42,7 @@ public class MappingDatasetUpdaterRoute extends BaseRouteBuilder {
 
         if (quayMappingUrl != null && !quayMappingUrl.isEmpty() &&
                 quayMappingPath != null && !quayMappingPath.isEmpty()) {
-            singletonFrom("quartz2://anshar.import.mapping.quay?cron=0 0/60 0/1 ? * * *"
+            singletonFrom("quartz2://anshar.import.mapping.quay?cron=0 0/0 0/1 ? * * *"
                     , "anshar.import.mapping.quay")
                     .choice()
                     .when(p -> isLeader("anshar.import.mapping.quay"))
@@ -56,7 +56,7 @@ public class MappingDatasetUpdaterRoute extends BaseRouteBuilder {
         }
         if (stopPlaceMappingUrl != null && !stopPlaceMappingUrl.isEmpty() &&
                 stopPlaceMappingPath != null && !stopPlaceMappingPath.isEmpty()) {
-            singletonFrom("quartz2://anshar.import.mapping.stop_place?cron=0 5/60 0/1 ? * * *"
+            singletonFrom("quartz2://anshar.import.mapping.stop_place?cron=0 0/5 0/1 ? * * *"
                     , "anshar.import.mapping.stop_place")
                     .choice()
                     .when(p -> isLeader("anshar.import.mapping.stop_place"))
@@ -68,7 +68,7 @@ public class MappingDatasetUpdaterRoute extends BaseRouteBuilder {
         }
         if (jbvCodeStopPlaceMappingUrl != null && !jbvCodeStopPlaceMappingUrl.isEmpty() &&
                 jbvCodeStopPlaceMappingPath != null && !jbvCodeStopPlaceMappingPath.isEmpty()) {
-            singletonFrom("quartz2://anshar.import.mapping.jbv_code?cron=0 10/60 0/1 ? * * *"
+            singletonFrom("quartz2://anshar.import.mapping.jbv_code?cron=0 0/10 0/1 ? * * *"
                     , "anshar.import.mapping.jbv_code")
                     .choice()
                     .when(p -> isLeader("anshar.import.mapping.jbv_code"))
