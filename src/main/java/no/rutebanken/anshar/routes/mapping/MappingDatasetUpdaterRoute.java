@@ -82,11 +82,12 @@ public class MappingDatasetUpdaterRoute extends BaseRouteBuilder {
         }
 
         from("direct:process.mapping.update")
+                .log("Updating ${header.name} from ${header.url}")
                 .setHeader("ET-Client-Name", constant("anshar-mapping"))
                 .toD("${header.url}")
-                .log("Updating ${header.name} from ${header.url}")
                 .bean(blobStoreService, "uploadBlob(${header.name}, ${body}, false)")
-                .removeHeaders("CamelHttp*")
+                .log("Done updating ${header.name} from ${header.url}")
+                .routeId("process.mapping.update")
         ;
 
 //        from("direct:read.data.from.url")
