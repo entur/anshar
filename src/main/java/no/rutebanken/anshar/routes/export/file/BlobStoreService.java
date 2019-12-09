@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 
 @Service
@@ -50,8 +51,16 @@ public class BlobStoreService {
 	}
 
 	public void uploadBlob(String name, byte[] data) {
+		uploadBlob(name, data, true);
+	}
+
+	public void uploadBlob(String name, byte[] data, boolean makePublic) {
 		if (data != null) {
-			repository.uploadBlob(name, data, true);
+			repository.uploadBlob(name, data, makePublic);
 		}
+	}
+
+	public InputStream getBlob(String name) {
+		return repository.getBlob(name);
 	}
 }

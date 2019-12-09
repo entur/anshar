@@ -21,6 +21,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
+import java.io.InputStream;
+
 @Repository
 @Profile("in-memory-blobstore")
 public class InMemoryBlobStoreRepository implements BlobStoreRepository {
@@ -40,6 +42,11 @@ public class InMemoryBlobStoreRepository implements BlobStoreRepository {
     @Override
     public void setContainerName(String containerName) {
 
+    }
+
+    @Override
+    public InputStream getBlob(String name) {
+        return null;
     }
 
 }

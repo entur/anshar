@@ -16,11 +16,18 @@
 package no.rutebanken.anshar.routes.siri.processor;
 
 import no.rutebanken.anshar.routes.health.HealthManager;
+import no.rutebanken.anshar.routes.mapping.BaneNorIdPlatformUpdaterService;
 import no.rutebanken.anshar.routes.siri.transformer.ApplicationContextHolder;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter;
 import no.rutebanken.anshar.subscription.SiriDataType;
-import uk.org.siri.siri20.*;
+import uk.org.siri.siri20.EstimatedCall;
+import uk.org.siri.siri20.EstimatedTimetableDeliveryStructure;
+import uk.org.siri.siri20.EstimatedVehicleJourney;
+import uk.org.siri.siri20.EstimatedVersionFrameStructure;
+import uk.org.siri.siri20.NaturalLanguageStringStructure;
+import uk.org.siri.siri20.RecordedCall;
+import uk.org.siri.siri20.Siri;
 
 import java.util.HashSet;
 import java.util.List;

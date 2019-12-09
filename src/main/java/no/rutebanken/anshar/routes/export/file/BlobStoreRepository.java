@@ -17,6 +17,8 @@ package no.rutebanken.anshar.routes.export.file;
 
 import com.google.cloud.storage.Storage;
 
+import java.io.InputStream;
+
 public interface BlobStoreRepository {
 
     void uploadBlob(String objectName, byte[] bytes, boolean makePublic);
@@ -26,4 +28,5 @@ public interface BlobStoreRepository {
     void setContainerName(String containerName);
 
 
+    InputStream getBlob(String name);
 }

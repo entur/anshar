@@ -17,9 +17,9 @@ package no.rutebanken.anshar.siri.transformer;
 
 import no.rutebanken.anshar.App;
 import no.rutebanken.anshar.routes.health.HealthManager;
+import no.rutebanken.anshar.routes.mapping.StopPlaceUpdaterService;
 import no.rutebanken.anshar.routes.siri.transformer.ApplicationContextHolder;
 import no.rutebanken.anshar.routes.siri.transformer.impl.StopPlaceRegisterMapper;
-import no.rutebanken.anshar.routes.siri.transformer.impl.StopPlaceUpdaterService;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import org.junit.Before;
 import org.junit.Test;
@@ -28,7 +28,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import uk.org.siri.siri20.JourneyPlaceRefStructure;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static junit.framework.TestCase.assertEquals;
 

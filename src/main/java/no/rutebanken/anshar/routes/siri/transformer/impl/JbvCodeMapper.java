@@ -17,7 +17,7 @@ package no.rutebanken.anshar.routes.siri.transformer.impl;
 
 
 import no.rutebanken.anshar.routes.health.HealthManager;
-import no.rutebanken.anshar.routes.siri.processor.BaneNorIdPlatformUpdaterService;
+import no.rutebanken.anshar.routes.mapping.BaneNorIdPlatformUpdaterService;
 import no.rutebanken.anshar.routes.siri.transformer.ApplicationContextHolder;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.subscription.SiriDataType;

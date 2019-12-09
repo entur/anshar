@@ -13,7 +13,7 @@
  * limitations under the Licence.
  */
 
-package no.rutebanken.anshar.routes.siri.transformer.impl;
+package no.rutebanken.anshar.routes.mapping;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,79 +24,72 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
-import java.util.Map;
 import java.util.Random;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @Component
 @Configuration
-public class StopPlaceUpdaterService {
-
-    private final Logger logger = LoggerFactory.getLogger(StopPlaceUpdaterService.class);
+public class BaneNorIdPlatformUpdaterService {
+    private final Logger logger = LoggerFactory.getLogger(BaneNorIdPlatformUpdaterService.class);
 
     private static final Object LOCK = new Object();
 
-    private final ConcurrentMap<String, String> stopPlaceMappings = new ConcurrentHashMap<>();
+    private final ConcurrentMap<String, String> jbvCodeStopPlaceMappings = new ConcurrentHashMap<>();
+
+    @Value("${anshar.mapping.jbvCode.gcs.path}")
+    private String jbvCodeStopPlaceMappingPath;
+
+    @Value("${anshar.mapping.update.frequency.min:60}")
+    private int updateFrequency = 60;
 
     @Autowired
     private StopPlaceRegisterMappingFetcher stopPlaceRegisterMappingFetcher;
 
-    @Value("${anshar.mapping.quays.url}")
-    private String quayMappingUrl;
-
-    @Value("${anshar.mapping.stopplaces.url}")
-    private String stopPlaceMappingUrl;
-
-    @Value("${anshar.mapping.stopplaces.update.frequency.min:60}")
-    private int updateFrequency = 60;
-
     public String get(String id) {
-        if (stopPlaceMappings.isEmpty()) {
+        if (jbvCodeStopPlaceMappings.isEmpty()) {
             // Avoid multiple calls at the same time.
             // Could have used a timed lock here.
             synchronized (LOCK) {
                 // Check again.
-                if (stopPlaceMappings.isEmpty()) {
+                if (jbvCodeStopPlaceMappings.isEmpty()) {
                     updateIdMapping();
                 }
             }
         }
-        return stopPlaceMappings.get(id);
+        return jbvCodeStopPlaceMappings.get(id);
     }
 
     @PostConstruct
     private void initialize() {
-
         updateIdMapping();
         ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 
         int initialDelay = updateFrequency + new Random().nextInt(10);
         executor.scheduleAtFixedRate(this::updateIdMapping, initialDelay, updateFrequency, TimeUnit.MINUTES);
 
-        logger.info("Initialized id_mapping-updater with urls:{}, updateFrequency:{} min, initialDelay:{} min", new String[]{quayMappingUrl, stopPlaceMappingUrl}, updateFrequency, initialDelay);
+
+        logger.info("Initialized jbvCode_mapping-updater with url:{}, updateFrequency:{} min, initialDelay:{} min", jbvCodeStopPlaceMappingPath, updateFrequency, initialDelay);
     }
 
     private void updateIdMapping() {
         try {
             // re-entrant
             synchronized (LOCK) {
-                updateStopPlaceMapping(quayMappingUrl);
-                updateStopPlaceMapping(stopPlaceMappingUrl);
+                updateStopPlaceMapping();
             }
-        } catch (IOException e) {
-            logger.error("Unable to initialize data", e);
+        } catch (Exception e) {
+            logger.warn("Fetching data - caused exception", e);
         }
     }
 
-    private void updateStopPlaceMapping(String mappingUrl) throws IOException {
-        logger.info("Fetching mapping data - start. Fetching mapping-data from {}", mappingUrl);
-
-        stopPlaceMappings.putAll(stopPlaceRegisterMappingFetcher.fetchStopPlaceMapping(mappingUrl));
-    }
-
-
-    //Called from tests
-    public void addStopPlaceMappings(Map<String, String> stopPlaceMap) {
-        this.stopPlaceMappings.putAll(stopPlaceMap);
+    private void updateStopPlaceMapping() throws IOException {
+        if (jbvCodeStopPlaceMappingPath != null && !jbvCodeStopPlaceMappingPath.isEmpty()) {
+            logger.info("Fetching mapping-data from {}", jbvCodeStopPlaceMappingPath);
+            jbvCodeStopPlaceMappings.putAll(stopPlaceRegisterMappingFetcher.fetchStopPlaceMapping(jbvCodeStopPlaceMappingPath));
+        }
     }
 }
