@@ -15,7 +15,7 @@
 
 package no.rutebanken.anshar.routes.mapping;
 
-import no.rutebanken.anshar.routes.export.file.BlobStoreRepository;
+import no.rutebanken.anshar.routes.export.file.BlobStoreService;
 import org.quartz.utils.counter.Counter;
 import org.quartz.utils.counter.CounterImpl;
 import org.slf4j.Logger;
@@ -36,7 +36,7 @@ public class StopPlaceRegisterMappingFetcher {
     private static final Logger logger = LoggerFactory.getLogger(StopPlaceRegisterMappingFetcher.class);
 
     @Autowired
-    BlobStoreRepository repository;
+    BlobStoreService blobStoreService;
 
     public Map<String, String> fetchStopPlaceMapping(String name) {
 
@@ -47,7 +47,7 @@ public class StopPlaceRegisterMappingFetcher {
 
             Counter duplicates = new CounterImpl(0);
 
-            final InputStream blob = repository.getBlob(name);
+            final InputStream blob = blobStoreService.getBlob(name);
 
             if (blob != null) {
                 BufferedReader reader = new BufferedReader(new InputStreamReader(blob));
