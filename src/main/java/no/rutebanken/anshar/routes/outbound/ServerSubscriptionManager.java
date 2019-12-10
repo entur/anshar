@@ -59,7 +59,7 @@ import static java.time.temporal.ChronoUnit.MILLIS;
 @SuppressWarnings("unchecked")
 @Service
 @Configuration
-public class ServerSubscriptionManager extends CamelRouteManager {
+public class ServerSubscriptionManager {
 
     private final Logger logger = LoggerFactory.getLogger(ServerSubscriptionManager.class);
 
@@ -97,6 +97,9 @@ public class ServerSubscriptionManager extends CamelRouteManager {
 
     @Produce(uri = "direct:send.to.pubsub.topic.estimated_timetable")
     protected ProducerTemplate siriEtTopicProducer;
+
+    @Autowired
+    private CamelRouteManager camelRouteManager;
 
     @Autowired
     private SiriHelper siriHelper;
@@ -171,7 +174,7 @@ public class ServerSubscriptionManager extends CamelRouteManager {
 
             if (delivery != null) {
                 logger.info("Sending initial delivery to " + subscription.getAddress());
-                pushSiriData(delivery, subscription);
+                camelRouteManager.pushSiriData(delivery, subscription, this);
             }
             return subscriptionResponse;
         }
@@ -306,7 +309,7 @@ public class ServerSubscriptionManager extends CamelRouteManager {
             Siri terminateSubscriptionResponse = siriObjectFactory.createTerminateSubscriptionResponse(subscriptionRef);
             logger.info("Sending TerminateSubscriptionResponse to {}", subscriptionRequest.getAddress());
 
-            pushSiriData(terminateSubscriptionResponse, subscriptionRequest);
+            camelRouteManager.pushSiriData(terminateSubscriptionResponse, subscriptionRequest, this);
         } else {
             logger.trace("Got TerminateSubscriptionRequest for non-existing subscription");
         }
@@ -349,7 +352,7 @@ public class ServerSubscriptionManager extends CamelRouteManager {
 
         ).forEach(subscription ->
 
-                        pushSiriData(delivery, subscription)
+                camelRouteManager.pushSiriData(delivery, subscription, this)
         );
 
     }
@@ -372,7 +375,7 @@ public class ServerSubscriptionManager extends CamelRouteManager {
 
         ).forEach(subscription ->
 
-                        pushSiriData(delivery, subscription)
+                camelRouteManager.pushSiriData(delivery, subscription, this)
         );
     }
 
@@ -393,7 +396,7 @@ public class ServerSubscriptionManager extends CamelRouteManager {
                                 (subscriptionRequest.getDatasetId() == null || (subscriptionRequest.getDatasetId().equals(datasetId))))
 
         ).forEach(subscription ->
-                        pushSiriData(delivery, subscription)
+                camelRouteManager.pushSiriData(delivery, subscription, this)
         );
     }
 

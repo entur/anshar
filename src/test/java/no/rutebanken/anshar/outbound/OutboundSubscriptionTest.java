@@ -57,7 +57,7 @@ public class OutboundSubscriptionTest {
     }
 
     @Test
-    public void testDuplicateSubscriptionIds() throws DatatypeConfigurationException, JAXBException, XMLStreamException {
+    public void testDuplicateSubscriptionIds() throws JAXBException, XMLStreamException {
         final String subscriptionId = "36dfa2d0-51d7-42fb-b828-44fc07684239";
         String sxSubscription = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                 "<Siri xmlns=\"http://www.siri.org.uk/siri\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n" +

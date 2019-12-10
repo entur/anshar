@@ -53,9 +53,6 @@ public class CamelRouteManager {
     @Value("${anshar.default.max.threads.per.outbound.subscription:20}")
     private int maximumThreadsPerOutboundSubscription;
 
-    @Autowired
-    private ServerSubscriptionManager subscriptionManager;
-
     @Produce(uri = "direct:send.to.external.subscription")
     protected ProducerTemplate siriSubscriptionProcessor;
 
@@ -64,7 +61,7 @@ public class CamelRouteManager {
      * @param payload
      * @param subscriptionRequest
      */
-    void pushSiriData(Siri payload, OutboundSubscriptionSetup subscriptionRequest) {
+    void pushSiriData(Siri payload, OutboundSubscriptionSetup subscriptionRequest, ServerSubscriptionManager subscriptionManager) {
         String consumerAddress = subscriptionRequest.getAddress();
         if (consumerAddress == null) {
             logger.info("ConsumerAddress is null - ignoring data.");
@@ -110,7 +107,7 @@ public class CamelRouteManager {
                 }
                 subscriptionManager.pushFailedForSubscription(subscriptionRequest.getSubscriptionId());
 
-                removeDeadSubscriptionExecutors();
+                removeDeadSubscriptionExecutors(subscriptionManager);
             }
         });
     }
@@ -131,8 +128,9 @@ public class CamelRouteManager {
 
     /**
      * Clean up dead ExecutorServices
+     * @param subscriptionManager
      */
-    private void removeDeadSubscriptionExecutors() {
+    private void removeDeadSubscriptionExecutors(ServerSubscriptionManager subscriptionManager) {
         List<String> idsToRemove = new ArrayList<>();
         for (String id : threadFactoryMap.keySet()) {
             if (!subscriptionManager.subscriptions.containsKey(id)) {

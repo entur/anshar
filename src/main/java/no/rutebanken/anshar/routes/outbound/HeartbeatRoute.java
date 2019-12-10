@@ -44,6 +44,9 @@ public class HeartbeatRoute extends BaseRouteBuilder {
     private ServerSubscriptionManager serverSubscriptionManager;
 
     @Autowired
+    private CamelRouteManager camelRouteManager;
+
+    @Autowired
     private SiriObjectFactory siriObjectFactory;
 
     protected HeartbeatRoute(@Autowired  AnsharConfiguration config, @Autowired SubscriptionManager subscriptionManager) {
@@ -66,7 +69,7 @@ public class HeartbeatRoute extends BaseRouteBuilder {
                             final long heartbeatInterval = outboundSubscriptionSetup.getHeartbeatInterval();
 
                             Siri heartbeatNotification = siriObjectFactory.createHeartbeatNotification(outboundSubscriptionSetup.getSubscriptionId());
-                            serverSubscriptionManager.pushSiriData(heartbeatNotification, outboundSubscriptionSetup);
+                            camelRouteManager.pushSiriData(heartbeatNotification, outboundSubscriptionSetup, serverSubscriptionManager);
 
                             heartbeatTimestampMap.put(subscriptionId, Instant.now(), heartbeatInterval, TimeUnit.MILLISECONDS);
                         }
