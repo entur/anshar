@@ -54,7 +54,7 @@ public class GcsBlobStoreRepository implements BlobStoreRepository {
 
     @Override
     public InputStream getBlob(String name) {
-        logger.info("Downloading file {} from container {}", name, containerName);
+        logger.info("Downloading file {} from container {} and storage: {}", name, containerName, storage);
         return BlobStoreHelper.getBlob(storage, containerName, name);
     }
 }
