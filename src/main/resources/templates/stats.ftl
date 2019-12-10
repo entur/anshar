@@ -99,7 +99,7 @@
                         <tr id="accordion${type?counter}-${item?counter}" class="collapse ${item.healthy???then(item.healthy?then("success","danger"), "warning")}">
                         <td colspan="9">
                             <table class="table table-striped">
-                                <tr><th>Dataset ID</th><td><a href="validation/${item.datasetId}" target="_blank">${item.datasetId}</a></td></tr>
+                                <tr><th>Dataset ID</th><td><a href="${item.validationUrl}" target="_blank">${item.datasetId}</a></td></tr>
                                 <tr><th>Vendor ID</th><td>${item.vendor}</td></tr>
                                 <tr><th>Servicetype</th><td>${item.serviceType}</td></tr>
                                 <tr><th>Inbound URL</th><td>${item.inboundUrl}</td></tr>

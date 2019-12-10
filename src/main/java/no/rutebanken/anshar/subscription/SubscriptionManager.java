@@ -19,7 +19,11 @@ package no.rutebanken.anshar.subscription;
 import com.hazelcast.core.IMap;
 import com.hazelcast.core.ReplicatedMap;
 import no.rutebanken.anshar.config.AnsharConfiguration;
-import no.rutebanken.anshar.data.*;
+import no.rutebanken.anshar.data.EstimatedTimetables;
+import no.rutebanken.anshar.data.RequestorRefRepository;
+import no.rutebanken.anshar.data.RequestorRefStats;
+import no.rutebanken.anshar.data.Situations;
+import no.rutebanken.anshar.data.VehicleActivities;
 import no.rutebanken.anshar.routes.health.HealthManager;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.subscription.helpers.RequestType;
@@ -34,12 +38,24 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
-import java.time.*;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-import static no.rutebanken.anshar.subscription.SiriDataType.*;
+import static no.rutebanken.anshar.subscription.SiriDataType.ESTIMATED_TIMETABLE;
+import static no.rutebanken.anshar.subscription.SiriDataType.SITUATION_EXCHANGE;
+import static no.rutebanken.anshar.subscription.SiriDataType.VEHICLE_MONITORING;
 
 @Service
 public class SubscriptionManager {
@@ -518,6 +534,7 @@ public class SubscriptionManager {
             urllist.put(s.name(), setup.getUrlMap().get(s));
         }
         obj.put("urllist", urllist);
+        obj.put("validationUrl", configuration.getInboundUrl() + "/validation/" + setup.getDatasetId());
 
         return obj;
     }
