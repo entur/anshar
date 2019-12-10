@@ -38,6 +38,7 @@ public class GcsBlobStoreRepository implements BlobStoreRepository {
 
     @Override
     public void setStorage(Storage storage) {
+        logger.info("Setting storage: {}", storage);
         this.storage = storage;
     }
 

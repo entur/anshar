@@ -17,6 +17,8 @@ package no.rutebanken.anshar.routes.export.file;
 
 import com.google.cloud.storage.Storage;
 import org.apache.camel.Header;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -30,6 +32,8 @@ import java.nio.file.Files;
 @Service
 public class BlobStoreService {
 
+	private Logger logger = LoggerFactory.getLogger(this.getClass());
+
 	@Autowired
 	private BlobStoreRepository repository;
 
@@ -41,6 +45,7 @@ public class BlobStoreService {
 
 	@PostConstruct
 	public void init() {
+		logger.info("Initializing BlobStoreService with container {}, storage {}", containerName, storage);
 		repository.setStorage(storage);
 		repository.setContainerName(containerName);
 	}
