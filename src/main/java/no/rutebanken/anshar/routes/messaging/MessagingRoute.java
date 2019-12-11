@@ -87,7 +87,7 @@ public class MessagingRoute extends RestRouteBuilder {
         from(pubsubQueueName + queueConsumerParameters)
                 .to("direct:decompress.jaxb")
 //                .to("direct:map.protobuf.to.jaxb")
-                .log("Processing data from " + pubsubQueueName)
+                .log("Processing data from " + pubsubQueueName + ", size ${header.Content-Length}")
                 .to("direct:" + CamelRouteNames.DEFAULT_PROCESSOR_QUEUE)
                 .routeId("incoming.transform")
         ;

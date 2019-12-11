@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 import uk.org.siri.siri20.Siri;
 import uk.org.siri.www.siri.SiriType;
 
+import static org.apache.camel.Exchange.CONTENT_LENGTH;
+
 @Service
 public class ProtobufConverterRoute extends RouteBuilder {
 
@@ -32,6 +34,7 @@ public class ProtobufConverterRoute extends RouteBuilder {
                     final String body = p.getIn().getBody(String.class);
                     p.getOut().setBody(body);
                     p.getOut().setHeaders(p.getIn().getHeaders());
+                    p.getOut().setHeader(CONTENT_LENGTH, body.getBytes().length);
                 })
         ;
 
