@@ -24,7 +24,6 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.util.Map;
-import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executors;
@@ -70,13 +69,11 @@ public class StopPlaceUpdaterService {
     @PostConstruct
     private void initialize() {
 
-        updateIdMapping();
         ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 
-        int initialDelay = updateFrequency + new Random().nextInt(10);
-        executor.scheduleAtFixedRate(this::updateIdMapping, initialDelay, updateFrequency, TimeUnit.MINUTES);
+        executor.scheduleAtFixedRate(this::updateIdMapping, 0, updateFrequency, TimeUnit.MINUTES);
 
-        logger.info("Initialized id_mapping-updater with urls:{}, updateFrequency:{} min, initialDelay:{} min", new String[]{quayMappingPath, stopPlaceMappingPath}, updateFrequency, initialDelay);
+        logger.info("Initialized id_mapping-updater with urls:{}, updateFrequency:{} min", new String[]{quayMappingPath, stopPlaceMappingPath}, updateFrequency);
     }
 
     private void updateIdMapping() {
