@@ -119,7 +119,7 @@ public class CamelRouteManager {
         if (!threadFactoryMap.containsKey(subscriptionId)) {
             ThreadFactory factory = new ThreadFactoryBuilder().setNameFormat("outbound"+subscriptionId).build();
 
-            threadFactoryMap.put(subscriptionId, Executors.newFixedThreadPool(maximumThreadsPerOutboundSubscription, factory));
+            threadFactoryMap.put(subscriptionId, Executors.newSingleThreadExecutor(factory));
         }
 
         return threadFactoryMap.get(subscriptionId);
