@@ -40,7 +40,7 @@
         <spring-boot-plugin.version>2.1.8.RELEASE</spring-boot-plugin.version>
         <spring-boot.version>2.1.8.RELEASE</spring-boot.version>
 
-        <camel-version>2.24.2</camel-version>
+        <camel-version>3.0.0</camel-version>
 
         <!-- Docker & Fabric8 Configs -->
         <docker.from>eu.gcr.io/entur-system-1287/openjdk11-base-image</docker.from>
@@ -131,7 +131,7 @@
         <dependency>
             <groupId>net.logstash.logback</groupId>
             <artifactId>logstash-logback-encoder</artifactId>
-            <version>6.2</version>
+            <version>6.3</version>
         </dependency>
 
         <dependency>
