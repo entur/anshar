@@ -328,16 +328,16 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
                     String key = createKey(datasetId, activity.getMonitoredVehicleJourney().getVehicleRef());
 
                     String currentChecksum = null;
-                    ZonedDateTime recordedAtTime = activity.getRecordedAtTime();
+                    ZonedDateTime validUntilTime = activity.getValidUntilTime();
                     try {
-                        // Calculate checksum without "RecordedTime" - thus ignoring "fake" updates
-                        activity.setRecordedAtTime(null);
+                        // Calculate checksum without "ValidUntilTime" - thus ignoring "fake" updates where only validity is updated
+                        activity.setValidUntilTime(null);
                         currentChecksum = getChecksum(activity);
                     } catch (Exception e) {
                         //Ignore - data will be updated
                     } finally {
-                        //Set original RecordedTime back
-                        activity.setRecordedAtTime(recordedAtTime);
+                        //Set original ValidUntilTime back
+                        activity.setValidUntilTime(validUntilTime);
                     }
 
                     String existingChecksum = checksumCache.get(key);
@@ -352,6 +352,8 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
                     }
 
                     if (updated) {
+                        checksumCache.put(key, currentChecksum, 5, TimeUnit.MINUTES); //Keeping all checksums for at least 5 minutes to avoid stale data
+
                         VehicleActivityStructure existing = vehicleActivities.get(key);
 
                         boolean keep = (existing == null); //No existing data i.e. keep
