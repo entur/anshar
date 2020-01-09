@@ -17,8 +17,6 @@ package no.rutebanken.anshar.routes.siri;
 
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.data.EstimatedTimetables;
-import no.rutebanken.anshar.data.RequestorRefRepository;
-import no.rutebanken.anshar.data.RequestorRefStats;
 import no.rutebanken.anshar.data.Situations;
 import no.rutebanken.anshar.data.VehicleActivities;
 import no.rutebanken.anshar.metrics.PrometheusMetricsService;
@@ -28,7 +26,6 @@ import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
-import no.rutebanken.anshar.subscription.SiriDataType;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import no.rutebanken.anshar.subscription.helpers.MappingAdapterPresets;
 import org.apache.camel.Exchange;
@@ -48,7 +45,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.MediaType;
 import javax.xml.bind.JAXBException;
 import java.io.IOException;
-import java.time.ZonedDateTime;
 import java.util.List;
 
 import static no.rutebanken.anshar.routes.HttpParameter.PARAM_DATASET_ID;
@@ -79,15 +75,10 @@ public class SiriLiteRoute extends RestRouteBuilder {
     private MappingAdapterPresets mappingAdapterPresets;
 
     @Autowired
-    private RequestorRefRepository requestorRefRepository;
-
-    @Autowired
     private PrometheusMetricsService metrics;
 
     @Autowired
     private SiriObjectFactory siriObjectFactory;
-
-    private static final int REQUESTS_PER_MINUTE_LIMIT = 5;
 
     @Override
     public void configure() throws Exception {
@@ -120,9 +111,6 @@ public class SiriLiteRoute extends RestRouteBuilder {
                 .log("RequestTracer - Incoming request (SX)")
                 .to("log:restRequest:" + getClass().getSimpleName() + "?showAll=false&showHeaders=true")
                 .choice()
-                .when(exchange -> isRequestingTooFrequent(exchange, SiriDataType.SITUATION_EXCHANGE))
-                    .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("429"))
-                .endChoice()
                 .when(e -> isTrackingHeaderAcceptable(e))
                     .process(p -> {
                         p.getOut().setHeaders(p.getIn().getHeaders());
@@ -161,9 +149,6 @@ public class SiriLiteRoute extends RestRouteBuilder {
                 .log("RequestTracer - Incoming request (VM)")
                 .to("log:restRequest:" + getClass().getSimpleName() + "?showAll=false&showHeaders=true")
                 .choice()
-                .when(exchange -> isRequestingTooFrequent(exchange, SiriDataType.VEHICLE_MONITORING))
-                    .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("429"))
-                .endChoice()
                 .when(e -> isTrackingHeaderAcceptable(e))
                     .process(p -> {
                         p.getOut().setHeaders(p.getIn().getHeaders());
@@ -214,9 +199,6 @@ public class SiriLiteRoute extends RestRouteBuilder {
                 .log("RequestTracer - Incoming request (ET)")
                 .to("log:restRequest:" + getClass().getSimpleName() + "?showAll=false&showHeaders=true")
                 .choice()
-                .when(exchange -> isRequestingTooFrequent(exchange, SiriDataType.ESTIMATED_TIMETABLE))
-                    .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("429"))
-                .endChoice()
                 .when(e -> isTrackingHeaderAcceptable(e))
                     .process(p -> {
                         p.getOut().setHeaders(p.getIn().getHeaders());
@@ -272,9 +254,6 @@ public class SiriLiteRoute extends RestRouteBuilder {
                 .log("RequestTracer - Incoming request (ET)")
                 .to("log:restRequest:" + getClass().getSimpleName() + "?showAll=false&showHeaders=true")
                 .choice()
-                .when(exchange -> isRequestingTooFrequent(exchange, SiriDataType.ESTIMATED_TIMETABLE))
-                .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("429"))
-                .endChoice()
                 .when(e -> isTrackingHeaderAcceptable(e))
                 .process(p -> {
 
@@ -296,21 +275,6 @@ public class SiriLiteRoute extends RestRouteBuilder {
                 .routeId("incoming.rest.et.monitored")
         ;
 
-    }
-
-    private boolean isRequestingTooFrequent(Exchange exchange, SiriDataType dataType) {
-        String requestorId = resolveRequestorId(exchange.getIn().getBody(HttpServletRequest.class));
-        double requestsPerMinute = 0;
-        if (requestorId != null) {
-            RequestorRefStats stats = requestorRefRepository.getStats(requestorId, dataType);
-            if (stats != null) {
-                long trackingDurationSeconds = ZonedDateTime.now().toEpochSecond() - stats.firstRequestTimestamp.toEpochSecond();
-                if (trackingDurationSeconds >= 1 && stats.requestCount > REQUESTS_PER_MINUTE_LIMIT) {
-                    requestsPerMinute = ((double) stats.requestCount / trackingDurationSeconds) * 60;
-                }
-            }
-        }
-        return requestsPerMinute > REQUESTS_PER_MINUTE_LIMIT;
     }
 
     private void streamOutput(Exchange p, Siri response, HttpServletResponse out) throws IOException, JAXBException {
