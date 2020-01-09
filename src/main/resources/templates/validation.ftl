@@ -9,10 +9,9 @@
     <script>
         function toggleValidation(id) {
 
-
             var uri = "toggle?subscriptionId="+id;
 
-            var filterValue = findGetParameter("filter");
+            var filterValue = document.getElementById("filterValue:"+id).value;
 
             if (filterValue) {
                 uri += "&filter="+filterValue;
@@ -23,19 +22,6 @@
             var xhr = new XMLHttpRequest();
             xhr.open('PUT', uri, true);
             xhr.send(null);
-        }
-
-        function findGetParameter(parameterName) {
-            var result = null,
-                tmp = [];
-            location.search
-                .substr(1)
-                .split("&")
-                .forEach(function (item) {
-                    tmp = item.split("=");
-                    if (tmp[0] === parameterName) result = decodeURIComponent(tmp[1]);
-                });
-            return result;
         }
     </script>
 
@@ -98,6 +84,25 @@
         .slider.round:before {
             border-radius: 50%;
         }
+
+        /* The text input field */
+        .input-field {
+            width: 150px;
+            height: 23px;
+            box-sizing: border-box;
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            border: 1px solid #C2C2C2;
+            box-shadow: 1px 1px 4px #EBEBEB;
+            -moz-box-shadow: 1px 1px 4px #EBEBEB;
+            -webkit-box-shadow: 1px 1px 4px #EBEBEB;
+            border-radius: 3px;
+            -webkit-border-radius: 3px;
+            -moz-border-radius: 3px;
+            padding: 7px;
+            outline: none;
+        }
+
     </style>
 </head>
 <body>
@@ -115,6 +120,7 @@
                 <th>Name</th>
                 <th>Subscription status</th>
                 <th>Type</th>
+                <th>Filter (optional)</th>
                 <th>Results</th>
                 <th>On/Off <sup><span class="glyphicon glyphicon-info-sign text-info"></sup></th>
             </tr>
@@ -128,9 +134,14 @@
                     <td>${item.subscriptionType}</td>
                     <td>
                         <label>
+                            <input type="text" class="input-field" id="filterValue:${item.subscriptionId}" value="${item.validationFilter???then("${item.validationFilter}","")}" onchange="this.form.submit()">
+                        </label>
+                    </td>
+                    <td>
+                        <label>
                             <a href="report?subscriptionId=${item.subscriptionId}" target="_blank">Validation report</a>
                         </label>
-                        </td>
+                    </td>
                     <td>
                         <label class="switch">
                             <input type="checkbox" ${item.validation?then("checked", "")} onchange="toggleValidation('${item.subscriptionId}')">
@@ -145,7 +156,8 @@
     <div class="row">
         <sup><span class="glyphicon glyphicon-info-sign text-info"></span></sup>
         Switching on validation will remove all previous validation reports, and start validation of all incoming ServiceDeliveries<br />
-        Validation will automatically be disabled when size limit has been reached. <br />
+        If the optional filter has been provided before switching on the report it will only validate ServiceDeliveries that contain the given string.<br />
+        Validation will automatically be disabled when size limit has been reached.<br />
         Validationresults will be kept for ${body.config.persistPeriodHours} hours.
     </div>
 </div>

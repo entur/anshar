@@ -168,6 +168,11 @@ public class ExtendedHazelcastService extends HazelCastService {
     }
 
     @Bean
+    public ReplicatedMap<String,String> getValidationFilterMap() {
+        return hazelcast.getReplicatedMap("anshar.validation.filter");
+    }
+
+    @Bean
     public ReplicatedMap<String, Instant> getLastActivityMap() {
         return hazelcast.getReplicatedMap("anshar.activity.last");
     }

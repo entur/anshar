@@ -238,6 +238,7 @@ public class SubscriptionSetup implements Serializable {
         obj.put("requestorRef", getRequestorRef());
         obj.put("inboundUrl", buildUrl(true));
         obj.put("validation", isValidation());
+        obj.put("validationFilter", getValidationFilter());
         obj.put("contentType", getContentType());
         obj.put("restartTime", getRestartTime());
 

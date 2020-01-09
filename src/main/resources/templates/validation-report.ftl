@@ -11,6 +11,7 @@
 <div class="jumbotron text-center">
     <h2>Validation results</h2>
     <strong>${(body?? && body.subscription??)?then(body.subscription.name, "Subscription not found")}</strong>
+    <h4>${(body?? && body.filter??)?then('Filter: ${body.filter}', "No filter")}</h4>
 </div>
 <#if body?? >
 <div class="container">

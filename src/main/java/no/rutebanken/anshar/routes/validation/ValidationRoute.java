@@ -74,12 +74,14 @@ public class ValidationRoute extends RestRouteBuilder {
     }
 
     private void toggleValidation(String subscriptionId, String validationFilter) {
+        log.info("got validationFilter: " + validationFilter);
         SubscriptionSetup subscriptionSetup = subscriptionManager.get(subscriptionId);
         if (subscriptionSetup != null) {
             subscriptionSetup.setValidation(! subscriptionSetup.isValidation());
             if (subscriptionSetup.isValidation()) {
                 //Validation has now been switched on - clear previous results
                 siriXmlValidator.clearValidationResults(subscriptionId);
+                siriXmlValidator.addFilter(subscriptionId, validationFilter);
                 subscriptionSetup.setValidationFilter(validationFilter);
             }
             log.info("Toggling validation, validation is now {}", (subscriptionSetup.isValidation()?"active":"disabled"));

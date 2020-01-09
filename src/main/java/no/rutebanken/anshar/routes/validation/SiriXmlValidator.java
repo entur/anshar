@@ -95,6 +95,10 @@ public class SiriXmlValidator extends ApplicationContextHolder{
     private ReplicatedMap<String, SubscriptionSetup> subscriptions;
 
     @Autowired
+    @Qualifier("getValidationFilterMap")
+    private ReplicatedMap<String, String> validationFilters;
+
+    @Autowired
     private SubscriptionManager subscriptionManager;
 
     private final Map<SiriDataType, Set<CustomValidator>> validationRules = new HashMap<>();
@@ -256,6 +260,13 @@ public class SiriXmlValidator extends ApplicationContextHolder{
         }
     }
 
+    public void addFilter(String subscriptionId, String validationFilter) {
+        validationFilters.remove(subscriptionId);
+        if (validationFilter != null && !validationFilter.isEmpty()) {
+            validationFilters.put(subscriptionId, validationFilter);
+        }
+    }
+
     public JSONObject getValidationResults(String subscriptionId) {
         List<String> validationRefs = validationResultRefs.get(subscriptionId);
 
@@ -267,6 +278,12 @@ public class SiriXmlValidator extends ApplicationContextHolder{
         JSONObject validationResult = new JSONObject();
 
         validationResult.put("subscription", subscriptionSetup.toJSON());
+
+        if (validationFilters.containsKey(subscriptionId)) {
+            String filter = validationFilters.get(subscriptionId);
+
+            validationResult.put("filter", filter);
+        }
 
         JSONArray resultList = new JSONArray();
         if (validationRefs != null) {
