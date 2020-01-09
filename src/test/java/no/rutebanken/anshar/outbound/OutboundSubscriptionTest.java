@@ -116,6 +116,7 @@ public class OutboundSubscriptionTest {
         assertTrue(siriET.getSubscriptionResponse().getResponseStatuses().get(0).isStatus() != null);
         assertFalse(siriET.getSubscriptionResponse().getResponseStatuses().get(0).isStatus());
 
+        serverSubscriptionManager.terminateSubscription(subscriptionId);
     }
 
     SubscriptionRequest getSubscriptionRequest(long heartbeatIntervalMillis) throws DatatypeConfigurationException {
