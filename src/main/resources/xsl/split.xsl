@@ -13,13 +13,14 @@
     <xsl:template name="Siri" match="/siri:Siri">
 
         <xsl:for-each select="/siri:Siri/siri:ServiceDelivery/siri:EstimatedTimetableDelivery/siri:EstimatedJourneyVersionFrame/siri:EstimatedVehicleJourney">
-            <Siri xmlns="http://www.siri.org.uk/siri" version="2.0">>
+            <Siri xmlns="http://www.siri.org.uk/siri" version="2.0">
                 <ServiceDelivery>
                     <xsl:copy-of select="/siri:Siri/siri:ServiceDelivery/siri:ResponseTimestamp"></xsl:copy-of>
                     <xsl:copy-of select="/siri:Siri/siri:ServiceDelivery/siri:ProducerRef"></xsl:copy-of>
                     <EstimatedTimetableDelivery version="2.0">
-                        <xsl:copy-of select="/siri:Siri/siri:ServiceDelivery/siri:EstimatedTimetableDelivery/siri:EstimatedJourneyVersionFrame/siri:ResponseTimestamp"></xsl:copy-of>
+                        <xsl:copy-of select="/siri:Siri/siri:ServiceDelivery/siri:EstimatedTimetableDelivery/siri:ResponseTimestamp"></xsl:copy-of>
                         <EstimatedJourneyVersionFrame>
+                            <xsl:copy-of select="/siri:Siri/siri:ServiceDelivery/siri:EstimatedTimetableDelivery/siri:EstimatedJourneyVersionFrame/siri:RecordedAtTime"></xsl:copy-of>
                             <xsl:copy-of select="."></xsl:copy-of>
                         </EstimatedJourneyVersionFrame>
                     </EstimatedTimetableDelivery>
@@ -28,7 +29,7 @@
         </xsl:for-each>
 
         <xsl:for-each select="/siri:Siri/siri:ServiceDelivery/siri:VehicleMonitoringDelivery/siri:VehicleActivity">
-            <Siri xmlns="http://www.siri.org.uk/siri" version="2.0">>
+            <Siri xmlns="http://www.siri.org.uk/siri" version="2.0">
                 <ServiceDelivery>
                     <xsl:copy-of select="/siri:Siri/siri:ServiceDelivery/siri:ResponseTimestamp"></xsl:copy-of>
                     <xsl:copy-of select="/siri:Siri/siri:ServiceDelivery/siri:ProducerRef"></xsl:copy-of>
@@ -41,7 +42,7 @@
         </xsl:for-each>
 
         <xsl:for-each select="/siri:Siri/siri:ServiceDelivery/siri:SituationExchangeDelivery/siri:Situations">
-            <Siri xmlns="http://www.siri.org.uk/siri" version="2.0">>
+            <Siri xmlns="http://www.siri.org.uk/siri" version="2.0">
                 <ServiceDelivery>
                     <xsl:copy-of select="/siri:Siri/siri:ServiceDelivery/siri:ResponseTimestamp"></xsl:copy-of>
                     <xsl:copy-of select="/siri:Siri/siri:ServiceDelivery/siri:ProducerRef"></xsl:copy-of>

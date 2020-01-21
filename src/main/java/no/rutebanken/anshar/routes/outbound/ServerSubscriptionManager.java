@@ -98,6 +98,9 @@ public class ServerSubscriptionManager {
     @Produce(uri = "direct:send.to.pubsub.topic.estimated_timetable")
     protected ProducerTemplate siriEtTopicProducer;
 
+    @Produce(uri = "direct:bigdata.siri.exporter")
+    protected ProducerTemplate siriBigdataExportProducer;
+
     @Autowired
     private CamelRouteManager camelRouteManager;
 
@@ -390,6 +393,9 @@ public class ServerSubscriptionManager {
         if (pushToTopicEnabled) {
             siriEtTopicProducer.sendBody(delivery);
         }
+
+        // Export updates
+        siriBigdataExportProducer.sendBody(delivery);
 
         subscriptions.values().stream().filter(subscriptionRequest ->
                         (subscriptionRequest.getSubscriptionType().equals(SiriDataType.ESTIMATED_TIMETABLE) &
