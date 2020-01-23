@@ -1,6 +1,7 @@
 package no.rutebanken.anshar.routes.export;
 
 import no.rutebanken.anshar.routes.dataformat.SiriDataFormatHelper;
+import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
 import org.apache.camel.ThreadPoolRejectedPolicy;
 import org.apache.camel.builder.RouteBuilder;
@@ -49,6 +50,7 @@ public class BigDataExporter extends RouteBuilder {
 //                        .split().tokenizeXML("Siri").streaming()
                     .doTry()
                         .setExchangePattern(ExchangePattern.OutOnly)
+                        .setHeader("X-Big-Daddy-Correlation-Id", exchangeProperty(Exchange.CORRELATION_ID))
                         .to(bigDataExportUrl + "?bridgeEndpoint=true")
                     .doCatch(Exception.class)
                         .to("log:exporter:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
