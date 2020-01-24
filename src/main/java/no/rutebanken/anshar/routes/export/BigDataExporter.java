@@ -29,9 +29,9 @@ public class BigDataExporter extends RouteBuilder {
          */
 
         ThreadPoolProfile bigdaddyThreadPool = new ThreadPoolProfileBuilder("big-daddy-tp-profile")
-                .maxPoolSize(1)
-                .maxQueueSize(1000)
-                .poolSize(1)
+                .maxPoolSize(200)
+                .maxQueueSize(2000)
+                .poolSize(50)
                 .rejectedPolicy(ThreadPoolRejectedPolicy.Discard)
                 .build();
 
