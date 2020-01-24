@@ -44,7 +44,8 @@ public class BigDataExporter extends RouteBuilder {
         ;
         if (bigDataExportUrl != null) {
             from("direct:big-daddy").streamCaching()
-                        .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
+                    .to("direct:siri.transform.data")
+                    .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
 //                    If data should be split up - uncomment the following
 //                        .to("xslt:xsl/split.xsl")
 //                        .split().tokenizeXML("Siri").streaming()
