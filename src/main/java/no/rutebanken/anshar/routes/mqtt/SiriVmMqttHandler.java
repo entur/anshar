@@ -68,6 +68,7 @@ public class SiriVmMqttHandler {
     private static final String GO = "go";
     private static final String BACK = "back";
 
+    private static int pushCounter = 0;
     @Value("${anshar.mqtt.enabled:false}")
     private boolean mqttEnabled;
 
@@ -97,6 +98,11 @@ public class SiriVmMqttHandler {
 
         try {
             Pair<String, String> message = getMessage(datasetId, activity);
+
+            if (pushCounter % 500 == 0) {
+                logger.info("Pushed {} MQTT-messages");
+            }
+            pushCounter++;
 
             mqttProducer.sendBodyAndHeader(message.getValue(), "topic", message.getKey());
 
