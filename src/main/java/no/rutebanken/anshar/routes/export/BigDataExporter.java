@@ -1,5 +1,6 @@
 package no.rutebanken.anshar.routes.export;
 
+import no.rutebanken.anshar.metrics.PrometheusMetricsService;
 import no.rutebanken.anshar.routes.dataformat.SiriDataFormatHelper;
 import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
@@ -7,6 +8,7 @@ import org.apache.camel.ThreadPoolRejectedPolicy;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.builder.ThreadPoolProfileBuilder;
 import org.apache.camel.spi.ThreadPoolProfile;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +17,9 @@ public class BigDataExporter extends RouteBuilder {
 
     @Value("${anshar.bigdata.siri.et.export.camel.url:}")
     private String bigDataExportUrl;
+
+    @Autowired
+    private PrometheusMetricsService metrics;
 
     @Override
     public void configure() {
@@ -53,6 +58,7 @@ public class BigDataExporter extends RouteBuilder {
                     .doTry()
                         .setExchangePattern(ExchangePattern.OutOnly)
                         .setHeader("X-Big-Daddy-Correlation-Id", exchangeProperty(Exchange.CORRELATION_ID))
+                        .bean(metrics, "countOutgoingData(${body}, BIG_DATA_EXPORT)")
                         .to("log:push-start:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                         .to(bigDataExportUrl + "?bridgeEndpoint=true")
                         .to("log:push-done:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
