@@ -104,7 +104,7 @@ public class SiriVmMqttHandler {
             Pair<String, String> message = getMessage(datasetId, activity);
 
             if (pushCounter % 500 == 0) {
-                logger.info("Pushed {} MQTT-messages. Current queue length: ", pushCounter, processCounter.get());
+                logger.info("Pushed {} MQTT-messages. Current queue length: {}", pushCounter, processCounter.get());
             }
             pushCounter++;
 
