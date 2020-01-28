@@ -48,6 +48,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @Configuration
 @Component
@@ -71,6 +72,8 @@ public class SiriVmMqttHandler {
     private static int pushCounter = 0;
     @Value("${anshar.mqtt.enabled:false}")
     private boolean mqttEnabled;
+
+    private static AtomicInteger processCounter = new AtomicInteger(0);
 
     @Value("${anshar.mqtt.destination.id.fallback:false}")
     private boolean destinationIdFallback;
@@ -97,10 +100,11 @@ public class SiriVmMqttHandler {
         }
 
         try {
+            processCounter.incrementAndGet();
             Pair<String, String> message = getMessage(datasetId, activity);
 
             if (pushCounter % 500 == 0) {
-                logger.info("Pushed {} MQTT-messages");
+                logger.info("Pushed {} MQTT-messages. Current queue length: ", pushCounter, processCounter.get());
             }
             pushCounter++;
 
@@ -110,6 +114,8 @@ public class SiriVmMqttHandler {
             logger.debug("Incomplete Siri data", e);
         } catch (Exception e) {
             logger.warn("Could not parse", e);
+        } finally {
+            processCounter.decrementAndGet();
         }
     }
 
