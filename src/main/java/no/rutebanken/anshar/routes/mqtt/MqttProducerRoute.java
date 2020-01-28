@@ -29,6 +29,7 @@ public class MqttProducerRoute extends RouteBuilder {
     private String password;
 
     private AtomicInteger counter = new AtomicInteger();
+    private AtomicInteger queueLength = new AtomicInteger();
 
     @Bean
     MqttConnectOptions connectOptions() {
@@ -48,15 +49,19 @@ public class MqttProducerRoute extends RouteBuilder {
         if (mqttEnabled) {
             from("direct:send.to.mqtt")
                     .routeId("send.to.mqtt")
+                    .bean(queueLength, "incrementAndGet")
                     .setHeader(PahoConstants.CAMEL_PAHO_OVERRIDE_TOPIC, simple("${header.topic}"))
                     .wireTap("direct:log.mqtt.traffic")
-                    .to("paho:default/topic?qos=1&clientId=" + clientId);
+                    .to("paho:default/topic?qos=1&clientId=" + clientId)
+                    .bean(queueLength, "decrementAndGet")
+            ;
 
             from("direct:log.mqtt.traffic")
                     .routeId("log.mqtt")
                     .process(p -> {
                         if (counter.incrementAndGet() % 1000 == 0) {
                             p.getOut().setHeader("counter", counter.get());
+                            p.getOut().setHeader("queueLength", queueLength.get());
                             p.getOut().setBody(p.getIn().getBody());
                         }
                     })
