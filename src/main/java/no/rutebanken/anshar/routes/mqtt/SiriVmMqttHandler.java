@@ -50,6 +50,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Configuration
@@ -81,16 +82,19 @@ public class SiriVmMqttHandler {
     private boolean destinationIdFallback;
 
     @Value("${anshar.mqtt.threadpool.size:20}")
-    private int threadpoolSize;
+    private int threadpoolSize = 20;
 
     @Produce(uri = "direct:send.to.mqtt")
     ProducerTemplate mqttProducer;
 
-    final ExecutorService executorService;
+    ExecutorService executorService;
 
     public SiriVmMqttHandler() {
-        logger.info("Creating ExecutorService with fixed Threadpool of size {}", threadpoolSize);
-        executorService = Executors.newFixedThreadPool(threadpoolSize, new ThreadFactoryBuilder().setNameFormat("mqtt-push").build());
+        if (mqttEnabled) {
+            logger.info("Creating ExecutorService with fixed Threadpool of size {}", threadpoolSize);
+            final ThreadFactory threadFactory = new ThreadFactoryBuilder().setNameFormat("mqtt-push").build();
+            executorService = Executors.newFixedThreadPool(threadpoolSize, threadFactory);
+        }
     }
 
     public void pushToMqttAsync(String datasetId, VehicleActivityStructure activity) {
