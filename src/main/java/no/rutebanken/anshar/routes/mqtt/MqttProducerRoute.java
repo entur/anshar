@@ -67,7 +67,7 @@ public class MqttProducerRoute extends RouteBuilder {
                     })
                     .choice()
                     .when(header("counter").isNotNull())
-                        .log("MQTT: Published ${header.counter} updates, last message: ${body}")
+                        .log("MQTT: Published ${header.counter} updates, queue length  ${header.queueLength}, last message: ${body}")
                     .endChoice()
                     .end();
 
