@@ -15,6 +15,7 @@
 
 package no.rutebanken.anshar.routes.mqtt;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter;
 import org.apache.camel.Produce;
 import org.apache.camel.ProducerTemplate;
@@ -47,6 +48,7 @@ import java.time.DateTimeException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -78,12 +80,22 @@ public class SiriVmMqttHandler {
     @Value("${anshar.mqtt.destination.id.fallback:false}")
     private boolean destinationIdFallback;
 
+    @Value("${anshar.mqtt.threadpool.size:20}")
+    private int threadpoolSize;
+
     @Produce(uri = "direct:send.to.mqtt")
     ProducerTemplate mqttProducer;
 
+    final ExecutorService executorService;
+
+    public SiriVmMqttHandler() {
+        logger.info("Creating ExecutorService with fixed Threadpool of size {}", threadpoolSize);
+        executorService = Executors.newFixedThreadPool(threadpoolSize, new ThreadFactoryBuilder().setNameFormat("mqtt-push").build());
+    }
+
     public void pushToMqttAsync(String datasetId, VehicleActivityStructure activity) {
         if (mqttEnabled) {
-            Executors.newSingleThreadExecutor().submit(() -> pushToMqtt(datasetId, activity));
+            executorService.submit(() -> pushToMqtt(datasetId, activity));
         }
     }
 
