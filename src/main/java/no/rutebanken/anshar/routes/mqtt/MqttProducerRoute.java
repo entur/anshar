@@ -65,7 +65,10 @@ public class MqttProducerRoute extends RouteBuilder {
             from("direct:send.to.mqtt")
                     .routeId("send.to.mqtt")
                     .setHeader(PahoConstants.CAMEL_PAHO_OVERRIDE_TOPIC, simple("${header.topic}"))
-                    .wireTap("paho:default/topic?qos=1&clientId=" + clientId).executorServiceRef("mqtt-tp-profile")
+                    .wireTap("direct:post.to.paho.client").executorServiceRef("mqtt-tp-profile");
+
+            from("direct:post.to.paho.client")
+                    .to("paho:default/topic?qos=1&clientId=" + clientId)
                     .to("direct:log.mqtt.traffic");
 
             from("direct:log.mqtt.traffic")
