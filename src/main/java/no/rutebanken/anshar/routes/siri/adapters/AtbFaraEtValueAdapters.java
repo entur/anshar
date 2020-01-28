@@ -20,6 +20,7 @@ import no.rutebanken.anshar.routes.siri.transformer.impl.StopPlaceRegisterMapper
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import uk.org.siri.siri20.DestinationRef;
 import uk.org.siri.siri20.JourneyPlaceRefStructure;
+import uk.org.siri.siri20.StopPointRef;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,6 +45,13 @@ public class AtbFaraEtValueAdapters extends MappingAdapter {
                 subscriptionSetup.getSubscriptionType(),
                 subscriptionSetup.getDatasetId(),
                 DestinationRef.class,
+                subscriptionSetup.getIdMappingPrefixes(),
+                "Quay"));
+
+        valueAdapters.add(new StopPlaceRegisterMapper(
+                subscriptionSetup.getSubscriptionType(),
+                subscriptionSetup.getDatasetId(),
+                StopPointRef.class,
                 subscriptionSetup.getIdMappingPrefixes(),
                 "Quay"));
 
