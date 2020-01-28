@@ -51,7 +51,8 @@ public class MqttProducerRoute extends RouteBuilder {
                     .routeId("send.to.mqtt")
                     .process( p-> {
                         queueLength.incrementAndGet();
-                        p.getOut().setBody(p.getIn().getBody());
+                        p.getOut().setBody(p.getIn().getBody(String.class));
+                        p.getOut().setHeader("queueLength", queueLength.incrementAndGet());
                     })
                     .setHeader(PahoConstants.CAMEL_PAHO_OVERRIDE_TOPIC, simple("${header.topic}"))
                     .wireTap("direct:log.mqtt.traffic")
@@ -66,7 +67,6 @@ public class MqttProducerRoute extends RouteBuilder {
                     .process(p -> {
                         if (counter.incrementAndGet() % 1000 == 0) {
                             p.getOut().setHeader("counter", counter.get());
-                            p.getOut().setHeader("queueLength", queueLength.get());
                             p.getOut().setBody(p.getIn().getBody());
                         }
                     })
