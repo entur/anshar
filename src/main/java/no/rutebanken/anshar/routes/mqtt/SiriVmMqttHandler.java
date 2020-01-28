@@ -90,11 +90,9 @@ public class SiriVmMqttHandler {
     ExecutorService executorService;
 
     public SiriVmMqttHandler() {
-        if (mqttEnabled) {
-            logger.info("Creating ExecutorService with fixed Threadpool of size {}", threadpoolSize);
-            final ThreadFactory threadFactory = new ThreadFactoryBuilder().setNameFormat("mqtt-push").build();
-            executorService = Executors.newFixedThreadPool(threadpoolSize, threadFactory);
-        }
+        logger.info("Creating ExecutorService with fixed Threadpool of size {}", threadpoolSize);
+        final ThreadFactory threadFactory = new ThreadFactoryBuilder().setNameFormat("mqtt-push").build();
+        executorService = Executors.newFixedThreadPool(threadpoolSize, threadFactory);
     }
 
     public void pushToMqttAsync(String datasetId, VehicleActivityStructure activity) {
