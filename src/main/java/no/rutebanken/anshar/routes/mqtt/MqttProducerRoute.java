@@ -1,8 +1,11 @@
 package no.rutebanken.anshar.routes.mqtt;
 
 
+import org.apache.camel.ThreadPoolRejectedPolicy;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.builder.ThreadPoolProfileBuilder;
 import org.apache.camel.component.paho.PahoConstants;
+import org.apache.camel.spi.ThreadPoolProfile;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -47,11 +50,23 @@ public class MqttProducerRoute extends RouteBuilder {
 
 
         if (mqttEnabled) {
+
+            ThreadPoolProfile mqttThreadPool = new ThreadPoolProfileBuilder("mqtt-tp-profile")
+                    .maxPoolSize(1000)
+                    .maxQueueSize(2000)
+                    .poolSize(50)
+                    .rejectedPolicy(ThreadPoolRejectedPolicy.DiscardOldest)
+                    .build();
+
+            getContext().getExecutorServiceManager().registerThreadPoolProfile(mqttThreadPool);
+
+
+
             from("direct:send.to.mqtt")
                     .routeId("send.to.mqtt")
                     .setHeader(PahoConstants.CAMEL_PAHO_OVERRIDE_TOPIC, simple("${header.topic}"))
-                    .wireTap("direct:log.mqtt.traffic")
-                    .to("paho:default/topic?qos=1&clientId=" + clientId);
+                    .wireTap("paho:default/topic?qos=1&clientId=" + clientId).executorServiceRef("mqtt-tp-profile")
+                    .to("direct:log.mqtt.traffic");
 
             from("direct:log.mqtt.traffic")
                     .routeId("log.mqtt")
