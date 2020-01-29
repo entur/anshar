@@ -59,9 +59,7 @@ public class BigDataExporter extends RouteBuilder {
                         .setExchangePattern(ExchangePattern.OutOnly)
                         .setHeader("X-Big-Daddy-Correlation-Id", exchangeProperty(Exchange.CORRELATION_ID))
                         .bean(metrics, "countOutgoingData(${body}, BIG_DATA_EXPORT)")
-                        .to("log:push-start:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                         .to(bigDataExportUrl + "?bridgeEndpoint=true")
-                        .to("log:push-done:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                     .doCatch(Exception.class)
                         .to("log:exporter:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                     .end();
