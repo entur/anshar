@@ -185,7 +185,7 @@ public class SaneDelayValidator extends CustomValidator {
         return 0;
     }
 
-    private class TooLongDelayException extends Exception {
+    private static class TooLongDelayException extends Exception {
 
         long delay;
 
@@ -200,9 +200,9 @@ public class SaneDelayValidator extends CustomValidator {
 
         private String formatSeconds(long timeInSeconds){
 
-            int secondsLeft = (int) timeInSeconds % 3600 % 60;
-            int minutes = (int) Math.floor(timeInSeconds % 3600 / 60);
-            int hours = (int) Math.floor(timeInSeconds / 3600);
+            int secondsLeft = Math.abs((int) timeInSeconds % 3600 % 60);
+            int minutes = Math.abs((int) Math.floor(timeInSeconds % 3600 / 60));
+            int hours = Math.abs((int) Math.floor(timeInSeconds / 3600));
 
             String HH = ((hours       < 10) ? "0" : "") + hours;
             String MM = ((minutes     < 10) ? "0" : "") + minutes;
