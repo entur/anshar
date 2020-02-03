@@ -131,13 +131,23 @@ public class SaneDelayValidator extends CustomValidator {
 
         if (expectedArrivalTime > 0) {
             updatedArrival = expectedArrivalTime;
+            if (expectedDepartureTime == 0) {
+                return;
+            }
         }
+
         if (actualArrivalTime > 0) {
             updatedArrival = actualArrivalTime;
+            if (actualDepartureTime == 0) {
+                return;
+            }
         }
 
         if (aimedArrivalTime > 0) {
             arrivalDelay = updatedArrival - aimedArrivalTime;
+            if (aimedDepartureTime == 0) {
+                return;
+            }
         }
 
         long departureDelay = 0;
