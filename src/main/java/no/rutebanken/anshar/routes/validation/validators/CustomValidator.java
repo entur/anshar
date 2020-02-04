@@ -191,8 +191,12 @@ public abstract class CustomValidator {
      * @return
      */
     protected ValidationEvent createMissingFieldEvent(Node node, String fieldname, List<String> missingFields, int severity) {
-        String message = MessageFormat.format("Missing required attributes: {0} ", missingFields);
-        return new ValidationEventImpl(severity, message, new ValidationEventLocatorImpl(node));
+        ProfileValidationEventOrList eventList = new ProfileValidationEventOrList();
+        for (String missingField : missingFields) {
+            String message = MessageFormat.format("Missing required attribute: {0} ", missingField);
+            eventList.addEvent(new ValidationEventImpl(severity, message, new ValidationEventLocatorImpl(node)));
+        }
+        return eventList;
     }
 
     /**
@@ -204,8 +208,12 @@ public abstract class CustomValidator {
      * @return
      */
     private ValidationEvent createInvalidFieldEvent(Node node, String fieldname, List<String> missingFields, int severity) {
-        String message = MessageFormat.format("Invalid attributes: {0} ", missingFields);
-        return new ValidationEventImpl(severity, message, new ValidationEventLocatorImpl(node));
+        ProfileValidationEventOrList eventList = new ProfileValidationEventOrList();
+        for (String missingField : missingFields) {
+            String message = MessageFormat.format("Invalid attribute: {0} ", missingField);
+            eventList.addEvent(new ValidationEventImpl(severity, message, new ValidationEventLocatorImpl(node)));
+        }
+        return eventList;
     }
 
     /**

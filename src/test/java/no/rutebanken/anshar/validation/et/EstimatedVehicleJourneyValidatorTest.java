@@ -15,6 +15,7 @@
 
 package no.rutebanken.anshar.validation.et;
 
+import no.rutebanken.anshar.routes.validation.validators.ProfileValidationEventOrList;
 import no.rutebanken.anshar.routes.validation.validators.et.EstimatedVehicleJourneyValidator;
 import no.rutebanken.anshar.validation.CustomValidatorTest;
 import org.junit.Before;
@@ -23,8 +24,12 @@ import org.junit.Test;
 import org.w3c.dom.Node;
 
 import javax.xml.bind.ValidationEvent;
+import java.util.List;
 
-import static junit.framework.TestCase.*;
+import static junit.framework.TestCase.assertEquals;
+import static junit.framework.TestCase.assertNotNull;
+import static junit.framework.TestCase.assertNull;
+import static junit.framework.TestCase.assertTrue;
 
 public class EstimatedVehicleJourneyValidatorTest extends CustomValidatorTest {
 
@@ -105,14 +110,20 @@ public class EstimatedVehicleJourneyValidatorTest extends CustomValidatorTest {
     }
 
     @Test
-    public void testMissingLineRefAndDataSource() throws Exception{
+    public void testMissingLineRefAndDataSource() throws Exception {
         Node node = createEstimatedVehicleJourney(null, directionRef, framedVehicleJourneyRef, null, isCompleteStopSequence);
 
         ValidationEvent validation = validator.isValid(node);
         assertNotNull("Missing IsCompleteStopSequence flagged as valid", validation);
 
-        assertTrue(validation.getMessage().contains("LineRef"));
-        assertTrue(validation.getMessage().contains("DataSource"));
+        assertTrue(validation instanceof ProfileValidationEventOrList);
+        final List<ValidationEvent> events = ((ProfileValidationEventOrList) validation).getEvents();
+
+        assertEquals(2, events.size());
+
+        assertTrue(events.get(0).getMessage().contains("LineRef"));
+        assertTrue(events.get(1).getMessage().contains("DataSource"));
+
     }
 
     @Test

@@ -20,6 +20,7 @@ import com.hazelcast.core.ReplicatedMap;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.routes.siri.transformer.ApplicationContextHolder;
 import no.rutebanken.anshar.routes.validation.validators.CustomValidator;
+import no.rutebanken.anshar.routes.validation.validators.ProfileValidationEventOrList;
 import no.rutebanken.anshar.routes.validation.validators.Validator;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
@@ -38,7 +39,11 @@ import org.xml.sax.SAXException;
 import uk.org.siri.siri20.Siri;
 
 import javax.xml.XMLConstants;
-import javax.xml.bind.*;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import javax.xml.bind.Unmarshaller;
+import javax.xml.bind.ValidationEvent;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -51,9 +56,20 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPInputStream;
 
@@ -238,8 +254,15 @@ public class SiriXmlValidator extends ApplicationContextHolder{
             for (int i = 0; i < nodes.getLength(); i++) {
                 ValidationEvent event = rule.isValid(nodes.item(i));
                 if (event != null) {
-                    handler.handleCategorizedEvent(rule.getCategoryName(), event);
-                    errorCounter++;
+                    if (event instanceof ProfileValidationEventOrList) {
+                        for (ValidationEvent validationEvent : ((ProfileValidationEventOrList) event).getEvents()) {
+                            handler.handleCategorizedEvent(rule.getCategoryName(), validationEvent);
+                            errorCounter++;
+                        }
+                    } else {
+                        handler.handleCategorizedEvent(rule.getCategoryName(), event);
+                        errorCounter++;
+                    }
                 }
             }
         }
