@@ -58,7 +58,8 @@ public class MonitoredVehicleJourneyInvalidFieldsValidator extends NsrQuayValida
                 "PreviousCalls",
                 "OnwardCalls",
                 "ProgressStatus",
-                "CourseOfJourneyRef");
+                "CourseOfJourneyRef",
+                "LocationRecordedAtTime");
 
     }
 }
