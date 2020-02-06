@@ -41,6 +41,7 @@ public class EstimatedArrivalStatusValidator extends LimitedSubsetValidator {
         expectedValues = Sets.newHashSet(
                 CallStatusEnumeration.ARRIVED.value(),
                 CallStatusEnumeration.CANCELLED.value(),
+                CallStatusEnumeration.MISSED.value(),
                 CallStatusEnumeration.EARLY.value(),
                 CallStatusEnumeration.ON_TIME.value(),
                 CallStatusEnumeration.DELAYED.value());

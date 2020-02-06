@@ -39,6 +39,7 @@ public class EstimatedDepartureStatusValidator extends LimitedSubsetValidator {
         path = ESTIMATED_CALL + "/" + FIELDNAME;
         expectedValues = Sets.newHashSet(
                 CallStatusEnumeration.CANCELLED.value(),
+                CallStatusEnumeration.MISSED.value(),
                 CallStatusEnumeration.ON_TIME.value(),
                 CallStatusEnumeration.DELAYED.value());
     }
