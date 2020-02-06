@@ -51,6 +51,6 @@ public class RecordedCallInvalidFieldsValidator extends CustomValidator {
 
     @Override
     public ValidationEvent isValid(Node node) {
-        return verifyNonExistingFields(node, FIELDNAME,"ExpectedArrivalTime", "ExpectedDepartureTime", "VisitNumber");
+        return verifyNonExistingFields(node, FIELDNAME,"VisitNumber");
     }
 }

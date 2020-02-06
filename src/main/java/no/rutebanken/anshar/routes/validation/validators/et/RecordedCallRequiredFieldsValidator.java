@@ -15,17 +15,15 @@
 
 package no.rutebanken.anshar.routes.validation.validators.et;
 
-        import no.rutebanken.anshar.routes.validation.validators.CustomValidator;
-        import no.rutebanken.anshar.routes.validation.validators.Validator;
-        import no.rutebanken.anshar.subscription.SiriDataType;
-        import org.springframework.stereotype.Component;
-        import org.w3c.dom.Node;
+import no.rutebanken.anshar.routes.validation.validators.Validator;
+import no.rutebanken.anshar.subscription.SiriDataType;
+import org.springframework.stereotype.Component;
+import org.w3c.dom.Node;
 
-        import javax.xml.bind.ValidationEvent;
-        import java.util.ArrayList;
-        import java.util.List;
+import javax.xml.bind.ValidationEvent;
+import java.util.List;
 
-        import static no.rutebanken.anshar.routes.validation.validators.Constants.*;
+import static no.rutebanken.anshar.routes.validation.validators.Constants.RECORDED_CALL;
 
 /**
  * Verifies that RecordedCall contains required fields
@@ -57,8 +55,18 @@ public class RecordedCallRequiredFieldsValidator extends CallRequiredFieldsValid
 
         List <String> missingFields = validateCommonFields(node);
 
-        if (getChildNodeByName(node, "ActualArrivalTime") == null & getChildNodeByName(node, "ActualDepartureTime") == null) {
-            missingFields.add("ActualArrivalTime/ActualDepartureTime");
+        if (getChildNodeByName(node, "AimedArrivalTime") != null && getChildNodeByName(node, "ActualArrivalTime") == null) {
+            // AimedArrival is set, but neither Actual- nor ExpectedArrivalTime
+            if (getChildNodeByName(node, "ExpectedArrivalTime") == null) {
+                missingFields.add("ExpectedArrivalTime or ActualArrivalTime");
+            }
+        }
+
+        if (getChildNodeByName(node, "AimedDepartureTime") != null && getChildNodeByName(node, "ActualDepartureTime") == null) {
+            // AimedDeparture is set, but neither Actual- nor ExpectedDeparture
+            if (getChildNodeByName(node, "ExpectedDepartureTime") == null) {
+                missingFields.add("ExpectedDepartureTime or ActualDepartureTime");
+            }
         }
 
         if (!missingFields.isEmpty()) {
