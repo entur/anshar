@@ -299,6 +299,10 @@ public class SubscriptionInitializer implements CamelContextAware {
             Preconditions.checkArgument(false, "Subscription mode not configured");
         }
 
+        if (!SiriDataType.VEHICLE_MONITORING.equals(s.getSubscriptionType())) {
+            Preconditions.checkArgument(! s.forwardPositionData(), "Position only is only valid for VM-subscription.");
+        }
+
         return true;
     }
 }

@@ -1,12 +1,16 @@
 package no.rutebanken.anshar.routes.messaging;
 
 import no.rutebanken.anshar.config.AnsharConfiguration;
+import no.rutebanken.anshar.metrics.PrometheusMetricsService;
 import no.rutebanken.anshar.routes.CamelRouteNames;
 import no.rutebanken.anshar.routes.RestRouteBuilder;
 import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
+import org.apache.camel.Exchange;
+import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.xml.Namespaces;
+import org.apache.camel.component.http4.HttpMethods;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -27,6 +31,9 @@ public class MessagingRoute extends RestRouteBuilder {
 
     @Autowired
     private SubscriptionManager subscriptionManager;
+
+    @Autowired
+    private PrometheusMetricsService metrics;
 
     @Override
     public void configure() throws Exception {
@@ -140,5 +147,25 @@ public class MessagingRoute extends RestRouteBuilder {
                 .endChoice()
                 .routeId("incoming.processor.fetched_delivery")
         ;
+
+        if (configuration.getSiriVmPositionForwardingUrl() != null) {
+            from("direct:forward.position.data")
+                    .choice()
+                    .when().xpath("/siri:Siri/siri:ServiceDelivery/siri:VehicleMonitoringDelivery", ns)
+                    .removeHeaders("Camel*")
+                    .setHeader(Exchange.HTTP_METHOD, constant(HttpMethods.POST))
+//                    .to("log:posting:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
+                    .to(configuration.getSiriVmPositionForwardingUrl())
+                    .bean(subscriptionManager, "dataReceived(${header.subscriptionId})")
+                    .bean(metrics, "countOutgoingData(${body}, VM_POSITION)")
+                    .endChoice()
+                    .otherwise()
+                    .bean(subscriptionManager, "touchSubscription(${header.subscriptionId})")
+                    .end()
+            ;
+        } else {
+            from("direct:forward.position.data")
+                    .log(LoggingLevel.INFO, "Ignoring position-update from ${header.subscriptionId}");
+        }
     }
 }

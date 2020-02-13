@@ -112,6 +112,10 @@ public class AnsharConfiguration {
     @Value("${anshar.message.queue.camel.route.prefix}")
     private String messageQueueCamelRoutePrefix;
 
+
+    @Value("${anshar.sirivm.position.forward.url:}")
+    private String siriVmPositionForwardingUrl;
+
     public String getHazelcastManagementUrl() {
         return hazelcastManagementUrl;
     }
@@ -226,5 +230,12 @@ public class AnsharConfiguration {
 
     public String getMessageQueueCamelRoutePrefix() {
         return messageQueueCamelRoutePrefix;
+    }
+
+    public String getSiriVmPositionForwardingUrl() {
+        if (siriVmPositionForwardingUrl != null && siriVmPositionForwardingUrl.isEmpty()) {
+            siriVmPositionForwardingUrl = null;
+        }
+        return siriVmPositionForwardingUrl;
     }
 }

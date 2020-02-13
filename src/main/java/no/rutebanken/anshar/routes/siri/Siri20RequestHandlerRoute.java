@@ -23,6 +23,7 @@ import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.camel.Exchange;
 import org.apache.camel.Message;
+import org.apache.camel.Predicate;
 import org.apache.camel.model.rest.RestParamType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -112,27 +113,42 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
                         .param().required(false).name("operation").endParam()
         ;
 
+        Predicate forwardPositionData = exchange -> {
+            final String subscriptionId = exchange.getIn().getHeader("subscriptionId", String.class);
+            if (subscriptionId != null && subscriptionManager.get(subscriptionId) != null) {
+                final SubscriptionSetup subscriptionSetup = subscriptionManager.get(subscriptionId);
+                exchange.getOut().setBody(exchange.getIn().getBody());
+                exchange.getOut().setHeaders(exchange.getIn().getHeaders());
+
+                return subscriptionSetup.forwardPositionData();
+            }
+            return false;
+        };
+
         from("direct:process.incoming.request")
+                .choice().when(forwardPositionData)
+                    .to("direct:forward.position.data")
+                .end()
                 .to("log:incoming:" + getClass().getSimpleName() + "?showAll=true&multiline=true&showStreams=true")
                 .choice()
-                .when(e -> subscriptionExistsAndIsActive(e))
-                    //Valid subscription
-                    .process(p -> {
-                        p.getOut().setBody(p.getIn().getBody(String.class));
-                        p.getOut().setHeaders(p.getIn().getHeaders());
-                    })
-                    .to("direct:enqueue.message")
-                    .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
-                    .setBody(constant(null))
-                .endChoice()
-                .otherwise()
-                    // Invalid subscription
-                    .log("Ignoring incoming delivery for invalid subscription")
-                    .removeHeaders("*")
-                    .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("403")) //403 Forbidden
-                    .setBody(constant("Subscription is not valid"))
-                .endChoice()
-        .routeId("process.incoming")
+                    .when(e -> subscriptionExistsAndIsActive(e))
+                        //Valid subscription
+                        .process(p -> {
+                            p.getOut().setBody(p.getIn().getBody(String.class));
+                            p.getOut().setHeaders(p.getIn().getHeaders());
+                        })
+                        .to("direct:enqueue.message")
+                        .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
+                        .setBody(constant(null))
+                    .endChoice()
+                    .otherwise()
+                        // Invalid subscription
+                        .log("Ignoring incoming delivery for invalid subscription")
+                        .removeHeaders("*")
+                        .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("403")) //403 Forbidden
+                        .setBody(constant("Subscription is not valid"))
+                    .endChoice()
+            .routeId("process.incoming")
                 ;
 
         from("direct:process.subscription.request")

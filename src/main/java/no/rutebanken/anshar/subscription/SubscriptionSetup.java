@@ -74,6 +74,8 @@ public class SubscriptionSetup implements Serializable {
     private DataNotReceivedAction dataNotReceivedAction;
     private String validationFilter;
 
+    private boolean forwardPositionData;
+
     public DataNotReceivedAction getDataNotReceivedAction() {
         return dataNotReceivedAction;
     }
@@ -241,6 +243,7 @@ public class SubscriptionSetup implements Serializable {
         obj.put("validationFilter", getValidationFilter());
         obj.put("contentType", getContentType());
         obj.put("restartTime", getRestartTime());
+        obj.put("forwardPositionData", forwardPositionData());
 
         return obj;
     }
@@ -359,7 +362,7 @@ public class SubscriptionSetup implements Serializable {
 
     public enum ServiceType {SOAP, REST}
 
-    public enum SubscriptionMode {SUBSCRIBE, REQUEST_RESPONSE, POLLING_FETCHED_DELIVERY, FETCHED_DELIVERY, LITE, WEBSOCKET, BIG_DATA_EXPORT}
+    public enum SubscriptionMode {SUBSCRIBE, REQUEST_RESPONSE, POLLING_FETCHED_DELIVERY, FETCHED_DELIVERY, LITE, WEBSOCKET, BIG_DATA_EXPORT, VM_POSITION_FORWARDING}
 
     public void setIdMappingPrefixes(List<String> idMappingPrefixes) {
         this.idMappingPrefixes = idMappingPrefixes;
@@ -483,6 +486,14 @@ public class SubscriptionSetup implements Serializable {
 
     public void setCustomHeaders(Map<String, Object> customHeaders) {
         this.customHeaders = customHeaders;
+    }
+
+    public boolean forwardPositionData() {
+        return forwardPositionData;
+    }
+
+    public void setForwardPositionData(boolean forwardPositionData) {
+        this.forwardPositionData = forwardPositionData;
     }
 
     /**

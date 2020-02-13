@@ -21,6 +21,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 
 @Repository
@@ -46,6 +48,11 @@ public class InMemoryBlobStoreRepository implements BlobStoreRepository {
 
     @Override
     public InputStream getBlob(String name) {
+        try {
+            return new FileInputStream(name);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
         return null;
     }
 
