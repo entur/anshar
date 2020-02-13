@@ -95,6 +95,7 @@ public class SubscriptionInitializer implements CamelContextAware {
             List<SubscriptionSetup> subscriptionSetups = subscriptionConfig.getSubscriptions();
             logger.info("Initializing {} subscriptions", subscriptionSetups.size());
             Set<String> subscriptionIds = new HashSet<>();
+            Set<String> subscriptionNames = new HashSet<>();
 
             List<SubscriptionSetup> actualSubscriptionSetups = new ArrayList<>();
 
@@ -110,6 +111,11 @@ public class SubscriptionInitializer implements CamelContextAware {
                 if (subscriptionIds.contains(subscriptionSetup.getSubscriptionId())) {
                     //Verify subscriptionId-uniqueness
                     throw new ServiceConfigurationError("SubscriptionIds are NOT unique for ID="+subscriptionSetup.getSubscriptionId());
+                }
+
+                if (subscriptionNames.contains(subscriptionSetup.getVendor())) {
+                    //Verify vendor-uniqueness
+                    throw new ServiceConfigurationError("Vendor is NOT unique for vendor="+subscriptionSetup.getVendor());
                 }
 
 
@@ -157,14 +163,17 @@ public class SubscriptionInitializer implements CamelContextAware {
 
                         actualSubscriptionSetups.add(subscriptionSetup);
                         subscriptionIds.add(subscriptionSetup.getSubscriptionId());
+                        subscriptionNames.add(subscriptionSetup.getVendor());
                     } else {
                         logger.info("Subscription with internalId={} already registered - keep existing. {}", subscriptionSetup.getInternalId(), subscriptionSetup);
                         actualSubscriptionSetups.add(existingSubscription);
                         subscriptionIds.add(existingSubscription.getSubscriptionId());
+                        subscriptionNames.add(existingSubscription.getVendor());
                     }
                 } else {
                     actualSubscriptionSetups.add(subscriptionSetup);
                     subscriptionIds.add(subscriptionSetup.getSubscriptionId());
+                    subscriptionNames.add(subscriptionSetup.getVendor());
                 }
 
             }
