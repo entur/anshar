@@ -126,9 +126,6 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
         };
 
         from("direct:process.incoming.request")
-                .choice().when(forwardPositionData)
-                    .to("direct:forward.position.data")
-                .end()
                 .to("log:incoming:" + getClass().getSimpleName() + "?showAll=true&multiline=true&showStreams=true")
                 .choice()
                     .when(e -> subscriptionExistsAndIsActive(e))
@@ -137,6 +134,9 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
                             p.getOut().setBody(p.getIn().getBody(String.class));
                             p.getOut().setHeaders(p.getIn().getHeaders());
                         })
+                        .choice().when(forwardPositionData)
+                            .wireTap("direct:forward.position.data")
+                        .end()
                         .to("direct:enqueue.message")
                         .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
                         .setBody(constant(null))
