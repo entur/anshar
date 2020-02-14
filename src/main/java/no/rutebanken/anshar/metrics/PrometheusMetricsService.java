@@ -113,9 +113,9 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
                     count = deliveryStructure.getSituations().getPtSituationElements().size();
                 }
             }
+            countOutgoingData(dataType, mode, count);
         }
 
-        countOutgoingData(dataType, mode, count);
     }
 
     private void countOutgoingData(SiriDataType dataType, SubscriptionSetup.SubscriptionMode mode, long objectCount) {
