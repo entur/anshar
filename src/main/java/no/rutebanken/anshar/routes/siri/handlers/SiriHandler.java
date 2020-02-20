@@ -305,12 +305,16 @@ public class SiriHandler {
                     List<PtSituationElement> addedOrUpdated = new ArrayList<>();
                     if (situationExchangeDeliveries != null) {
                         situationExchangeDeliveries.forEach(sx -> {
-                                    if (sx.isStatus() != null && !sx.isStatus()) {
-                                        logger.info(getErrorContents(sx.getErrorCondition()));
-                                    } else {
-                                        addedOrUpdated.addAll(
-                                                situations.addAll(subscriptionSetup.getDatasetId(), sx.getSituations().getPtSituationElements())
-                                        );
+                                    if (sx != null) {
+                                        if (sx.isStatus() != null && !sx.isStatus()) {
+                                            logger.info(getErrorContents(sx.getErrorCondition()));
+                                        } else {
+                                            if (sx.getSituations() != null && sx.getSituations().getPtSituationElements() != null) {
+                                                addedOrUpdated.addAll(
+                                                        situations.addAll(subscriptionSetup.getDatasetId(), sx.getSituations().getPtSituationElements())
+                                                );
+                                            }
+                                        }
                                     }
                                 }
                         );
@@ -330,12 +334,16 @@ public class SiriHandler {
                     List<VehicleActivityStructure> addedOrUpdated = new ArrayList<>();
                     if (vehicleMonitoringDeliveries != null) {
                         vehicleMonitoringDeliveries.forEach(vm -> {
-                                    if (vm.isStatus() != null && !vm.isStatus()) {
-                                        logger.info(getErrorContents(vm.getErrorCondition()));
-                                    } else {
-                                        addedOrUpdated.addAll(
-                                                vehicleActivities.addAll(subscriptionSetup.getDatasetId(), vm.getVehicleActivities())
-                                        );
+                                    if (vm != null) {
+                                        if (vm.isStatus() != null && !vm.isStatus()) {
+                                            logger.info(getErrorContents(vm.getErrorCondition()));
+                                        } else {
+                                            if (vm.getVehicleActivities() != null) {
+                                                addedOrUpdated.addAll(
+                                                        vehicleActivities.addAll(subscriptionSetup.getDatasetId(), vm.getVehicleActivities())
+                                                );
+                                            }
+                                        }
                                     }
                                 }
                         );
@@ -356,14 +364,20 @@ public class SiriHandler {
                     List<EstimatedVehicleJourney> addedOrUpdated = new ArrayList<>();
                     if (estimatedTimetableDeliveries != null) {
                         estimatedTimetableDeliveries.forEach(et -> {
-                                    if (et.isStatus() != null && !et.isStatus()) {
-                                        logger.info(getErrorContents(et.getErrorCondition()));
-                                    } else {
-                                        et.getEstimatedJourneyVersionFrames().forEach(versionFrame -> {
-                                            addedOrUpdated.addAll(
-                                                    estimatedTimetables.addAll(subscriptionSetup.getDatasetId(), versionFrame.getEstimatedVehicleJourneies())
-                                            );
-                                        });
+                                    if (et != null) {
+                                        if (et.isStatus() != null && !et.isStatus()) {
+                                            logger.info(getErrorContents(et.getErrorCondition()));
+                                        } else {
+                                            if (et.getEstimatedJourneyVersionFrames() != null) {
+                                                et.getEstimatedJourneyVersionFrames().forEach(versionFrame -> {
+                                                    if (versionFrame != null && versionFrame.getEstimatedVehicleJourneies() != null) {
+                                                        addedOrUpdated.addAll(
+                                                                estimatedTimetables.addAll(subscriptionSetup.getDatasetId(), versionFrame.getEstimatedVehicleJourneies())
+                                                        );
+                                                    }
+                                                });
+                                            }
+                                        }
                                     }
                                 }
                         );
