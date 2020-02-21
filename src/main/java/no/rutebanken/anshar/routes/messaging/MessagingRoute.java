@@ -150,18 +150,15 @@ public class MessagingRoute extends RestRouteBuilder {
 
         if (configuration.getSiriVmPositionForwardingUrl() != null) {
             from("direct:forward.position.data")
+                    .routeId("forward.position.data")
                     .bean(metrics, "countOutgoingData(${body}, VM_POSITION_FORWARDING)")
                     .convertBodyTo(String.class)
                     .choice()
                         .when().xpath("/siri:Siri/siri:ServiceDelivery/siri:VehicleMonitoringDelivery", ns)
                             .removeHeaders("Camel*")
                             .setHeader(Exchange.HTTP_METHOD, constant(HttpMethods.POST))
-        //                    .to("log:posting:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                             .to(configuration.getSiriVmPositionForwardingUrl())
-                            .bean(subscriptionManager, "dataReceived(${header.subscriptionId})")
                         .endChoice()
-                    .otherwise()
-                        .bean(subscriptionManager, "touchSubscription(${header.subscriptionId})")
                     .end()
             ;
         } else {
