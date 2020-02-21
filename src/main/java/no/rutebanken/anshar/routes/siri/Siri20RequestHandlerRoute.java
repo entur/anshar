@@ -112,18 +112,6 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
                         .param().required(false).name("operation").endParam()
         ;
 
-//        Predicate forwardPositionData = exchange -> {
-//            final String subscriptionId = exchange.getIn().getHeader("subscriptionId", String.class);
-//            if (subscriptionId != null && subscriptionManager.get(subscriptionId) != null) {
-//                final SubscriptionSetup subscriptionSetup = subscriptionManager.get(subscriptionId);
-//                exchange.getOut().setBody(exchange.getIn().getBody());
-//                exchange.getOut().setHeaders(exchange.getIn().getHeaders());
-//
-//                return subscriptionSetup.forwardPositionData();
-//            }
-//            return false;
-//        };
-
         from("direct:process.incoming.request")
                 .to("log:incoming:" + getClass().getSimpleName() + "?showAll=true&multiline=true&showStreams=true")
                 .choice()
@@ -133,9 +121,6 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
                             p.getOut().setBody(p.getIn().getBody(String.class));
                             p.getOut().setHeaders(p.getIn().getHeaders());
                         })
-//                        .choice().when(forwardPositionData)
-//                            .wireTap("direct:forward.position.data")
-//                        .end()
                         .to("direct:enqueue.message")
                         .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
                         .setBody(constant(null))

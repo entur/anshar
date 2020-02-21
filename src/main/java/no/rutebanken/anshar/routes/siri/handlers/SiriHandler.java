@@ -32,6 +32,8 @@ import no.rutebanken.anshar.subscription.SiriDataType;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import no.rutebanken.anshar.subscription.helpers.MappingAdapterPresets;
+import org.apache.camel.Produce;
+import org.apache.camel.ProducerTemplate;
 import org.json.simple.JSONObject;
 import org.rutebanken.siri20.util.SiriXml;
 import org.slf4j.Logger;
@@ -110,6 +112,11 @@ public class SiriHandler {
 
     @Autowired
     private PrometheusMetricsService metrics;
+
+
+    @Produce(uri = "direct:forward.position.data")
+    ProducerTemplate positionForwardRoute;
+
 
     public SiriHandler() {
 
@@ -329,7 +336,7 @@ public class SiriHandler {
                 }
                 if (subscriptionSetup.getSubscriptionType().equals(SiriDataType.VEHICLE_MONITORING)) {
                     List<VehicleMonitoringDeliveryStructure> vehicleMonitoringDeliveries = incoming.getServiceDelivery().getVehicleMonitoringDeliveries();
-                    logger.info("Got VM-delivery: Subscription [{}]", subscriptionSetup);
+                    logger.info("Got VM-delivery: Subscription [{}] {}", subscriptionSetup, subscriptionSetup.forwardPositionData() ? "- Position only":"");
 
                     List<VehicleActivityStructure> addedOrUpdated = new ArrayList<>();
                     if (vehicleMonitoringDeliveries != null) {
@@ -339,9 +346,15 @@ public class SiriHandler {
                                             logger.info(getErrorContents(vm.getErrorCondition()));
                                         } else {
                                             if (vm.getVehicleActivities() != null) {
-                                                addedOrUpdated.addAll(
-                                                        vehicleActivities.addAll(subscriptionSetup.getDatasetId(), vm.getVehicleActivities())
-                                                );
+                                                if (subscriptionSetup.forwardPositionData()) {
+                                                    positionForwardRoute.sendBody(incoming);
+                                                    addedOrUpdated.addAll(vm.getVehicleActivities());
+                                                    logger.info("Forwarding VM positiondata for {} vehicles.", vm.getVehicleActivities().size());
+                                                } else {
+                                                    addedOrUpdated.addAll(
+                                                            vehicleActivities.addAll(subscriptionSetup.getDatasetId(), vm.getVehicleActivities())
+                                                    );
+                                                }
                                             }
                                         }
                                     }
