@@ -4,6 +4,7 @@ import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.metrics.PrometheusMetricsService;
 import no.rutebanken.anshar.routes.CamelRouteNames;
 import no.rutebanken.anshar.routes.RestRouteBuilder;
+import no.rutebanken.anshar.routes.dataformat.SiriDataFormatHelper;
 import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
@@ -152,7 +153,7 @@ public class MessagingRoute extends RestRouteBuilder {
             from("direct:forward.position.data")
                     .routeId("forward.position.data")
                     .bean(metrics, "countOutgoingData(${body}, VM_POSITION_FORWARDING)")
-                    .convertBodyTo(String.class)
+                    .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
                     .choice()
                         .when().xpath("/siri:Siri/siri:ServiceDelivery/siri:VehicleMonitoringDelivery", ns)
                             .removeHeaders("Camel*")
