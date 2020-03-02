@@ -38,12 +38,12 @@ public class InMemoryBlobStoreRepository implements BlobStoreRepository {
 
     @Override
     public void setStorage(Storage storage) {
-
+        // Do nothing
     }
 
     @Override
     public void setContainerName(String containerName) {
-
+        // Do nothing
     }
 
     @Override

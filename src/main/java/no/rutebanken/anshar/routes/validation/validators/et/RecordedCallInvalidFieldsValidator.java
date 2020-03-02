@@ -34,10 +34,7 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.RECORD
 public class RecordedCallInvalidFieldsValidator extends CustomValidator {
 
     private static final String FIELDNAME = "RecordedCall";
-    private static final String path = RECORDED_CALL;
-
-    public RecordedCallInvalidFieldsValidator() {
-    }
+    private String path = RECORDED_CALL;
 
     @Override
     public String getCategoryName() {

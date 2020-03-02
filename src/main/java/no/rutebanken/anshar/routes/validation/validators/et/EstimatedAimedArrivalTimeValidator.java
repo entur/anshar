@@ -35,9 +35,9 @@ public class EstimatedAimedArrivalTimeValidator extends TimeValidator {
 
 
     private static final String FIELDNAME = "AimedArrivalTime";
-    private static final String path = ESTIMATED_CALL + "/" + FIELDNAME;
+    private String path = ESTIMATED_CALL + FIELD_DELIMITER + FIELDNAME;
 
-    private static final String comparisonFieldName = "AimedDepartureTime";
+    private String comparisonFieldName = "AimedDepartureTime";
 
     @Override
     public String getXpath() {

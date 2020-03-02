@@ -36,7 +36,7 @@ public class AffectedStopPlaceValidator extends CustomValidator {
 
     private static final String FIELDNAME = "StopPlaceRef";
 
-    private static final String path = AFFECTED_STOP_PLACE + "/" + FIELDNAME;
+    private String path = AFFECTED_STOP_PLACE + FIELD_DELIMITER + FIELDNAME;
 
     @Override
     public String getXpath() {
@@ -47,8 +47,8 @@ public class AffectedStopPlaceValidator extends CustomValidator {
     public ValidationEvent isValid(Node node) {
         String nodeValue = getNodeValue(node);
 
-        if (!isValidNsrId("NSR:StopPlace:", nodeValue) & !isValidNsrId("NSR:Quay:", nodeValue)) {
-            return  createEvent(node, FIELDNAME, "NSR:StopPlace:ID of NSR:Quay:ID", nodeValue, ValidationEvent.FATAL_ERROR);
+        if (!isValidNsrId("NSR:StopPlace:", nodeValue) && !isValidNsrId("NSR:Quay:", nodeValue)) {
+            return  createEvent(node, FIELDNAME, "NSR:StopPlace:ID or NSR:Quay:ID", nodeValue, ValidationEvent.FATAL_ERROR);
         }
         return null;
     }

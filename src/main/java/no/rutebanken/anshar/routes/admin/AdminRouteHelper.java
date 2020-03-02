@@ -66,6 +66,8 @@ public class AdminRouteHelper {
             case "SITUATION_EXCHANGE":
                 situations.clearAllByDatasetId(datasetId);
                 break;
+            default:
+                //Ignore
         }
         logger.info("Flushing all data of type {} for {} took {} ms", dataType, datasetId, (System.currentTimeMillis()-t1));
     }

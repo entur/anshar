@@ -42,7 +42,7 @@ public class VehicleLocationValidator extends CustomValidator {
     private static final String LON_FIELDNAME = "Longitude";
 
     private static final String COORDINATES_FIELDNAME = "Coordinates";
-    private static final String path =  MONITORED_VEHICLE_JOURNEY + "/" + FIELDNAME;
+    private String path =  MONITORED_VEHICLE_JOURNEY + FIELD_DELIMITER + FIELDNAME;
 
     private static final Set<String> expectedValues = Sets.newHashSet("WGS84", "EPSG:4326");
 
@@ -62,11 +62,11 @@ public class VehicleLocationValidator extends CustomValidator {
             Double lon = Double.parseDouble(longitude);
             Double lat = Double.parseDouble(latitude);
 
-            if (lon > 180 | lon < -180) {
+            if (lon > 180 || lon < -180) {
                 return  createEvent(node, LON_FIELDNAME, "Valid longitude", longitude, ValidationEvent.FATAL_ERROR);
-            } else if (lat > 90 | lat < -90) {
+            } else if (lat > 90 || lat < -90) {
                 return  createEvent(node, LAT_FIELDNAME, "Valid latitude", latitude, ValidationEvent.FATAL_ERROR);
-            } else if (lat == 0 | lon == 0) {
+            } else if (lat == 0 || lon == 0) {
                 return  createEvent(node, FIELDNAME, "Valid location", "Latitude: " + latitude + ", Longitude: " + longitude, ValidationEvent.FATAL_ERROR);
             }
 

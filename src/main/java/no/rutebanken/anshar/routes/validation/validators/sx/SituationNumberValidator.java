@@ -31,12 +31,12 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.PT_SIT
 @Component
 public class SituationNumberValidator extends NsrGenericIdValidator {
 
-    private static String path;
+    private String path;
 
     public SituationNumberValidator() {
         FIELDNAME = "SituationNumber";
         ID_PATTERN = "SituationNumber";
-        path = PT_SITUATION_ELEMENT + "/" + FIELDNAME;
+        path = PT_SITUATION_ELEMENT + FIELD_DELIMITER + FIELDNAME;
     }
 
     @Override

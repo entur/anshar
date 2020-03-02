@@ -31,12 +31,12 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.AFFECT
 public class AffectedVehicleJourneyOperatorValidator extends NsrGenericIdValidator {
 
 
-    private static String path;
+    private String path;
 
     public AffectedVehicleJourneyOperatorValidator() {
         FIELDNAME = "Operator/OperatorRef";
         ID_PATTERN = "Operator";
-        path = AFFECTED_VEHICLE_JOURNEY + "/" + FIELDNAME;
+        path = AFFECTED_VEHICLE_JOURNEY + FIELD_DELIMITER + FIELDNAME;
     }
 
     @Override

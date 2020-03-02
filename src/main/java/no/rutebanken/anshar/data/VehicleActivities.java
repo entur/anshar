@@ -65,7 +65,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
     private final Logger logger = LoggerFactory.getLogger(VehicleActivities.class);
 
     @Autowired
-    private IMap<String, VehicleActivityStructure> vehicleActivities;
+    private IMap<String, VehicleActivityStructure> monitoredVehicles;
 
     @Autowired
     @Qualifier("getVehicleChangesMap")
@@ -103,18 +103,18 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
      * @return All vehicle activities
      */
     public Collection<VehicleActivityStructure> getAll() {
-        return vehicleActivities.values();
+        return monitoredVehicles.values();
     }
 
     public int getSize() {
-        return vehicleActivities.keySet().size();
+        return monitoredVehicles.keySet().size();
     }
 
     public Map<String, Integer> getDatasetSize() {
         Map<String, Integer> sizeMap = new HashMap<>();
         long t1 = System.currentTimeMillis();
-        vehicleActivities.keySet().forEach(key -> {
-            String datasetId = key.substring(0, key.indexOf(":"));
+        monitoredVehicles.keySet().forEach(key -> {
+            String datasetId = key.substring(0, key.indexOf(':'));
 
             Integer count = sizeMap.getOrDefault(datasetId, 0);
             sizeMap.put(datasetId, count+1);
@@ -126,8 +126,8 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
     public Map<String, Integer> getLocalDatasetSize() {
         Map<String, Integer> sizeMap = new HashMap<>();
         long t1 = System.currentTimeMillis();
-        vehicleActivities.localKeySet().forEach(key -> {
-            String datasetId = key.substring(0, key.indexOf(":"));
+        monitoredVehicles.localKeySet().forEach(key -> {
+            String datasetId = key.substring(0, key.indexOf(':'));
 
             Integer count = sizeMap.getOrDefault(datasetId, 0);
             sizeMap.put(datasetId, count+1);
@@ -138,15 +138,15 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
 
 
     public Integer getDatasetSize(String datasetId) {
-        return Math.toIntExact(vehicleActivities.keySet().stream()
-                .filter(key -> datasetId.equals(key.substring(0, key.indexOf(":"))))
+        return Math.toIntExact(monitoredVehicles.keySet().stream()
+                .filter(key -> datasetId.equals(key.substring(0, key.indexOf(':'))))
                 .count());
     }
 
     @Override
     public void clearAllByDatasetId(String datasetId) {
         String prefix = datasetId + ":";
-        Set<String> idsToRemove = vehicleActivities.keySet()
+        Set<String> idsToRemove = monitoredVehicles.keySet()
                 .stream()
                 .filter(key -> key.startsWith(prefix))
                 .collect(Collectors.toSet());
@@ -154,13 +154,13 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
         logger.warn("Removing all data ({} ids) for {}", idsToRemove.size(), datasetId);
 
         for (String id : idsToRemove) {
-            vehicleActivities.delete(id);
+            monitoredVehicles.delete(id);
         }
     }
 
     public void clearAll() {
         logger.error("Deleting all data - should only be used in test!!!");
-        vehicleActivities.clear();
+        monitoredVehicles.clear();
     }
 
     /**
@@ -171,7 +171,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
             return getAll();
         }
 
-        return getValuesByDatasetId(vehicleActivities, datasetId);
+        return getValuesByDatasetId(monitoredVehicles, datasetId);
     }
 
     /**
@@ -191,7 +191,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
                     datasetFilteredIdSet.addAll(idSet);
                 }
 
-                Collection<VehicleActivityStructure> changes = getValuesByIds(vehicleActivities, datasetFilteredIdSet);
+                Collection<VehicleActivityStructure> changes = getValuesByIds(monitoredVehicles, datasetFilteredIdSet);
 
                 Set<String> existingSet = changesMap.get(requestorId);
                 if (existingSet == null) {
@@ -201,9 +201,9 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
                 //Remove returned ids
                 existingSet.removeAll(idSet);
 
-                if (idSet.size() > vehicleActivities.size()) {
+                if (idSet.size() > monitoredVehicles.size()) {
                     //Remove outdated ids
-                    existingSet.removeIf(id -> !vehicleActivities.containsKey(id));
+                    existingSet.removeIf(id -> !monitoredVehicles.containsKey(id));
                 }
 
                 updateChangeTrackers(lastUpdateRequested, changesMap, requestorId, existingSet, configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
@@ -225,14 +225,14 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
     public Siri createServiceDelivery(String lineRef) {
         SortedSet<VehicleActivityStructure> matchingEstimatedVehicleJourneys = new TreeSet<>(Comparator.comparing(AbstractItemStructure::getRecordedAtTime));
 
-        vehicleActivities.keySet()
+        monitoredVehicles.keySet()
                 .forEach(key -> {
-                    VehicleActivityStructure vehicleJourney = vehicleActivities.get(key);
+                    VehicleActivityStructure vehicleJourney = monitoredVehicles.get(key);
                     if (vehicleJourney != null && vehicleJourney.getMonitoredVehicleJourney() != null) { //Object may have expired
                         VehicleActivityStructure.MonitoredVehicleJourney monitoredVehicleJourney = vehicleJourney.getMonitoredVehicleJourney();
                         if (monitoredVehicleJourney.getLineRef() != null &&
-                                (monitoredVehicleJourney.getLineRef().getValue().toLowerCase().startsWith(lineRef.toLowerCase() + SEPARATOR) |
-                                        monitoredVehicleJourney.getLineRef().getValue().toLowerCase().endsWith(SEPARATOR + lineRef.toLowerCase())|
+                                (monitoredVehicleJourney.getLineRef().getValue().toLowerCase().startsWith(lineRef.toLowerCase() + SEPARATOR) ||
+                                        monitoredVehicleJourney.getLineRef().getValue().toLowerCase().endsWith(SEPARATOR + lineRef.toLowerCase()) ||
                                         monitoredVehicleJourney.getLineRef().getValue().equalsIgnoreCase(lineRef))
                                 ) {
                             matchingEstimatedVehicleJourneys.add(vehicleJourney);
@@ -261,7 +261,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
         Set<String> idSet = changesMap.getOrDefault(requestorId, allIds);
 
         if (idSet == allIds) {
-            idSet.addAll(vehicleActivities.keySet());
+            idSet.addAll(monitoredVehicles.keySet());
         }
 
         Set<String> requestedIds = filterIdsByDataset(idSet, excludedDatasetIds, datasetId);
@@ -273,7 +273,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
         //Remove collected objects
         sizeLimitedIds.forEach(idSet::remove);
 
-        Collection<VehicleActivityStructure> values = getValuesByIds(vehicleActivities, sizeLimitedIds);
+        Collection<VehicleActivityStructure> values = getValuesByIds(monitoredVehicles, sizeLimitedIds);
 
         Siri siri = siriObjectFactory.createVMServiceDelivery(values);
 
@@ -285,7 +285,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
 
 
             //Remove outdated ids
-            idSet.removeIf(id -> !vehicleActivities.containsKey(id));
+            idSet.removeIf(id -> !monitoredVehicles.containsKey(id));
 
             //Update change-tracker
             updateChangeTrackers(lastUpdateRequested, changesMap, requestorId, idSet, trackingPeriodMinutes, TimeUnit.MINUTES);
@@ -354,7 +354,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
                     if (updated) {
                         checksumCache.put(key, currentChecksum, 5, TimeUnit.MINUTES); //Keeping all checksums for at least 5 minutes to avoid stale data
 
-                        VehicleActivityStructure existing = vehicleActivities.get(key);
+                        VehicleActivityStructure existing = monitoredVehicles.get(key);
 
                         boolean keep = (existing == null); //No existing data i.e. keep
 
@@ -369,7 +369,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
                         if (expiration > 0 && keep) {
                             changes.add(key);
                             addedData.add(activity);
-                            vehicleActivities.set(key, activity, expiration, TimeUnit.MILLISECONDS);
+                            monitoredVehicles.set(key, activity, expiration, TimeUnit.MILLISECONDS);
                             checksumCache.put(key, currentChecksum, expiration, TimeUnit.MILLISECONDS);
                             siriVmMqttHandler.pushToMqttAsync(datasetId, activity);
 
@@ -404,7 +404,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
         List<VehicleActivityStructure> activities = new ArrayList<>();
         activities.add(activity);
         addAll(datasetId, activities);
-        return vehicleActivities.get(createKey(datasetId, activity.getMonitoredVehicleJourney().getVehicleRef()));
+        return monitoredVehicles.get(createKey(datasetId, activity.getMonitoredVehicleJourney().getVehicleRef()));
     }
 
     /*
@@ -418,15 +418,18 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
         if (monitoredVehicleJourney != null && monitoredVehicleJourney.getVehicleLocation() != null) {
 
             LocationStructure vehicleLocation = monitoredVehicleJourney.getVehicleLocation();
-            if(vehicleLocation.getLongitude() == null & vehicleLocation.getCoordinates() == null) {
+
+            final String vehicleRef = vehicleRefToString(monitoredVehicleJourney);
+
+            if(vehicleLocation.getLongitude() == null && vehicleLocation.getCoordinates() == null) {
                 keep = false;
-                logger.info("Null location {}", vehicleRefToString(monitoredVehicleJourney));
+                logger.info("Null location {}", vehicleRef);
                 logger.trace("Skipping invalid VehicleActivity - VehicleLocation is required, but is not set.");
             }
             if((vehicleLocation.getLongitude() != null && vehicleLocation.getLongitude().doubleValue() == 0) ||
                     (vehicleLocation.getLatitude() != null && vehicleLocation.getLatitude().doubleValue() == 0)) {
                 keep = false;
-                logger.info("Invalid location [{}, {}], {}", vehicleLocation.getLongitude(), vehicleLocation.getLatitude(), vehicleRefToString(monitoredVehicleJourney));
+                logger.info("Invalid location [{}, {}], {}", vehicleLocation.getLongitude(), vehicleLocation.getLatitude(), vehicleRef);
                 logger.trace("Skipping invalid VehicleActivity - VehicleLocation is included, but is not set correctly.");
             }
             if (vehicleLocation.getCoordinates() != null) {
@@ -463,7 +466,6 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
         VehicleActivityStructure.MonitoredVehicleJourney monitoredVehicleJourney = activity.getMonitoredVehicleJourney();
         if (monitoredVehicleJourney != null) {
             LineRef lineRef = monitoredVehicleJourney.getLineRef();
-            //VehicleRef vehicleRef = monitoredVehicleJourney.getVehicleRef();
             CourseOfJourneyRefStructure courseOfJourneyRef = monitoredVehicleJourney.getCourseOfJourneyRef();
             DirectionRefStructure directionRef = monitoredVehicleJourney.getDirectionRef();
             if (lineRef == null && courseOfJourneyRef == null && directionRef == null) {

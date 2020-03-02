@@ -34,11 +34,11 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.MONITO
 public class MonitoredOccupancyValidator extends LimitedSubsetValidator {
 
 
-    private static String path;
+    private String path;
 
     public MonitoredOccupancyValidator() {
         FIELDNAME = "Occupancy";
-        path = MONITORED_VEHICLE_JOURNEY + "/" + FIELDNAME;
+        path = MONITORED_VEHICLE_JOURNEY + FIELD_DELIMITER + FIELDNAME;
         expectedValues = Sets.newHashSet(
                 OccupancyEnumeration.FULL.value(),
                 OccupancyEnumeration.SEATS_AVAILABLE.value(),

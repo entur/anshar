@@ -36,9 +36,9 @@ public class RecordedAimedArrivalTimeValidator extends TimeValidator {
 
 
     private static final String FIELDNAME = "AimedArrivalTime";
-    private static final String path = RECORDED_CALL + "/" + FIELDNAME;
+    private String path = RECORDED_CALL + FIELD_DELIMITER + FIELDNAME;
 
-    private static final String comparisonFieldName = "AimedDepartureTime";
+    private String comparisonFieldName = "AimedDepartureTime";
 
     @Override
     public String getXpath() {

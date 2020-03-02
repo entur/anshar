@@ -30,7 +30,7 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.ESTIMA
 @Component
 public class DatedVehicleJourneyRefValidator extends NsrGenericIdValidator {
 
-    private static String path;
+    private String path;
 
     public DatedVehicleJourneyRefValidator() {
         FIELDNAME = "DatedVehicleJourneyRef";

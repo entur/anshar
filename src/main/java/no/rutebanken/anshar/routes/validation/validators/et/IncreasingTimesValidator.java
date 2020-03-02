@@ -36,23 +36,20 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.ESTIMA
 @Component
 public class IncreasingTimesValidator extends CustomValidator {
 
-    private static final String path = ESTIMATED_VEHICLE_JOURNEY;
+    private String path = ESTIMATED_VEHICLE_JOURNEY;
 
-    private static final String recordedCallsParentNodeName = "RecordedCalls";
-    private static final String recordedCallNodeName = "RecordedCall";
-    private static final String estimatedCallsParentNodeName = "EstimatedCalls";
-    private static final String estimatedCallNodeName = "EstimatedCall";
+    private static final String RECORDED_CALLS_PARENT_NODE_NAME = "RecordedCalls";
+    private static final String RECORDED_CALL_NODE_NAME = "RecordedCall";
+    private static final String ESTIMATED_CALLS_PARENT_NODE_NAME = "EstimatedCalls";
+    private static final String ESTIMATED_CALL_NODE_NAME = "EstimatedCall";
 
-    private static final String aimedArrivalNodeName = "AimedArrivalTime";
-    private static final String aimedDepartureNodeName = "AimedDepartureTime";
-    private static final String expectedArrivalNodeName = "ExpectedArrivalTime";
-    private static final String expectedDepartureNodeName = "ExpectedDepartureTime";
-    private static final String actualArrivalNodeName = "ActualArrivalTime";
-    private static final String actualDepartureNodeName = "ActualDepartureTime";
-    private static final String stopPointRefNodeName = "StopPointRef";
-
-    public IncreasingTimesValidator() {
-    }
+    private static final String AIMED_ARRIVAL_NODE_NAME = "AimedArrivalTime";
+    private static final String AIMED_DEPARTURE_NODE_NAME = "AimedDepartureTime";
+    private static final String EXPECTED_ARRIVAL_NODE_NAME = "ExpectedArrivalTime";
+    private static final String EXPECTED_DEPARTURE_NODE_NAME = "ExpectedDepartureTime";
+    private static final String ACTUAL_ARRIVAL_NODE_NAME = "ActualArrivalTime";
+    private static final String ACTUAL_DEPARTURE_NODE_NAME = "ActualDepartureTime";
+    private static final String STOP_POINT_REF_NODE_NAME = "StopPointRef";
 
     @Override
     public String getCategoryName() {
@@ -73,13 +70,13 @@ public class IncreasingTimesValidator extends CustomValidator {
         String vehicleRef = getChildNodeValue(node, "VehicleRef");
 
         // Comparing aimed- and actual-times for RecordedCall
-        Node recordedCallsNode = getChildNodeByName(node, recordedCallsParentNodeName);
+        Node recordedCallsNode = getChildNodeByName(node, RECORDED_CALLS_PARENT_NODE_NAME);
         if (recordedCallsNode != null) {
-            List<Node> recordedCallNodes = getChildNodesByName(recordedCallsNode, recordedCallNodeName);
+            List<Node> recordedCallNodes = getChildNodesByName(recordedCallsNode, RECORDED_CALL_NODE_NAME);
             if (recordedCallNodes != null) {
                 for (Node call : recordedCallNodes) {
 
-                    String stopPointRef = getChildNodeValue(call, stopPointRefNodeName);
+                    String stopPointRef = getChildNodeValue(call, STOP_POINT_REF_NODE_NAME);
 
                     try {
                         previousDeparture = validateIncreasingTimes(previousDeparture, call);
@@ -96,13 +93,13 @@ public class IncreasingTimesValidator extends CustomValidator {
             }
         }
         // Comparing aimed-, actual-, and expected times for EstimatedCall
-        Node estimatededCallsNode = getChildNodeByName(node, estimatedCallsParentNodeName);
+        Node estimatededCallsNode = getChildNodeByName(node, ESTIMATED_CALLS_PARENT_NODE_NAME);
         if (estimatededCallsNode != null) {
-            List<Node> estimatededCallNodes = getChildNodesByName(estimatededCallsNode, estimatedCallNodeName);
+            List<Node> estimatededCallNodes = getChildNodesByName(estimatededCallsNode, ESTIMATED_CALL_NODE_NAME);
             if (estimatededCallNodes != null) {
                 for (Node call : estimatededCallNodes) {
 
-                    String stopPointRef = getChildNodeValue(call, stopPointRefNodeName);
+                    String stopPointRef = getChildNodeValue(call, STOP_POINT_REF_NODE_NAME);
                     try {
                         previousDeparture = validateIncreasingTimes(previousDeparture, call);
                     } catch (NegativeDwelltimeException e) {
@@ -128,10 +125,10 @@ public class IncreasingTimesValidator extends CustomValidator {
 
         String cancellation = getChildNodeValue(call, "Cancellation");
 
-        boolean isArrivalCancelled = (arrivalStatus != null) && arrivalStatus.toLowerCase().equals("cancelled");
-        boolean isCancelled = (cancellation != null) && cancellation.toLowerCase().equals("true");
+        boolean isArrivalCancelled = (arrivalStatus != null) && arrivalStatus.equalsIgnoreCase("cancelled");
+        boolean isCancelled = (cancellation != null) && cancellation.equalsIgnoreCase("true");
 
-        return isArrivalCancelled | isCancelled;
+        return isArrivalCancelled || isCancelled;
     }
 
     private boolean isDepartureCancelled(Node call) {
@@ -140,10 +137,10 @@ public class IncreasingTimesValidator extends CustomValidator {
         String departureStatus = getChildNodeValue(call, "DepartureStatus");
         String cancellation = getChildNodeValue(call, "Cancellation");
 
-        boolean isDepartureCancelled = (departureStatus != null) && departureStatus.toLowerCase().equals("cancelled");
-        boolean isCancelled = (cancellation != null) && cancellation.toLowerCase().equals("true");
+        boolean isDepartureCancelled = (departureStatus != null) && departureStatus.equalsIgnoreCase("cancelled");
+        boolean isCancelled = (cancellation != null) && cancellation.equalsIgnoreCase("true");
 
-        return isDepartureCancelled | isCancelled;
+        return isDepartureCancelled || isCancelled;
     }
 
     private String getIdentifierString(String stopPointRef, String lineRef, String vehicleRef) {
@@ -151,13 +148,13 @@ public class IncreasingTimesValidator extends CustomValidator {
     }
 
     private long validateIncreasingTimes(long previousDeparture, Node call) throws NegativeDwelltimeException, NegativeRuntimeException{
-        long aimedArrivalTime = parse(getChildNodeValue(call, aimedArrivalNodeName));
-        long expectedArrivalTime = parse(getChildNodeValue(call, expectedArrivalNodeName));
-        long actualArrivalTime = parse(getChildNodeValue(call, actualArrivalNodeName));
+        long aimedArrivalTime = parse(getChildNodeValue(call, AIMED_ARRIVAL_NODE_NAME));
+        long expectedArrivalTime = parse(getChildNodeValue(call, EXPECTED_ARRIVAL_NODE_NAME));
+        long actualArrivalTime = parse(getChildNodeValue(call, ACTUAL_ARRIVAL_NODE_NAME));
 
-        long aimedDepartureTime = parse(getChildNodeValue(call, aimedDepartureNodeName));
-        long expectedDepartureTime = parse(getChildNodeValue(call, expectedDepartureNodeName));
-        long actualDepartureTime = parse(getChildNodeValue(call, actualDepartureNodeName));
+        long aimedDepartureTime = parse(getChildNodeValue(call, AIMED_DEPARTURE_NODE_NAME));
+        long expectedDepartureTime = parse(getChildNodeValue(call, EXPECTED_DEPARTURE_NODE_NAME));
+        long actualDepartureTime = parse(getChildNodeValue(call, ACTUAL_DEPARTURE_NODE_NAME));
 
         long arrival = -1;
 

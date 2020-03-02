@@ -33,11 +33,11 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.PT_SIT
 public class ProgressValidator extends LimitedSubsetValidator {
 
 
-    private static String path;
+    private String path;
 
     public ProgressValidator() {
         FIELDNAME = "Progress";
-        path = PT_SITUATION_ELEMENT + "/" + FIELDNAME;
+        path = PT_SITUATION_ELEMENT + FIELD_DELIMITER + FIELDNAME;
         expectedValues = Sets.newHashSet(WorkflowStatusEnumeration.OPEN.value(), WorkflowStatusEnumeration.CLOSED.value());
     }
 

@@ -30,11 +30,11 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.MONITO
 @Component
 public class MonitoredCallStopPointRefValidator extends NsrQuayValidator {
 
-    private static String path;
+    private String path;
 
     public MonitoredCallStopPointRefValidator() {
         FIELDNAME = "StopPointRef";
-        path = MONITORED_CALL_STRUCTURE + "/" + FIELDNAME;
+        path = MONITORED_CALL_STRUCTURE + FIELD_DELIMITER + FIELDNAME;
     }
 
     @Override

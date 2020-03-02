@@ -30,12 +30,12 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.ESTIMA
 @Component
 public class OperatorRefValidator extends NsrGenericIdValidator {
 
-    private static String path;
+    private String path;
 
     public OperatorRefValidator() {
         FIELDNAME = "OperatorRef";
         ID_PATTERN = "Operator";
-        path = ESTIMATED_VEHICLE_JOURNEY + "/" + FIELDNAME;
+        path = ESTIMATED_VEHICLE_JOURNEY + FIELD_DELIMITER + FIELDNAME;
     }
 
     @Override

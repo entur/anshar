@@ -34,10 +34,7 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.ESTIMA
 public class IsCompleteStopSequenceValidator extends CustomValidator {
 
     private static final String FIELDNAME = "IsCompleteStopSequence";
-    private static final String path = ESTIMATED_VEHICLE_JOURNEY;
-
-    public IsCompleteStopSequenceValidator() {
-    }
+    private String path = ESTIMATED_VEHICLE_JOURNEY;
 
     @Override
     public String getCategoryName() {

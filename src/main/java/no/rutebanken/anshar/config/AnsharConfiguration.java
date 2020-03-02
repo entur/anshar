@@ -46,7 +46,7 @@ public class AnsharConfiguration {
     private String timeToLive;
 
     @Value("${anshar.inbound.pattern}")
-    private String incomingPathPattern = "/foo/bar/rest";
+    private String incomingPathPattern;
 
     @Value("${anshar.inbound.url}")
     private String inboundUrl = "http://localhost:8080";

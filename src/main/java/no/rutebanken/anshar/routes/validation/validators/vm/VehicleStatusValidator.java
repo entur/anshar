@@ -34,11 +34,11 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.MONITO
 public class VehicleStatusValidator extends LimitedSubsetValidator {
 
 
-    private static String path;
+    private String path;
 
     public VehicleStatusValidator() {
         FIELDNAME = "VehicleStatus";
-        path = MONITORED_VEHICLE_JOURNEY + "/" + FIELDNAME;
+        path = MONITORED_VEHICLE_JOURNEY + FIELD_DELIMITER + FIELDNAME;
         expectedValues = Sets.newHashSet(
                 VehicleStatusEnumeration.ASSIGNED.value(),
                 VehicleStatusEnumeration.AT_ORIGIN.value(),

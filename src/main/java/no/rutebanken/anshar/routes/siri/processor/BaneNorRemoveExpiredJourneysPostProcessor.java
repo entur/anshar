@@ -48,7 +48,7 @@ public class BaneNorRemoveExpiredJourneysPostProcessor extends ValueAdapter impl
                 List<EstimatedVersionFrameStructure> estimatedJourneyVersionFrames = etDelivery.getEstimatedJourneyVersionFrames();
                 for (EstimatedVersionFrameStructure estimatedJourneyVersionFrame : estimatedJourneyVersionFrames) {
                     int size = estimatedJourneyVersionFrame.getEstimatedVehicleJourneies().size();
-                    estimatedJourneyVersionFrame.getEstimatedVehicleJourneies().removeIf(et -> isExpired(et));
+                    estimatedJourneyVersionFrame.getEstimatedVehicleJourneies().removeIf(this::isExpired);
                     if (estimatedJourneyVersionFrame.getEstimatedVehicleJourneies().size() != size) {
                         logger.info("Removed {} expired journeys", (size - estimatedJourneyVersionFrame.getEstimatedVehicleJourneies().size()));
                     }

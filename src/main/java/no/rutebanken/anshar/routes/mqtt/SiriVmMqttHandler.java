@@ -43,7 +43,6 @@ import uk.org.siri.siri20.VehicleRef;
 
 import javax.xml.datatype.Duration;
 import java.math.BigInteger;
-import java.text.DecimalFormat;
 import java.time.DateTimeException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -60,9 +59,7 @@ public class SiriVmMqttHandler {
 
     private static final String TOPIC_PREFIX = "/hfp/journey/";
 
-    private static final String ZERO = "0";
     private static final String SLASH = "/";
-    private static final String JOURNEY_DELIM = " -> ";
     private static final String DATE_FORMAT = "yyyy-MM-dd";
     private static final String ODAY_FORMAT = "hhmm";
 
@@ -72,7 +69,7 @@ public class SiriVmMqttHandler {
     private static final String GO = "go";
     private static final String BACK = "back";
 
-    private static int pushCounter = 0;
+    private int pushCounter = 0;
     @Value("${anshar.mqtt.enabled:false}")
     private boolean mqttEnabled;
 
@@ -108,8 +105,7 @@ public class SiriVmMqttHandler {
 
         // If monitored == false, ignore update
         if (activity != null && activity.getMonitoredVehicleJourney() != null &&
-                activity.getMonitoredVehicleJourney().isMonitored() != null &&
-                !activity.getMonitoredVehicleJourney().isMonitored()) {
+                Boolean.TRUE.equals(activity.getMonitoredVehicleJourney().isMonitored())) {
             return;
         }
 
@@ -163,7 +159,7 @@ public class SiriVmMqttHandler {
         } catch (JSONException e) {
            logger.info("Caught exception when generating MQTT-messsage - will be ignored", e);
         }
-        
+
         return Pair.of(topic, message);
     }
 
@@ -187,7 +183,7 @@ public class SiriVmMqttHandler {
 
     private String getMessage(MonitoredVehicleJourney monitoredVehicleJourney, String vehicleId, String timeStamp,
                               long tsi, String route, String tripId, String direction, String headSign, String startTime, double lat,
-                              double lng, String mode) throws JSONException {
+                              double lng, String mode) {
         JSONObject vehiclePosition = new JSONObject();
         vehiclePosition.put(VehiclePosition.DESIGNATION, getDesignation(monitoredVehicleJourney));
         vehiclePosition.put(VehiclePosition.DIRECTION, direction);
@@ -195,12 +191,9 @@ public class SiriVmMqttHandler {
         vehiclePosition.put(VehiclePosition.VEHICLE_ID, vehicleId);
         vehiclePosition.put(VehiclePosition.TIMESTAMP, timeStamp);
         vehiclePosition.put(VehiclePosition.TSI, tsi);
-        //vehiclePosition.put(VehiclePosition.HEADING, 9);
-        //vehiclePosition.put(VehiclePosition.SPEED, 28);
         vehiclePosition.put(VehiclePosition.LATITUDE, lat);
         vehiclePosition.put(VehiclePosition.LONGITUDE, lng);
         vehiclePosition.put(VehiclePosition.DELAY, getDelay(monitoredVehicleJourney));
-        //vehiclePosition.put(VehiclePosition.ODOMETER: odometer);
         vehiclePosition.put(VehiclePosition.ODAY, getDepartureDay(monitoredVehicleJourney));
         vehiclePosition.put(VehiclePosition.JOURNEY, getJourney(headSign));
         vehiclePosition.put(VehiclePosition.LINE, route);
@@ -232,13 +225,12 @@ public class SiriVmMqttHandler {
 
     private String getMode(MonitoredVehicleJourney monitoredVehicleJourney) {
         String vehicleMode = getVehicleMode(monitoredVehicleJourney);
+
         if (vehicleMode != null) {
-            switch (vehicleMode) {
-                case "ferry":
-                    return "water";
-                default:
-                    return vehicleMode;
+            if ("ferry".equals(vehicleMode)) {
+                return "water";
             }
+            return vehicleMode;
         }
 
         if ("Sporvognsdrift".equals(getOperator(monitoredVehicleJourney))) {
@@ -283,7 +275,7 @@ public class SiriVmMqttHandler {
     private String getHeadSign(MonitoredVehicleJourney monitoredVehicleJourney) {
         String headsign = VehiclePosition.UNKNOWN;
         List<NaturalLanguageStringStructure> destinationNames = monitoredVehicleJourney.getDestinationNames();
-        if (destinationNames.size() > 0) {
+        if (!destinationNames.isEmpty()) {
             NaturalLanguageStringStructure destinationName = destinationNames.get(0);
             if (destinationName != null &&
                     destinationName.getValue() != null &&
@@ -318,7 +310,7 @@ public class SiriVmMqttHandler {
 
     private String getNextStop(MonitoredVehicleJourney monitoredVehicleJourney) {
         OnwardCallsStructure onwardCalls = monitoredVehicleJourney.getOnwardCalls();
-        if (onwardCalls != null && onwardCalls.getOnwardCalls().size() > 0) {
+        if (onwardCalls != null && !onwardCalls.getOnwardCalls().isEmpty()) {
             StopPointRef stopPointRef = onwardCalls.getOnwardCalls().get(0).getStopPointRef();
             if (stopPointRef != null && stopPointRef.getValue() != null) {
                 return OutboundIdAdapter.getMappedId(stopPointRef.getValue());
@@ -358,7 +350,7 @@ public class SiriVmMqttHandler {
 
     private String getDesignation(MonitoredVehicleJourney monitoredVehicleJourney) {
         List<NaturalLanguageStringStructure> publishedLineNames = monitoredVehicleJourney.getPublishedLineNames();
-        if (publishedLineNames != null && publishedLineNames.size() > 0) {
+        if (publishedLineNames != null && !publishedLineNames.isEmpty()) {
             NaturalLanguageStringStructure publishedLine = publishedLineNames.get(0);
             if (publishedLine != null && publishedLine.getValue() != null) {
                 return publishedLine.getValue();
@@ -437,7 +429,7 @@ public class SiriVmMqttHandler {
     }
 
     private String getJourney(String headSign) {
-        if (headSign.isEmpty() | headSign.equals(VehiclePosition.UNKNOWN)) {
+        if (headSign.isEmpty() || headSign.equals(VehiclePosition.UNKNOWN)) {
             throw new NullPointerException("VehicleActivityStructure.MonitoredVehicleJourney.DestinationName not set");
         }
 
@@ -470,12 +462,5 @@ public class SiriVmMqttHandler {
             results.append(digit(latitude, i)).append(digit(longitude, i)).append(SLASH);
         }
         return results.toString();
-    }
-
-    private static String readableFileSize(long size) {
-        if(size <= 0) return "0";
-        final String[] units = new String[] { "B", "kB", "MB", "GB", "TB" };
-        int digitGroups = (int) (Math.log10(size)/Math.log10(1024));
-        return new DecimalFormat("#,##0.#").format(size/Math.pow(1024, digitGroups)) + " " + units[digitGroups];
     }
 }

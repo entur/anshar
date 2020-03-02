@@ -21,8 +21,6 @@ import no.rutebanken.anshar.routes.health.HealthManager;
 import no.rutebanken.anshar.routes.outbound.ServerSubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import org.json.simple.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
@@ -33,7 +31,6 @@ import javax.ws.rs.core.MediaType;
 @Service
 @Configuration
 public class AdministrationRoute extends RestRouteBuilder {
-    private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
     private ExtendedHazelcastService extendedHazelcastService;
@@ -74,25 +71,27 @@ public class AdministrationRoute extends RestRouteBuilder {
                 .routeId("admin.stats")
         ;
 
+        final String operationHeaderName = "operation";
+
         //Stop subscription
         from("direct:operation")
              .choice()
-                .when(header("operation").isEqualTo("stop"))
+                .when(header(operationHeaderName).isEqualTo("stop"))
                     .to("direct:stop")
                 .endChoice()
-                .when(header("operation").isEqualTo("start"))
+                .when(header(operationHeaderName).isEqualTo("start"))
                     .to("direct:start")
                 .endChoice()
-                .when(header("operation").isEqualTo("terminate"))
+                .when(header(operationHeaderName).isEqualTo("terminate"))
                     .to("direct:terminate.outbound.subscription")
                 .endChoice()
-                .when(header("operation").isEqualTo("terminateAll"))
+                .when(header(operationHeaderName).isEqualTo("terminateAll"))
                     .to("direct:terminate.all.subscriptions")
                 .endChoice()
-                .when(header("operation").isEqualTo("startAll"))
+                .when(header(operationHeaderName).isEqualTo("startAll"))
                     .to("direct:restart.all.subscriptions")
                 .endChoice()
-                .when(header("operation").isEqualTo("flush"))
+                .when(header(operationHeaderName).isEqualTo("flush"))
                     .to("direct:flush.data.from.subscription")
                 .endChoice()
             .end()

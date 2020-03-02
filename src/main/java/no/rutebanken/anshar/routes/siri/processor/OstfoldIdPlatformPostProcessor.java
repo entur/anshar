@@ -21,7 +21,13 @@ import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.org.siri.siri20.*;
+import uk.org.siri.siri20.EstimatedCall;
+import uk.org.siri.siri20.EstimatedTimetableDeliveryStructure;
+import uk.org.siri.siri20.EstimatedVehicleJourney;
+import uk.org.siri.siri20.EstimatedVersionFrameStructure;
+import uk.org.siri.siri20.RecordedCall;
+import uk.org.siri.siri20.Siri;
+import uk.org.siri.siri20.StopPointRef;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -56,7 +62,7 @@ public class OstfoldIdPlatformPostProcessor extends ValueAdapter implements Post
 
         String nsrId = stopPlaceRegisterMapper.apply(originalId);
         if (nsrId == null || nsrId.startsWith(stopPointRef)) {
-            listUpdated = listUpdated | unmappedStopPlacePlatform.add(originalId);
+            listUpdated = listUpdated || unmappedStopPlacePlatform.add(originalId);
         }
         return nsrId;
     }

@@ -30,11 +30,11 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.AFFECT
 @Component
 public class AffectedStopPointValidator extends NsrQuayValidator {
 
-    private static String path;
+    private String path;
 
     public AffectedStopPointValidator() {
         FIELDNAME = "StopPointRef";
-        path = AFFECTED_STOP_POINT + "/" + FIELDNAME;
+        path = AFFECTED_STOP_POINT + FIELD_DELIMITER + FIELDNAME;
     }
 
     @Override

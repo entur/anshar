@@ -18,12 +18,20 @@ package no.rutebanken.anshar.util;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 public class CompressionUtil {
     private static final Logger logger = LoggerFactory.getLogger(CompressionUtil.class);
+
+    private CompressionUtil() {
+        //should not be instantiated
+    }
 
     public static byte[] compress(Object o) throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();

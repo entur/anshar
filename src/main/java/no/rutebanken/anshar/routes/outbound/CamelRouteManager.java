@@ -87,7 +87,7 @@ public class CamelRouteManager {
                 List<Siri> splitSiri = siriHelper.splitDeliveries(filteredPayload, deliverySize);
 
                 if (splitSiri.size() > 1) {
-                    logger.info("Object split into {} deliveries for subscription.", splitSiri.size(), subscriptionRequest);
+                    logger.info("Object split into {} deliveries for subscription {}.", splitSiri.size(), subscriptionRequest);
                 }
 
                 for (Siri siri : splitSiri) {
@@ -142,7 +142,7 @@ public class CamelRouteManager {
         }
         if (!idsToRemove.isEmpty()) {
             for (String id : idsToRemove) {
-                logger.info("Remove executor for subscription {)", id);
+                logger.info("Remove executor for subscription {}", id);
                 threadFactoryMap.remove(id);
             }
         }

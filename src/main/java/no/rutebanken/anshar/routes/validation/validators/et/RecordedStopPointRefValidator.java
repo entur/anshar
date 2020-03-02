@@ -31,11 +31,11 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.RECORD
 public class RecordedStopPointRefValidator extends NsrQuayValidator {
 
 
-    private static String path;
+    private String path;
 
     public RecordedStopPointRefValidator() {
         FIELDNAME = "StopPointRef";
-        path = RECORDED_CALL + "/" + FIELDNAME;
+        path = RECORDED_CALL + FIELD_DELIMITER + FIELDNAME;
     }
 
     @Override

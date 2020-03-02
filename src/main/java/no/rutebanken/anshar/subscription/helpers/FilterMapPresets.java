@@ -46,6 +46,8 @@ public class FilterMapPresets {
             case TEL:
                 filters.put(OperatorRefStructure.class, getOperatorFilter("80")); // 80 - Fara's internal OperatorRef for Telemark
                 break;
+            default:
+                // ignore
         }
 
         return filters;

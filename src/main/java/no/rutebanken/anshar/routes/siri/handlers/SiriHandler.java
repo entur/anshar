@@ -118,10 +118,6 @@ public class SiriHandler {
     ProducerTemplate positionForwardRoute;
 
 
-    public SiriHandler() {
-
-    }
-
     public Siri handleIncomingSiri(String subscriptionId, InputStream xml) throws UnmarshalException {
         return handleIncomingSiri(subscriptionId, xml, null, -1);
     }
@@ -362,7 +358,7 @@ public class SiriHandler {
                         );
                     }
 
-                    deliveryContainsData = deliveryContainsData | (addedOrUpdated.size() > 0);
+                    deliveryContainsData = deliveryContainsData || (addedOrUpdated.size() > 0);
 
                     serverSubscriptionManager.pushUpdatesAsync(subscriptionSetup.getSubscriptionType(), addedOrUpdated, subscriptionSetup.getDatasetId());
 
@@ -396,7 +392,7 @@ public class SiriHandler {
                         );
                     }
 
-                    deliveryContainsData = deliveryContainsData | (addedOrUpdated.size() > 0);
+                    deliveryContainsData = deliveryContainsData || (addedOrUpdated.size() > 0);
 
                     serverSubscriptionManager.pushUpdatesAsync(subscriptionSetup.getSubscriptionType(), addedOrUpdated, subscriptionSetup.getDatasetId());
 

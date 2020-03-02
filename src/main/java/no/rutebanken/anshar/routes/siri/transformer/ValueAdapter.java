@@ -26,6 +26,7 @@ public abstract class ValueAdapter implements Serializable {
     }
 
     protected ValueAdapter() {
+        // Empty constructor
     }
 
     public Class getClassToApply() {

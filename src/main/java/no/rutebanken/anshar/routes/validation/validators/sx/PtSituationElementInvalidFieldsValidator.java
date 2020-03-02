@@ -34,7 +34,7 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.PT_SIT
 public class PtSituationElementInvalidFieldsValidator extends CustomValidator {
 
     private static final String FIELDNAME = "PtSituationElement";
-    private static final String path = PT_SITUATION_ELEMENT;
+    private String path = PT_SITUATION_ELEMENT;
 
     @Override
     public String getCategoryName() {

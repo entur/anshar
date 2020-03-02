@@ -53,7 +53,7 @@ public class Situations extends SiriRepository<PtSituationElement> {
     private final Logger logger = LoggerFactory.getLogger(Situations.class);
 
     @Autowired
-    private IMap<String,PtSituationElement> situations;
+    private IMap<String,PtSituationElement> situationElements;
 
     @Autowired
     @Qualifier("getSxChecksumMap")
@@ -86,22 +86,22 @@ public class Situations extends SiriRepository<PtSituationElement> {
     }
 
     /**
-     * @return All situations
+     * @return All situationElements
      */
     public Collection<PtSituationElement> getAll() {
-        return situations.values();
+        return situationElements.values();
     }
 
     public int getSize() {
-        return situations.keySet().size();
+        return situationElements.keySet().size();
     }
 
 
     public Map<String, Integer> getDatasetSize() {
         Map<String, Integer> sizeMap = new HashMap<>();
         long t1 = System.currentTimeMillis();
-        situations.keySet().forEach(key -> {
-            String datasetId = key.substring(0, key.indexOf(":"));
+        situationElements.keySet().forEach(key -> {
+            String datasetId = key.substring(0, key.indexOf(':'));
 
             Integer count = sizeMap.getOrDefault(datasetId, 0);
             sizeMap.put(datasetId, count+1);
@@ -114,8 +114,8 @@ public class Situations extends SiriRepository<PtSituationElement> {
     public Map<String, Integer> getLocalDatasetSize() {
         Map<String, Integer> sizeMap = new HashMap<>();
         long t1 = System.currentTimeMillis();
-        situations.localKeySet().forEach(key -> {
-            String datasetId = key.substring(0, key.indexOf(":"));
+        situationElements.localKeySet().forEach(key -> {
+            String datasetId = key.substring(0, key.indexOf(':'));
 
             Integer count = sizeMap.getOrDefault(datasetId, 0);
             sizeMap.put(datasetId, count+1);
@@ -126,15 +126,15 @@ public class Situations extends SiriRepository<PtSituationElement> {
 
 
     public Integer getDatasetSize(String datasetId) {
-        return Math.toIntExact(situations.keySet().stream()
-                .filter(key -> datasetId.equals(key.substring(0, key.indexOf(":"))))
+        return Math.toIntExact(situationElements.keySet().stream()
+                .filter(key -> datasetId.equals(key.substring(0, key.indexOf(':'))))
                 .count());
     }
 
     @Override
     public void clearAllByDatasetId(String datasetId) {
         String prefix = datasetId + ":";
-        Set<String> idsToRemove = situations.keySet()
+        Set<String> idsToRemove = situationElements.keySet()
                 .stream()
                 .filter(key -> key.startsWith(prefix))
                 .collect(Collectors.toSet());
@@ -142,14 +142,14 @@ public class Situations extends SiriRepository<PtSituationElement> {
         logger.warn("Removing all data ({} ids) for {}", idsToRemove.size(), datasetId);
 
         for (String id : idsToRemove) {
-            situations.remove(id);
+            situationElements.remove(id);
             checksumCache.remove(id);
         }
     }
 
     public void clearAll() {
         logger.error("Deleting all data - should only be used in test!!!");
-        situations.clear();
+        situationElements.clear();
         checksumCache.clear();
     }
 
@@ -171,7 +171,7 @@ public class Situations extends SiriRepository<PtSituationElement> {
         Set<String> idSet = changesMap.getOrDefault(requestorId, allIds);
 
         if (idSet == allIds) {
-            idSet.addAll(situations.keySet());
+            idSet.addAll(situationElements.keySet());
         }
 
         //Filter by datasetId
@@ -191,7 +191,7 @@ public class Situations extends SiriRepository<PtSituationElement> {
         logger.info("Limiting size: {} ms", (System.currentTimeMillis()-t1));
         t1 = System.currentTimeMillis();
 
-        Collection<PtSituationElement> values = getValuesByIds(situations, sizeLimitedIds);
+        Collection<PtSituationElement> values = getValuesByIds(situationElements, sizeLimitedIds);
         logger.info("Fetching data: {} ms", (System.currentTimeMillis()-t1));
         t1 = System.currentTimeMillis();
 
@@ -209,9 +209,9 @@ public class Situations extends SiriRepository<PtSituationElement> {
             siri.getServiceDelivery().setRequestMessageRef(msgRef);
 
 
-            if (idSet.size() > situations.size()) {
+            if (idSet.size() > situationElements.size()) {
                 //Remove outdated ids
-                idSet.removeIf(id -> !situations.containsKey(id));
+                idSet.removeIf(id -> !situationElements.containsKey(id));
             }
 
             //Update change-tracker
@@ -230,7 +230,7 @@ public class Situations extends SiriRepository<PtSituationElement> {
             return getAll();
         }
 
-        return getValuesByDatasetId(situations, datasetId);
+        return getValuesByDatasetId(situationElements, datasetId);
     }
 
 
@@ -250,7 +250,7 @@ public class Situations extends SiriRepository<PtSituationElement> {
                 } else {
                     datasetFilteredIdSet.addAll(idSet);
                 }
-                Collection<PtSituationElement> changes = getValuesByIds(situations, datasetFilteredIdSet);
+                Collection<PtSituationElement> changes = getValuesByIds(situationElements, datasetFilteredIdSet);
 
                 // Data may have been updated
                 Set<String> existingSet = changesMap.get(requestorId);
@@ -261,7 +261,7 @@ public class Situations extends SiriRepository<PtSituationElement> {
                 existingSet.removeAll(idSet);
 
                 //Remove outdated ids
-                existingSet.removeIf(id -> !situations.containsKey(id));
+                existingSet.removeIf(id -> !situationElements.containsKey(id));
 
                 updateChangeTrackers(lastUpdateRequested, changesMap, requestorId, existingSet, configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
 
@@ -333,13 +333,13 @@ public class Situations extends SiriRepository<PtSituationElement> {
             if (updated) {
                 long expiration = getExpiration(situation);
                 if (expiration > 0) { //expiration < 0 => already expired
-                    situations.set(key, situation, expiration, TimeUnit.MILLISECONDS);
+                    situationElements.set(key, situation, expiration, TimeUnit.MILLISECONDS);
                     checksumCache.put(key, currentChecksum, expiration, TimeUnit.MILLISECONDS);
                     changes.add(key);
                     addedData.add(situation);
-                } else if (situations.containsKey(key)) {
+                } else if (situationElements.containsKey(key)) {
                     // Situation is no longer valid
-                    situations.delete(key);
+                    situationElements.delete(key);
                     checksumCache.remove(key);
                 }
                 if (expiration < 0) {
@@ -366,7 +366,7 @@ public class Situations extends SiriRepository<PtSituationElement> {
         List<PtSituationElement> situationList = new ArrayList<>();
         situationList.add(situation);
         addAll(datasetId, situationList);
-        return situations.get(createKey(datasetId, situation));
+        return situationElements.get(createKey(datasetId, situation));
     }
 
     private static String createKey(String datasetId, PtSituationElement element) {

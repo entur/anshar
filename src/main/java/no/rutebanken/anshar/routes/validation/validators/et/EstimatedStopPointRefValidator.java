@@ -30,10 +30,10 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.ESTIMA
 @Component
 public class EstimatedStopPointRefValidator extends NsrQuayValidator {
 
-    private static String path;
+    private String path;
     public EstimatedStopPointRefValidator() {
         FIELDNAME = "StopPointRef";
-        path = ESTIMATED_CALL + "/" + FIELDNAME;
+        path = ESTIMATED_CALL + FIELD_DELIMITER + FIELDNAME;
     }
 
     @Override

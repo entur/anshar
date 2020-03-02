@@ -36,7 +36,7 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.PT_SIT
 @Component
 public class SummaryValidator extends StringStructureValidator {
 
-    private static String path;
+    private String path;
 
     public SummaryValidator() {
         FIELDNAME = "Summary";

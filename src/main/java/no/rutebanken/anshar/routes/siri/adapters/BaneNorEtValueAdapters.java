@@ -26,6 +26,7 @@ import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,17 +44,13 @@ public class BaneNorEtValueAdapters extends MappingAdapter {
         Map<String, String> operatorOverrideMapping = new HashMap<>();
         operatorOverrideMapping.put("NG", "GJB");
 
-//        TODO: Possible necessary changes for NSB => VY
-//        operatorOverrideMapping.put("NSB", "VY");
-//        operatorOverrideMapping.put("NG", "VY");
-
         operatorOverrideMapping.put("FLY", "FLT");
         operatorOverrideMapping.put("SJ", "SJV");
         operatorOverrideMapping.put("GAG", "GOA");
         operatorOverrideMapping.put("VY", "NSB"); //BaneNOR has prematurely mapped their operatorRef...
         operatorOverrideMapping.put("VYG", "GJB"); //BaneNOR has prematurely mapped their operatorRef...
 
-        List<String> operatorsToIgnore = new ArrayList<>();//Arrays.asList("BN", "");
+        List<String> operatorsToIgnore = Collections.emptyList();
         valueAdapters.add(new OperatorFilterPostProcessor(operatorsToIgnore, operatorOverrideMapping));
 
         valueAdapters.add(new BaneNorRemoveFreightTrainPostProcessor());

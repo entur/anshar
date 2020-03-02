@@ -130,7 +130,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
         Map<String, Integer> sizeMap = new HashMap<>();
         long t1 = System.currentTimeMillis();
         timetableDeliveries.keySet().forEach(key -> {
-                        String datasetId = key.substring(0, key.indexOf(":"));
+                        String datasetId = key.substring(0, key.indexOf(':'));
 
                         Integer count = sizeMap.getOrDefault(datasetId, 0);
                         sizeMap.put(datasetId, count+1);
@@ -143,7 +143,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
         Map<String, Integer> sizeMap = new HashMap<>();
         long t1 = System.currentTimeMillis();
         timetableDeliveries.localKeySet().forEach(key -> {
-                        String datasetId = key.substring(0, key.indexOf(":"));
+                        String datasetId = key.substring(0, key.indexOf(':'));
 
                         Integer count = sizeMap.getOrDefault(datasetId, 0);
                         sizeMap.put(datasetId, count+1);
@@ -154,7 +154,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
 
     public Integer getDatasetSize(String datasetId) {
         return Math.toIntExact(timetableDeliveries.keySet().stream()
-                .filter(key -> datasetId.equals(key.substring(0, key.indexOf(":"))))
+                .filter(key -> datasetId.equals(key.substring(0, key.indexOf(':'))))
                 .count());
     }
 
@@ -218,8 +218,8 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                     EstimatedVehicleJourney vehicleJourney = timetableDeliveries.get(key);
                     if (vehicleJourney != null) { //Object may have expired
                         if (vehicleJourney.getLineRef() != null &&
-                                (vehicleJourney.getLineRef().getValue().toLowerCase().startsWith(lineRef.toLowerCase() + SEPARATOR) |
-                                vehicleJourney.getLineRef().getValue().toLowerCase().endsWith(SEPARATOR + lineRef.toLowerCase())|
+                                (vehicleJourney.getLineRef().getValue().toLowerCase().startsWith(lineRef.toLowerCase() + SEPARATOR) ||
+                                vehicleJourney.getLineRef().getValue().toLowerCase().endsWith(SEPARATOR + lineRef.toLowerCase()) ||
                                 vehicleJourney.getLineRef().getValue().equalsIgnoreCase(lineRef))
                                 ) {
                             matchingEstimatedVehicleJourneys.add(vehicleJourney);
@@ -271,7 +271,12 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
 
         if (previewInterval >= 0) {
             long t1 = System.currentTimeMillis();
-            startTimes.addAll(idStartTimeMap.entrySet().stream().filter(entry -> entry.getValue().isBefore(previewExpiry)).map(e -> e.getKey()).collect(Collectors.toSet()));
+            startTimes.addAll(idStartTimeMap
+                    .entrySet().stream()
+                    .filter(entry -> entry.getValue().isBefore(previewExpiry))
+                    .map(Map.Entry::getKey)
+                    .collect(Collectors.toSet()));
+
             logger.info("Found {} ids starting within {} ms in {} ms", startTimes.size(), previewInterval, (System.currentTimeMillis()-t1));
         }
 
@@ -391,7 +396,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                 if (hasQuayChanges) {
                     logger.info("Quay changed:  Operator {}, vehicleRef {}, stopPointRefs {}", estimatedVehicleJourney.getDataSource(), vehicleRef, quayChanges);
                 }
-                return hasCancelledStops | hasQuayChanges;
+                return hasCancelledStops || hasQuayChanges;
             }
         }
         return false;
@@ -473,7 +478,8 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
             }
         }
 
-        logger.warn("Unable to find aimed time for VehicleJourney with key {}, returning 'now'", createKey(vehicleJourney.getDataSource(), vehicleJourney));
+        final String key = createKey(vehicleJourney.getDataSource(), vehicleJourney);
+        logger.warn("Unable to find aimed time for VehicleJourney with key {}, returning 'now'", key);
 
         return ZonedDateTime.now();
     }
@@ -678,8 +684,8 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
      * @param et
      */
     private void mapFutureRecordedCallsToEstimatedCalls(EstimatedVehicleJourney et) {
-        if (et.getRecordedCalls() != null && et.getRecordedCalls().getRecordedCalls() != null && et.getRecordedCalls().getRecordedCalls().size() > 0 &&
-                (et.getEstimatedCalls() == null || (et.getEstimatedCalls().getEstimatedCalls() != null && et.getEstimatedCalls().getEstimatedCalls().size() == 0))) {
+        if (et.getRecordedCalls() != null && et.getRecordedCalls().getRecordedCalls() != null && !et.getRecordedCalls().getRecordedCalls().isEmpty() &&
+                (et.getEstimatedCalls() == null || (et.getEstimatedCalls().getEstimatedCalls() != null && !et.getEstimatedCalls().getEstimatedCalls().isEmpty()))) {
             if (et.isCancellation() != null && et.isCancellation()) {
                 logger.info("NOT rewriting EstimatedVehicleJourney with only RecordedCalls - journey is cancelled. Line {}, VehicleRef {}.",
                         (et.getLineRef() != null ? et.getLineRef().getValue():null), (et.getVehicleRef() != null ? et.getVehicleRef().getValue():null));
@@ -728,7 +734,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                     recordedCalls.add(recordedCall);
                 }
             }
-            if (estimatedCalls.size() > 0) {
+            if (!estimatedCalls.isEmpty()) {
                 logger.warn("Remapped {} RecordedCalls to {} RecordedCalls and {} EstimatedCalls for Line: {}, VehicleRef: {}",
                         predictedRecordedCalls.size(), recordedCalls.size(), estimatedCalls.size(),
                         (et.getLineRef() != null ? et.getLineRef().getValue():null), (et.getVehicleRef() != null ? et.getVehicleRef().getValue():null));

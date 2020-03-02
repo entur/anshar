@@ -28,6 +28,8 @@ import java.util.List;
 
 public abstract class CustomValidator {
 
+    protected static final String FIELD_DELIMITER = "/";
+
     public abstract String getXpath();
     public abstract ValidationEvent isValid(Node node);
 
@@ -193,7 +195,7 @@ public abstract class CustomValidator {
     protected ValidationEvent createMissingFieldEvent(Node node, String fieldname, List<String> missingFields, int severity) {
         ProfileValidationEventOrList eventList = new ProfileValidationEventOrList();
         for (String missingField : missingFields) {
-            String message = MessageFormat.format("Missing required attribute: {0} ", missingField);
+            String message = MessageFormat.format("Missing required attribute: {0} for field {1}", missingField, fieldname);
             eventList.addEvent(new ValidationEventImpl(severity, message, new ValidationEventLocatorImpl(node)));
         }
         return eventList;
@@ -210,7 +212,7 @@ public abstract class CustomValidator {
     private ValidationEvent createInvalidFieldEvent(Node node, String fieldname, List<String> missingFields, int severity) {
         ProfileValidationEventOrList eventList = new ProfileValidationEventOrList();
         for (String missingField : missingFields) {
-            String message = MessageFormat.format("Invalid attribute: {0} ", missingField);
+            String message = MessageFormat.format("Invalid attribute: {0} for field {1}", missingField, fieldname);
             eventList.addEvent(new ValidationEventImpl(severity, message, new ValidationEventLocatorImpl(node)));
         }
         return eventList;

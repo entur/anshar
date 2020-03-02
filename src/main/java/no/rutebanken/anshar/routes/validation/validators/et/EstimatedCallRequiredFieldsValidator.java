@@ -21,7 +21,6 @@ import org.springframework.stereotype.Component;
 import org.w3c.dom.Node;
 
 import javax.xml.bind.ValidationEvent;
-import java.util.ArrayList;
 import java.util.List;
 
 import static no.rutebanken.anshar.routes.validation.validators.Constants.ESTIMATED_CALL;
@@ -36,10 +35,7 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.ESTIMA
 public class EstimatedCallRequiredFieldsValidator extends CallRequiredFieldsValidator {
 
     private static final String FIELDNAME = "EstimatedCall";
-    private static final String path = ESTIMATED_CALL;
-
-    public EstimatedCallRequiredFieldsValidator() {
-    }
+    private String path = ESTIMATED_CALL;
 
     @Override
     public String getCategoryName() {
@@ -56,7 +52,7 @@ public class EstimatedCallRequiredFieldsValidator extends CallRequiredFieldsVali
 
         List <String> missingFields = validateCommonFields(node);
 
-        if (getChildNodeByName(node, "ExpectedArrivalTime") == null & getChildNodeByName(node, "ExpectedDepartureTime") == null) {
+        if (getChildNodeByName(node, "ExpectedArrivalTime") == null &&getChildNodeByName(node, "ExpectedDepartureTime") == null) {
             missingFields.add("ExpectedArrivalTime/ExpectedDepartureTime");
         }
         if (!missingFields.isEmpty()) {

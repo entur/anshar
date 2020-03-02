@@ -31,12 +31,12 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.AFFECT
 @Component
 public class AffectedLineValidator extends NsrGenericIdValidator {
 
-    private static String path;
+    private String path;
 
     public AffectedLineValidator() {
         FIELDNAME = "LineRef";
         ID_PATTERN = "Line";
-        path = AFFECTED_LINE + "/" + FIELDNAME;
+        path = AFFECTED_LINE + FIELD_DELIMITER + FIELDNAME;
     }
 
     @Override

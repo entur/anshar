@@ -12,7 +12,7 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.SERVIC
 public abstract class ServiceDeliveryInvalidFieldsValidator extends CustomValidator {
 
     private static final String FIELDNAME = "ServiceDelivery";
-    private static final String path = SERVICE_DELIVERY;
+    private String path = SERVICE_DELIVERY;
 
     protected static final String SX_DELIVERY = "SituationExchangeDelivery";
     protected static final String ET_DELIVERY = "EstimatedTimetableDelivery";

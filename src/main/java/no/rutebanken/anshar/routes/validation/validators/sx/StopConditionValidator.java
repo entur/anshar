@@ -32,11 +32,11 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.AFFECT
 @Component
 public class StopConditionValidator extends LimitedSubsetValidator {
 
-    private static String path;
+    private String path;
 
     public StopConditionValidator() {
         FIELDNAME = "StopCondition";
-        path = AFFECTED_STOP_POINT + "/" + FIELDNAME;
+        path = AFFECTED_STOP_POINT + FIELD_DELIMITER + FIELDNAME;
 
         expectedValues = Sets.newHashSet(
                 RoutePointTypeEnumeration.EXCEPTIONAL_STOP.value(),

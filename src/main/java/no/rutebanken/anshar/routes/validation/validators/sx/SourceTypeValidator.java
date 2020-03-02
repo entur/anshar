@@ -34,7 +34,7 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.PT_SIT
 public class SourceTypeValidator extends LimitedSubsetValidator {
 
 
-    private static String path;
+    private String path;
 
     public SourceTypeValidator() {
         FIELDNAME = "SourceType";

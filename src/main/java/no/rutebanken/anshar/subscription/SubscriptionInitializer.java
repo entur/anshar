@@ -215,7 +215,7 @@ public class SubscriptionInitializer implements CamelContextAware {
 
         if (subscriptionSetup.getVersion().equals("1.4")) {
             if (isSoap) {
-                if (isSubscription | isFetchedDelivery) {
+                if (isSubscription || isFetchedDelivery) {
                     routeBuilders.add(new Siri20ToSiriWS14Subscription(configuration, handler, subscriptionSetup, subscriptionManager));
                 } else {
                     routeBuilders.add(new Siri20ToSiriWS14RequestResponse(configuration, subscriptionSetup, subscriptionManager));
@@ -228,20 +228,20 @@ public class SubscriptionInitializer implements CamelContextAware {
             }
         } else {
             if (isSoap) {
-                if (isSubscription | isFetchedDelivery) {
+                if (isSubscription || isFetchedDelivery) {
                     routeBuilders.add(new Siri20ToSiriWS20Subscription(configuration, handler, subscriptionSetup, subscriptionManager));
 
-                    if (isFetchedDelivery | subscriptionSetup.isDataSupplyRequestForInitialDelivery()) {
+                    if (isFetchedDelivery || subscriptionSetup.isDataSupplyRequestForInitialDelivery()) {
                         routeBuilders.add(new Siri20ToSiriWS20RequestResponse(configuration, subscriptionSetup, subscriptionManager));
                     }
                 } else {
                     routeBuilders.add(new Siri20ToSiriWS20RequestResponse(configuration, subscriptionSetup, subscriptionManager));
                 }
             } else {
-                if (isSubscription | isFetchedDelivery) {
+                if (isSubscription || isFetchedDelivery) {
                     routeBuilders.add(new Siri20ToSiriRS20Subscription(configuration, handler, subscriptionSetup, subscriptionManager));
 
-                    if (isFetchedDelivery | subscriptionSetup.isDataSupplyRequestForInitialDelivery()) {
+                    if (isFetchedDelivery || subscriptionSetup.isDataSupplyRequestForInitialDelivery()) {
                         routeBuilders.add(new Siri20ToSiriRS20RequestResponse(configuration, subscriptionSetup, subscriptionManager));
                     }
                 } else {

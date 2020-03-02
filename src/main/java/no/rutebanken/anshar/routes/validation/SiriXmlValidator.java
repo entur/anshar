@@ -76,7 +76,7 @@ import static no.rutebanken.anshar.util.CompressionUtil.compress;
 
 @Component
 @Configuration
-public class SiriXmlValidator extends ApplicationContextHolder{
+public class SiriXmlValidator extends ApplicationContextHolder {
 
     private static final Logger logger = LoggerFactory.getLogger(SiriXmlValidator.class);
 

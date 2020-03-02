@@ -27,7 +27,13 @@ import uk.org.siri.siri20.ProductionTimetableDeliveryStructure;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 @Repository
@@ -76,7 +82,7 @@ public class ProductionTimetables extends SiriRepository<ProductionTimetableDeli
 
     @Override
     void clearAllByDatasetId(String datasetId) {
-
+        // Do nothing
     }
 
     public Collection<ProductionTimetableDeliveryStructure> getAllUpdates(String requestorId, String datasetId) {

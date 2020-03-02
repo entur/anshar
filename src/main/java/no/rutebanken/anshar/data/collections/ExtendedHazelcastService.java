@@ -57,11 +57,8 @@ public class ExtendedHazelcastService extends HazelCastService {
 
     private Logger logger = LoggerFactory.getLogger(ExtendedHazelcastService.class);
 
-    private AnsharConfiguration cfg;
-
     public ExtendedHazelcastService(@Autowired KubernetesService kubernetesService, @Autowired AnsharConfiguration cfg) {
         super(kubernetesService, cfg.getHazelcastManagementUrl());
-        this.cfg = cfg;
     }
 
     public void addBeforeShuttingDownHook(Runnable destroyFunction) {
@@ -210,26 +207,6 @@ public class ExtendedHazelcastService extends HazelCastService {
         return hazelcast.getMap("anshar.activity.last.vm.update.request");
     }
 
-//    /**
-//     * Temporary method that migrates existing data from ReplicatedMap to IMap
-//     * @param mapName
-//     * @return
-//     */
-//    private IMap<String, Instant> migrateReplicatedMapToIMap(String mapName) {
-//        IMap<String, Instant> hazelcastMap = hazelcast.getMap(mapName);
-//
-//        ReplicatedMap<String, Instant> replicatedMap = hazelcast.getReplicatedMap(mapName);
-//        if (!replicatedMap.isEmpty()) {
-//
-//            // TTL-values are specifically for the change-tracker maps used in this migration
-//            replicatedMap.forEach((key, value) -> hazelcastMap.set(key, value, cfg.getTrackingPeriodMinutes(), TimeUnit.MINUTES));
-//            replicatedMap.clear();
-//
-//            logger.info("Migrated {} objects from ReplicatedMap to IMap for {}.", hazelcastMap.size(), mapName);
-//        }
-//        return hazelcastMap;
-//    }
-
     @Bean
     public IMap<String, Instant> getActivatedTimestampMap() {
         return hazelcast.getMap("anshar.activity.activated");
@@ -269,27 +246,32 @@ public class ExtendedHazelcastService extends HazelCastService {
             if (members != null && !members.isEmpty()) {
                 for (Member member : members) {
 
-                    JSONObject obj = new JSONObject();
-                    obj.put("uuid", member.getUuid());
-                    obj.put("host", member.getAddress().getHost());
-                    obj.put("port", member.getAddress().getPort());
-                    obj.put("local", member.localMember());
-
-                    if (includeStats != null && includeStats) {
-                        JSONObject stats = new JSONObject();
-                        Collection<DistributedObject> distributedObjects = hazelcast.getDistributedObjects();
-                        for (DistributedObject distributedObject : distributedObjects) {
-                            stats.put(distributedObject.getName(), hazelcast.getMap(distributedObject.getName()).getLocalMapStats().toJson());
-                        }
-
-                        obj.put("localmapstats", stats);
-                    }
+                    JSONObject obj = getJsonObjectForHzMember(includeStats, member);
                     clusterMembers.add(obj);
                 }
             }
         }
         root.put("members", clusterMembers);
         return root.toString();
+    }
+
+    private JSONObject getJsonObjectForHzMember(Boolean includeStats, Member member) {
+        JSONObject obj = new JSONObject();
+        obj.put("uuid", member.getUuid());
+        obj.put("host", member.getAddress().getHost());
+        obj.put("port", member.getAddress().getPort());
+        obj.put("local", member.localMember());
+
+        if (Boolean.TRUE.equals(includeStats)) {
+            JSONObject stats = new JSONObject();
+            Collection<DistributedObject> distributedObjects = hazelcast.getDistributedObjects();
+            for (DistributedObject distributedObject : distributedObjects) {
+                stats.put(distributedObject.getName(), hazelcast.getMap(distributedObject.getName()).getLocalMapStats().toJson());
+            }
+
+            obj.put("localmapstats", stats);
+        }
+        return obj;
     }
 
     @Bean

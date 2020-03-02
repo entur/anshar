@@ -36,7 +36,7 @@ public class AffectedNetworkLineInvalidFieldsValidator extends CustomValidator {
 
     private static final String FIELDNAME = "AffectedLine";
 
-    private static final String path = AFFECTED_LINE;
+    private String path = AFFECTED_LINE;
 
     @Override
     public String getXpath() {

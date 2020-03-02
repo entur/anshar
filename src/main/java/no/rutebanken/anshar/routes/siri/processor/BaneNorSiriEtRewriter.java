@@ -20,13 +20,33 @@ import no.rutebanken.anshar.routes.siri.processor.routedata.StopTime;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.org.siri.siri20.*;
+import uk.org.siri.siri20.EstimatedCall;
+import uk.org.siri.siri20.EstimatedTimetableDeliveryStructure;
+import uk.org.siri.siri20.EstimatedVehicleJourney;
+import uk.org.siri.siri20.EstimatedVersionFrameStructure;
+import uk.org.siri.siri20.NaturalLanguageStringStructure;
+import uk.org.siri.siri20.RecordedCall;
+import uk.org.siri.siri20.Siri;
+import uk.org.siri.siri20.StopPointRef;
 
 import java.math.BigInteger;
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import static no.rutebanken.anshar.routes.siri.processor.routedata.NetexUpdaterService.*;
+import static no.rutebanken.anshar.routes.siri.processor.routedata.NetexUpdaterService.getPublicCode;
+import static no.rutebanken.anshar.routes.siri.processor.routedata.NetexUpdaterService.getServiceDates;
+import static no.rutebanken.anshar.routes.siri.processor.routedata.NetexUpdaterService.getServiceJourney;
+import static no.rutebanken.anshar.routes.siri.processor.routedata.NetexUpdaterService.getStopTimes;
+import static no.rutebanken.anshar.routes.siri.processor.routedata.NetexUpdaterService.isKnownTrainNr;
+import static no.rutebanken.anshar.routes.siri.processor.routedata.NetexUpdaterService.isStopIdOrParentMatch;
 import static no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer.SEPARATOR;
 import static no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter.createCombinedId;
 import static no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter.getOriginalId;
@@ -110,7 +130,7 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
                                         logger.warn("Ignoring realtime-data for departure not found in NeTEx for given day - train number {}, {}", etTrainNumber, serviceDate);
                                     }
 
-                                }  else if (etTrainNumber.length() == 5 && (etTrainNumber.startsWith("905") | etTrainNumber.startsWith("908"))) {
+                                }  else if (etTrainNumber.length() == 5 && (etTrainNumber.startsWith("905") || etTrainNumber.startsWith("908"))) {
                                     //Extra journey - map EstimatedCall as the original train
                                     String extraTrainOriginalTrainNumber = etTrainNumber.substring(2);
 
@@ -324,7 +344,7 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
                         boolean isExtraCall = (estimatedCall.isExtraCall() != null && estimatedCall.isExtraCall());
 
                         if (isExtraCall || isMatch(matchStopIdOnly, stopTime, stopId, estimatedCall.getAimedArrivalTime(), estimatedCall.getAimedDepartureTime())) {
-                            if (!matchStopIdOnly & !isExtraCall) {
+                            if (!matchStopIdOnly && !isExtraCall) {
                                 //No longer check arrival-/departuretimes as they may deviate
                                 matchStopIdOnly = true;
                             }
@@ -410,7 +430,7 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
 
                         if (isExtraCall || isMatch(matchStopIdOnly, stopTime, stopId, recordedCall.getAimedArrivalTime(), recordedCall.getAimedDepartureTime())) {
 
-                            if (!matchStopIdOnly & !isExtraCall) {
+                            if (!matchStopIdOnly && !isExtraCall) {
                                 //No longer check arrival-/departuretimes as they may deviate
                                 matchStopIdOnly = true;
                             }
@@ -473,8 +493,8 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
                 }
 
                 //allows for 60 seconds difference in each direction as they sometimes differs a little bit...
-                boolean arrivalMatch = arrivalSecondsSinceMidnight < 0 | Math.abs(arrivalSecondsSinceMidnight - stopTimeArrivalTime) < 60;
-                boolean departureMatch = departureSecondsSinceMidnight < 0 | Math.abs(departureSecondsSinceMidnight - stopTimeDepartureTime) < 60;
+                boolean arrivalMatch = arrivalSecondsSinceMidnight < 0 || Math.abs(arrivalSecondsSinceMidnight - stopTimeArrivalTime) < 60;
+                boolean departureMatch = departureSecondsSinceMidnight < 0 || Math.abs(departureSecondsSinceMidnight - stopTimeDepartureTime) < 60;
 
                 return (arrivalMatch || departureMatch);
             }

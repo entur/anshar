@@ -39,12 +39,13 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.AFFECT
 public class FramedVehicleJourneyRefValidator extends CustomValidator {
 
     private static final String FIELDNAME = "FramedVehicleJourneyRef";
-    private static final String path = AFFECTED_VEHICLE_JOURNEY + "/" + FIELDNAME;
+    private static final String DATA_FRAMEREF_FIELDNAME = "DataFrameRef";
+    private String path = AFFECTED_VEHICLE_JOURNEY + FIELD_DELIMITER + FIELDNAME;
     private final DateFormat format;
-    private final String pattern = "yyyy-MM-dd";
+    private static final String PATTERN = "yyyy-MM-dd";
 
     public FramedVehicleJourneyRefValidator() {
-        format = new SimpleDateFormat(pattern);
+        format = new SimpleDateFormat(PATTERN);
         format.setLenient(false);
     }
 
@@ -53,23 +54,15 @@ public class FramedVehicleJourneyRefValidator extends CustomValidator {
         return path;
     }
 
-
-    /*
-        <FramedVehicleJourneyRef>
-            <DataFrameRef>2018-12-31</DataFrameRef>
-            <DatedVehicleJourneyRef>CODESPACE:ServiceJourney:ID</DatedVehicleJourneyRef>
-        </FramedVehicleJourneyRef>
-     */
-
     @Override
     public ValidationEvent isValid(Node node) {
 
-        String dataFrameRef = getChildNodeValue(node, "DataFrameRef");
+        String dataFrameRef = getChildNodeValue(node, DATA_FRAMEREF_FIELDNAME);
         if (dataFrameRef == null) {
-            return createEvent(node, "DataFrameRef", "valid date", dataFrameRef, ValidationEvent.FATAL_ERROR);
+            return createEvent(node, DATA_FRAMEREF_FIELDNAME, "valid date", dataFrameRef, ValidationEvent.FATAL_ERROR);
         } else {
             if (!isValidDate(dataFrameRef)) {
-                return createEvent(node, "DataFrameRef", "valid date with pattern " + pattern, dataFrameRef, ValidationEvent.FATAL_ERROR);
+                return createEvent(node, DATA_FRAMEREF_FIELDNAME, "valid date with PATTERN " + PATTERN, dataFrameRef, ValidationEvent.FATAL_ERROR);
 
             }
         }

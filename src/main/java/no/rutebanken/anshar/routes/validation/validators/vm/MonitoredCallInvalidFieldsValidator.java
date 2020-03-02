@@ -33,7 +33,7 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.MONITO
 public class MonitoredCallInvalidFieldsValidator extends NsrQuayValidator {
 
     private static final String FIELDNAME = "MonitoredCall";
-    private static final String path = MONITORED_CALL_STRUCTURE;
+    private String path = MONITORED_CALL_STRUCTURE;
 
     @Override
     public String getXpath() {

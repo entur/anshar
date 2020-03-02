@@ -34,7 +34,7 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.MONITO
 public class MonitoredOperatorRefValidator extends CustomValidator {
 
     private static final String FIELDNAME = "OperatorRef";
-    private static final String path = MONITORED_VEHICLE_JOURNEY + "/" + FIELDNAME;
+    private String path = MONITORED_VEHICLE_JOURNEY + FIELD_DELIMITER + FIELDNAME;
 
     @Override
     public String getXpath() {

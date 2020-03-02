@@ -34,10 +34,7 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.ESTIMA
 public class EstimatedCallInvalidFieldsValidator extends CustomValidator {
 
     private static final String FIELDNAME = "EstimatedCall";
-    private static final String path = ESTIMATED_CALL;
-
-    public EstimatedCallInvalidFieldsValidator() {
-    }
+    private String path = ESTIMATED_CALL;
 
     @Override
     public String getCategoryName() {

@@ -19,7 +19,7 @@ public abstract class CallRequiredFieldsValidator extends CustomValidator {
             missingFields.add("Order");
         }
 
-        if (getChildNodeByName(node, "AimedArrivalTime") == null & getChildNodeByName(node, "AimedDepartureTime") == null) {
+        if (getChildNodeByName(node, "AimedArrivalTime") == null &&getChildNodeByName(node, "AimedDepartureTime") == null) {
             missingFields.add("AimedArrivalTime/AimedDepartureTime");
         }
         return missingFields;

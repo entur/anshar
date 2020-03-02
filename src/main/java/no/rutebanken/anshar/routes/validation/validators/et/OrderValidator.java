@@ -35,15 +35,12 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.ESTIMA
 public class OrderValidator extends CustomValidator {
 
     private static final String FIELDNAME = "Order";
-    private static final String path = ESTIMATED_VEHICLE_JOURNEY;
+    private String path = ESTIMATED_VEHICLE_JOURNEY;
 
     private static final String recordedCallsParentNodeName = "RecordedCalls";
     private static final String recordedCallNodeName = "RecordedCall";
     private static final String estimatedCallsParentNodeName = "EstimatedCalls";
     private static final String estimatedCallNodeName = "EstimatedCall";
-
-    public OrderValidator() {
-    }
 
     @Override
     public String getCategoryName() {
@@ -67,10 +64,10 @@ public class OrderValidator extends CustomValidator {
                 for (Node recordedCall : recordedCallNodes) {
                     String order = getChildNodeValue(recordedCall, FIELDNAME);
                     if (order == null || order.isEmpty()) {
-                        return  createEvent(node, recordedCallNodeName + "/" + FIELDNAME, "it to be set", order, ValidationEvent.ERROR);
+                        return  createEvent(node, recordedCallNodeName + FIELD_DELIMITER + FIELDNAME, "it to be set", order, ValidationEvent.ERROR);
                     }
                     if (!order.equals(""+expectedOrderValue)) {
-                        return  createEvent(node, recordedCallNodeName + "/" + FIELDNAME, "increasing positiveInteger (expected " + expectedOrderValue + ")", order, ValidationEvent.FATAL_ERROR);
+                        return  createEvent(node, recordedCallNodeName + FIELD_DELIMITER + FIELDNAME, "increasing positiveInteger (expected " + expectedOrderValue + ")", order, ValidationEvent.FATAL_ERROR);
                     }
                     expectedOrderValue++;
                 }
@@ -84,10 +81,10 @@ public class OrderValidator extends CustomValidator {
                 for (Node estimatedCall : estimatedCallNodes) {
                     String order = getChildNodeValue(estimatedCall, FIELDNAME);
                     if (order == null || order.isEmpty()) {
-                        return  createEvent(node, estimatedCallNodeName + "/" + FIELDNAME, "it to be set", order, ValidationEvent.ERROR);
+                        return  createEvent(node, estimatedCallNodeName + FIELD_DELIMITER + FIELDNAME, "it to be set", order, ValidationEvent.ERROR);
                     }
                     if (!order.equals(""+expectedOrderValue)) {
-                        return  createEvent(node, estimatedCallNodeName + "/" + FIELDNAME, "increasing positiveInteger (expected " + expectedOrderValue + ")", order, ValidationEvent.FATAL_ERROR);
+                        return  createEvent(node, estimatedCallNodeName + FIELD_DELIMITER + FIELDNAME, "increasing positiveInteger (expected " + expectedOrderValue + ")", order, ValidationEvent.FATAL_ERROR);
                     }
                     expectedOrderValue++;
                 }

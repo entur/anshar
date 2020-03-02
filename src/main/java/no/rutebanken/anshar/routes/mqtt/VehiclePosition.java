@@ -18,29 +18,33 @@ package no.rutebanken.anshar.routes.mqtt;
 /**
  * digitransit-ui message keys
  */
-interface VehiclePosition {
+class VehiclePosition {
     // digitransit-ui mapping
-    String ROOT = "VP";
-    String DESIGNATION = "desi";
-    String DIRECTION = "dir";
-    String OPERATOR = "oper";
-    String VEHICLE_ID = "veh";
-    String TIMESTAMP = "tst";
-    String TSI = "tsi";
-    String HEADING = "hdg";
-    String SPEED = "spd";
-    String LATITUDE = "lat";
-    String LONGITUDE = "long";
-    String DELAY = "dl";
-    String ODOMETER = "odo";
-    String ODAY = "oday";
-    String JOURNEY = "jrn";
-    String LINE = "line";
-    String STARTTIME = "start";
-    String STOP_INDEX = "stop_index";
-    String TRIP_ID = "trip_id";
-    String SOURCE = "source";
-    String MODE = "mode";
+    static final String ROOT = "VP";
+    static final String DESIGNATION = "desi";
+    static final String DIRECTION = "dir";
+    static final String OPERATOR = "oper";
+    static final String VEHICLE_ID = "veh";
+    static final String TIMESTAMP = "tst";
+    static final String TSI = "tsi";
+    static final String HEADING = "hdg";
+    static final String SPEED = "spd";
+    static final String LATITUDE = "lat";
+    static final String LONGITUDE = "long";
+    static final String DELAY = "dl";
+    static final String ODOMETER = "odo";
+    static final String ODAY = "oday";
+    static final String JOURNEY = "jrn";
+    static final String LINE = "line";
+    static final String STARTTIME = "start";
+    static final String STOP_INDEX = "stop_index";
+    static final String TRIP_ID = "trip_id";
+    static final String SOURCE = "source";
+    static final String MODE = "mode";
 
-    String UNKNOWN = "XXX";
+    static final String UNKNOWN = "XXX";
+
+    private VehiclePosition() {
+        // Dummy-constructor
+    }
 }

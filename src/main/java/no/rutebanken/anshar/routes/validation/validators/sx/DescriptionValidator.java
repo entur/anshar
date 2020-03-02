@@ -32,7 +32,7 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.PT_SIT
 @Component
 public class DescriptionValidator extends StringStructureValidator {
 
-    private static String path;
+    private String path;
 
     private DescriptionValidator() {
         FIELDNAME = "Description";

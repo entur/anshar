@@ -91,7 +91,7 @@ public abstract class TimeValidator extends CustomValidator {
     }
 
     private boolean containsCancellation(Node node) {
-        return isCancelled(node) | isArrivalCancelled(node) | isDepartureCancelled(node);
+        return isCancelled(node) || isArrivalCancelled(node) || isDepartureCancelled(node);
     }
 
     private boolean isCancelled(Node node) {

@@ -186,7 +186,7 @@ abstract class SiriRepository<T> {
         if (excludedDatasetIds != null && !excludedDatasetIds.isEmpty()) {
 
             for (String id : idSet) {
-                String datasetIdPrefix = id.substring(0, id.indexOf(":"));
+                String datasetIdPrefix = id.substring(0, id.indexOf(':'));
                 if (!excludedDatasetIds.contains(datasetIdPrefix)) {
                     requestedIds.add(id);
                 }

@@ -41,7 +41,7 @@ public class AffectedComponentValidator extends CustomValidator {
 
 
     private static final String FIELDNAME = "AffectedComponent";
-    private static final String path = AFFECTED_COMPONENTS + "/" + FIELDNAME;
+    private String path = AFFECTED_COMPONENTS + FIELD_DELIMITER + FIELDNAME;
 
 
     @Override
@@ -68,13 +68,13 @@ public class AffectedComponentValidator extends CustomValidator {
     public ValidationEvent isValid(Node node) {
 
         String componentType = getChildNodeValue(node, "ComponentType");
-        if (componentType == null | !expectedComponentTypes.contains(componentType)) {
+        if (componentType == null || !expectedComponentTypes.contains(componentType)) {
             return  createEvent(node, "ComponentType", expectedComponentTypes, componentType, ValidationEvent.ERROR);
         }
 
         if (StopPlaceComponentTypeEnumeration.QUAY.value().equals(componentType)) {
             String componentRef = getChildNodeValue(node, "ComponentRef");
-            if (componentRef == null | !isValidNsrId("NSR:Quay:", componentRef)) {
+            if (componentRef == null || !isValidNsrId("NSR:Quay:", componentRef)) {
                 return  createEvent(node, "ComponentRef", "NSR:Quay:ID when ComponentType is 'quay'", componentRef, ValidationEvent.FATAL_ERROR);
             }
         }

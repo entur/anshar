@@ -165,8 +165,7 @@ public class ServerSubscriptionManager {
         }
 
         if (hasError) {
-            Siri subscriptionResponse = siriObjectFactory.createSubscriptionResponse(subscription.getSubscriptionId(), false, errorText);
-            return subscriptionResponse;
+            return siriObjectFactory.createSubscriptionResponse(subscription.getSubscriptionId(), false, errorText);
         } else {
             addSubscription(subscription);
 
@@ -176,7 +175,7 @@ public class ServerSubscriptionManager {
             Siri delivery = siriHelper.findInitialDeliveryData(subscription);
 
             if (delivery != null) {
-                logger.info("Sending initial delivery to " + subscription.getAddress());
+                logger.info("Sending initial delivery to {}", subscription.getAddress());
                 camelRouteManager.pushSiriData(delivery, subscription, this);
             }
             return subscriptionResponse;
@@ -230,7 +229,7 @@ public class ServerSubscriptionManager {
         return null;
     }
 
-    private long getChangeBeforeUpdates(SubscriptionRequest subscriptionRequest) {
+    private int getChangeBeforeUpdates(SubscriptionRequest subscriptionRequest) {
         if (SiriHelper.containsValues(subscriptionRequest.getVehicleMonitoringSubscriptionRequests())) {
             return getMilliSeconds(subscriptionRequest.getVehicleMonitoringSubscriptionRequests().get(0).getChangeBeforeUpdates());
         } else if (SiriHelper.containsValues(subscriptionRequest.getEstimatedTimetableSubscriptionRequests())) {
@@ -241,7 +240,7 @@ public class ServerSubscriptionManager {
         return 0;
     }
 
-    private long getMilliSeconds(Duration changeBeforeUpdates) {
+    private int getMilliSeconds(Duration changeBeforeUpdates) {
         if (changeBeforeUpdates != null) {
             return changeBeforeUpdates.getSeconds()*1000;
         }
@@ -335,6 +334,9 @@ public class ServerSubscriptionManager {
             case VEHICLE_MONITORING:
                 executorService.submit(() -> pushUpdatedVehicleActivities(updates, datasetId));
                 break;
+            default:
+                // Ignore
+                break;
         }
     }
 
@@ -345,12 +347,8 @@ public class ServerSubscriptionManager {
         }
         Siri delivery = siriObjectFactory.createVMServiceDelivery(addedOrUpdated);
 
-//        if (pushToTopicEnabled && activeMQ_VM != null) {
-//            pushSiriData(delivery, activeMQ_VM);
-//        }
-
         subscriptions.values().stream().filter(subscriptionRequest ->
-                        ( subscriptionRequest.getSubscriptionType().equals(SiriDataType.VEHICLE_MONITORING) &
+                        ( subscriptionRequest.getSubscriptionType().equals(SiriDataType.VEHICLE_MONITORING) &&
                                 (subscriptionRequest.getDatasetId() == null || (subscriptionRequest.getDatasetId().equals(datasetId))))
 
         ).forEach(subscription ->
@@ -368,12 +366,8 @@ public class ServerSubscriptionManager {
         }
         Siri delivery = siriObjectFactory.createSXServiceDelivery(addedOrUpdated);
 
-//        if (pushToTopicEnabled && activeMQ_SX != null) {
-//            pushSiriData(delivery, activeMQ_SX);
-//        }
-
         subscriptions.values().stream().filter(subscriptionRequest ->
-                        (subscriptionRequest.getSubscriptionType().equals(SiriDataType.SITUATION_EXCHANGE) &
+                        (subscriptionRequest.getSubscriptionType().equals(SiriDataType.SITUATION_EXCHANGE) &&
                                 (subscriptionRequest.getDatasetId() == null || (subscriptionRequest.getDatasetId().equals(datasetId))))
 
         ).forEach(subscription ->
@@ -398,7 +392,7 @@ public class ServerSubscriptionManager {
         siriBigdataExportProducer.sendBody(delivery);
 
         subscriptions.values().stream().filter(subscriptionRequest ->
-                        (subscriptionRequest.getSubscriptionType().equals(SiriDataType.ESTIMATED_TIMETABLE) &
+                        (subscriptionRequest.getSubscriptionType().equals(SiriDataType.ESTIMATED_TIMETABLE) &&
                                 (subscriptionRequest.getDatasetId() == null || (subscriptionRequest.getDatasetId().equals(datasetId))))
 
         ).forEach(subscription ->
@@ -411,7 +405,7 @@ public class ServerSubscriptionManager {
         if (outboundSubscriptionSetup != null) {
 
             //Grace-period is set to minimum 5 minutes
-            long gracePeriod = Math.max(3*outboundSubscriptionSetup.getHeartbeatInterval(), 5*60*1000);
+            long gracePeriod = Math.max(3*outboundSubscriptionSetup.getHeartbeatInterval(), 5*60*1000L);
 
             Instant firstFail = failTrackerMap.getOrDefault(subscriptionId, Instant.now());
 

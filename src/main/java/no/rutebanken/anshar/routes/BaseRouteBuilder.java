@@ -69,7 +69,7 @@ public abstract class BaseRouteBuilder extends SpringRouteBuilder {
         boolean isLeader = isLeader(fromRouteId);
         log.debug("isActive: {}, isActivated {}, isLeader {}: {}", subscriptionSetup.isActive(), subscriptionManager.isActiveSubscription(subscriptionId), isLeader, subscriptionSetup);
 
-        return (isLeader & subscriptionSetup.isActive() && subscriptionManager.isActiveSubscription(subscriptionId));
+        return (isLeader && subscriptionSetup.isActive() && subscriptionManager.isActiveSubscription(subscriptionId));
     }
 
     protected boolean isLeader(String routeId) {
@@ -119,7 +119,9 @@ public abstract class BaseRouteBuilder extends SpringRouteBuilder {
         if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.SUBSCRIBE &&
                 subscriptionSetup.isDataSupplyRequestForInitialDelivery()) {
             return "DataSupplyRequest";
-        } if (subscriptionSetup.getSubscriptionType() == SiriDataType.ESTIMATED_TIMETABLE) {
+        }
+
+        if (subscriptionSetup.getSubscriptionType() == SiriDataType.ESTIMATED_TIMETABLE) {
             return "GetEstimatedTimetableRequest";
         } else if (subscriptionSetup.getSubscriptionType() == SiriDataType.VEHICLE_MONITORING) {
             return "GetVehicleMonitoring";

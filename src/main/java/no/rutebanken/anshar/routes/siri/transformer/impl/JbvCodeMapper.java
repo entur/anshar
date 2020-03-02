@@ -21,8 +21,6 @@ import no.rutebanken.anshar.routes.mapping.BaneNorIdPlatformUpdaterService;
 import no.rutebanken.anshar.routes.siri.transformer.ApplicationContextHolder;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.subscription.SiriDataType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -31,9 +29,8 @@ public class JbvCodeMapper extends ValueAdapter {
 
     private final String datasetId;
     private final SiriDataType type;
-    private Logger logger = LoggerFactory.getLogger(JbvCodeMapper.class);
 
-    private static HealthManager healthManager;
+    private transient HealthManager healthManager;
 
     private final Set<String> unmappedAlreadyAdded;
 
@@ -56,11 +53,9 @@ public class JbvCodeMapper extends ValueAdapter {
         }
         String mappedValue = null;
         try {
-            if (jbvCodeService != null) {
-                 mappedValue = jbvCodeService.get(id);
-                if (mappedValue != null) {
-                    return mappedValue;
-                }
+            mappedValue = jbvCodeService.get(id);
+            if (mappedValue != null) {
+                return mappedValue;
             }
         } finally {
             if (mappedValue != null && unmappedAlreadyAdded.contains(id)) {
@@ -82,5 +77,10 @@ public class JbvCodeMapper extends ValueAdapter {
         JbvCodeMapper that = (JbvCodeMapper) o;
 
         return  (!super.getClassToApply().equals(that.getClassToApply()));
+    }
+
+    @Override
+    public int hashCode() {
+        return super.hashCode();
     }
 }

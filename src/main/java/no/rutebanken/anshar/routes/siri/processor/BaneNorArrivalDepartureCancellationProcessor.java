@@ -16,14 +16,17 @@
 package no.rutebanken.anshar.routes.siri.processor;
 
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
-import uk.org.siri.siri20.*;
+import uk.org.siri.siri20.CallStatusEnumeration;
+import uk.org.siri.siri20.EstimatedCall;
+import uk.org.siri.siri20.EstimatedTimetableDeliveryStructure;
+import uk.org.siri.siri20.EstimatedVehicleJourney;
+import uk.org.siri.siri20.EstimatedVersionFrameStructure;
+import uk.org.siri.siri20.RecordedCall;
+import uk.org.siri.siri20.Siri;
 
 import java.util.List;
 
 public class BaneNorArrivalDepartureCancellationProcessor extends ValueAdapter implements PostProcessor {
-
-    public BaneNorArrivalDepartureCancellationProcessor() {
-    }
 
     @Override
     public void process(Siri siri) {

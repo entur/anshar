@@ -37,7 +37,7 @@ public class InfoLinkValidator extends CustomValidator {
 
     private static final String FIELDNAME = "InfoLink";
     private static final String URI_FIELD = "Uri";
-    private static final String path = PT_SITUATION_ELEMENT + "/InfoLinks/" + FIELDNAME;
+    private String path = PT_SITUATION_ELEMENT + "/InfoLinks/" + FIELDNAME;
 
 
     @Override
@@ -53,7 +53,7 @@ public class InfoLinkValidator extends CustomValidator {
             final String nodeValue = getNodeValue(uriNode);
             if (nodeValue != null) {
                 try {
-                    final URL url = new URL(nodeValue);
+                    new URL(nodeValue);
                 } catch (MalformedURLException t) {
                     return createEvent(node, FIELDNAME, "valid URL", nodeValue, ValidationEvent.WARNING);
                 }

@@ -37,7 +37,7 @@ public class MonitoredVehicleModeValidator extends LimitedSubsetValidator {
 
     public MonitoredVehicleModeValidator() {
         FIELDNAME = "VehicleMode";
-        path = MONITORED_VEHICLE_JOURNEY + "/" + FIELDNAME;
+        path = MONITORED_VEHICLE_JOURNEY + FIELD_DELIMITER + FIELDNAME;
         expectedValues = Sets.newHashSet(
                 VehicleModesEnumeration.AIR.value(),
                 VehicleModesEnumeration.BUS.value(),

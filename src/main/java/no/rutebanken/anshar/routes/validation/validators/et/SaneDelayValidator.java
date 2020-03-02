@@ -36,7 +36,7 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.ESTIMA
 @Component
 public class SaneDelayValidator extends CustomValidator {
 
-    private static final String path = ESTIMATED_VEHICLE_JOURNEY;
+    private String path = ESTIMATED_VEHICLE_JOURNEY;
 
     private static final String recordedCallsParentNodeName = "RecordedCalls";
     private static final String recordedCallNodeName = "RecordedCall";
@@ -52,9 +52,6 @@ public class SaneDelayValidator extends CustomValidator {
     private static final String stopPointRefNodeName = "StopPointRef";
 
     private static final long SANE_DELAY_LIMIT_SECONDS = 24*60*60;
-
-    public SaneDelayValidator() {
-    }
 
     @Override
     public String getCategoryName() {

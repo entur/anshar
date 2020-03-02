@@ -46,7 +46,7 @@ public class AccessibilityAssessmentValidator extends CustomValidator {
     private static final String ESCALATOR_FREE_ACCESS = "EscalatorFreeAccess";
     private static final String LIFT_FREE_ACCESS = "LiftFreeAccess";
 
-    private static String path;
+    private String path;
 
     private static final Set<String> expectedValues = Sets.newHashSet(
             AccessibilityEnumeration.TRUE.value(),
@@ -56,7 +56,7 @@ public class AccessibilityAssessmentValidator extends CustomValidator {
 
     public AccessibilityAssessmentValidator() {
 
-        path = ACCESSIBILITY_ASSESSMENT + "/" + FIELDNAME;
+        path = ACCESSIBILITY_ASSESSMENT + FIELD_DELIMITER + FIELDNAME;
 
     }
 
@@ -113,6 +113,6 @@ public class AccessibilityAssessmentValidator extends CustomValidator {
     }
 
     private boolean isBoolean(String value) {
-        return ("true".equals(value) | "false".equals(value));
+        return ("true".equals(value) || "false".equals(value));
     }
 }

@@ -205,6 +205,6 @@ public abstract class SiriSubscriptionRouteBuilder extends BaseRouteBuilder {
         boolean isActive = subscriptionManager.isActiveSubscription(subscriptionSetup.getSubscriptionId());
         boolean isHealthy = subscriptionManager.isSubscriptionHealthy(subscriptionSetup.getSubscriptionId());
 
-        return (hasBeenStarted & !isActive) | (hasBeenStarted & isActive & !isHealthy);
+        return (hasBeenStarted & !isActive) || (hasBeenStarted & isActive & !isHealthy);
     }
 }

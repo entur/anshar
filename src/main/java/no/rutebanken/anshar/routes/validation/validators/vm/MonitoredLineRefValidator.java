@@ -37,7 +37,7 @@ public class MonitoredLineRefValidator extends NsrGenericIdValidator {
     public MonitoredLineRefValidator() {
         FIELDNAME = "LineRef";
         ID_PATTERN = "Line";
-        path = MONITORED_VEHICLE_JOURNEY + "/" + FIELDNAME;
+        path = MONITORED_VEHICLE_JOURNEY + FIELD_DELIMITER + FIELDNAME;
     }
 
     @Override

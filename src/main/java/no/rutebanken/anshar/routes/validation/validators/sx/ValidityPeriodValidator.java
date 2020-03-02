@@ -39,7 +39,7 @@ public class ValidityPeriodValidator extends CustomValidator {
 
 
     private static final String FIELDNAME = "ValidityPeriod";
-    private static final String path = PT_SITUATION_ELEMENT + "/" + FIELDNAME;
+    private String path = PT_SITUATION_ELEMENT + FIELD_DELIMITER + FIELDNAME;
 
     private final String START_TIME_FIELD_NAME = "StartTime";
     private final String END_TIME_FIELD_NAME = "EndTime";

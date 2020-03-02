@@ -32,12 +32,12 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.ESTIMA
 public class LineRefValidator extends NsrGenericIdValidator {
 
 
-    private static String path;
+    private String path;
 
     public LineRefValidator() {
         FIELDNAME = "LineRef";
         ID_PATTERN = "Line";
-        path = ESTIMATED_VEHICLE_JOURNEY + "/" + FIELDNAME;
+        path = ESTIMATED_VEHICLE_JOURNEY + FIELD_DELIMITER + FIELDNAME;
     }
 
     @Override

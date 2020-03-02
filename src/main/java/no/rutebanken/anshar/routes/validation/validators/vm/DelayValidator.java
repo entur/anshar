@@ -38,7 +38,7 @@ public class DelayValidator extends CustomValidator {
 
 
     private static final String FIELDNAME = "Delay";
-    private static final String path = MONITORED_VEHICLE_JOURNEY + "/" + FIELDNAME;
+    private String path = MONITORED_VEHICLE_JOURNEY + FIELD_DELIMITER + FIELDNAME;
 
 
     @Override
@@ -51,7 +51,7 @@ public class DelayValidator extends CustomValidator {
         String delay = getNodeValue(node);
         if (delay != null) {
             try {
-                Duration duration = Duration.parse(delay);
+                Duration.parse(delay);
             } catch (DateTimeParseException e){
                 return createEvent(node, FIELDNAME, "valid Duration", delay, ValidationEvent.ERROR);
             }
