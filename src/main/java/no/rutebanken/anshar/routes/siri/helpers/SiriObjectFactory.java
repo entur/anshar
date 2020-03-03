@@ -128,7 +128,7 @@ public class SiriObjectFactory {
     @Autowired
     private AnsharConfiguration configuration;
 
-    public Instant serverStartTime;
+    public final Instant serverStartTime;
 
     public SiriObjectFactory(@Autowired Instant serverStartTime) {
         this.serverStartTime = serverStartTime;
@@ -289,7 +289,7 @@ public class SiriObjectFactory {
 
         if (filterMap != null) {
             Set<Object> vehicleRefs = filterMap.get(VehicleRef.class);
-            if (vehicleRefs != null && vehicleRefs.size() > 0) {
+            if (vehicleRefs != null && !vehicleRefs.isEmpty()) {
                 Object next = vehicleRefs.iterator().next();
                 if (next instanceof VehicleRef)  {
                     sxRequest.setVehicleRef((VehicleRef) next);
@@ -325,14 +325,14 @@ public class SiriObjectFactory {
 
         if (filterMap != null) {
             Set lineRefs = filterMap.get(LineRef.class);
-            if (lineRefs != null && lineRefs.size() > 0) {
+            if (lineRefs != null && !lineRefs.isEmpty()) {
                 Object next = lineRefs.iterator().next();
                 if (next instanceof LineRef) {
                     vmRequest.setLineRef((LineRef) next);
                 }
             }
             Set<Object> vehicleRefs = filterMap.get(VehicleRef.class);
-            if (vehicleRefs != null && vehicleRefs.size() > 0) {
+            if (vehicleRefs != null && !vehicleRefs.isEmpty()) {
                 Object next = vehicleRefs.iterator().next();
                 if (next instanceof VehicleRef)  {
                     vmRequest.setVehicleRef((VehicleRef) next);
@@ -379,8 +379,7 @@ public class SiriObjectFactory {
                     EstimatedTimetableRequestStructure.Lines lines = new EstimatedTimetableRequestStructure.Lines();
                     Set lineRefs = filterMap.get(LineDirectionStructure.class);
                     for (Object lineref : lineRefs) {
-                        if (lineref != null &&
-                                lineref instanceof LineDirectionStructure) {
+                        if (lineref instanceof LineDirectionStructure) {
                             lines.getLineDirections().add((LineDirectionStructure) lineref);
                         }
                     }
@@ -392,8 +391,7 @@ public class SiriObjectFactory {
                 if (filterMap.containsKey(OperatorRefStructure.class)) {
                     Set<Object> operatorRefs = filterMap.get(OperatorRefStructure.class);
                     for (Object operatorRef : operatorRefs) {
-                        if (operatorRef != null &&
-                                operatorRef instanceof OperatorRefStructure) {
+                        if (operatorRef instanceof OperatorRefStructure) {
                             etRequest.getOperatorReves().add((OperatorRefStructure) operatorRef);
                         }
                     }
@@ -495,10 +493,6 @@ public class SiriObjectFactory {
     	RequestorRef requestorRef = new RequestorRef();
         requestorRef.setValue(value);
         return requestorRef;
-    }
-
-    private static RequestorRef createRequestorRef() {
-        return createRequestorRef(UUID.randomUUID().toString());
     }
 
     private static SubscriptionQualifierStructure createSubscriptionIdentifier(String subscriptionId) {
