@@ -63,9 +63,13 @@ public class SaneDelayValidatorTest extends CustomValidatorTest {
     @Test
     public void testMissingActualTimesInRecordedCalls() throws Exception {
 
-        ValidationEvent valid = validator.isValid(createXmlNode(increasingRecordedCallsMissingActualDeparture));
+        ValidationEvent validArrival = validator.isValid(createXmlNode(increasingRecordedCallsMissingActualArrival));
 
-        assertNull("Missing values flagged as too long", valid);
+        assertNull("Missing values flagged as too long", validArrival);
+
+        ValidationEvent validDeparture = validator.isValid(createXmlNode(increasingRecordedCallsMissingActualDeparture));
+
+        assertNull("Missing values flagged as too long", validDeparture);
     }
 
 
@@ -178,6 +182,61 @@ public class SaneDelayValidatorTest extends CustomValidatorTest {
                     "    </EstimatedCalls>\n" +
                     "    <IsCompleteStopSequence>true</IsCompleteStopSequence>\n" +
                     "</EstimatedVehicleJourney>";
+
+    private static final String increasingRecordedCallsMissingActualArrival =
+            "<EstimatedVehicleJourney>\n" +
+                    "    <LineRef>NSB:Line:-</LineRef>\n" +
+                    "    <DirectionRef>Kristiansand</DirectionRef>\n" +
+                    "    <DatedVehicleJourneyRef>734:2019-02-27</DatedVehicleJourneyRef>\n" +
+                    "    <VehicleMode>rail</VehicleMode>\n" +
+                    "    <OperatorRef>NSB</OperatorRef>\n" +
+                    "    <ServiceFeatureRef>passengerTrain</ServiceFeatureRef>\n" +
+                    "    <DataSource>BNR</DataSource>\n" +
+                    "    <VehicleRef>734</VehicleRef>\n" +
+                    "    <RecordedCalls>\n" +
+                    "        <RecordedCall>\n" +
+                    "            <StopPointRef>NSR:Quay:968</StopPointRef>\n" +
+                    "            <Order>1</Order>\n" +
+                    "            <StopPointName>Stavanger</StopPointName>\n" +
+                    "            <RequestStop>false</RequestStop>\n" +
+                    "            <AimedDepartureTime>2019-02-27T17:48:00+01:00</AimedDepartureTime>\n" +
+                    "            <ActualDepartureTime>2019-02-27T17:48:00+01:00</ActualDepartureTime>\n" +
+                    "            <DepartureStatus>onTime</DepartureStatus>\n" +
+                    "            <DeparturePlatformName>1</DeparturePlatformName>\n" +
+                    "            <DepartureBoardingActivity>boarding</DepartureBoardingActivity>\n" +
+                    "        </RecordedCall>\n" +
+                    "        <RecordedCall>\n" +
+                    "            <StopPointRef>NSR:Quay:609</StopPointRef>\n" +
+                    "            <Order>2</Order>\n" +
+                    "            <StopPointName>Jåttåvågen</StopPointName>\n" +
+                    "            <RequestStop>false</RequestStop>\n" +
+                    "            <AimedArrivalTime>2019-02-27T17:54:01+01:00</AimedArrivalTime>\n" +
+                    "            <ArrivalStatus>onTime</ArrivalStatus>\n" +
+                    "            <ArrivalPlatformName>2</ArrivalPlatformName>\n" +
+                    "            <ArrivalBoardingActivity>noAlighting</ArrivalBoardingActivity>\n" +
+                    "            <AimedDepartureTime>2019-02-27T17:54:01+01:00</AimedDepartureTime>\n" +
+                    "            <ActualDepartureTime>2019-02-27T17:55:00+01:00</ActualDepartureTime>\n" +
+                    "            <DepartureStatus>onTime</DepartureStatus>\n" +
+                    "            <DeparturePlatformName>2</DeparturePlatformName>\n" +
+                    "            <DepartureBoardingActivity>boarding</DepartureBoardingActivity>\n" +
+                    "        </RecordedCall>\n" +
+                    "    </RecordedCalls>\n" +
+                    "    <EstimatedCalls>\n" +
+                    "        <EstimatedCall>\n" +
+                    "            <StopPointRef>NSR:Quay:1146</StopPointRef>\n" +
+                    "            <Order>3</Order>\n" +
+                    "            <StopPointName>Sandnes Sentrum</StopPointName>\n" +
+                    "            <RequestStop>false</RequestStop>\n" +
+                    "            <AimedArrivalTime>2019-02-27T18:01:00+01:00</AimedArrivalTime>\n" +
+                    "            <ExpectedArrivalTime>2019-02-27T18:01:00+01:00</ExpectedArrivalTime>\n" +
+                    "            <ArrivalStatus>onTime</ArrivalStatus>\n" +
+                    "            <ArrivalPlatformName>6</ArrivalPlatformName>\n" +
+                    "            <ArrivalBoardingActivity>noAlighting</ArrivalBoardingActivity>\n" +
+                    "        </EstimatedCall>\n" +
+                    "    </EstimatedCalls>\n" +
+                    "    <IsCompleteStopSequence>true</IsCompleteStopSequence>\n" +
+                    "</EstimatedVehicleJourney>";
+
 
     private static final String tooLongDelayRecordedCalls =
             "<EstimatedVehicleJourney>\n" +

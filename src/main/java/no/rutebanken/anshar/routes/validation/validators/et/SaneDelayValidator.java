@@ -38,20 +38,20 @@ public class SaneDelayValidator extends CustomValidator {
 
     private String path = ESTIMATED_VEHICLE_JOURNEY;
 
-    private static final String recordedCallsParentNodeName = "RecordedCalls";
-    private static final String recordedCallNodeName = "RecordedCall";
-    private static final String estimatedCallsParentNodeName = "EstimatedCalls";
-    private static final String estimatedCallNodeName = "EstimatedCall";
+    private String recordedCallsParentNodeName = "RecordedCalls";
+    private String recordedCallNodeName = "RecordedCall";
+    private String estimatedCallsParentNodeName = "EstimatedCalls";
+    private String estimatedCallNodeName = "EstimatedCall";
 
-    private static final String aimedArrivalNodeName = "AimedArrivalTime";
-    private static final String aimedDepartureNodeName = "AimedDepartureTime";
-    private static final String expectedArrivalNodeName = "ExpectedArrivalTime";
-    private static final String expectedDepartureNodeName = "ExpectedDepartureTime";
-    private static final String actualArrivalNodeName = "ActualArrivalTime";
-    private static final String actualDepartureNodeName = "ActualDepartureTime";
-    private static final String stopPointRefNodeName = "StopPointRef";
+    private String aimedArrivalNodeName = "AimedArrivalTime";
+    private String aimedDepartureNodeName = "AimedDepartureTime";
+    private String expectedArrivalNodeName = "ExpectedArrivalTime";
+    private String expectedDepartureNodeName = "ExpectedDepartureTime";
+    private String actualArrivalNodeName = "ActualArrivalTime";
+    private String actualDepartureNodeName = "ActualDepartureTime";
+    private String stopPointRefNodeName = "StopPointRef";
 
-    private static final long SANE_DELAY_LIMIT_SECONDS = 24*60*60;
+    private static final int SANE_DELAY_LIMIT_SECONDS = 24*60*60;
 
     @Override
     public String getCategoryName() {
@@ -126,6 +126,11 @@ public class SaneDelayValidator extends CustomValidator {
         long arrivalDelay = 0;
         long updatedArrival = -1;
 
+        if ((expectedArrivalTime == 0 && actualArrivalTime == 0) ||
+                (expectedDepartureTime == 0 && actualDepartureTime == 0)){
+            return;
+        }
+
         if (expectedArrivalTime > 0) {
             updatedArrival = expectedArrivalTime;
             if (expectedDepartureTime == 0) {
@@ -184,7 +189,7 @@ public class SaneDelayValidator extends CustomValidator {
 
     private static class TooLongDelayException extends Exception {
 
-        long delay;
+        final long delay;
 
         TooLongDelayException(long delay) {
             this.delay = delay;
@@ -198,14 +203,14 @@ public class SaneDelayValidator extends CustomValidator {
         private String formatSeconds(long timeInSeconds){
 
             int secondsLeft = Math.abs((int) timeInSeconds % 3600 % 60);
-            int minutes = Math.abs((int) Math.floor(timeInSeconds % 3600 / 60));
-            int hours = Math.abs((int) Math.floor(timeInSeconds / 3600));
+            int minutes = Math.abs((int) (timeInSeconds % 3600 / 60));
+            int hours = Math.abs((int) (timeInSeconds / 3600));
 
-            String HH = ((hours       < 10) ? "0" : "") + hours;
-            String MM = ((minutes     < 10) ? "0" : "") + minutes;
-            String SS = ((secondsLeft < 10) ? "0" : "") + secondsLeft;
+            String hoursString = ((hours       < 10) ? "0" : "") + hours;
+            String minString = ((minutes     < 10) ? "0" : "") + minutes;
+            String secString = ((secondsLeft < 10) ? "0" : "") + secondsLeft;
 
-            return HH + " h, " + MM + " min, " + SS + ", sec";
+            return hoursString + " h, " + minString + " min, " + secString + ", sec";
 
         }
     }
