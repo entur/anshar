@@ -268,12 +268,12 @@ public class SaneDelayValidatorTest extends CustomValidatorTest {
                     "            <StopPointName>Jåttåvågen</StopPointName>\n" +
                     "            <RequestStop>false</RequestStop>\n" +
                     "            <AimedArrivalTime>2019-02-27T17:54:01+01:00</AimedArrivalTime>\n" +
-                    "            <ExpectedArrivalTime>2019-02-27T17:54:01+01:00</ExpectedArrivalTime>\n" +
+                    "            <ExpectedArrivalTime>2019-02-28T17:54:01+01:00</ExpectedArrivalTime>\n" +
                     "            <ArrivalStatus>onTime</ArrivalStatus>\n" +
                     "            <ArrivalPlatformName>2</ArrivalPlatformName>\n" +
                     "            <ArrivalBoardingActivity>noAlighting</ArrivalBoardingActivity>\n" +
                     "            <AimedDepartureTime>2019-02-27T17:55:00+01:00</AimedDepartureTime>\n" +
-                    "            <ExpectedDepartureTime>2019-02-27T17:55:00+01:00</ExpectedDepartureTime>\n" +
+                    "            <ExpectedDepartureTime>2019-02-28T17:55:00+01:00</ExpectedDepartureTime>\n" +
                     "            <DepartureStatus>onTime</DepartureStatus>\n" +
                     "            <DeparturePlatformName>2</DeparturePlatformName>\n" +
                     "            <DepartureBoardingActivity>boarding</DepartureBoardingActivity>\n" +
@@ -284,7 +284,7 @@ public class SaneDelayValidatorTest extends CustomValidatorTest {
                     "            <StopPointName>Sandnes Sentrum</StopPointName>\n" +
                     "            <RequestStop>false</RequestStop>\n" +
                     "            <AimedArrivalTime>2019-02-27T18:01:00+01:00</AimedArrivalTime>\n" +
-                    "            <ExpectedArrivalTime>2019-02-27T18:01:00+01:00</ExpectedArrivalTime>\n" +
+                    "            <ExpectedArrivalTime>2019-02-28T18:01:00+01:00</ExpectedArrivalTime>\n" +
                     "            <ArrivalStatus>onTime</ArrivalStatus>\n" +
                     "            <ArrivalPlatformName>6</ArrivalPlatformName>\n" +
                     "            <ArrivalBoardingActivity>noAlighting</ArrivalBoardingActivity>\n" +
