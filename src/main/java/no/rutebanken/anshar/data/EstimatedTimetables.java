@@ -56,30 +56,28 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import static no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer.SEPARATOR;
-
 @Repository
 public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney> {
     private final Logger logger = LoggerFactory.getLogger(EstimatedTimetables.class);
 
     @Autowired
-    private IMap<String, EstimatedVehicleJourney> timetableDeliveries;
+    private IMap<SiriObjectStorageKey, EstimatedVehicleJourney> timetableDeliveries;
 
     @Autowired
     @Qualifier("getEtChecksumMap")
-    private ReplicatedMap<String,String> checksumCache;
+    private ReplicatedMap<SiriObjectStorageKey,String> checksumCache;
 
     @Autowired
     @Qualifier("getIdForPatternChangesMap")
-    private ReplicatedMap<String, String> idForPatternChanges;
+    private ReplicatedMap<SiriObjectStorageKey, String> idForPatternChanges;
 
     @Autowired
     @Qualifier("getIdStartTimeMap")
-    private ReplicatedMap<String, ZonedDateTime> idStartTimeMap;
+    private ReplicatedMap<SiriObjectStorageKey, ZonedDateTime> idStartTimeMap;
 
     @Autowired
     @Qualifier("getEstimatedTimetableChangesMap")
-    private IMap<String, Set<String>> changesMap;
+    private IMap<String, Set<SiriObjectStorageKey>> changesMap;
 
     @Autowired
     @Qualifier("getLastEtUpdateRequest")
@@ -130,7 +128,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
         Map<String, Integer> sizeMap = new HashMap<>();
         long t1 = System.currentTimeMillis();
         timetableDeliveries.keySet().forEach(key -> {
-                        String datasetId = key.substring(0, key.indexOf(':'));
+                        String datasetId = key.getCodespaceId();
 
                         Integer count = sizeMap.getOrDefault(datasetId, 0);
                         sizeMap.put(datasetId, count+1);
@@ -143,7 +141,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
         Map<String, Integer> sizeMap = new HashMap<>();
         long t1 = System.currentTimeMillis();
         timetableDeliveries.localKeySet().forEach(key -> {
-                        String datasetId = key.substring(0, key.indexOf(':'));
+                        String datasetId = key.getCodespaceId();
 
                         Integer count = sizeMap.getOrDefault(datasetId, 0);
                         sizeMap.put(datasetId, count+1);
@@ -154,22 +152,20 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
 
     public Integer getDatasetSize(String datasetId) {
         return Math.toIntExact(timetableDeliveries.keySet().stream()
-                .filter(key -> datasetId.equals(key.substring(0, key.indexOf(':'))))
+                .filter(key -> datasetId.equals(key.getCodespaceId()))
                 .count());
     }
 
     @Override
     public void clearAllByDatasetId(String datasetId) {
-        String prefix = datasetId + ":";
-        Set<String> idsToRemove = timetableDeliveries.keySet()
-                .stream()
-                .filter(key -> key.startsWith(prefix))
-                .collect(Collectors.toSet());
+
+        Set<SiriObjectStorageKey> idsToRemove = timetableDeliveries.keySet(createCodespacePredicate(datasetId));
 
         logger.warn("Removing all data ({} ids) for {}", idsToRemove.size(), datasetId);
 
-        for (String id : idsToRemove) {
+        for (SiriObjectStorageKey id : idsToRemove) {
             timetableDeliveries.delete(id);
+
             checksumCache.remove(id);
             idStartTimeMap.remove(id);
             idForPatternChanges.remove(id);
@@ -186,7 +182,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
         lastUpdateRequested.clear();
     }
 
-    public Siri createServiceDelivery(String lineRef) {
+    public Siri createServiceDelivery(final String lineRef) {
         SortedSet<EstimatedVehicleJourney> matchingEstimatedVehicleJourneys = new TreeSet<>((o1, o2) -> {
             ZonedDateTime o1_firstTimestamp = o1.getEstimatedCalls().getEstimatedCalls().get(0).getAimedDepartureTime();
             if (o1_firstTimestamp == null) {
@@ -213,19 +209,9 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
             return o1_firstTimestamp.compareTo(o2_firstTimestamp);
         });
 
-        timetableDeliveries.keySet()
-                .forEach(key -> {
-                    EstimatedVehicleJourney vehicleJourney = timetableDeliveries.get(key);
-                    if (vehicleJourney != null) { //Object may have expired
-                        if (vehicleJourney.getLineRef() != null &&
-                                (vehicleJourney.getLineRef().getValue().toLowerCase().startsWith(lineRef.toLowerCase() + SEPARATOR) ||
-                                vehicleJourney.getLineRef().getValue().toLowerCase().endsWith(SEPARATOR + lineRef.toLowerCase()) ||
-                                vehicleJourney.getLineRef().getValue().equalsIgnoreCase(lineRef))
-                                ) {
-                            matchingEstimatedVehicleJourneys.add(vehicleJourney);
-                        }
-                    }
-                });
+        final Set<SiriObjectStorageKey> lineRefKeys = timetableDeliveries.keySet(createLineRefPredicate(lineRef));
+
+        matchingEstimatedVehicleJourneys.addAll(timetableDeliveries.getAll(lineRefKeys).values());
 
         return siriObjectFactory.createETServiceDelivery(matchingEstimatedVehicleJourneys);
     }
@@ -253,36 +239,36 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
         }
 
         // Get all relevant ids
-        Set<String> allIds = new HashSet<>();
-        Set<String> idSet = changesMap.getOrDefault(requestorId, allIds);
+        Set<SiriObjectStorageKey> allIds = new HashSet<>();
+        Set<SiriObjectStorageKey> idSet = changesMap.getOrDefault(requestorId, allIds);
 
         if (idSet == allIds) {
-            timetableDeliveries.keySet().stream()
-                    .filter(k -> datasetId == null || k. startsWith(datasetId + ":"))
-                    .forEach(idSet::add);
+            idSet.addAll(timetableDeliveries
+                    .keySet(entry -> datasetId == null || ((SiriObjectStorageKey) entry.getKey()).getCodespaceId().equals(datasetId))
+            );
         }
 
         //Filter by datasetId
-        Set<String> requestedIds = filterIdsByDataset(idSet, excludedDatasetIds, datasetId);
+        Set<SiriObjectStorageKey> requestedIds = filterIdsByDataset(idSet, excludedDatasetIds, datasetId);
 
         final ZonedDateTime previewExpiry = ZonedDateTime.now().plusSeconds(previewInterval / 1000);
 
-        Set<String> startTimes = new HashSet<>();
+        Set<SiriObjectStorageKey> startTimes = new HashSet<>();
 
         if (previewInterval >= 0) {
             long t1 = System.currentTimeMillis();
             startTimes.addAll(idStartTimeMap
-                    .entrySet().stream()
-                    .filter(entry -> entry.getValue().isBefore(previewExpiry))
-                    .map(Map.Entry::getKey)
-                    .collect(Collectors.toSet()));
+                        .entrySet().stream()
+                        .filter(entry -> entry.getValue().isBefore(previewExpiry))
+                        .map(Map.Entry::getKey)
+                        .collect(Collectors.toSet()));
 
             logger.info("Found {} ids starting within {} ms in {} ms", startTimes.size(), previewInterval, (System.currentTimeMillis()-t1));
         }
 
         final AtomicInteger previewIntervalInclusionCounter = new AtomicInteger();
         final AtomicInteger previewIntervalExclusionCounter = new AtomicInteger();
-        Predicate<? super String> previewIntervalFilter = (Predicate<String>) id -> {
+        Predicate<SiriObjectStorageKey> previewIntervalFilter =  id -> {
 
             if (idForPatternChanges.containsKey(id) || startTimes.contains(id)) {
                 // Is valid in requested previewInterval
@@ -295,7 +281,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
         };
 
         long t1 = System.currentTimeMillis();
-        Set<String> sizeLimitedIds = requestedIds
+        Set<SiriObjectStorageKey> sizeLimitedIds = requestedIds
                 .stream()
                 .filter(id -> previewInterval < 0 || previewIntervalFilter.test(id))
                 .limit(maxSize)
@@ -313,7 +299,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
 
         Boolean isMoreData = (previewIntervalExclusionCounter.get() + sizeLimitedIds.size()) < requestedIds.size();
 
-        Collection<EstimatedVehicleJourney> values = getValuesByIds(timetableDeliveries, sizeLimitedIds);
+        Collection<EstimatedVehicleJourney> values = timetableDeliveries.getAll(sizeLimitedIds).values();
         logger.info("Fetching data: {} ms", (System.currentTimeMillis()-t1));
         t1 = System.currentTimeMillis();
 
@@ -405,21 +391,21 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
     public Collection<EstimatedVehicleJourney> getAllUpdates(String requestorId, String datasetId) {
         if (requestorId != null) {
 
-            Set<String> idSet = changesMap.get(requestorId);
+            Set<SiriObjectStorageKey> idSet = changesMap.get(requestorId);
             lastUpdateRequested.put(requestorId, Instant.now(), configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
 
             if (idSet != null) {
-                Set<String> datasetFilteredIdSet = new HashSet<>();
+                Set<SiriObjectStorageKey> datasetFilteredIdSet = new HashSet<>();
 
                 if (datasetId != null) {
-                    idSet.stream().filter(key -> key.startsWith(datasetId + ":")).forEach(datasetFilteredIdSet::add);
+                    idSet.stream().filter(key -> key.getCodespaceId().equals(datasetId)).forEach(datasetFilteredIdSet::add);
                 } else {
                     datasetFilteredIdSet.addAll(idSet);
                 }
 
-                Collection<EstimatedVehicleJourney> changes = getValuesByIds(timetableDeliveries, datasetFilteredIdSet);
+                Collection<EstimatedVehicleJourney> changes = timetableDeliveries.getAll(datasetFilteredIdSet).values();
 
-                Set<String> existingSet = changesMap.get(requestorId);
+                Set<SiriObjectStorageKey> existingSet = changesMap.get(requestorId);
                 if (existingSet == null) {
                     existingSet = new HashSet<>();
                 }
@@ -478,7 +464,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
             }
         }
 
-        final String key = createKey(vehicleJourney.getDataSource(), vehicleJourney);
+        final SiriObjectStorageKey key = createKey(vehicleJourney.getDataSource(), vehicleJourney);
         logger.warn("Unable to find aimed time for VehicleJourney with key {}, returning 'now'", key);
 
         return ZonedDateTime.now();
@@ -538,14 +524,14 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
 
     public Collection<EstimatedVehicleJourney> addAll(String datasetId, List<EstimatedVehicleJourney> etList) {
 
-        Set<String> changes = new HashSet<>();
+        Set<SiriObjectStorageKey> changes = new HashSet<>();
         Set<EstimatedVehicleJourney> addedData = new HashSet<>();
 
         Counter outdatedCounter = new CounterImpl(0);
         Counter notUpdatedCounter = new CounterImpl(0);
 
         etList.forEach(et -> {
-            String key = createKey(datasetId, et);
+            SiriObjectStorageKey key = createKey(datasetId, et);
 
             String currentChecksum = null;
             ZonedDateTime recordedAtTime = et.getRecordedAtTime();
@@ -610,7 +596,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
 
                         if (hasPatternChanges(et)) {
                             // Keep track of all valid ET with pattern-changes
-                            idForPatternChanges.put(key, key, expiration, TimeUnit.MILLISECONDS);
+                            idForPatternChanges.put(key, key.getKey(), expiration, TimeUnit.MILLISECONDS);
                             if (et.isMonitored() == null) {
                                 et.setMonitored(true);
                             }
@@ -756,14 +742,13 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
         return timetableDeliveries.get(createKey(datasetId, delivery));
     }
 
-    private static String createKey(String datasetId, EstimatedVehicleJourney element) {
-        StringBuilder key = new StringBuilder();
+    private static SiriObjectStorageKey createKey(String datasetId, EstimatedVehicleJourney element) {
 
+        StringBuilder key = new StringBuilder();
         if (element.getFramedVehicleJourneyRef() != null) {
             String dataFrameRef = element.getFramedVehicleJourneyRef().getDataFrameRef() != null ? element.getFramedVehicleJourneyRef().getDataFrameRef().getValue():"null";
 
-            key.append(datasetId).append(":")
-                    .append(dataFrameRef)
+            key.append(dataFrameRef)
                     .append(":")
                     .append(element.getFramedVehicleJourneyRef().getDatedVehicleJourneyRef());
         } else if (element.isExtraJourney() != null && element.getEstimatedVehicleJourneyCode() != null) {
@@ -774,10 +759,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                     .append(element.getEstimatedVehicleJourneyCode());
         } else {
 
-            key.append(datasetId).append(":")
-                    .append((element.getOperatorRef() != null ? element.getOperatorRef().getValue() : "null"))
-                    .append(":")
-                    .append((element.getLineRef() != null ? element.getLineRef().getValue() : "null"))
+            key.append((element.getOperatorRef() != null ? element.getOperatorRef().getValue() : "null"))
                     .append(":")
                     .append((element.getVehicleRef() != null ? element.getVehicleRef().getValue() : "null"))
                     .append(":")
@@ -786,6 +768,10 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                     .append(element.getDatedVehicleJourneyRef() != null ? element.getDatedVehicleJourneyRef().getValue() : null);
         }
 
-        return key.toString();
+        String line = null;
+        if (element.getLineRef() != null) {
+            line = element.getLineRef().getValue();
+        }
+        return new SiriObjectStorageKey(datasetId, line, key.toString());
     }
 }

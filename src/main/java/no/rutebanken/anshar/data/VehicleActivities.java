@@ -58,22 +58,20 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer.SEPARATOR;
-
 @Repository
 public class VehicleActivities extends SiriRepository<VehicleActivityStructure> {
     private final Logger logger = LoggerFactory.getLogger(VehicleActivities.class);
 
     @Autowired
-    private IMap<String, VehicleActivityStructure> monitoredVehicles;
+    private IMap<SiriObjectStorageKey, VehicleActivityStructure> monitoredVehicles;
 
     @Autowired
     @Qualifier("getVehicleChangesMap")
-    private IMap<String, Set<String>> changesMap;
+    private IMap<String, Set<SiriObjectStorageKey>> changesMap;
 
     @Autowired
     @Qualifier("getVmChecksumMap")
-    private ReplicatedMap<String,String> checksumCache;
+    private ReplicatedMap<SiriObjectStorageKey,String> checksumCache;
 
     @Autowired
     @Qualifier("getLastVmUpdateRequest")
@@ -114,7 +112,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
         Map<String, Integer> sizeMap = new HashMap<>();
         long t1 = System.currentTimeMillis();
         monitoredVehicles.keySet().forEach(key -> {
-            String datasetId = key.substring(0, key.indexOf(':'));
+            String datasetId = key.getCodespaceId();
 
             Integer count = sizeMap.getOrDefault(datasetId, 0);
             sizeMap.put(datasetId, count+1);
@@ -127,7 +125,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
         Map<String, Integer> sizeMap = new HashMap<>();
         long t1 = System.currentTimeMillis();
         monitoredVehicles.localKeySet().forEach(key -> {
-            String datasetId = key.substring(0, key.indexOf(':'));
+            String datasetId = key.getCodespaceId();
 
             Integer count = sizeMap.getOrDefault(datasetId, 0);
             sizeMap.put(datasetId, count+1);
@@ -139,22 +137,20 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
 
     public Integer getDatasetSize(String datasetId) {
         return Math.toIntExact(monitoredVehicles.keySet().stream()
-                .filter(key -> datasetId.equals(key.substring(0, key.indexOf(':'))))
+                .filter(key -> datasetId.equals(key.getCodespaceId()))
                 .count());
     }
 
     @Override
     public void clearAllByDatasetId(String datasetId) {
-        String prefix = datasetId + ":";
-        Set<String> idsToRemove = monitoredVehicles.keySet()
-                .stream()
-                .filter(key -> key.startsWith(prefix))
-                .collect(Collectors.toSet());
+
+        Set<SiriObjectStorageKey> idsToRemove = monitoredVehicles.keySet(createCodespacePredicate(datasetId));
 
         logger.warn("Removing all data ({} ids) for {}", idsToRemove.size(), datasetId);
 
-        for (String id : idsToRemove) {
+        for (SiriObjectStorageKey id : idsToRemove) {
             monitoredVehicles.delete(id);
+            checksumCache.remove(id);
         }
     }
 
@@ -180,20 +176,20 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
     public Collection<VehicleActivityStructure> getAllUpdates(String requestorId, String datasetId) {
         if (requestorId != null) {
 
-            Set<String> idSet = changesMap.get(requestorId);
+            Set<SiriObjectStorageKey> idSet = changesMap.get(requestorId);
             lastUpdateRequested.set(requestorId, Instant.now(), configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
             if (idSet != null) {
-                Set<String> datasetFilteredIdSet = new HashSet<>();
+                Set<SiriObjectStorageKey> datasetFilteredIdSet = new HashSet<>();
 
                 if (datasetId != null) {
-                    idSet.stream().filter(key -> key.startsWith(datasetId + ":")).forEach(datasetFilteredIdSet::add);
+                    idSet.stream().filter(key -> key.getCodespaceId().equals(datasetId)).forEach(datasetFilteredIdSet::add);
                 } else {
                     datasetFilteredIdSet.addAll(idSet);
                 }
 
-                Collection<VehicleActivityStructure> changes = getValuesByIds(monitoredVehicles, datasetFilteredIdSet);
+                Collection<VehicleActivityStructure> changes = monitoredVehicles.getAll(datasetFilteredIdSet).values();
 
-                Set<String> existingSet = changesMap.get(requestorId);
+                Set<SiriObjectStorageKey> existingSet = changesMap.get(requestorId);
                 if (existingSet == null) {
                     existingSet = new HashSet<>();
                 }
@@ -222,26 +218,16 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
     }
 
 
-    public Siri createServiceDelivery(String lineRef) {
-        SortedSet<VehicleActivityStructure> matchingEstimatedVehicleJourneys = new TreeSet<>(Comparator.comparing(AbstractItemStructure::getRecordedAtTime));
+    public Siri createServiceDelivery(final String lineRef) {
+        SortedSet<VehicleActivityStructure> vehicleActivityStructures = new TreeSet<>(Comparator.comparing(AbstractItemStructure::getRecordedAtTime));
 
-        monitoredVehicles.keySet()
-                .forEach(key -> {
-                    VehicleActivityStructure vehicleJourney = monitoredVehicles.get(key);
-                    if (vehicleJourney != null && vehicleJourney.getMonitoredVehicleJourney() != null) { //Object may have expired
-                        VehicleActivityStructure.MonitoredVehicleJourney monitoredVehicleJourney = vehicleJourney.getMonitoredVehicleJourney();
-                        if (monitoredVehicleJourney.getLineRef() != null &&
-                                (monitoredVehicleJourney.getLineRef().getValue().toLowerCase().startsWith(lineRef.toLowerCase() + SEPARATOR) ||
-                                        monitoredVehicleJourney.getLineRef().getValue().toLowerCase().endsWith(SEPARATOR + lineRef.toLowerCase()) ||
-                                        monitoredVehicleJourney.getLineRef().getValue().equalsIgnoreCase(lineRef))
-                                ) {
-                            matchingEstimatedVehicleJourneys.add(vehicleJourney);
-                        }
-                    }
-                });
+        final Set<SiriObjectStorageKey> lineRefKeys = monitoredVehicles.keySet(createLineRefPredicate(lineRef));
 
-        return siriObjectFactory.createVMServiceDelivery(matchingEstimatedVehicleJourneys);
+        vehicleActivityStructures.addAll(monitoredVehicles.getAll(lineRefKeys).values());
+
+        return siriObjectFactory.createVMServiceDelivery(vehicleActivityStructures);
     }
+
 
     public Siri createServiceDelivery(String requestorId, String datasetId, String clientName, List<String> excludedDatasetIds, int maxSize) {
         requestorRefRepository.touchRequestorRef(requestorId, datasetId, clientName, SiriDataType.VEHICLE_MONITORING);
@@ -257,23 +243,23 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
         }
 
         // Get all relevant ids
-        Set<String> allIds = new HashSet<>();
-        Set<String> idSet = changesMap.getOrDefault(requestorId, allIds);
+        Set<SiriObjectStorageKey> allIds = new HashSet<>();
+        Set<SiriObjectStorageKey> idSet = changesMap.getOrDefault(requestorId, allIds);
 
         if (idSet == allIds) {
             idSet.addAll(monitoredVehicles.keySet());
         }
 
-        Set<String> requestedIds = filterIdsByDataset(idSet, excludedDatasetIds, datasetId);
+        Set<SiriObjectStorageKey> requestedIds = filterIdsByDataset(idSet, excludedDatasetIds, datasetId);
 
-        Set<String> sizeLimitedIds = requestedIds.stream().limit(maxSize).collect(Collectors.toSet());
+        Set<SiriObjectStorageKey> sizeLimitedIds = requestedIds.stream().limit(maxSize).collect(Collectors.toSet());
 
         Boolean isMoreData = sizeLimitedIds.size() < requestedIds.size();
 
         //Remove collected objects
         sizeLimitedIds.forEach(idSet::remove);
 
-        Collection<VehicleActivityStructure> values = getValuesByIds(monitoredVehicles, sizeLimitedIds);
+        Collection<VehicleActivityStructure> values = monitoredVehicles.getAll(sizeLimitedIds).values();
 
         Siri siri = siriObjectFactory.createVMServiceDelivery(values);
 
@@ -312,7 +298,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
     }
 
     public Collection<VehicleActivityStructure> addAll(String datasetId, List<VehicleActivityStructure> vmList) {
-        Set<String> changes = new HashSet<>();
+        Set<SiriObjectStorageKey> changes = new HashSet<>();
         Set<VehicleActivityStructure> addedData = new HashSet<>();
 
         Counter invalidLocationCounter = new CounterImpl(0);
@@ -325,7 +311,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
                 .filter(activity -> activity.getMonitoredVehicleJourney().getVehicleRef() != null)
                 .forEach(activity -> {
 
-                    String key = createKey(datasetId, activity.getMonitoredVehicleJourney().getVehicleRef());
+                    SiriObjectStorageKey key = createKey(datasetId, activity.getMonitoredVehicleJourney());
 
                     String currentChecksum = null;
                     ZonedDateTime validUntilTime = activity.getValidUntilTime();
@@ -404,7 +390,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
         List<VehicleActivityStructure> activities = new ArrayList<>();
         activities.add(activity);
         addAll(datasetId, activities);
-        return monitoredVehicles.get(createKey(datasetId, activity.getMonitoredVehicleJourney().getVehicleRef()));
+        return monitoredVehicles.get(createKey(datasetId, activity.getMonitoredVehicleJourney()));
     }
 
     /*
@@ -482,13 +468,25 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
     /**
      * Creates unique key - assumes that any operator has a set of unique VehicleRefs
      * @param datasetId
-     * @param vehicleRef
+     * @param monitoredVehicleJourney
      * @return
      */
-    private String createKey(String datasetId, VehicleRef vehicleRef) {
+    private SiriObjectStorageKey createKey(String datasetId, VehicleActivityStructure.MonitoredVehicleJourney monitoredVehicleJourney) {
         StringBuilder key = new StringBuilder();
-        key.append(datasetId).append(":").append(vehicleRef.getValue());
 
-        return key.toString();
+
+        if (monitoredVehicleJourney.getVehicleRef() != null) {
+            VehicleRef vehicleRef = monitoredVehicleJourney.getVehicleRef();
+            key.append(datasetId).append(":").append(vehicleRef.getValue());
+        }
+
+
+        String line = null;
+        if (monitoredVehicleJourney.getLineRef() != null) {
+            line = monitoredVehicleJourney.getLineRef().getValue();
+        }
+
+        return new SiriObjectStorageKey(datasetId, line, key.toString());
+
     }
 }

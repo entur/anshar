@@ -16,6 +16,7 @@
 package no.rutebanken.anshar.data;
 
 import com.hazelcast.core.IMap;
+import com.hazelcast.query.Predicate;
 import no.rutebanken.anshar.data.collections.ExtendedHazelcastService;
 import no.rutebanken.anshar.metrics.PrometheusMetricsService;
 import no.rutebanken.anshar.routes.siri.transformer.ApplicationContextHolder;
@@ -43,10 +44,12 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import static no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer.SEPARATOR;
+
 abstract class SiriRepository<T> {
 
     private IMap<String, Instant> lastUpdateRequested;
-    private IMap<String, Set<String>> changesMap;
+    private IMap<String, Set<SiriObjectStorageKey>> changesMap;
 
     abstract Collection<T> getAll();
 
@@ -66,11 +69,11 @@ abstract class SiriRepository<T> {
 
     private PrometheusMetricsService metrics;
 
-    final Set<String> dirtyChanges = Collections.synchronizedSet(new HashSet<>());
+    final Set<SiriObjectStorageKey> dirtyChanges = Collections.synchronizedSet(new HashSet<>());
 
     private ScheduledExecutorService singleThreadScheduledExecutor;
 
-    void initBufferCommitter(ExtendedHazelcastService hazelcastService, IMap<String, Instant> lastUpdateRequested, IMap<String, Set<String>> changesMap, int commitFrequency) {
+    void initBufferCommitter(ExtendedHazelcastService hazelcastService, IMap<String, Instant> lastUpdateRequested, IMap<String, Set<SiriObjectStorageKey>> changesMap, int commitFrequency) {
         this.lastUpdateRequested = lastUpdateRequested;
         this.changesMap = changesMap;
 
@@ -79,9 +82,7 @@ abstract class SiriRepository<T> {
 
             logger.info("Initializing scheduled change-buffer-updater with commit every {} seconds", commitFrequency);
 
-            singleThreadScheduledExecutor.scheduleWithFixedDelay(() -> {
-                commitChanges();
-            }, 0, commitFrequency, TimeUnit.SECONDS);
+            singleThreadScheduledExecutor.scheduleWithFixedDelay(this::commitChanges, 0, commitFrequency, TimeUnit.SECONDS);
         }
 
         hazelcastService.addBeforeShuttingDownHook(() -> {
@@ -101,7 +102,7 @@ abstract class SiriRepository<T> {
 
                 long t1 = System.currentTimeMillis();
 
-                final Set<String> bufferedChanges = new HashSet<>(dirtyChanges);
+                final Set<SiriObjectStorageKey> bufferedChanges = new HashSet<>(dirtyChanges);
                 dirtyChanges.clear();
 
                 changesMap.keySet().forEach(key -> {
@@ -118,7 +119,7 @@ abstract class SiriRepository<T> {
             } else {
                 logger.debug("No changes - ignoring commit ({})", this.getClass().getSimpleName());
             }
-        } catch (Throwable t) {
+        } catch (Exception t) {
             //Catch everything to avoid executor being killed
             logger.info("Exception caught when comitting changes", t);
         }
@@ -129,7 +130,7 @@ abstract class SiriRepository<T> {
      * Adds ids to local change-buffer
      * @param changes
      */
-    void markIdsAsUpdated(Set<String> changes) {
+    void markIdsAsUpdated(Set<SiriObjectStorageKey> changes) {
         if (!changes.isEmpty()) {
             dirtyChanges.addAll(changes);
             logger.info("Added {} updates to {} dirty-buffer, now has {} pending updates", changes.size(), this.getClass().getSimpleName(), dirtyChanges.size());
@@ -143,7 +144,8 @@ abstract class SiriRepository<T> {
         metrics.registerIncomingData(dataType, datasetId, totalSize, updatedSize, expiredSize, ignoredSize);
     }
 
-    void updateChangeTrackers(IMap<String, Instant> lastUpdateRequested, IMap<String, Set<String>> changesMap, String key, Set<String> changes, int trackingPeriodMinutes, TimeUnit timeUnit) {
+    void updateChangeTrackers(IMap<String, Instant> lastUpdateRequested, IMap<String, Set<SiriObjectStorageKey>> changesMap,
+                              String key, Set<SiriObjectStorageKey> changes, int trackingPeriodMinutes, TimeUnit timeUnit) {
         long t1 = System.currentTimeMillis();
 
         changesMap.executeOnKey(key, new ReplaceSetEntryProcessor(changes));
@@ -177,37 +179,65 @@ abstract class SiriRepository<T> {
      * @param datasetId
      * @return
      */
-    Set<T> getValuesByDatasetId(Map<String, T> collection, String datasetId) {
-        return collection.entrySet().stream().filter(e -> e.getKey().startsWith(datasetId + ":")).map(e -> e.getValue()).collect(Collectors.toSet());
+    Collection<T> getValuesByDatasetId(IMap<SiriObjectStorageKey, T> collection, String datasetId) {
+
+        final Set<SiriObjectStorageKey> codespaceKeys = collection.keySet(createCodespacePredicate(datasetId));
+
+        return collection.getAll(codespaceKeys).values();
     }
 
-    Set<String> filterIdsByDataset(Set<String> idSet, List<String> excludedDatasetIds, String datasetId) {
-        Set<String> requestedIds = new HashSet<>();
+    Set<SiriObjectStorageKey> filterIdsByDataset(final Set<SiriObjectStorageKey> idSet, List<String> excludedDatasetIds, String datasetId) {
+
+        Set<SiriObjectStorageKey> requestedIds = new HashSet<>();
         if (excludedDatasetIds != null && !excludedDatasetIds.isEmpty()) {
 
-            for (String id : idSet) {
-                String datasetIdPrefix = id.substring(0, id.indexOf(':'));
-                if (!excludedDatasetIds.contains(datasetIdPrefix)) {
-                    requestedIds.add(id);
-                }
-            }
+            // Return all IDs except 'excludedIds'
+
+            requestedIds.addAll(idSet.stream()
+                                .filter(id -> !excludedDatasetIds.contains(id.getCodespaceId()))
+                                .collect(Collectors.toSet()));
 
         } else if (datasetId != null && !datasetId.isEmpty()){
 
-            String prefix = datasetId + ":";
-            for (String id : idSet) {
-                if (id.startsWith(prefix)) {
-                    requestedIds.add(id);
-                }
-            }
+
+            // Return all IDs that matched datasetId
+
+            requestedIds.addAll(idSet.stream()
+                    .filter(id -> datasetId.equals(id.getCodespaceId()))
+                    .collect(Collectors.toSet()));
+
         } else {
             requestedIds.addAll(idSet);
         }
+
         return requestedIds;
     }
 
     abstract void clearAllByDatasetId(String datasetId);
 
+
+    Predicate<SiriObjectStorageKey, Serializable> createCodespacePredicate(String datasetId) {
+        return entry -> {
+            if (entry.getKey().getCodespaceId() != null) {
+                final String codespaceId = entry.getKey().getCodespaceId();
+                return codespaceId.equals(datasetId);
+            }
+            return false;
+        };
+    }
+
+    Predicate<SiriObjectStorageKey, Serializable> createLineRefPredicate(String lineRef) {
+        return entry -> {
+            if (entry.getKey().getLineRef() != null) {
+                final String ref = entry.getKey().getLineRef();
+
+                return ref.startsWith(lineRef + SEPARATOR) ||
+                        ref.endsWith(SEPARATOR + lineRef) ||
+                        ref.equalsIgnoreCase(lineRef);
+            }
+            return false;
+        };
+    }
 
     /**
      * Compares object-equality by calculating and comparing MD5-checksum
@@ -222,25 +252,20 @@ abstract class SiriRepository<T> {
 
             return checksumExisting.equals(checksumUpdated);
 
-        } catch (Throwable e) {
+        } catch (Exception e) {
             //ignore - data will be updated
         }
         return false;
     }
 
     static String getChecksum(Serializable object) throws IOException, NoSuchAlgorithmException {
-        ByteArrayOutputStream baos = null;
-        ObjectOutputStream oos = null;
-        try {
-            baos = new ByteArrayOutputStream();
-            oos = new ObjectOutputStream(baos);
+        try (  ByteArrayOutputStream baos = new ByteArrayOutputStream();
+               ObjectOutputStream oos = new ObjectOutputStream(baos); )
+        {
             oos.writeObject(object);
             MessageDigest md = MessageDigest.getInstance("MD5");
             byte[] thedigest = md.digest(baos.toByteArray());
             return DatatypeConverter.printHexBinary(thedigest);
-        } finally {
-            oos.close();
-            baos.close();
         }
     }
 }

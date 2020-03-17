@@ -6,18 +6,18 @@ import com.hazelcast.map.EntryProcessor;
 import java.util.Map;
 import java.util.Set;
 
-public class AppendChangesToSetEntryProcessor implements EntryProcessor<String, Set<String>>,
-                                                                EntryBackupProcessor<String, Set<String>> {
+public class AppendChangesToSetEntryProcessor implements EntryProcessor<String, Set<SiriObjectStorageKey>>,
+                                                                EntryBackupProcessor<String, Set<SiriObjectStorageKey>> {
 
-    private Set<String> changes;
+    private Set<SiriObjectStorageKey> changes;
 
-    public AppendChangesToSetEntryProcessor(Set<String> changes) {
+    public AppendChangesToSetEntryProcessor(Set<SiriObjectStorageKey> changes) {
         this.changes = changes;
     }
 
     @Override
-    public Object process(Map.Entry<String, Set<String>> entry) {
-        Set<String> value = entry.getValue();
+    public Object process(Map.Entry<String, Set<SiriObjectStorageKey>> entry) {
+        Set<SiriObjectStorageKey> value = entry.getValue();
         value.addAll(changes);
         entry.setValue(value);
         return null;
@@ -29,8 +29,8 @@ public class AppendChangesToSetEntryProcessor implements EntryProcessor<String, 
     }
 
     @Override
-    public void processBackup(Map.Entry<String, Set<String>> entry) {
-        Set<String> value = entry.getValue();
+    public void processBackup(Map.Entry<String, Set<SiriObjectStorageKey>> entry) {
+        Set<SiriObjectStorageKey> value = entry.getValue();
         value.addAll(changes);
         entry.setValue(value);
     }

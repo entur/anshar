@@ -22,6 +22,7 @@ import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.data.EstimatedTimetables;
 import no.rutebanken.anshar.data.RequestorRefRepository;
 import no.rutebanken.anshar.data.RequestorRefStats;
+import no.rutebanken.anshar.data.SiriObjectStorageKey;
 import no.rutebanken.anshar.data.Situations;
 import no.rutebanken.anshar.data.VehicleActivities;
 import no.rutebanken.anshar.routes.health.HealthManager;
@@ -60,7 +61,7 @@ import static no.rutebanken.anshar.subscription.SiriDataType.VEHICLE_MONITORING;
 @Service
 public class SubscriptionManager {
 
-    final int HEALTHCHECK_INTERVAL_FACTOR = 5;
+    static final int HEALTHCHECK_INTERVAL_FACTOR = 5;
     private final Logger logger = LoggerFactory.getLogger(SubscriptionManager.class);
 
     @Autowired
@@ -117,15 +118,15 @@ public class SubscriptionManager {
 
     @Autowired
     @Qualifier("getSituationChangesMap")
-    private IMap<String, Set<String>> sxChanges;
+    private IMap<String, Set<SiriObjectStorageKey>> sxChanges;
 
     @Autowired
     @Qualifier("getEstimatedTimetableChangesMap")
-    private IMap<String, Set<String>> etChanges;
+    private IMap<String, Set<SiriObjectStorageKey>> etChanges;
 
     @Autowired
     @Qualifier("getVehicleChangesMap")
-    private IMap<String, Set<String>> vmChanges;
+    private IMap<String, Set<SiriObjectStorageKey>> vmChanges;
 
     @Autowired
     private RequestorRefRepository requestorRefRepository;
@@ -191,9 +192,9 @@ public class SubscriptionManager {
     public boolean touchSubscription(String subscriptionId, ZonedDateTime serviceStartedTime) {
         SubscriptionSetup setup = subscriptions.get(subscriptionId);
         if (setup != null && serviceStartedTime != null) {
-            Instant lastActivity = this.lastActivity.get(subscriptionId);
-            if (lastActivity == null || serviceStartedTime.toInstant().isBefore(lastActivity)) {
-                logger.info("Remote Service startTime ({}) is before lastActivity ({}) for subscription [{}]",serviceStartedTime, lastActivity, setup);
+            Instant lastSubscriptionActivity = lastActivity.get(subscriptionId);
+            if (lastSubscriptionActivity == null || serviceStartedTime.toInstant().isBefore(lastSubscriptionActivity)) {
+                logger.info("Remote Service startTime ({}) is before lastSubscriptionActivity ({}) for subscription [{}]",serviceStartedTime, lastSubscriptionActivity, setup);
                 return touchSubscription(subscriptionId);
             } else {
                 logger.info("Remote service has been restarted, forcing subscription to be restarted [{}]", setup);
@@ -241,7 +242,7 @@ public class SubscriptionManager {
 
         String subscriptionId = subscriptionSetup.getSubscriptionId();
         if (subscriptionId != null) {
-            BigInteger counter = (objectCounter.get(subscriptionId) != null ? objectCounter.get(subscriptionId) : new BigInteger("0"));
+            BigInteger counter = (objectCounter.get(subscriptionId) != null ? objectCounter.get(subscriptionId) : BigInteger.valueOf(0));
             objectCounter.put(subscriptionId, counter.add(BigInteger.valueOf(size)));
         }
     }
@@ -330,11 +331,11 @@ public class SubscriptionManager {
                 //If active subscription has existed longer than "initial subscription duration" - restart
                 Instant activated = activatedTimestamp.get(subscriptionId);
                 if (activated != null) {
-                    if (activeSubscription.getRestartTime() != null && activeSubscription.getRestartTime().indexOf(':') > 0) {
+                    if (activeSubscription.getRestartTime() != null && activeSubscription.getRestartTime().contains(":")) {
                         // Allowing subscriptions to be restarted at specified time
                         ZonedDateTime restartTime = ZonedDateTime.of(LocalDate.now(), LocalTime.parse(activeSubscription.getRestartTime()), ZoneId.systemDefault());
                         if (restartTime.isBefore(ZonedDateTime.now()) && activated.atZone(ZoneId.systemDefault()).isBefore(restartTime)) {
-                            logger.info("Subscription [{}] configured for nightly restart at {}.", activeSubscription.toString(), restartTime);
+                            logger.info("Subscription [{}] configured for nightly restart at {}.", activeSubscription, restartTime);
                             forceRestart(subscriptionId);
                             return false;
                         }
@@ -434,7 +435,7 @@ public class SubscriptionManager {
         return result;
     }
 
-    private JSONArray getIdAndCount(Map<String, Set<String>> map, SiriDataType dataType) {
+    private JSONArray getIdAndCount(Map<String, Set<SiriObjectStorageKey>> map, SiriDataType dataType) {
         JSONArray count = new JSONArray();
         for (String key : map.keySet()) {
             JSONObject keyValue = new JSONObject();
@@ -586,7 +587,7 @@ public class SubscriptionManager {
                 subscriptions.put(subscriptionId, subscriptionSetup);
 
                 removeSubscription(subscriptionId);
-                logger.info("Handled request to cancel subscription ", subscriptionSetup);
+                logger.info("Handled request to cancel subscription {}", subscriptionSetup);
             }
         }
     }
@@ -597,7 +598,7 @@ public class SubscriptionManager {
             if (subscriptionSetup != null) {
                 subscriptionSetup.setActive(true);
                 activatePendingSubscription(subscriptionId);
-                logger.info("Handled request to start subscription ", subscriptionSetup);
+                logger.info("Handled request to start subscription {}", subscriptionSetup);
             }
         }
     }

@@ -26,6 +26,7 @@ import com.hazelcast.core.Member;
 import com.hazelcast.core.ReplicatedMap;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.data.RequestorRefStats;
+import no.rutebanken.anshar.data.SiriObjectStorageKey;
 import no.rutebanken.anshar.routes.outbound.OutboundSubscriptionSetup;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
@@ -95,57 +96,57 @@ public class ExtendedHazelcastService extends HazelCastService {
     }
 
     @Bean
-    public IMap<String, PtSituationElement> getSituationsMap(){
+    public IMap<SiriObjectStorageKey, PtSituationElement> getSituationsMap(){
         return hazelcast.getMap("anshar.sx");
     }
 
     @Bean
-    public IMap<String, Set<String>> getSituationChangesMap() {
+    public IMap<String, Set<SiriObjectStorageKey>> getSituationChangesMap() {
         return hazelcast.getMap("anshar.sx.changes");
     }
 
     @Bean
-    public IMap<String, EstimatedVehicleJourney> getEstimatedTimetablesMap(){
+    public IMap<SiriObjectStorageKey, EstimatedVehicleJourney> getEstimatedTimetablesMap(){
         return hazelcast.getMap("anshar.et");
     }
 
     @Bean
-    public IMap<String, Set<String>> getEstimatedTimetableChangesMap() {
+    public IMap<String, Set<SiriObjectStorageKey>> getEstimatedTimetableChangesMap() {
         return hazelcast.getMap("anshar.et.changes");
     }
 
     @Bean
-    public ReplicatedMap<String, String> getIdForPatternChangesMap() {
+    public ReplicatedMap<SiriObjectStorageKey, String> getIdForPatternChangesMap() {
         return hazelcast.getReplicatedMap("anshar.et.index.pattern");
     }
 
     @Bean
-    public ReplicatedMap<String, String> getSxChecksumMap() {
+    public ReplicatedMap<SiriObjectStorageKey, String> getSxChecksumMap() {
         return hazelcast.getReplicatedMap("anshar.sx.checksum.cache");
     }
 
     @Bean
-    public ReplicatedMap<String, String> getEtChecksumMap() {
+    public ReplicatedMap<SiriObjectStorageKey, String> getEtChecksumMap() {
         return hazelcast.getReplicatedMap("anshar.et.checksum.cache");
     }
 
     @Bean
-    public ReplicatedMap<String, String> getVmChecksumMap() {
+    public ReplicatedMap<SiriObjectStorageKey, String> getVmChecksumMap() {
         return hazelcast.getReplicatedMap("anshar.vm.checksum.cache");
     }
 
     @Bean
-    public ReplicatedMap<String, ZonedDateTime> getIdStartTimeMap() {
+    public ReplicatedMap<SiriObjectStorageKey, ZonedDateTime> getIdStartTimeMap() {
         return hazelcast.getReplicatedMap("anshar.et.index.startTime");
     }
 
     @Bean
-    public IMap<String, VehicleActivityStructure> getVehiclesMap(){
+    public IMap<SiriObjectStorageKey, VehicleActivityStructure> getVehiclesMap(){
         return hazelcast.getMap("anshar.vm");
     }
 
     @Bean
-    public IMap<String, Set<String>> getVehicleChangesMap() {
+    public IMap<String, Set<SiriObjectStorageKey>> getVehicleChangesMap() {
         return hazelcast.getMap("anshar.vm.changes");
     }
 
