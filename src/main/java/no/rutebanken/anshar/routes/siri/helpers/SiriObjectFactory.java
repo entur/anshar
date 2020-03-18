@@ -46,9 +46,6 @@ import uk.org.siri.siri20.LineRef;
 import uk.org.siri.siri20.MessageQualifierStructure;
 import uk.org.siri.siri20.OperatorRefStructure;
 import uk.org.siri.siri20.OtherErrorStructure;
-import uk.org.siri.siri20.ProductionTimetableDeliveryStructure;
-import uk.org.siri.siri20.ProductionTimetableRequestStructure;
-import uk.org.siri.siri20.ProductionTimetableSubscriptionRequest;
 import uk.org.siri.siri20.PtSituationElement;
 import uk.org.siri.siri20.RequestorRef;
 import uk.org.siri.siri20.ResponseStatus;
@@ -173,14 +170,6 @@ public class SiriObjectFactory {
                     subscriptionSetup.getPreviewInterval(),
                     subscriptionSetup.getChangeBeforeUpdates());
         }
-        if (subscriptionSetup.getSubscriptionType().equals(SiriDataType.PRODUCTION_TIMETABLE)) {
-            request = createProductionTimetableSubscriptionRequest(subscriptionSetup.getRequestorRef(), subscriptionSetup.getSubscriptionId(),
-                    subscriptionSetup.getHeartbeatInterval(),
-                    subscriptionSetup.buildUrl(),
-                    subscriptionSetup.getDurationOfSubscription(),
-                    subscriptionSetup.getFilterMap(),
-                    subscriptionSetup.getAddressFieldName());
-        }
         siri.setSubscriptionRequest(request);
 
         return siri;
@@ -203,10 +192,6 @@ public class SiriObjectFactory {
         }
         if (subscriptionSetup.getSubscriptionType().equals(SiriDataType.ESTIMATED_TIMETABLE)) {
             request.getEstimatedTimetableRequests().add(createEstimatedTimetableRequestStructure(subscriptionSetup.getPreviewInterval()));
-        }
-
-        if (subscriptionSetup.getSubscriptionType().equals(SiriDataType.PRODUCTION_TIMETABLE)) {
-            request.getProductionTimetableRequests().add(createProductionTimetableRequestStructure());
         }
 
         siri.setServiceRequest(request);
@@ -268,14 +253,6 @@ public class SiriObjectFactory {
             etRequest.setPreviewInterval(createDataTypeFactory().newDuration(previewInterval.toString()));
         }
         return etRequest;
-    }
-
-    private static ProductionTimetableRequestStructure createProductionTimetableRequestStructure() {
-        ProductionTimetableRequestStructure ptRequest = new ProductionTimetableRequestStructure();
-        ptRequest.setRequestTimestamp(ZonedDateTime.now());
-        ptRequest.setVersion(SIRI_VERSION);
-        ptRequest.setMessageIdentifier(createMessageIdentifier());
-        return ptRequest;
     }
 
     private static SubscriptionRequest createSituationExchangeSubscriptionRequest(String requestorRef, String subscriptionId, Duration heartbeatInterval, String address, Duration subscriptionDuration, Map<Class, Set<Object>> filterMap, String addressFieldName, Boolean incrementalUpdates, Duration previewInterval) {
@@ -415,31 +392,6 @@ public class SiriObjectFactory {
         return request;
     }
 
-
-    private static SubscriptionRequest createProductionTimetableSubscriptionRequest(String requestorRef, String subscriptionId, Duration heartbeatInterval, String address, Duration subscriptionDuration, Map<Class, Set<Object>> filterMap, String addressFieldName) {
-        SubscriptionRequest request = createSubscriptionRequest(requestorRef, heartbeatInterval, address, addressFieldName);
-
-        ProductionTimetableRequestStructure ptRequest = new ProductionTimetableRequestStructure();
-        ptRequest.setRequestTimestamp(ZonedDateTime.now());
-        ptRequest.setVersion(SIRI_VERSION);
-
-        if (filterMap != null) {
-            if (filterMap.size() > 0) {
-                logger.info("TODO: Implement filtering");
-            }
-        }
-
-        ProductionTimetableSubscriptionRequest ptSubscriptionReq = new ProductionTimetableSubscriptionRequest();
-        ptSubscriptionReq.setProductionTimetableRequest(ptRequest);
-        ptSubscriptionReq.setSubscriptionIdentifier(createSubscriptionIdentifier(subscriptionId));
-        ptSubscriptionReq.setInitialTerminationTime(ZonedDateTime.now().plusSeconds(subscriptionDuration.getSeconds()));
-        ptSubscriptionReq.setSubscriberRef(request.getRequestorRef());
-
-        request.getProductionTimetableSubscriptionRequests().add(ptSubscriptionReq);
-
-        return request;
-    }
-
     private static SubscriptionRequest createSubscriptionRequest(String requestorRef, Duration heartbeatInterval, String address, String addressFieldName) {
         SubscriptionRequest request = new SubscriptionRequest();
         request.setRequestorRef(createRequestorRef(requestorRef));
@@ -559,14 +511,6 @@ public class SiriObjectFactory {
             delivery.setProducerRef(createRequestorRef(configuration.getProducerRef()));
         }
         return delivery;
-    }
-
-    public Siri createPTServiceDelivery(Collection<ProductionTimetableDeliveryStructure> elements) {
-        Siri siri = createSiriObject();
-        ServiceDelivery delivery = createServiceDelivery();
-        delivery.getProductionTimetableDeliveries().addAll(elements);
-        siri.setServiceDelivery(delivery);
-        return siri;
     }
 
     private static DatatypeFactory createDataTypeFactory() {

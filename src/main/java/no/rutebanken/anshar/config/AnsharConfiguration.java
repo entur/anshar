@@ -78,9 +78,6 @@ public class AnsharConfiguration {
     @Value("${anshar.siri.vm.graceperiod.minutes:0}")
     private long vmGraceperiodMinutes;
 
-    @Value("${anshar.siri.pt.graceperiod.minutes:0}")
-    private long ptGraceperiodMinutes;
-
     @Value("${anshar.validation.profile.enabled}")
     private boolean profileValidation;
 
@@ -186,10 +183,6 @@ public class AnsharConfiguration {
 
     public long getVmGraceperiodMinutes() {
         return vmGraceperiodMinutes;
-    }
-
-    public long getPtGraceperiodMinutes() {
-        return ptGraceperiodMinutes;
     }
 
     public boolean isProfileValidation() {

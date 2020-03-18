@@ -41,9 +41,6 @@ public class ExportHelper {
     public Siri exportVM() {
         return transform(siriHelper.getAllVM());
     }
-    public Siri exportPT() {
-        return transform(siriHelper.getAllPT());
-    }
 
     private Siri transform(Siri body) {
         return SiriValueTransformer.transform(body, mappingAdapterPresets.getOutboundAdapters(OutboundIdMappingPolicy.DEFAULT));

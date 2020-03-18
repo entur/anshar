@@ -19,14 +19,23 @@ import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.junit.Test;
-import uk.org.siri.siri20.*;
+import uk.org.siri.siri20.EstimatedTimetableRequestStructure;
+import uk.org.siri.siri20.EstimatedTimetableSubscriptionStructure;
+import uk.org.siri.siri20.Siri;
+import uk.org.siri.siri20.SituationExchangeRequestStructure;
+import uk.org.siri.siri20.SituationExchangeSubscriptionStructure;
+import uk.org.siri.siri20.VehicleMonitoringRequestStructure;
+import uk.org.siri.siri20.VehicleMonitoringSubscriptionStructure;
 
 import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 public class SiriObjectFactoryTest {
 
@@ -123,27 +132,18 @@ public class SiriObjectFactoryTest {
                 SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
                 UUID.randomUUID().toString());
 
-        SubscriptionSetup ptSubscriptionSetup = createSubscriptionSetup(SiriDataType.PRODUCTION_TIMETABLE,
-                SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
-                UUID.randomUUID().toString());
-
         Siri sxSubscriptionRequest = SiriObjectFactory.createSubscriptionRequest(sxSubscriptionSetup);
         Siri etSubscriptionRequest = SiriObjectFactory.createSubscriptionRequest(etSubscriptionSetup);
         Siri vmSubscriptionRequest = SiriObjectFactory.createSubscriptionRequest(vmSubscriptionSetup);
-        Siri ptSubscriptionRequest = SiriObjectFactory.createSubscriptionRequest(ptSubscriptionSetup);
 
         assertNotNull(sxSubscriptionRequest.getSubscriptionRequest().getConsumerAddress());
         assertNotNull(etSubscriptionRequest.getSubscriptionRequest().getConsumerAddress());
         assertNotNull(vmSubscriptionRequest.getSubscriptionRequest().getConsumerAddress());
-        assertNotNull(ptSubscriptionRequest.getSubscriptionRequest().getConsumerAddress());
 
         assertNull(sxSubscriptionRequest.getSubscriptionRequest().getAddress());
         assertNull(etSubscriptionRequest.getSubscriptionRequest().getAddress());
         assertNull(vmSubscriptionRequest.getSubscriptionRequest().getAddress());
-        assertNull(ptSubscriptionRequest.getSubscriptionRequest().getAddress());
 
-
-        ptSubscriptionSetup.setAddressFieldName("Address");
         vmSubscriptionSetup.setAddressFieldName("Address");
         etSubscriptionSetup.setAddressFieldName("Address");
         sxSubscriptionSetup.setAddressFieldName("Address");
@@ -151,17 +151,14 @@ public class SiriObjectFactoryTest {
         sxSubscriptionRequest = SiriObjectFactory.createSubscriptionRequest(sxSubscriptionSetup);
         etSubscriptionRequest = SiriObjectFactory.createSubscriptionRequest(etSubscriptionSetup);
         vmSubscriptionRequest = SiriObjectFactory.createSubscriptionRequest(vmSubscriptionSetup);
-        ptSubscriptionRequest = SiriObjectFactory.createSubscriptionRequest(ptSubscriptionSetup);
 
         assertNotNull(sxSubscriptionRequest.getSubscriptionRequest().getAddress());
         assertNotNull(etSubscriptionRequest.getSubscriptionRequest().getAddress());
         assertNotNull(vmSubscriptionRequest.getSubscriptionRequest().getAddress());
-        assertNotNull(ptSubscriptionRequest.getSubscriptionRequest().getAddress());
 
         assertNull(sxSubscriptionRequest.getSubscriptionRequest().getConsumerAddress());
         assertNull(etSubscriptionRequest.getSubscriptionRequest().getConsumerAddress());
         assertNull(vmSubscriptionRequest.getSubscriptionRequest().getConsumerAddress());
-        assertNull(ptSubscriptionRequest.getSubscriptionRequest().getConsumerAddress());
     }
 
     @Test
@@ -231,49 +228,6 @@ public class SiriObjectFactoryTest {
         assertTrue(etRequests.size() == 1);
 
         EstimatedTimetableRequestStructure request = etRequests.get(0);
-        assertNotNull(request);
-    }
-
-    @Test
-    public void testCreatePTSubscription(){
-
-        SubscriptionSetup subscriptionSetup = createSubscriptionSetup(SiriDataType.PRODUCTION_TIMETABLE,
-                SubscriptionSetup.SubscriptionMode.REQUEST_RESPONSE,
-                UUID.randomUUID().toString());
-
-        Siri vmSubscriptionRequest = SiriObjectFactory.createSubscriptionRequest(subscriptionSetup);
-        assertNotNull(vmSubscriptionRequest.getSubscriptionRequest());
-
-        List<ProductionTimetableSubscriptionRequest> subscriptionRequests = vmSubscriptionRequest.getSubscriptionRequest().getProductionTimetableSubscriptionRequests();
-        assertNotNull(subscriptionRequests);
-
-        assertTrue(subscriptionRequests.size() == 1);
-
-        ProductionTimetableSubscriptionRequest subscription = subscriptionRequests.get(0);
-        assertNotNull(subscription.getSubscriptionIdentifier());
-        assertNotNull(subscription.getSubscriptionIdentifier().getValue());
-        assertEquals(subscriptionSetup.getSubscriptionId(), subscription.getSubscriptionIdentifier().getValue());
-
-    }
-
-    @Test
-    public void testCreatePTServiceRequest(){
-
-        SubscriptionSetup subscriptionSetup = createSubscriptionSetup(SiriDataType.PRODUCTION_TIMETABLE,
-                SubscriptionSetup.SubscriptionMode.REQUEST_RESPONSE,
-                UUID.randomUUID().toString());
-
-        Siri ptRequest = SiriObjectFactory.createServiceRequest(subscriptionSetup);
-        assertNull(ptRequest.getSubscriptionRequest());
-
-        assertNotNull(ptRequest.getServiceRequest());
-
-        List<ProductionTimetableRequestStructure> ptRequests = ptRequest.getServiceRequest().getProductionTimetableRequests();
-        assertNotNull(ptRequests);
-
-        assertTrue(ptRequests.size() == 1);
-
-        ProductionTimetableRequestStructure request = ptRequests.get(0);
         assertNotNull(request);
     }
 

@@ -40,7 +40,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 import uk.org.siri.siri20.EstimatedVehicleJourney;
-import uk.org.siri.siri20.ProductionTimetableDeliveryStructure;
 import uk.org.siri.siri20.PtSituationElement;
 import uk.org.siri.siri20.VehicleActivityStructure;
 
@@ -151,16 +150,6 @@ public class ExtendedHazelcastService extends HazelCastService {
     }
 
     @Bean
-    public IMap<String, ProductionTimetableDeliveryStructure> getProductionTimetablesMap(){
-        return hazelcast.getMap("anshar.pt");
-    }
-
-    @Bean
-    public IMap<String, Set<String>> getProductionTimetableChangesMap() {
-        return hazelcast.getMap("anshar.pt.changes");
-    }
-
-    @Bean
     public ReplicatedMap<String,SubscriptionSetup> getSubscriptionsMap() {
         return hazelcast.getReplicatedMap("anshar.subscriptions.active");
     }
@@ -191,12 +180,6 @@ public class ExtendedHazelcastService extends HazelCastService {
     public IMap<String, Instant> getLastEtUpdateRequest() {
         return hazelcast.getMap("anshar.activity.last.et.update.request");
     }
-
-    @Bean
-    public IMap<String, Instant> getLastPtUpdateRequest() {
-        return hazelcast.getMap("anshar.activity.last.pt.update.request");
-    }
-
 
     @Bean
     public IMap<String, Instant> getLastSxUpdateRequest() {

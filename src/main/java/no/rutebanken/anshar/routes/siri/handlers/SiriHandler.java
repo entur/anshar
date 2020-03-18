@@ -17,7 +17,6 @@ package no.rutebanken.anshar.routes.siri.handlers;
 
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.data.EstimatedTimetables;
-import no.rutebanken.anshar.data.ProductionTimetables;
 import no.rutebanken.anshar.data.Situations;
 import no.rutebanken.anshar.data.VehicleActivities;
 import no.rutebanken.anshar.metrics.PrometheusMetricsService;
@@ -91,9 +90,6 @@ public class SiriHandler {
 
     @Autowired
     private EstimatedTimetables estimatedTimetables;
-
-    @Autowired
-    private ProductionTimetables productionTimetables;
 
     @Autowired
     private SiriObjectFactory siriObjectFactory;
@@ -235,8 +231,6 @@ public class SiriHandler {
                 }
 
                 serviceResponse = estimatedTimetables.createServiceDelivery(requestorRef, datasetId, clientTrackingName, excludedDatasetIdList, maxSize, previewIntervalInMillis);
-            } else if (hasValues(serviceRequest.getProductionTimetableRequests())) {
-                serviceResponse = siriObjectFactory.createPTServiceDelivery(productionTimetables.getAllUpdates(requestorRef, datasetId));
             }
 
             if (serviceResponse != null) {

@@ -16,7 +16,6 @@
 package no.rutebanken.anshar.routes.outbound;
 
 import no.rutebanken.anshar.data.EstimatedTimetables;
-import no.rutebanken.anshar.data.ProductionTimetables;
 import no.rutebanken.anshar.data.Situations;
 import no.rutebanken.anshar.data.VehicleActivities;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
@@ -35,7 +34,6 @@ import uk.org.siri.siri20.EstimatedVehicleJourney;
 import uk.org.siri.siri20.EstimatedVersionFrameStructure;
 import uk.org.siri.siri20.LineDirectionStructure;
 import uk.org.siri.siri20.LineRef;
-import uk.org.siri.siri20.ProductionTimetableDeliveryStructure;
 import uk.org.siri.siri20.PtSituationElement;
 import uk.org.siri.siri20.Siri;
 import uk.org.siri.siri20.SituationExchangeDeliveryStructure;
@@ -71,9 +69,6 @@ public class SiriHelper {
 
     @Autowired
     private EstimatedTimetables estimatedTimetables;
-
-    @Autowired
-    private ProductionTimetables productionTimetables;
 
     private final SiriObjectFactory siriObjectFactory;
 
@@ -174,12 +169,6 @@ public class SiriHelper {
                 Collection<EstimatedVehicleJourney> timetables = estimatedTimetables.getAll(subscriptionRequest.getDatasetId());
                 logger.info("Initial ET-delivery: {} elements", timetables.size());
                 delivery = siriObjectFactory.createETServiceDelivery(timetables);
-                break;
-            case PRODUCTION_TIMETABLE:
-
-                Collection<ProductionTimetableDeliveryStructure> ptTimetables = productionTimetables.getAll(subscriptionRequest.getDatasetId());
-                logger.info("Initial EPT-delivery: {} elements", ptTimetables.size());
-                delivery = siriObjectFactory.createPTServiceDelivery(ptTimetables);
                 break;
         }
         return delivery;
@@ -447,8 +436,5 @@ public class SiriHelper {
     }
     public Siri getAllET() {
         return siriObjectFactory.createETServiceDelivery(estimatedTimetables.getAll());
-    }
-    public Siri getAllPT() {
-        return siriObjectFactory.createPTServiceDelivery(productionTimetables.getAll());
     }
 }

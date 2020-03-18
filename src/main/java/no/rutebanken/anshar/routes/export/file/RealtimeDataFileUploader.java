@@ -92,10 +92,6 @@ public class RealtimeDataFileUploader extends BaseRouteBuilder {
                     .setHeader("siriDataType", simple("VM"))
                     .to("direct:anshar.export.snapshot.create.file")
 
-                    .bean(exportHelper, "exportPT")
-                    .setHeader("siriDataType", simple("PT"))
-                    .to("direct:anshar.export.snapshot.create.file")
-
                     .to("direct:anshar.export.create.zip")
                     .to("direct:anshar.export.upload.zip")
                     .to("direct:anshar.export.delete.zip")
