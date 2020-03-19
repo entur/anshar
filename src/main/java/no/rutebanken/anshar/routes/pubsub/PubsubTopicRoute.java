@@ -22,6 +22,7 @@ public class PubsubTopicRoute extends RouteBuilder {
          * message to protobuf, and posts to Cloud Pubsub
          */
         from("direct:send.to.pubsub.topic.estimated_timetable")
+                .to("direct:siri.transform.data")
                 .to("xslt:xsl/splitAndFilterNotMonitored.xsl")
                 .split().tokenizeXML("Siri").streaming()
                 .to("direct:map.jaxb.to.protobuf")
