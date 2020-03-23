@@ -25,9 +25,14 @@ import uk.org.siri.siri20.EstimatedCall;
 import uk.org.siri.siri20.EstimatedTimetableDeliveryStructure;
 import uk.org.siri.siri20.EstimatedVehicleJourney;
 import uk.org.siri.siri20.EstimatedVersionFrameStructure;
+import uk.org.siri.siri20.MonitoredCallStructure;
+import uk.org.siri.siri20.OnwardCallStructure;
+import uk.org.siri.siri20.OnwardCallsStructure;
 import uk.org.siri.siri20.RecordedCall;
 import uk.org.siri.siri20.Siri;
 import uk.org.siri.siri20.StopPointRef;
+import uk.org.siri.siri20.VehicleActivityStructure;
+import uk.org.siri.siri20.VehicleMonitoringDeliveryStructure;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -38,10 +43,10 @@ import static no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapte
 
 public class OstfoldIdPlatformPostProcessor extends ValueAdapter implements PostProcessor {
 
-    private final Logger logger = LoggerFactory.getLogger(OstfoldIdPlatformPostProcessor.class);
+    private transient final Logger logger = LoggerFactory.getLogger(OstfoldIdPlatformPostProcessor.class);
 
-    private final static Set<String> unmappedStopPlacePlatform = new HashSet<>();
-    private static boolean listUpdated;
+    private static final Set<String> unmappedStopPlacePlatform = new HashSet<>();
+    private boolean listUpdated;
     private final StopPlaceRegisterMapper stopPlaceRegisterMapper;
 
     private static List<String> loggingLineNumberFilter;
@@ -72,6 +77,7 @@ public class OstfoldIdPlatformPostProcessor extends ValueAdapter implements Post
         listUpdated = false;
         if (siri != null && siri.getServiceDelivery() != null) {
             processEtDeliveries(siri.getServiceDelivery().getEstimatedTimetableDeliveries());
+            processVmDeliveries(siri.getServiceDelivery().getVehicleMonitoringDeliveries());
         }
         if (listUpdated) {
             logger.warn("Unable to find mapped value for stopPlace/platform: {}", unmappedStopPlacePlatform);
@@ -79,6 +85,61 @@ public class OstfoldIdPlatformPostProcessor extends ValueAdapter implements Post
         }
 
     }
+
+    private void processVmDeliveries(List<VehicleMonitoringDeliveryStructure> vehicleMonitoringDeliveries) {
+        if (vehicleMonitoringDeliveries != null) {
+            for (VehicleMonitoringDeliveryStructure vehicleMonitoringDeliveryStructure : vehicleMonitoringDeliveries) {
+                List<VehicleActivityStructure> vehicleActivities = vehicleMonitoringDeliveryStructure.getVehicleActivities();
+                if (vehicleActivities != null) {
+                    for (VehicleActivityStructure vehicleActivityStructure : vehicleActivities) {
+                        if (vehicleActivityStructure != null) {
+
+                            final VehicleActivityStructure.MonitoredVehicleJourney monitoredVehicleJourney = vehicleActivityStructure.getMonitoredVehicleJourney();
+
+                            final MonitoredCallStructure monitoredCall = monitoredVehicleJourney.getMonitoredCall();
+                            if (monitoredCall != null) {
+                                String stopPointRefValue = monitoredCall.getStopPointRef().getValue();
+
+                                String platform = null;
+                                if (monitoredCall.getArrivalPlatformName() != null) {
+                                    platform = monitoredCall.getArrivalPlatformName().getValue();
+                                } else if (monitoredCall.getDeparturePlatformName() != null) {
+                                    platform = monitoredCall.getDeparturePlatformName().getValue();
+                                }
+
+                                String nsrId = getNsrId(stopPointRefValue, platform);
+                                if (nsrId != null) {
+                                    monitoredCall.getStopPointRef().setValue(createCombinedId(stopPointRefValue, nsrId));
+                                }
+                            }
+
+                            if (monitoredVehicleJourney.getOnwardCalls() != null) {
+                                final OnwardCallsStructure onwardCalls = monitoredVehicleJourney.getOnwardCalls();
+                                final List<OnwardCallStructure> onwardCallsList = onwardCalls.getOnwardCalls();
+                                for (OnwardCallStructure call : onwardCallsList) {
+                                    String stopPointRefValue = call.getStopPointRef().getValue();
+
+                                    String platform = null;
+                                    if (call.getArrivalPlatformName() != null) {
+                                        platform = call.getArrivalPlatformName().getValue();
+                                    } else if (call.getDeparturePlatformName() != null) {
+                                        platform = call.getDeparturePlatformName().getValue();
+                                    }
+
+                                    String nsrId = getNsrId(stopPointRefValue, platform);
+                                    if (nsrId != null) {
+                                        call.getStopPointRef().setValue(createCombinedId(stopPointRefValue, nsrId));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+    }
+
     private void processEtDeliveries(List<EstimatedTimetableDeliveryStructure> estimatedTimetableDeliveries) {
         if (estimatedTimetableDeliveries != null) {
             for (EstimatedTimetableDeliveryStructure estimatedTimetableDelivery : estimatedTimetableDeliveries) {
