@@ -42,20 +42,8 @@
 
         <camel-version>2.24.3</camel-version>
 
-        <!-- Docker & Fabric8 Configs -->
-        <docker.from>eu.gcr.io/entur-system-1287/openjdk11-base-image</docker.from>
-        <fabric8.dockerUser>entur-system-1287/</fabric8.dockerUser>
-        <docker.image>eu.gcr.io/${fabric8.dockerUser}${project.artifactId}:${project.version}</docker.image>
-        <docker.cleanup>none</docker.cleanup>
-
         <!-- Holding back activemq version as newest version no long support spring wired broker config-->
         <activemq.version>5.13.4</activemq.version>
-
-        <!-- fabric8.env.AB_JOLOKIA_AUTH_OPENSHIFT>true</fabric8.env.AB_JOLOKIA_AUTH_OPENSHIFT -->
-        <fabric8.label.component>${project.artifactId}</fabric8.label.component>
-        <fabric8.label.container>spring-boot</fabric8.label.container>
-        <fabric8.label.group>quickstarts</fabric8.label.group>
-        <fabric8.iconRef>camel</fabric8.iconRef>
 
         <metrics.version>3.2.3</metrics.version>
         <entur.helpers.version>0.0.8-SNAPSHOT</entur.helpers.version>
@@ -436,31 +424,6 @@
                     </artifactItems>
                 </configuration>
             </plugin>
-
-            <plugin>
-                <groupId>io.fabric8</groupId>
-                <artifactId>docker-maven-plugin</artifactId>
-                <version>${docker.maven.plugin.version}</version>
-                <configuration>
-                    <autoPull>always</autoPull>
-                    <images>
-                        <image>
-                            <name>${docker.image}</name>
-                            <build>
-                                <cleanup>${docker.cleanup}</cleanup>
-                                <from>${docker.from}</from>
-                                <assembly>
-                                    <basedir>/deployments</basedir>
-                                    <descriptorRef>artifact</descriptorRef>
-                                </assembly>
-                                <env>
-                                    <JAVA_APP_JAR>${project.build.finalName}.jar</JAVA_APP_JAR>
-                                </env>
-                            </build>
-                        </image>
-                    </images>
-                </configuration>
-            </plugin>
         </plugins>
     </build>
 
@@ -483,53 +446,4 @@
             <url>https://maven.pkg.github.com/entur/siri-protobuf-mapper</url>
         </repository>
     </repositories>
-
-    <!--
-  Default sample commands:
-
-  mvn -Pf8-build         ... build Docker images and create OpenShift deployment configs
-  mvn -Pf8-deploy        ... f8-build + push to Docker registry + applying deployment config to OpenShift
-  mvn -Pf8-local-deploy ... deployment for a single node setup without pushing to a registry
-
-  For individual goal usage please consult the fabric8 documentation
-  -->
-    <profiles>
-        <profile>
-            <id>rutebanken</id>
-            <properties>
-                <fabric8.imagePullPolicySnapshot>Always</fabric8.imagePullPolicySnapshot>
-                <fabric8.recreate>true</fabric8.recreate>
-            </properties>
-            <build>
-                <!-- Missing fabric8:apply, as this crashed (probably due to missing fabric8) -->
-                <defaultGoal>clean install docker:build docker:push fabric8:json</defaultGoal>
-            </build>
-        </profile>
-        <profile>
-            <id>f8-build</id>
-            <build>
-                <defaultGoal>clean install docker:build fabric8:json</defaultGoal>
-            </build>
-        </profile>
-        <profile>
-            <id>f8-deploy</id>
-            <properties>
-                <fabric8.imagePullPolicySnapshot>Always</fabric8.imagePullPolicySnapshot>
-                <fabric8.recreate>true</fabric8.recreate>
-            </properties>
-            <build>
-                <defaultGoal>clean install docker:build docker:push fabric8:json fabric8:apply</defaultGoal>
-            </build>
-        </profile>
-        <profile>
-            <id>f8-local-deploy</id>
-            <properties>
-                <fabric8.recreate>true</fabric8.recreate>
-            </properties>
-            <build>
-                <defaultGoal>clean install docker:build fabric8:json fabric8:apply</defaultGoal>
-            </build>
-        </profile>
-    </profiles>
-
 </project>

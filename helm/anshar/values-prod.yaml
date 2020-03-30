@@ -1,0 +1,19 @@
+env: production
+
+replicas: 6
+
+resources:
+  cpuLimit: '7'
+  memLimit: 14500Mi
+  cpuRequest: '4'
+  memRequest: 13500Mi
+  xmx: 11000m
+
+subscriptions: subscriptions-production.yml
+
+configMap:
+  projectId: neon-1287
+  gcsBucketName: anshar-production
+  ansharInboundUrl: https://api.entur.io/realtime/v1/
+  ansharEnvironment: prod
+  springProfile: gcs-blobstore

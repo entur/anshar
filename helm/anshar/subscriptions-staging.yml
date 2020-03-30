@@ -1,0 +1,197 @@
+anshar:
+  subscriptions:
+    -
+      internalId: 999
+      vendor: dummy
+      name: dummy
+      datasetId: BRA
+      serviceType: REST
+      subscriptionType: ESTIMATED_TIMETABLE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 6000
+      previewIntervalSeconds: 86400
+      updateIntervalSeconds: 1
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: local/siri/sx
+        DELETE_SUBSCRIPTION: local/siri/sx
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: dummy
+      requestorRef: dummy
+      durationOfSubscriptionHours: 1
+      mappingAdapterId: brakar
+      filterPresets:
+      idMappingPrefixes: BRA
+      active: false
+    -
+      internalId: 100
+      vendor: internVm
+      name: Entur - VM
+      datasetId: ENT
+      serviceType: REST
+      subscriptionType: VEHICLE_MONITORING
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 60
+      updateIntervalSeconds: 1
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: https4://api.entur.io/realtime/v1/subscribe
+        DELETE_SUBSCRIPTION: https4://api.entur.io/realtime/v1/subscribe
+      customHeaders:
+        ET-Client-Name: entur-staging-radon
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: vm-replication-staging
+      requestorRef: vm-requestorref-staging
+      durationOfSubscriptionHours: 1680
+      mappingAdapterId: entur
+      filterPresets:
+      idMappingPrefixes:
+      active: true
+    -
+      internalId: 101
+      vendor: internEt
+      name: Entur - ET
+      datasetId: ENT
+      serviceType: REST
+      subscriptionType: ESTIMATED_TIMETABLE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 60
+      previewIntervalSeconds: 86400
+      updateIntervalSeconds: 1
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: https4://api.entur.io/realtime/v1/subscribe
+        DELETE_SUBSCRIPTION: https4://api.entur.io/realtime/v1/subscribe
+      customHeaders:
+        ET-Client-Name: entur-staging-radon
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: et-replication-staging
+      requestorRef: et-requestorref-staging
+      durationOfSubscriptionHours: 1680
+      mappingAdapterId: entur
+      filterPresets:
+      idMappingPrefixes:
+      active: true
+    -
+      internalId: 102
+      vendor: internSx
+      name: Entur - SX
+      datasetId: ENT
+      serviceType: REST
+      subscriptionType: SITUATION_EXCHANGE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 60
+      previewIntervalSeconds: 86400
+      updateIntervalSeconds: 1
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: https4://api.entur.io/realtime/v1/subscribe
+        DELETE_SUBSCRIPTION: https4://api.entur.io/realtime/v1/subscribe
+      customHeaders:
+        ET-Client-Name: entur-staging-radon
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: sx-replication-staging
+      requestorRef: sx-requestorref-staging
+      durationOfSubscriptionHours: 1680
+      mappingAdapterId: entur
+      filterPresets:
+      idMappingPrefixes:
+      active: true
+    -
+      internalId: 301
+      vendor: goa-dummy
+      name: Go-Ahead - Dummy subscription
+      datasetId: GOA
+      serviceType: REST
+      subscriptionType: SITUATION_EXCHANGE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 6000000
+      previewIntervalSeconds: 86400
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: localhost:1234
+        DELETE_SUBSCRIPTION: localhost:1234
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: aa04d433-3841-4b8c-a78a-c4da55ed5aba
+      requestorRef: EnturStage
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: entur
+      filterPresets:
+      idMappingPrefixes: ENT
+      active: true
+    -
+      internalId: 302
+      vendor: goaSx-dev
+      name: Go-Ahead - SX - DEV
+      datasetId: GOA
+      serviceType: REST
+      subscriptionType: SITUATION_EXCHANGE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds:  1000000
+      previewIntervalSeconds: 36000
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      changeBeforeUpdatesSeconds: 10
+      incrementalUpdates: true
+      urlMap:
+        SUBSCRIBE: https4://dev.goops.go-aheadnordic.no/api/siri/subscribe
+        DELETE_SUBSCRIPTION: https4://dev.goops.go-aheadnordic.no/api/siri/subscribe
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: 9bf8aa2b-92e4-43f7-b8ac-d8ab20f58ead
+      requestorRef: ENTUR_STAGE
+      durationOfSubscriptionHours: 16800
+      mappingAdapterId: entur
+      filterPresets:
+      idMappingPrefixes: GOA
+      active: true
+      validation: true
+    -
+      internalId: 303
+      vendor: goaEt-dev
+      name: Go-Ahead - ET - DEV
+      datasetId: GOA
+      serviceType: REST
+      subscriptionType: ESTIMATED_TIMETABLE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds:  1000000
+      previewIntervalSeconds: 36000
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      changeBeforeUpdatesSeconds: 10
+      incrementalUpdates: true
+      urlMap:
+        SUBSCRIBE: https4://dev.goops.go-aheadnordic.no/api/siri/subscribe
+        DELETE_SUBSCRIPTION: https4://dev.goops.go-aheadnordic.no/api/siri/subscribe
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: 43f0d4b2-7344-47d8-9da1-2403863b2e4b
+      requestorRef: ENTUR_STAGE
+      durationOfSubscriptionHours: 16800
+      mappingAdapterId: entur
+      filterPresets:
+      idMappingPrefixes: GOA
+      active: true
+      validation: true

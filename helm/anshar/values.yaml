@@ -1,0 +1,37 @@
+env: dev
+
+replicas: 1
+
+
+rollingUpdate:
+  maxSurge: 1
+  maxUnavailable: 1
+
+
+
+secretMount:
+   name: anshar-key
+   mountPath: /etc/anshar/credentials.json
+   subPath: credentials.json
+   secretName: ror-anshar-sa-key
+   readOnly: true
+
+
+configMapMount:
+   name: anshar-config
+   subscriptionName: anshar-subscription-config
+
+image:
+  identifier: ${artifact.metadata.image}
+  imagePullPolicy: Always
+
+service:
+  http:
+    externalPort: 80
+    internalPort: 8776
+
+ingress:
+    enabled: true
+    devIp: 35.195.223.29
+    stagingIp: 35.195.146.93
+    productionIp: 35.187.15.14
