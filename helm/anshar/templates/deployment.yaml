@@ -38,8 +38,8 @@ spec:
             - name: ANSHAR_MQTT_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  key: anshar-mqtt-password
-                  name: platform-passwords
+                  key: mqtt-password
+                  name: ror-anshar-secrets
           resources:
             limits:
               cpu: {{ .Values.resources.cpuLimit }}

@@ -46,3 +46,15 @@ resource "kubernetes_secret" "app_service_account_credentials" {
     "credentials.json" = "${base64decode(google_service_account_key.app_service_account_key.private_key)}"
   }
 }
+
+# Add anshar mqtt password
+resource "kubernetes_secret" "ror-anshar-mqtt-secrets" {
+  metadata {
+  name      = "${var.labels.team}-${var.labels.app}-secrets"
+  namespace = var.kube_namespace
+  }
+
+  data = {
+  "mqtt-password"     = var.ror-ansahr-mqtt-password
+  }
+}

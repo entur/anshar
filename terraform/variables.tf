@@ -37,6 +37,10 @@ variable "service_account_pubsub_role" {
   default     = "roles/pubsub.viewer"
 }
 
+variable ror-anshar-mqtt-password {
+  description = "Anshar MQTT password"
+}
+
 
 
 
