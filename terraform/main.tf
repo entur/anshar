@@ -55,6 +55,6 @@ resource "kubernetes_secret" "ror-anshar-mqtt-secrets" {
   }
 
   data = {
-  "mqtt-password"     = var.ror-ansahr-mqtt-password
+  "mqtt-password"     = var.ror-anshar-mqtt-password
   }
 }
