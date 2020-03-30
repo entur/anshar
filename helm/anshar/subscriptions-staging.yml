@@ -195,3 +195,30 @@ anshar:
       idMappingPrefixes: GOA
       active: true
       validation: true
+    -
+      internalId: 304
+      vendor: entSx
+      name: Entur SX-client
+      datasetId: ENT
+      serviceType: REST
+      subscriptionType: SITUATION_EXCHANGE
+      subscriptionMode: REQUEST_RESPONSE
+      heartbeatIntervalSeconds:  120
+      previewIntervalSeconds: 36000
+      operatorNamespace:
+      addressFieldName: Address
+      soapenvNamespace:
+      changeBeforeUpdatesSeconds: 10
+      incrementalUpdates: true
+      urlMap:
+        GET_SITUATION_EXCHANGE: https4://avvik.staging.entur.org/api/xml
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: 8d0aea22-44e8-4340-885c-27301d372f5f
+      requestorRef: ENTUR_STAGING
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: entur
+      filterPresets:
+      idMappingPrefixes: ENT
+      active: true
+      validation: true

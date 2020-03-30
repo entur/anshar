@@ -1495,7 +1495,7 @@ anshar:
       changeBeforeUpdatesSeconds: 10
       incrementalUpdates: true
       urlMap:
-        GET_SITUATION_EXCHANGE: https4://us-central1-deviation-messages.cloudfunctions.net/xml
+        GET_SITUATION_EXCHANGE: https4://avvik.dev.entur.org/api/xml
       version: 2.0
       contentType: text/xml;charset=UTF-8
       subscriptionId: 26b93480-4d41-4832-96a4-19324cc20898
@@ -2049,10 +2049,10 @@ anshar:
       active: true
       validation: true
     -
-      internalId: 82
-      vendor: atbEt-prod-2stage
-      name: ATB - ET - atb.fara.no (for staging)
-      datasetId: ATB2
+      internalId: 83
+      vendor: innEt
+      name: Innlandet - ET - PROD
+      datasetId: INN
       serviceType: SOAP
       subscriptionType: ESTIMATED_TIMETABLE
       subscriptionMode: SUBSCRIBE
@@ -2064,16 +2064,16 @@ anshar:
       changeBeforeUpdatesSeconds: 10
       incrementalUpdates:
       urlMap:
-        SUBSCRIBE: atb.fara.no:8000/SIRI/
-        DELETE_SUBSCRIPTION: atb.fara.no:8000/SIRI/
-        CHECK_STATUS: atb.fara.no:8000/SIRI/
+        SUBSCRIBE: 92.62.36.219:8000/SIRI
+        DELETE_SUBSCRIPTION: 92.62.36.219:8000/SIRI
+        CHECK_STATUS: 92.62.36.219:8000/SIRI
       version: 2.0
       contentType: text/xml;charset=UTF-8
-      subscriptionId: 115b5ae8-684d-4fb2-9171-d7e68a04a838
-      requestorRef: ENTUR_DEV_ET
+      subscriptionId: 8604552f-b398-43d7-9535-aa41be70f5ac
+      requestorRef: ENTUR_DEV_ET_8604552f-b398-43d7-9535-aa41be70f5ac
       durationOfSubscriptionHours: 168
-      mappingAdapterId: nsr
+      mappingAdapterId: ostfoldet
       filterPresets:
-      idMappingPrefixes: ATB
+      idMappingPrefixes: HED,OPP
       active: false
       validation: true
