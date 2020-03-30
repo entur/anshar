@@ -20,7 +20,7 @@ spec:
     metadata:
       annotations:
         prometheus.io/path: /scrape
-        prometheus.io/port: {{ .Values.service.http.internalPort }}
+        prometheus.io/port: '{{ .Values.service.http.internalPort }}'
         prometheus.io/scrape: 'true'
       labels:
         {{- include "common.labels" . | indent 8 }}
@@ -31,7 +31,7 @@ spec:
           imagePullPolicy: {{ .Values.image.imagePullPolicy }}
           env:
             - name: JAVA_OPTIONS
-                value: -server -Xmx{{ .Values.resources.xmx }} -XX:+UseParallelGC -XX:ParallelGCThreads=2 -Dspring.config.additional-location=/etc/application-config/application.properties
+              value: -server -Xmx{{ .Values.resources.xmx }} -XX:+UseParallelGC -XX:ParallelGCThreads=2 -Dspring.config.additional-location=/etc/application-config/application.properties
                   -Dfile.encoding=UTF-8
             - name: TZ
               value: Europe/Oslo
