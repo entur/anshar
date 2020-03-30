@@ -1,0 +1,2079 @@
+anshar:
+  subscriptions:
+    -
+      internalId: 1
+      vendor: kolumbussx
+      name: Kolumbus - SX
+      datasetId: KOL
+      serviceType: SOAP
+      subscriptionType: SITUATION_EXCHANGE
+      subscriptionMode: REQUEST_RESPONSE
+      heartbeatIntervalSeconds: 60
+      previewIntervalSeconds: 86400
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      urlMap:
+        GET_SITUATION_EXCHANGE: sis.kolumbus.no:90/SXWS/SXService.svc
+      version: 1.4
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: b7465097-86d5-4a60-b18d-be8e7e18eb71
+      requestorRef: RutebankenDEV
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: kolumbus
+      filterPresets:
+      idMappingPrefixes: KOL
+      active: true
+    -
+      internalId: 2
+      vendor: kolumbusvm
+      name: Kolumbus - VM
+      datasetId: KOL
+      serviceType: SOAP
+      subscriptionType: VEHICLE_MONITORING
+      subscriptionMode: REQUEST_RESPONSE
+      heartbeatIntervalSeconds: 20
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      urlMap:
+        GET_VEHICLE_MONITORING: sis.kolumbus.no:90/VMWS/VMService.svc
+      version: 1.4
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: 18d327b7-de9c-4ce4-bff9-34325f747df1
+      requestorRef: RutebankenDEV
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: kolumbus
+      filterPresets:
+      idMappingPrefixes: KOL
+      active: true
+    -
+      internalId: 3
+      vendor: atbsx
+      name: AtB - SX
+      datasetId: ATB
+      serviceType: SOAP
+      subscriptionType: SITUATION_EXCHANGE
+      subscriptionMode: REQUEST_RESPONSE
+      heartbeatIntervalSeconds: 60
+      previewIntervalSeconds: 86400
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      urlMap:
+        GET_SITUATION_EXCHANGE: st.atb.no/SXWS/SXService.svc
+      version: 1.4
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: c7961028-3ad8-4019-955b-ebf126d9f5b9
+      requestorRef: RutebankenDEV
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: atb
+      filterPresets:
+      idMappingPrefixes: ATB
+      active: false
+    -
+      internalId: 4
+      vendor: atbvm
+      name: AtB - VM
+      datasetId: ATB
+      serviceType: SOAP
+      subscriptionType: VEHICLE_MONITORING
+      subscriptionMode: REQUEST_RESPONSE
+      heartbeatIntervalSeconds: 60
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      urlMap:
+        GET_VEHICLE_MONITORING: st.atb.no/VMWS/VMService.svc
+      version: 1.4
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: 309534ea-e615-4971-98bf-2023cb7b33c7
+      requestorRef: RutebankenDEV
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: atb
+      filterPresets:
+      idMappingPrefixes: ATB
+      active: false
+    -
+      internalId: 5
+      vendor: aktsx
+      name: AKT - SX
+      datasetId: AKT
+      serviceType: REST
+      subscriptionType: SITUATION_EXCHANGE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 60
+      operatorNamespace: http://www.siri.org.uk/siri
+      previewIntervalSeconds: 86400
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: 83.145.60.18/siri/1.4/sx
+        DELETE_SUBSCRIPTION: 83.145.60.18/siri/1.4/sx
+      version: 1.4
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: a205f6d8-3f49-472e-bc58-baeea8dcc0fa
+      requestorRef: ENTUR_DEV_f1ab987e-f706-452c-a3d7-696221727610
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: akt
+      filterPresets:
+      idMappingPrefixes: AKT
+      active: false
+    -
+      internalId: 6
+      vendor: aktet
+      name: AKT - ET
+      datasetId: AKT
+      serviceType: REST
+      subscriptionType: ESTIMATED_TIMETABLE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 60
+      changeBeforeUpdatesSeconds: 1
+      previewIntervalSeconds: 10800
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: 83.145.60.18/siri/1.4/et
+        DELETE_SUBSCRIPTION: 83.145.60.18/siri/1.4/et
+      version: 1.4
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: 4ac2c072-a403-4c30-b67c-554eafbf8657
+      requestorRef: ENTUR_DEV_f8ab90e5-e6cf-4376-ac06-b4442dee19a3
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: akt
+      filterPresets:
+      idMappingPrefixes: AKT
+      active: false
+    -
+      internalId: 7
+      vendor: skysset
+      name: Skyss - ET
+      datasetId: SKY
+      serviceType: REST
+      subscriptionType: ESTIMATED_TIMETABLE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 180
+      changeBeforeUpdatesSeconds: 20
+      previewIntervalSeconds: 10800
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates: false
+      urlMap:
+        SUBSCRIBE: 109.70.83.57/siri/1.4/et
+        DELETE_SUBSCRIPTION: 109.70.83.57/siri/1.4/et
+      version: 1.4
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: 77b94510-7f01-498f-b274-1407d90ec4c6
+      requestorRef: ENTUR_DEV_8a23ab6e-024d-4074-a9c6-a7cf966511f7
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: nsr
+      filterPresets:
+      idMappingPrefixes: SKY
+      active: false
+    -
+      internalId: 8
+      vendor: skysssx
+      name: Skyss - SX
+      datasetId: SKY
+      serviceType: REST
+      subscriptionType: SITUATION_EXCHANGE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 180
+      previewIntervalSeconds: 86400
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: 109.70.83.57/siri/1.4/sx?singleDocMode=true&enableSituationVersion=true&useSummaryForHeading=true&enableSituationSource=true&channels=PublicJourneyPlanner&flattenToStopPoints=false
+        DELETE_SUBSCRIPTION: 109.70.83.57/siri/1.4/sx
+      version: 1.4
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: ENTUR_DEV_9885889a-ab1a-46da-b47f-8de0e2a4f544
+      requestorRef: ENTUR_DEV_1f86344a-fbd3-4672-a39f-5f397ab5c994
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: nsr
+      filterPresets:
+      idMappingPrefixes: SKY
+      active: false
+    -
+      internalId: 9
+      vendor: brakaret
+      name: Brakar - ET
+      datasetId: BRA
+      serviceType: REST
+      subscriptionType: ESTIMATED_TIMETABLE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 60
+      changeBeforeUpdatesSeconds: 1
+      previewIntervalSeconds: 10800
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: brakar.tmix.se/siri/1.4/et
+        DELETE_SUBSCRIPTION: brakar.tmix.se/siri/1.4/et
+      version: 1.4
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: cd529a91-7bb2-4f45-b522-3b0e3d5ad2d1
+      requestorRef: ENTUR_DEV_89b6b808-1488-4237-a4b4-feded04a5601
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: brakar
+      filterPresets:
+      idMappingPrefixes: BRA
+      active: false
+    -
+      internalId: 10
+      vendor: brakarsx
+      name: Brakar - SX
+      datasetId: BRA
+      serviceType: REST
+      subscriptionType: SITUATION_EXCHANGE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 60
+      previewIntervalSeconds: 86400
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: brakar.tmix.se/siri/1.4/sx?channels=PublicJourneyPlanner&multiDocMode=false
+        DELETE_SUBSCRIPTION: brakar.tmix.se/siri/1.4/sx
+      version: 1.4
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: 7dc5e32e-2fff-4089-9674-7abd79753c39
+      requestorRef: ENTUR_DEV_7932ae3e-d524-464f-b041-4175405eafed
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: brakar
+      filterPresets:
+      idMappingPrefixes: BRA
+      active: false
+    -
+      internalId: 11
+      vendor: bybanenEt
+      name: Bybanen - ET
+      datasetId: SKY
+      serviceType: REST
+      subscriptionType: ESTIMATED_TIMETABLE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 180
+      changeBeforeUpdatesSeconds: 1
+      previewIntervalSeconds: 10800
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName: Address
+      soapenvNamespace:
+      incrementalUpdates:
+      overrideHttps: true
+      urlMap:
+        SUBSCRIBE: 62.97.192.2:8080/SIRIProducer/SiriProducerHttp
+        DELETE_SUBSCRIPTION: 62.97.192.2:8080/SIRIProducer/SiriProducerHttp
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: 92313221-0dee-4c0e-a796-d77bcafb283c
+      requestorRef: SKYSS
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: nsr
+      filterPresets: BYBANEN
+      idMappingPrefixes: SKY
+      active: false
+    -
+      internalId: 12
+      vendor: baneEt-reqres-24h
+      name: BaneNOR - ET (Polling)
+      datasetId: BNR
+      serviceType: REST
+      subscriptionType: ESTIMATED_TIMETABLE
+      subscriptionMode: REQUEST_RESPONSE
+      heartbeatIntervalSeconds: 120
+      previewIntervalSeconds: 86400
+      changeBeforeUpdatesSeconds: 1
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      urlMap:
+        GET_ESTIMATED_TIMETABLE: https4://siri.opm.jbv.no/jbv/et
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: 24fed568-e632-4902-b423-df5f137f3634
+      requestorRef: ENTUR_DEV
+      durationOfSubscriptionHours: 2
+      mappingAdapterId: banenoret
+      filterPresets:
+      idMappingPrefixes: NSB,FLT
+      active: false
+    -
+      internalId: 13
+      vendor: baneEt-reqres-1h
+      name: BaneNOR - ET (Polling - frequent)
+      datasetId: BNR
+      serviceType: REST
+      subscriptionType: ESTIMATED_TIMETABLE
+      subscriptionMode: REQUEST_RESPONSE
+      heartbeatIntervalSeconds: 30
+      previewIntervalSeconds: 0
+      changeBeforeUpdatesSeconds: 1
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      urlMap:
+        GET_ESTIMATED_TIMETABLE: https4://siri.opm.jbv.no/jbv/et
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: ba7af9ef-9f3b-4c8b-9ace-b6d40f07b021
+      requestorRef: ENTUR_DEV
+      durationOfSubscriptionHours: 2
+      mappingAdapterId: banenoret
+      filterPresets:
+      idMappingPrefixes: NSB,FLT
+      active: false
+    -
+      internalId: 14
+      vendor: baneEt-test-reqres-1h
+      name: BaneNOR - TEST - ET (Polling - frequent)
+      datasetId: BNR
+      serviceType: REST
+      subscriptionType: ESTIMATED_TIMETABLE
+      subscriptionMode: REQUEST_RESPONSE
+      heartbeatIntervalSeconds: 30
+      previewIntervalSeconds: 0
+      changeBeforeUpdatesSeconds: 1
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      urlMap:
+        GET_ESTIMATED_TIMETABLE: https4://siri-test.opm.jbv.no/jbv/et
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: 7f438489-8245-4672-8489-27cbaed2d0d0
+      requestorRef: ENTUR_DEV
+      durationOfSubscriptionHours: 2
+      mappingAdapterId: banenoret
+      filterPresets:
+      idMappingPrefixes: NSB,FLT
+      active: true
+      validation: true
+    -
+      internalId: 15
+      vendor: baneEt-test-reqres-24h
+      name: BaneNOR - TEST - ET (Polling)
+      datasetId: BNR
+      serviceType: REST
+      subscriptionType: ESTIMATED_TIMETABLE
+      subscriptionMode: REQUEST_RESPONSE
+      heartbeatIntervalSeconds: 120
+      previewIntervalSeconds: 86400
+      changeBeforeUpdatesSeconds: 1
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      urlMap:
+        GET_ESTIMATED_TIMETABLE: https4://siri-test.opm.jbv.no/jbv/et
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: 180031a6-7dd7-4ce8-ad15-f3f81ad9535e
+      requestorRef: ENTUR_DEV
+      durationOfSubscriptionHours: 2
+      mappingAdapterId: banenoret
+      filterPresets:
+      idMappingPrefixes: NSB,FLT
+      active: true
+      validation: true
+    -
+      internalId: 16
+      vendor: baneEt
+      name: BaneNOR - ET
+      datasetId: BNR
+      serviceType: REST
+      subscriptionType: ESTIMATED_TIMETABLE
+      subscriptionMode: FETCHED_DELIVERY
+      heartbeatIntervalSeconds: 60
+      previewIntervalSeconds: 86400
+      changeBeforeUpdatesSeconds: 1
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates: false
+      urlMap:
+        SUBSCRIBE: https4://siri.opm.jbv.no/jbv/et
+        DELETE_SUBSCRIPTION: https4://siri.opm.jbv.no/jbv/et
+        GET_ESTIMATED_TIMETABLE: https4://siri.opm.jbv.no/jbv/et
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: 5d6bec17-acf3-4cde-9423-63afc6632308
+      requestorRef: ENTUR_DEV_32d706b6-fa7a-442d-8846-fbe1be487d2e
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: banenoret
+      filterPresets:
+      idMappingPrefixes: NSB,FLT
+      active: false
+    -
+      internalId: 18
+      vendor: nsbSx
+      name: NSB - SX (test)
+      datasetId: NSB
+      serviceType: REST
+      subscriptionType: SITUATION_EXCHANGE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 60
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName: ConsumerAddress
+      previewIntervalSeconds: 86400
+      soapenvNamespace:
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: https4://status-siri-test.nsb.no/subscriptions/siri2-nrp
+        DELETE_SUBSCRIPTION: https4://status-siri-test.nsb.no/subscriptions/siri2-nrp
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: a21dadcb-78d9-4d70-8f4f-dbf91662ea4f
+      requestorRef: ENTUR-test
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: nsbsx
+      filterPresets:
+      idMappingPrefixes: NSB
+      active: true
+    -
+      internalId: 19
+      vendor: nsbSx-prod
+      name: NSB - SX (production)
+      datasetId: NSB
+      serviceType: REST
+      subscriptionType: SITUATION_EXCHANGE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 60
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName: ConsumerAddress
+      previewIntervalSeconds: 86400
+      soapenvNamespace:
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: https4://status-siri.nsb.no/subscriptions/siri2-nrp
+        DELETE_SUBSCRIPTION: https4://status-siri.nsb.no/subscriptions/siri2-nrp
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: b19aa241-fd7b-47ab-a54a-1a18d1d3a657
+      requestorRef: ENTUR-test
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: nsbsx
+      filterPresets:
+      idMappingPrefixes: NSB
+      active: false
+    -
+      internalId: 20
+      vendor: tromset
+      name: Troms - ET
+      datasetId: TRO
+      serviceType: REST
+      subscriptionType: ESTIMATED_TIMETABLE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 60
+      changeBeforeUpdatesSeconds: 1
+      previewIntervalSeconds: 10800
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: troms.tmix.se/siri/1.4/et
+        DELETE_SUBSCRIPTION: troms.tmix.se/siri/1.4/et
+      version: 1.4
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: 917161ce-5070-4104-9232-516561c2aabc
+      requestorRef: ENTUR_DEV_a542d45b-e4d7-410b-8f39-88c701beda23
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: nsr
+      filterPresets:
+      idMappingPrefixes: TRO
+      active: false
+    -
+      internalId: 21
+      vendor: tromssx
+      name: Troms - SX
+      datasetId: TRO
+      serviceType: REST
+      subscriptionType: SITUATION_EXCHANGE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 60
+      previewIntervalSeconds: 86400
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: troms.tmix.se/siri/1.4/sx
+        DELETE_SUBSCRIPTION: troms.tmix.se/siri/1.4/sx
+      version: 1.4
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: ce7bd407-31e7-40af-9391-93ef013ae803
+      requestorRef: ENTUR_DEV_4b6e7ad7-12fb-4e20-b1a3-cdce8a577279
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: nsr
+      filterPresets:
+      idMappingPrefixes: TRO
+      active: false
+    -
+      internalId: 22
+      vendor: mret
+      name: Møre og Romsdal - ET
+      datasetId: MOR
+      serviceType: SOAP
+      subscriptionType: ESTIMATED_TIMETABLE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 60
+      previewIntervalSeconds: 86400
+      changeBeforeUpdatesSeconds: 1
+      operatorNamespace: http://wsdl.siri.org.uk
+      addressFieldName: Address
+      soapenvNamespace: http://www.w3.org/2003/05/soap-envelope
+      incrementalUpdates: false
+      overrideHttps: true
+      dataSupplyRequestForInitialDelivery: false
+      urlMap:
+        SUBSCRIBE: siri.mrfylke.pubtrans.com:8001/SubscriptionManager
+        DELETE_SUBSCRIPTION: siri.mrfylke.pubtrans.com:8001/SubscriptionManager
+        GET_ESTIMATED_TIMETABLE: siriet.mrfylke.pubtrans.com:8002/EtDirectProducer
+      version: 2.0
+      contentType: application/soap+xml;charset=UTF-8
+      subscriptionId: c3e405e5-4e7d-468f-9280-bb62649e50be
+      requestorRef: ENTUR_DEV_ET_bb13b4cf-acc2-43bd-b738-f70530ded312
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: nsr
+      filterPresets:
+      idMappingPrefixes: MOR
+      active: true
+    -
+      internalId: 23
+      vendor: mrvm
+      name: Møre og Romsdal - VM
+      datasetId: MOR
+      serviceType: SOAP
+      subscriptionType: VEHICLE_MONITORING
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 60
+      operatorNamespace: http://wsdl.siri.org.uk
+      addressFieldName: Address
+      soapenvNamespace: http://www.w3.org/2003/05/soap-envelope
+      incrementalUpdates: false
+      overrideHttps: true
+      vehicleMonitoringRefValue: All
+      dataSupplyRequestForInitialDelivery: false
+      urlMap:
+        SUBSCRIBE: siri.mrfylke.pubtrans.com:8001/SubscriptionManager
+        DELETE_SUBSCRIPTION: siri.mrfylke.pubtrans.com:8001/SubscriptionManager
+        GET_VEHICLE_MONITORING: sirivm.mrfylke.pubtrans.com:8003/VmDirectProducer
+      version: 2.0
+      contentType: application/soap+xml;charset=UTF-8
+      subscriptionId: b0f418c8-1bab-4c23-a56c-20eea2d20d4c
+      requestorRef: ENTUR_DEV_VM_b1abe164-222f-4ffe-893c-f33327a42f1c
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: nsr
+      filterPresets:
+      idMappingPrefixes: MOR
+      active: false
+    -
+      internalId: 24
+      vendor: mrsx
+      name: Møre og Romsdal - SX
+      datasetId: MOR
+      serviceType: SOAP
+      subscriptionType: SITUATION_EXCHANGE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 60
+      previewIntervalSeconds: 86400
+      operatorNamespace: http://wsdl.siri.org.uk
+      addressFieldName: Address
+      soapenvNamespace: http://www.w3.org/2003/05/soap-envelope
+      incrementalUpdates: false
+      overrideHttps: true
+      dataSupplyRequestForInitialDelivery: false
+      urlMap:
+        SUBSCRIBE: siri.mrfylke.pubtrans.com:8001/SubscriptionManager
+        DELETE_SUBSCRIPTION: siri.mrfylke.pubtrans.com:8001/SubscriptionManager
+        GET_SITUATION_EXCHANGE: sirisx.mrfylke.pubtrans.com:8005/SxDirectProducer
+      version: 2.0
+      contentType: application/soap+xml;charset=UTF-8
+      subscriptionId: 3c8d4c6b-2784-4392-a237-4ff30a199ed6
+      requestorRef: ENTUR_DEV_SX_7ec481c8-df3a-430b-9cb3-f3fa3ed604b0
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: nsr
+      filterPresets:
+      idMappingPrefixes: MOR
+      active: true
+    -
+      internalId: 25
+      vendor: ostEt-test
+      name: Østfold - ET - TEST
+      datasetId: OST
+      serviceType: SOAP
+      subscriptionType: ESTIMATED_TIMETABLE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 120
+      previewIntervalSeconds: 10800
+      operatorNamespace: http://wsdl.siri.org.uk
+      addressFieldName: ConsumerAddress
+      soapenvNamespace: http://schemas.xmlsoap.org/soap/envelope/
+      changeBeforeUpdatesSeconds: 10
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: 95.141.66.27:8000/SIRI
+        DELETE_SUBSCRIPTION: 95.141.66.27:8000/SIRI
+        CHECK_STATUS: 95.141.66.27:8000/SIRI
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: 73d581ed-c239-4ec1-9008-2877750e2710
+      requestorRef: ENTUR_DEV_ET_73d581ed-c239-4ec1-9008-2877750e2710
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: ostfoldet
+      filterPresets:
+      idMappingPrefixes: OST
+      active: true
+    -
+      internalId: 26
+      vendor: ostEt
+      name: Østfold - ET - PROD
+      datasetId: OST
+      serviceType: SOAP
+      subscriptionType: ESTIMATED_TIMETABLE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 120
+      previewIntervalSeconds: 10800
+      operatorNamespace: http://wsdl.siri.org.uk
+      addressFieldName: ConsumerAddress
+      soapenvNamespace: http://schemas.xmlsoap.org/soap/envelope/
+      changeBeforeUpdatesSeconds: 10
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: 92.62.36.185:8000/SIRI
+        DELETE_SUBSCRIPTION: 92.62.36.185:8000/SIRI
+        CHECK_STATUS: 92.62.36.185:8000/SIRI
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: 0018b198-eaf2-4dcc-8917-234ec78ef5fc
+      requestorRef: ENTUR_DEV_ET_923a1fca-97da-405a-afbe-1d6966f3c848
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: ostfoldet
+      filterPresets:
+      idMappingPrefixes: OST
+      active: false
+    -
+      internalId: 27
+      vendor: ostVm
+      name: Østfold - VM
+      datasetId: OST
+      serviceType: SOAP
+      subscriptionType: VEHICLE_MONITORING
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds:  120
+      previewIntervalSeconds: 36000
+      operatorNamespace: http://wsdl.siri.org.uk
+      addressFieldName: ConsumerAddress
+      soapenvNamespace: http://schemas.xmlsoap.org/soap/envelope/
+      changeBeforeUpdatesSeconds: 10
+      incrementalUpdates: true
+      urlMap:
+        SUBSCRIBE: 92.62.36.185:8000/SIRI
+        DELETE_SUBSCRIPTION: 92.62.36.185:8000/SIRI
+        CHECK_STATUS: 92.62.36.185:8000/SIRI
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: e5ac74ae-ad3e-4c7f-a401-c615aa11ce77
+      requestorRef: ENTUR_DEV_VM_ce9bddc0-48a4-49bb-ad63-f05ad7e6d1a8
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: ostfoldvm
+      filterPresets:
+      idMappingPrefixes: OST
+      active: true
+    -
+      internalId: 28
+      vendor: ostSx
+      name: Østfold - SX
+      datasetId: OST
+      serviceType: SOAP
+      subscriptionType: SITUATION_EXCHANGE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds:  120
+      previewIntervalSeconds: 36000
+      operatorNamespace: http://wsdl.siri.org.uk
+      addressFieldName: ConsumerAddress
+      soapenvNamespace: http://schemas.xmlsoap.org/soap/envelope/
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: 92.62.36.185:8000/SIRI
+        DELETE_SUBSCRIPTION: 92.62.36.185:8000/SIRI
+        CHECK_STATUS: 92.62.36.185:8000/SIRI
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: f791f0a2-6d2b-499e-ac49-cf2f70156bdb
+      requestorRef: ENTUR_DEV_SX_a9194bee-4e8f-4a18-a45b-fc20b88bea8f
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: ostfoldsx
+      filterPresets:
+      idMappingPrefixes: OST
+      active: false
+    -
+      internalId: 29
+      vendor: oppEt-test
+      name: Oppland - ET - TEST
+      datasetId: OPP
+      serviceType: SOAP
+      subscriptionType: ESTIMATED_TIMETABLE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 120
+      previewIntervalSeconds: 10800
+      operatorNamespace: http://wsdl.siri.org.uk
+      addressFieldName: ConsumerAddress
+      soapenvNamespace: http://schemas.xmlsoap.org/soap/envelope/
+      changeBeforeUpdatesSeconds: 10
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: 92.62.44.143:8000/SIRI
+        DELETE_SUBSCRIPTION: 92.62.44.143:8000/SIRI
+        CHECK_STATUS: 92.62.44.143:8000/SIRI
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: 98d87a06-6388-41b8-b689-9a61f88076b7
+      requestorRef: ENTUR_DEV_ET_98d87a06-6388-41b8-b689-9a61f88076b7
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: ostfoldet
+      filterPresets: OPP
+      idMappingPrefixes: OPP
+      active: false
+    -
+      internalId: 30
+      vendor: hedEt
+      name: Hedmark - ET - PROD
+      datasetId: HED
+      serviceType: SOAP
+      subscriptionType: ESTIMATED_TIMETABLE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 120
+      previewIntervalSeconds: 10800
+      operatorNamespace: http://wsdl.siri.org.uk
+      addressFieldName: ConsumerAddress
+      soapenvNamespace: http://schemas.xmlsoap.org/soap/envelope/
+      changeBeforeUpdatesSeconds: 10
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: 92.62.36.219:8000/SIRI
+        DELETE_SUBSCRIPTION: 92.62.36.219:8000/SIRI
+        CHECK_STATUS: 92.62.36.219:8000/SIRI
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: 186c3737-8549-4415-bab2-7f944f56d31b
+      requestorRef: ENTUR_DEV_ET_186c3737-8549-4415-bab2-7f944f56d31b
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: ostfoldet
+      filterPresets: HED
+      idMappingPrefixes: HED
+      active: false
+    -
+      internalId: 31
+      vendor: oppEt
+      name: Oppland - ET - PROD
+      datasetId: OPP
+      serviceType: SOAP
+      subscriptionType: ESTIMATED_TIMETABLE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 120
+      previewIntervalSeconds: 10800
+      operatorNamespace: http://wsdl.siri.org.uk
+      addressFieldName: ConsumerAddress
+      soapenvNamespace: http://schemas.xmlsoap.org/soap/envelope/
+      changeBeforeUpdatesSeconds: 10
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: 92.62.36.219:8000/SIRI
+        DELETE_SUBSCRIPTION: 92.62.36.219:8000/SIRI
+        CHECK_STATUS: 92.62.36.219:8000/SIRI
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: a6004ff5-7c77-4667-8d16-50cc74300713
+      requestorRef: ENTUR_DEV_ET_a6004ff5-7c77-4667-8d16-50cc74300713
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: ostfoldet
+      filterPresets: OPP
+      idMappingPrefixes: OPP
+      active: false
+    -
+      internalId: 32
+      vendor: hedOppVm
+      name: Hedmark/Oppland - VM - PROD
+      datasetId: HED
+      serviceType: SOAP
+      subscriptionType: VEHICLE_MONITORING
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 120
+      previewIntervalSeconds: 10800
+      operatorNamespace: http://wsdl.siri.org.uk
+      addressFieldName: ConsumerAddress
+      soapenvNamespace: http://schemas.xmlsoap.org/soap/envelope/
+      changeBeforeUpdatesSeconds: 10
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: 92.62.36.219:8000/SIRI
+        DELETE_SUBSCRIPTION: 92.62.36.219:8000/SIRI
+        CHECK_STATUS: 92.62.36.219:8000/SIRI
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: f22ecac0-7fee-4cc6-8442-50ddcb2d60d9
+      requestorRef: ENTUR_DEV_VM_f17c1f04-a468-4073-ab0a-0f5bbdd65c73
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: ostfoldet
+      filterPresets:
+      idMappingPrefixes: HED,OPP
+      active: false
+    -
+      internalId: 33
+      vendor: internRuterVm
+      name: Entur - Ruter - VM
+      datasetId: RUT-ENT
+      serviceType: REST
+      subscriptionType: VEHICLE_MONITORING
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 60
+      updateIntervalSeconds: 1
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: https4://api.entur.io/realtime/v1/subscribe/RUT
+        DELETE_SUBSCRIPTION: https4://api.entur.io/realtime/v1/subscribe
+      customHeaders:
+        ET-Client-Name: test-carbon
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: vm-replication
+      requestorRef: vm-requestorref
+      durationOfSubscriptionHours: 1680
+      mappingAdapterId: entur
+      filterPresets:
+      idMappingPrefixes: RUT,OPP,BRA,OST
+      active: false
+    -
+      internalId: 34
+      vendor: internRuterEt
+      name: Entur - Ruter - ET
+      datasetId: RUT-ENT
+      serviceType: REST
+      subscriptionType: ESTIMATED_TIMETABLE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 60
+      previewIntervalSeconds: 86400
+      updateIntervalSeconds: 1
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: https4://api.entur.io/realtime/v1/subscribe/RUT
+        DELETE_SUBSCRIPTION: https4://api.entur.io/realtime/v1/subscribe
+      customHeaders:
+        ET-Client-Name: test-carbon
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: et-replication
+      requestorRef: et-requestorref
+      durationOfSubscriptionHours: 1680
+      mappingAdapterId: entur
+      filterPresets:
+      idMappingPrefixes: RUT
+      active: false
+    -
+      internalId: 35
+      vendor: internRuterPollingEt
+      name: Entur - Ruter - Polling ET
+      datasetId: RUT-ENT
+      serviceType: REST
+      subscriptionType: ESTIMATED_TIMETABLE
+      subscriptionMode: REQUEST_RESPONSE
+      heartbeatIntervalSeconds: 30
+      previewIntervalSeconds: 86400
+      updateIntervalSeconds: 1
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      urlMap:
+        GET_ESTIMATED_TIMETABLE: https4://api.entur.io/realtime/v1/services/RUT
+      customHeaders:
+        ET-Client-Name: test-polling-carbon
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: et-polling
+      requestorRef: et-requestor-polling
+      durationOfSubscriptionHours: 1680
+      mappingAdapterId: entur
+      filterPresets:
+      idMappingPrefixes: RUT
+      active: false
+      validation: true
+    -
+      internalId: 37
+      vendor: internProdVm
+      name: Entur - VM
+      datasetId: ENT
+      serviceType: REST
+      subscriptionType: VEHICLE_MONITORING
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 30
+      updateIntervalSeconds: 1
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: https4://api.entur.io/realtime/v1/subscribe
+        DELETE_SUBSCRIPTION: https4://api.entur.io/realtime/v1/subscribe
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: vm-replication-test
+      requestorRef: vm-requestorref-test
+      durationOfSubscriptionHours: 1680
+      mappingAdapterId: entur
+      filterPresets:
+      idMappingPrefixes:
+      active: false
+    -
+      internalId: 38
+      vendor: internProdEt
+      name: Entur - ET
+      datasetId: ENT
+      serviceType: REST
+      subscriptionType: ESTIMATED_TIMETABLE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 30
+      previewIntervalSeconds: 86400
+      updateIntervalSeconds: 1
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: https4://api.entur.io/realtime/v1/subscribe
+        DELETE_SUBSCRIPTION: https4://api.entur.io/realtime/v1/subscribe
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: et-replication-test
+      requestorRef: et-requestorref-test
+      durationOfSubscriptionHours: 1680
+      mappingAdapterId: entur
+      filterPresets:
+      idMappingPrefixes:
+      active: false
+    -
+      internalId: 39
+      vendor: internProdSx
+      name: Entur - SX
+      datasetId: ENT
+      serviceType: REST
+      subscriptionType: SITUATION_EXCHANGE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 30
+      previewIntervalSeconds: 86400
+      updateIntervalSeconds: 1
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: https4://api.entur.io/realtime/v1/subscribe
+        DELETE_SUBSCRIPTION: https4://api.entur.io/realtime/v1/subscribe
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: sx-replication-test
+      requestorRef: sx-requestorref-test
+      durationOfSubscriptionHours: 1680
+      mappingAdapterId: entur
+      filterPresets:
+      idMappingPrefixes:
+      active: false
+    -
+      internalId: 40
+      vendor: entur
+      name: Internal testing - ET
+      datasetId: TST
+      serviceType: REST
+      subscriptionType: ESTIMATED_TIMETABLE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 6000000
+      previewIntervalSeconds: 86400
+      updateIntervalSeconds: 1
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: local/siri/et
+        DELETE_SUBSCRIPTION: local/siri/et
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: dummyet
+      requestorRef: dummy
+      durationOfSubscriptionHours: 1000000
+      mappingAdapterId: entur
+      filterPresets:
+      idMappingPrefixes:
+      active: true
+      dataNotReceivedAction:
+        enabled: false
+        inactivityMinutes: 5
+        jsonPostContent: "{\"name\": \"kishar\",\"initiator\":\"anshar\"}"
+        endpoint: http4://babylon/babylon/api/hubot-redeploy
+    -
+      internalId: 43
+      vendor: ruter-et
+      name: Ruter - ET - bus-metro
+      datasetId: RUT
+      serviceType: REST
+      subscriptionType: ESTIMATED_TIMETABLE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 60
+      previewIntervalSeconds: 3600
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: https4://siri-producer.transhub.io/api/1.0/subscribe
+        DELETE_SUBSCRIPTION: https4://siri-producer.transhub.io/api/1.0/subscribe
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: 9b33344a-6d18-477a-aecc-bb16599fe959
+      requestorRef: ENTUR_DEV
+      durationOfSubscriptionHours: 720
+      mappingAdapterId: entur
+      filterPresets:
+      idMappingPrefixes:
+      validation: true
+      active: true
+    -
+      internalId: 44
+      vendor: ruter-vm
+      name: Ruter - VM - SIRI-Producer-PROD
+      datasetId: RUT
+      serviceType: REST
+      subscriptionType: VEHICLE_MONITORING
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 60
+      updateIntervalSeconds: 1
+      previewIntervalSeconds: 3600
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: https4://siri-producer.transhub.io/api/1.0/subscribe
+        DELETE_SUBSCRIPTION: https4://siri-producer.transhub.io/api/1.0/subscribe
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: f77b9603d-8c51-4e1e-aae5-08e2c01495ac
+      requestorRef: ENTUR_DEV
+      durationOfSubscriptionHours: 1680
+      mappingAdapterId: ruter
+      filterPresets:
+      idMappingPrefixes: RUT
+      validation: true
+      active: true
+    -
+      internalId: 45
+      vendor: ruter-sx
+      name: Ruter - SX - PROD
+      datasetId: RUT
+      serviceType: REST
+      subscriptionType: SITUATION_EXCHANGE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 60
+      updateIntervalSeconds: 1
+      previewIntervalSeconds: 3600
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: https4://siri-producer.ruter.io/api/1.0/subscribe
+        DELETE_SUBSCRIPTION: https4://siri-producer.ruter.io/api/1.0/subscribe
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: 95d387da-5f61-4430-8bc8-e5885b4467bd
+      requestorRef: ENTUR_DEV_TEST
+      durationOfSubscriptionHours: 1680
+      mappingAdapterId: entur
+      filterPresets:
+      idMappingPrefixes:
+      validation: true
+      active: true
+    -
+      internalId: 46
+      vendor: dummySx
+      name: dummy - SX
+      datasetId: TST
+      serviceType: REST
+      subscriptionType: SITUATION_EXCHANGE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 60000
+      previewIntervalSeconds: 86400
+      updateIntervalSeconds: 1
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: local/siri/sx
+        DELETE_SUBSCRIPTION: local/siri/sx
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: dummysx
+      requestorRef: dummy
+      durationOfSubscriptionHours: 1000000
+      mappingAdapterId: ruter
+      filterPresets:
+      idMappingPrefixes: RUT
+      active: true
+      validation: true
+    -
+      internalId: 47
+      vendor: flytoget
+      name: Flytoget - ET - TEST
+      datasetId: FLT
+      serviceType: REST
+      subscriptionType: ESTIMATED_TIMETABLE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 6000000
+      previewIntervalSeconds: 3600
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: localhost:1234
+        DELETE_SUBSCRIPTION: localhost:1234
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: 5e715a5a-221c-4d0f-8606-98fbdbcc333a
+      requestorRef: Entur-SIRI
+      durationOfSubscriptionHours: 720
+      mappingAdapterId: entur
+      filterPresets:
+      idMappingPrefixes:
+      validation: true
+      active: true
+    -
+      internalId: 48
+      vendor: nordlandet
+      name: Nordland - ET
+      datasetId: NOR
+      serviceType: REST
+      subscriptionType: ESTIMATED_TIMETABLE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 60
+      changeBeforeUpdatesSeconds: 1
+      previewIntervalSeconds: 10800
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: nordland.tmix.se/siri/1.4/et
+        DELETE_SUBSCRIPTION: nordland.tmix.se/siri/1.4/et
+      version: 1.4
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: 6599c32f-d71e-4ac7-915f-fd366f4454e4
+      requestorRef: ENTUR_DEV_da2d92ce-d3ba-4b82-805d-60eabc0ff609
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: nordland
+      filterPresets:
+      idMappingPrefixes: NOR
+      active: true
+      validation: true
+    -
+      internalId: 49
+      vendor: nordlandsx
+      name: Nordland - SX
+      datasetId: NOR
+      serviceType: REST
+      subscriptionType: SITUATION_EXCHANGE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 60
+      previewIntervalSeconds: 86400
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: nordland.tmix.se/siri/1.4/sx?channels=PublicJourneyPlanner&multiDocMode=false
+        DELETE_SUBSCRIPTION: nordland.tmix.se/siri/1.4/sx
+      version: 1.4
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: 38898325-32d2-438c-b89f-fd178e8f6905
+      requestorRef: ENTUR_DEV_0a69e8cf-4d7c-44cd-a963-4bef0a439168
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: nordland
+      filterPresets:
+      idMappingPrefixes: NOR
+      active: true
+      validation: true
+    -
+      internalId: 51
+      vendor: ruter.io-sx
+      name: Ruter SX - TEST
+      datasetId: RUT-SX
+      serviceType: REST
+      subscriptionType: SITUATION_EXCHANGE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 60
+      previewIntervalSeconds: 86400
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: https4://siri-producer.test.transhub.io/api/1.0/subscribe
+        DELETE_SUBSCRIPTION: https4://siri-producer.test.transhub.io/api/1.0/subscribe
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: dcb71897-c3ec-4aa1-9de8-73dbfad9a364
+      requestorRef: Entur
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: entur
+      filterPresets:
+      idMappingPrefixes: RUT
+      active: true
+      validation: true
+    -
+      internalId: 52
+      vendor: soareis.situations
+      name: SoaReis.Situations
+      datasetId: SRS
+      serviceType: REST
+      subscriptionType: SITUATION_EXCHANGE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 60000000
+      previewIntervalSeconds: 86400
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: local/dummy/soareis
+        DELETE_SUBSCRIPTION: local/dummy/soareis
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: 36d367e9-4549-4d7e-aeac-cbc1c5db599a
+      requestorRef: Entur
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: entur
+      filterPresets:
+      idMappingPrefixes: RUT
+      active: true
+      validation: true
+    -
+      internalId: 53
+      vendor: flytogsx
+      name: Flytoget - SX - TEST
+      datasetId: FLT
+      serviceType: REST
+      subscriptionType: SITUATION_EXCHANGE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 6000000
+      previewIntervalSeconds: 3600
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: localhost:1234
+        DELETE_SUBSCRIPTION: localhost:1234
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: ff3e3a06-5b66-4aeb-bc07-6388ed30d9ea
+      requestorRef: Entur-SIRI
+      durationOfSubscriptionHours: 720
+      mappingAdapterId: entur
+      filterPresets:
+      idMappingPrefixes:
+      validation: true
+      active: true
+    -
+      internalId: 54
+      vendor: nsb-tiltak-et
+      name: NSB-Tiltak - ET
+      datasetId: NSB
+      serviceType: REST
+      subscriptionType: ESTIMATED_TIMETABLE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 60
+      previewIntervalSeconds: 86400
+      updateIntervalSeconds: 1
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName: Address
+      soapenvNamespace:
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: https4://tiltak-siri-et-test.nsb.no/subscribe/et
+        DELETE_SUBSCRIPTION: https4://tiltak-siri-et-test.nsb.no/subscribe/et
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: dbf6d27d-59d8-4be8-bf29-cb77eb75818c
+      requestorRef: ENTUR-test
+      durationOfSubscriptionHours: 1000000
+      mappingAdapterId: nsb
+      filterPresets:
+      idMappingPrefixes: NSB
+      active: true
+      validation: true
+    -
+      internalId: 55
+      vendor: hedTestEt
+      name: Hedmark - TEST - ET
+      datasetId: HED
+      serviceType: SOAP
+      subscriptionType: ESTIMATED_TIMETABLE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 60
+      previewIntervalSeconds: 10800
+      operatorNamespace: http://wsdl.siri.org.uk
+      addressFieldName: ConsumerAddress
+      soapenvNamespace: http://schemas.xmlsoap.org/soap/envelope/
+      changeBeforeUpdatesSeconds: 10
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: test41.fara.no:8000/SIRI
+        DELETE_SUBSCRIPTION: test41.fara.no:8000/SIRI
+        CHECK_STATUS: test41.fara.no:8000/SIRI
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: 9f743d36-4b9a-4798-894c-45f3570442ee
+      requestorRef: ENTUR_DEV_ET_fb890bdf-6197-4f44-9a22-95fb81ca8da3
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: ostfoldet
+      filterPresets:
+      idMappingPrefixes: HED
+      active: true
+      validation: true
+    -
+      internalId: 56
+      vendor: hedTestVm
+      name: Hedmark - TEST - VM
+      datasetId: HED
+      serviceType: SOAP
+      subscriptionType: VEHICLE_MONITORING
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds:  60
+      previewIntervalSeconds: 36000
+      operatorNamespace: http://wsdl.siri.org.uk
+      addressFieldName: ConsumerAddress
+      soapenvNamespace: http://schemas.xmlsoap.org/soap/envelope/
+      changeBeforeUpdatesSeconds: 10
+      incrementalUpdates: true
+      urlMap:
+        SUBSCRIBE: test41.fara.no:8000/SIRI
+        DELETE_SUBSCRIPTION: test41.fara.no:8000/SIRI
+        CHECK_STATUS: test41.fara.no:8000/SIRI
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: c3d75af7-2f1d-4a73-ac9f-cd8ea2adeaef
+      requestorRef: ENTUR_DEV_VM_c975e774-8f20-4628-8490-223e79177271
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: ostfoldvm
+      filterPresets:
+      idMappingPrefixes: HED
+      active: true
+      validation: true
+    -
+      internalId: 57
+      vendor: hedTestSX
+      name: Hedmark - TEST - SX
+      datasetId: HED
+      serviceType: SOAP
+      subscriptionType: SITUATION_EXCHANGE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds:  120
+      previewIntervalSeconds: 36000
+      operatorNamespace: http://wsdl.siri.org.uk
+      addressFieldName: ConsumerAddress
+      soapenvNamespace: http://schemas.xmlsoap.org/soap/envelope/
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: test41.fara.no:8000/SIRI
+        DELETE_SUBSCRIPTION: test41.fara.no:8000/SIRI
+        CHECK_STATUS: test41.fara.no:8000/SIRI
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: bd1fab32-5fe2-46b9-9155-25e449157434
+      requestorRef: ENTUR_DEV_SX_2c3a2e89-0033-4da7-a41f-a06ca2202db2
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: ostfoldsx
+      filterPresets:
+      idMappingPrefixes: HED
+      active: true
+      validation: true
+    -
+      internalId: 58
+      vendor: vktEt
+      name: VKT - PROD - ET
+      datasetId: VKT
+      serviceType: SOAP
+      subscriptionType: ESTIMATED_TIMETABLE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 60
+      previewIntervalSeconds: 10800
+      operatorNamespace: http://wsdl.siri.org.uk
+      addressFieldName: ConsumerAddress
+      soapenvNamespace: http://schemas.xmlsoap.org/soap/envelope/
+      changeBeforeUpdatesSeconds: 10
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: 213.52.105.176:8080/SIRI
+        DELETE_SUBSCRIPTION: 213.52.105.176:8080/SIRI
+        CHECK_STATUS: 213.52.105.176:8080/SIRI
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: 6188342a-083c-48e6-bc07-0fe629160402
+      requestorRef: ENTUR_DEV_ET
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: ostfoldet
+      filterPresets: VKT
+      idMappingPrefixes: VKT
+      active: true
+      validation: true
+    -
+      internalId: 59
+      vendor: vktVm
+      name: VKT - PROD - VM
+      datasetId: VKT
+      serviceType: SOAP
+      subscriptionType: VEHICLE_MONITORING
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds:  60
+      previewIntervalSeconds: 36000
+      operatorNamespace: http://wsdl.siri.org.uk
+      addressFieldName: ConsumerAddress
+      soapenvNamespace: http://schemas.xmlsoap.org/soap/envelope/
+      changeBeforeUpdatesSeconds: 10
+      incrementalUpdates: true
+      urlMap:
+        SUBSCRIBE: 213.52.105.176:8080/SIRI
+        DELETE_SUBSCRIPTION: 213.52.105.176:8080/SIRI
+        CHECK_STATUS: 213.52.105.176:8080/SIRI
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: d56e8432-366b-4d0e-8cfc-ba0786c93535
+      requestorRef: ENTUR_DEV_VM
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: ostfoldvm
+      filterPresets: VKT
+      idMappingPrefixes: VKT
+      active: true
+      validation: true
+    -
+      internalId: 61
+      vendor: entSx
+      name: Entur SX-client
+      datasetId: ENT
+      serviceType: REST
+      subscriptionType: SITUATION_EXCHANGE
+      subscriptionMode: REQUEST_RESPONSE
+      heartbeatIntervalSeconds:  120
+      previewIntervalSeconds: 36000
+      operatorNamespace:
+      addressFieldName: Address
+      soapenvNamespace: http://schemas.xmlsoap.org/soap/envelope/
+      changeBeforeUpdatesSeconds: 10
+      incrementalUpdates: true
+      urlMap:
+        GET_SITUATION_EXCHANGE: https4://us-central1-deviation-messages.cloudfunctions.net/xml
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: 26b93480-4d41-4832-96a4-19324cc20898
+      requestorRef: ENTUR_DEV
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: entur
+      filterPresets:
+      idMappingPrefixes: ENT
+      active: true
+      validation: true
+    -
+      internalId: 62
+      vendor: goaEt
+      name: Go-Ahead - dummy ET
+      datasetId: GOA
+      serviceType: REST
+      subscriptionType: ESTIMATED_TIMETABLE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds:  600000
+      previewIntervalSeconds: 36000
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      changeBeforeUpdatesSeconds: 10
+      incrementalUpdates: true
+      urlMap:
+        SUBSCRIBE: localhost:1234
+        DELETE_SUBSCRIPTION: localhost:1234
+        CHECK_STATUS: localhost:1234
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: 2eeb25aa-352e-4735-a485-6ec7c38c904f
+      requestorRef: ENTUR_DEV
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: entur
+      filterPresets:
+      idMappingPrefixes: GOA
+      active: true
+      validation: true
+    -
+      internalId: 63
+      vendor: ruter-et-test
+      name: Ruter - ET - test
+      datasetId: RUT
+      serviceType: REST
+      subscriptionType: ESTIMATED_TIMETABLE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 60
+      previewIntervalSeconds: 3600
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: https4://siri-producer.test.transhub.io/api/1.0/subscribe
+        DELETE_SUBSCRIPTION: https4://siri-producer.test.transhub.io/api/1.0/subscribe
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: f7e5b05a-ce22-49be-9c14-363f74f69aec
+      requestorRef: ENTUR_DEV
+      durationOfSubscriptionHours: 720
+      mappingAdapterId: entur
+      filterPresets:
+      idMappingPrefixes:
+      validation: true
+      active: true
+    -
+      internalId: 65
+      vendor: goaSx-dev
+      name: Go-Ahead - SX - DEV
+      datasetId: GOA
+      serviceType: REST
+      subscriptionType: SITUATION_EXCHANGE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds:  60
+      previewIntervalSeconds: 36000
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      changeBeforeUpdatesSeconds: 10
+      incrementalUpdates: true
+      urlMap:
+        SUBSCRIBE: https4://dev.goops.go-aheadnordic.no/api/siri/subscribe
+        DELETE_SUBSCRIPTION: https4://dev.goops.go-aheadnordic.no/api/siri/subscribe
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: 7ec82cce-8c6d-4dd4-8648-93ea9fbf3212
+      requestorRef: ENTUR_DEV
+      durationOfSubscriptionHours: 16800
+      mappingAdapterId: entur
+      filterPresets:
+      idMappingPrefixes: GOA
+      active: true
+      validation: true
+    -
+      internalId: 66
+      vendor: nsb-tiltak-sx
+      name: NSB-Tiltak - SX
+      datasetId: NSB
+      serviceType: REST
+      subscriptionType: SITUATION_EXCHANGE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 60
+      previewIntervalSeconds: 86400
+      updateIntervalSeconds: 1
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName: Address
+      soapenvNamespace:
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: https4://tiltak-siri-et-test.nsb.no/subscribe/sx
+        DELETE_SUBSCRIPTION: https4://tiltak-siri-et-test.nsb.no/subscribe/sx
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: a7c923a6-7cee-4fe7-b704-b97e7e88186c
+      requestorRef: ENTUR-test
+      durationOfSubscriptionHours: 1000000
+      mappingAdapterId: nsb
+      filterPresets:
+      idMappingPrefixes: NSB
+      active: true
+      validation: true
+    -
+      internalId: 67
+      vendor: bnr-et-test
+      name: BaneNOR - dummy ET
+      datasetId: BNR
+      serviceType: REST
+      subscriptionType: ESTIMATED_TIMETABLE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds:  6000000
+      previewIntervalSeconds: 36000
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      changeBeforeUpdatesSeconds: 10
+      incrementalUpdates: true
+      urlMap:
+        SUBSCRIBE: localhost:1234
+        DELETE_SUBSCRIPTION: localhost:1234
+        CHECK_STATUS: localhost:1234
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: cd0fa65c-22f6-41b1-8236-c12f9ddf6242
+      requestorRef: ENTUR_DEV
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: entur
+      filterPresets:
+      idMappingPrefixes:
+      active: true
+      validation: true
+    -
+      internalId: 68
+      vendor: grieg-connect-polling
+      name: GriegConnect - Troms - VM (Polling)
+      datasetId: TRO
+      serviceType: REST
+      subscriptionType: VEHICLE_MONITORING
+      subscriptionMode: REQUEST_RESPONSE
+      heartbeatIntervalSeconds: 300
+      previewIntervalSeconds: 3600
+      changeBeforeUpdatesSeconds: 1
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      incrementalUpdates:
+      urlMap:
+        GET_VEHICLE_MONITORING: siri.shiplog.no/siri/19/server.xml
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: c6b43a7b-d420-4aa3-ab29-532cce25b2b2
+      requestorRef: ENTUR_DEV
+      durationOfSubscriptionHours: 2
+      mappingAdapterId: nsr
+      filterPresets:
+      idMappingPrefixes: TRO
+      active: true
+      validation: true
+    -
+      internalId: 69
+      vendor: telEt
+      name: TEL - PROD - ET
+      datasetId: TEL
+      serviceType: SOAP
+      subscriptionType: ESTIMATED_TIMETABLE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 60
+      previewIntervalSeconds: 10800
+      operatorNamespace: http://wsdl.siri.org.uk
+      addressFieldName: ConsumerAddress
+      soapenvNamespace: http://schemas.xmlsoap.org/soap/envelope/
+      changeBeforeUpdatesSeconds: 10
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: 213.52.105.176:8080/SIRI
+        DELETE_SUBSCRIPTION: 213.52.105.176:8080/SIRI
+        CHECK_STATUS: 213.52.105.176:8080/SIRI
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: cbc3f3f6-c9bd-4498-ada0-435481bef677
+      requestorRef: ENTUR_DEV_ET
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: ostfoldet
+      filterPresets: TEL
+      idMappingPrefixes: TEL
+      active: true
+      validation: true
+    -
+      internalId: 70
+      vendor: telVm
+      name: TEL - PROD - VM
+      datasetId: TEL
+      serviceType: SOAP
+      subscriptionType: VEHICLE_MONITORING
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds:  60
+      previewIntervalSeconds: 36000
+      operatorNamespace: http://wsdl.siri.org.uk
+      addressFieldName: ConsumerAddress
+      soapenvNamespace: http://schemas.xmlsoap.org/soap/envelope/
+      changeBeforeUpdatesSeconds: 10
+      incrementalUpdates: true
+      urlMap:
+        SUBSCRIBE: 213.52.105.176:8080/SIRI
+        DELETE_SUBSCRIPTION: 213.52.105.176:8080/SIRI
+        CHECK_STATUS: 213.52.105.176:8080/SIRI
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: 45219904-fe75-49f1-9547-24196c8ba17b
+      requestorRef: ENTUR_DEV_VM
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: ostfoldvm
+      filterPresets: TEL
+      idMappingPrefixes: TEL
+      active: true
+      validation: true
+    -
+      internalId: 71
+      vendor: turnitEt
+      name: Turnit - dummy ET
+      datasetId: VYB
+      serviceType: REST
+      subscriptionType: ESTIMATED_TIMETABLE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds:  600000
+      previewIntervalSeconds: 36000
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      changeBeforeUpdatesSeconds: 10
+      incrementalUpdates: true
+      urlMap:
+        SUBSCRIBE: localhost:1234
+        DELETE_SUBSCRIPTION: localhost:1234
+        CHECK_STATUS: localhost:1234
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: 795f1219-868f-4c97-9621-c5bbe039c911
+      requestorRef: ENTUR_DEV
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: entur
+      filterPresets:
+      idMappingPrefixes: VYB
+      active: true
+      validation: true
+    -
+      internalId: 72
+      vendor: turnitSx
+      name: Turnit - dummy SX
+      datasetId: VYB
+      serviceType: REST
+      subscriptionType: SITUATION_EXCHANGE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds:  600000
+      previewIntervalSeconds: 36000
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      changeBeforeUpdatesSeconds: 10
+      incrementalUpdates: true
+      urlMap:
+        SUBSCRIBE: localhost:1234
+        DELETE_SUBSCRIPTION: localhost:1234
+        CHECK_STATUS: localhost:1234
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: 960acb44-d1e8-4b6c-b86e-95f3fd517507
+      requestorRef: ENTUR_DEV
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: entur
+      filterPresets:
+      idMappingPrefixes: VYB
+      active: true
+      validation: true
+    -
+      internalId: 73
+      vendor: atbVm-fara-test
+      name: ATB - TEST - FARA - VM
+      datasetId: ATB
+      serviceType: SOAP
+      subscriptionType: VEHICLE_MONITORING
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds:  60
+      previewIntervalSeconds: 36000
+      operatorNamespace: http://wsdl.siri.org.uk
+      addressFieldName: ConsumerAddress
+      soapenvNamespace: http://schemas.xmlsoap.org/soap/envelope/
+      changeBeforeUpdatesSeconds: 10
+      incrementalUpdates: true
+      urlMap:
+        SUBSCRIBE: 95.141.66.40:8000/SIRI
+        DELETE_SUBSCRIPTION: 95.141.66.40:8000/SIRI
+        CHECK_STATUS: 95.141.66.40:8000/SIRI
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: 3f508afb-0dc1-4fd0-b4ca-5c8ab2399370
+      requestorRef: ENTUR_DEV_VM
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: nsr
+      filterPresets: ATB
+      idMappingPrefixes: ATB
+      active: true
+      validation: true
+    -
+      internalId: 74
+      vendor: atbSx-fara-test
+      name: ATB - TEST - FARA - SX
+      datasetId: ATB
+      serviceType: SOAP
+      subscriptionType: SITUATION_EXCHANGE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds:  60
+      previewIntervalSeconds: 36000
+      operatorNamespace: http://wsdl.siri.org.uk
+      addressFieldName: ConsumerAddress
+      soapenvNamespace: http://schemas.xmlsoap.org/soap/envelope/
+      changeBeforeUpdatesSeconds: 10
+      incrementalUpdates: true
+      urlMap:
+        SUBSCRIBE: 95.141.66.40:8000/SIRI
+        DELETE_SUBSCRIPTION: 95.141.66.40:8000/SIRI
+        CHECK_STATUS: 95.141.66.40:8000/SIRI
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: 892a3a23-8f51-428e-ab40-325e69b4ea64
+      requestorRef: ENTUR_DEV_SX
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: nsr
+      filterPresets: ATB
+      idMappingPrefixes: ATB
+      active: true
+      validation: true
+    -
+      internalId: 75
+      vendor: atbEt-fara-test
+      name: ATB - TEST - FARA - ET
+      datasetId: ATB
+      serviceType: SOAP
+      subscriptionType: ESTIMATED_TIMETABLE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds:  60
+      previewIntervalSeconds: 36000
+      operatorNamespace: http://wsdl.siri.org.uk
+      addressFieldName: ConsumerAddress
+      soapenvNamespace: http://schemas.xmlsoap.org/soap/envelope/
+      changeBeforeUpdatesSeconds: 10
+      incrementalUpdates: true
+      urlMap:
+        SUBSCRIBE: 95.141.66.40:8000/SIRI
+        DELETE_SUBSCRIPTION: 95.141.66.40:8000/SIRI
+        CHECK_STATUS: 95.141.66.40:8000/SIRI
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: c1fb498e-5137-426e-a5b3-94a992b35976
+      requestorRef: ENTUR_DEV_ET
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: nsr
+      filterPresets: ATB
+      idMappingPrefixes: ATB
+      active: true
+      validation: true
+    -
+      internalId: 76
+      vendor: atbVm-fara
+      name: ATB - VM - atb.fara.no
+      datasetId: ATB
+      serviceType: SOAP
+      subscriptionType: VEHICLE_MONITORING
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds:  60
+      previewIntervalSeconds: 36000
+      operatorNamespace: http://wsdl.siri.org.uk
+      addressFieldName: ConsumerAddress
+      soapenvNamespace: http://schemas.xmlsoap.org/soap/envelope/
+      changeBeforeUpdatesSeconds: 10
+      incrementalUpdates: true
+      urlMap:
+        SUBSCRIBE: atb.fara.no:8000/SIRI/
+        DELETE_SUBSCRIPTION: atb.fara.no:8000/SIRI/
+        CHECK_STATUS: atb.fara.no:8000/SIRI/
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: 514286a0-7f7c-4766-9105-d0e4efe59b67
+      requestorRef: ENTUR_DEV_VM
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: nsr
+      filterPresets: ATB
+      idMappingPrefixes: ATB
+      active: false
+      validation: true
+    -
+      internalId: 77
+      vendor: atbSx-fara
+      name: ATB - SX - atb.fara.no
+      datasetId: ATB
+      serviceType: SOAP
+      subscriptionType: SITUATION_EXCHANGE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds:  60
+      previewIntervalSeconds: 36000
+      operatorNamespace: http://wsdl.siri.org.uk
+      addressFieldName: ConsumerAddress
+      soapenvNamespace: http://schemas.xmlsoap.org/soap/envelope/
+      changeBeforeUpdatesSeconds: 10
+      incrementalUpdates: true
+      urlMap:
+        SUBSCRIBE: atb.fara.no:8000/SIRI/
+        DELETE_SUBSCRIPTION: atb.fara.no:8000/SIRI/
+        CHECK_STATUS: atb.fara.no:8000/SIRI/
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: e6503a88-d10f-432b-aa99-f89d87914f5b
+      requestorRef: ENTUR_DEV_SX
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: nsr
+      filterPresets: ATB
+      idMappingPrefixes: ATB
+      active: false
+      validation: true
+    -
+      internalId: 78
+      vendor: atbEt-prod
+      name: ATB - ET - atb.fara.no
+      datasetId: ATB
+      serviceType: SOAP
+      subscriptionType: ESTIMATED_TIMETABLE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 120
+      previewIntervalSeconds: 10800
+      operatorNamespace: http://wsdl.siri.org.uk
+      addressFieldName: ConsumerAddress
+      soapenvNamespace: http://schemas.xmlsoap.org/soap/envelope/
+      changeBeforeUpdatesSeconds: 10
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: atb.fara.no:8000/SIRI/
+        DELETE_SUBSCRIPTION: atb.fara.no:8000/SIRI/
+        CHECK_STATUS: atb.fara.no:8000/SIRI/
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: 0ee17a85-b2b7-40e9-a55e-2dfd4e7f94f8
+      requestorRef: ENTUR_DEV_ET
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: nsr
+      filterPresets:
+      idMappingPrefixes: ATB
+      active: false
+      validation: true
+    -
+      internalId: 79
+      vendor: griegConnectET
+      name: GriegConnect - dummy ET
+      datasetId: GCO
+      serviceType: REST
+      subscriptionType: ESTIMATED_TIMETABLE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds:  600000
+      previewIntervalSeconds: 36000
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      changeBeforeUpdatesSeconds: 10
+      incrementalUpdates: true
+      urlMap:
+        SUBSCRIBE: localhost:1234
+        DELETE_SUBSCRIPTION: localhost:1234
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: 5d68a9c8-7c42-4f4f-a9e9-4e5986816b26
+      requestorRef: ENTUR_DEV
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: entur
+      filterPresets:
+      idMappingPrefixes: GCO
+      active: true
+      validation: true
+    -
+      internalId: 80
+      vendor: griegConnectVM
+      name: GriegConnect - dummy VM
+      datasetId: GCO
+      serviceType: REST
+      subscriptionType: VEHICLE_MONITORING
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds:  600000
+      previewIntervalSeconds: 36000
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      changeBeforeUpdatesSeconds: 10
+      incrementalUpdates: true
+      urlMap:
+        SUBSCRIBE: localhost:1234
+        DELETE_SUBSCRIPTION: localhost:1234
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: 60aa64d6-d4a2-45bb-879d-e03fe1820e45
+      requestorRef: ENTUR_DEV
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: entur
+      filterPresets:
+      idMappingPrefixes: GCO
+      active: true
+      validation: true
+    -
+      internalId: 81
+      vendor: griegConnectSX
+      name: GriegConnect - dummy SX
+      datasetId: GCO
+      serviceType: REST
+      subscriptionType: SITUATION_EXCHANGE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds:  600000
+      previewIntervalSeconds: 36000
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      changeBeforeUpdatesSeconds: 10
+      incrementalUpdates: true
+      urlMap:
+        SUBSCRIBE: localhost:1234
+        DELETE_SUBSCRIPTION: localhost:1234
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: d0b59ffe-bf74-49ef-886f-44b24a6f0318
+      requestorRef: ENTUR_DEV
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: entur
+      filterPresets:
+      idMappingPrefixes: GCO
+      active: true
+      validation: true
+    -
+      internalId: 82
+      vendor: atbEt-prod-2stage
+      name: ATB - ET - atb.fara.no (for staging)
+      datasetId: ATB2
+      serviceType: SOAP
+      subscriptionType: ESTIMATED_TIMETABLE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 120
+      previewIntervalSeconds: 10800
+      operatorNamespace: http://wsdl.siri.org.uk
+      addressFieldName: ConsumerAddress
+      soapenvNamespace: http://schemas.xmlsoap.org/soap/envelope/
+      changeBeforeUpdatesSeconds: 10
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: atb.fara.no:8000/SIRI/
+        DELETE_SUBSCRIPTION: atb.fara.no:8000/SIRI/
+        CHECK_STATUS: atb.fara.no:8000/SIRI/
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: 115b5ae8-684d-4fb2-9171-d7e68a04a838
+      requestorRef: ENTUR_DEV_ET
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: nsr
+      filterPresets:
+      idMappingPrefixes: ATB
+      active: false
+      validation: true

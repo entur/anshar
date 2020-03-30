@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "app.name" . }}-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+  {{- include "common.labels" . | indent 4 }}
+data:
+    application.properties: |-
+      server.port={{ .Values.service.http.internalPort }}
+
+      spring.profiles.active={{ .Values.configMap.springProfile }}
+      spring.activemq.pooled=true
+      spring.activemq.broker-url=tcp://activemq.default:61616?wireFormat.maxInactivityDuration=120000
+      spring.activemq.user=admin
+      spring.cloud.gcp.project-id={{.Values.configMap.projectId}}
+      spring.cloud.gcp.pubsub.project-id={{ .Values.configMap.projectId }}
+      spring.cloud.gcp.pubsub.credentials.location=file://{{ .Values.secretMount.mountPath }}
+
+      rutebanken.hazelcast.management.url=http://anshar-hzmgmt/hazelcast-mancenter/
+
+      blobstore.gcs.project.id={{ .Values.configMap.projectId }}
+      blobstore.gcs.container.name={{ .Values.configMap.gcsBucketName }}
+      blobstore.gcs.credential.path={{ .Values.secretMount.mountPath }}
+
+      anshar.environment={{ .Values.configMap.ansharEnvironment }}
+      anshar.export.snapshot.cron.expression=0 0/10 0/1 ? * * *
+      anshar.export.snapshot.interval.minutes=10
+      anshar.export.snapshot.tmpFolder=/deployments/export
+      anshar.incoming.logdirectory=/deployments/incoming
+      anshar.incoming.port={{ .Values.service.http.internalPort }}
+      anshar.incoming.activemq.concurrentConsumers=10
+      anshar.inbound.url={{ .Values.configMap.ansharInboundUrl }}
+      anshar.outbound.polling.tracking.period.minutes=5
+      anshar.outbound.camel.route.topic.et.name=entur-google-pubsub://protobuf.estimated_timetables
+      anshar.outbound.pubsub.topic.enabled=true
+      anshar.mqtt.enabled=true
+      anshar.mqtt.host=tcp://vernemq.default:1883
+
+      anshar.default.max.elements.per.delivery=1000
+      anshar.validation.enabled=false
+      anshar.validation.data.persist.hours=240
+      anshar.tracking.data.buffer.commit.frequency.seconds=15
+      anshar.message.queue.camel.route.prefix=entur-google-pubsub://
+      anshar.bigdata.siri.et.export.camel.url=http4://big-daddy.default/siri/et
+

@@ -1,0 +1,19 @@
+env: dev
+
+replicas: 3
+
+resources:
+  cpuLimit: '6'
+  memLimit: 15000Mi
+  cpuRequest: '4'
+  memRequest: 13000Mi
+  xmx: 12G
+
+subscriptions: subscriptions-dev.yml
+
+configMap:
+  projectId: carbon-1287
+  gcsBucketName: anshar-dev
+  ansharInboundUrl: https://api.dev.entur.io/realtime/v1/
+  ansharEnvironment: test
+  springProfile: in-memory-blobstore

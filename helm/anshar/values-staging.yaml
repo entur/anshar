@@ -1,0 +1,21 @@
+env: staging
+
+replicas: 3
+
+resources:
+  cpuLimit: '6'
+  memLimit: 14000Mi
+  cpuRequest: '3'
+  memRequest: 13000Mi
+  xmx: 12000m
+
+subscriptions: subscriptions-staging.yml
+
+configMap:
+  projectId: radon-1287
+  gcsBucketName: anshar-stage
+  ansharInboundUrl: https://api.staging.entur.io/realtime/v1/
+  ansharEnvironment: stage
+  springProfile: in-memory-blobstore
+
+

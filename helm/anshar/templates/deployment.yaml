@@ -1,0 +1,108 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "app.name" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "common.labels" . | indent 4 }}
+spec:
+  progressDeadlineSeconds: 600
+  replicas: {{ .Values.replicas }}
+  selector:
+    matchLabels:
+      app: {{ template "app.name" . }}
+  strategy:
+    rollingUpdate:
+      maxSurge: {{ .Values.rollingUpdate.maxSurge }}
+      maxUnavailable: {{ .Values.rollingUpdate.maxUnavailable }}
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        prometheus.io/path: /scrape
+        prometheus.io/port: {{ .Values.service.http.internalPort }}
+        prometheus.io/scrape: 'true'
+      labels:
+        {{- include "common.labels" . | indent 8 }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: {{ .Values.image.identifier }}
+          imagePullPolicy: {{ .Values.image.imagePullPolicy }}
+          env:
+            - name: JAVA_OPTIONS
+                value: -server -Xmx{{ .Values.resources.xmx }} -XX:+UseParallelGC -XX:ParallelGCThreads=2 -Dspring.config.additional-location=/etc/application-config/application.properties
+                  -Dfile.encoding=UTF-8
+            - name: TZ
+              value: Europe/Oslo
+            - name: ANSHAR_MQTT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: anshar-mqtt-password
+                  name: platform-passwords
+          resources:
+            limits:
+              cpu: {{ .Values.resources.cpuLimit }}
+              memory: {{ .Values.resources.memLimit }}
+            requests:
+              cpu: {{ .Values.resources.cpuRequest }}
+              memory: {{ .Values.resources.memRequest }}
+          volumeMounts:
+            - name: {{ .Values.secretMount.name }}
+              mountPath: {{ .Values.secretMount.mountPath }}
+              subPath: {{ .Values.secretMount.subPath }}
+              readOnly: {{ .Values.secretMount.readOnly }}
+            - mountPath: /etc/application-config
+              name: application-config
+              readOnly: true
+            - mountPath: /etc/anshar-config/
+              name: subscription-config
+              readOnly: true
+          ports:
+            - containerPort: {{ .Values.service.http.internalPort }}
+              name: http
+              protocol: TCP
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /up
+              port: {{ .Values.service.http.internalPort }}
+              scheme: HTTP
+            initialDelaySeconds: 120
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 15
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /ready
+              port: {{ .Values.service.http.internalPort }}
+              scheme: HTTP
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      hostAliases:
+      - hostnames:
+        - status-siri.nsb.no
+        - status-siri-test.nsb.no
+        ip: 138.62.101.29
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      volumes:
+        - name: {{ .Values.secretMount.name }}
+          secret:
+            secretName: {{ .Values.secretMount.secretName }}
+        - name: application-config
+          configMap:
+            name: {{ .Values.configMapMount.name }}
+            defaultMode: 420
+        - name: subscription-config
+          configMap:
+            name: {{ .Values.configMapMount.subscriptionName }}
+            defaultMode: 420
