@@ -24,7 +24,7 @@ anshar:
       mappingAdapterId: kolumbus
       filterPresets:
       idMappingPrefixes: KOL
-      active: false
+      active: true
     -
       internalId: 2
       vendor: kolumbusvm
@@ -48,7 +48,7 @@ anshar:
       mappingAdapterId: kolumbus
       filterPresets:
       idMappingPrefixes: KOL
-      active: false
+      active: true
     -
       internalId: 3
       vendor: atbsx
@@ -362,7 +362,7 @@ anshar:
       mappingAdapterId: banenoret
       filterPresets:
       idMappingPrefixes: NSB,FLT
-      active: false
+      active: true
       validation: true
     -
       internalId: 15
@@ -389,7 +389,7 @@ anshar:
       mappingAdapterId: banenoret
       filterPresets:
       idMappingPrefixes: NSB,FLT
-      active: false
+      active: true
       validation: true
     -
       internalId: 16
@@ -444,7 +444,7 @@ anshar:
       mappingAdapterId: nsbsx
       filterPresets:
       idMappingPrefixes: NSB
-      active: false
+      active: true
     -
       internalId: 19
       vendor: nsbSx-prod
@@ -553,7 +553,7 @@ anshar:
       mappingAdapterId: nsr
       filterPresets:
       idMappingPrefixes: MOR
-      active: false
+      active: true
     -
       internalId: 23
       vendor: mrvm
@@ -611,7 +611,7 @@ anshar:
       mappingAdapterId: nsr
       filterPresets:
       idMappingPrefixes: MOR
-      active: false
+      active: true
     -
       internalId: 25
       vendor: ostEt-test
@@ -639,7 +639,7 @@ anshar:
       mappingAdapterId: ostfoldet
       filterPresets:
       idMappingPrefixes: OST
-      active: false
+      active: true
     -
       internalId: 26
       vendor: ostEt
@@ -695,7 +695,7 @@ anshar:
       mappingAdapterId: ostfoldvm
       filterPresets:
       idMappingPrefixes: OST
-      active: false
+      active: true
     -
       internalId: 28
       vendor: ostSx
@@ -1027,7 +1027,7 @@ anshar:
       mappingAdapterId: entur
       filterPresets:
       idMappingPrefixes:
-      active: false
+      active: true
       dataNotReceivedAction:
         enabled: false
         inactivityMinutes: 5
@@ -1059,7 +1059,7 @@ anshar:
       filterPresets:
       idMappingPrefixes:
       validation: true
-      active: false
+      active: true
     -
       internalId: 44
       vendor: ruter-vm
@@ -1087,7 +1087,7 @@ anshar:
       filterPresets:
       idMappingPrefixes: RUT
       validation: true
-      active: false
+      active: true
     -
       internalId: 45
       vendor: ruter-sx
@@ -1115,7 +1115,7 @@ anshar:
       filterPresets:
       idMappingPrefixes:
       validation: true
-      active: false
+      active: true
     -
       internalId: 46
       vendor: dummySx
@@ -1142,7 +1142,7 @@ anshar:
       mappingAdapterId: ruter
       filterPresets:
       idMappingPrefixes: RUT
-      active: false
+      active: true
       validation: true
     -
       internalId: 47
@@ -1170,7 +1170,7 @@ anshar:
       filterPresets:
       idMappingPrefixes:
       validation: true
-      active: false
+      active: true
     -
       internalId: 48
       vendor: nordlandet
@@ -1197,7 +1197,7 @@ anshar:
       mappingAdapterId: nordland
       filterPresets:
       idMappingPrefixes: NOR
-      active: false
+      active: true
       validation: true
     -
       internalId: 49
@@ -1224,7 +1224,7 @@ anshar:
       mappingAdapterId: nordland
       filterPresets:
       idMappingPrefixes: NOR
-      active: false
+      active: true
       validation: true
     -
       internalId: 51
@@ -1251,7 +1251,7 @@ anshar:
       mappingAdapterId: entur
       filterPresets:
       idMappingPrefixes: RUT
-      active: false
+      active: true
       validation: true
     -
       internalId: 52
@@ -1278,7 +1278,7 @@ anshar:
       mappingAdapterId: entur
       filterPresets:
       idMappingPrefixes: RUT
-      active: false
+      active: true
       validation: true
     -
       internalId: 53
@@ -1306,7 +1306,7 @@ anshar:
       filterPresets:
       idMappingPrefixes:
       validation: true
-      active: false
+      active: true
     -
       internalId: 54
       vendor: nsb-tiltak-et
@@ -1333,7 +1333,7 @@ anshar:
       mappingAdapterId: nsb
       filterPresets:
       idMappingPrefixes: NSB
-      active: false
+      active: true
       validation: true
     -
       internalId: 55
@@ -1362,7 +1362,7 @@ anshar:
       mappingAdapterId: ostfoldet
       filterPresets:
       idMappingPrefixes: HED
-      active: false
+      active: true
       validation: true
     -
       internalId: 56
@@ -1391,7 +1391,7 @@ anshar:
       mappingAdapterId: ostfoldvm
       filterPresets:
       idMappingPrefixes: HED
-      active: false
+      active: true
       validation: true
     -
       internalId: 57
@@ -1419,7 +1419,7 @@ anshar:
       mappingAdapterId: ostfoldsx
       filterPresets:
       idMappingPrefixes: HED
-      active: false
+      active: true
       validation: true
     -
       internalId: 58
@@ -1448,7 +1448,7 @@ anshar:
       mappingAdapterId: ostfoldet
       filterPresets: VKT
       idMappingPrefixes: VKT
-      active: false
+      active: true
       validation: true
     -
       internalId: 59
@@ -1477,7 +1477,7 @@ anshar:
       mappingAdapterId: ostfoldvm
       filterPresets: VKT
       idMappingPrefixes: VKT
-      active: false
+      active: true
       validation: true
     -
       internalId: 61
@@ -1504,7 +1504,7 @@ anshar:
       mappingAdapterId: entur
       filterPresets:
       idMappingPrefixes: ENT
-      active: false
+      active: true
       validation: true
     -
       internalId: 62
@@ -1533,7 +1533,7 @@ anshar:
       mappingAdapterId: entur
       filterPresets:
       idMappingPrefixes: GOA
-      active: false
+      active: true
       validation: true
     -
       internalId: 63
@@ -1561,7 +1561,7 @@ anshar:
       filterPresets:
       idMappingPrefixes:
       validation: true
-      active: false
+      active: true
     -
       internalId: 65
       vendor: goaSx-dev
@@ -1588,7 +1588,7 @@ anshar:
       mappingAdapterId: entur
       filterPresets:
       idMappingPrefixes: GOA
-      active: false
+      active: true
       validation: true
     -
       internalId: 66
@@ -1616,7 +1616,7 @@ anshar:
       mappingAdapterId: nsb
       filterPresets:
       idMappingPrefixes: NSB
-      active: false
+      active: true
       validation: true
     -
       internalId: 67
@@ -1645,7 +1645,7 @@ anshar:
       mappingAdapterId: entur
       filterPresets:
       idMappingPrefixes:
-      active: false
+      active: true
       validation: true
     -
       internalId: 68
@@ -1672,7 +1672,7 @@ anshar:
       mappingAdapterId: nsr
       filterPresets:
       idMappingPrefixes: TRO
-      active: false
+      active: true
       validation: true
     -
       internalId: 69
@@ -1701,7 +1701,7 @@ anshar:
       mappingAdapterId: ostfoldet
       filterPresets: TEL
       idMappingPrefixes: TEL
-      active: false
+      active: true
       validation: true
     -
       internalId: 70
@@ -1730,7 +1730,7 @@ anshar:
       mappingAdapterId: ostfoldvm
       filterPresets: TEL
       idMappingPrefixes: TEL
-      active: false
+      active: true
       validation: true
     -
       internalId: 71
@@ -1759,7 +1759,7 @@ anshar:
       mappingAdapterId: entur
       filterPresets:
       idMappingPrefixes: VYB
-      active: false
+      active: true
       validation: true
     -
       internalId: 72
@@ -1788,7 +1788,7 @@ anshar:
       mappingAdapterId: entur
       filterPresets:
       idMappingPrefixes: VYB
-      active: false
+      active: true
       validation: true
     -
       internalId: 73
@@ -1817,7 +1817,7 @@ anshar:
       mappingAdapterId: nsr
       filterPresets: ATB
       idMappingPrefixes: ATB
-      active: false
+      active: true
       validation: true
     -
       internalId: 74
@@ -1846,7 +1846,7 @@ anshar:
       mappingAdapterId: nsr
       filterPresets: ATB
       idMappingPrefixes: ATB
-      active: false
+      active: true
       validation: true
     -
       internalId: 75
@@ -1875,7 +1875,7 @@ anshar:
       mappingAdapterId: nsr
       filterPresets: ATB
       idMappingPrefixes: ATB
-      active: false
+      active: true
       validation: true
     -
       internalId: 76
@@ -1990,7 +1990,7 @@ anshar:
       mappingAdapterId: entur
       filterPresets:
       idMappingPrefixes: GCO
-      active: false
+      active: true
       validation: true
     -
       internalId: 80
@@ -2018,7 +2018,7 @@ anshar:
       mappingAdapterId: entur
       filterPresets:
       idMappingPrefixes: GCO
-      active: false
+      active: true
       validation: true
     -
       internalId: 81
@@ -2046,7 +2046,7 @@ anshar:
       mappingAdapterId: entur
       filterPresets:
       idMappingPrefixes: GCO
-      active: false
+      active: true
       validation: true
     -
       internalId: 83
