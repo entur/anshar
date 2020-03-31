@@ -30,4 +30,34 @@ spec:
         - backend:
             serviceName: {{ template "app.name" . }}
             servicePort: {{ .Values.service.http.externalPort }}
-  {{- end }}
+---
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  labels:
+    {{- include "common.labels" . | indent 4 }}
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    {{- if eq .Values.env "production"}}
+    external-dns.alpha.kubernetes.io/target: {{ .Values.ingress.productionIp }}
+    {{ else if eq .Values.env "staging"}}
+    external-dns.alpha.kubernetes.io/target: {{ .Values.ingress.stagingIp }}
+    {{ else if eq .Values.env "dev"}}
+    external-dns.alpha.kubernetes.io/target: {{ .Values.ingress.devIp }}
+    {{- end}}
+  name: realtime-v1
+  namespace: {{ .Release.Namespace }}
+spec:
+  rules:
+  {{- if eq .Values.env "production"}}
+  - host: realtime-v1-{{ .Release.Namespace }}.entur.io
+  {{ else }}
+  - host: realtime-v1-{{ .Release.Namespace }}.{{ .Release.Namespace }}.entur.io
+  {{- end}}
+  http:
+    paths:
+      - backend:
+          serviceName: {{ template "app.name" . }}
+          servicePort: {{ .Values.service.http.externalPort }}
+
+{{- end }}
