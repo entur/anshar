@@ -16,7 +16,7 @@ metadata:
     ingress.kubernetes.io/auth-secret: anshar-basic-auth
     ingress.kubernetes.io/auth-type: basic
     ingress.kubernetes.io/frame-deny: "true"
-  name: sanntid
+  name: anshar
   namespace: {{ .Release.Namespace }}
 spec:
   rules:
