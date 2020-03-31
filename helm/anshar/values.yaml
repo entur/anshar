@@ -31,7 +31,7 @@ service:
     internalPort: 8776
 
 ingress:
-    enabled: true
-    devIp: 35.195.223.29
-    stagingIp: 35.195.146.93
-    productionIp: 35.187.15.14
+  enabled: true
+  devIp: 35.189.192.172
+  stagingIp: 35.240.29.194
+  productionIp: 192.158.29.145
