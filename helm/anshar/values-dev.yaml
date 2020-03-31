@@ -16,7 +16,7 @@ configMap:
   gcsBucketName: anshar-dev
   ansharInboundUrl: https://api.dev.entur.io/realtime/v1/
   ansharEnvironment: test
-  springProfile: in-memory-blobstore
+  springProfile: gcs-blobstore
 
 hpa:
   maxReplicas: 12

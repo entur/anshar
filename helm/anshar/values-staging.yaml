@@ -16,7 +16,7 @@ configMap:
   gcsBucketName: anshar-stage
   ansharInboundUrl: https://api.staging.entur.io/realtime/v1/
   ansharEnvironment: stage
-  springProfile: in-memory-blobstore
+  springProfile: gcs-blobstore
 
 hpa:
   maxReplicas: 8
