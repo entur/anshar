@@ -17,3 +17,8 @@ configMap:
   ansharInboundUrl: https://api.dev.entur.io/realtime/v1/
   ansharEnvironment: test
   springProfile: in-memory-blobstore
+
+hpa:
+  maxReplicas: 12
+  minReplicas: 3
+  targetCPUUtilizationPercentage: 80

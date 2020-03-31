@@ -17,3 +17,8 @@ configMap:
   ansharInboundUrl: https://api.entur.io/realtime/v1/
   ansharEnvironment: prod
   springProfile: gcs-blobstore
+
+hpa:
+  maxReplicas: 12
+  minReplicas: 6
+  targetCPUUtilizationPercentage: 80
