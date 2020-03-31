@@ -18,6 +18,7 @@ data:
       spring.cloud.gcp.pubsub.credentials.location=file://{{ .Values.secretMount.mountPath }}
 
       rutebanken.hazelcast.management.url=http://anshar-hzmgmt/hazelcast-mancenter/
+      rutebanken.kubernetes.namespace={{ .Release.Namespace }}
 
       blobstore.gcs.project.id={{ .Values.configMap.projectId }}
       blobstore.gcs.container.name={{ .Values.configMap.gcsBucketName }}
