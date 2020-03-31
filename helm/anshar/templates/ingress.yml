@@ -25,9 +25,9 @@ spec:
   {{ else }}
   - host: sanntid.{{ .Release.Namespace }}.entur.org
   {{- end}}
-  http:
-    paths:
-      - backend:
-          serviceName: {{ template "app.name" . }}
-          servicePort: {{ .Values.service.http.externalPort }}
+    http:
+      paths:
+        - backend:
+            serviceName: {{ template "app.name" . }}
+            servicePort: {{ .Values.service.http.externalPort }}
   {{- end }}
