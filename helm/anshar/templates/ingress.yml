@@ -27,7 +27,8 @@ spec:
   {{- end}}
     http:
       paths:
-        - backend:
+        - path: /anshar/stats
+          backend:
             serviceName: {{ template "app.name" . }}
             servicePort: {{ .Values.service.http.externalPort }}
   {{- end }}
