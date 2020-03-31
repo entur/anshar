@@ -54,10 +54,10 @@ spec:
   {{ else }}
   - host: realtime-v1-{{ .Release.Namespace }}.{{ .Release.Namespace }}.entur.io
   {{- end}}
-  http:
-    paths:
-      - backend:
-          serviceName: {{ template "app.name" . }}
-          servicePort: {{ .Values.service.http.externalPort }}
+    http:
+      paths:
+        - backend:
+            serviceName: {{ template "app.name" . }}
+            servicePort: {{ .Values.service.http.externalPort }}
 
 {{- end }}
