@@ -36,7 +36,7 @@ public class AnsharConfiguration {
     @Value("${anshar.incoming.port}")
     private String inboundPort;
 
-    @Value("${anshar.incoming.activemq.concurrentConsumers}")
+    @Value("${anshar.incoming.concurrentConsumers}")
     private long concurrentConsumers;
 
     @Value("${anshar.incoming.logdirectory}")

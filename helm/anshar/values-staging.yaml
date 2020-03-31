@@ -17,6 +17,9 @@ configMap:
   ansharInboundUrl: https://api.staging.entur.io/realtime/v1/
   ansharEnvironment: stage
   springProfile: gcs-blobstore
+  concurrentPubsubConsumers: 1500
+  validationCount: 20
+  validationSize: 4
 
 hpa:
   maxReplicas: 8
