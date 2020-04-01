@@ -32,6 +32,11 @@ import javax.ws.rs.core.MediaType;
 @Configuration
 public class AdministrationRoute extends RestRouteBuilder {
 
+    private static final String STATS_ROUTE = "direct:stats";
+    private static final String OPERATION_ROUTE = "direct:operation";
+    private static final String CLUSTERSTATS_ROUTE = "direct:clusterstats";
+    private static final String UNMAPPED_ROUTE = "direct:unmapped";
+
     @Autowired
     private ExtendedHazelcastService extendedHazelcastService;
 
@@ -51,16 +56,21 @@ public class AdministrationRoute extends RestRouteBuilder {
     public void configure() throws Exception {
         super.configure();
 
+
+        rest("/").tag("internal.admin.root")
+                .get("").produces(MediaType.TEXT_HTML).to(STATS_ROUTE)
+                .put("").to(OPERATION_ROUTE);
+
         rest("/anshar").tag("internal.admin")
-                .get("/stats").produces(MediaType.TEXT_HTML).to("direct:stats")
-                .put("/stats").to("direct:operation")
-                .get("/clusterstats").produces(MediaType.APPLICATION_JSON).to("direct:clusterstats")
-                .get("/unmapped").produces(MediaType.TEXT_HTML).to("direct:unmapped")
-                .get("/unmapped/{datasetId}").produces(MediaType.TEXT_HTML).to("direct:unmapped")
+                .get("/stats").produces(MediaType.TEXT_HTML).to(STATS_ROUTE)
+                .put("/stats").to(OPERATION_ROUTE)
+                .get("/clusterstats").produces(MediaType.APPLICATION_JSON).to(CLUSTERSTATS_ROUTE)
+                .get("/unmapped").produces(MediaType.TEXT_HTML).to(UNMAPPED_ROUTE)
+                .get("/unmapped/{datasetId}").produces(MediaType.TEXT_HTML).to(UNMAPPED_ROUTE)
         ;
 
         //Return subscription status
-        from("direct:stats")
+        from(STATS_ROUTE)
                 .process(p -> {
                     JSONObject stats = subscriptionManager.buildStats();
 
@@ -74,7 +84,7 @@ public class AdministrationRoute extends RestRouteBuilder {
         final String operationHeaderName = "operation";
 
         //Stop subscription
-        from("direct:operation")
+        from(OPERATION_ROUTE)
              .choice()
                 .when(header(operationHeaderName).isEqualTo("stop"))
                     .to("direct:stop")
@@ -134,13 +144,13 @@ public class AdministrationRoute extends RestRouteBuilder {
         ;
 
         //Return cluster status
-        from("direct:clusterstats")
+        from(CLUSTERSTATS_ROUTE)
                 .bean(extendedHazelcastService, "listNodes(${header.stats})")
                 .routeId("admin.clusterstats")
         ;
 
         //Return unmapped ids
-        from("direct:unmapped")
+        from(UNMAPPED_ROUTE)
                 .filter(header("datasetId").isNotNull())
                 .bean(healthManager, "getUnmappedIdsAsJson(${header.datasetId})")
                 .to("freemarker:templates/unmapped.ftl")
