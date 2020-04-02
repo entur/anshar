@@ -35,7 +35,7 @@ data:
       anshar.outbound.camel.route.topic.et.name=entur-google-pubsub://protobuf.estimated_timetables
 
       anshar.mqtt.enabled=true
-      anshar.mqtt.host=tcp://vernemq.default:1883
+      anshar.mqtt.host=tcp://mqtt.default:1883
 
       anshar.default.max.elements.per.delivery=1000
       anshar.tracking.data.buffer.commit.frequency.seconds=15
