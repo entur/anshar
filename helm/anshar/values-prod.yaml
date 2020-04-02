@@ -20,6 +20,8 @@ configMap:
   concurrentPubsubConsumers: 1500
   validationCount: 20
   validationSize: 4
+  mqttEnabled: true
+
 hpa:
   maxReplicas: 12
   minReplicas: 6

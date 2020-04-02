@@ -34,7 +34,7 @@ data:
       anshar.outbound.pubsub.topic.enabled=true
       anshar.outbound.camel.route.topic.et.name=entur-google-pubsub://protobuf.estimated_timetables
 
-      anshar.mqtt.enabled=true
+      anshar.mqtt.enabled={{ .Values.configMap.mqttEnabled }}
       anshar.mqtt.host=tcp://mqtt.default:1883
 
       anshar.default.max.elements.per.delivery=1000
