@@ -23,7 +23,7 @@ public abstract class ValueAdapter implements Serializable {
 
     private Class clazz;
 
-    private PrometheusMetricsService metricsService;
+    private transient PrometheusMetricsService metricsService;
 
     protected ValueAdapter(Class clazz) {
         this.clazz = clazz;
