@@ -48,9 +48,12 @@ public class OstfoldIdPlatformPostProcessor extends ValueAdapter implements Post
     private boolean listUpdated;
     private final StopPlaceRegisterMapper stopPlaceRegisterMapper;
 
+    private final String datasetId;
+
     public OstfoldIdPlatformPostProcessor(SubscriptionSetup subscriptionSetup) {
+        datasetId = subscriptionSetup.getDatasetId();
         stopPlaceRegisterMapper = new StopPlaceRegisterMapper(subscriptionSetup.getSubscriptionType(),
-                subscriptionSetup.getDatasetId(), StopPointRef.class, subscriptionSetup.getIdMappingPrefixes());
+                datasetId, StopPointRef.class, subscriptionSetup.getIdMappingPrefixes());
     }
 
     private String getNsrId(String stopPointRef, String platform) {

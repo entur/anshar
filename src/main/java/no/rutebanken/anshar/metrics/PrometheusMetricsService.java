@@ -49,20 +49,25 @@ import java.util.Map;
 public class PrometheusMetricsService extends PrometheusMeterRegistry {
     private static final Logger logger = LoggerFactory.getLogger(PrometheusMetricsService.class);
 
-    private final String METRICS_PREFIX = "app.anshar.";
 
     @Autowired
     protected SubscriptionManager manager;
 
-    private final String DATA_COUNTER_NAME = METRICS_PREFIX + "data";
-    private final String DATA_TOTAL_COUNTER_NAME = METRICS_PREFIX + "data.total";
-    private final String DATA_SUCCESS_COUNTER_NAME = METRICS_PREFIX + "data.success";
-    private final String DATA_EXPIRED_COUNTER_NAME = METRICS_PREFIX + "data.expired";
-    private final String DATA_IGNORED_COUNTER_NAME = METRICS_PREFIX + "data.ignored";
-    private final String DATA_OUTBOUND_COUNTER_NAME = METRICS_PREFIX + "data.outbound";
+    private static PrometheusMetricsService INSTANCE;
+
+    private static final String METRICS_PREFIX = "app.anshar.";
+    private static final String DATA_COUNTER_NAME = METRICS_PREFIX + "data";
+    private static final String DATA_TOTAL_COUNTER_NAME = METRICS_PREFIX + "data.total";
+    private static final String DATA_SUCCESS_COUNTER_NAME = METRICS_PREFIX + "data.success";
+    private static final String DATA_EXPIRED_COUNTER_NAME = METRICS_PREFIX + "data.expired";
+    private static final String DATA_IGNORED_COUNTER_NAME = METRICS_PREFIX + "data.ignored";
+    private static final String DATA_OUTBOUND_COUNTER_NAME = METRICS_PREFIX + "data.outbound";
+
+    private static final String DATA_MAPPING_COUNTER_NAME = METRICS_PREFIX + "data.mapping";
 
     public PrometheusMetricsService() {
         super(PrometheusConfig.DEFAULT);
+        INSTANCE = this;
     }
 
     @PreDestroy
@@ -80,6 +85,15 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
         counter(DATA_SUCCESS_COUNTER_NAME, counterTags).increment(updated);
         counter(DATA_EXPIRED_COUNTER_NAME, counterTags).increment(expired);
         counter(DATA_IGNORED_COUNTER_NAME, counterTags).increment(ignored);
+    }
+
+    public void registerDataMapping(String agencyId, String mappingName, int mappedCount) {
+
+        List<Tag> counterTags = new ArrayList<>();
+        counterTags.add(new ImmutableTag("agency", agencyId));
+        counterTags.add(new ImmutableTag("mappingName", mappingName));
+
+        INSTANCE.counter(DATA_MAPPING_COUNTER_NAME, counterTags).increment(mappedCount);
     }
 
     public void countOutgoingData(Siri siri, SubscriptionSetup.SubscriptionMode mode) {

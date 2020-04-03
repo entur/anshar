@@ -53,22 +53,22 @@ public class BaneNorEtValueAdapters extends MappingAdapter {
         List<String> operatorsToIgnore = Collections.emptyList();
         valueAdapters.add(new OperatorFilterPostProcessor(operatorsToIgnore, operatorOverrideMapping));
 
-        valueAdapters.add(new BaneNorRemoveFreightTrainPostProcessor());
+        valueAdapters.add(new BaneNorRemoveFreightTrainPostProcessor(subscriptionSetup.getDatasetId()));
 
         /*
          Need to remove already expired VehicleJourneys before matching with NeTEx routedata since vehicleRef-
          values (privateCode/trainNumber) are reused for each departure-date.
          */
-        valueAdapters.add(new BaneNorRemoveExpiredJourneysPostProcessor());
+        valueAdapters.add(new BaneNorRemoveExpiredJourneysPostProcessor(subscriptionSetup.getDatasetId()));
 
         // Rewrites stop-pattern based on plan-data from NSB which not always matches
-        valueAdapters.add(new BaneNorSiriEtRewriter());
+        valueAdapters.add(new BaneNorSiriEtRewriter(subscriptionSetup.getDatasetId()));
 
         //Populates EstimatedCalls with StopAssignments to indicate platform-changes
-        valueAdapters.add(new BaneNorSiriStopAssignmentPopulater());
+        valueAdapters.add(new BaneNorSiriStopAssignmentPopulater(subscriptionSetup.getDatasetId()));
 
         //Ensures that arrival-/departure-times are always increasing
-        valueAdapters.add(new EnsureIncreasingTimesProcessor());
+        valueAdapters.add(new EnsureIncreasingTimesProcessor(subscriptionSetup.getDatasetId()));
 
         return valueAdapters;
     }

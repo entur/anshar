@@ -102,6 +102,7 @@ public class BaneNorIdPlatformPostProcessor extends ValueAdapter implements Post
                                         String updatedStopPointRef = getNsrId(stopPointRefValue, et.getArrivalPlatformName(), et.getDeparturePlatformName());
                                         if (updatedStopPointRef != null) {
                                             et.getStopPointRef().setValue(updatedStopPointRef);
+                                            getMetricsService().registerDataMapping(datasetId, this.getClass().getSimpleName(), 1);
                                         }
                                     }
                                 }
@@ -114,6 +115,7 @@ public class BaneNorIdPlatformPostProcessor extends ValueAdapter implements Post
                                         String updatedStopPointRef = getNsrId(stopPointRefValue, rc.getArrivalPlatformName(), rc.getDeparturePlatformName());
                                         if (updatedStopPointRef != null) {
                                             rc.getStopPointRef().setValue(updatedStopPointRef);
+                                            getMetricsService().registerDataMapping(datasetId, this.getClass().getSimpleName(), 1);
                                         }
                                     }
                                 }

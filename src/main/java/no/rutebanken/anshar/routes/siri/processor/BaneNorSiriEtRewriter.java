@@ -70,6 +70,11 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
                                                                         "CG",   // Charlottenberg
                                                                         "STR",  // Storlien
                                                                         "ØXN"); // Øxnered
+    private String datasetId;
+
+    public BaneNorSiriEtRewriter(String datasetId) {
+        this.datasetId = datasetId;
+    }
 
     @Override
     protected String apply(String value) {
@@ -126,8 +131,10 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
 
                                     if (foundMatch) {
                                         restructuredJourneyList.put(etTrainNumber, reStructureEstimatedJourney(estimatedVehicleJourney, etTrainNumber));
+                                        getMetricsService().registerDataMapping(datasetId, this.getClass().getSimpleName(), 1);
                                     } else {
                                         logger.warn("Ignoring realtime-data for departure not found in NeTEx for given day - train number {}, {}", etTrainNumber, serviceDate);
+                                        getMetricsService().registerDataMapping(datasetId, "UnknownTrainDeparture", 1);
                                     }
 
                                 }  else if (etTrainNumber.length() == 5 && (etTrainNumber.startsWith("905") || etTrainNumber.startsWith("908"))) {

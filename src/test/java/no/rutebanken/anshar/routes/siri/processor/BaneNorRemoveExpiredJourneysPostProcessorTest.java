@@ -31,7 +31,7 @@ import static junit.framework.TestCase.assertEquals;
 public class BaneNorRemoveExpiredJourneysPostProcessorTest {
     SiriObjectFactory  objFactory = new SiriObjectFactory(Instant.now());
 
-    BaneNorRemoveExpiredJourneysPostProcessor processor = new BaneNorRemoveExpiredJourneysPostProcessor();
+    BaneNorRemoveExpiredJourneysPostProcessor processor = new BaneNorRemoveExpiredJourneysPostProcessor("BNR");
 
     @Test
     public void testFutureJourneysAreNotRemoved() {

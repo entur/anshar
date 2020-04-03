@@ -48,6 +48,11 @@ import static no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapte
 public class BaneNorSiriStopAssignmentPopulater extends ValueAdapter implements PostProcessor {
 
     private static final Logger logger = LoggerFactory.getLogger(BaneNorSiriStopAssignmentPopulater.class);
+    private final String datasetId;
+
+    public BaneNorSiriStopAssignmentPopulater(String datasetId) {
+        this.datasetId = datasetId;
+    }
 
     @Override
     protected String apply(String value) {

@@ -15,11 +15,15 @@
 
 package no.rutebanken.anshar.routes.siri.transformer;
 
+import no.rutebanken.anshar.metrics.PrometheusMetricsService;
+
 import java.io.Serializable;
 
 public abstract class ValueAdapter implements Serializable {
 
     private Class clazz;
+
+    private PrometheusMetricsService metricsService;
 
     protected ValueAdapter(Class clazz) {
         this.clazz = clazz;
@@ -27,6 +31,13 @@ public abstract class ValueAdapter implements Serializable {
 
     protected ValueAdapter() {
         // Empty constructor
+    }
+
+    protected PrometheusMetricsService getMetricsService() {
+        if (metricsService == null) {
+            metricsService = ApplicationContextHolder.getContext().getBean(PrometheusMetricsService.class);
+        }
+        return metricsService;
     }
 
     public Class getClassToApply() {

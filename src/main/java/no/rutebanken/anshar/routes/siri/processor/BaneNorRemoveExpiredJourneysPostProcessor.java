@@ -38,6 +38,11 @@ public class BaneNorRemoveExpiredJourneysPostProcessor extends ValueAdapter impl
 
     // Indicates how long after latest arrival the data should be processed.
     private static final long FILTER_LIMIT_MINUTES = 10;
+    private String datasetId;
+
+    public BaneNorRemoveExpiredJourneysPostProcessor(String datasetId) {
+        this.datasetId = datasetId;
+    }
 
     @Override
     public void process(Siri siri) {
@@ -50,7 +55,9 @@ public class BaneNorRemoveExpiredJourneysPostProcessor extends ValueAdapter impl
                     int size = estimatedJourneyVersionFrame.getEstimatedVehicleJourneies().size();
                     estimatedJourneyVersionFrame.getEstimatedVehicleJourneies().removeIf(this::isExpired);
                     if (estimatedJourneyVersionFrame.getEstimatedVehicleJourneies().size() != size) {
-                        logger.info("Removed {} expired journeys", (size - estimatedJourneyVersionFrame.getEstimatedVehicleJourneies().size()));
+                        final int removedJourneys = size - estimatedJourneyVersionFrame.getEstimatedVehicleJourneies().size();
+                        logger.info("Removed {} expired journeys", removedJourneys);
+                        getMetricsService().registerDataMapping(datasetId, this.getClass().getSimpleName(), removedJourneys);
                     }
                 }
             }

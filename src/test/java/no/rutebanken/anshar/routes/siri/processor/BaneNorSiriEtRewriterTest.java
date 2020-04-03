@@ -14,7 +14,11 @@ import uk.org.siri.siri20.Siri;
 
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoField;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static junit.framework.TestCase.assertFalse;
@@ -30,7 +34,7 @@ public class BaneNorSiriEtRewriterTest {
 
     @Before
     public void init() {
-        rewriter = new BaneNorSiriEtRewriter();
+        rewriter = new BaneNorSiriEtRewriter("BNR");
     }
 
     @Ignore("Ignored because of excessive memory-usage which breaks CircleCI")

@@ -73,11 +73,11 @@ public class BaneNorSiriStopAssignmentPopulaterTest {
         BaneNorIdPlatformPostProcessor platformPostProcessor = new BaneNorIdPlatformPostProcessor(SiriDataType.ESTIMATED_TIMETABLE, "BNR");
         platformPostProcessor.process(siri);
 
-        BaneNorSiriEtRewriter siriEtRewriter = new BaneNorSiriEtRewriter();
+        BaneNorSiriEtRewriter siriEtRewriter = new BaneNorSiriEtRewriter("BNR");
         siriEtRewriter.process(siri);
 
 //        Siri siri = unmarshallSiriFile("src/test/resources/siriAfterBaneNorSiriEtRewriting.xml");
-        BaneNorSiriStopAssignmentPopulater populater = new BaneNorSiriStopAssignmentPopulater();
+        BaneNorSiriStopAssignmentPopulater populater = new BaneNorSiriStopAssignmentPopulater("BNR");
         populater.process(siri);
 
         //Checks resulting Siri for track-changes and cases where we can't populate stopAssignments

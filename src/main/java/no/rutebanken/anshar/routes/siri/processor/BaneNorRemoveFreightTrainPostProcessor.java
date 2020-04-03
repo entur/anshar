@@ -34,6 +34,11 @@ public class BaneNorRemoveFreightTrainPostProcessor extends ValueAdapter impleme
 
     // Indicates how long after latest arrival the data should be processed.
     private static final String FREIGHT_TRAIN_FEATURE_REF = "freightTrain";
+    private String datasetId;
+
+    public BaneNorRemoveFreightTrainPostProcessor(String datasetId) {
+        this.datasetId = datasetId;
+    }
 
     @Override
     public void process(Siri siri) {
@@ -46,7 +51,9 @@ public class BaneNorRemoveFreightTrainPostProcessor extends ValueAdapter impleme
                     int size = estimatedJourneyVersionFrame.getEstimatedVehicleJourneies().size();
                     estimatedJourneyVersionFrame.getEstimatedVehicleJourneies().removeIf(et -> isFreightTrain(et.getServiceFeatureReves()));
                     if (estimatedJourneyVersionFrame.getEstimatedVehicleJourneies().size() != size) {
-                        logger.info("Removed {} freight trains", (size - estimatedJourneyVersionFrame.getEstimatedVehicleJourneies().size()));
+                        final int removedFreightTrains = size - estimatedJourneyVersionFrame.getEstimatedVehicleJourneies().size();
+                        logger.info("Removed {} freight trains", removedFreightTrains);
+                        getMetricsService().registerDataMapping(datasetId, this.getClass().getSimpleName(), removedFreightTrains);
                     }
                 }
             }
