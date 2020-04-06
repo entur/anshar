@@ -28,6 +28,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import static no.rutebanken.anshar.data.EstimatedTimetables.getLatestArrivalTime;
+import static no.rutebanken.anshar.routes.siri.transformer.MappingNames.REMOVE_EXPIRED_JOURNEYS;
 
 /**
  * Remove expired VehicleJourneys to avoid conflict in vehicleRef per date.
@@ -57,7 +58,7 @@ public class BaneNorRemoveExpiredJourneysPostProcessor extends ValueAdapter impl
                     if (estimatedJourneyVersionFrame.getEstimatedVehicleJourneies().size() != size) {
                         final int removedJourneys = size - estimatedJourneyVersionFrame.getEstimatedVehicleJourneies().size();
                         logger.info("Removed {} expired journeys", removedJourneys);
-                        getMetricsService().registerDataMapping(datasetId, this.getClass().getSimpleName(), removedJourneys);
+                        getMetricsService().registerDataMapping(datasetId, REMOVE_EXPIRED_JOURNEYS, removedJourneys);
                     }
                 }
             }

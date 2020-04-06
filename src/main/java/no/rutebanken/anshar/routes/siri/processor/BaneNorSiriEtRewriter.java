@@ -47,6 +47,8 @@ import static no.rutebanken.anshar.routes.siri.processor.routedata.NetexUpdaterS
 import static no.rutebanken.anshar.routes.siri.processor.routedata.NetexUpdaterService.getStopTimes;
 import static no.rutebanken.anshar.routes.siri.processor.routedata.NetexUpdaterService.isKnownTrainNr;
 import static no.rutebanken.anshar.routes.siri.processor.routedata.NetexUpdaterService.isStopIdOrParentMatch;
+import static no.rutebanken.anshar.routes.siri.transformer.MappingNames.REMOVE_UNKNOWN_DEPARTURE;
+import static no.rutebanken.anshar.routes.siri.transformer.MappingNames.RESTRUCTURE_DEPARTURE;
 import static no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer.SEPARATOR;
 import static no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter.createCombinedId;
 import static no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter.getOriginalId;
@@ -131,10 +133,10 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
 
                                     if (foundMatch) {
                                         restructuredJourneyList.put(etTrainNumber, reStructureEstimatedJourney(estimatedVehicleJourney, etTrainNumber));
-                                        getMetricsService().registerDataMapping(datasetId, this.getClass().getSimpleName(), 1);
+                                        getMetricsService().registerDataMapping(datasetId, RESTRUCTURE_DEPARTURE, 1);
                                     } else {
                                         logger.warn("Ignoring realtime-data for departure not found in NeTEx for given day - train number {}, {}", etTrainNumber, serviceDate);
-                                        getMetricsService().registerDataMapping(datasetId, "UnknownTrainDeparture", 1);
+                                        getMetricsService().registerDataMapping(datasetId, REMOVE_UNKNOWN_DEPARTURE, 1);
                                     }
 
                                 }  else if (etTrainNumber.length() == 5 && (etTrainNumber.startsWith("905") || etTrainNumber.startsWith("908"))) {

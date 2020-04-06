@@ -33,6 +33,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static no.rutebanken.anshar.routes.siri.transformer.MappingNames.TRAIN_AND_STATION_PLATFORM_TO_NSR;
+
 public class BaneNorIdPlatformPostProcessor extends ValueAdapter implements PostProcessor {
 
     private static BaneNorIdPlatformUpdaterService stopPlaceService;
@@ -102,7 +104,7 @@ public class BaneNorIdPlatformPostProcessor extends ValueAdapter implements Post
                                         String updatedStopPointRef = getNsrId(stopPointRefValue, et.getArrivalPlatformName(), et.getDeparturePlatformName());
                                         if (updatedStopPointRef != null) {
                                             et.getStopPointRef().setValue(updatedStopPointRef);
-                                            getMetricsService().registerDataMapping(datasetId, this.getClass().getSimpleName(), 1);
+                                            getMetricsService().registerDataMapping(datasetId, TRAIN_AND_STATION_PLATFORM_TO_NSR, 1);
                                         }
                                     }
                                 }
@@ -115,7 +117,7 @@ public class BaneNorIdPlatformPostProcessor extends ValueAdapter implements Post
                                         String updatedStopPointRef = getNsrId(stopPointRefValue, rc.getArrivalPlatformName(), rc.getDeparturePlatformName());
                                         if (updatedStopPointRef != null) {
                                             rc.getStopPointRef().setValue(updatedStopPointRef);
-                                            getMetricsService().registerDataMapping(datasetId, this.getClass().getSimpleName(), 1);
+                                            getMetricsService().registerDataMapping(datasetId, TRAIN_AND_STATION_PLATFORM_TO_NSR, 1);
                                         }
                                     }
                                 }

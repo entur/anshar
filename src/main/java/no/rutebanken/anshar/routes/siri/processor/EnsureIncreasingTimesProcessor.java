@@ -28,6 +28,7 @@ import uk.org.siri.siri20.Siri;
 import java.time.ZonedDateTime;
 import java.util.List;
 
+import static no.rutebanken.anshar.routes.siri.transformer.MappingNames.ENSURE_INCREASING_TIMES;
 import static no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter.getOriginalId;
 
 /**
@@ -142,7 +143,7 @@ public class EnsureIncreasingTimesProcessor extends ValueAdapter implements Post
         }
         if (hitCount > 0) {
             logger.warn("Fixed {} dwelltimes/runtimes for {} journeys in {} ms.", hitCount, journeyCount, (System.currentTimeMillis() - startTime));
-            getMetricsService().registerDataMapping(datasetId, this.getClass().getSimpleName(), hitCount);
+            getMetricsService().registerDataMapping(datasetId, ENSURE_INCREASING_TIMES, hitCount);
         }
     }
 }

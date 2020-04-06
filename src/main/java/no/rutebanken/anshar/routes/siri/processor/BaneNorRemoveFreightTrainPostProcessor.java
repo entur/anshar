@@ -25,6 +25,8 @@ import uk.org.siri.siri20.Siri;
 
 import java.util.List;
 
+import static no.rutebanken.anshar.routes.siri.transformer.MappingNames.REMOVE_FREIGHT_TRAIN;
+
 /**
  * Remove expired VehicleJourneys to avoid conflict in vehicleRef per date.
  *
@@ -53,7 +55,7 @@ public class BaneNorRemoveFreightTrainPostProcessor extends ValueAdapter impleme
                     if (estimatedJourneyVersionFrame.getEstimatedVehicleJourneies().size() != size) {
                         final int removedFreightTrains = size - estimatedJourneyVersionFrame.getEstimatedVehicleJourneies().size();
                         logger.info("Removed {} freight trains", removedFreightTrains);
-                        getMetricsService().registerDataMapping(datasetId, this.getClass().getSimpleName(), removedFreightTrains);
+                        getMetricsService().registerDataMapping(datasetId, REMOVE_FREIGHT_TRAIN, removedFreightTrains);
                     }
                 }
             }

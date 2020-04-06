@@ -25,6 +25,8 @@ import no.rutebanken.anshar.subscription.SiriDataType;
 import java.util.HashSet;
 import java.util.Set;
 
+import static no.rutebanken.anshar.routes.siri.transformer.MappingNames.TRAIN_STATION_TO_NSR;
+
 public class JbvCodeMapper extends ValueAdapter {
 
     private final String datasetId;
@@ -55,7 +57,7 @@ public class JbvCodeMapper extends ValueAdapter {
         try {
             mappedValue = jbvCodeService.get(id);
             if (mappedValue != null) {
-                getMetricsService().registerDataMapping(datasetId, this.getClass().getSimpleName(), 1);
+                getMetricsService().registerDataMapping(datasetId, TRAIN_STATION_TO_NSR, 1);
                 return mappedValue;
             }
         } finally {
