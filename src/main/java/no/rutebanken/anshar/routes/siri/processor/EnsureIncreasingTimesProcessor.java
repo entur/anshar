@@ -133,9 +133,6 @@ public class EnsureIncreasingTimesProcessor extends ValueAdapter implements Post
                                 String vehicleRef = estimatedVehicleJourney.getVehicleRef() != null ? estimatedVehicleJourney.getVehicleRef().getValue():"";
 
                                 logger.warn("Fixed {} dwelltimes, {} runtimes for line {}, vehicle {}.", dwelltimeCount, runtimeCount, getOriginalId(lineRef), vehicleRef);
-
-                                getMetricsService().registerDataMapping(datasetId, this.getClass().getSimpleName()+"-runtime", runtimeCount);
-                                getMetricsService().registerDataMapping(datasetId, this.getClass().getSimpleName()+"-dwelltime", dwelltimeCount);
                             }
                             hitCount += (runtimeCount + dwelltimeCount);
                         }
@@ -145,6 +142,7 @@ public class EnsureIncreasingTimesProcessor extends ValueAdapter implements Post
         }
         if (hitCount > 0) {
             logger.warn("Fixed {} dwelltimes/runtimes for {} journeys in {} ms.", hitCount, journeyCount, (System.currentTimeMillis() - startTime));
+            getMetricsService().registerDataMapping(datasetId, this.getClass().getSimpleName(), hitCount);
         }
     }
 }
