@@ -15,22 +15,23 @@
 
 package no.rutebanken.anshar.subscription;
 
-import no.rutebanken.anshar.App;
-import no.rutebanken.anshar.routes.siri.*;
+import no.rutebanken.anshar.integration.SpringBootBaseTest;
+import no.rutebanken.anshar.routes.siri.Siri20ToSiriRS14Subscription;
+import no.rutebanken.anshar.routes.siri.Siri20ToSiriRS20RequestResponse;
+import no.rutebanken.anshar.routes.siri.Siri20ToSiriRS20Subscription;
+import no.rutebanken.anshar.routes.siri.Siri20ToSiriWS14RequestResponse;
+import no.rutebanken.anshar.routes.siri.Siri20ToSiriWS14Subscription;
+import no.rutebanken.anshar.routes.siri.Siri20ToSiriWS20RequestResponse;
+import no.rutebanken.anshar.routes.siri.Siri20ToSiriWS20Subscription;
 import org.apache.camel.builder.RouteBuilder;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.List;
 
 import static org.junit.Assert.assertTrue;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringBootTest(webEnvironment= SpringBootTest.WebEnvironment.MOCK, classes = App.class)
-public class SubscriptionInitializerTest {
+public class SubscriptionInitializerTest extends SpringBootBaseTest {
 
     private final SubscriptionInitializer initializer = new SubscriptionInitializer();
 

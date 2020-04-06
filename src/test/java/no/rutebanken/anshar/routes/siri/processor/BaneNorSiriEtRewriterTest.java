@@ -1,5 +1,6 @@
 package no.rutebanken.anshar.routes.siri.processor;
 
+import no.rutebanken.anshar.integration.SpringBootBaseTest;
 import no.rutebanken.anshar.routes.siri.processor.routedata.NetexUpdaterService;
 import no.rutebanken.anshar.routes.siri.processor.routedata.StopTime;
 import org.junit.Before;
@@ -26,7 +27,8 @@ import static no.rutebanken.anshar.routes.siri.processor.BaneNorSiriStopAssignme
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-public class BaneNorSiriEtRewriterTest {
+
+public class BaneNorSiriEtRewriterTest extends SpringBootBaseTest {
 
     private final Logger logger = LoggerFactory.getLogger(getClass());
 

@@ -18,18 +18,12 @@ package no.rutebanken.anshar.integration;
 import io.restassured.RestAssured;
 import io.restassured.filter.log.RequestLoggingFilter;
 import io.restassured.filter.log.ResponseLoggingFilter;
-import no.rutebanken.anshar.App;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
-import org.apache.camel.test.spring.CamelSpringBootRunner;
 import org.junit.Before;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.context.SpringBootTest;
 
-@RunWith(CamelSpringBootRunner.class)
-@SpringBootTest(classes = App.class)
-public abstract class BaseHttpTest {
+public abstract class BaseHttpTest extends SpringBootBaseTest{
 
     static final String TEST_SUBSCRIPTION_ID = "test.subscription.id";
     @Value("${anshar.incoming.port}")

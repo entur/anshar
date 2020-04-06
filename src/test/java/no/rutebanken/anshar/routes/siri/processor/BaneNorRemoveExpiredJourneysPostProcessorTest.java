@@ -15,6 +15,7 @@
 
 package no.rutebanken.anshar.routes.siri.processor;
 
+import no.rutebanken.anshar.integration.SpringBootBaseTest;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import org.junit.Test;
 import uk.org.siri.siri20.EstimatedCall;
@@ -28,7 +29,7 @@ import java.util.List;
 
 import static junit.framework.TestCase.assertEquals;
 
-public class BaneNorRemoveExpiredJourneysPostProcessorTest {
+public class BaneNorRemoveExpiredJourneysPostProcessorTest extends SpringBootBaseTest {
     SiriObjectFactory  objFactory = new SiriObjectFactory(Instant.now());
 
     BaneNorRemoveExpiredJourneysPostProcessor processor = new BaneNorRemoveExpiredJourneysPostProcessor("BNR");

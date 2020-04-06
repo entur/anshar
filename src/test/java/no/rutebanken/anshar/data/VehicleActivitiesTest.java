@@ -15,14 +15,11 @@
 
 package no.rutebanken.anshar.data;
 
-import no.rutebanken.anshar.App;
+import no.rutebanken.anshar.integration.SpringBootBaseTest;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import uk.org.siri.siri20.CourseOfJourneyRefStructure;
 import uk.org.siri.siri20.LocationStructure;
 import uk.org.siri.siri20.ProgressBetweenStopsStructure;
@@ -42,9 +39,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringBootTest(webEnvironment= SpringBootTest.WebEnvironment.MOCK, classes = App.class)
-public class VehicleActivitiesTest {
+public class VehicleActivitiesTest extends SpringBootBaseTest {
 
 
     @Autowired
