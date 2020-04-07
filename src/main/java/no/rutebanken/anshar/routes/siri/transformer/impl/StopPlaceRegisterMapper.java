@@ -43,6 +43,7 @@ public class StopPlaceRegisterMapper extends ValueAdapter {
 
     private final String datasetId;
     private final SiriDataType type;
+    private boolean metricsEnabled = true;
 
     public StopPlaceRegisterMapper(SiriDataType type, String datasetId, Class clazz, List<String> prefixes) {
         this(type, datasetId, clazz, prefixes, "Quay");
@@ -76,14 +77,18 @@ public class StopPlaceRegisterMapper extends ValueAdapter {
                     for (String prefix : prefixes) {
                         mappedValue = stopPlaceService.get(createCompleteId(prefix, id, datatype));
                         if (mappedValue != null) {
-                            getMetricsService().registerDataMapping(type, datasetId, ORIGINAL_ID_TO_NSR, 1);
+                            if (metricsEnabled) {
+                                getMetricsService().registerDataMapping(type, datasetId, ORIGINAL_ID_TO_NSR, 1);
+                            }
                             return mappedValue;
                         }
                     }
                 } else {
                     mappedValue = stopPlaceService.get(id);
                     if (mappedValue != null) {
-                        getMetricsService().registerDataMapping(type, datasetId, ORIGINAL_ID_TO_NSR, 1);
+                        if (metricsEnabled) {
+                            getMetricsService().registerDataMapping(type, datasetId, ORIGINAL_ID_TO_NSR, 1);
+                        }
                         return mappedValue;
                     }
                 }
@@ -118,5 +123,9 @@ public class StopPlaceRegisterMapper extends ValueAdapter {
 
         if (!super.getClassToApply().equals(that.getClassToApply())) return false;
         return prefixes.equals(that.prefixes);
+    }
+
+    public void disableMetrics() {
+        this.metricsEnabled = false;
     }
 }
