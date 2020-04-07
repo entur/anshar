@@ -589,29 +589,21 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
 
                 long expiration = getExpiration(et);
                 if (expiration > 0) {
-                    //Ignoring elements without EstimatedCalls
-                    if (et.getEstimatedCalls() != null &&
-                            et.getEstimatedCalls().getEstimatedCalls() != null &&
-                            !et.getEstimatedCalls().getEstimatedCalls().isEmpty()) {
 
-                        if (hasPatternChanges(et)) {
-                            // Keep track of all valid ET with pattern-changes
-                            idForPatternChanges.put(key, key.getKey(), expiration, TimeUnit.MILLISECONDS);
-                            if (et.isMonitored() == null) {
-                                et.setMonitored(true);
-                            }
+                    if (hasPatternChanges(et)) {
+                        // Keep track of all valid ET with pattern-changes
+                        idForPatternChanges.put(key, key.getKey(), expiration, TimeUnit.MILLISECONDS);
+                        if (et.isMonitored() == null) {
+                            et.setMonitored(true);
                         }
-
-                        changes.add(key);
-                        addedData.add(et);
-                        timetableDeliveries.set(key, et, expiration, TimeUnit.MILLISECONDS);
-                        checksumCache.put(key, currentChecksum, expiration, TimeUnit.MILLISECONDS);
-
-
-
-
-                        idStartTimeMap.put(key, getFirstAimedTime(et), expiration, TimeUnit.MILLISECONDS);
                     }
+
+                    changes.add(key);
+                    addedData.add(et);
+                    timetableDeliveries.set(key, et, expiration, TimeUnit.MILLISECONDS);
+                    checksumCache.put(key, currentChecksum, expiration, TimeUnit.MILLISECONDS);
+
+                    idStartTimeMap.put(key, getFirstAimedTime(et), expiration, TimeUnit.MILLISECONDS);
                 } else {
                     outdatedCounter.increment();
                 }
