@@ -18,6 +18,7 @@ package no.rutebanken.anshar.routes.siri.processor;
 import no.rutebanken.anshar.routes.siri.processor.routedata.ServiceDate;
 import no.rutebanken.anshar.routes.siri.processor.routedata.StopTime;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
+import no.rutebanken.anshar.subscription.SiriDataType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.org.siri.siri20.EstimatedCall;
@@ -133,10 +134,10 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
 
                                     if (foundMatch) {
                                         restructuredJourneyList.put(etTrainNumber, reStructureEstimatedJourney(estimatedVehicleJourney, etTrainNumber));
-                                        getMetricsService().registerDataMapping(datasetId, RESTRUCTURE_DEPARTURE, 1);
+                                        getMetricsService().registerDataMapping(SiriDataType.ESTIMATED_TIMETABLE, datasetId, RESTRUCTURE_DEPARTURE, 1);
                                     } else {
                                         logger.warn("Ignoring realtime-data for departure not found in NeTEx for given day - train number {}, {}", etTrainNumber, serviceDate);
-                                        getMetricsService().registerDataMapping(datasetId, REMOVE_UNKNOWN_DEPARTURE, 1);
+                                        getMetricsService().registerDataMapping(SiriDataType.ESTIMATED_TIMETABLE, datasetId, REMOVE_UNKNOWN_DEPARTURE, 1);
                                     }
 
                                 }  else if (etTrainNumber.length() == 5 && (etTrainNumber.startsWith("905") || etTrainNumber.startsWith("908"))) {

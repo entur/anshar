@@ -17,14 +17,21 @@ package no.rutebanken.anshar.routes.siri.transformer.impl;
 
 
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
+import no.rutebanken.anshar.subscription.SiriDataType;
+
+import static no.rutebanken.anshar.routes.siri.transformer.MappingNames.APPEND_PREFIX;
 
 public class PrefixAdapter extends ValueAdapter {
 
     private final String prefix;
+    private final String datasetId;
+    private final SiriDataType dataType;
 
 
-    public PrefixAdapter(Class clazz, String prefix) {
+    public PrefixAdapter(SiriDataType dataType, String datasetId, Class clazz, String prefix) {
         super(clazz);
+        this.dataType = dataType;
+        this.datasetId = datasetId;
         this.prefix = prefix;
     }
 
@@ -36,6 +43,7 @@ public class PrefixAdapter extends ValueAdapter {
             //Already prefixed
             return text;
         }
+        getMetricsService().registerDataMapping(dataType, datasetId, APPEND_PREFIX, 1);
         return prefix+text;
     }
 

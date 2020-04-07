@@ -51,7 +51,7 @@ public class BaneNorEtValueAdapters extends MappingAdapter {
         operatorOverrideMapping.put("VYG", "GJB"); //BaneNOR has prematurely mapped their operatorRef...
 
         List<String> operatorsToIgnore = Collections.emptyList();
-        valueAdapters.add(new OperatorFilterPostProcessor(operatorsToIgnore, operatorOverrideMapping));
+        valueAdapters.add(new OperatorFilterPostProcessor(subscriptionSetup.getDatasetId(), operatorsToIgnore, operatorOverrideMapping));
 
         valueAdapters.add(new BaneNorRemoveFreightTrainPostProcessor(subscriptionSetup.getDatasetId()));
 

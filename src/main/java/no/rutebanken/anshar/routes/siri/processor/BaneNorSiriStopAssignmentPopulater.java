@@ -18,6 +18,7 @@ package no.rutebanken.anshar.routes.siri.processor;
 import no.rutebanken.anshar.routes.siri.processor.routedata.ServiceDate;
 import no.rutebanken.anshar.routes.siri.processor.routedata.StopTime;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
+import no.rutebanken.anshar.subscription.SiriDataType;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,6 +40,7 @@ import java.util.Set;
 import static no.rutebanken.anshar.routes.siri.processor.routedata.NetexUpdaterService.getServiceDates;
 import static no.rutebanken.anshar.routes.siri.processor.routedata.NetexUpdaterService.getServiceJourney;
 import static no.rutebanken.anshar.routes.siri.processor.routedata.NetexUpdaterService.getStopTimes;
+import static no.rutebanken.anshar.routes.siri.transformer.MappingNames.POPULATE_STOP_ASSIGNMENTS;
 import static no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter.getMappedId;
 
 /**
@@ -76,6 +78,8 @@ public class BaneNorSiriStopAssignmentPopulater extends ValueAdapter implements 
                             estimatedVehicleJourneyCounter++;
                             if (populateStopAssignments(estimatedVehicleJourney)) {
                                 populatedAssigmentsCounter++;
+                                getMetricsService().registerDataMapping(SiriDataType.ESTIMATED_TIMETABLE, datasetId, POPULATE_STOP_ASSIGNMENTS, 1);
+
                             }
                         }
                     }

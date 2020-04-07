@@ -84,9 +84,10 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
         counter(DATA_IGNORED_COUNTER_NAME, counterTags).increment(ignored);
     }
 
-    public void registerDataMapping(String agencyId, MappingNames mappingName, int mappedCount) {
+    public void registerDataMapping(SiriDataType dataType, String agencyId, MappingNames mappingName, int mappedCount) {
 
         List<Tag> counterTags = new ArrayList<>();
+        counterTags.add(new ImmutableTag(DATATYPE_TAG_NAME, dataType.name()));
         counterTags.add(new ImmutableTag(AGENCY_TAG_NAME, agencyId));
         counterTags.add(new ImmutableTag(MAPPING_NAME_TAG, mappingName.toString()));
 

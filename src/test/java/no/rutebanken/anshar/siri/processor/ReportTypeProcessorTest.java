@@ -38,7 +38,7 @@ public class ReportTypeProcessorTest {
     @Before
     public void init() {
         objectFactory = new SiriObjectFactory(Instant.now());
-        processor = new ReportTypeProcessor();
+        processor = new ReportTypeProcessor("TST");
     }
 
     @Test

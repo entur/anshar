@@ -17,6 +17,7 @@ package no.rutebanken.anshar.routes.siri.processor;
 
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.routes.siri.transformer.impl.StopPlaceRegisterMapper;
+import no.rutebanken.anshar.subscription.SiriDataType;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -38,6 +39,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static no.rutebanken.anshar.routes.siri.transformer.MappingNames.STOP_AND_PLATFORM_TO_NSR;
 import static no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter.createCombinedId;
 
 public class OstfoldIdPlatformPostProcessor extends ValueAdapter implements PostProcessor {
@@ -123,6 +125,7 @@ public class OstfoldIdPlatformPostProcessor extends ValueAdapter implements Post
                                     String nsrId = getNsrId(stopPointRefValue, platform);
                                     if (nsrId != null) {
                                         call.getStopPointRef().setValue(createCombinedId(stopPointRefValue, nsrId));
+                                        getMetricsService().registerDataMapping(SiriDataType.VEHICLE_MONITORING, datasetId, STOP_AND_PLATFORM_TO_NSR, 1);
                                     }
                                 }
                             }
@@ -158,6 +161,7 @@ public class OstfoldIdPlatformPostProcessor extends ValueAdapter implements Post
                                         String nsrId = getNsrId(stopPointRefValue, platform);
                                         if (nsrId != null) {
                                             et.getStopPointRef().setValue(createCombinedId(stopPointRefValue, nsrId));
+                                            getMetricsService().registerDataMapping(SiriDataType.ESTIMATED_TIMETABLE, datasetId, STOP_AND_PLATFORM_TO_NSR, 1);
                                         }
                                     }
                                 }
@@ -177,6 +181,7 @@ public class OstfoldIdPlatformPostProcessor extends ValueAdapter implements Post
                                         String nsrId = getNsrId(stopPointRefValue, platform);
                                         if (nsrId != null) {
                                             rc.getStopPointRef().setValue(createCombinedId(stopPointRefValue, nsrId));
+                                            getMetricsService().registerDataMapping(SiriDataType.ESTIMATED_TIMETABLE, datasetId, STOP_AND_PLATFORM_TO_NSR, 1);
                                         }
                                     }
                                 }

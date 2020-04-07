@@ -127,7 +127,7 @@ public class SubscriptionInitializer implements CamelContextAware {
 
                         //Is added to ALL subscriptions
                         valueAdapters.add(new CodespaceProcessor(subscriptionSetup.getDatasetId()));
-                        valueAdapters.add(new ReportTypeProcessor());
+                        valueAdapters.add(new ReportTypeProcessor(subscriptionSetup.getDatasetId()));
                         valueAdapters.add(new RemovePersonalInformationProcessor());
 
                         subscriptionSetup.getMappingAdapters().addAll(valueAdapters);

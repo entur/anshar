@@ -50,7 +50,7 @@ public class OstfoldEtValueAdapters extends MappingAdapter {
                 "StopPlace"));
 
         if (subscriptionSetup.getDatasetId() != null && !subscriptionSetup.getDatasetId().isEmpty()) {
-            List<ValueAdapter> datasetPrefix = createIdPrefixAdapters(subscriptionSetup.getDatasetId());
+            List<ValueAdapter> datasetPrefix = createIdPrefixAdapters(subscriptionSetup);
             if (!subscriptionSetup.getMappingAdapters().containsAll(datasetPrefix)) {
                 subscriptionSetup.getMappingAdapters().addAll(datasetPrefix);
             }

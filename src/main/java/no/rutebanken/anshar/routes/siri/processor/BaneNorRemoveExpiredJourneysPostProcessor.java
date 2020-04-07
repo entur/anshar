@@ -16,6 +16,7 @@
 package no.rutebanken.anshar.routes.siri.processor;
 
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
+import no.rutebanken.anshar.subscription.SiriDataType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.org.siri.siri20.EstimatedTimetableDeliveryStructure;
@@ -58,7 +59,7 @@ public class BaneNorRemoveExpiredJourneysPostProcessor extends ValueAdapter impl
                     if (estimatedJourneyVersionFrame.getEstimatedVehicleJourneies().size() != size) {
                         final int removedJourneys = size - estimatedJourneyVersionFrame.getEstimatedVehicleJourneies().size();
                         logger.info("Removed {} expired journeys", removedJourneys);
-                        getMetricsService().registerDataMapping(datasetId, REMOVE_EXPIRED_JOURNEYS, removedJourneys);
+                        getMetricsService().registerDataMapping(SiriDataType.ESTIMATED_TIMETABLE, datasetId, REMOVE_EXPIRED_JOURNEYS, removedJourneys);
                     }
                 }
             }

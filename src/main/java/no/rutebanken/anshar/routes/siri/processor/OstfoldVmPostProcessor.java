@@ -17,6 +17,7 @@
 package no.rutebanken.anshar.routes.siri.processor;
 
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
+import no.rutebanken.anshar.subscription.SiriDataType;
 import uk.org.siri.siri20.Siri;
 import uk.org.siri.siri20.VehicleActivityStructure;
 import uk.org.siri.siri20.VehicleMonitoringDeliveryStructure;
@@ -24,7 +25,15 @@ import uk.org.siri.siri20.VehicleMonitoringDeliveryStructure;
 import java.time.ZonedDateTime;
 import java.util.List;
 
+import static no.rutebanken.anshar.routes.siri.transformer.MappingNames.CREATE_RECORDED_AT_TIME;
+
 public class OstfoldVmPostProcessor extends ValueAdapter implements PostProcessor {
+
+    private final String datasetId;
+
+    public OstfoldVmPostProcessor(String datasetId) {
+        this.datasetId = datasetId;
+    }
 
     @Override
     protected String apply(String text) {
@@ -43,6 +52,7 @@ public class OstfoldVmPostProcessor extends ValueAdapter implements PostProcesso
                         for (VehicleActivityStructure vehicleActivity : vehicleActivities) {
                             if (vehicleActivity.getRecordedAtTime().getYear() == 1) {
                                 vehicleActivity.setRecordedAtTime(ZonedDateTime.now());
+                                getMetricsService().registerDataMapping(SiriDataType.VEHICLE_MONITORING, datasetId, CREATE_RECORDED_AT_TIME, 1);
                             }
                         }
                     }

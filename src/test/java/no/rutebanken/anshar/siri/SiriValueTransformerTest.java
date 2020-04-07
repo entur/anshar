@@ -15,15 +15,26 @@
 
 package no.rutebanken.anshar.siri;
 
+import no.rutebanken.anshar.integration.SpringBootBaseTest;
 import no.rutebanken.anshar.routes.siri.adapters.NsrValueAdapters;
 import no.rutebanken.anshar.routes.siri.handlers.OutboundIdMappingPolicy;
 import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.routes.siri.transformer.impl.LeftPaddingAdapter;
 import no.rutebanken.anshar.routes.siri.transformer.impl.RuterSubstringAdapter;
+import no.rutebanken.anshar.subscription.SiriDataType;
+import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import no.rutebanken.anshar.subscription.helpers.MappingAdapterPresets;
 import org.junit.Test;
-import uk.org.siri.siri20.*;
+import uk.org.siri.siri20.BlockRefStructure;
+import uk.org.siri.siri20.DestinationRef;
+import uk.org.siri.siri20.EstimatedTimetableDeliveryStructure;
+import uk.org.siri.siri20.EstimatedVehicleJourney;
+import uk.org.siri.siri20.EstimatedVersionFrameStructure;
+import uk.org.siri.siri20.JourneyPlaceRefStructure;
+import uk.org.siri.siri20.LineRef;
+import uk.org.siri.siri20.ServiceDelivery;
+import uk.org.siri.siri20.Siri;
 
 import javax.xml.bind.JAXBException;
 import java.io.IOException;
@@ -35,7 +46,7 @@ import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertNull;
 import static org.junit.Assert.assertNotNull;
 
-public class SiriValueTransformerTest {
+public class SiriValueTransformerTest extends SpringBootBaseTest {
 
     @Test
     public void testForNullPointer() throws JAXBException {
@@ -122,7 +133,11 @@ public class SiriValueTransformerTest {
         List<ValueAdapter> mappingAdapters = new ArrayList<>();
         mappingAdapters.add(new RuterSubstringAdapter(LineRef.class, ':', '0', 2));
         mappingAdapters.add(new LeftPaddingAdapter(LineRef.class, 6, '0'));
-        mappingAdapters.addAll(new NsrValueAdapters().createIdPrefixAdapters("TEST"));
+        SubscriptionSetup subscriptionSetup = new SubscriptionSetup();
+        subscriptionSetup.setDatasetId("TEST");
+        subscriptionSetup.setSubscriptionType(SiriDataType.ESTIMATED_TIMETABLE);
+
+        mappingAdapters.addAll(new NsrValueAdapters().createIdPrefixAdapters(subscriptionSetup));
 
         siri = SiriValueTransformer.transform(siri, mappingAdapters);
 

@@ -38,7 +38,7 @@ public class NorlandValueAdapters extends MappingAdapter {
         valueAdapters.addAll(createNsrIdMappingAdapters(subscriptionSetup.getSubscriptionType(), subscriptionSetup.getDatasetId(), subscriptionSetup.getIdMappingPrefixes()));
 
         if (subscriptionSetup.getDatasetId() != null && !subscriptionSetup.getDatasetId().isEmpty()) {
-            List<ValueAdapter> datasetPrefix = createIdPrefixAdapters(subscriptionSetup.getDatasetId());
+            List<ValueAdapter> datasetPrefix = createIdPrefixAdapters(subscriptionSetup);
             if (!subscriptionSetup.getMappingAdapters().containsAll(datasetPrefix)) {
                 subscriptionSetup.getMappingAdapters().addAll(datasetPrefix);
             }

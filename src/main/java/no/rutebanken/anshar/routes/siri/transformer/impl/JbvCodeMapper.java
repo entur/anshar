@@ -57,7 +57,7 @@ public class JbvCodeMapper extends ValueAdapter {
         try {
             mappedValue = jbvCodeService.get(id);
             if (mappedValue != null) {
-                getMetricsService().registerDataMapping(datasetId, TRAIN_STATION_TO_NSR, 1);
+                getMetricsService().registerDataMapping(type, datasetId, TRAIN_STATION_TO_NSR, 1);
                 return mappedValue;
             }
         } finally {

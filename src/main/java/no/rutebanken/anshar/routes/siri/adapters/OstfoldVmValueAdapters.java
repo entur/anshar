@@ -49,13 +49,13 @@ public class OstfoldVmValueAdapters extends MappingAdapter {
                 subscriptionSetup.getIdMappingPrefixes(),
                 "StopPlace"));
 
-        valueAdapters.add(new OstfoldVmPostProcessor());
+        valueAdapters.add(new OstfoldVmPostProcessor(subscriptionSetup.getDatasetId()));
 
         valueAdapters.add(new OstfoldIdPlatformPostProcessor(subscriptionSetup));
 
 
         if (subscriptionSetup.getDatasetId() != null && !subscriptionSetup.getDatasetId().isEmpty()) {
-            List<ValueAdapter> datasetPrefix = createIdPrefixAdapters(subscriptionSetup.getDatasetId());
+            List<ValueAdapter> datasetPrefix = createIdPrefixAdapters(subscriptionSetup);
             if (!subscriptionSetup.getMappingAdapters().containsAll(datasetPrefix)) {
                 subscriptionSetup.getMappingAdapters().addAll(datasetPrefix);
             }

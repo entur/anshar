@@ -76,14 +76,14 @@ public class StopPlaceRegisterMapper extends ValueAdapter {
                     for (String prefix : prefixes) {
                         mappedValue = stopPlaceService.get(createCompleteId(prefix, id, datatype));
                         if (mappedValue != null) {
-                            getMetricsService().registerDataMapping(datasetId, ORIGINAL_ID_TO_NSR, 1);
+                            getMetricsService().registerDataMapping(type, datasetId, ORIGINAL_ID_TO_NSR, 1);
                             return mappedValue;
                         }
                     }
                 } else {
                     mappedValue = stopPlaceService.get(id);
                     if (mappedValue != null) {
-                        getMetricsService().registerDataMapping(datasetId, ORIGINAL_ID_TO_NSR, 1);
+                        getMetricsService().registerDataMapping(type, datasetId, ORIGINAL_ID_TO_NSR, 1);
                         return mappedValue;
                     }
                 }

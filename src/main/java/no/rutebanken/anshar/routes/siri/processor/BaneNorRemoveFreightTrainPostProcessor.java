@@ -16,6 +16,7 @@
 package no.rutebanken.anshar.routes.siri.processor;
 
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
+import no.rutebanken.anshar.subscription.SiriDataType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.org.siri.siri20.EstimatedTimetableDeliveryStructure;
@@ -55,7 +56,7 @@ public class BaneNorRemoveFreightTrainPostProcessor extends ValueAdapter impleme
                     if (estimatedJourneyVersionFrame.getEstimatedVehicleJourneies().size() != size) {
                         final int removedFreightTrains = size - estimatedJourneyVersionFrame.getEstimatedVehicleJourneies().size();
                         logger.info("Removed {} freight trains", removedFreightTrains);
-                        getMetricsService().registerDataMapping(datasetId, REMOVE_FREIGHT_TRAIN, removedFreightTrains);
+                        getMetricsService().registerDataMapping(SiriDataType.ESTIMATED_TIMETABLE, datasetId, REMOVE_FREIGHT_TRAIN, removedFreightTrains);
                     }
                 }
             }

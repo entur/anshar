@@ -16,6 +16,7 @@
 package no.rutebanken.anshar.routes.siri.processor;
 
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
+import no.rutebanken.anshar.subscription.SiriDataType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.org.siri.siri20.EstimatedCall;
@@ -143,7 +144,7 @@ public class EnsureIncreasingTimesProcessor extends ValueAdapter implements Post
         }
         if (hitCount > 0) {
             logger.warn("Fixed {} dwelltimes/runtimes for {} journeys in {} ms.", hitCount, journeyCount, (System.currentTimeMillis() - startTime));
-            getMetricsService().registerDataMapping(datasetId, ENSURE_INCREASING_TIMES, hitCount);
+            getMetricsService().registerDataMapping(SiriDataType.ESTIMATED_TIMETABLE, datasetId, ENSURE_INCREASING_TIMES, hitCount);
         }
     }
 }
