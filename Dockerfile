@@ -1,4 +1,4 @@
-FROM openjdk:11-jre
+FROM openjdk:11-jdk
 ADD target/anshar-*-SNAPSHOT.jar anshar.jar
 
 EXPOSE 8776
