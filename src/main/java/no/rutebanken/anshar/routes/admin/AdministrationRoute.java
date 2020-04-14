@@ -104,6 +104,9 @@ public class AdministrationRoute extends RestRouteBuilder {
                 .when(header(operationHeaderName).isEqualTo("flush"))
                     .to("direct:flush.data.from.subscription")
                 .endChoice()
+                .when(header(operationHeaderName).isEqualTo("gc"))
+                    .process(p -> System.gc())
+                .endChoice()
             .end()
         ;
 
