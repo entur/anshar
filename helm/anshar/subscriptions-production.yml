@@ -959,3 +959,30 @@ anshar:
       idMappingPrefixes: TEL,VKT
       active: true
       validation: true
+    -
+      internalId: 44
+      vendor: entSx
+      name: Entur SX-client
+      datasetId: ENT
+      serviceType: REST
+      subscriptionType: SITUATION_EXCHANGE
+      subscriptionMode: REQUEST_RESPONSE
+      heartbeatIntervalSeconds:  120
+      previewIntervalSeconds: 36000
+      operatorNamespace:
+      addressFieldName: Address
+      soapenvNamespace:
+      changeBeforeUpdatesSeconds: 10
+      incrementalUpdates: true
+      urlMap:
+        GET_SITUATION_EXCHANGE: https4://avvik.entur.org/api/xml
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: f8e8d2f2-c6f6-4fdb-ba8b-d5a677bc1c28
+      requestorRef: ENTUR_PROD
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: entur
+      filterPresets:
+      idMappingPrefixes: ENT
+      active: true
+      validation: true
