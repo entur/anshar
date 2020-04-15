@@ -4,10 +4,10 @@ replicas: 6
 
 resources:
   cpuLimit: '7'
-  memLimit: 14500Mi
+  memLimit: 18G
   cpuRequest: '4'
-  memRequest: 13500Mi
-  xmx: 11000m
+  memRequest: 14G
+  xmx: 12G
 
 subscriptions: subscriptions-production.yml
 
