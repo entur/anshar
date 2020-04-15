@@ -31,7 +31,7 @@ spec:
           imagePullPolicy: {{ .Values.image.imagePullPolicy }}
           env:
             - name: JAVA_OPTIONS
-              value: -server -Xmx{{ .Values.resources.xmx }} -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:ParallelGCThreads=20 -XX:ConcGCThreads=5 -Dspring.config.additional-location=/etc/application-config/application.properties
+              value: -server -Xmx{{ .Values.resources.xmx }} -XX:+UseG1GC -XX:MaxGCPauseMillis=200 -XX:ParallelGCThreads=5 -XX:ConcGCThreads=5 -Dspring.config.additional-location=/etc/application-config/application.properties
                   -Dfile.encoding=UTF-8
             - name: TZ
               value: Europe/Oslo
