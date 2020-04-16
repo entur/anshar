@@ -105,7 +105,7 @@ public class SiriVmMqttHandler {
 
         // If monitored == false, ignore update
         if (activity != null && activity.getMonitoredVehicleJourney() != null &&
-                Boolean.TRUE.equals(activity.getMonitoredVehicleJourney().isMonitored())) {
+                Boolean.FALSE.equals(activity.getMonitoredVehicleJourney().isMonitored())) {
             return;
         }
 
