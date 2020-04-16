@@ -551,7 +551,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
             if (existingChecksum != null) {
                 //Exists - compare values
                 updated =  !(currentChecksum.equals(existingChecksum));
-                if (et.isMonitored() == null) {
+                if (updated && et.isMonitored() == null) {
                     et.setMonitored(true);
                 }
             } else {
