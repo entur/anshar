@@ -986,3 +986,32 @@ anshar:
       idMappingPrefixes: ENT
       active: true
       validation: true
+    -
+      internalId: 45
+      vendor: vktTelVm
+      name: VKT/TEL - VM
+      datasetId: VKT
+      serviceType: SOAP
+      subscriptionType: VEHICLE_MONITORING
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds:  60
+      previewIntervalSeconds: 36000
+      operatorNamespace: http://wsdl.siri.org.uk
+      addressFieldName: ConsumerAddress
+      soapenvNamespace: http://schemas.xmlsoap.org/soap/envelope/
+      changeBeforeUpdatesSeconds: 10
+      incrementalUpdates: true
+      urlMap:
+        SUBSCRIBE: 213.52.105.176:8080/SIRI
+        DELETE_SUBSCRIPTION: 213.52.105.176:8080/SIRI
+        CHECK_STATUS: 213.52.105.176:8080/SIRI
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: fc5ac7e3-a6e5-45a7-839e-1632615ffb4c
+      requestorRef: ENTUR_VM
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: ostfoldvm
+      filterPresets: VKT
+      idMappingPrefixes: VKT,TEL
+      active: true
+      validation: true
