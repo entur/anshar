@@ -26,6 +26,34 @@
             </Siri>
         </xsl:for-each>
 
+        <xsl:for-each select="/siri:Siri/siri:ServiceDelivery/siri:VehicleMonitoringDelivery/siri:VehicleActivity/siri:MonitoredVehicleJourney[siri:Monitored/text()='true']">
+            <Siri xmlns="http://www.siri.org.uk/siri" version="2.0">>
+                <ServiceDelivery>
+                    <xsl:copy-of select="/siri:Siri/siri:ServiceDelivery/siri:ResponseTimestamp"></xsl:copy-of>
+                    <xsl:copy-of select="/siri:Siri/siri:ServiceDelivery/siri:ProducerRef"></xsl:copy-of>
+                    <VehicleMonitoringDelivery>
+                        <VehicleActivity>
+                            <xsl:copy-of select="."></xsl:copy-of>
+                        </VehicleActivity>
+                    </VehicleMonitoringDelivery>
+                </ServiceDelivery>
+            </Siri>
+        </xsl:for-each>
+
+        <xsl:for-each select="/siri:Siri/siri:ServiceDelivery/siri:SituationExchangeDelivery/siri:PtSituationElement">
+            <Siri xmlns="http://www.siri.org.uk/siri" version="2.0">>
+                <ServiceDelivery>
+                    <xsl:copy-of select="/siri:Siri/siri:ServiceDelivery/siri:ResponseTimestamp"></xsl:copy-of>
+                    <xsl:copy-of select="/siri:Siri/siri:ServiceDelivery/siri:ProducerRef"></xsl:copy-of>
+                    <SituationExchangeDelivery>
+                        <PtSituationElement>
+                            <xsl:copy-of select="."></xsl:copy-of>
+                        </PtSituationElement>
+                    </SituationExchangeDelivery>
+                </ServiceDelivery>
+            </Siri>
+        </xsl:for-each>
+
         <xsl:for-each select="/siri:Siri/siri:DataReadyNotification">
             <Siri xmlns="http://www.siri.org.uk/siri" version="2.0">
                 <xsl:copy-of select="."></xsl:copy-of>

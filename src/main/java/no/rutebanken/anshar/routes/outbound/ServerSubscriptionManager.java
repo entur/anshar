@@ -98,6 +98,12 @@ public class ServerSubscriptionManager {
     @Produce(uri = "direct:send.to.pubsub.topic.estimated_timetable")
     protected ProducerTemplate siriEtTopicProducer;
 
+    @Produce(uri = "direct:send.to.pubsub.topic.vehicle_monitoring")
+    protected ProducerTemplate siriVmTopicProducer;
+
+    @Produce(uri = "direct:send.to.pubsub.topic.alerts")
+    protected ProducerTemplate siriSxTopicProducer;
+
     @Produce(uri = "direct:bigdata.siri.exporter")
     protected ProducerTemplate siriBigdataExportProducer;
 
@@ -343,6 +349,10 @@ public class ServerSubscriptionManager {
         }
         Siri delivery = siriObjectFactory.createVMServiceDelivery(addedOrUpdated);
 
+        if (pushToTopicEnabled) {
+            siriVmTopicProducer.sendBody(delivery);
+        }
+
         subscriptions.values().stream().filter(subscriptionRequest ->
                         ( subscriptionRequest.getSubscriptionType().equals(SiriDataType.VEHICLE_MONITORING) &&
                                 (subscriptionRequest.getDatasetId() == null || (subscriptionRequest.getDatasetId().equals(datasetId))))
@@ -361,6 +371,10 @@ public class ServerSubscriptionManager {
             return;
         }
         Siri delivery = siriObjectFactory.createSXServiceDelivery(addedOrUpdated);
+
+        if (pushToTopicEnabled) {
+            siriSxTopicProducer.sendBody(delivery);
+        }
 
         subscriptions.values().stream().filter(subscriptionRequest ->
                         (subscriptionRequest.getSubscriptionType().equals(SiriDataType.SITUATION_EXCHANGE) &&
