@@ -74,7 +74,7 @@ public class PubsubTopicRoute extends RouteBuilder {
              * Logs et traffic periodically
              */
             from("direct:log.pubsub.et.traffic")
-                    .routeId("log.pubsub")
+                    .routeId("log.pubsub.et")
                     .process(p -> {
                         if (etCounter.incrementAndGet() % 1000 == 0) {
                             p.getOut().setHeader("counter", etCounter.get());
@@ -91,7 +91,7 @@ public class PubsubTopicRoute extends RouteBuilder {
              * Logs vm traffic periodically
              */
             from("direct:log.pubsub.vm.traffic")
-                    .routeId("log.pubsub")
+                    .routeId("log.pubsub-vm")
                     .process(p -> {
                         if (vmCounter.incrementAndGet() % 1000 == 0) {
                             p.getOut().setHeader("counter", vmCounter.get());
@@ -108,7 +108,7 @@ public class PubsubTopicRoute extends RouteBuilder {
              * Logs sx traffic periodically
              */
             from("direct:log.pubsub.sx.traffic")
-                    .routeId("log.pubsub")
+                    .routeId("log.pubsub.sx")
                     .process(p -> {
                         if (sxCounter.incrementAndGet() % 1000 == 0) {
                             p.getOut().setHeader("counter", sxCounter.get());
