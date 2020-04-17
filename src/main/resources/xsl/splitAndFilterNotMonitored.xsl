@@ -43,8 +43,7 @@
                 <ServiceDelivery>
                     <xsl:copy-of select="/siri:Siri/siri:ServiceDelivery/siri:ResponseTimestamp"></xsl:copy-of>
                     <xsl:copy-of select="/siri:Siri/siri:ServiceDelivery/siri:ProducerRef"></xsl:copy-of>
-                    <SituationExchangeDelivery version="2.0">
-                        <xsl:copy-of select="/siri:Siri/siri:ServiceDelivery/siri:SituationExchangeDelivery/siri:ResponseTimestamp"></xsl:copy-of>
+                    <SituationExchangeDelivery>
                         <xsl:copy-of select="."></xsl:copy-of>
                     </SituationExchangeDelivery>
                 </ServiceDelivery>

@@ -101,7 +101,7 @@ public class ServerSubscriptionManager {
     @Produce(uri = "direct:send.to.pubsub.topic.vehicle_monitoring")
     protected ProducerTemplate siriVmTopicProducer;
 
-    @Produce(uri = "direct:send.to.pubsub.topic.alerts")
+    @Produce(uri = "direct:send.to.pubsub.topic.situation_exchange")
     protected ProducerTemplate siriSxTopicProducer;
 
     @Produce(uri = "direct:bigdata.siri.exporter")

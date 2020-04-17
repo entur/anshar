@@ -61,7 +61,7 @@ public class PubsubTopicRoute extends RouteBuilder {
              * Splits SIRI SX-ServiceDelivery into singular messages (i.e. one SX-message per ServiceDelivery), converts
              * message to protobuf, and posts to Cloud Pubsub
              */
-            from("direct:send.to.pubsub.topic.alerts")
+            from("direct:send.to.pubsub.topic.situation_exchange")
                     .to("direct:siri.transform.data")
                     .to("xslt:xsl/splitAndFilterNotMonitored.xsl")
                     .split().tokenizeXML("Siri").streaming()
