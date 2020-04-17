@@ -21,7 +21,11 @@ public class PubsubTopicRoute extends RouteBuilder {
     @Value("${anshar.outbound.pubsub.topic.enabled}")
     private boolean pushToTopicEnabled;
 
-    private AtomicInteger counter = new AtomicInteger();
+    private AtomicInteger etCounter = new AtomicInteger();
+
+    private AtomicInteger vmCounter = new AtomicInteger();
+
+    private AtomicInteger sxCounter = new AtomicInteger();
 
     @Override
     public void configure() {
@@ -36,7 +40,7 @@ public class PubsubTopicRoute extends RouteBuilder {
                     .to("xslt:xsl/splitAndFilterNotMonitored.xsl")
                     .split().tokenizeXML("Siri").streaming()
                     .to("direct:map.jaxb.to.protobuf")
-                    .wireTap("direct:log.pubsub.traffic")
+                    .wireTap("direct:log.pubsub.et.traffic")
                     .to(etTopic)
             ;
 
@@ -49,7 +53,7 @@ public class PubsubTopicRoute extends RouteBuilder {
                     .to("xslt:xsl/splitAndFilterNotMonitored.xsl")
                     .split().tokenizeXML("Siri").streaming()
                     .to("direct:map.jaxb.to.protobuf")
-                    .wireTap("direct:log.pubsub.traffic")
+                    .wireTap("direct:log.pubsub.vm.traffic")
                     .to(vmTopic)
             ;
 
@@ -62,24 +66,58 @@ public class PubsubTopicRoute extends RouteBuilder {
                     .to("xslt:xsl/splitAndFilterNotMonitored.xsl")
                     .split().tokenizeXML("Siri").streaming()
                     .to("direct:map.jaxb.to.protobuf")
-                    .wireTap("direct:log.pubsub.traffic")
+                    .wireTap("direct:log.pubsub.sx.traffic")
                     .to(sxTopic)
             ;
 
             /**
-             * Logs traffic periodically
+             * Logs et traffic periodically
              */
-            from("direct:log.pubsub.traffic")
+            from("direct:log.pubsub.et.traffic")
                     .routeId("log.pubsub")
                     .process(p -> {
-                        if (counter.incrementAndGet() % 1000 == 0) {
-                            p.getOut().setHeader("counter", counter.get());
+                        if (etCounter.incrementAndGet() % 1000 == 0) {
+                            p.getOut().setHeader("counter", etCounter.get());
                             p.getOut().setBody(p.getIn().getBody());
                         }
                     })
                     .choice()
                     .when(header("counter").isNotNull())
-                    .log("Pubsub: Published ${header.counter} updates")
+                    .log("Pubsub: Published ${header.counter} et updates")
+                    .endChoice()
+                    .end();
+
+            /**
+             * Logs vm traffic periodically
+             */
+            from("direct:log.pubsub.vm.traffic")
+                    .routeId("log.pubsub")
+                    .process(p -> {
+                        if (vmCounter.incrementAndGet() % 1000 == 0) {
+                            p.getOut().setHeader("counter", vmCounter.get());
+                            p.getOut().setBody(p.getIn().getBody());
+                        }
+                    })
+                    .choice()
+                    .when(header("counter").isNotNull())
+                    .log("Pubsub: Published ${header.counter} vm updates")
+                    .endChoice()
+                    .end();
+
+            /**
+             * Logs sx traffic periodically
+             */
+            from("direct:log.pubsub.sx.traffic")
+                    .routeId("log.pubsub")
+                    .process(p -> {
+                        if (sxCounter.incrementAndGet() % 1000 == 0) {
+                            p.getOut().setHeader("counter", sxCounter.get());
+                            p.getOut().setBody(p.getIn().getBody());
+                        }
+                    })
+                    .choice()
+                    .when(header("counter").isNotNull())
+                    .log("Pubsub: Published ${header.counter} sx updates")
                     .endChoice()
                     .end();
         }

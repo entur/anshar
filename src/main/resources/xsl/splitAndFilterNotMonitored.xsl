@@ -32,23 +32,20 @@
                     <xsl:copy-of select="/siri:Siri/siri:ServiceDelivery/siri:ResponseTimestamp"></xsl:copy-of>
                     <xsl:copy-of select="/siri:Siri/siri:ServiceDelivery/siri:ProducerRef"></xsl:copy-of>
                     <VehicleMonitoringDelivery>
-                        <VehicleActivity>
-                            <xsl:copy-of select="."></xsl:copy-of>
-                        </VehicleActivity>
+                        <xsl:copy-of select="."></xsl:copy-of>
                     </VehicleMonitoringDelivery>
                 </ServiceDelivery>
             </Siri>
         </xsl:for-each>
 
-        <xsl:for-each select="/siri:Siri/siri:ServiceDelivery/siri:SituationExchangeDelivery/siri:PtSituationElement">
-            <Siri xmlns="http://www.siri.org.uk/siri" version="2.0">>
+        <xsl:for-each select="/siri:Siri/siri:ServiceDelivery/siri:SituationExchangeDelivery/siri:Situations">
+            <Siri xmlns="http://www.siri.org.uk/siri" version="2.0">
                 <ServiceDelivery>
                     <xsl:copy-of select="/siri:Siri/siri:ServiceDelivery/siri:ResponseTimestamp"></xsl:copy-of>
                     <xsl:copy-of select="/siri:Siri/siri:ServiceDelivery/siri:ProducerRef"></xsl:copy-of>
-                    <SituationExchangeDelivery>
-                        <PtSituationElement>
-                            <xsl:copy-of select="."></xsl:copy-of>
-                        </PtSituationElement>
+                    <SituationExchangeDelivery version="2.0">
+                        <xsl:copy-of select="/siri:Siri/siri:ServiceDelivery/siri:SituationExchangeDelivery/siri:ResponseTimestamp"></xsl:copy-of>
+                        <xsl:copy-of select="."></xsl:copy-of>
                     </SituationExchangeDelivery>
                 </ServiceDelivery>
             </Siri>
