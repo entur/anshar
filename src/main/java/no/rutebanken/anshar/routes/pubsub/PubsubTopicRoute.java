@@ -41,7 +41,7 @@ public class PubsubTopicRoute extends RouteBuilder {
             ;
 
             /**
-             * Splits SIRI ET-ServiceDelivery into singular messages (i.e. one ET-message per ServiceDelivery), converts
+             * Splits SIRI VM-ServiceDelivery into singular messages (i.e. one VM-message per ServiceDelivery), converts
              * message to protobuf, and posts to Cloud Pubsub
              */
             from("direct:send.to.pubsub.topic.vehicle_monitoring")
@@ -54,7 +54,7 @@ public class PubsubTopicRoute extends RouteBuilder {
             ;
 
             /**
-             * Splits SIRI ET-ServiceDelivery into singular messages (i.e. one ET-message per ServiceDelivery), converts
+             * Splits SIRI SX-ServiceDelivery into singular messages (i.e. one SX-message per ServiceDelivery), converts
              * message to protobuf, and posts to Cloud Pubsub
              */
             from("direct:send.to.pubsub.topic.alerts")
