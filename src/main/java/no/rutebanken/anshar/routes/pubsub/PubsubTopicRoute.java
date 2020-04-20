@@ -110,7 +110,7 @@ public class PubsubTopicRoute extends RouteBuilder {
             from("direct:log.pubsub.sx.traffic")
                     .routeId("log.pubsub.sx")
                     .process(p -> {
-                        if (sxCounter.incrementAndGet() % 1000 == 0) {
+                        if (sxCounter.incrementAndGet() % 50 == 0) {
                             p.getOut().setHeader("counter", sxCounter.get());
                             p.getOut().setBody(p.getIn().getBody());
                         }
