@@ -63,7 +63,7 @@ public class PubsubTopicRoute extends RouteBuilder {
              */
             from("direct:send.to.pubsub.topic.situation_exchange")
                     .to("direct:siri.transform.data")
-                    .to("xslt:xsl/splitAndFilterNotMonitored.xsl")
+                    .to("xslt:xsl/split.xsl")
                     .split().tokenizeXML("Siri").streaming()
                     .to("direct:map.jaxb.to.protobuf")
                     .wireTap("direct:log.pubsub.sx.traffic")
