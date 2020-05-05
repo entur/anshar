@@ -725,9 +725,9 @@ anshar:
       active: false
     -
       internalId: 29
-      vendor: oppEt-test
-      name: Oppland - ET - TEST
-      datasetId: OPP
+      vendor: innEt-test
+      name: Innlandet - ET - TEST
+      datasetId: INN
       serviceType: SOAP
       subscriptionType: ESTIMATED_TIMETABLE
       subscriptionMode: SUBSCRIBE
@@ -748,42 +748,14 @@ anshar:
       requestorRef: ENTUR_DEV_ET_98d87a06-6388-41b8-b689-9a61f88076b7
       durationOfSubscriptionHours: 168
       mappingAdapterId: ostfoldet
-      filterPresets: OPP
-      idMappingPrefixes: OPP
-      active: false
-    -
-      internalId: 30
-      vendor: hedEt
-      name: Hedmark - ET - PROD
-      datasetId: HED
-      serviceType: SOAP
-      subscriptionType: ESTIMATED_TIMETABLE
-      subscriptionMode: SUBSCRIBE
-      heartbeatIntervalSeconds: 120
-      previewIntervalSeconds: 10800
-      operatorNamespace: http://wsdl.siri.org.uk
-      addressFieldName: ConsumerAddress
-      soapenvNamespace: http://schemas.xmlsoap.org/soap/envelope/
-      changeBeforeUpdatesSeconds: 10
-      incrementalUpdates:
-      urlMap:
-        SUBSCRIBE: 92.62.36.219:8000/SIRI
-        DELETE_SUBSCRIPTION: 92.62.36.219:8000/SIRI
-        CHECK_STATUS: 92.62.36.219:8000/SIRI
-      version: 2.0
-      contentType: text/xml;charset=UTF-8
-      subscriptionId: 186c3737-8549-4415-bab2-7f944f56d31b
-      requestorRef: ENTUR_DEV_ET_186c3737-8549-4415-bab2-7f944f56d31b
-      durationOfSubscriptionHours: 168
-      mappingAdapterId: ostfoldet
-      filterPresets: HED
-      idMappingPrefixes: HED
+      filterPresets: INN
+      idMappingPrefixes: OPP,HED
       active: false
     -
       internalId: 31
-      vendor: oppEt
-      name: Oppland - ET - PROD
-      datasetId: OPP
+      vendor: innEt
+      name: Innlandet - ET - PROD
+      datasetId: INN
       serviceType: SOAP
       subscriptionType: ESTIMATED_TIMETABLE
       subscriptionMode: SUBSCRIBE
@@ -804,14 +776,14 @@ anshar:
       requestorRef: ENTUR_DEV_ET_a6004ff5-7c77-4667-8d16-50cc74300713
       durationOfSubscriptionHours: 168
       mappingAdapterId: ostfoldet
-      filterPresets: OPP
-      idMappingPrefixes: OPP
+      filterPresets: INN
+      idMappingPrefixes: OPP,HED
       active: false
     -
       internalId: 32
-      vendor: hedOppVm
-      name: Hedmark/Oppland - VM - PROD
-      datasetId: HED
+      vendor: innVm
+      name: Innlandet - VM - PROD
+      datasetId: INN
       serviceType: SOAP
       subscriptionType: VEHICLE_MONITORING
       subscriptionMode: SUBSCRIBE
@@ -1333,92 +1305,6 @@ anshar:
       mappingAdapterId: nsb
       filterPresets:
       idMappingPrefixes: NSB
-      active: true
-      validation: true
-    -
-      internalId: 55
-      vendor: hedTestEt
-      name: Hedmark - TEST - ET
-      datasetId: HED
-      serviceType: SOAP
-      subscriptionType: ESTIMATED_TIMETABLE
-      subscriptionMode: SUBSCRIBE
-      heartbeatIntervalSeconds: 60
-      previewIntervalSeconds: 10800
-      operatorNamespace: http://wsdl.siri.org.uk
-      addressFieldName: ConsumerAddress
-      soapenvNamespace: http://schemas.xmlsoap.org/soap/envelope/
-      changeBeforeUpdatesSeconds: 10
-      incrementalUpdates:
-      urlMap:
-        SUBSCRIBE: test41.fara.no:8000/SIRI
-        DELETE_SUBSCRIPTION: test41.fara.no:8000/SIRI
-        CHECK_STATUS: test41.fara.no:8000/SIRI
-      version: 2.0
-      contentType: text/xml;charset=UTF-8
-      subscriptionId: 9f743d36-4b9a-4798-894c-45f3570442ee
-      requestorRef: ENTUR_DEV_ET_fb890bdf-6197-4f44-9a22-95fb81ca8da3
-      durationOfSubscriptionHours: 168
-      mappingAdapterId: ostfoldet
-      filterPresets:
-      idMappingPrefixes: HED
-      active: true
-      validation: true
-    -
-      internalId: 56
-      vendor: hedTestVm
-      name: Hedmark - TEST - VM
-      datasetId: HED
-      serviceType: SOAP
-      subscriptionType: VEHICLE_MONITORING
-      subscriptionMode: SUBSCRIBE
-      heartbeatIntervalSeconds:  60
-      previewIntervalSeconds: 36000
-      operatorNamespace: http://wsdl.siri.org.uk
-      addressFieldName: ConsumerAddress
-      soapenvNamespace: http://schemas.xmlsoap.org/soap/envelope/
-      changeBeforeUpdatesSeconds: 10
-      incrementalUpdates: true
-      urlMap:
-        SUBSCRIBE: test41.fara.no:8000/SIRI
-        DELETE_SUBSCRIPTION: test41.fara.no:8000/SIRI
-        CHECK_STATUS: test41.fara.no:8000/SIRI
-      version: 2.0
-      contentType: text/xml;charset=UTF-8
-      subscriptionId: c3d75af7-2f1d-4a73-ac9f-cd8ea2adeaef
-      requestorRef: ENTUR_DEV_VM_c975e774-8f20-4628-8490-223e79177271
-      durationOfSubscriptionHours: 168
-      mappingAdapterId: ostfoldvm
-      filterPresets:
-      idMappingPrefixes: HED
-      active: true
-      validation: true
-    -
-      internalId: 57
-      vendor: hedTestSX
-      name: Hedmark - TEST - SX
-      datasetId: HED
-      serviceType: SOAP
-      subscriptionType: SITUATION_EXCHANGE
-      subscriptionMode: SUBSCRIBE
-      heartbeatIntervalSeconds:  120
-      previewIntervalSeconds: 36000
-      operatorNamespace: http://wsdl.siri.org.uk
-      addressFieldName: ConsumerAddress
-      soapenvNamespace: http://schemas.xmlsoap.org/soap/envelope/
-      incrementalUpdates:
-      urlMap:
-        SUBSCRIBE: test41.fara.no:8000/SIRI
-        DELETE_SUBSCRIPTION: test41.fara.no:8000/SIRI
-        CHECK_STATUS: test41.fara.no:8000/SIRI
-      version: 2.0
-      contentType: text/xml;charset=UTF-8
-      subscriptionId: bd1fab32-5fe2-46b9-9155-25e449157434
-      requestorRef: ENTUR_DEV_SX_2c3a2e89-0033-4da7-a41f-a06ca2202db2
-      durationOfSubscriptionHours: 168
-      mappingAdapterId: ostfoldsx
-      filterPresets:
-      idMappingPrefixes: HED
       active: true
       validation: true
     -

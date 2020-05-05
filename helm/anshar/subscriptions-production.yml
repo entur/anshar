@@ -621,38 +621,10 @@ anshar:
       idMappingPrefixes: OST
       active: true
     -
-      internalId: 32
-      vendor: hedEt
-      name: Hedmark - ET
-      datasetId: HED
-      serviceType: SOAP
-      subscriptionType: ESTIMATED_TIMETABLE
-      subscriptionMode: SUBSCRIBE
-      heartbeatIntervalSeconds: 120
-      previewIntervalSeconds: 10800
-      operatorNamespace: http://wsdl.siri.org.uk
-      addressFieldName: ConsumerAddress
-      soapenvNamespace: http://schemas.xmlsoap.org/soap/envelope/
-      changeBeforeUpdatesSeconds: 10
-      incrementalUpdates:
-      urlMap:
-        SUBSCRIBE: 92.62.36.219:8000/SIRI
-        DELETE_SUBSCRIPTION: 92.62.36.219:8000/SIRI
-        CHECK_STATUS: 92.62.36.219:8000/SIRI
-      version: 2.0
-      contentType: text/xml;charset=UTF-8
-      subscriptionId: c12e715d-cdeb-4192-82cc-3e230989ce94
-      requestorRef: ENTUR_DEV_ET_c12e715d-cdeb-4192-82cc-3e230989ce94
-      durationOfSubscriptionHours: 168
-      mappingAdapterId: ostfoldet
-      filterPresets: HED
-      idMappingPrefixes: HED
-      active: true
-    -
       internalId: 33
       vendor: oppEt
-      name: Oppland - ET
-      datasetId: OPP
+      name: Innlandet - ET
+      datasetId: INN
       serviceType: SOAP
       subscriptionType: ESTIMATED_TIMETABLE
       subscriptionMode: SUBSCRIBE
@@ -673,8 +645,8 @@ anshar:
       requestorRef: ENTUR_DEV_ET_2a1ea0cc-0af0-45af-9b1f-e50af2541538
       durationOfSubscriptionHours: 168
       mappingAdapterId: ostfoldet
-      filterPresets: OPP
-      idMappingPrefixes: OPP
+      filterPresets: INN
+      idMappingPrefixes: OPP,HED
       active: true
     -
       internalId: 34
@@ -1015,3 +987,31 @@ anshar:
       idMappingPrefixes: VKT,TEL
       active: true
       validation: true
+    -
+      internalId: 46
+      vendor: innVm
+      name: Innlandet - VM
+      datasetId: INN
+      serviceType: SOAP
+      subscriptionType: VEHICLE_MONITORING
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds: 120
+      previewIntervalSeconds: 10800
+      operatorNamespace: http://wsdl.siri.org.uk
+      addressFieldName: ConsumerAddress
+      soapenvNamespace: http://schemas.xmlsoap.org/soap/envelope/
+      changeBeforeUpdatesSeconds: 10
+      incrementalUpdates:
+      urlMap:
+        SUBSCRIBE: 92.62.36.219:8000/SIRI
+        DELETE_SUBSCRIPTION: 92.62.36.219:8000/SIRI
+        CHECK_STATUS: 92.62.36.219:8000/SIRI
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: c86f1da7-6062-411b-977e-43b24f0842ba
+      requestorRef: ENTUR_DEV_VM_c86f1da7-6062-411b-977e-43b24f0842ba
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: ostfoldet
+      filterPresets:
+      idMappingPrefixes: HED,OPP
+      active: false

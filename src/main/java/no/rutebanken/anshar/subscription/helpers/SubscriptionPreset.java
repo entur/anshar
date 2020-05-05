@@ -28,8 +28,7 @@ public enum SubscriptionPreset {
     MOR,
     NSB,
     NSR,
-    HED,
-    OPP,
+    INN,
     VKT,
     TEL
 }
