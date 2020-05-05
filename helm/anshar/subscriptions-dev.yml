@@ -1935,35 +1935,6 @@ anshar:
       active: true
       validation: true
     -
-      internalId: 83
-      vendor: innEt
-      name: Innlandet - ET - PROD
-      datasetId: INN
-      serviceType: SOAP
-      subscriptionType: ESTIMATED_TIMETABLE
-      subscriptionMode: SUBSCRIBE
-      heartbeatIntervalSeconds: 120
-      previewIntervalSeconds: 10800
-      operatorNamespace: http://wsdl.siri.org.uk
-      addressFieldName: ConsumerAddress
-      soapenvNamespace: http://schemas.xmlsoap.org/soap/envelope/
-      changeBeforeUpdatesSeconds: 10
-      incrementalUpdates:
-      urlMap:
-        SUBSCRIBE: 92.62.36.219:8000/SIRI
-        DELETE_SUBSCRIPTION: 92.62.36.219:8000/SIRI
-        CHECK_STATUS: 92.62.36.219:8000/SIRI
-      version: 2.0
-      contentType: text/xml;charset=UTF-8
-      subscriptionId: 8604552f-b398-43d7-9535-aa41be70f5ac
-      requestorRef: ENTUR_DEV_ET_8604552f-b398-43d7-9535-aa41be70f5ac
-      durationOfSubscriptionHours: 168
-      mappingAdapterId: ostfoldet
-      filterPresets:
-      idMappingPrefixes: HED,OPP
-      active: false
-      validation: true
-    -
       internalId: 84
       vendor: sjnSX
       name: SJ Nord - SX
