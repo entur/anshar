@@ -2077,3 +2077,32 @@ anshar:
       idMappingPrefixes: HED,OPP
       active: false
       validation: true
+    -
+      internalId: 84
+      vendor: sjnSX
+      name: SJ Nord - SX
+      datasetId: SJN
+      serviceType: REST
+      subscriptionType: SITUATION_EXCHANGE
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds:  600000
+      previewIntervalSeconds: 36000
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      changeBeforeUpdatesSeconds: 10
+      incrementalUpdates: true
+      urlMap:
+        SUBSCRIBE: localhost:1234
+        DELETE_SUBSCRIPTION: localhost:1234
+        CHECK_STATUS: localhost:1234
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: 41dbbf4a-81aa-4223-bcf5-e38183875e52
+      requestorRef: ENTUR_DEV
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: entur
+      filterPresets:
+      idMappingPrefixes: SJN
+      active: true
+      validation: true
