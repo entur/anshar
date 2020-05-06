@@ -1963,3 +1963,32 @@ anshar:
       idMappingPrefixes: SJN
       active: true
       validation: true
+    -
+      internalId: 85
+      vendor: turnitVm
+      name: Turnit - dummy VM
+      datasetId: VYB
+      serviceType: REST
+      subscriptionType: VEHICLE_MONITORING
+      subscriptionMode: SUBSCRIBE
+      heartbeatIntervalSeconds:  600000
+      previewIntervalSeconds: 36000
+      operatorNamespace: http://www.siri.org.uk/siri
+      addressFieldName:
+      soapenvNamespace:
+      changeBeforeUpdatesSeconds: 10
+      incrementalUpdates: true
+      urlMap:
+        SUBSCRIBE: localhost:1234
+        DELETE_SUBSCRIPTION: localhost:1234
+        CHECK_STATUS: localhost:1234
+      version: 2.0
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: d367e56b-af13-491b-a106-ebde49779d43
+      requestorRef: ENTUR_DEV
+      durationOfSubscriptionHours: 168
+      mappingAdapterId: entur
+      filterPresets:
+      idMappingPrefixes: VYB
+      active: true
+      validation: true
