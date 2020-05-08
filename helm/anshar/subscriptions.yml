@@ -1,0 +1,90 @@
+anshar:
+    subscriptions:
+      -
+        internalId: 100
+        vendor: enturVm
+        name: Entur - VM
+        datasetId: ENT
+        serviceType: REST
+        subscriptionType: VEHICLE_MONITORING
+        subscriptionMode: REQUEST_RESPONSE
+        heartbeatIntervalSeconds: 60
+        updateIntervalSeconds: 1
+        operatorNamespace: http://www.siri.org.uk/siri
+        addressFieldName:
+        soapenvNamespace:
+        incrementalUpdates:
+        urlMap:
+          GET_VEHICLE_MONITORING: https4://api.entur.io/realtime/v1/services
+        customHeaders:
+          ET-Client-Name: anshar-default-VM-client
+        version: 2.0
+        contentType: text/xml;charset=UTF-8
+        subscriptionId: anshar-example-${random.uuid}
+        requestorRef: ${random.uuid}
+        durationOfSubscriptionHours: 1680
+        mappingAdapterId: entur
+        filterPresets:
+        idMappingPrefixes:
+        restartTime: "01:30"
+        active: false
+      -
+        internalId: 200
+        vendor: enturEt
+        name: Entur - ET
+        datasetId: ENT
+        serviceType: REST
+        subscriptionType: ESTIMATED_TIMETABLE
+        subscriptionMode: SUBSCRIBE
+        heartbeatIntervalSeconds: 60
+        previewIntervalSeconds: 86400
+        updateIntervalSeconds: 1
+        operatorNamespace: http://www.siri.org.uk/siri
+        addressFieldName:
+        soapenvNamespace:
+        incrementalUpdates:
+        urlMap:
+          SUBSCRIBE: https4://api.entur.io/realtime/v1/subscribe
+          DELETE_SUBSCRIPTION: https4://api.entur.io/realtime/v1/subscribe
+        customHeaders:
+          ET-Client-Name: anshar-default-ET-client
+        version: 2.0
+        contentType: text/xml;charset=UTF-8
+        subscriptionId: anshar-example-${random.uuid}
+        requestorRef: ${random.uuid}
+        durationOfSubscriptionHours: 1680
+        mappingAdapterId: entur
+        filterPresets:
+        idMappingPrefixes:
+        restartTime:
+        active: false
+      -
+        internalId: 300
+        vendor: enturSx
+        name: Entur - SX
+        datasetId: ENT
+        serviceType: REST
+        subscriptionType: SITUATION_EXCHANGE
+        subscriptionMode: SUBSCRIBE
+        heartbeatIntervalSeconds: 60
+        previewIntervalSeconds: 86400
+        updateIntervalSeconds: 1
+        operatorNamespace: http://www.siri.org.uk/siri
+        addressFieldName:
+        soapenvNamespace:
+        incrementalUpdates:
+        urlMap:
+          SUBSCRIBE: https4://api.entur.io/realtime/v1/subscribe
+          DELETE_SUBSCRIPTION: https4://api.entur.io/realtime/v1/subscribe
+        customHeaders:
+          ET-Client-Name: anshar-default-SX-client
+        version: 2.0
+        contentType: text/xml;charset=UTF-8
+        subscriptionId: anshar-example-${random.uuid}
+        requestorRef: ${random.uuid}
+        durationOfSubscriptionHours: 1680
+        mappingAdapterId: entur
+        filterPresets:
+        idMappingPrefixes:
+        active: false
+
