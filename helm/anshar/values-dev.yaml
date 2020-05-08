@@ -9,7 +9,7 @@ resources:
   memRequest: 14G
   xmx: 12G
 
-subscriptions: subscriptions.yml
+subscriptions: subscriptions-dev.yml
 
 configMap:
   projectId: carbon-1287
