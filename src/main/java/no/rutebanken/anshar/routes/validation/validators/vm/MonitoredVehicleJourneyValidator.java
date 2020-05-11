@@ -67,6 +67,7 @@ public class MonitoredVehicleJourneyValidator extends NsrQuayValidator {
                 "FramedVehicleJourneyRef",
                 "DataSource",
                 "VehicleLocation",
+                "VehicleRef",
                 "Delay");
 
     }
