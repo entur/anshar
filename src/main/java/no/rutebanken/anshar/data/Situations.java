@@ -319,7 +319,7 @@ public class Situations extends SiriRepository<PtSituationElement> {
 
             String existingChecksum = checksumCache.get(key);
             boolean updated;
-            if (existingChecksum != null) {
+            if (existingChecksum != null && situationElements.containsKey(key)) { // Checksum not compared if actual situation does not exist
                 //Exists - compare values
                 updated =  !(currentChecksum.equals(existingChecksum));
             } else {
