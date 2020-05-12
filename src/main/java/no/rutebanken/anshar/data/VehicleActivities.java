@@ -329,7 +329,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
                     String existingChecksum = checksumCache.get(key);
 
                     boolean updated;
-                    if (existingChecksum != null) {
+                    if (existingChecksum != null && monitoredVehicles.containsKey(key)) {
                         //Exists - compare values
                         updated =  !(currentChecksum.equals(existingChecksum));
                     } else {
