@@ -15,13 +15,15 @@
 
 package no.rutebanken.anshar.data;
 
+import com.hazelcast.core.EntryEvent;
 import com.hazelcast.core.IMap;
+import com.hazelcast.core.MapEvent;
 import com.hazelcast.core.ReplicatedMap;
-import com.hazelcast.map.listener.EntryRemovedListener;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.data.collections.ExtendedHazelcastService;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.subscription.SiriDataType;
+import org.apache.camel.component.hazelcast.listener.MapEntryListener;
 import org.quartz.utils.counter.Counter;
 import org.quartz.utils.counter.CounterImpl;
 import org.slf4j.Logger;
@@ -85,10 +87,42 @@ public class Situations extends SiriRepository<PtSituationElement> {
     private void initializeUpdateCommitter() {
         super.initBufferCommitter(hazelcastService, lastUpdateRequested, changesMap, configuration.getChangeBufferCommitFrequency());
 
-        situationElements.addEntryListener((EntryRemovedListener<SiriObjectStorageKey, PtSituationElement>) entryEvent -> {
-            logger.info("Removed SX message with key {}", entryEvent.getKey().getKey());
-        }, false);
+        situationElements.addEntryListener(new MapEntryListener<SiriObjectStorageKey, PtSituationElement>() {
+            @Override
+            public void mapEvicted(MapEvent mapEvent) {
+                logger.info("Map evicted - {} entries affected", mapEvent.getNumberOfEntriesAffected());
+            }
 
+            @Override
+            public void mapCleared(MapEvent mapEvent) {
+                logger.info("Map cleared - {} entries affected", mapEvent.getNumberOfEntriesAffected());
+            }
+
+            @Override
+            public void entryUpdated(EntryEvent<SiriObjectStorageKey, PtSituationElement> entryEvent) {
+                logger.info("Updated SX message with key {}", entryEvent.getKey().getKey());
+            }
+
+            @Override
+            public void entryRemoved(EntryEvent<SiriObjectStorageKey, PtSituationElement> entryEvent) {
+                logger.info("Removed SX message with key {}", entryEvent.getKey().getKey());
+            }
+
+            @Override
+            public void entryMerged(EntryEvent<SiriObjectStorageKey, PtSituationElement> entryEvent) {
+                logger.info("Merged SX message with key {}", entryEvent.getKey().getKey());
+            }
+
+            @Override
+            public void entryEvicted(EntryEvent<SiriObjectStorageKey, PtSituationElement> entryEvent) {
+                logger.info("Evicted SX message with key {}", entryEvent.getKey().getKey());
+            }
+
+            @Override
+            public void entryAdded(EntryEvent<SiriObjectStorageKey, PtSituationElement> entryEvent) {
+                logger.info("Added SX message with key {}", entryEvent.getKey().getKey());
+            }
+        }, false);
     }
 
     /**
