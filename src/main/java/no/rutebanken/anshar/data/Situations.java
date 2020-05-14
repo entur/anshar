@@ -17,6 +17,7 @@ package no.rutebanken.anshar.data;
 
 import com.hazelcast.core.IMap;
 import com.hazelcast.core.ReplicatedMap;
+import com.hazelcast.map.listener.EntryRemovedListener;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.data.collections.ExtendedHazelcastService;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
@@ -83,6 +84,11 @@ public class Situations extends SiriRepository<PtSituationElement> {
     @PostConstruct
     private void initializeUpdateCommitter() {
         super.initBufferCommitter(hazelcastService, lastUpdateRequested, changesMap, configuration.getChangeBufferCommitFrequency());
+
+        situationElements.addEntryListener((EntryRemovedListener<SiriObjectStorageKey, PtSituationElement>) entryEvent -> {
+            logger.info("Removed SX message with key {}", entryEvent.getKey().getKey());
+        }, false);
+
     }
 
     /**
