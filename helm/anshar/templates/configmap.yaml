@@ -17,6 +17,7 @@ data:
 
       rutebanken.hazelcast.management.url=http://anshar-hzmgmt/hazelcast-mancenter/
       rutebanken.kubernetes.namespace={{ .Release.Namespace }}
+      entur.hazelcast.backup.count.sync={{ .Values.configMap.hzBackupCount }}
 
       blobstore.gcs.project.id={{ .Values.configMap.projectId }}
       blobstore.gcs.container.name={{ .Values.configMap.gcsBucketName }}

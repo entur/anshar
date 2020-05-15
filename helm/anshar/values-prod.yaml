@@ -21,6 +21,7 @@ configMap:
   validationCount: 20
   validationSize: 4
   mqttEnabled: true
+  hzBackupCount: 6
 
 hpa:
   maxReplicas: 12
