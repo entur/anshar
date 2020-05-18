@@ -1008,7 +1008,7 @@ anshar:
     -
       internalId: 43
       vendor: ruter-et
-      name: Ruter - ET - bus-metro
+      name: Ruter - ET
       datasetId: RUT
       serviceType: REST
       subscriptionType: ESTIMATED_TIMETABLE
@@ -1035,7 +1035,7 @@ anshar:
     -
       internalId: 44
       vendor: ruter-vm
-      name: Ruter - VM - SIRI-Producer-PROD
+      name: Ruter - VM - PROD
       datasetId: RUT
       serviceType: REST
       subscriptionType: VEHICLE_MONITORING
@@ -1076,8 +1076,8 @@ anshar:
       soapenvNamespace:
       incrementalUpdates:
       urlMap:
-        SUBSCRIBE: https4://siri-producer.ruter.io/api/1.0/subscribe
-        DELETE_SUBSCRIPTION: https4://siri-producer.ruter.io/api/1.0/subscribe
+        SUBSCRIBE: https4://siri-producer.transhub.io/api/1.0/subscribe
+        DELETE_SUBSCRIPTION: https4://siri-producer.transhub.io/api/1.0/subscribe
       version: 2.0
       contentType: text/xml;charset=UTF-8
       subscriptionId: 95d387da-5f61-4430-8bc8-e5885b4467bd
@@ -1087,7 +1087,7 @@ anshar:
       filterPresets:
       idMappingPrefixes:
       validation: true
-      active: true
+      active: false
     -
       internalId: 46
       vendor: dummySx
@@ -1200,9 +1200,9 @@ anshar:
       validation: true
     -
       internalId: 51
-      vendor: ruter.io-sx
+      vendor: rutsx-test
       name: Ruter SX - TEST
-      datasetId: RUT-SX
+      datasetId: RUT
       serviceType: REST
       subscriptionType: SITUATION_EXCHANGE
       subscriptionMode: SUBSCRIBE
@@ -1218,33 +1218,6 @@ anshar:
       version: 2.0
       contentType: text/xml;charset=UTF-8
       subscriptionId: dcb71897-c3ec-4aa1-9de8-73dbfad9a364
-      requestorRef: Entur
-      durationOfSubscriptionHours: 168
-      mappingAdapterId: entur
-      filterPresets:
-      idMappingPrefixes: RUT
-      active: true
-      validation: true
-    -
-      internalId: 52
-      vendor: soareis.situations
-      name: SoaReis.Situations
-      datasetId: SRS
-      serviceType: REST
-      subscriptionType: SITUATION_EXCHANGE
-      subscriptionMode: SUBSCRIBE
-      heartbeatIntervalSeconds: 60000000
-      previewIntervalSeconds: 86400
-      operatorNamespace: http://www.siri.org.uk/siri
-      addressFieldName:
-      soapenvNamespace:
-      incrementalUpdates:
-      urlMap:
-        SUBSCRIBE: local/dummy/soareis
-        DELETE_SUBSCRIPTION: local/dummy/soareis
-      version: 2.0
-      contentType: text/xml;charset=UTF-8
-      subscriptionId: 36d367e9-4549-4d7e-aeac-cbc1c5db599a
       requestorRef: Entur
       durationOfSubscriptionHours: 168
       mappingAdapterId: entur
