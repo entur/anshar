@@ -17,7 +17,7 @@ configMap:
   ansharInboundUrl: https://api.staging.entur.io/realtime/v1/
   ansharEnvironment: stage
   springProfile: gcs-blobstore
-  concurrentPubsubConsumers: 1500
+  concurrentPubsubConsumers: 20
   validationCount: 20
   validationSize: 4
   mqttEnabled: false
