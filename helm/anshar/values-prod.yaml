@@ -17,7 +17,8 @@ configMap:
   ansharInboundUrl: https://api.entur.io/realtime/v1/
   ansharEnvironment: prod
   springProfile: gcs-blobstore
-  concurrentPubsubConsumers: 1500
+  concurrentPubsubConsumers: 10
+  parallellPubsubMessagePulls: 1
   validationCount: 20
   validationSize: 4
   mqttEnabled: true

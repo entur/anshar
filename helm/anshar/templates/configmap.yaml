@@ -50,8 +50,8 @@ data:
 
       anshar.message.queue.camel.route.prefix=entur-google-pubsub://
       anshar.incoming.concurrentConsumers={{ .Values.configMap.concurrentPubsubConsumers }}
-      spring.cloud.gcp.pubsub.subscriber.parallel-pull-count=1
-      spring.cloud.gcp.pubsub.subscriber.executor-threads=20
+      spring.cloud.gcp.pubsub.subscriber.parallel-pull-count={{ .Values.configMap.parallellPubsubMessagePulls }}
+      spring.cloud.gcp.pubsub.subscriber.executor-threads={{ .Values.configMap.concurrentPubsubConsumers }}
 
       anshar.bigdata.siri.et.export.camel.url=http4://big-daddy.default/siri/et
 
