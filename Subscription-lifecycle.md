@@ -7,11 +7,11 @@ The client sends a SubscriptionRequest to server to initiate a subscription. The
 
 When the server has processed the SubscriptionRequest, it should respond with a SubscriptionResponse.
 
-The server then sends a ServiceDelivery (XML over HTTP POST) containing all currently known and active updates to ensure that the client is up to date.
+The server should then send a ServiceDelivery (XML over HTTP POST) containing all currently known and active updates to ensure that the client is up to date.
 For SX-messages: this includes all current and future messages that are still open/active.
-For ET-updates: All departures that are still running (started ant not yet arrived, or about to start), or that have known changes (cancellations etc.)
+For ET-updates: All departures that are still running (started and not yet arrived, or about to start), or that have known changes (cancellations etc.)
 
-Note: Each SIRI-datatype (ET/SX/VM) will have its own subscription with a separate SubscriptionId and separate Address.
+Note: Each SIRI-datatype (ET/SX/VM) will have its own subscription with a separate SubscriptionId and posibly also a separate Address.
 
 SubscriptionRequest:
 ```
