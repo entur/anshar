@@ -153,12 +153,12 @@ public abstract class SiriSubscriptionRouteBuilder extends BaseRouteBuilder {
                         return false;
                     }
 
-                    //Clear data
-                    estimatedTimetables.clearAllByDatasetId(subscriptionSetup.getDatasetId());
-
-                    restartTriggered = Instant.now();
-
                     if (enabled) {
+                        //Clear data
+                        estimatedTimetables.clearAllByDatasetId(subscriptionSetup.getDatasetId());
+
+                        restartTriggered = Instant.now();
+
                         logger.warn("Triggering DataNotReceivedAction: POST {} to {}", dataNotReceivedAction.getJsonPostContent(), dataNotReceivedAction.getEndpoint());
                     } else {
                         logger.info("Should have triggered DataNotReceivedAction, but it has been disabled");
