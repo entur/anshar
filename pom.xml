@@ -49,6 +49,14 @@
         <entur.helpers.version>1.0.13</entur.helpers.version>
     </properties>
 
+    <distributionManagement>
+        <snapshotRepository>
+            <id>snapshots</id>
+            <name>entur2-snapshots</name>
+            <url>https://entur2.jfrog.io/entur2/libs-snapshot-local</url>
+        </snapshotRepository>
+    </distributionManagement>
+
     <!-- Repository needs to be set up in nexus: repositories>
         <repository>
             <id>jclouds-snapshots</id>
