@@ -69,7 +69,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPInputStream;
 
 import static no.rutebanken.anshar.util.CompressionUtil.compress;
@@ -362,10 +361,10 @@ public class SiriXmlValidator extends ApplicationContextHolder {
 
         final Long totalXmlSize = (validationSize.getOrDefault(subscriptionSetup.getSubscriptionId(), 0L) + byteArray.length);
 
-        validatedSiri.set(newUniqueReference, byteArray, configuration.getNumberOfHoursToKeepValidation(), TimeUnit.HOURS);
-        validationResults.set(newUniqueReference, jsonObject, configuration.getNumberOfHoursToKeepValidation(), TimeUnit.HOURS);
-        validationResultRefs.set(subscriptionSetup.getSubscriptionId(), subscriptionValidationRefs, configuration.getNumberOfHoursToKeepValidation(), TimeUnit.HOURS);
-        validationSize.set(subscriptionSetup.getSubscriptionId(), totalXmlSize, configuration.getNumberOfHoursToKeepValidation(), TimeUnit.HOURS);
+        validatedSiri.set(newUniqueReference, byteArray);
+        validationResults.set(newUniqueReference, jsonObject);
+        validationResultRefs.set(subscriptionSetup.getSubscriptionId(), subscriptionValidationRefs);
+        validationSize.set(subscriptionSetup.getSubscriptionId(), totalXmlSize);
 
         if (totalXmlSize > (configuration.getMaxTotalXmlSizeOfValidation() * 1024*1024)) {
             subscriptionSetup.setValidation(false);
