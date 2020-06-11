@@ -184,27 +184,9 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
 
     public Siri createServiceDelivery(final String lineRef) {
         SortedSet<EstimatedVehicleJourney> matchingEstimatedVehicleJourneys = new TreeSet<>((o1, o2) -> {
-            ZonedDateTime o1_firstTimestamp = o1.getEstimatedCalls().getEstimatedCalls().get(0).getAimedDepartureTime();
-            if (o1_firstTimestamp == null) {
-                o1_firstTimestamp = o1.getEstimatedCalls().getEstimatedCalls().get(0).getAimedArrivalTime();
-            }
+            ZonedDateTime o1_firstTimestamp = getFirstAimedTime(o1);
 
-            ZonedDateTime o2_firstTimestamp = o2.getEstimatedCalls().getEstimatedCalls().get(0).getAimedDepartureTime();
-            if (o2_firstTimestamp == null) {
-                o2_firstTimestamp = o2.getEstimatedCalls().getEstimatedCalls().get(0).getAimedArrivalTime();
-            }
-
-            if (o1.getRecordedCalls() != null && o1.getRecordedCalls().getRecordedCalls() != null) {
-                if (o1.getRecordedCalls().getRecordedCalls().size() > 0) {
-                    o1_firstTimestamp = o1.getRecordedCalls().getRecordedCalls().get(0).getAimedDepartureTime();
-                }
-            }
-
-            if (o2.getRecordedCalls() != null && o2.getRecordedCalls().getRecordedCalls() != null) {
-                if (o2.getRecordedCalls().getRecordedCalls().size() > 0) {
-                    o2_firstTimestamp = o2.getRecordedCalls().getRecordedCalls().get(0).getAimedDepartureTime();
-                }
-            }
+            ZonedDateTime o2_firstTimestamp = getFirstAimedTime(o2);
 
             return o1_firstTimestamp.compareTo(o2_firstTimestamp);
         });
