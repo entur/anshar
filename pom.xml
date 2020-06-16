@@ -424,7 +424,7 @@
                         <artifactItem>
                             <groupId>com.google.cloud</groupId>
                             <artifactId>pubsub-emulator</artifactId>
-                            <version>0.1-SNAPSHOT</version>
+                            <version>1.51.0</version>
                             <type>jar</type>
                             <overWrite>true</overWrite>
                             <outputDirectory>${project.build.directory}/pubsub-emulator</outputDirectory>
