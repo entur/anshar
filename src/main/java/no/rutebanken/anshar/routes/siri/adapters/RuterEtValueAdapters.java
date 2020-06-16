@@ -19,17 +19,17 @@ import no.rutebanken.anshar.routes.siri.processor.PredictionInaccurateDisablerPo
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Mapping(id="ruter-et")
-public class RuterEtValueAdapters extends MappingAdapter {
+public class RuterEtValueAdapters extends EnturValueAdapters {
 
 
     @Override
     public List<ValueAdapter> getValueAdapters(SubscriptionSetup subscriptionSetup) {
 
-        List<ValueAdapter> valueAdapters = new ArrayList<>();
+        List<ValueAdapter> valueAdapters = super.getValueAdapters(subscriptionSetup);
+
         valueAdapters.add(new PredictionInaccurateDisablerPostProcessor());
         return valueAdapters;
     }
