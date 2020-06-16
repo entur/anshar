@@ -34,23 +34,24 @@ public class PredictionInaccurateDisablerPostProcessor extends ValueAdapter impl
 
     @Override
     public void process(Siri siri) {
+        if (siri != null && siri.getServiceDelivery() != null) {
+            List<EstimatedTimetableDeliveryStructure> etDeliveries = siri.getServiceDelivery().getEstimatedTimetableDeliveries();
+            if (etDeliveries != null) {
+                for (EstimatedTimetableDeliveryStructure etDelivery : etDeliveries) {
+                    List<EstimatedVersionFrameStructure> estimatedJourneyVersionFrames = etDelivery.getEstimatedJourneyVersionFrames();
+                    for (EstimatedVersionFrameStructure estimatedJourneyVersionFrame : estimatedJourneyVersionFrames) {
 
-        List<EstimatedTimetableDeliveryStructure> etDeliveries = siri.getServiceDelivery().getEstimatedTimetableDeliveries();
-        if (etDeliveries != null) {
-            for (EstimatedTimetableDeliveryStructure etDelivery : etDeliveries) {
-                List<EstimatedVersionFrameStructure> estimatedJourneyVersionFrames = etDelivery.getEstimatedJourneyVersionFrames();
-                for (EstimatedVersionFrameStructure estimatedJourneyVersionFrame : estimatedJourneyVersionFrames) {
-
-                    if (estimatedJourneyVersionFrame.getEstimatedVehicleJourneies() != null) {
-                        int counter = 0;
-                        for (EstimatedVehicleJourney estimatedVehicleJourney : estimatedJourneyVersionFrame.getEstimatedVehicleJourneies()) {
-                            if (Boolean.TRUE.equals(estimatedVehicleJourney.isPredictionInaccurate())) {
-                                estimatedVehicleJourney.setPredictionInaccurate(Boolean.FALSE);
-                                counter++;
+                        if (estimatedJourneyVersionFrame.getEstimatedVehicleJourneies() != null) {
+                            int counter = 0;
+                            for (EstimatedVehicleJourney estimatedVehicleJourney : estimatedJourneyVersionFrame.getEstimatedVehicleJourneies()) {
+                                if (Boolean.TRUE.equals(estimatedVehicleJourney.isPredictionInaccurate())) {
+                                    estimatedVehicleJourney.setPredictionInaccurate(Boolean.FALSE);
+                                    counter++;
+                                }
                             }
-                        }
-                        if (counter > 0) {
-                            logger.info("Overriding {} PredictionInaccurate-flags", counter);
+                            if (counter > 0) {
+                                logger.info("Overriding {} PredictionInaccurate-flags", counter);
+                            }
                         }
                     }
                 }
