@@ -15,6 +15,7 @@
 
 package no.rutebanken.anshar.routes.siri.processor;
 
+import no.rutebanken.anshar.data.collections.KryoSerializer;
 import no.rutebanken.anshar.routes.siri.processor.routedata.ServiceDate;
 import no.rutebanken.anshar.routes.siri.processor.routedata.StopTime;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
@@ -75,6 +76,8 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
                                                                         "ØXN"); // Øxnered
     private String datasetId;
 
+    private transient KryoSerializer kryoSerializer;
+
     public BaneNorSiriEtRewriter(String datasetId) {
         this.datasetId = datasetId;
     }
@@ -89,6 +92,10 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
         long startTime = System.currentTimeMillis();
         int previousSize = 0;
         int newSize = 0;
+
+        if (kryoSerializer == null) {
+            kryoSerializer = new KryoSerializer();
+        }
 
         if (siri != null && siri.getServiceDelivery() != null) {
 
@@ -380,7 +387,8 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
                             }
 
                             List<EstimatedCall> calls = matches.getOrDefault(serviceJourneyId, new ArrayList<>());
-                            calls.add(estimatedCall);
+                            final byte[] bytes = kryoSerializer.write(estimatedCall);
+                            calls.add((EstimatedCall) kryoSerializer.read(bytes));
 
                             visitedCalls.add(estimatedCall);
 
@@ -466,7 +474,9 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
                             }
 
                             List<RecordedCall> calls = matches.getOrDefault(serviceJourneyId, new ArrayList<>());
-                            calls.add(recordedCall);
+                            final byte[] bytes = kryoSerializer.write(recordedCall);
+                            calls.add((RecordedCall) kryoSerializer.read(bytes));
+
 
                             visitedCall.add(recordedCall);
 
