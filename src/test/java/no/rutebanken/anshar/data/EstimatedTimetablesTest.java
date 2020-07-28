@@ -208,14 +208,15 @@ public class EstimatedTimetablesTest extends SpringBootBaseTest {
 
         ZonedDateTime departure = ZonedDateTime.now().plusHours(1);
         String lineRefValue = "12345-wrongOrder";
-        EstimatedVehicleJourney estimatedVehicleJourney = createEstimatedVehicleJourney(lineRefValue, "4321", 0, 10, departure, true);
-        estimatedVehicleJourney.setRecordedAtTime(ZonedDateTime.now().plusMinutes(1));
+        EstimatedVehicleJourney estimatedVehicleJourney = createEstimatedVehicleJourney(lineRefValue, "4321", 0, 20, departure, true);
+        final ZonedDateTime firstRecordedAtTime = ZonedDateTime.now().plusMinutes(1);
+        estimatedVehicleJourney.setRecordedAtTime(firstRecordedAtTime);
 
         estimatedTimetables.add("test", estimatedVehicleJourney);
         int expectedSize = previousSize +1;
         assertTrue("Adding Journey did not add element.", estimatedTimetables.getAll().size() == expectedSize);
 
-        EstimatedVehicleJourney estimatedVehicleJourney1 = createEstimatedVehicleJourney(lineRefValue, "4321", 1, 20, departure, true);
+        EstimatedVehicleJourney estimatedVehicleJourney1 = createEstimatedVehicleJourney(lineRefValue, "4321", 0, 20, departure, true);
         estimatedVehicleJourney1.setRecordedAtTime(ZonedDateTime.now());
         estimatedTimetables.add("test", estimatedVehicleJourney1);
 
@@ -225,9 +226,7 @@ public class EstimatedTimetablesTest extends SpringBootBaseTest {
         Collection<EstimatedVehicleJourney> all = estimatedTimetables.getAll();
         for (EstimatedVehicleJourney vehicleJourney : all) {
             if (lineRefValue.equals(vehicleJourney.getLineRef().getValue())) {
-                List<EstimatedCall> estimatedCallsList = vehicleJourney.getEstimatedCalls().getEstimatedCalls();
-                int size = estimatedCallsList.size();
-                assertEquals("Older request should have been ignored.", 10, size);
+                assertEquals("Older request should have been ignored.", firstRecordedAtTime, vehicleJourney.getRecordedAtTime());
                 checkedMatchingJourney = true;
             }
         }

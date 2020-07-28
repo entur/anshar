@@ -36,6 +36,7 @@ import uk.org.siri.siri20.QuayRefStructure;
 import uk.org.siri.siri20.RecordedCall;
 import uk.org.siri.siri20.Siri;
 import uk.org.siri.siri20.StopAssignmentStructure;
+import uk.org.siri.siri20.StopPointRef;
 
 import javax.annotation.PostConstruct;
 import java.time.Instant;
@@ -55,6 +56,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
+import static no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter.getOriginalId;
 
 @Repository
 public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney> {
@@ -732,14 +735,26 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                     .append(":")
                     .append(element.getEstimatedVehicleJourneyCode());
         } else {
-
+            String lastStopId = null;
+            if (element.getEstimatedCalls() != null && element.getEstimatedCalls().getEstimatedCalls() != null && !element.getEstimatedCalls().getEstimatedCalls().isEmpty()) {
+                final List<EstimatedCall> estimatedCalls = element.getEstimatedCalls().getEstimatedCalls();
+                if (estimatedCalls.get(estimatedCalls.size()-1) != null) {
+                    final StopPointRef stopPointRef = element.getEstimatedCalls().getEstimatedCalls().get(0).getStopPointRef();
+                    if (stopPointRef != null) {
+                        lastStopId = getOriginalId(stopPointRef.getValue());
+                    }
+                }
+            }
             key.append((element.getOperatorRef() != null ? element.getOperatorRef().getValue() : "null"))
                     .append(":")
                     .append((element.getVehicleRef() != null ? element.getVehicleRef().getValue() : "null"))
                     .append(":")
                     .append((element.getDirectionRef() != null ? element.getDirectionRef().getValue() : "null"))
                     .append(":")
-                    .append(element.getDatedVehicleJourneyRef() != null ? element.getDatedVehicleJourneyRef().getValue() : null);
+                    .append(element.getDatedVehicleJourneyRef() != null ? element.getDatedVehicleJourneyRef().getValue() : null)
+                    .append(":")
+                    .append(lastStopId)
+            ;
         }
 
         String line = null;
