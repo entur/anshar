@@ -739,7 +739,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
             if (element.getEstimatedCalls() != null && element.getEstimatedCalls().getEstimatedCalls() != null && !element.getEstimatedCalls().getEstimatedCalls().isEmpty()) {
                 final List<EstimatedCall> estimatedCalls = element.getEstimatedCalls().getEstimatedCalls();
                 if (estimatedCalls.get(estimatedCalls.size()-1) != null) {
-                    final StopPointRef stopPointRef = element.getEstimatedCalls().getEstimatedCalls().get(0).getStopPointRef();
+                    final StopPointRef stopPointRef = estimatedCalls.get(estimatedCalls.size()-1).getStopPointRef();
                     if (stopPointRef != null) {
                         lastStopId = getOriginalId(stopPointRef.getValue());
                     }
