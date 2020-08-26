@@ -20,6 +20,7 @@ import no.rutebanken.anshar.routes.validation.validators.Validator;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Node;
+import uk.org.siri.siri20.WorkflowStatusEnumeration;
 
 import javax.xml.bind.ValidationEvent;
 
@@ -49,16 +50,34 @@ public class PtSituationElementValidator extends CustomValidator {
     @Override
     public ValidationEvent isValid(Node node) {
 
-        return verifyRequiredFields(node, FIELDNAME,
-                "CreationTime",
-                "ParticipantRef",
-                "SituationNumber",
-                "Source",
-                "Progress",
-                "ValidityPeriod",
-                "ReportType",
-                "Summary",
-                "Affects"
-                );
+        final String progress = getChildNodeValue(node, "Progress");
+
+        if (progress != null && progress.equalsIgnoreCase(WorkflowStatusEnumeration.CLOSED.value())) {
+            // When Progress==closed, Affects is not required
+            return verifyRequiredFields(node, FIELDNAME,
+                    "CreationTime",
+                    "ParticipantRef",
+                    "SituationNumber",
+                    "Source",
+                    "Progress",
+                    "ValidityPeriod",
+                    "ReportType",
+                    "Summary"
+            );
+        } else {
+            return verifyRequiredFields(node, FIELDNAME,
+                    "CreationTime",
+                    "ParticipantRef",
+                    "SituationNumber",
+                    "Source",
+                    "Progress",
+                    "ValidityPeriod",
+                    "ReportType",
+                    "Summary",
+                    "Affects"
+            );
+        }
+
+
     }
 }
