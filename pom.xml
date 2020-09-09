@@ -40,7 +40,7 @@
         <spring-boot-plugin.version>2.1.11.RELEASE</spring-boot-plugin.version>
         <spring-boot.version>2.1.11.RELEASE</spring-boot.version>
 
-        <camel-version>2.24.3</camel-version>
+        <camel-version>2.25.1</camel-version>
 
         <!-- Holding back activemq version as newest version no long support spring wired broker config-->
         <activemq.version>5.13.4</activemq.version>
