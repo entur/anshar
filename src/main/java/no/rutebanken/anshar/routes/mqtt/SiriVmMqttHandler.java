@@ -78,6 +78,9 @@ public class SiriVmMqttHandler {
     @Value("${anshar.mqtt.destination.id.fallback:false}")
     private boolean destinationIdFallback;
 
+    @Value("${anshar.mqtt.empty.headsign.allowed:false}")
+    private boolean allowEmptyHeadsign;
+
     @Value("${anshar.mqtt.threadpool.size:20}")
     private int threadpoolSize = 20;
 
@@ -121,7 +124,7 @@ public class SiriVmMqttHandler {
             mqttProducer.sendBodyAndHeader(message.getValue(), "topic", message.getKey());
 
         } catch (NullPointerException e) {
-            logger.debug("Incomplete Siri data", e);
+            logger.info("Incomplete Siri data", e);
         } catch (Exception e) {
             logger.warn("Could not parse", e);
         } finally {
@@ -430,6 +433,9 @@ public class SiriVmMqttHandler {
 
     private String getJourney(String headSign) {
         if (headSign.isEmpty() || headSign.equals(VehiclePosition.UNKNOWN)) {
+            if (allowEmptyHeadsign) {
+                return VehiclePosition.UNKNOWN;
+            }
             throw new NullPointerException("VehicleActivityStructure.MonitoredVehicleJourney.DestinationName not set");
         }
 
