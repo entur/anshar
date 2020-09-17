@@ -46,7 +46,9 @@ import java.math.BigInteger;
 import java.time.DateTimeException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -118,18 +120,29 @@ public class SiriVmMqttHandler {
 
             if (pushCounter % 500 == 0) {
                 logger.info("Pushed {} MQTT-messages. Current queue length: {}", pushCounter, processCounter.get());
+                logger.info("Errors since start: {}", errorCounter);
             }
             pushCounter++;
 
             mqttProducer.sendBodyAndHeader(message.getValue(), "topic", message.getKey());
 
         } catch (NullPointerException e) {
-            logger.info("Incomplete Siri data", e);
+            logger.debug("Incomplete Siri data", e);
+            trackError(datasetId, e.getMessage());
         } catch (Exception e) {
             logger.warn("Could not parse", e);
         } finally {
             processCounter.decrementAndGet();
         }
+    }
+
+    private Map<String, Map<String, Integer>> errorCounter = new HashMap<>();
+    private void trackError(String datasetId, String message) {
+        final Map<String, Integer> datasetCounterMap = errorCounter.getOrDefault(message, new HashMap<>());
+
+        int occurrences = datasetCounterMap.getOrDefault(datasetId, 0);
+        datasetCounterMap.put(datasetId, ++occurrences);
+        errorCounter.put(message, datasetCounterMap);
     }
 
     public Pair<String, String> getMessage(String datasetId, VehicleActivityStructure activity) {
