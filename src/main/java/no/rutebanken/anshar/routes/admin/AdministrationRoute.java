@@ -22,6 +22,7 @@ import no.rutebanken.anshar.routes.outbound.ServerSubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 
@@ -36,6 +37,7 @@ public class AdministrationRoute extends RestRouteBuilder {
     private static final String OPERATION_ROUTE = "direct:operation";
     private static final String CLUSTERSTATS_ROUTE = "direct:clusterstats";
     private static final String UNMAPPED_ROUTE = "direct:unmapped";
+    private static final String VEHICLES_ROUTE = "direct:vehicles";
 
     @Autowired
     private ExtendedHazelcastService extendedHazelcastService;
@@ -51,6 +53,9 @@ public class AdministrationRoute extends RestRouteBuilder {
 
     @Autowired
     private AdminRouteHelper helper;
+
+    @Value("${anshar.vehiclemap.websocket.url:null}")
+    private String vehicleWebsocketUrl;
 
     @Override
     public void configure() throws Exception {
@@ -157,5 +162,21 @@ public class AdministrationRoute extends RestRouteBuilder {
                 .routeId("admin.unmapped")
         ;
 
+        if (vehicleWebsocketUrl != null) {
+            rest("/anshar")
+                    .get("/vehicles").produces(MediaType.TEXT_HTML).to(VEHICLES_ROUTE);
+
+            //Return static page for vehicle-map
+            from(VEHICLES_ROUTE)
+                    .process(p -> {
+                        JSONObject config = new JSONObject();
+                        config.put("websocketUrl", vehicleWebsocketUrl);
+
+                        p.getOut().setBody(config);
+                    })
+                    .to("freemarker:templates/vehicles.ftl")
+                    .routeId("admin.vehicles")
+            ;
+        }
     }
 }
