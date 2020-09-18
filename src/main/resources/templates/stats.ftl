@@ -305,7 +305,7 @@ Request count: ${item.requestCount}">${item.id}</span></td>
 </body>
 <script>
     function showMap() {
-        document.getElementById("mapFrame"). src = "vehicles";
+        document.getElementById("mapFrame"). src = "https://jsfiddle.net/lassetyr/cj0xaoyw/show";
     }
     $(function () {
         $(document).ready(function(){
