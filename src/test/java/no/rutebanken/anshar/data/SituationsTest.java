@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import uk.org.siri.siri20.HalfOpenTimestampOutputRangeStructure;
 import uk.org.siri.siri20.PtSituationElement;
 import uk.org.siri.siri20.SituationNumber;
+import uk.org.siri.siri20.WorkflowStatusEnumeration;
 
 import java.time.ZonedDateTime;
 
@@ -53,6 +54,19 @@ public class SituationsTest extends SpringBootBaseTest {
 
         assertEquals("Situation not added", previousSize + 1, situations.getAll().size());
     }
+
+    @Test
+    public void testDraftSituationIgnored() {
+        int previousSize = situations.getAll().size();
+        PtSituationElement element = createPtSituationElement("tst", "43123", ZonedDateTime.now().minusDays(1), ZonedDateTime.now().plusHours(4));
+
+        element.setProgress(WorkflowStatusEnumeration.DRAFT);
+
+        situations.add("test", element);
+
+        assertEquals("Draft-situation added", previousSize, situations.getAll().size());
+    }
+
     @Test
     public void testAddNullSituation() {
         int previousSize = situations.getAll().size();

@@ -367,7 +367,7 @@ public class Situations extends SiriRepository<PtSituationElement> {
                 updated = true;
             }
 
-            if (updated) {
+            if (keepByProgressStatus(situation) && updated) {
                 long expiration = getExpiration(situation);
                 if (expiration > 0) { //expiration < 0 => already expired
                     situationElements.set(key, situation, expiration, TimeUnit.MILLISECONDS);
@@ -394,6 +394,23 @@ public class Situations extends SiriRepository<PtSituationElement> {
         markIdsAsUpdated(changes);
 
         return addedData;
+    }
+
+    private boolean keepByProgressStatus(PtSituationElement situation) {
+        if (situation.getProgress() != null) {
+            switch (situation.getProgress()) {
+                case APPROVED_DRAFT:
+                case DRAFT:
+                    return false;
+                case CLOSED:
+                case OPEN:
+                case CLOSING:
+                case PUBLISHED:
+                    return true;
+            }
+        }
+        // Keep by default
+        return true;
     }
 
     public PtSituationElement add(String datasetId, PtSituationElement situation) {
