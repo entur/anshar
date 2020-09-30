@@ -29,29 +29,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
-import uk.org.siri.siri20.EstimatedCall;
-import uk.org.siri.siri20.EstimatedVehicleJourney;
-import uk.org.siri.siri20.MessageRefStructure;
-import uk.org.siri.siri20.QuayRefStructure;
-import uk.org.siri.siri20.RecordedCall;
-import uk.org.siri.siri20.Siri;
-import uk.org.siri.siri20.StopAssignmentStructure;
-import uk.org.siri.siri20.StopPointRef;
+import uk.org.siri.siri20.*;
 
 import javax.annotation.PostConstruct;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
@@ -116,7 +100,11 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
     public Collection<EstimatedVehicleJourney> getAllMonitored() {
 
         long t1 = System.currentTimeMillis();
-        Collection<EstimatedVehicleJourney> monitoredVehicleJourneys = timetableDeliveries.values(Predicates.equal("monitored", "true"));
+
+        com.hazelcast.query.Predicate cancelledPredicate = Predicates.equal("cancellation", "true");
+        com.hazelcast.query.Predicate monitoredPredicate = Predicates.equal( "monitored", "true");
+
+        Collection<EstimatedVehicleJourney> monitoredVehicleJourneys = timetableDeliveries.values(Predicates.or(monitoredPredicate, cancelledPredicate));
         logger.info("Got {} monitored journeys in {} ms", monitoredVehicleJourneys.size(), (System.currentTimeMillis()-t1));
 
         return monitoredVehicleJourneys;
