@@ -20,30 +20,15 @@ import no.rutebanken.anshar.integration.SpringBootBaseTest;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import uk.org.siri.siri20.EstimatedCall;
-import uk.org.siri.siri20.EstimatedTimetableDeliveryStructure;
-import uk.org.siri.siri20.EstimatedVehicleJourney;
-import uk.org.siri.siri20.Extensions;
-import uk.org.siri.siri20.LineRef;
-import uk.org.siri.siri20.NaturalLanguageStringStructure;
-import uk.org.siri.siri20.RecordedCall;
-import uk.org.siri.siri20.Siri;
-import uk.org.siri.siri20.StopPointRef;
-import uk.org.siri.siri20.VehicleRef;
+import uk.org.siri.siri20.*;
 
 import java.math.BigInteger;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import static junit.framework.TestCase.assertNotNull;
 import static no.rutebanken.anshar.helpers.SleepUtil.sleep;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 
 public class EstimatedTimetablesTest extends SpringBootBaseTest {
@@ -498,11 +483,18 @@ public class EstimatedTimetablesTest extends SpringBootBaseTest {
         String lineRefValue = "GetAll:Line:1";
 
         EstimatedVehicleJourney monitoredTarget = null;
+        EstimatedVehicleJourney cancelledTarget = null;
         for (int i = 0; i < 10; i++) {
             EstimatedVehicleJourney estimatedVehicleJourney = createEstimatedVehicleJourney(lineRefValue, UUID.randomUUID() + " - " + i, 1, 20, ZonedDateTime.now().plusMinutes(2), true);
             if (i == 5) {
+                estimatedVehicleJourney.setCancellation(false);
                 estimatedVehicleJourney.setMonitored(true);
                 monitoredTarget = estimatedVehicleJourney;
+            }
+            if (i == 6) {
+                estimatedVehicleJourney.setCancellation(true);
+                estimatedVehicleJourney.setMonitored(false);
+                cancelledTarget = estimatedVehicleJourney;
             }
             estimatedTimetables.add("GetAll", estimatedVehicleJourney);
         }
@@ -511,8 +503,23 @@ public class EstimatedTimetablesTest extends SpringBootBaseTest {
         assertNotNull(monitoredTarget);
         Collection<EstimatedVehicleJourney> allMonitored = estimatedTimetables.getAllMonitored();
         assertNotNull(allMonitored);
-        TestCase.assertEquals(1, allMonitored.size());
-        TestCase.assertEquals(monitoredTarget.getVehicleRef().getValue(), allMonitored.iterator().next().getVehicleRef().getValue());
+        TestCase.assertEquals(2, allMonitored.size());
+
+        boolean monitoredMatch = false;
+        boolean cancelledMatch = false;
+        for (EstimatedVehicleJourney estimatedVehicleJourney : allMonitored) {
+            if (monitoredTarget.getVehicleRef().getValue().equals(estimatedVehicleJourney.getVehicleRef().getValue())) {
+                TestCase.assertFalse(monitoredTarget.isCancellation());
+                monitoredMatch = true;
+            }
+            if (cancelledTarget.getVehicleRef().getValue().equals(estimatedVehicleJourney.getVehicleRef().getValue())) {
+                TestCase.assertFalse(cancelledTarget.isMonitored());
+                cancelledMatch = true;
+            }
+        }
+
+        TestCase.assertTrue(monitoredMatch);
+        TestCase.assertTrue(cancelledMatch);
 
     }
 
