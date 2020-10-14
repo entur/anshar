@@ -29,13 +29,29 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
-import uk.org.siri.siri20.*;
+import uk.org.siri.siri20.EstimatedCall;
+import uk.org.siri.siri20.EstimatedVehicleJourney;
+import uk.org.siri.siri20.MessageRefStructure;
+import uk.org.siri.siri20.QuayRefStructure;
+import uk.org.siri.siri20.RecordedCall;
+import uk.org.siri.siri20.Siri;
+import uk.org.siri.siri20.StopAssignmentStructure;
+import uk.org.siri.siri20.StopPointRef;
 
 import javax.annotation.PostConstruct;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
@@ -537,11 +553,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
             EstimatedVehicleJourney existing = null;
             if (updated) {
 
-                if (!timetableDeliveries.containsKey(key)){
-                    mapFutureRecordedCallsToEstimatedCalls(et);
-                } else {
-                    existing = timetableDeliveries.get(key);
-                }
+                existing = timetableDeliveries.get(key);
 
                 if (existing != null &&
                         (et.getRecordedAtTime() != null && existing.getRecordedAtTime() != null)) {
@@ -592,111 +604,6 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
 
         return addedData;
     }
-
-
-    RecordedCall mapToRecordedCall(EstimatedCall call) {
-        RecordedCall recordedCall = new RecordedCall();
-
-        recordedCall.setStopPointRef(call.getStopPointRef());
-        recordedCall.getStopPointNames().addAll(call.getStopPointNames());
-
-        recordedCall.setOrder(call.getOrder());
-        recordedCall.setVisitNumber(call.getVisitNumber());
-        recordedCall.setCancellation(call.isCancellation());
-        recordedCall.setExtraCall(call.isExtraCall());
-        recordedCall.setExtensions(call.getExtensions());
-
-        recordedCall.setAimedArrivalTime(call.getAimedArrivalTime());
-        recordedCall.setExpectedArrivalTime(call.getExpectedArrivalTime());
-        if (recordedCall.getExpectedArrivalTime() != null) {
-            //Setting actual arrival from expected
-            recordedCall.setActualArrivalTime(call.getExpectedArrivalTime());
-        }
-        recordedCall.setArrivalPlatformName(call.getArrivalPlatformName());
-
-        recordedCall.setAimedDepartureTime(call.getAimedDepartureTime());
-        recordedCall.setExpectedDepartureTime(call.getExpectedDepartureTime());
-        if (recordedCall.getExpectedDepartureTime() != null) {
-            //Setting actual departure from expected
-            recordedCall.setActualDepartureTime(call.getExpectedDepartureTime());
-        }
-        recordedCall.setDeparturePlatformName(call.getDeparturePlatformName());
-        return recordedCall;
-    }
-
-
-    /**
-     * Temporary fix to handle future VehicleJourneys where all stations are put in RecordedCalls
-     *
-     * This is necessary because train-operators need to flag trains as "arrived" to keep information-displays correct.
-     *
-     * Follow up is registered in NRP-2286
-     *
-     * @param et
-     */
-    private void mapFutureRecordedCallsToEstimatedCalls(EstimatedVehicleJourney et) {
-        if (et.getRecordedCalls() != null && et.getRecordedCalls().getRecordedCalls() != null && !et.getRecordedCalls().getRecordedCalls().isEmpty() &&
-                (et.getEstimatedCalls() == null || (et.getEstimatedCalls().getEstimatedCalls() != null && !et.getEstimatedCalls().getEstimatedCalls().isEmpty()))) {
-            if (et.isCancellation() != null && et.isCancellation()) {
-                logger.info("NOT rewriting EstimatedVehicleJourney with only RecordedCalls - journey is cancelled. Line {}, VehicleRef {}.",
-                        (et.getLineRef() != null ? et.getLineRef().getValue():null), (et.getVehicleRef() != null ? et.getVehicleRef().getValue():null));
-                return;
-            }
-            List<RecordedCall> predictedRecordedCalls = et.getRecordedCalls().getRecordedCalls();
-            List<RecordedCall> recordedCalls = new ArrayList<>();
-            List<EstimatedCall> estimatedCalls = new ArrayList<>();
-            boolean estimatedCallsFromHere = false;
-            for (RecordedCall recordedCall : predictedRecordedCalls) {
-
-                if (estimatedCallsFromHere ||
-                        (recordedCall.getAimedDepartureTime() != null && recordedCall.getAimedDepartureTime().isAfter(ZonedDateTime.now())) ||
-                        (recordedCall.getExpectedDepartureTime() != null && recordedCall.getExpectedDepartureTime().isAfter(ZonedDateTime.now())) ||
-                        (recordedCall.getAimedArrivalTime() != null && recordedCall.getAimedArrivalTime().isAfter(ZonedDateTime.now())) ||
-                        (recordedCall.getExpectedArrivalTime() != null && recordedCall.getExpectedArrivalTime().isAfter(ZonedDateTime.now()))
-                        ) {
-
-                    //When the first estimatedCall is discovered - all remaining calls should be added as estimated
-                    estimatedCallsFromHere = true;
-
-                    EstimatedCall call = new EstimatedCall();
-
-                    call.setStopPointRef(recordedCall.getStopPointRef());
-                    call.getStopPointNames().addAll(recordedCall.getStopPointNames());
-                    call.setOrder(recordedCall.getOrder());
-                    call.setVisitNumber(recordedCall.getVisitNumber());
-
-                    call.setAimedArrivalTime(recordedCall.getAimedArrivalTime());
-                    call.setExpectedArrivalTime(recordedCall.getExpectedArrivalTime());
-                    if (call.getExpectedArrivalTime() == null) {
-                        call.setExpectedArrivalTime(recordedCall.getActualArrivalTime());
-                    }
-
-                    call.setArrivalPlatformName(recordedCall.getArrivalPlatformName());
-
-                    call.setAimedDepartureTime(recordedCall.getAimedDepartureTime());
-                    call.setExpectedDepartureTime(recordedCall.getExpectedDepartureTime());
-                    if (call.getExpectedDepartureTime() == null) {
-                        call.setExpectedDepartureTime(recordedCall.getActualDepartureTime());
-                    }
-                    call.setDeparturePlatformName(recordedCall.getDeparturePlatformName());
-
-                    estimatedCalls.add(call);
-                } else {
-                    recordedCalls.add(recordedCall);
-                }
-            }
-            if (!estimatedCalls.isEmpty()) {
-                logger.warn("Remapped {} RecordedCalls to {} RecordedCalls and {} EstimatedCalls for Line: {}, VehicleRef: {}",
-                        predictedRecordedCalls.size(), recordedCalls.size(), estimatedCalls.size(),
-                        (et.getLineRef() != null ? et.getLineRef().getValue():null), (et.getVehicleRef() != null ? et.getVehicleRef().getValue():null));
-            }
-            et.getRecordedCalls().getRecordedCalls().clear();
-            et.getRecordedCalls().getRecordedCalls().addAll(recordedCalls);
-            et.setEstimatedCalls(new EstimatedVehicleJourney.EstimatedCalls());
-            et.getEstimatedCalls().getEstimatedCalls().addAll(estimatedCalls);
-        }
-    }
-
 
     public EstimatedVehicleJourney add(String datasetId, EstimatedVehicleJourney delivery) {
         if (delivery == null) {return null;}

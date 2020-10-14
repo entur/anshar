@@ -20,15 +20,29 @@ import no.rutebanken.anshar.integration.SpringBootBaseTest;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import uk.org.siri.siri20.*;
+import uk.org.siri.siri20.EstimatedCall;
+import uk.org.siri.siri20.EstimatedVehicleJourney;
+import uk.org.siri.siri20.Extensions;
+import uk.org.siri.siri20.LineRef;
+import uk.org.siri.siri20.NaturalLanguageStringStructure;
+import uk.org.siri.siri20.RecordedCall;
+import uk.org.siri.siri20.Siri;
+import uk.org.siri.siri20.StopPointRef;
+import uk.org.siri.siri20.VehicleRef;
 
 import java.math.BigInteger;
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.UUID;
 
 import static junit.framework.TestCase.assertNotNull;
 import static no.rutebanken.anshar.helpers.SleepUtil.sleep;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 
 public class EstimatedTimetablesTest extends SpringBootBaseTest {
@@ -251,7 +265,7 @@ public class EstimatedTimetablesTest extends SpringBootBaseTest {
         estimatedCall.setOrder(BigInteger.ONE);
         estimatedCall.setExtensions(extensions);
 
-        RecordedCall recordedCall = estimatedTimetables.mapToRecordedCall(estimatedCall);
+        RecordedCall recordedCall = mapToRecordedCall(estimatedCall);
 
         assertEquals(stopPoint.getValue(), recordedCall.getStopPointRef().getValue());
         assertEquals(name.getValue(), recordedCall.getStopPointNames().get(0).getValue());
@@ -291,8 +305,8 @@ public class EstimatedTimetablesTest extends SpringBootBaseTest {
         estimatedVehicleJourneyUpdate.setRecordedCalls(new EstimatedVehicleJourney.RecordedCalls());
 
         // Updating journey with RecordedCalls for fourth and fifth stop
-        estimatedVehicleJourneyUpdate.getRecordedCalls().getRecordedCalls().add(estimatedTimetables.mapToRecordedCall(estimatedCalls.get(4)));
-        estimatedVehicleJourneyUpdate.getRecordedCalls().getRecordedCalls().add(estimatedTimetables.mapToRecordedCall(estimatedCalls.get(5)));
+        estimatedVehicleJourneyUpdate.getRecordedCalls().getRecordedCalls().add(mapToRecordedCall(estimatedCalls.get(4)));
+        estimatedVehicleJourneyUpdate.getRecordedCalls().getRecordedCalls().add(mapToRecordedCall(estimatedCalls.get(5)));
 
         EstimatedCall e = estimatedCalls.get(6);
         //Updating delay for first stop after RecordedCalls
@@ -357,30 +371,6 @@ public class EstimatedTimetablesTest extends SpringBootBaseTest {
         assertTrue(serviceDelivery_3.getServiceDelivery().getEstimatedTimetableDeliveries().get(0).getEstimatedJourneyVersionFrames().get(0).getEstimatedVehicleJourneies().size() == 0);
         assertFalse(serviceDelivery_3.getServiceDelivery().isMoreData());
 
-    }
-
-    @Test
-    public void testJourneyWithFutureRecordedCalls() {
-        int callCount = 30;
-        EstimatedVehicleJourney journeyWithRecordedCallsOnly = createEstimatedVehicleJourneyWithRecordedCallsOnly("3333", "1", 0, callCount, ZonedDateTime.now().plusHours(1), true);
-        String datasetId = "recordedCallDataset";
-
-        estimatedTimetables.add(datasetId, journeyWithRecordedCallsOnly);
-
-        Siri serviceDelivery = estimatedTimetables.createServiceDelivery(datasetId + datasetId, datasetId, 2, -1);
-        assertNotNull(serviceDelivery);
-        assertNotNull(serviceDelivery.getServiceDelivery());
-        assertNotNull(serviceDelivery.getServiceDelivery().getEstimatedTimetableDeliveries());
-        assertEquals(1, serviceDelivery.getServiceDelivery().getEstimatedTimetableDeliveries().size());
-
-        EstimatedTimetableDeliveryStructure deliveryStructure = serviceDelivery.getServiceDelivery().getEstimatedTimetableDeliveries().get(0);
-        List<EstimatedVehicleJourney> estimatedVehicleJourneies = deliveryStructure.getEstimatedJourneyVersionFrames().get(0).getEstimatedVehicleJourneies();
-        assertEquals(1, estimatedVehicleJourneies.size());
-        EstimatedVehicleJourney remappedVehicleJourney = estimatedVehicleJourneies.get(0);
-        assertNotNull(remappedVehicleJourney.getEstimatedCalls());
-        assertTrue(remappedVehicleJourney.getRecordedCalls() == null || remappedVehicleJourney.getRecordedCalls().getRecordedCalls().isEmpty());
-        List<EstimatedCall> estimatedCalls = remappedVehicleJourney.getEstimatedCalls().getEstimatedCalls();
-        assertEquals(callCount, estimatedCalls.size());
     }
 
     @Test
@@ -605,4 +595,33 @@ public class EstimatedTimetablesTest extends SpringBootBaseTest {
         return element;
     }
 
+    RecordedCall mapToRecordedCall(EstimatedCall call) {
+        RecordedCall recordedCall = new RecordedCall();
+
+        recordedCall.setStopPointRef(call.getStopPointRef());
+        recordedCall.getStopPointNames().addAll(call.getStopPointNames());
+
+        recordedCall.setOrder(call.getOrder());
+        recordedCall.setVisitNumber(call.getVisitNumber());
+        recordedCall.setCancellation(call.isCancellation());
+        recordedCall.setExtraCall(call.isExtraCall());
+        recordedCall.setExtensions(call.getExtensions());
+
+        recordedCall.setAimedArrivalTime(call.getAimedArrivalTime());
+        recordedCall.setExpectedArrivalTime(call.getExpectedArrivalTime());
+        if (recordedCall.getExpectedArrivalTime() != null) {
+            //Setting actual arrival from expected
+            recordedCall.setActualArrivalTime(call.getExpectedArrivalTime());
+        }
+        recordedCall.setArrivalPlatformName(call.getArrivalPlatformName());
+
+        recordedCall.setAimedDepartureTime(call.getAimedDepartureTime());
+        recordedCall.setExpectedDepartureTime(call.getExpectedDepartureTime());
+        if (recordedCall.getExpectedDepartureTime() != null) {
+            //Setting actual departure from expected
+            recordedCall.setActualDepartureTime(call.getExpectedDepartureTime());
+        }
+        recordedCall.setDeparturePlatformName(call.getDeparturePlatformName());
+        return recordedCall;
+    }
 }
