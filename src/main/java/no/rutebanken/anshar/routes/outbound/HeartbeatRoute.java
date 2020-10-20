@@ -62,10 +62,10 @@ public class HeartbeatRoute extends BaseRouteBuilder {
                 for (String subscriptionId : subscriptionIds) {
                     final OutboundSubscriptionSetup outboundSubscriptionSetup = serverSubscriptionManager.subscriptions.get(subscriptionId);
 
-                    if (LocalDateTime.now().isAfter(outboundSubscriptionSetup.getInitialTerminationTime().toLocalDateTime())) {
-                        serverSubscriptionManager.terminateSubscription(outboundSubscriptionSetup.getSubscriptionId());
-                    } else if (!heartbeatTimestampMap.containsKey(subscriptionId)) {
-                        if (outboundSubscriptionSetup != null) {
+                    if (outboundSubscriptionSetup != null) {
+                        if (LocalDateTime.now().isAfter(outboundSubscriptionSetup.getInitialTerminationTime().toLocalDateTime())) {
+                            serverSubscriptionManager.terminateSubscription(outboundSubscriptionSetup.getSubscriptionId());
+                        } else if (!heartbeatTimestampMap.containsKey(subscriptionId)) {
                             final long heartbeatInterval = outboundSubscriptionSetup.getHeartbeatInterval();
 
                             Siri heartbeatNotification = siriObjectFactory.createHeartbeatNotification(outboundSubscriptionSetup.getSubscriptionId());
@@ -73,6 +73,8 @@ public class HeartbeatRoute extends BaseRouteBuilder {
 
                             heartbeatTimestampMap.put(subscriptionId, Instant.now(), heartbeatInterval, TimeUnit.MILLISECONDS);
                         }
+                    } else {
+                        log.info("Outbound subscription {} not found.", subscriptionId);
                     }
                 }
             })
