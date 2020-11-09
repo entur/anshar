@@ -44,6 +44,7 @@ import uk.org.siri.siri20.EstimatedTimetableDeliveryStructure;
 import uk.org.siri.siri20.EstimatedVehicleJourney;
 import uk.org.siri.siri20.LineRef;
 import uk.org.siri.siri20.PtSituationElement;
+import uk.org.siri.siri20.RequestorRef;
 import uk.org.siri.siri20.ServiceDeliveryErrorConditionElement;
 import uk.org.siri.siri20.ServiceRequest;
 import uk.org.siri.siri20.Siri;
@@ -69,6 +70,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter.getOriginalId;
 
 @Service
 public class SiriHandler {
@@ -306,9 +309,34 @@ public class SiriHandler {
                                             logger.info(getErrorContents(sx.getErrorCondition()));
                                         } else {
                                             if (sx.getSituations() != null && sx.getSituations().getPtSituationElements() != null) {
-                                                addedOrUpdated.addAll(
-                                                        situations.addAll(subscriptionSetup.getDatasetId(), sx.getSituations().getPtSituationElements())
-                                                );
+                                                if (subscriptionSetup.isUseCodespaceFromParticipantRef()) {
+                                                    Map<String, List<PtSituationElement>> situationsByCodespace = splitSituationsByCodespace(sx.getSituations().getPtSituationElements());
+                                                    for (String codespace : situationsByCodespace.keySet()) {
+
+                                                        // List containing added situations for current codespace
+                                                        List<PtSituationElement> addedSituations = new ArrayList();
+
+                                                        addedSituations.addAll(situations.addAll(
+                                                            codespace,
+                                                            situationsByCodespace.get(codespace)
+                                                        ));
+
+                                                        // Push updates to subscribers on this codespace
+                                                        serverSubscriptionManager.pushUpdatesAsync(subscriptionSetup.getSubscriptionType(), addedSituations, codespace);
+
+                                                        // Add to complete list of added situations
+                                                        addedOrUpdated.addAll(addedSituations);
+
+                                                    }
+
+                                                } else {
+
+                                                    addedOrUpdated.addAll(situations.addAll(
+                                                        subscriptionSetup.getDatasetId(),
+                                                        sx.getSituations().getPtSituationElements()
+                                                    ));
+                                                    serverSubscriptionManager.pushUpdatesAsync(subscriptionSetup.getSubscriptionType(), addedOrUpdated, subscriptionSetup.getDatasetId());
+                                                }
                                             }
                                         }
                                     }
@@ -316,8 +344,6 @@ public class SiriHandler {
                         );
                     }
                     deliveryContainsData = addedOrUpdated.size() > 0;
-
-                    serverSubscriptionManager.pushUpdatesAsync(subscriptionSetup.getSubscriptionType(), addedOrUpdated, subscriptionSetup.getDatasetId());
 
                     subscriptionManager.incrementObjectCounter(subscriptionSetup, addedOrUpdated.size());
 
@@ -409,6 +435,27 @@ public class SiriHandler {
         } else {
             logger.debug("ServiceDelivery for invalid subscriptionId [{}] ignored.", subscriptionId);
         }
+    }
+
+    private Map<String, List<PtSituationElement>> splitSituationsByCodespace(
+        List<PtSituationElement> ptSituationElements
+    ) {
+        Map<String, List<PtSituationElement>> result = new HashMap<>();
+        for (PtSituationElement ptSituationElement : ptSituationElements) {
+            final RequestorRef participantRef = ptSituationElement.getParticipantRef();
+            if (participantRef != null) {
+                final String codespace = getOriginalId(participantRef.getValue());
+
+                final List<PtSituationElement> situations = result.getOrDefault(
+                    codespace,
+                    new ArrayList<>()
+                );
+
+                situations.add(ptSituationElement);
+                result.put(codespace, situations);
+            }
+        }
+        return result;
     }
 
     /**

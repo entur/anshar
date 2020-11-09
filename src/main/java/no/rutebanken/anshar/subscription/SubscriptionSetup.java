@@ -76,6 +76,18 @@ public class SubscriptionSetup implements Serializable {
 
     private boolean forwardPositionData;
 
+    private boolean useCodespaceFromParticipantRef = false;
+
+    public boolean isUseCodespaceFromParticipantRef() {
+        return useCodespaceFromParticipantRef;
+    }
+
+    public void setUseCodespaceFromParticipantRef(
+        boolean useCodespaceFromParticipantRef
+    ) {
+        this.useCodespaceFromParticipantRef = useCodespaceFromParticipantRef;
+    }
+
     public DataNotReceivedAction getDataNotReceivedAction() {
         return dataNotReceivedAction;
     }
