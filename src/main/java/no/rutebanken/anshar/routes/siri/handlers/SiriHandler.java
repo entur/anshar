@@ -446,6 +446,9 @@ public class SiriHandler {
             if (participantRef != null) {
                 final String codespace = getOriginalId(participantRef.getValue());
 
+                //Override mapped value if present
+                participantRef.setValue(codespace);
+
                 final List<PtSituationElement> situations = result.getOrDefault(
                     codespace,
                     new ArrayList<>()
