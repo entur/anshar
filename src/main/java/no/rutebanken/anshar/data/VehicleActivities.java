@@ -477,16 +477,10 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
 
         if (monitoredVehicleJourney.getVehicleRef() != null) {
             VehicleRef vehicleRef = monitoredVehicleJourney.getVehicleRef();
-            key.append(datasetId).append(":").append(vehicleRef.getValue());
+            key.append(vehicleRef.getValue());
         }
 
-
-        String line = null;
-        if (monitoredVehicleJourney.getLineRef() != null) {
-            line = monitoredVehicleJourney.getLineRef().getValue();
-        }
-
-        return new SiriObjectStorageKey(datasetId, line, key.toString());
+        return new SiriObjectStorageKey(datasetId, null, key.toString());
 
     }
 }
