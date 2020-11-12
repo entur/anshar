@@ -21,7 +21,7 @@
   <parent>
       <groupId>org.rutebanken.superpom</groupId>
       <artifactId>superpom</artifactId>
-      <version>0.0.6</version>
+      <version>1.0.15</version>
   </parent>
 
 
@@ -40,7 +40,7 @@
         <spring-boot-plugin.version>2.1.11.RELEASE</spring-boot-plugin.version>
         <spring-boot.version>2.1.11.RELEASE</spring-boot.version>
 
-        <camel-version>2.24.3</camel-version>
+        <camel-version>3.6.0</camel-version>
 
         <!-- Holding back activemq version as newest version no long support spring wired broker config-->
         <activemq.version>5.13.4</activemq.version>
@@ -156,14 +156,14 @@
 
         <dependency>
             <groupId>org.apache.camel</groupId>
-            <artifactId>camel-http4</artifactId>
+            <artifactId>camel-http</artifactId>
             <version>${camel-version}</version>
         </dependency>
 
 
         <dependency>
             <groupId>org.apache.camel</groupId>
-            <artifactId>camel-jetty9</artifactId>
+            <artifactId>camel-jetty</artifactId>
             <version>${camel-version}</version>
         </dependency>
 
@@ -185,13 +185,13 @@
         </dependency>
 
         <dependency>
-            <groupId>org.apache.camel</groupId>
+            <groupId>org.apache.camel.springboot</groupId>
             <artifactId>camel-spring-boot</artifactId>
-            <version>${camel-version}</version>
+            <version>3.6.0</version>
         </dependency>
         <dependency>
             <groupId>org.apache.camel</groupId>
-            <artifactId>camel-quartz2</artifactId>
+            <artifactId>camel-quartz</artifactId>
             <version>${camel-version}</version>
         </dependency>
         <dependency>
