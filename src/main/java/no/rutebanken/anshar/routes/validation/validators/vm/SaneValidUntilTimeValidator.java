@@ -48,6 +48,11 @@ public class SaneValidUntilTimeValidator extends CustomValidator {
     }
 
     @Override
+    public String getCategoryName() {
+        return VALID_UNTIL_TIME_NAME;
+    }
+
+    @Override
     public ValidationEvent isValid(Node node) {
         String validUntilTime = getChildNodeValue(node, VALID_UNTIL_TIME_NAME);
         String recordedAtTime = getChildNodeValue(node, RECORDED_AT_TIME_NAME);
