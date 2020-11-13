@@ -317,7 +317,10 @@ public class SiriXmlValidator extends ApplicationContextHolder {
         JSONArray resultList = new JSONArray();
         if (validationRefs != null) {
             for (String ref : validationRefs) {
-                resultList.add(getJsonValidationResults(ref));
+                final JSONObject jsonValidationResults = getJsonValidationResults(ref);
+                if (jsonValidationResults != null) {
+                    resultList.add(jsonValidationResults);
+                }
             }
         }
         validationResult.put("validationRefs", resultList);
@@ -326,7 +329,10 @@ public class SiriXmlValidator extends ApplicationContextHolder {
     }
 
     private JSONObject getJsonValidationResults(String validationRef) {
-        JSONObject jsonObject = validationResults.getOrDefault(validationRef, new JSONObject());
+        JSONObject jsonObject = validationResults.get(validationRef);
+        if (jsonObject == null) {
+            return null;
+        }
         jsonObject.put("validationRef", validationRef);
         return jsonObject;
     }
