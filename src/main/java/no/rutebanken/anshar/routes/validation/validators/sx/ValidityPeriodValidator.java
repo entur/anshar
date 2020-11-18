@@ -43,6 +43,7 @@ public class ValidityPeriodValidator extends CustomValidator {
 
     private static final String START_TIME_FIELD_NAME = "StartTime";
     private static final String END_TIME_FIELD_NAME = "EndTime";
+    private static final int MAX_SX_VALIDITY_SECONDS = 24*3600*365; // One year
 
 
     @Override
@@ -93,10 +94,22 @@ public class ValidityPeriodValidator extends CustomValidator {
             }
 
         } else if (endTimeValue != null && !endTimeValue.isEmpty()) {
-            final ZonedDateTime parsedValue = ZonedDateTime.parse(endTimeValue);
-            if (parsedValue != null && parsedValue.isBefore(ZonedDateTime.now())) {
-                return createEvent(node, END_TIME_FIELD_NAME, "date after 'now'", endTimeValue, ValidationEvent.WARNING);
+            final ZonedDateTime endTime = ZonedDateTime.parse(endTimeValue);
+            if (endTime != null) {
+                if (endTime.isBefore(ZonedDateTime.now())) {
+                    return createEvent(node, END_TIME_FIELD_NAME, "date after 'now'", endTimeValue, ValidationEvent.WARNING);
+                }
+                if (startTime != null) {
+                    final long startTimeSec = startTime.toEpochSecond();
+                    final long endTimeSec = endTime.toEpochSecond();
+                    final long validityPeriod = endTimeSec - startTimeSec;
+
+                    if (validityPeriod > MAX_SX_VALIDITY_SECONDS) {
+                        return createCustomFieldEvent(node, "EndTime states too long validity (" + startTime + " => " + endTime + ")" , ValidationEvent.WARNING);
+                    }
+                }
             }
+
         }
 
 
