@@ -40,6 +40,7 @@ public class SaneValidUntilTimeValidator extends CustomValidator {
     private static final String VALID_UNTIL_TIME_NAME = "ValidUntilTime";
     private static final String RECORDED_AT_TIME_NAME = "RecordedAtTime";
     private String path = VEHICLE_ACTIVITY;
+    private static final int MAX_VM_VALIDITY = 24*3600; // 24h
 
 
     @Override
@@ -62,7 +63,7 @@ public class SaneValidUntilTimeValidator extends CustomValidator {
                 final long validToEpochSec = ZonedDateTime.parse(validUntilTime).toEpochSecond();
                 final long validityPeriod = validToEpochSec - recordedAtEpochSec;
 
-                if (validityPeriod > 86400) {
+                if (validityPeriod > MAX_VM_VALIDITY) {
                     return createCustomFieldEvent(node, "ValidUntilTime states too long validity (" + validUntilTime + ")" , ValidationEvent.WARNING);
                 }
 
