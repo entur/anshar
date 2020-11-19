@@ -14,7 +14,8 @@ public enum MappingNames {
         SET_MISSING_REPORT_TYPE("Set missing ReportType"),
         APPEND_PREFIX("Add prefix to create NeTEx-ID"),
         POPULATE_STOP_ASSIGNMENTS("Populate StopAssigment"),
-        CREATE_RECORDED_AT_TIME("Create missing RecordedAtTime");
+        CREATE_RECORDED_AT_TIME("Create missing RecordedAtTime"),
+        OVERRIDE_EMPTY_DESTINATION_DISPLAY_FOR_EXTRA_JOURNEYS("Override empty DestinationDisplay for ExtraJourneys");
 
         private final String name;
 
