@@ -21,6 +21,7 @@ import javax.xml.bind.ValidationEvent;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 public abstract class StringStructureValidator extends CustomValidator {
 
@@ -61,6 +62,14 @@ public abstract class StringStructureValidator extends CustomValidator {
                 return createEvent(textNode, FIELDNAME, "it to be set", nodeValue, ValidationEvent.FATAL_ERROR);
             }
 
+            if (nodeValue != null) {
+                if (containsHtmlTags(nodeValue)) {
+                    nodeValue = nodeValue.replaceAll(">", "&gt;")
+                                         .replaceAll("<", "&lt;");
+                    return createEvent(textNode,FIELDNAME,"it to not contain HTML-tags",nodeValue, ValidationEvent.FATAL_ERROR);
+                }
+            }
+
             if (requireLangAttribute) {
                 String lang = getNodeAttributeValue(textNode, ATTRIBUTE);
                 if (lang == null) {
@@ -76,5 +85,10 @@ public abstract class StringStructureValidator extends CustomValidator {
             }
         }
         return null;
+    }
+    private static final Pattern REMOVE_TAGS = Pattern.compile("<.+?>");
+
+    private boolean containsHtmlTags(String nodeValue) {
+        return REMOVE_TAGS.matcher(nodeValue).matches();
     }
 }

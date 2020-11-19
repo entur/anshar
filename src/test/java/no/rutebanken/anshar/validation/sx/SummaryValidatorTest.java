@@ -50,6 +50,14 @@ public class SummaryValidatorTest extends CustomValidatorTest {
     }
 
     @Test
+    public void testHtmlCodeInSummary() throws Exception{
+        String xml = "<PLACEHOLDER><Summary>&lt;b&gt;lorem ipsum&lt;/b&gt;</Summary></PLACEHOLDER>";
+
+        final ValidationEvent valid = validator.isValid(createXmlNode(xml));
+        assertNotNull("Summary with HTML-code flagged as valid", valid);
+    }
+
+    @Test
     public void testTooLongSummary() throws Exception{
         StringBuilder msg = new StringBuilder();
         for (int i = 0; i < 161; i++) {
