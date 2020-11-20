@@ -38,13 +38,14 @@ import static no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapte
 public class ExtraJourneyDestinationDisplayPostProcessor extends ValueAdapter implements PostProcessor {
 
     private final NaturalLanguageStringStructure emptyDestinationDisplay;
+    public static final String DUMMY_DESTINATION_DISPLAY = "-";
     private String datasetId;
 
     public ExtraJourneyDestinationDisplayPostProcessor(String datasetId) {
         this.datasetId = datasetId;
 
         emptyDestinationDisplay = new NaturalLanguageStringStructure();
-        emptyDestinationDisplay.setValue("-");
+        emptyDestinationDisplay.setValue(DUMMY_DESTINATION_DISPLAY);
     }
 
     @Override
