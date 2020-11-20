@@ -64,9 +64,10 @@ public abstract class StringStructureValidator extends CustomValidator {
 
             if (nodeValue != null) {
                 if (containsHtmlTags(nodeValue)) {
+                    // HTML-encoding characters for report
                     nodeValue = nodeValue.replaceAll(">", "&gt;")
                                          .replaceAll("<", "&lt;");
-                    return createEvent(textNode,FIELDNAME,"it to not contain HTML-tags",nodeValue, ValidationEvent.FATAL_ERROR);
+                    return createEvent(textNode,FIELDNAME,"it to not contain HTML-tags",nodeValue, ValidationEvent.WARNING);
                 }
             }
 
@@ -86,9 +87,8 @@ public abstract class StringStructureValidator extends CustomValidator {
         }
         return null;
     }
-    private static final Pattern REMOVE_TAGS = Pattern.compile("<.+?>");
 
     private boolean containsHtmlTags(String nodeValue) {
-        return REMOVE_TAGS.matcher(nodeValue).matches();
+        return nodeValue.contains("<") && nodeValue.contains(">");
     }
 }
