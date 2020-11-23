@@ -256,7 +256,8 @@ public class SiriHandler {
      * @return
      * @throws JAXBException
      */
-    private void processSiriClientRequest(String subscriptionId, InputStream xml) {
+    private void processSiriClientRequest(String subscriptionId, InputStream xml)
+        throws XMLStreamException {
         SubscriptionSetup subscriptionSetup = subscriptionManager.get(subscriptionId);
 
         if (subscriptionSetup != null) {

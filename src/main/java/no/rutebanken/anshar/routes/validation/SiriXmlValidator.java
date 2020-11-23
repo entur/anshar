@@ -182,7 +182,8 @@ public class SiriXmlValidator extends ApplicationContextHolder {
     }
 
 
-    public Siri parseXml(SubscriptionSetup subscriptionSetup, InputStream xml) {
+    public Siri parseXml(SubscriptionSetup subscriptionSetup, InputStream xml)
+        throws XMLStreamException {
         try {
             long parseStart = System.currentTimeMillis();
             boolean validated = false;
@@ -220,6 +221,9 @@ public class SiriXmlValidator extends ApplicationContextHolder {
             logger.info("Parsing XML took {} ms, validated: {} ", parseDone-parseStart, validated);
 
             return siri;
+        } catch (XMLStreamException e) {
+            logger.warn("Caught exception when parsing", e);
+            throw e;
         } catch (Exception e) {
             logger.warn("Caught exception when parsing", e);
         }
