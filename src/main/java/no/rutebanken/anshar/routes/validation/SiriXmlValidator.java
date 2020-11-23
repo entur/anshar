@@ -15,9 +15,11 @@
 
 package no.rutebanken.anshar.routes.validation;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.hazelcast.core.IMap;
 import com.hazelcast.core.ReplicatedMap;
 import no.rutebanken.anshar.config.AnsharConfiguration;
+import no.rutebanken.anshar.metrics.PrometheusMetricsService;
 import no.rutebanken.anshar.routes.siri.transformer.ApplicationContextHolder;
 import no.rutebanken.anshar.routes.validation.validators.CustomValidator;
 import no.rutebanken.anshar.routes.validation.validators.ProfileValidationEventOrList;
@@ -48,6 +50,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
@@ -69,8 +72,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.zip.GZIPInputStream;
 
+import static no.rutebanken.anshar.routes.validation.ValidationType.PROFILE_VALIDATION;
+import static no.rutebanken.anshar.routes.validation.ValidationType.SCHEMA_VALIDATION;
 import static no.rutebanken.anshar.util.CompressionUtil.compress;
 
 @Component
@@ -118,7 +126,28 @@ public class SiriXmlValidator extends ApplicationContextHolder {
     @Autowired
     private SubscriptionManager subscriptionManager;
 
+    @Autowired
+    private PrometheusMetricsService metricsService;
+
     private final Map<SiriDataType, Set<CustomValidator>> validationRules = new EnumMap(SiriDataType.class);
+
+    private ExecutorService validationExecutorService;
+    private ExecutorService validationReportExecutorService;
+
+    public  SiriXmlValidator() {
+        ThreadFactory factory = new ThreadFactoryBuilder()
+            .setNameFormat("validation")
+            .setDaemon(true)
+            .build();
+
+        validationExecutorService = Executors.newCachedThreadPool(factory);
+
+        ThreadFactory reportFactory = new ThreadFactoryBuilder()
+            .setNameFormat("validation-report")
+            .setDaemon(true)
+            .build();
+        validationReportExecutorService = Executors.newCachedThreadPool(reportFactory);
+    }
 
     static {
         if (jaxbContext == null) {
@@ -155,21 +184,101 @@ public class SiriXmlValidator extends ApplicationContextHolder {
 
     public Siri parseXml(SubscriptionSetup subscriptionSetup, InputStream xml) {
         try {
+            long parseStart = System.currentTimeMillis();
+            boolean validated = false;
             Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
 
             XMLStreamReader reader = xmlInputFactory.createXMLStreamReader(xml);
 
+            SiriValidationEventHandler handler = new SiriValidationEventHandler();
+
+            if (configuration.isFullValidationEnabled()) {
+                validated = true;
+                unmarshaller.setSchema(schema);
+                unmarshaller.setEventHandler(handler);
+            }
+
             Siri siri = unmarshaller.unmarshal(reader, Siri.class).getValue();
 
-            if (siri.getServiceDelivery() != null && subscriptionSetup.isValidation()) {
-                new Thread(() -> performValidation(subscriptionSetup, siri)).start();
+            if (siri.getServiceDelivery() != null && configuration.isFullValidationEnabled()) {
+                validated = true;
+                validationExecutorService.execute(() -> {
+                    performValidation(subscriptionSetup, xml, handler);
+                });
             }
+
+            if (siri.getServiceDelivery() != null && subscriptionSetup.isValidation()) {
+                validated = true;
+                // Validator is activated - produce complete report from formatted XML
+                validationReportExecutorService.execute(() -> {
+                    performValidation(subscriptionSetup, siri);
+                });
+            }
+
+            long parseDone = System.currentTimeMillis();
+
+            logger.info("Parsing XML took {} ms, validated: {} ", parseDone-parseStart, validated);
 
             return siri;
         } catch (Exception e) {
-            logger.warn("Caught exception when validating", e);
+            logger.warn("Caught exception when parsing", e);
         }
         return null;
+    }
+
+    private static int concurrentValidationThreads = 0;
+    private boolean performValidation(
+        SubscriptionSetup subscriptionSetup, InputStream xml, SiriValidationEventHandler handler
+    ) {
+        try {
+            concurrentValidationThreads++;
+            long validationStart = System.currentTimeMillis();
+
+            xml.reset();
+
+            String originalXml = new String(xml.readAllBytes());
+
+            SiriValidationEventHandler profileHandler = new SiriValidationEventHandler();
+            validateAttributes(originalXml, subscriptionSetup.getSubscriptionType(), profileHandler);
+
+            addValidationMetrics(subscriptionSetup, handler, profileHandler);
+
+            long validationDone = System.currentTimeMillis();
+
+            concurrentValidationThreads--;
+            logger.info("Async validation took: {} ms, {} concurrent validations in progress", validationDone-validationStart, concurrentValidationThreads);
+
+            return handler.categorizedEvents.isEmpty() && profileHandler.categorizedEvents.isEmpty();
+
+        } catch (Throwable t) {
+            logger.warn("Validation failed", t);
+        }
+        return true;
+    }
+
+    private void addValidationMetrics(SubscriptionSetup subscriptionSetup,
+        SiriValidationEventHandler schemaHandler,
+        SiriValidationEventHandler profileHandler
+    ) {
+        final SiriDataType subscriptionType = subscriptionSetup.getSubscriptionType();
+        final String codespaceId = subscriptionSetup.getDatasetId();
+
+        schemaHandler.categorizedEvents
+            .entrySet()
+            .forEach(type -> {
+                metricsService.addValidationMetrics(subscriptionType, codespaceId,
+                SCHEMA_VALIDATION, type.getKey(),type.getValue().size());
+            });
+
+        profileHandler.categorizedEvents
+            .entrySet()
+            .forEach(type -> {
+                metricsService.addValidationMetrics(subscriptionType, codespaceId,
+                    PROFILE_VALIDATION, type.getKey(),type.getValue().size());
+            });
+
+        metricsService.addValidationResult(subscriptionType, codespaceId,
+            schemaHandler.categorizedEvents.isEmpty(), profileHandler.categorizedEvents.isEmpty());
     }
 
     private void performValidation(SubscriptionSetup subscriptionSetup, Siri siri) {
@@ -187,10 +296,9 @@ public class SiriXmlValidator extends ApplicationContextHolder {
                 return;
             }
 
-
             /*
 
-               Re-marshalling - and unmarshalling - object to ensure correct line numbers.
+               Re-marshalling - and unmarshalling - object to ensure correct line numbers in report.
 
              */
             Marshaller marshaller = jaxbContext.createMarshaller();
@@ -200,8 +308,11 @@ public class SiriXmlValidator extends ApplicationContextHolder {
 
             String originalXml = writer.toString();
 
-            if (hasValidationFilter(subscriptionSetup) && !originalXml.contains(subscriptionSetup.getValidationFilter())) {
-                logger.info("Incoming XML does not contain \"{}\", skip validation for this request.", subscriptionSetup.getValidationFilter());
+            if (hasValidationFilter(subscriptionSetup) &&
+                !originalXml.contains(subscriptionSetup.getValidationFilter())) {
+                logger.info("Incoming XML does not contain \"{}\", skip validation for this request.",
+                    subscriptionSetup.getValidationFilter()
+                );
                 return;
             }
 
@@ -230,7 +341,7 @@ public class SiriXmlValidator extends ApplicationContextHolder {
 
             addResult(subscriptionSetup, originalXml, combinedEvents);
 
-            logger.info("Validation took: {}", (System.currentTimeMillis()-t1));
+            logger.info("Full validation for report took: {}", (System.currentTimeMillis()-t1));
         } catch (Exception e) {
             logger.warn("Caught exception when validating", e);
         }

@@ -81,6 +81,9 @@ public class AnsharConfiguration {
     @Value("${anshar.validation.profile.enabled}")
     private boolean profileValidation;
 
+    @Value("${anshar.validation.enabled:false}")
+    private boolean fullValidationEnabled;
+
     @Value("${anshar.validation.profile.name}")
     private String validationProfileName;
 
@@ -187,6 +190,10 @@ public class AnsharConfiguration {
 
     public boolean isProfileValidation() {
         return profileValidation;
+    }
+
+    public boolean isFullValidationEnabled() {
+        return fullValidationEnabled;
     }
 
     public String getValidationProfileName() {

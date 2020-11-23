@@ -26,6 +26,7 @@ import no.rutebanken.anshar.data.Situations;
 import no.rutebanken.anshar.data.VehicleActivities;
 import no.rutebanken.anshar.routes.siri.transformer.ApplicationContextHolder;
 import no.rutebanken.anshar.routes.siri.transformer.MappingNames;
+import no.rutebanken.anshar.routes.validation.ValidationType;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
@@ -50,6 +51,12 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
     private static final String AGENCY_TAG_NAME = "agency";
     private static final String MAPPING_NAME_TAG = "mappingName";
 
+    private static final String CODESPACE_TAG_NAME = "codespace";
+    private static final String VALIDATION_TYPE_TAG_NAME = "validationType";
+    private static final String VALIDATION_RULE_TAG_NAME = "category";
+    private static final String SCHEMA_VALID_TAG_NAME = "schema";
+    private static final String PROFILE_VALID_TAG_NAME = "profile";
+
     @Autowired
     protected SubscriptionManager manager;
 
@@ -62,6 +69,9 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
     private static final String DATA_OUTBOUND_COUNTER_NAME = METRICS_PREFIX + "data.outbound";
 
     private static final String DATA_MAPPING_COUNTER_NAME = METRICS_PREFIX + "data.mapping";
+
+    private static final String DATA_VALIDATION_COUNTER = METRICS_PREFIX + "data.validation";
+    private static final String DATA_VALIDATION_RESULT_COUNTER = METRICS_PREFIX + "data.validation.result";
 
     public PrometheusMetricsService() {
         super(PrometheusConfig.DEFAULT);
@@ -128,6 +138,30 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
             countOutgoingData(dataType, mode, count);
         }
 
+    }
+
+    public void addValidationMetrics(
+        SiriDataType dataType, String codespaceId, ValidationType validationType, String message, Integer count
+    ) {
+        List<Tag> counterTags = new ArrayList<>();
+        counterTags.add(new ImmutableTag(DATATYPE_TAG_NAME, dataType.name()));
+        counterTags.add(new ImmutableTag(CODESPACE_TAG_NAME, codespaceId));
+        counterTags.add(new ImmutableTag(VALIDATION_TYPE_TAG_NAME, validationType.name()));
+        counterTags.add(new ImmutableTag(VALIDATION_RULE_TAG_NAME, message));
+
+        counter(DATA_VALIDATION_COUNTER, counterTags).increment(count);
+    }
+
+    public void addValidationResult(
+        SiriDataType dataType, String codespaceId, boolean schemaValid, boolean profileValid
+    ) {
+        List<Tag> counterTags = new ArrayList<>();
+        counterTags.add(new ImmutableTag(DATATYPE_TAG_NAME, dataType.name()));
+        counterTags.add(new ImmutableTag(CODESPACE_TAG_NAME, codespaceId));
+        counterTags.add(new ImmutableTag(SCHEMA_VALID_TAG_NAME, ""+schemaValid));
+        counterTags.add(new ImmutableTag(PROFILE_VALID_TAG_NAME, ""+profileValid));
+
+        counter(DATA_VALIDATION_RESULT_COUNTER, counterTags).increment();
     }
 
     private void countOutgoingData(SiriDataType dataType, SubscriptionSetup.SubscriptionMode mode, long objectCount) {
