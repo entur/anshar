@@ -75,6 +75,7 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.GZIPInputStream;
 
 import static no.rutebanken.anshar.routes.validation.ValidationType.PROFILE_VALIDATION;
@@ -230,11 +231,11 @@ public class SiriXmlValidator extends ApplicationContextHolder {
         return null;
     }
 
-    private static int concurrentValidationThreads = 0;
+    private static AtomicInteger concurrentValidationThreads = new AtomicInteger();
     private boolean performValidation(
         SubscriptionSetup subscriptionSetup, InputStream xml, SiriValidationEventHandler handler
     ) {
-        concurrentValidationThreads++;
+        concurrentValidationThreads.incrementAndGet();
         long validationStart = System.currentTimeMillis();
 
         try {
@@ -254,8 +255,9 @@ public class SiriXmlValidator extends ApplicationContextHolder {
         } finally {
 
             long validationDone = System.currentTimeMillis();
-            concurrentValidationThreads--;
-            logger.info("Async validation took: {} ms, {} concurrent validations queued", validationDone-validationStart, concurrentValidationThreads);
+            logger.info("Async validation took: {} ms, {} concurrent validations queued",
+                validationDone-validationStart,
+                concurrentValidationThreads.decrementAndGet());
         }
         return true;
     }
