@@ -22,7 +22,9 @@ import org.springframework.stereotype.Component;
 import org.w3c.dom.Node;
 
 import javax.xml.bind.ValidationEvent;
+import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 
 import static no.rutebanken.anshar.routes.validation.validators.Constants.PT_SITUATION_ELEMENT;
@@ -70,7 +72,7 @@ public class ValidityPeriodValidator extends CustomValidator {
         final ZonedDateTime startTime;
 
         if (startTimeValue != null && !startTimeValue.isEmpty()) {
-            startTime = ZonedDateTime.parse(startTimeValue);
+            startTime = parseDate(startTimeValue);
             if (startTime == null) {
                 return createEvent(node, START_TIME_FIELD_NAME, "valid date", startTimeValue, ValidationEvent.FATAL_ERROR);
             }
@@ -85,7 +87,7 @@ public class ValidityPeriodValidator extends CustomValidator {
                 return createEvent(node, END_TIME_FIELD_NAME, "EndTime when Progress is 'closed'", endTimeValue, ValidationEvent.FATAL_ERROR);
             }
 
-            final ZonedDateTime endTime = ZonedDateTime.parse(endTimeValue);
+            final ZonedDateTime endTime = parseDate(endTimeValue);
             if (endTime == null) {
                 return createEvent(node, END_TIME_FIELD_NAME, "valid date", endTimeValue, ValidationEvent.FATAL_ERROR);
             } else if (endTime.minus(5, ChronoUnit.HOURS).isBefore(startTime)){
@@ -94,7 +96,7 @@ public class ValidityPeriodValidator extends CustomValidator {
             }
 
         } else if (endTimeValue != null && !endTimeValue.isEmpty()) {
-            final ZonedDateTime endTime = ZonedDateTime.parse(endTimeValue);
+            final ZonedDateTime endTime = parseDate(endTimeValue);
             if (endTime != null) {
                 if (endTime.isBefore(ZonedDateTime.now())) {
                     return createEvent(node, END_TIME_FIELD_NAME, "date after 'now'", endTimeValue, ValidationEvent.WARNING);

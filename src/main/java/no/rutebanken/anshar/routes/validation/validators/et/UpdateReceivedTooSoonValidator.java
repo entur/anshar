@@ -23,7 +23,9 @@ import org.w3c.dom.Node;
 
 import javax.xml.bind.ValidationEvent;
 
+import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeParseException;
 
 import static no.rutebanken.anshar.routes.validation.validators.Constants.ESTIMATED_CALLS;
 
@@ -61,7 +63,7 @@ public class UpdateReceivedTooSoonValidator extends TimeValidator {
             firstAimedTime = getChildNodeValue(firstEstimatedCall, departureFieldName);
         }
         if (firstAimedTime != null) {
-            final ZonedDateTime aimed = ZonedDateTime.parse(firstAimedTime);
+            ZonedDateTime aimed = parseDate(firstAimedTime);
 
             final long departureTime = aimed.toEpochSecond();
             final long now = ZonedDateTime.now().toEpochSecond();

@@ -23,7 +23,9 @@ import org.w3c.dom.Node;
 
 import javax.xml.bind.ValidationEvent;
 import java.text.MessageFormat;
+import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 
 import static no.rutebanken.anshar.routes.validation.validators.Constants.ESTIMATED_VEHICLE_JOURNEY;
@@ -115,13 +117,13 @@ public class SaneDelayValidator extends CustomValidator {
 
     private void validateSaneDelays(Node call) throws TooLongDelayException {
 
-        long aimedArrivalTime = parse(getChildNodeValue(call, aimedArrivalNodeName));
-        long expectedArrivalTime = parse(getChildNodeValue(call, expectedArrivalNodeName));
-        long actualArrivalTime = parse(getChildNodeValue(call, actualArrivalNodeName));
+        long aimedArrivalTime = getEpochSeconds(getChildNodeValue(call, aimedArrivalNodeName));
+        long expectedArrivalTime = getEpochSeconds(getChildNodeValue(call, expectedArrivalNodeName));
+        long actualArrivalTime = getEpochSeconds(getChildNodeValue(call, actualArrivalNodeName));
 
-        long aimedDepartureTime = parse(getChildNodeValue(call, aimedDepartureNodeName));
-        long expectedDepartureTime = parse(getChildNodeValue(call, expectedDepartureNodeName));
-        long actualDepartureTime = parse(getChildNodeValue(call, actualDepartureNodeName));
+        long aimedDepartureTime = getEpochSeconds(getChildNodeValue(call, aimedDepartureNodeName));
+        long expectedDepartureTime = getEpochSeconds(getChildNodeValue(call, expectedDepartureNodeName));
+        long actualDepartureTime = getEpochSeconds(getChildNodeValue(call, actualDepartureNodeName));
 
         long arrivalDelay = 0;
         long updatedArrival = -1;
@@ -175,16 +177,6 @@ public class SaneDelayValidator extends CustomValidator {
         if (Math.abs(departureDelay) >= SANE_DELAY_LIMIT_SECONDS) {
             throw new TooLongDelayException(departureDelay);
         }
-    }
-
-    /*
-        Returns epoch-time for timestamp, or 0 if time is <code>null</code>
-     */
-    private long parse(String time) {
-        if (time != null) {
-            return ZonedDateTime.parse(time).toEpochSecond();
-        }
-        return 0;
     }
 
     private static class TooLongDelayException extends Exception {

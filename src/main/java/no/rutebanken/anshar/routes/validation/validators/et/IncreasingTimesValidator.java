@@ -23,7 +23,9 @@ import org.w3c.dom.Node;
 
 import javax.xml.bind.ValidationEvent;
 import java.text.MessageFormat;
+import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 
 import static no.rutebanken.anshar.routes.validation.validators.Constants.ESTIMATED_VEHICLE_JOURNEY;
@@ -198,7 +200,7 @@ public class IncreasingTimesValidator extends CustomValidator {
      */
     private long parse(String time) {
         if (time != null) {
-            return ZonedDateTime.parse(time).toEpochSecond();
+            return getEpochSeconds(time);
         }
         return 0;
     }

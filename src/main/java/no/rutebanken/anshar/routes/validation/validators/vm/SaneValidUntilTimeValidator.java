@@ -59,8 +59,8 @@ public class SaneValidUntilTimeValidator extends CustomValidator {
         String recordedAtTime = getChildNodeValue(node, RECORDED_AT_TIME_NAME);
         if (validUntilTime != null && recordedAtTime != null) {
             try {
-                final long recordedAtEpochSec = ZonedDateTime.parse(recordedAtTime).toEpochSecond();
-                final long validToEpochSec = ZonedDateTime.parse(validUntilTime).toEpochSecond();
+                final long recordedAtEpochSec = getEpochSeconds(recordedAtTime);
+                final long validToEpochSec = getEpochSeconds(validUntilTime);
                 final long validityPeriod = validToEpochSec - recordedAtEpochSec;
 
                 if (validityPeriod > MAX_VM_VALIDITY) {

@@ -23,12 +23,33 @@ import javax.xml.bind.ValidationEvent;
 import javax.xml.bind.helpers.ValidationEventImpl;
 import javax.xml.bind.helpers.ValidationEventLocatorImpl;
 import java.text.MessageFormat;
+import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 
 public abstract class CustomValidator {
 
     protected static final String FIELD_DELIMITER = "/";
+
+    protected ZonedDateTime parseDate(String time) {
+        try {
+            return ZonedDateTime.parse(time);
+        } catch (DateTimeParseException e) {
+            // Ignore - details will be in report
+            return LocalDateTime.parse(time).atZone(ZonedDateTime.now().getOffset());
+        }
+    }
+
+    protected long getEpochSeconds(String time) {
+        try {
+            return ZonedDateTime.parse(time).toEpochSecond();
+        } catch (DateTimeParseException e) {
+            // Ignore - details will be in report
+            return LocalDateTime.parse(time).atZone(ZonedDateTime.now().getOffset()).toEpochSecond();
+        }
+    }
 
     public abstract String getXpath();
     public abstract ValidationEvent isValid(Node node);

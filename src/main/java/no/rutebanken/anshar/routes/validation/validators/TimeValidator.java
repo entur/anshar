@@ -48,7 +48,7 @@ public abstract class TimeValidator extends CustomValidator {
         String field =  getSiblingNodeValue(node, fieldname);
 
         if (field != null) {
-            final ZonedDateTime time = ZonedDateTime.parse(field);
+            final ZonedDateTime time = parseDate(field);
             if (time == null) {
                 //Check valid date
                 return createEvent(node, fieldname, "valid date", field, ValidationEvent.FATAL_ERROR);
@@ -57,7 +57,7 @@ public abstract class TimeValidator extends CustomValidator {
             String comparisonField = getSiblingNodeValue(node, comparisonFieldName);
             if (comparisonField != null && !comparisonField.isEmpty()) {
                 //Check that arrival is before or equal to departure
-                final ZonedDateTime comparisonTime = ZonedDateTime.parse(comparisonField);
+                final ZonedDateTime comparisonTime = parseDate(comparisonField);
                 if (!isValid(time, comparisonTime, mode)) {
                     return createEvent(node, fieldname,  "" + mode  + " " + comparisonFieldName + " [" + comparisonTime + "]", field, ValidationEvent.FATAL_ERROR);
                 }
