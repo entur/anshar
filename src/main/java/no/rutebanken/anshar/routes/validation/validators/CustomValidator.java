@@ -43,6 +43,9 @@ public abstract class CustomValidator {
     }
 
     protected long getEpochSeconds(String time) {
+        if (time == null) {
+            return 0;
+        }
         try {
             return ZonedDateTime.parse(time).toEpochSecond();
         } catch (DateTimeParseException e) {
