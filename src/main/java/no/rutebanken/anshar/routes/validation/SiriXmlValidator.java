@@ -234,10 +234,10 @@ public class SiriXmlValidator extends ApplicationContextHolder {
     private boolean performValidation(
         SubscriptionSetup subscriptionSetup, InputStream xml, SiriValidationEventHandler handler
     ) {
-        try {
-            concurrentValidationThreads++;
-            long validationStart = System.currentTimeMillis();
+        concurrentValidationThreads++;
+        long validationStart = System.currentTimeMillis();
 
+        try {
             xml.reset();
 
             String originalXml = new String(xml.readAllBytes());
@@ -247,15 +247,15 @@ public class SiriXmlValidator extends ApplicationContextHolder {
 
             addValidationMetrics(subscriptionSetup, handler, profileHandler);
 
-            long validationDone = System.currentTimeMillis();
-
-            concurrentValidationThreads--;
-            logger.info("Async validation took: {} ms, {} concurrent validations in progress", validationDone-validationStart, concurrentValidationThreads);
-
             return handler.categorizedEvents.isEmpty() && profileHandler.categorizedEvents.isEmpty();
 
         } catch (Throwable t) {
             logger.warn("Validation failed", t);
+        } finally {
+
+            long validationDone = System.currentTimeMillis();
+            concurrentValidationThreads--;
+            logger.info("Async validation took: {} ms, {} concurrent validations queued", validationDone-validationStart, concurrentValidationThreads);
         }
         return true;
     }
@@ -271,7 +271,7 @@ public class SiriXmlValidator extends ApplicationContextHolder {
             .entrySet()
             .forEach(type -> {
                 metricsService.addValidationMetrics(subscriptionType, codespaceId,
-                SCHEMA_VALIDATION, type.getKey(),type.getValue().size());
+                SCHEMA_VALIDATION, "Schema",type.getValue().size());
             });
 
         profileHandler.categorizedEvents
