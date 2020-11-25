@@ -262,8 +262,6 @@ public class SiriXmlValidator extends ApplicationContextHolder {
         return true;
     }
 
-    static int excessiveLoggingCounter = 0;
-
     private void addValidationMetrics(SubscriptionSetup subscriptionSetup,
         SiriValidationEventHandler schemaHandler,
         SiriValidationEventHandler profileHandler
@@ -287,15 +285,11 @@ public class SiriXmlValidator extends ApplicationContextHolder {
                 /*
                  Temporary excessive logging for debugging purposes
                  */
-                if (excessiveLoggingCounter < 1000) {
-                    if (subscriptionSetup.getSubscriptionId().equals("f7e5b05a-ce22-49be-9c14-363f74f69aec")) {
+                if (subscriptionSetup.getSubscriptionId().equals("f7e5b05a-ce22-49be-9c14-363f74f69aec")) {
+                    if (type.getKey().equals("RecordedCall")) {
                         final Map<String, ValidationEvent> validations = type.getValue();
                         for (String validationEvent : validations.keySet()) {
-                            logger.info(
-                                "Validation: f7e5b05a-ce22-49be-9c14-363f74f69aec: {}",
-                                validationEvent
-                            );
-                            excessiveLoggingCounter++;
+                            logger.info("Validation: f7e5b05a-ce22-49be-9c14-363f74f69aec: {}", validationEvent);
                         }
                     }
                 }
