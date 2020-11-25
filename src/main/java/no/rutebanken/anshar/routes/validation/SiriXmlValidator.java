@@ -31,6 +31,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Configuration;
@@ -202,10 +203,14 @@ public class SiriXmlValidator extends ApplicationContextHolder {
 
             Siri siri = unmarshaller.unmarshal(reader, Siri.class).getValue();
 
+            final String breadcrumbId = MDC.get("camel.breadcrumbId");
+
             if (siri.getServiceDelivery() != null && configuration.isFullValidationEnabled()) {
                 validated = true;
                 validationExecutorService.execute(() -> {
+                    MDC.put("camel.breadcrumbId", breadcrumbId);
                     performValidation(subscriptionSetup, xml, handler);
+                    MDC.remove("camel.breadcrumbId");
                 });
             }
 
@@ -213,7 +218,9 @@ public class SiriXmlValidator extends ApplicationContextHolder {
                 validated = true;
                 // Validator is activated - produce complete report from formatted XML
                 validationReportExecutorService.execute(() -> {
+                    MDC.put("camel.breadcrumbId", breadcrumbId);
                     performValidation(subscriptionSetup, siri);
+                    MDC.remove("camel.breadcrumbId");
                 });
             }
 
