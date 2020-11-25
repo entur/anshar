@@ -26,7 +26,7 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.ESTIMA
  * Verifies that the value for field OperatorRef is specified as a Codespace ID
  *
  */
-@Validator(profileName = "disabled", targetType = SiriDataType.ESTIMATED_TIMETABLE)
+@Validator(profileName = "norway", targetType = SiriDataType.ESTIMATED_TIMETABLE)
 @Component
 public class OperatorRefValidator extends NsrGenericIdValidator {
 

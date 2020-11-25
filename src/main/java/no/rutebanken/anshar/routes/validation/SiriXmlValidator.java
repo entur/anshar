@@ -345,12 +345,6 @@ public class SiriXmlValidator extends ApplicationContextHolder {
                 validateAttributes(originalXml, type, profileHandler);
             }
 
-            if (subscriptionSetup.getSubscriptionId().equals("f7e5b05a-ce22-49be-9c14-363f74f69aec") &&
-                handler.categorizedEvents.isEmpty() && profileHandler.categorizedEvents.isEmpty()) {
-                logger.info("All valid - ignoring report");
-                return;
-            }
-
             JSONObject schemaEvents = handler.toJSON();
             JSONObject profileEvents = profileHandler.toJSON();
 
