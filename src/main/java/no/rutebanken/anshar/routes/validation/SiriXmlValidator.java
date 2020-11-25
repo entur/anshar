@@ -281,6 +281,19 @@ public class SiriXmlValidator extends ApplicationContextHolder {
             .forEach(type -> {
                 metricsService.addValidationMetrics(subscriptionType, codespaceId,
                     PROFILE_VALIDATION, type.getKey(),type.getValue().size());
+
+                /*
+                 Temporary excessive logging for debugging purposes
+                 */
+                if (subscriptionSetup.getSubscriptionId().equals("f7e5b05a-ce22-49be-9c14-363f74f69aec")) {
+                    if (type.getKey().equals("RecordedCall")) {
+                        final Map<String, ValidationEvent> validations = type.getValue();
+                        for (String validationEvent : validations.keySet()) {
+                            logger.info("Validation: f7e5b05a-ce22-49be-9c14-363f74f69aec: {}", validationEvent);
+                        }
+                    }
+                }
+
             });
 
         metricsService.addValidationResult(subscriptionType, codespaceId,
