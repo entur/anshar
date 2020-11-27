@@ -18,6 +18,8 @@ package no.rutebanken.anshar.config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.List;
+
 @Configuration
 public class AnsharConfiguration {
 
@@ -115,6 +117,9 @@ public class AnsharConfiguration {
 
     @Value("${anshar.sirivm.position.forward.url:}")
     private String siriVmPositionForwardingUrl;
+
+    @Value("${anshar.admin.blocked.clients:}")
+    private List<String> blockedEtClientNames;
 
     public String getHazelcastManagementUrl() {
         return hazelcastManagementUrl;
@@ -237,5 +242,9 @@ public class AnsharConfiguration {
             siriVmPositionForwardingUrl = null;
         }
         return siriVmPositionForwardingUrl;
+    }
+
+    public List<String> getBlockedEtClientNames() {
+        return blockedEtClientNames;
     }
 }

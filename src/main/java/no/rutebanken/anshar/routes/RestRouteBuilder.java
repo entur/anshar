@@ -70,14 +70,41 @@ public class RestRouteBuilder extends RouteBuilder {
                 .routeId("reject.request.missing.header")
         ;
 
+        from("direct:anshar.blocked.tracking.header.response")
+            .removeHeaders("*")
+            .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("400")) //400 Bad request
+            .setBody(constant(""))
+            .routeId("reject.request.blocked.header")
+        ;
+
     }
     protected boolean isTrackingHeaderAcceptable(Exchange e) {
         String camelHttpMethod = (String) e.getIn().getHeader("CamelHttpMethod");
+
+        String header = (String) e.getIn().getHeader(configuration.getTrackingHeaderName());
+        if (header != null && configuration.getBlockedEtClientNames().contains(header)) {
+            logger.info("Blocked request from {} = {}", configuration.getTrackingHeaderName(), header);
+            return false;
+        }
         if (isTrackingRequired(camelHttpMethod)) {
-            String header = (String) e.getIn().getHeader(configuration.getTrackingHeaderName());
             return header != null && !header.isEmpty();
         }
         return true;
+    }
+
+    /**
+     * Returns true if Et-Client-header is blocked - request should be ignored
+     * @param e
+     * @return
+     */
+    protected boolean isTrackingHeaderBlocked(Exchange e) {
+
+        String header = (String) e.getIn().getHeader(configuration.getTrackingHeaderName());
+        if (header != null && configuration.getBlockedEtClientNames().contains(header)) {
+            logger.info("Blocked request from {} = {}", configuration.getTrackingHeaderName(), header);
+            return true;
+        }
+        return false;
     }
 
     private boolean isTrackingRequired(String httpMethod) {
