@@ -66,6 +66,10 @@ public class SaneValidUntilTimeValidator extends CustomValidator {
                 if (validityPeriod > MAX_VM_VALIDITY) {
                     return createCustomFieldEvent(node, "ValidUntilTime states too long validity (" + validUntilTime + ")" , ValidationEvent.WARNING);
                 }
+                final long tenMinutesAgo = ZonedDateTime.now().minusMinutes(10).toEpochSecond();
+                if (validToEpochSec < tenMinutesAgo){
+                    return createCustomFieldEvent(node, "ValidUntilTime IS EXPIRED (" + validUntilTime + ")" , ValidationEvent.WARNING);
+                }
 
             } catch (DateTimeParseException e){
                 return createEvent(node,
