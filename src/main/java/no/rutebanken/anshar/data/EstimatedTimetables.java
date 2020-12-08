@@ -518,7 +518,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
 
         Counter outdatedCounter = new CounterImpl(0);
         Counter notUpdatedCounter = new CounterImpl(0);
-        Set<String> unchangedIds = new HashSet<>();
+        List<String> unchangedIds = new ArrayList<>();
         etList.forEach(et -> {
             SiriObjectStorageKey key = createKey(datasetId, et);
 
