@@ -518,7 +518,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
 
         Counter outdatedCounter = new CounterImpl(0);
         Counter notUpdatedCounter = new CounterImpl(0);
-
+        Set<String> unchangedIds = new HashSet<>();
         etList.forEach(et -> {
             SiriObjectStorageKey key = createKey(datasetId, et);
 
@@ -569,6 +569,13 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
 
             } else {
                 notUpdatedCounter.increment();
+                if (datasetId.equals("KOL")) {
+                    try {
+                        unchangedIds.add(et.getFramedVehicleJourneyRef().getDatedVehicleJourneyRef());
+                    } catch (Throwable t) {
+                        logger.info("Could not get DatedVehicleJourneyRef.", t);
+                    }
+                }
             }
             if (keep) {
 
@@ -597,6 +604,11 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
         });
 
         logger.info("Updated {} (of {}), {} outdated, {} without changes", changes.size(), etList.size(), outdatedCounter.getValue(), notUpdatedCounter.getValue());
+
+
+        if (datasetId.equals("KOL")) {
+            logger.info("Unchanged ids: {}", unchangedIds);
+        }
 
         markDataReceived(SiriDataType.ESTIMATED_TIMETABLE, datasetId, etList.size(), changes.size(), outdatedCounter.getValue(), notUpdatedCounter.getValue());
 
