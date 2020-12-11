@@ -40,10 +40,10 @@
         <spring-boot-plugin.version>2.1.11.RELEASE</spring-boot-plugin.version>
         <spring-boot.version>2.1.11.RELEASE</spring-boot.version>
 
-        <camel-version>2.24.3</camel-version>
+        <camel-version>3.6.0</camel-version>
 
         <!-- Holding back activemq version as newest version no long support spring wired broker config-->
-        <activemq.version>5.13.4</activemq.version>
+        <activemq.version>5.15.14</activemq.version>
 
         <metrics.version>3.2.3</metrics.version>
         <entur.helpers.version>1.0.13</entur.helpers.version>
@@ -127,7 +127,7 @@
         <dependency>
             <groupId>net.logstash.logback</groupId>
             <artifactId>logstash-logback-encoder</artifactId>
-            <version>6.3</version>
+            <version>6.4</version>
         </dependency>
 
         <dependency>
