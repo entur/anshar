@@ -51,6 +51,7 @@ public class NetexUpdaterService {
     private static final String NETEX_FLT_URL = "https://storage.googleapis.com/marduk-production/outbound/netex/rb_flt-aggregated-netex.zip"; // Flytoget
     private static final String NETEX_FLB_URL = "https://storage.googleapis.com/marduk-production/outbound/netex/rb_flb-aggregated-netex.zip"; // Flåmsbana
     private static final String NETEX_GOA_URL = "https://storage.googleapis.com/marduk-production/outbound/netex/rb_goa-aggregated-netex.zip"; // Go-Ahead
+    private static final String NETEX_SJN_URL = "https://storage.googleapis.com/marduk-production/outbound/netex/rb_sjn-aggregated-netex.zip"; // SJ
     private static final String STOPPLACE_URL = "https://storage.googleapis.com/marduk-production/tiamat/CurrentAndFuture_latest.zip";
 
     private static Map<String, List<StopTime>> tripStops = new HashMap<>();
@@ -111,6 +112,7 @@ public class NetexUpdaterService {
                     String path_flb = null;
                     String path_gjb = null;
                     String path_goa = null;
+                    String path_sjn = null;
                     String path_stops = null;
                     try {
                         path_nsb = readUrl(NETEX_NSB_URL);
@@ -118,15 +120,16 @@ public class NetexUpdaterService {
                         path_gjb = readUrl(NETEX_GJB_URL);
                         path_flb = readUrl(NETEX_FLB_URL);
                         path_goa = readUrl(NETEX_GOA_URL);
+                        path_sjn = readUrl(NETEX_SJN_URL);
                         path_stops = readUrl(STOPPLACE_URL);
 
-                        if (path_nsb != null && path_flt != null && path_gjb != null && path_flb != null && path_stops != null) {
-                            update(path_nsb, path_flt, path_gjb, path_flb, path_goa, path_stops);
+                        if (path_nsb != null && path_flt != null && path_gjb != null && path_flb != null && path_goa != null && path_sjn != null && path_stops != null) {
+                            update(path_nsb, path_flt, path_gjb, path_flb, path_goa, path_sjn, path_stops);
                         } else {
                             logger.error("Do not update NeTEx data as some files could not be downloaded: nsb={}, flt={}, gjb={}, flb={}, stops={}", path_nsb, path_flt, path_gjb, path_flb, path_stops);
                         }
                     } finally {
-                        cleanup(path_nsb, path_flt, path_gjb, path_flb, path_goa, path_stops);
+                        cleanup(path_nsb, path_flt, path_gjb, path_flb, path_goa, path_sjn, path_stops);
                     }
                     logger.info("Updating NeTEx-data - done: {} ms", (System.currentTimeMillis() - t1));
                 },
