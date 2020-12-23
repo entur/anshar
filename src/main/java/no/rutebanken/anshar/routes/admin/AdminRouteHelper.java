@@ -18,6 +18,7 @@ package no.rutebanken.anshar.routes.admin;
 import no.rutebanken.anshar.data.EstimatedTimetables;
 import no.rutebanken.anshar.data.Situations;
 import no.rutebanken.anshar.data.VehicleActivities;
+import no.rutebanken.anshar.data.collections.ExtendedHazelcastService;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.slf4j.Logger;
@@ -45,6 +46,8 @@ public class AdminRouteHelper {
     @Autowired
     private EstimatedTimetables estimatedTimetables;
 
+    @Autowired
+    private ExtendedHazelcastService hazelcastService;
 
     public void flushDataFromSubscription(String subscriptionId) {
         ExecutorService executor = Executors.newSingleThreadExecutor();
@@ -52,6 +55,10 @@ public class AdminRouteHelper {
         if (subscriptionSetup != null) {
             executor.execute(() -> flushData(subscriptionSetup.getDatasetId(), subscriptionSetup.getSubscriptionType().name()));
         }
+    }
+
+    public void forceUnlock(String lockId) {
+        hazelcastService.getHazelcastInstance().getMap("ansharRouteLockMap").forceUnlock(lockId);
     }
 
     private void flushData(String datasetId, String dataType) {

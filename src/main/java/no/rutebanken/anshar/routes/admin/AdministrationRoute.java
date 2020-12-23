@@ -59,7 +59,9 @@ public class AdministrationRoute extends RestRouteBuilder {
 
         rest("/").tag("internal.admin.root")
                 .get("").produces(MediaType.TEXT_HTML).to(STATS_ROUTE)
-                .put("").to(OPERATION_ROUTE);
+                .put("").to(OPERATION_ROUTE)
+                .get("/unlock").to("direct:unlock")
+        ;
 
         rest("/anshar").tag("internal.admin")
                 .get("/stats").produces(MediaType.TEXT_HTML).to(STATS_ROUTE)
@@ -67,6 +69,12 @@ public class AdministrationRoute extends RestRouteBuilder {
                 .get("/clusterstats").produces(MediaType.APPLICATION_JSON).to(CLUSTERSTATS_ROUTE)
                 .get("/unmapped").produces(MediaType.TEXT_HTML).to(UNMAPPED_ROUTE)
                 .get("/unmapped/{datasetId}").produces(MediaType.TEXT_HTML).to(UNMAPPED_ROUTE)
+        ;
+
+        // Temporary route used to force unlocking of specific key
+        from("direct:unlock")
+            .process(p -> helper.forceUnlock((String) p.getIn().getHeader("lockId")))
+            .routeId("admin")
         ;
 
         //Return subscription status
