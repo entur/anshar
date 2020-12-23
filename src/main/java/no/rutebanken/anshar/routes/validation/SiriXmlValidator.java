@@ -354,7 +354,7 @@ public class SiriXmlValidator extends ApplicationContextHolder {
 
             addResult(subscriptionSetup, originalXml, combinedEvents);
 
-            logger.info("Full validation for report took: {}", (System.currentTimeMillis()-t1));
+            logger.info("Full validation for report took: {} ms", (System.currentTimeMillis()-t1));
         } catch (Exception e) {
             logger.warn("Caught exception when validating", e);
         }
