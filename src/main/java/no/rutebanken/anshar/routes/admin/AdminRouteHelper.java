@@ -58,7 +58,9 @@ public class AdminRouteHelper {
     }
 
     public void forceUnlock(String lockId) {
-        hazelcastService.getHazelcastInstance().getMap("ansharRouteLockMap").forceUnlock(lockId);
+        final String lockMap = "ansharRouteLockMap";
+        logger.warn("Force unlocking of key {} from map {}", lockId, lockMap);
+        hazelcastService.getHazelcastInstance().getMap(lockMap).forceUnlock(lockId);
     }
 
     private void flushData(String datasetId, String dataType) {
