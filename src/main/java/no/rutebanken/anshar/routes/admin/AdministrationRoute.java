@@ -33,6 +33,8 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
+import static no.rutebanken.anshar.routes.policy.SingletonRoutePolicyFactory.DEFAULT_LOCK_VALUE;
+
 @SuppressWarnings("unchecked")
 @Service
 @Configuration
@@ -86,10 +88,12 @@ public class AdministrationRoute extends RestRouteBuilder {
                     final Map<String, String> locksMap = helper.getAllLocks();
                     for (Map.Entry<String, String> lockEntries : locksMap.entrySet()) {
                         final String hostName = lockEntries.getValue();
-                        final InetAddress host = InetAddress.getByName(hostName);
-                        if (!host.isReachable(5000)) {
-                            log.warn("Host [{}] unreachable - releasing lock", hostName);
-                            helper.forceUnlock(lockEntries.getKey());
+                        if (!hostName.equals(DEFAULT_LOCK_VALUE)) {
+                            final InetAddress host = InetAddress.getByName(hostName);
+                            if (!host.isReachable(5000)) {
+                                log.warn("Host [{}] unreachable - releasing lock", hostName);
+                                helper.forceUnlock(lockEntries.getKey());
+                            }
                         }
                     }
                 }

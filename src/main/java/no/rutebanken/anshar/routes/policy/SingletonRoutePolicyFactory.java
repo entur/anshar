@@ -34,6 +34,7 @@ import static no.rutebanken.anshar.routes.CamelRouteNames.SINGLETON_ROUTE_DEFINI
 public class SingletonRoutePolicyFactory implements RoutePolicyFactory {
 
     private static final Logger log = LoggerFactory.getLogger(SingletonRoutePolicyFactory.class);
+    public static final String DEFAULT_LOCK_VALUE = "lockValue";
 
     private boolean ignorePolicy;
 
@@ -46,7 +47,7 @@ public class SingletonRoutePolicyFactory implements RoutePolicyFactory {
             ExtendedHazelcastService hazelcastService,
         @Value("${anshar.route.singleton.policy.ignore:false}")
             boolean ignorePolicy,
-        @Value("${anshar.route.singleton.policy.lockValue:lockValue}")
+        @Value("${anshar.route.singleton.policy.lockValue}")
             String lockValue
     ) {
         this.hazelcastService = hazelcastService;
@@ -55,7 +56,8 @@ public class SingletonRoutePolicyFactory implements RoutePolicyFactory {
             log.info("using lockValue {}", lockValue);
             this.lockValue = lockValue;
         } else {
-            this.lockValue = "lockValue";
+            log.info("using default lockValue {}", lockValue);
+            this.lockValue = DEFAULT_LOCK_VALUE;
         }
     }
 
