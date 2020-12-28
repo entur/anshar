@@ -64,7 +64,7 @@ public class AdminRouteHelper {
         hazelcastService.getHazelcastInstance().getMap(lockMap).forceUnlock(lockId);
     }
 
-    public Map<String, String> listLocks() {
+    public Map<String, String> getAllLocks() {
         final String lockMap = "ansharRouteLockMap";
         return hazelcastService.getHazelcastInstance().getMap(lockMap);
     }

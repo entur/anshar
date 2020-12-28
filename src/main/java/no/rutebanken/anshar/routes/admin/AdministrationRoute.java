@@ -27,6 +27,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 
 import javax.ws.rs.core.MediaType;
+import java.net.InetAddress;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -76,7 +77,24 @@ public class AdministrationRoute extends RestRouteBuilder {
                 .get("/unmapped/{datasetId}").produces(MediaType.TEXT_HTML).to(UNMAPPED_ROUTE)
         ;
 
-        // Temporary route used to force unlocking of specific key
+        from("quartz2://anshar.verify.locks?cron=0 */10 * * * ?")
+            .log("Verifying locks")
+            .process(p -> {
+                    final Map<String, String> locksMap = helper.getAllLocks();
+                    for (Map.Entry<String, String> lockEntries : locksMap.entrySet()) {
+                        final String hostName = lockEntries.getValue();
+                        final InetAddress host = InetAddress.getByName(hostName);
+                        if (!host.isReachable(5000)) {
+                            log.warn("Host [{}] unreachable - releasing lock", hostName);
+                            helper.forceUnlock(lockEntries.getKey());
+                        }
+                    }
+                }
+            )
+            .routeId("anshar.admin.periodic.lock.verification")
+        ;
+
+
         from("direct:locks")
             .choice()
             .when().header("unlock")
@@ -84,7 +102,7 @@ public class AdministrationRoute extends RestRouteBuilder {
             .end()
             .process(p -> {
                 // Fetch all locks - sorted by keys
-                final TreeMap<String, String> locksMap = new TreeMap<>(helper.listLocks());
+                final TreeMap<String, String> locksMap = new TreeMap<>(helper.getAllLocks());
                 int maxlength = 0;
                 // Find max length for prettifying output
                 for (String s : locksMap.keySet()) {
