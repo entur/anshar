@@ -26,6 +26,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 
 import javax.ws.rs.core.MediaType;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @SuppressWarnings("unchecked")
 @Service
@@ -60,7 +62,7 @@ public class AdministrationRoute extends RestRouteBuilder {
         rest("/").tag("internal.admin.root")
                 .get("").produces(MediaType.TEXT_HTML).to(STATS_ROUTE)
                 .put("").to(OPERATION_ROUTE)
-                .get("/unlock").to("direct:unlock")
+                .get("/locks").to("direct:locks")
         ;
 
         rest("/anshar").tag("internal.admin")
@@ -72,8 +74,19 @@ public class AdministrationRoute extends RestRouteBuilder {
         ;
 
         // Temporary route used to force unlocking of specific key
-        from("direct:unlock")
-            .process(p -> helper.forceUnlock((String) p.getIn().getHeader("lockId")))
+        from("direct:locks")
+            .choice()
+            .when().header("unlock")
+            .process(p -> helper.forceUnlock((String) p.getIn().getHeader("unlock")))
+            .end()
+            .process(p -> {
+                final List<String> locks = helper.listLocks().stream().sorted().collect(Collectors.toList());
+                String body = "   key   ::   value";
+                for (String lock : locks) {
+                    body += "\n" + lock;
+                }
+                p.getOut().setBody(body);
+            })
             .routeId("admin")
         ;
 
