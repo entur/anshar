@@ -47,7 +47,7 @@ public class SingletonRoutePolicyFactory implements RoutePolicyFactory {
             ExtendedHazelcastService hazelcastService,
         @Value("${anshar.route.singleton.policy.ignore:false}")
             boolean ignorePolicy,
-        @Value("${anshar.route.singleton.policy.lockValue}")
+        @Value("${anshar.route.singleton.policy.lockValue:}")
             String lockValue
     ) {
         this.hazelcastService = hazelcastService;
