@@ -20,14 +20,15 @@ import no.rutebanken.anshar.routes.RestRouteBuilder;
 import no.rutebanken.anshar.routes.health.HealthManager;
 import no.rutebanken.anshar.routes.outbound.ServerSubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
+import org.apache.commons.lang3.StringUtils;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 
 import javax.ws.rs.core.MediaType;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
+import java.util.TreeMap;
 
 @SuppressWarnings("unchecked")
 @Service
@@ -80,10 +81,18 @@ public class AdministrationRoute extends RestRouteBuilder {
             .process(p -> helper.forceUnlock((String) p.getIn().getHeader("unlock")))
             .end()
             .process(p -> {
-                final List<String> locks = helper.listLocks().stream().sorted().collect(Collectors.toList());
-                String body = "   key   ::   value";
-                for (String lock : locks) {
-                    body += "\n" + lock;
+                // Fetch all locks - sorted by keys
+                final TreeMap<String, String> locksMap = new TreeMap<>(helper.listLocks());
+                int maxlength = 0;
+                // Find max length for prettifying output
+                for (String s : locksMap.keySet()) {
+                    maxlength = Math.max(maxlength, s.length());
+                }
+
+                String body = StringUtils.rightPad("key", maxlength) + " | value\n";
+
+                for (Map.Entry<String, String> e : locksMap.entrySet()) {
+                    body += StringUtils.rightPad(e.getKey(), maxlength) + " | " + e.getValue() + "\n";
                 }
                 p.getOut().setBody(body);
             })

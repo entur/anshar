@@ -26,10 +26,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
 
 @Component
 public class AdminRouteHelper {
@@ -65,13 +64,9 @@ public class AdminRouteHelper {
         hazelcastService.getHazelcastInstance().getMap(lockMap).forceUnlock(lockId);
     }
 
-    public List<String> listLocks() {
+    public Map<String, String> listLocks() {
         final String lockMap = "ansharRouteLockMap";
-        return hazelcastService.getHazelcastInstance().getMap(lockMap)
-            .entrySet()
-            .stream()
-            .map(e -> e.getKey() + " :: " + e.getValue())
-            .collect(Collectors.toList());
+        return hazelcastService.getHazelcastInstance().getMap(lockMap);
     }
 
     private void flushData(String datasetId, String dataType) {
