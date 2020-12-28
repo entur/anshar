@@ -27,8 +27,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 
 import javax.ws.rs.core.MediaType;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 @SuppressWarnings("unchecked")
 @Service
@@ -91,7 +93,14 @@ public class AdministrationRoute extends RestRouteBuilder {
 
                 String body = StringUtils.rightPad("key", maxlength) + " | value\n";
 
-                for (Map.Entry<String, String> e : locksMap.entrySet()) {
+                // Now, sort by values to group hosts
+                final List<Map.Entry<String, String>> sortedEntries = locksMap
+                    .entrySet()
+                    .stream()
+                    .sorted(Map.Entry.comparingByValue())
+                    .collect(Collectors.toList());
+
+                for (Map.Entry<String, String> e : sortedEntries) {
                     body += StringUtils.rightPad(e.getKey(), maxlength) + " | " + e.getValue() + "\n";
                 }
                 p.getOut().setBody(body);
