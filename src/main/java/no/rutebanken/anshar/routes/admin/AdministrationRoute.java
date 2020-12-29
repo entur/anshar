@@ -23,6 +23,7 @@ import no.rutebanken.anshar.subscription.SubscriptionManager;
 import org.apache.commons.lang3.StringUtils;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 
@@ -61,6 +62,9 @@ public class AdministrationRoute extends RestRouteBuilder {
     @Autowired
     private AdminRouteHelper helper;
 
+    @Value("${anshar.route.singleton.policy.automatic.verification:false}")
+    private boolean autoLockVerificationEnabled;
+
     @Override
     public void configure() throws Exception {
         super.configure();
@@ -80,37 +84,34 @@ public class AdministrationRoute extends RestRouteBuilder {
                 .get("/unmapped/{datasetId}").produces(MediaType.TEXT_HTML).to(UNMAPPED_ROUTE)
         ;
 
-        long verificationIntervalMillis = 10*60*1000;
-        // fireNow=false  : allow all instances to start completely before checking during redeploy
-        // repeatInterval : Use repeat interval to check every 10 minutes after startup - not every 10 minutes on clock
-        from("quartz2://anshar.verify.locks?fireNow=false&trigger.repeatInterval=" + verificationIntervalMillis)
-            .log("Verifying locks")
-            .process(p -> {
-                    final Map<String, String> locksMap = helper.getAllLocks();
-                    for (Map.Entry<String, String> lockEntries : locksMap.entrySet()) {
-                        final String hostName = lockEntries.getValue();
-                        boolean unlock = false;
-                        if (!hostName.equals(DEFAULT_LOCK_VALUE)) {
-                            try {
-                                final InetAddress host = InetAddress.getByName(hostName);
-                                if (!host.isReachable(5000)) {
-                                    unlock = true;
-                                    log.warn("Host [{}] unreachable - releasing lock", hostName);
-                                }
-                            } catch (UnknownHostException e) {
+        if (autoLockVerificationEnabled) {
+            long verificationIntervalMillis = 10 * 60 * 1000;
+            // fireNow=false  : allow all instances to start completely before checking during redeploy
+            // repeatInterval : Use repeat interval to check every 10 minutes after startup - not every 10 minutes on clock
+            from("quartz2://anshar.verify.locks?fireNow=false&trigger.repeatInterval=" + verificationIntervalMillis).log("Verifying locks").process(p -> {
+                final Map<String, String> locksMap = helper.getAllLocks();
+                for (Map.Entry<String, String> lockEntries : locksMap.entrySet()) {
+                    final String hostName = lockEntries.getValue();
+                    boolean unlock = false;
+                    if (!hostName.equals(DEFAULT_LOCK_VALUE)) {
+                        try {
+                            final InetAddress host = InetAddress.getByName(hostName);
+                            if (!host.isReachable(5000)) {
                                 unlock = true;
-                                log.warn("Unknown host [{}] - releasing lock", hostName);
+                                log.warn("Host [{}] unreachable - releasing lock", hostName);
                             }
                         }
-                        if (unlock) {
-                            helper.forceUnlock(lockEntries.getKey());
+                        catch (UnknownHostException e) {
+                            unlock = true;
+                            log.warn("Unknown host [{}] - releasing lock", hostName);
                         }
                     }
+                    if (unlock) {
+                        helper.forceUnlock(lockEntries.getKey());
+                    }
                 }
-            )
-            .routeId("anshar.admin.periodic.lock.verification")
-        ;
-
+            }).routeId("anshar.admin.periodic.lock.verification");
+        }
 
         from("direct:locks")
             .choice()
