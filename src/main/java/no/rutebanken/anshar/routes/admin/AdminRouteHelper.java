@@ -18,6 +18,7 @@ package no.rutebanken.anshar.routes.admin;
 import no.rutebanken.anshar.data.EstimatedTimetables;
 import no.rutebanken.anshar.data.Situations;
 import no.rutebanken.anshar.data.VehicleActivities;
+import no.rutebanken.anshar.data.collections.ExtendedHazelcastService;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.slf4j.Logger;
@@ -25,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -45,6 +47,8 @@ public class AdminRouteHelper {
     @Autowired
     private EstimatedTimetables estimatedTimetables;
 
+    @Autowired
+    private ExtendedHazelcastService hazelcastService;
 
     public void flushDataFromSubscription(String subscriptionId) {
         ExecutorService executor = Executors.newSingleThreadExecutor();
@@ -52,6 +56,17 @@ public class AdminRouteHelper {
         if (subscriptionSetup != null) {
             executor.execute(() -> flushData(subscriptionSetup.getDatasetId(), subscriptionSetup.getSubscriptionType().name()));
         }
+    }
+
+    public void forceUnlock(String lockId) {
+        final String lockMap = "ansharRouteLockMap";
+        logger.warn("Force unlocking of key {} from map {}", lockId, lockMap);
+        hazelcastService.getHazelcastInstance().getMap(lockMap).forceUnlock(lockId);
+    }
+
+    public Map<String, String> getAllLocks() {
+        final String lockMap = "ansharRouteLockMap";
+        return hazelcastService.getHazelcastInstance().getMap(lockMap);
     }
 
     private void flushData(String datasetId, String dataType) {

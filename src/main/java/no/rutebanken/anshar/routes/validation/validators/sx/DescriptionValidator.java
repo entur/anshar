@@ -34,7 +34,7 @@ public class DescriptionValidator extends StringStructureValidator {
 
     private String path;
 
-    private DescriptionValidator() {
+    public DescriptionValidator() {
         FIELDNAME = "Description";
         path = PT_SITUATION_ELEMENT;
     }

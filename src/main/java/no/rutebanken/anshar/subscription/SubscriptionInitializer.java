@@ -27,6 +27,7 @@ import no.rutebanken.anshar.routes.siri.Siri20ToSiriWS20Subscription;
 import no.rutebanken.anshar.routes.siri.adapters.Mapping;
 import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
 import no.rutebanken.anshar.routes.siri.processor.CodespaceProcessor;
+import no.rutebanken.anshar.routes.siri.processor.ExtraJourneyDestinationDisplayPostProcessor;
 import no.rutebanken.anshar.routes.siri.processor.RemovePersonalInformationProcessor;
 import no.rutebanken.anshar.routes.siri.processor.ReportTypeProcessor;
 import no.rutebanken.anshar.routes.siri.transformer.ApplicationContextHolder;
@@ -129,6 +130,7 @@ public class SubscriptionInitializer implements CamelContextAware {
                         valueAdapters.add(new CodespaceProcessor(subscriptionSetup.getDatasetId()));
                         valueAdapters.add(new ReportTypeProcessor(subscriptionSetup.getDatasetId()));
                         valueAdapters.add(new RemovePersonalInformationProcessor());
+                        valueAdapters.add(new ExtraJourneyDestinationDisplayPostProcessor(subscriptionSetup.getDatasetId()));
 
                         subscriptionSetup.getMappingAdapters().addAll(valueAdapters);
                     } catch (Exception e) {

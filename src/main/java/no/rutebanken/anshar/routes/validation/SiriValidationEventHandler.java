@@ -26,7 +26,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 class SiriValidationEventHandler implements ValidationEventHandler {
 
-    private final Map<String, Map<String, ValidationEvent>> categorizedEvents = new HashMap<>();
+    final Map<String, Map<String, ValidationEvent>> categorizedEvents = new HashMap<>();
     private final Map<String, Integer> equalsEventCounter = new HashMap<>();
     private final long timestamp = System.currentTimeMillis();
 

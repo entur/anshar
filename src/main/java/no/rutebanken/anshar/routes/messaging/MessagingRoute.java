@@ -44,16 +44,8 @@ public class MessagingRoute extends RestRouteBuilder {
         Namespaces ns = new Namespaces("siri", "http://www.siri.org.uk/siri")
                 .add("xsd", "http://www.w3.org/2001/XMLSchema");
 
-        String queueProducerParameters;
-        String queueConsumerParameters;
+        String queueConsumerParameters = "?concurrentConsumers="+configuration.getConcurrentConsumers();
 
-        if (messageQueueCamelRoutePrefix.startsWith("activemq")) {
-            queueProducerParameters = "?disableReplyTo=true&timeToLive="+ configuration.getTimeToLive();
-            queueConsumerParameters = "?asyncConsumer=true&concurrentConsumers="+ configuration.getConcurrentConsumers();
-        } else {
-            queueProducerParameters = "";
-            queueConsumerParameters = "?concurrentConsumers="+configuration.getConcurrentConsumers();
-        }
 
         final String pubsubQueueName = messageQueueCamelRoutePrefix + CamelRouteNames.TRANSFORM_QUEUE;
 
@@ -72,8 +64,7 @@ public class MessagingRoute extends RestRouteBuilder {
                 .endChoice()
                 .otherwise()
                     .to("direct:compress.jaxb")
-//                .to("direct:map.jaxb.to.protobuf")
-                  .to(pubsubQueueName + queueProducerParameters)
+                  .to(pubsubQueueName)
                 .end()
         ;
 

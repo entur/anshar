@@ -46,12 +46,16 @@ public class NetexUpdaterService {
     private static final TimeUnit FREQUENCY_TIME_UNIT = TimeUnit.HOURS;
 
     // Kept non-configurable since this whole adapter is a temporary hack - ROR-326/ROR-329
-    private static final String NETEX_NSB_URL = "https://storage.googleapis.com/marduk-production/outbound/netex/rb_nsb-aggregated-netex.zip"; // NSB
-    private static final String NETEX_GJB_URL = "https://storage.googleapis.com/marduk-production/outbound/netex/rb_gjb-aggregated-netex.zip"; // Gjøvikbanen
-    private static final String NETEX_FLT_URL = "https://storage.googleapis.com/marduk-production/outbound/netex/rb_flt-aggregated-netex.zip"; // Flytoget
-    private static final String NETEX_FLB_URL = "https://storage.googleapis.com/marduk-production/outbound/netex/rb_flb-aggregated-netex.zip"; // Flåmsbana
-    private static final String NETEX_GOA_URL = "https://storage.googleapis.com/marduk-production/outbound/netex/rb_goa-aggregated-netex.zip"; // Go-Ahead
-    private static final String STOPPLACE_URL = "https://storage.googleapis.com/marduk-production/tiamat/CurrentAndFuture_latest.zip";
+    private static final String[] urls = {
+        "https://storage.googleapis.com/marduk-production/outbound/netex/rb_nsb-aggregated-netex.zip", // NSB
+        "https://storage.googleapis.com/marduk-production/outbound/netex/rb_gjb-aggregated-netex.zip", // Gjøvikbanen
+        "https://storage.googleapis.com/marduk-production/outbound/netex/rb_flt-aggregated-netex.zip", // Flytoget
+        "https://storage.googleapis.com/marduk-production/outbound/netex/rb_flb-aggregated-netex.zip", // Flåmsbana
+        "https://storage.googleapis.com/marduk-production/outbound/netex/rb_goa-aggregated-netex.zip", // Go-Ahead
+        "https://storage.googleapis.com/marduk-production/outbound/netex/rb_sjn-aggregated-netex.zip", // SJ
+        "https://storage.googleapis.com/marduk-production/outbound/netex/rb_vyg-aggregated-netex.zip", // VYG
+        "https://storage.googleapis.com/marduk-production/tiamat/CurrentAndFuture_latest.zip"
+    };
 
     private static Map<String, List<StopTime>> tripStops = new HashMap<>();
     private static Map<String, Set<String>> trainNumberTrips = new HashMap<>();
@@ -106,27 +110,21 @@ public class NetexUpdaterService {
                     long t1 = System.currentTimeMillis();
                     logger.info("Updating NeTEx-data - start");
 
-                    String path_nsb = null;
-                    String path_flt = null;
-                    String path_flb = null;
-                    String path_gjb = null;
-                    String path_goa = null;
-                    String path_stops = null;
-                    try {
-                        path_nsb = readUrl(NETEX_NSB_URL);
-                        path_flt = readUrl(NETEX_FLT_URL);
-                        path_gjb = readUrl(NETEX_GJB_URL);
-                        path_flb = readUrl(NETEX_FLB_URL);
-                        path_goa = readUrl(NETEX_GOA_URL);
-                        path_stops = readUrl(STOPPLACE_URL);
+                    String[] paths = new String[urls.length];
 
-                        if (path_nsb != null && path_flt != null && path_gjb != null && path_flb != null && path_stops != null) {
-                            update(path_nsb, path_flt, path_gjb, path_flb, path_goa, path_stops);
-                        } else {
-                            logger.error("Do not update NeTEx data as some files could not be downloaded: nsb={}, flt={}, gjb={}, flb={}, stops={}", path_nsb, path_flt, path_gjb, path_flb, path_stops);
+                    try {
+                        for (int i = 0; i < urls.length; i++) {
+                            paths[i] = readUrl(urls[i]);
+                            if (paths[i] == null) {
+                                logger.error("Do not update NeTEx data as file could not be downloaded: {}", urls[i]);
+                                return;
+                            }
                         }
+
+                        update(paths);
+
                     } finally {
-                        cleanup(path_nsb, path_flt, path_gjb, path_flb, path_goa, path_stops);
+                        cleanup(paths);
                     }
                     logger.info("Updating NeTEx-data - done: {} ms", (System.currentTimeMillis() - t1));
                 },

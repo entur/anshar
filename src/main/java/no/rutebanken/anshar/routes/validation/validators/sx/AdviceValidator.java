@@ -32,7 +32,7 @@ public class AdviceValidator extends StringStructureValidator {
 
     private String path;
 
-    private AdviceValidator() {
+    public AdviceValidator() {
         FIELDNAME = "Advice";
         path = PT_SITUATION_ELEMENT;
     }

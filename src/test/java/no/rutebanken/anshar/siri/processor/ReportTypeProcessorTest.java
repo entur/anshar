@@ -15,6 +15,7 @@
 
 package no.rutebanken.anshar.siri.processor;
 
+import no.rutebanken.anshar.integration.SpringBootBaseTest;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.routes.siri.processor.ReportTypeProcessor;
 import org.junit.Before;
@@ -29,7 +30,7 @@ import java.util.Collection;
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertNotNull;
 
-public class ReportTypeProcessorTest {
+public class ReportTypeProcessorTest extends SpringBootBaseTest {
 
 
     private SiriObjectFactory objectFactory;

@@ -18,6 +18,8 @@ package no.rutebanken.anshar.config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.List;
+
 @Configuration
 public class AnsharConfiguration {
 
@@ -41,9 +43,6 @@ public class AnsharConfiguration {
 
     @Value("${anshar.incoming.logdirectory}")
     private String incomingLogDirectory = "/tmp";
-
-    @Value("${anshar.incoming.activemq.timetolive}")
-    private String timeToLive;
 
     @Value("${anshar.inbound.pattern}")
     private String incomingPathPattern;
@@ -81,6 +80,9 @@ public class AnsharConfiguration {
     @Value("${anshar.validation.profile.enabled}")
     private boolean profileValidation;
 
+    @Value("${anshar.validation.enabled:false}")
+    private boolean fullValidationEnabled;
+
     @Value("${anshar.validation.profile.name}")
     private String validationProfileName;
 
@@ -113,6 +115,9 @@ public class AnsharConfiguration {
     @Value("${anshar.sirivm.position.forward.url:}")
     private String siriVmPositionForwardingUrl;
 
+    @Value("${anshar.admin.blocked.clients:}")
+    private List<String> blockedEtClientNames;
+
     public String getHazelcastManagementUrl() {
         return hazelcastManagementUrl;
     }
@@ -135,10 +140,6 @@ public class AnsharConfiguration {
 
     public String getIncomingPathPattern() {
         return incomingPathPattern;
-    }
-
-    public String getTimeToLive() {
-        return timeToLive;
     }
 
     public long getConcurrentConsumers() {
@@ -189,6 +190,10 @@ public class AnsharConfiguration {
         return profileValidation;
     }
 
+    public boolean isFullValidationEnabled() {
+        return fullValidationEnabled;
+    }
+
     public String getValidationProfileName() {
         return validationProfileName;
     }
@@ -230,5 +235,9 @@ public class AnsharConfiguration {
             siriVmPositionForwardingUrl = null;
         }
         return siriVmPositionForwardingUrl;
+    }
+
+    public List<String> getBlockedEtClientNames() {
+        return blockedEtClientNames;
     }
 }

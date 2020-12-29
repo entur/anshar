@@ -24,6 +24,7 @@ import org.w3c.dom.Node;
 import uk.org.siri.siri20.VehicleModesEnumeration;
 
 import javax.xml.bind.ValidationEvent;
+import java.util.List;
 import java.util.Set;
 
 import static no.rutebanken.anshar.routes.validation.validators.Constants.ESTIMATED_VEHICLE_JOURNEY;
@@ -57,6 +58,11 @@ public class ExtraJourneyValidator extends CustomValidator {
     private static final String ROUTE_REF_NODE_NAME = "RouteRef";
     private static final String GROUP_OF_LINES_REF_NODE_NAME = "GroupOfLinesRef";
     private static final String ESTIMATED_VEHICLE_JOURNEY_CODE_NODE_NAME = "EstimatedVehicleJourneyCode";
+    private static final String ESTIMATED_CALLS_NODE_NAME = "EstimatedCalls";
+    private static final String ESTIMATED_CALL_NODE_NAME = "EstimatedCall";
+    private static final String RECORDED_CALLS_NODE_NAME = "RecordedCalls";
+    private static final String RECORDED_CALL_NODE_NAME = "RecordedCall";
+    private static final String DESTINATION_DISPLAY_NODE_NAME = "DestinationDisplay";
 
     @Override
     public String getXpath() {
@@ -108,8 +114,28 @@ public class ExtraJourneyValidator extends CustomValidator {
             } else if (!estimatedVehicleJourneyCode.contains(":ServiceJourney:")) {
                 return  createEvent(node, estimatedVehicleJourneyCode, "valid EstimatedVehicleJourneyCode - CODESPACE:ServiceJourney:ID", estimatedVehicleJourneyCode, ValidationEvent.ERROR);
             }
-        }
 
+            // EstimatedCall - DestinationDisplay
+
+            final List<Node> estimatedCallsNodes = getSiblingNodesByName(node, ESTIMATED_CALLS_NODE_NAME);
+
+            if (estimatedCallsNodes != null) {
+                for (Node estimatedCallsNode : estimatedCallsNodes) {
+                    final List<Node> estimatedCall = getChildNodesByName(
+                        estimatedCallsNode,
+                        ESTIMATED_CALL_NODE_NAME
+                    );
+                    for (Node call : estimatedCall) {
+                        final String destinationDisplay = getChildNodeValue(call,
+                            DESTINATION_DISPLAY_NODE_NAME
+                        );
+                        if (destinationDisplay == null) {
+                            return  createEvent(node, ESTIMATED_CALL_NODE_NAME + "." + DESTINATION_DISPLAY_NODE_NAME, expectedValuesMessageText, null, ValidationEvent.ERROR);
+                        }
+                    }
+                }
+            }
+        }
 
         return null;
     }

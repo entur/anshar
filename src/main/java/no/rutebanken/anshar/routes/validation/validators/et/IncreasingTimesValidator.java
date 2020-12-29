@@ -23,7 +23,9 @@ import org.w3c.dom.Node;
 
 import javax.xml.bind.ValidationEvent;
 import java.text.MessageFormat;
+import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 
 import static no.rutebanken.anshar.routes.validation.validators.Constants.ESTIMATED_VEHICLE_JOURNEY;
@@ -148,13 +150,13 @@ public class IncreasingTimesValidator extends CustomValidator {
     }
 
     private long validateIncreasingTimes(long previousDeparture, Node call) throws NegativeDwelltimeException, NegativeRuntimeException{
-        long aimedArrivalTime = parse(getChildNodeValue(call, AIMED_ARRIVAL_NODE_NAME));
-        long expectedArrivalTime = parse(getChildNodeValue(call, EXPECTED_ARRIVAL_NODE_NAME));
-        long actualArrivalTime = parse(getChildNodeValue(call, ACTUAL_ARRIVAL_NODE_NAME));
+        long aimedArrivalTime = getEpochSeconds(getChildNodeValue(call, AIMED_ARRIVAL_NODE_NAME));
+        long expectedArrivalTime = getEpochSeconds(getChildNodeValue(call, EXPECTED_ARRIVAL_NODE_NAME));
+        long actualArrivalTime = getEpochSeconds(getChildNodeValue(call, ACTUAL_ARRIVAL_NODE_NAME));
 
-        long aimedDepartureTime = parse(getChildNodeValue(call, AIMED_DEPARTURE_NODE_NAME));
-        long expectedDepartureTime = parse(getChildNodeValue(call, EXPECTED_DEPARTURE_NODE_NAME));
-        long actualDepartureTime = parse(getChildNodeValue(call, ACTUAL_DEPARTURE_NODE_NAME));
+        long aimedDepartureTime = getEpochSeconds(getChildNodeValue(call, AIMED_DEPARTURE_NODE_NAME));
+        long expectedDepartureTime = getEpochSeconds(getChildNodeValue(call, EXPECTED_DEPARTURE_NODE_NAME));
+        long actualDepartureTime = getEpochSeconds(getChildNodeValue(call, ACTUAL_DEPARTURE_NODE_NAME));
 
         long arrival = -1;
 
@@ -191,16 +193,6 @@ public class IncreasingTimesValidator extends CustomValidator {
         }
 
         return departure;
-    }
-
-    /*
-        Returns epoch-time for timestamp, or 0 if time is <code>null</code>
-     */
-    private long parse(String time) {
-        if (time != null) {
-            return ZonedDateTime.parse(time).toEpochSecond();
-        }
-        return 0;
     }
 
     private class NegativeRuntimeException extends Exception {

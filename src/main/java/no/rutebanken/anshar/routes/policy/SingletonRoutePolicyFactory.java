@@ -34,12 +34,32 @@ import static no.rutebanken.anshar.routes.CamelRouteNames.SINGLETON_ROUTE_DEFINI
 public class SingletonRoutePolicyFactory implements RoutePolicyFactory {
 
     private static final Logger log = LoggerFactory.getLogger(SingletonRoutePolicyFactory.class);
+    public static final String DEFAULT_LOCK_VALUE = "lockValue";
 
-    @Value("${anshar.route.singleton.policy.ignore:false}")
     private boolean ignorePolicy;
 
-    @Autowired
+    private String lockValue;
+
     private ExtendedHazelcastService hazelcastService;
+
+    public SingletonRoutePolicyFactory(
+        @Autowired
+            ExtendedHazelcastService hazelcastService,
+        @Value("${anshar.route.singleton.policy.ignore:false}")
+            boolean ignorePolicy,
+        @Value("${anshar.route.singleton.policy.lockValue:}")
+            String lockValue
+    ) {
+        this.hazelcastService = hazelcastService;
+        this.ignorePolicy = ignorePolicy;
+        if (lockValue != null && !lockValue.isEmpty()) {
+            log.info("using lockValue {}", lockValue);
+            this.lockValue = lockValue;
+        } else {
+            log.info("using default lockValue {}", lockValue);
+            this.lockValue = DEFAULT_LOCK_VALUE;
+        }
+    }
 
     /**
      * Create policy ensuring only one route with 'key' is started in cluster.
@@ -48,7 +68,7 @@ public class SingletonRoutePolicyFactory implements RoutePolicyFactory {
         InterruptibleHazelcastRoutePolicy hazelcastRoutePolicy = new InterruptibleHazelcastRoutePolicy(hazelcastService.getHazelcastInstance());
         hazelcastRoutePolicy.setLockMapName("ansharRouteLockMap");
         hazelcastRoutePolicy.setLockKey(key);
-        hazelcastRoutePolicy.setLockValue("lockValue");
+        hazelcastRoutePolicy.setLockValue(lockValue);
         hazelcastRoutePolicy.setShouldStopConsumer(false);
 
         log.info("RoutePolicy: Created HazelcastPolicy for key {}", key);

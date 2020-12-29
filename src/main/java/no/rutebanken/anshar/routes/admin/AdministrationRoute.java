@@ -20,12 +20,22 @@ import no.rutebanken.anshar.routes.RestRouteBuilder;
 import no.rutebanken.anshar.routes.health.HealthManager;
 import no.rutebanken.anshar.routes.outbound.ServerSubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
+import org.apache.commons.lang3.StringUtils;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 
 import javax.ws.rs.core.MediaType;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
+
+import static no.rutebanken.anshar.routes.policy.SingletonRoutePolicyFactory.DEFAULT_LOCK_VALUE;
 
 @SuppressWarnings("unchecked")
 @Service
@@ -52,6 +62,9 @@ public class AdministrationRoute extends RestRouteBuilder {
     @Autowired
     private AdminRouteHelper helper;
 
+    @Value("${anshar.route.singleton.policy.automatic.verification:false}")
+    private boolean autoLockVerificationEnabled;
+
     @Override
     public void configure() throws Exception {
         super.configure();
@@ -59,7 +72,9 @@ public class AdministrationRoute extends RestRouteBuilder {
 
         rest("/").tag("internal.admin.root")
                 .get("").produces(MediaType.TEXT_HTML).to(STATS_ROUTE)
-                .put("").to(OPERATION_ROUTE);
+                .put("").to(OPERATION_ROUTE)
+                .get("/locks").to("direct:locks")
+        ;
 
         rest("/anshar").tag("internal.admin")
                 .get("/stats").produces(MediaType.TEXT_HTML).to(STATS_ROUTE)
@@ -67,6 +82,68 @@ public class AdministrationRoute extends RestRouteBuilder {
                 .get("/clusterstats").produces(MediaType.APPLICATION_JSON).to(CLUSTERSTATS_ROUTE)
                 .get("/unmapped").produces(MediaType.TEXT_HTML).to(UNMAPPED_ROUTE)
                 .get("/unmapped/{datasetId}").produces(MediaType.TEXT_HTML).to(UNMAPPED_ROUTE)
+        ;
+
+        long verificationIntervalMillis = 10 * 60 * 1000;
+        // fireNow=false  : allow all instances to start completely before checking during redeploy
+        // repeatInterval : Use repeat interval to check every 10 minutes after startup - not every 10 minutes on clock
+        from("quartz2://anshar.verify.locks?fireNow=false&trigger.repeatInterval=" + verificationIntervalMillis)
+            .log("Verifying locks - start")
+            .process(p -> {
+                final Map<String, String> locksMap = helper.getAllLocks();
+                for (Map.Entry<String, String> lockEntries : locksMap.entrySet()) {
+                    final String hostName = lockEntries.getValue();
+                    boolean unlock = false;
+                    if (!hostName.equals(DEFAULT_LOCK_VALUE)) {
+                        try {
+                            final InetAddress host = InetAddress.getByName(hostName);
+                            if (!host.isReachable(5000)) {
+                                unlock = true;
+                                log.info("Host [{}] unreachable.", hostName);
+                            }
+                        } catch (UnknownHostException e) {
+                            unlock = true;
+                            log.info("Unknown host [{}]", hostName);
+                        }
+                    }
+                    if (autoLockVerificationEnabled && unlock) {
+                        log.info("Releasing lock {}", lockEntries.getKey());
+                        helper.forceUnlock(lockEntries.getKey());
+                    }
+                }
+            })
+            .log("Verifying locks - done")
+            .routeId("anshar.admin.periodic.lock.verification");
+
+        from("direct:locks")
+            .choice()
+            .when().header("unlock")
+            .process(p -> helper.forceUnlock((String) p.getIn().getHeader("unlock")))
+            .end()
+            .process(p -> {
+                // Fetch all locks - sorted by keys
+                final TreeMap<String, String> locksMap = new TreeMap<>(helper.getAllLocks());
+                int maxlength = 0;
+                // Find max length for prettifying output
+                for (String s : locksMap.keySet()) {
+                    maxlength = Math.max(maxlength, s.length());
+                }
+
+                String body = StringUtils.rightPad("key", maxlength) + " | value\n";
+
+                // Now, sort by values to group hosts
+                final List<Map.Entry<String, String>> sortedEntries = locksMap
+                    .entrySet()
+                    .stream()
+                    .sorted(Map.Entry.comparingByValue())
+                    .collect(Collectors.toList());
+
+                for (Map.Entry<String, String> e : sortedEntries) {
+                    body += StringUtils.rightPad(e.getKey(), maxlength) + " | " + e.getValue() + "\n";
+                }
+                p.getOut().setBody(body);
+            })
+            .routeId("admin")
         ;
 
         //Return subscription status

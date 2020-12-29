@@ -23,12 +23,36 @@ import javax.xml.bind.ValidationEvent;
 import javax.xml.bind.helpers.ValidationEventImpl;
 import javax.xml.bind.helpers.ValidationEventLocatorImpl;
 import java.text.MessageFormat;
+import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 
 public abstract class CustomValidator {
 
     protected static final String FIELD_DELIMITER = "/";
+
+    protected ZonedDateTime parseDate(String time) {
+        try {
+            return ZonedDateTime.parse(time);
+        } catch (DateTimeParseException e) {
+            // Ignore - details will be in report
+            return LocalDateTime.parse(time).atZone(ZonedDateTime.now().getOffset());
+        }
+    }
+
+    protected long getEpochSeconds(String time) {
+        if (time == null) {
+            return 0;
+        }
+        try {
+            return ZonedDateTime.parse(time).toEpochSecond();
+        } catch (DateTimeParseException e) {
+            // Ignore - details will be in report
+            return LocalDateTime.parse(time).atZone(ZonedDateTime.now().getOffset()).toEpochSecond();
+        }
+    }
 
     public abstract String getXpath();
     public abstract ValidationEvent isValid(Node node);
@@ -85,7 +109,7 @@ public abstract class CustomValidator {
                 final Node n = childNodes.item(i);
                 if (n.hasChildNodes()) {
                     for (int j = 0; j < n.getChildNodes().getLength(); j++) {
-                        if (n.getNodeName().equals(name)) {
+                        if (nodeNameMatches(n, name)) {
                             return n;
                         }
                     }
@@ -95,13 +119,30 @@ public abstract class CustomValidator {
         return null;
     }
 
+    /**
+     * Checks if nodename matches regardless of namespace-prefix
+     * @param n
+     * @param name
+     * @return
+     */
+    private boolean nodeNameMatches(Node n, String name) {
+        final String nodeName = n.getNodeName();
+
+        boolean equals = nodeName.equals(name);
+        if (!equals) {
+            equals = nodeName.matches(".*:"+name);
+        }
+
+        return equals;
+    }
+
     protected List<Node> getChildNodesByName(Node node, String name) {
         List<Node> nodes = new ArrayList<>();
         if (node != null) {
             final NodeList childNodes = node.getChildNodes();
             for (int i = 0; i < childNodes.getLength(); i++) {
                 final Node n = childNodes.item(i);
-                if (n.getNodeName().equals(name)) {
+                if (nodeNameMatches(n, name)) {
                     nodes.add(n);
                 }
             }
@@ -120,7 +161,7 @@ public abstract class CustomValidator {
             final NodeList childNodes = parentNode.getChildNodes();
             for (int i = 0; i < childNodes.getLength(); i++) {
                 final Node n = childNodes.item(i);
-                if (n.getNodeName().equals(name)) {
+                if (nodeNameMatches(n, name)) {
                     return n;
                 }
             }
@@ -135,7 +176,7 @@ public abstract class CustomValidator {
             final NodeList childNodes = parentNode.getChildNodes();
             for (int i = 0; i < childNodes.getLength(); i++) {
                 final Node n = childNodes.item(i);
-                if (n.getNodeName().equals(name)) {
+                if (nodeNameMatches(n, name)) {
                     nodes.add(n);
                 }
             }

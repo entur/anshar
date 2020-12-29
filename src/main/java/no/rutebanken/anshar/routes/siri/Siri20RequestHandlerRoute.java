@@ -138,6 +138,9 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
         from("direct:process.subscription.request")
                 .to("log:subRequest:" + getClass().getSimpleName() + "?showAll=true&multiline=true&showStreams=true")
                 .choice()
+                .when(e -> isTrackingHeaderBlocked(e))
+                    .to("direct:anshar.blocked.tracking.header.response")
+                .endChoice()
                 .when(e -> isTrackingHeaderAcceptable(e))
                     .process(p -> {
                         String datasetId = p.getIn().getHeader(PARAM_DATASET_ID, String.class);
