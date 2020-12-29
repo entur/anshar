@@ -44,9 +44,6 @@ public class AnsharConfiguration {
     @Value("${anshar.incoming.logdirectory}")
     private String incomingLogDirectory = "/tmp";
 
-    @Value("${anshar.incoming.activemq.timetolive}")
-    private String timeToLive;
-
     @Value("${anshar.inbound.pattern}")
     private String incomingPathPattern;
 
@@ -143,10 +140,6 @@ public class AnsharConfiguration {
 
     public String getIncomingPathPattern() {
         return incomingPathPattern;
-    }
-
-    public String getTimeToLive() {
-        return timeToLive;
     }
 
     public long getConcurrentConsumers() {

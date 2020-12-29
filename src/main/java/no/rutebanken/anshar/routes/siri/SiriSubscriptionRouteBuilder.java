@@ -72,11 +72,6 @@ public abstract class SiriSubscriptionRouteBuilder extends BaseRouteBuilder {
         return "?httpClient.socketTimeout=" + timeout + "&httpClient.connectTimeout=" + timeout;
     }
 
-    String getTimeToLive() {
-        return config.getTimeToLive();
-    }
-
-
     protected Processor addCustomHeaders() {
         return exchange -> {
             if (subscriptionSetup.getCustomHeaders() != null && !subscriptionSetup.getCustomHeaders().isEmpty()) {
