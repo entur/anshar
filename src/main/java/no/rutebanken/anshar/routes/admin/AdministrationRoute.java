@@ -28,6 +28,7 @@ import org.springframework.stereotype.Service;
 
 import javax.ws.rs.core.MediaType;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -88,12 +89,21 @@ public class AdministrationRoute extends RestRouteBuilder {
                     final Map<String, String> locksMap = helper.getAllLocks();
                     for (Map.Entry<String, String> lockEntries : locksMap.entrySet()) {
                         final String hostName = lockEntries.getValue();
+                        boolean unlock = false;
                         if (!hostName.equals(DEFAULT_LOCK_VALUE)) {
-                            final InetAddress host = InetAddress.getByName(hostName);
-                            if (!host.isReachable(5000)) {
-                                log.warn("Host [{}] unreachable - releasing lock", hostName);
-                                helper.forceUnlock(lockEntries.getKey());
+                            try {
+                                final InetAddress host = InetAddress.getByName(hostName);
+                                if (!host.isReachable(5000)) {
+                                    unlock = true;
+                                    log.warn("Host [{}] unreachable - releasing lock", hostName);
+                                }
+                            } catch (UnknownHostException e) {
+                                unlock = true;
+                                log.warn("Unknown host [{}] - releasing lock", hostName);
                             }
+                        }
+                        if (unlock) {
+                            helper.forceUnlock(lockEntries.getKey());
                         }
                     }
                 }
