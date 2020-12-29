@@ -87,29 +87,33 @@ public class AdministrationRoute extends RestRouteBuilder {
         long verificationIntervalMillis = 10 * 60 * 1000;
         // fireNow=false  : allow all instances to start completely before checking during redeploy
         // repeatInterval : Use repeat interval to check every 10 minutes after startup - not every 10 minutes on clock
-        from("quartz2://anshar.verify.locks?fireNow=false&trigger.repeatInterval=" + verificationIntervalMillis).log("Verifying locks").process(p -> {
-            final Map<String, String> locksMap = helper.getAllLocks();
-            for (Map.Entry<String, String> lockEntries : locksMap.entrySet()) {
-                final String hostName = lockEntries.getValue();
-                boolean unlock = false;
-                if (!hostName.equals(DEFAULT_LOCK_VALUE)) {
-                    try {
-                        final InetAddress host = InetAddress.getByName(hostName);
-                        if (!host.isReachable(5000)) {
+        from("quartz2://anshar.verify.locks?fireNow=false&trigger.repeatInterval=" + verificationIntervalMillis)
+            .log("Verifying locks - start")
+            .process(p -> {
+                final Map<String, String> locksMap = helper.getAllLocks();
+                for (Map.Entry<String, String> lockEntries : locksMap.entrySet()) {
+                    final String hostName = lockEntries.getValue();
+                    boolean unlock = false;
+                    if (!hostName.equals(DEFAULT_LOCK_VALUE)) {
+                        try {
+                            final InetAddress host = InetAddress.getByName(hostName);
+                            if (!host.isReachable(5000)) {
+                                unlock = true;
+                                log.info("Host [{}] unreachable.", hostName);
+                            }
+                        } catch (UnknownHostException e) {
                             unlock = true;
-                            log.info("Host [{}] unreachable.", hostName);
+                            log.info("Unknown host [{}]", hostName);
                         }
-                    } catch (UnknownHostException e) {
-                        unlock = true;
-                        log.info("Unknown host [{}]", hostName);
+                    }
+                    if (autoLockVerificationEnabled && unlock) {
+                        log.info("Releasing lock {}", lockEntries.getKey());
+                        helper.forceUnlock(lockEntries.getKey());
                     }
                 }
-                if (autoLockVerificationEnabled && unlock) {
-                    log.info("Releasing lock {}", lockEntries.getKey());
-                    helper.forceUnlock(lockEntries.getKey());
-                }
-            }
-        }).routeId("anshar.admin.periodic.lock.verification");
+            })
+            .log("Verifying locks - done")
+            .routeId("anshar.admin.periodic.lock.verification");
 
         from("direct:locks")
             .choice()
