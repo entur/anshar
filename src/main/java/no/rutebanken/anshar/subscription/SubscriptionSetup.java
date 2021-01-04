@@ -447,6 +447,16 @@ public class SubscriptionSetup implements Serializable {
     }
 
     public void setUrlMap(Map<RequestType, String> urlMap) {
+        if (urlMap != null) {
+            for (Map.Entry<RequestType, String> entry : urlMap.entrySet()) {
+                final String url = entry.getValue();
+                if (!url.startsWith("http")) {
+                    entry.setValue("http://" + url);
+                    logger.warn("Prefixing url with 'http://': ", entry.getValue());
+                }
+            }
+        }
+
         this.urlMap = urlMap;
     }
 
