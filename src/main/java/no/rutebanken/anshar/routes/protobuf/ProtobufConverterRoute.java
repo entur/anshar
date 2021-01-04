@@ -72,6 +72,8 @@ public class ProtobufConverterRoute extends RouteBuilder {
      */
     private String fixEncodingErrorsInXml(String body, String subscriptionId) {
 
+        if (body == null) return body;
+
         boolean replacedChars = false;
         if (body.indexOf("Ã¦") >= 0) {
             body = body.replaceAll("Ã¦", "æ");
