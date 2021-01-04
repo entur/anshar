@@ -174,7 +174,26 @@ public class SubscriptionSetup implements Serializable {
     }
 
     public Map<RequestType, String> getUrlMap() {
+        ensureHttpPrefixes(urlMap);
         return urlMap;
+    }
+
+    private void ensureHttpPrefixes(Map<RequestType, String> urlMap) {
+        if (urlMap != null) {
+            for (Map.Entry<RequestType, String> entry : urlMap.entrySet()) {
+                final String url = entry.getValue();
+                if (!url.startsWith("http")) {
+                    if (!url.isEmpty()) {
+                        if (url.startsWith("https4")) {
+                            entry.setValue(url.replaceFirst("https4://", "https://"));
+                        } else {
+                            entry.setValue("http://" + url);
+                        }
+                        logger.warn("Prefixing url with 'http://': ", entry.getValue());
+                    }
+                }
+            }
+        }
     }
 
     public String getSubscriptionId() {
@@ -447,17 +466,7 @@ public class SubscriptionSetup implements Serializable {
     }
 
     public void setUrlMap(Map<RequestType, String> urlMap) {
-        if (urlMap != null) {
-            for (Map.Entry<RequestType, String> entry : urlMap.entrySet()) {
-                final String url = entry.getValue();
-                if (!url.startsWith("http")) {
-                    if (!url.isEmpty()) {
-                        entry.setValue("http://" + url);
-                        logger.warn("Prefixing url with 'http://': ", entry.getValue());
-                    }
-                }
-            }
-        }
+        ensureHttpPrefixes(urlMap);
 
         this.urlMap = urlMap;
     }
