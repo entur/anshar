@@ -2,7 +2,7 @@ package no.rutebanken.anshar.validation.sx;
 
 import no.rutebanken.anshar.routes.validation.validators.sx.AffectedRouteValidator;
 import no.rutebanken.anshar.validation.CustomValidatorTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.w3c.dom.NodeList;
 
 import javax.xml.bind.ValidationEvent;

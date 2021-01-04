@@ -17,9 +17,9 @@ package no.rutebanken.anshar.validation.sx;
 
 import no.rutebanken.anshar.routes.validation.validators.sx.PtSituationElementValidator;
 import no.rutebanken.anshar.validation.CustomValidatorTest;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.w3c.dom.Node;
 
 import static junit.framework.TestCase.assertNotNull;
@@ -40,12 +40,12 @@ public class PtSituationElementValidatorTest extends CustomValidatorTest {
     private String affects;
 
 
-    @BeforeClass
+    @BeforeAll
     public static void init() {
         validator = new PtSituationElementValidator();
     }
 
-    @Before
+    @BeforeEach
     public void initTestValues() {
         creationTime = createXml("CreationTime", "1234");
         participantRef = createXml("ParticipantRef", "1234");

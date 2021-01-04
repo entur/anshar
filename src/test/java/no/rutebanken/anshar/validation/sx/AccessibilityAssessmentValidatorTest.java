@@ -17,8 +17,8 @@ package no.rutebanken.anshar.validation.sx;
 
 import no.rutebanken.anshar.routes.validation.validators.sx.AccessibilityAssessmentValidator;
 import no.rutebanken.anshar.validation.CustomValidatorTest;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.w3c.dom.Node;
 import uk.org.acbs.siri20.AccessibilityEnumeration;
 
@@ -35,7 +35,7 @@ public class AccessibilityAssessmentValidatorTest extends CustomValidatorTest {
 
     private static AccessibilityAssessmentValidator validator;
 
-    @BeforeClass
+    @BeforeAll
     public static void init() {
         validator = new AccessibilityAssessmentValidator();
     }

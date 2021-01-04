@@ -71,7 +71,7 @@ public class RealtimeDataFileUploader extends BaseRouteBuilder {
         log.info("Uploading snapshot with cron-expression [{}], first upload at: {}.", snapshotCronExpression,
                 new CronExpression(snapshotCronExpression).getNextValidTimeAfter(new Date()));
 
-        singletonFrom("quartz2://anshar.export.snapshot?cron=" + snapshotCronExpression
+        singletonFrom("quartz://anshar.export.snapshot?cron=" + snapshotCronExpression
                 ,"anshar.export.snapshot")
                 .choice()
                 .when(p -> isLeader())

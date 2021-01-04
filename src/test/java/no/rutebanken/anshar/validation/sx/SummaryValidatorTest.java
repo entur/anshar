@@ -17,8 +17,8 @@ package no.rutebanken.anshar.validation.sx;
 
 import no.rutebanken.anshar.routes.validation.validators.sx.SummaryValidator;
 import no.rutebanken.anshar.validation.CustomValidatorTest;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import javax.xml.bind.ValidationEvent;
 
@@ -29,7 +29,7 @@ public class SummaryValidatorTest extends CustomValidatorTest {
 
     private static SummaryValidator validator;
 
-    @BeforeClass
+    @BeforeAll
     public static void init() {
         validator = new SummaryValidator();
     }

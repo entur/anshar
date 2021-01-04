@@ -37,12 +37,8 @@ public class SiriRequestFactory {
 				}
 				url = url + separator + parameters;
 			}
-
-			if (url.startsWith("https4://")) {
-				return url;
-			}
 		}
-		return "http4://" + url;
+		return url;
 	}
 
 	public SiriRequestFactory(SubscriptionSetup subscriptionSetup) {

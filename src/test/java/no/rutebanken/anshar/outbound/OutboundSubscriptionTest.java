@@ -2,7 +2,7 @@ package no.rutebanken.anshar.outbound;
 
 import no.rutebanken.anshar.integration.SpringBootBaseTest;
 import no.rutebanken.anshar.routes.outbound.ServerSubscriptionManager;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.rutebanken.siri20.util.SiriXml;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;

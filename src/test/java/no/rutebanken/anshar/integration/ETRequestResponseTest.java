@@ -19,8 +19,8 @@ import io.restassured.http.ContentType;
 import no.rutebanken.anshar.data.EstimatedTimetables;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.subscription.SiriDataType;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.rutebanken.siri20.util.SiriXml;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.org.siri.siri20.EstimatedCall;
@@ -47,10 +47,9 @@ public class ETRequestResponseTest extends BaseHttpTest {
     private static final int callCount = 5;
 
     @Autowired
-    private
-    EstimatedTimetables repo;
+    private EstimatedTimetables repo;
 
-    @Before
+    @BeforeEach
     public void addData() {
         super.init();
         repo.clearAll();
@@ -70,7 +69,7 @@ public class ETRequestResponseTest extends BaseHttpTest {
                     .post("anshar/services")
                 .then()
                     .statusCode(200)
-                    .root("Siri.ServiceDelivery.EstimatedTimetableDelivery.EstimatedJourneyVersionFrame.EstimatedVehicleJourney")
+                    .rootPath("Siri.ServiceDelivery.EstimatedTimetableDelivery.EstimatedJourneyVersionFrame.EstimatedVehicleJourney")
                         .body("LineRef", equalTo(lineRef))
                         .body("FramedVehicleJourneyRef.DatedVehicleJourneyRef", equalTo(datedVehicleRef))
         ;
@@ -89,7 +88,7 @@ public class ETRequestResponseTest extends BaseHttpTest {
                     .post("anshar/services?excludedDatasetIds=DUMMY")
                 .then()
                     .statusCode(200)
-                    .root("Siri.ServiceDelivery.EstimatedTimetableDelivery.EstimatedJourneyVersionFrame.EstimatedVehicleJourney")
+                    .rootPath("Siri.ServiceDelivery.EstimatedTimetableDelivery.EstimatedJourneyVersionFrame.EstimatedVehicleJourney")
                         .body("LineRef", equalTo(lineRef))
                         .body("FramedVehicleJourneyRef.DatedVehicleJourneyRef", equalTo(datedVehicleRef))
         ;
@@ -101,7 +100,7 @@ public class ETRequestResponseTest extends BaseHttpTest {
                     .post("anshar/services?excludedDatasetIds="+dataSource)
                 .then()
                     .statusCode(200)
-                    .root("Siri.ServiceDelivery.EstimatedTimetableDelivery.EstimatedJourneyVersionFrame")
+                    .rootPath("Siri.ServiceDelivery.EstimatedTimetableDelivery.EstimatedJourneyVersionFrame")
                         .body("$", not(hasKey("EstimatedVehicleJourney")))
         ;
     }
@@ -116,7 +115,7 @@ public class ETRequestResponseTest extends BaseHttpTest {
                 .then()
                     .statusCode(200)
                     .contentType(ContentType.XML)
-                .root("Siri.ServiceDelivery.EstimatedTimetableDelivery.EstimatedJourneyVersionFrame.EstimatedVehicleJourney")
+                .rootPath("Siri.ServiceDelivery.EstimatedTimetableDelivery.EstimatedJourneyVersionFrame.EstimatedVehicleJourney")
                     .body("LineRef", equalTo(lineRef))
                     .body("FramedVehicleJourneyRef.DatedVehicleJourneyRef", equalTo(datedVehicleRef))
         ;
@@ -132,7 +131,7 @@ public class ETRequestResponseTest extends BaseHttpTest {
                 .then()
                     .statusCode(200)
                     .contentType(ContentType.XML)
-                .root("Siri.ServiceDelivery.EstimatedTimetableDelivery.EstimatedJourneyVersionFrame.EstimatedVehicleJourney")
+                .rootPath("Siri.ServiceDelivery.EstimatedTimetableDelivery.EstimatedJourneyVersionFrame.EstimatedVehicleJourney")
                     .body("LineRef", equalTo(lineRef))
                     .body("FramedVehicleJourneyRef.DatedVehicleJourneyRef", equalTo(datedVehicleRef))
         ;
@@ -143,7 +142,7 @@ public class ETRequestResponseTest extends BaseHttpTest {
                 .then()
                     .statusCode(200)
                     .contentType(ContentType.XML)
-                .root("Siri.ServiceDelivery.EstimatedTimetableDelivery.EstimatedJourneyVersionFrame")
+                .rootPath("Siri.ServiceDelivery.EstimatedTimetableDelivery.EstimatedJourneyVersionFrame")
                         .body("$", not(hasKey("EstimatedVehicleJourney")))
         ;
     }

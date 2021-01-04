@@ -20,7 +20,7 @@ import io.restassured.filter.log.RequestLoggingFilter;
 import io.restassured.filter.log.ResponseLoggingFilter;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Value;
 
 public abstract class BaseHttpTest extends SpringBootBaseTest{
@@ -31,7 +31,7 @@ public abstract class BaseHttpTest extends SpringBootBaseTest{
 
     static final String dataSource = "TTT";
 
-    @Before
+    @BeforeEach
     public void init() {
         RestAssured.port = port;
         RestAssured.baseURI = "http://localhost";

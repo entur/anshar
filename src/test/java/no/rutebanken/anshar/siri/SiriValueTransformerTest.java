@@ -25,7 +25,7 @@ import no.rutebanken.anshar.routes.siri.transformer.impl.RuterSubstringAdapter;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import no.rutebanken.anshar.subscription.helpers.MappingAdapterPresets;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import uk.org.siri.siri20.BlockRefStructure;
 import uk.org.siri.siri20.DestinationRef;
 import uk.org.siri.siri20.EstimatedTimetableDeliveryStructure;

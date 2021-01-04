@@ -17,8 +17,8 @@ package no.rutebanken.anshar.validation.vm;
 
 import no.rutebanken.anshar.routes.validation.validators.vm.VehicleStatusValidator;
 import no.rutebanken.anshar.validation.CustomValidatorTest;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import uk.org.siri.siri20.VehicleStatusEnumeration;
 
 import javax.xml.bind.ValidationEvent;
@@ -30,7 +30,7 @@ public class VehicleStatusValidatorTest extends CustomValidatorTest {
     private static VehicleStatusValidator validator;
     private final String fieldName = "VehicleStatus";
 
-    @BeforeClass
+    @BeforeAll
     public static void init() {
         validator = new VehicleStatusValidator();
     }

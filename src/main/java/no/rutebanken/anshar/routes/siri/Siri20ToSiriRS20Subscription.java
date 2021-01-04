@@ -57,7 +57,7 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
         //Start subscription
         from("direct:" + subscriptionSetup.getStartSubscriptionRouteName())
                 .log("Starting subscription " + subscriptionSetup.toString())
-                .bean(helper, "createSiriSubscriptionRequest", false)
+                .bean(helper, "createSiriSubscriptionRequest")
                 .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
                 .setExchangePattern(ExchangePattern.InOut) // Make sure we wait for a response
                 .setHeader("operatorNamespace", constant(subscriptionSetup.getOperatorNamespace())) // Need to make SOAP request with endpoint specific element namespace
@@ -92,10 +92,11 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
                 .routeId("start.rs.20.subscription."+subscriptionSetup.getVendor())
         ;
 
-        //Check status-request checks the server status - NOT the subscription
-        from("direct:" + subscriptionSetup.getCheckStatusRouteName())
-        		.bean(helper, "createSiriCheckStatusRequest", false)
-        		.marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
+        if (urlMap.get(RequestType.CHECK_STATUS) != null) {
+            //Check status-request checks the server status - NOT the subscription
+            from("direct:" + subscriptionSetup.getCheckStatusRouteName())
+                .bean(helper, "createSiriCheckStatusRequest")
+                .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
                 .removeHeaders("CamelHttp*") // Remove any incoming HTTP headers as they interfere with the outgoing definition
                 .setHeader(Exchange.CONTENT_TYPE, constant(subscriptionSetup.getContentType())) // Necessary when talking to Microsoft web services
                 .setHeader(Exchange.HTTP_METHOD, constant(HttpMethods.POST))
@@ -104,36 +105,42 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
                 .process(p -> {
 
                     String responseCode = p.getIn().getHeader(PARAM_RESPONSE_CODE, String.class);
-                    if ("200" .equals(responseCode)) {
-                        logger.trace("CheckStatus OK - Remote service is up [{}]", subscriptionSetup.buildUrl());
+                    if ("200".equals(responseCode)) {
+                        logger.trace("CheckStatus OK - Remote service is up [{}]",
+                            subscriptionSetup.buildUrl()
+                        );
                         InputStream body = p.getIn().getBody(InputStream.class);
                         if (body != null && body.available() > 0) {
                             handler.handleIncomingSiri(subscriptionSetup.getSubscriptionId(), body);
                         }
-                    } else {
-                        logger.info("CheckStatus NOT OK - Remote service is down [{}]", subscriptionSetup.buildUrl());
+                    }
+                    else {
+                        logger.info("CheckStatus NOT OK - Remote service is down [{}]",
+                            subscriptionSetup.buildUrl()
+                        );
                     }
 
-                    if (subscriptionSetup.getSubscriptionMode().equals(FETCHED_DELIVERY) &&
-                            !subscriptionManager.isSubscriptionReceivingData(subscriptionSetup.getSubscriptionId(),
-                            subscriptionSetup.getHeartbeatInterval().toMillis()/1000)) {
-                        logger.info("No data received since last CheckStatusRequest - triggering DataSupplyRequest.");
+                    if (subscriptionSetup.getSubscriptionMode().equals(FETCHED_DELIVERY) && !subscriptionManager.isSubscriptionReceivingData(subscriptionSetup.getSubscriptionId(),
+                        subscriptionSetup.getHeartbeatInterval().toMillis() / 1000
+                    )) {
+                        logger.info(
+                            "No data received since last CheckStatusRequest - triggering DataSupplyRequest.");
                         p.getOut().setHeader("routename", subscriptionSetup.getServiceRequestRouteName());
                     }
 
 
                 })
                 .choice()
-                    .when(header("routename").isNotNull())
-                        .toD("direct:${header.routename}")
-                    .endChoice()
-                .routeId("check.status.rs.20.subscription."+subscriptionSetup.getVendor())
-        ;
+                .when(header("routename").isNotNull())
+                .toD("direct:${header.routename}")
+                .endChoice()
+                .routeId("check.status.rs.20.subscription." + subscriptionSetup.getVendor());
+        }
 
         //Cancel subscription
         from("direct:" + subscriptionSetup.getCancelSubscriptionRouteName())
                 .log("Cancelling subscription " + subscriptionSetup.toString())
-                .bean(helper, "createSiriTerminateSubscriptionRequest", false)
+                .bean(helper, "createSiriTerminateSubscriptionRequest")
                 .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
                 .setExchangePattern(ExchangePattern.InOut) // Make sure we wait for a response
                 .setProperty(Exchange.LOG_DEBUG_BODY_STREAMS, constant("true"))

@@ -9,7 +9,7 @@ anshar:
       heartbeatIntervalSeconds: 600
       operatorNamespace: http://www.siri.org.uk/siri
       urlMap:
-        GET_VEHICLE_MONITORING: mottak-test.rutebanken.org/anshar/service
+        GET_VEHICLE_MONITORING: http://localhost:1234/anshar/service
       version: 2.0
       contentType: text/xml
       subscriptionId: ${random.uuid}

@@ -17,8 +17,8 @@ package no.rutebanken.anshar.validation.sx;
 
 import no.rutebanken.anshar.routes.validation.validators.sx.ProgressValidator;
 import no.rutebanken.anshar.validation.CustomValidatorTest;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import javax.xml.bind.ValidationEvent;
 
@@ -30,7 +30,7 @@ public class ProgressValidatorTest extends CustomValidatorTest {
     private static ProgressValidator validator;
     private static final String fieldName = "Progress";
 
-    @BeforeClass
+    @BeforeAll
     public static void init() {
         validator = new ProgressValidator();
     }

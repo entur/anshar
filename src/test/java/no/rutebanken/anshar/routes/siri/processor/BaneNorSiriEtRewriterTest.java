@@ -3,9 +3,9 @@ package no.rutebanken.anshar.routes.siri.processor;
 import no.rutebanken.anshar.integration.SpringBootBaseTest;
 import no.rutebanken.anshar.routes.siri.processor.routedata.NetexUpdaterService;
 import no.rutebanken.anshar.routes.siri.processor.routedata.StopTime;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.org.siri.siri20.EstimatedTimetableDeliveryStructure;
@@ -34,12 +34,12 @@ public class BaneNorSiriEtRewriterTest extends SpringBootBaseTest {
 
     private BaneNorSiriEtRewriter rewriter;
 
-    @Before
+    @BeforeEach
     public void init() {
         rewriter = new BaneNorSiriEtRewriter("BNR");
     }
 
-    @Ignore("Ignored because of excessive memory-usage which breaks CircleCI")
+    @Disabled("Ignored because of excessive memory-usage which breaks CircleCI")
     @Test
     public void testMapping() throws Exception {
         logger.info("Reads routedata...");

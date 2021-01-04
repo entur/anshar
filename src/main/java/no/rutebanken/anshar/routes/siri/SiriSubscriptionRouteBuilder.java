@@ -26,7 +26,7 @@ import no.rutebanken.anshar.subscription.helpers.DataNotReceivedAction;
 import no.rutebanken.anshar.subscription.helpers.RequestType;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
-import org.apache.camel.component.http4.HttpMethods;
+import org.apache.camel.component.http.HttpMethods;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -97,7 +97,7 @@ public abstract class SiriSubscriptionRouteBuilder extends BaseRouteBuilder {
             hasBeenStarted = subscriptionSetup.isActive();
         }
 
-        singletonFrom("quartz2://anshar/monitor_" + subscriptionSetup.getSubscriptionId() + "?fireNow=true&trigger.repeatInterval=" + 15000,
+        singletonFrom("quartz://anshar/monitor_" + subscriptionSetup.getSubscriptionId() + "?fireNow=true&trigger.repeatInterval=" + 15000,
                 "monitor.subscription." + subscriptionSetup.getVendor())
                 .choice()
                 .when(p -> shouldPerformDataNotReceivedAction(p.getFromRouteId()))

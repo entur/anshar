@@ -16,8 +16,8 @@
 package no.rutebanken.anshar.siri.transformer;
 
 import no.rutebanken.anshar.routes.siri.transformer.impl.RuterSubstringAdapter;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import uk.org.siri.siri20.LineRef;
 
 import static org.junit.Assert.assertEquals;
@@ -26,7 +26,7 @@ public class RuterSubstringAdapterTest {
 
     private RuterSubstringAdapter adapter;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         adapter = new RuterSubstringAdapter(LineRef.class, ':', '0', 2);
     }

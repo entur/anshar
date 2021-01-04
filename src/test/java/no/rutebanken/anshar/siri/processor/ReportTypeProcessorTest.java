@@ -18,8 +18,8 @@ package no.rutebanken.anshar.siri.processor;
 import no.rutebanken.anshar.integration.SpringBootBaseTest;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.routes.siri.processor.ReportTypeProcessor;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import uk.org.siri.siri20.PtSituationElement;
 import uk.org.siri.siri20.Siri;
 
@@ -36,7 +36,7 @@ public class ReportTypeProcessorTest extends SpringBootBaseTest {
     private SiriObjectFactory objectFactory;
     private ReportTypeProcessor processor;
 
-    @Before
+    @BeforeEach
     public void init() {
         objectFactory = new SiriObjectFactory(Instant.now());
         processor = new ReportTypeProcessor("TST");

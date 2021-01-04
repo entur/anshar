@@ -17,8 +17,8 @@ package no.rutebanken.anshar.validation.sx;
 
 import no.rutebanken.anshar.routes.validation.validators.sx.AffectedComponentValidator;
 import no.rutebanken.anshar.validation.CustomValidatorTest;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.w3c.dom.Node;
 import uk.org.ifopt.siri20.AccessibilityFeatureEnumeration;
 import uk.org.ifopt.siri20.StopPlaceComponentTypeEnumeration;
@@ -31,7 +31,7 @@ public class AffectedComponentValidatorTest extends CustomValidatorTest {
 
     private static AffectedComponentValidator validator;
     
-    @BeforeClass
+    @BeforeAll
     public static void init() {
         validator = new AffectedComponentValidator();
     }

@@ -39,7 +39,8 @@ public class RestRouteBuilder extends RouteBuilder {
     @Override
     public void configure() throws Exception {
 
-        restConfiguration("jetty")
+        restConfiguration()
+                .component("jetty")
                 .port(configuration.getInboundPort())
                 .apiContextPath("anshar/swagger.json")
 //                .endpointProperty("httpBindingRef", "#contentEncodingRequestFilter")
@@ -58,9 +59,9 @@ public class RestRouteBuilder extends RouteBuilder {
                 .setBody(simple("Invalid XML"))
         ;
 
-        errorHandler(loggingErrorHandler()
+        errorHandler(defaultErrorHandler()
                 .log(logger)
-                .level(LoggingLevel.INFO)
+                .loggingLevel(LoggingLevel.INFO)
         );
 
         from("direct:anshar.invalid.tracking.header.response")

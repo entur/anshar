@@ -16,8 +16,8 @@
 package no.rutebanken.anshar.siri.transformer;
 
 import no.rutebanken.anshar.routes.siri.transformer.impl.RightPaddingStopPlaceAdapter;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import uk.org.siri.siri20.JourneyPlaceRefStructure;
 
 import static org.junit.Assert.assertEquals;
@@ -27,7 +27,7 @@ public class RightPaddingStopPlaceAdapterTest {
 
     private RightPaddingStopPlaceAdapter adapter;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         adapter = new RightPaddingStopPlaceAdapter(JourneyPlaceRefStructure.class, 8, "01");
     }

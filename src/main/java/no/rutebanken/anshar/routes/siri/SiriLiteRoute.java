@@ -295,6 +295,7 @@ public class SiriLiteRoute extends RestRouteBuilder {
             out.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_XML);
             SiriXml.toXml(response, null, out.getOutputStream());
         }
+        p.getMessage().setBody(out.getOutputStream());
     }
 
     /**

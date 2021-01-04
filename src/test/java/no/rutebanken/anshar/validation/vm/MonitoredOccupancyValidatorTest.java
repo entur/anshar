@@ -17,8 +17,8 @@ package no.rutebanken.anshar.validation.vm;
 
 import no.rutebanken.anshar.routes.validation.validators.vm.MonitoredOccupancyValidator;
 import no.rutebanken.anshar.validation.CustomValidatorTest;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import uk.org.siri.siri20.OccupancyEnumeration;
 
 import javax.xml.bind.ValidationEvent;
@@ -30,7 +30,7 @@ public class MonitoredOccupancyValidatorTest extends CustomValidatorTest {
     private static MonitoredOccupancyValidator validator;
     private final String fieldName = "Occupancy";
 
-    @BeforeClass
+    @BeforeAll
     public static void init() {
         validator = new MonitoredOccupancyValidator();
     }

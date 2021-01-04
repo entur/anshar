@@ -18,7 +18,7 @@ package no.rutebanken.anshar.routes.mqtt;
 import org.apache.commons.lang3.tuple.Pair;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import uk.org.siri.siri20.*;
 
 import javax.xml.datatype.DatatypeConstants;
@@ -102,14 +102,20 @@ public class SiriVmMqttHandlerTest {
         assertEquals("entur", obj.get(VehiclePosition.SOURCE));
     }
 
-    @Test(expected=NullPointerException.class)
+    @Test
     public void testNullVehicleId() {
         ZonedDateTime dateTime = ZonedDateTime.of(2017, 12, 24, 9, 37, 4, 0, ZoneId.of("GMT"));
 
         VehicleActivityStructure activity = new VehicleActivityStructure();
         VehicleActivityStructure.MonitoredVehicleJourney vehicle = new VehicleActivityStructure.MonitoredVehicleJourney();
         activity.setMonitoredVehicleJourney(vehicle);
+        boolean gotExpectedException = false;
+        try {
             Pair<String, String> message = new SiriVmMqttHandler().getMessage("RUT", activity);
+        } catch (NullPointerException npe) {
+            gotExpectedException = true;
+        }
+        assertTrue("Did not get expected NullPointerException", gotExpectedException);
     }
 
     @Test

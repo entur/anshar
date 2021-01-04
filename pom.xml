@@ -21,7 +21,7 @@
   <parent>
       <groupId>org.rutebanken.superpom</groupId>
       <artifactId>superpom</artifactId>
-      <version>1.0.15</version>
+      <version>1.0.11</version>
   </parent>
 
 
@@ -35,18 +35,14 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- versions for use in mvn plugins as we cannot inherit them from a BOM -->
-        <fabric8.version>2.3.7</fabric8.version>
         <docker.maven.plugin.version>0.21.0</docker.maven.plugin.version>
-        <spring-boot-plugin.version>2.1.11.RELEASE</spring-boot-plugin.version>
-        <spring-boot.version>2.1.11.RELEASE</spring-boot.version>
+        <spring-boot-plugin.version>2.4.1</spring-boot-plugin.version>
+        <spring-boot.version>2.4.1</spring-boot.version>
 
-        <camel-version>3.6.0</camel-version>
-
-        <!-- Holding back activemq version as newest version no long support spring wired broker config-->
-        <activemq.version>5.13.4</activemq.version>
+        <camel-version>3.7.0</camel-version>
 
         <metrics.version>3.2.3</metrics.version>
-        <entur.helpers.version>1.0.13</entur.helpers.version>
+        <entur.helpers.version>1.0.34</entur.helpers.version>
     </properties>
 
     <distributionManagement>
@@ -70,6 +66,20 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
+                <groupId>org.apache.camel</groupId>
+                <artifactId>camel-bom</artifactId>
+                <version>${camel-version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.camel.springboot</groupId>
+                <artifactId>camel-spring-boot-dependencies</artifactId>
+                <version>${camel-version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
                 <!-- Import dependency management from Spring Boot -->
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
@@ -78,15 +88,8 @@
                 <scope>import</scope>
             </dependency>
             <dependency>
-                <groupId>io.fabric8</groupId>
-                <artifactId>fabric8-project</artifactId>
-                <version>${fabric8.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-            <dependency>
                 <groupId>org.entur.helpers</groupId>
-                <artifactId>camel-entur-google-pubsub</artifactId>
+                <artifactId>camel3-entur-google-pubsub</artifactId>
                 <version>${entur.helpers.version}</version>
             </dependency>
             <dependency>
@@ -113,13 +116,6 @@
                     </exclusion>
                 </exclusions>
             </dependency>
-
-            <!-- Need to add this explicitly, to avoid old dep. Problem with either maven or nexus... -->
-            <dependency>
-                <groupId>io.fabric8</groupId>
-                <artifactId>kubernetes-client</artifactId>
-                <version>2.6.1</version>
-            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -129,7 +125,10 @@
             <artifactId>logstash-logback-encoder</artifactId>
             <version>6.3</version>
         </dependency>
-
+        <dependency>
+            <groupId>org.apache.camel.springboot</groupId>
+            <artifactId>camel-spring-boot-starter</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.entur.helpers</groupId>
             <artifactId>hazelcast-helper</artifactId>
@@ -140,7 +139,7 @@
         </dependency>
         <dependency>
             <groupId>org.entur.helpers</groupId>
-            <artifactId>camel-entur-google-pubsub</artifactId>
+            <artifactId>camel3-entur-google-pubsub</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.camel</groupId>
@@ -176,23 +175,14 @@
         <dependency>
             <groupId>org.apache.camel</groupId>
             <artifactId>camel-jaxb</artifactId>
-            <version>${camel-version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.camel</groupId>
             <artifactId>camel-jms</artifactId>
-            <version>${camel-version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.camel.springboot</groupId>
-            <artifactId>camel-spring-boot</artifactId>
-            <version>3.6.0</version>
         </dependency>
         <dependency>
             <groupId>org.apache.camel</groupId>
             <artifactId>camel-quartz</artifactId>
-            <version>${camel-version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.camel</groupId>
@@ -221,6 +211,11 @@
             <version>${camel-version}</version>
         </dependency>
         <dependency>
+            <groupId>org.apache.camel</groupId>
+            <artifactId>camel-xslt-saxon</artifactId>
+            <version>${camel-version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
@@ -233,10 +228,6 @@
             <artifactId>micrometer-registry-prometheus</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>net.sf.saxon</groupId>
-            <artifactId>Saxon-HE</artifactId>
-        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
@@ -263,6 +254,11 @@
             <groupId>org.entur</groupId>
             <artifactId>siri-protobuf-mapper</artifactId>
             <version>0.6</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.protobuf</groupId>
+            <artifactId>protobuf-java</artifactId>
+            <version>3.13.0</version>
         </dependency>
         <dependency>
             <groupId>org.entur</groupId>
@@ -316,12 +312,13 @@
         <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
+            <version>20160212</version>
         </dependency>
 
         <!-- testing -->
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -335,40 +332,36 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.jboss.arquillian.junit</groupId>
-            <artifactId>arquillian-junit-container</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.fabric8</groupId>
-            <artifactId>fabric8-arquillian</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>org.apache.camel</groupId>
-            <artifactId>camel-test</artifactId>
+            <artifactId>camel-test-junit5</artifactId>
             <version>${camel-version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.camel</groupId>
-            <artifactId>camel-test-spring</artifactId>
+            <artifactId>camel-test-spring-junit5</artifactId>
             <version>${camel-version}</version>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.activemq</groupId>
-            <artifactId>activemq-camel</artifactId>
-            <version>${activemq.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>io.rest-assured</groupId>
             <artifactId>rest-assured</artifactId>
-            <version>3.1.0</version>
+            <version>4.3.3</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>io.rest-assured</groupId>
+            <artifactId>json-path</artifactId>
+            <version>4.3.3</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.rest-assured</groupId>
+            <artifactId>xml-path</artifactId>
+            <version>4.3.3</version>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -385,7 +378,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.18.1</version>
+                <version>2.22.2</version>
                 <inherited>true</inherited>
                 <configuration>
                     <excludes>

@@ -22,7 +22,6 @@ import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import no.rutebanken.anshar.subscription.helpers.RequestType;
 import org.apache.camel.model.RouteDefinition;
-import org.apache.camel.spi.RouteContext;
 import org.apache.camel.spi.RoutePolicy;
 import org.apache.camel.spring.SpringRouteBuilder;
 
@@ -73,8 +72,7 @@ public abstract class BaseRouteBuilder extends SpringRouteBuilder {
     }
 
     protected boolean isLeader(String routeId) {
-        RouteContext routeContext = getContext().getRoute(routeId).getRouteContext();
-        List<RoutePolicy> routePolicyList = routeContext.getRoutePolicyList();
+        List<RoutePolicy> routePolicyList =getContext().getRoute(routeId).getRoutePolicyList();
         if (routePolicyList != null) {
             for (RoutePolicy routePolicy : routePolicyList) {
                 if (routePolicy instanceof InterruptibleHazelcastRoutePolicy) {
@@ -86,8 +84,7 @@ public abstract class BaseRouteBuilder extends SpringRouteBuilder {
     }
 
     protected void releaseLeadership(String routeId) {
-        RouteContext routeContext = getContext().getRoute(routeId).getRouteContext();
-        List<RoutePolicy> routePolicyList = routeContext.getRoutePolicyList();
+        List<RoutePolicy> routePolicyList = getContext().getRoute(routeId).getRoutePolicyList();
         if (routePolicyList != null) {
             for (RoutePolicy routePolicy : routePolicyList) {
                 if (routePolicy instanceof InterruptibleHazelcastRoutePolicy) {

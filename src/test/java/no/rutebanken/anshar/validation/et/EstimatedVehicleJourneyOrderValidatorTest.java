@@ -17,8 +17,8 @@ package no.rutebanken.anshar.validation.et;
 
 import no.rutebanken.anshar.routes.validation.validators.et.OrderValidator;
 import no.rutebanken.anshar.validation.CustomValidatorTest;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.w3c.dom.Node;
 import uk.org.siri.siri20.EstimatedCall;
 import uk.org.siri.siri20.EstimatedVehicleJourney;
@@ -37,7 +37,7 @@ public class EstimatedVehicleJourneyOrderValidatorTest extends CustomValidatorTe
     static JAXBContext jaxbContext;
     static OrderValidator validator;
 
-    @BeforeClass
+    @BeforeAll
     public static void init() {
         validator = new OrderValidator();
         try {

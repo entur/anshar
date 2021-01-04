@@ -17,8 +17,8 @@ package no.rutebanken.anshar.data;
 
 import junit.framework.TestCase;
 import no.rutebanken.anshar.integration.SpringBootBaseTest;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.org.siri.siri20.EstimatedCall;
 import uk.org.siri.siri20.EstimatedVehicleJourney;
@@ -50,7 +50,7 @@ public class EstimatedTimetablesTest extends SpringBootBaseTest {
     @Autowired
     private EstimatedTimetables estimatedTimetables;
 
-    @Before
+    @BeforeEach
     public void init() {
         estimatedTimetables.clearAll();
     }

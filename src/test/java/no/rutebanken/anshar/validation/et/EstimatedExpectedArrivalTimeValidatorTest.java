@@ -17,8 +17,8 @@ package no.rutebanken.anshar.validation.et;
 
 import no.rutebanken.anshar.routes.validation.validators.et.EstimatedExpectedArrivalTimeValidator;
 import no.rutebanken.anshar.validation.CustomValidatorTest;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import javax.xml.bind.ValidationEvent;
 
@@ -31,7 +31,7 @@ public class EstimatedExpectedArrivalTimeValidatorTest extends CustomValidatorTe
     private final String fieldName = "ExpectedArrivalTime";
     private final String comparisonField = "ExpectedDepartureTime";
 
-    @BeforeClass
+    @BeforeAll
     public static void init() {
         validator = new EstimatedExpectedArrivalTimeValidator();
     }

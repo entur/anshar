@@ -16,8 +16,8 @@
 package no.rutebanken.anshar.siri.transformer;
 
 import no.rutebanken.anshar.routes.siri.transformer.impl.LeftPaddingAdapter;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import uk.org.siri.siri20.LineRef;
 
 import static org.junit.Assert.assertEquals;
@@ -27,7 +27,7 @@ public class LeftPaddingAdapterTest {
 
     private LeftPaddingAdapter adapter;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         adapter = new LeftPaddingAdapter(LineRef.class, 4, '0');
     }

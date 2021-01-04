@@ -18,7 +18,7 @@ package no.rutebanken.anshar.subscription;
 import no.rutebanken.anshar.integration.SpringBootBaseTest;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.Duration;

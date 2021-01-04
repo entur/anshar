@@ -17,8 +17,8 @@ package no.rutebanken.anshar.validation.sx;
 
 import no.rutebanken.anshar.routes.validation.validators.sx.AffectedVehicleJourneyRefValidator;
 import no.rutebanken.anshar.validation.CustomValidatorTest;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import javax.xml.bind.ValidationEvent;
 
@@ -30,7 +30,7 @@ public class AffectedVehicleJourneyRefValidatorTest extends CustomValidatorTest 
     private static AffectedVehicleJourneyRefValidator validator;
     private final String fieldName = "VehicleJourneyRef";
 
-    @BeforeClass
+    @BeforeAll
     public static void init() {
         validator = new AffectedVehicleJourneyRefValidator();
     }

@@ -17,8 +17,8 @@ package no.rutebanken.anshar.validation.sx;
 
 import no.rutebanken.anshar.routes.validation.validators.sx.ValidityPeriodValidator;
 import no.rutebanken.anshar.validation.CustomValidatorTest;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.w3c.dom.Node;
 
 import javax.xml.bind.ValidationEvent;
@@ -32,7 +32,7 @@ public class ValidityPeriodValidatorTest extends CustomValidatorTest {
 
     private static ValidityPeriodValidator validator;
 
-    @BeforeClass
+    @BeforeAll
     public static void init() {
         validator = new ValidityPeriodValidator();
     }

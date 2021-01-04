@@ -18,8 +18,8 @@ package no.rutebanken.anshar.health;
 import no.rutebanken.anshar.data.collections.ExtendedHazelcastService;
 import no.rutebanken.anshar.integration.SpringBootBaseTest;
 import no.rutebanken.anshar.routes.health.HealthManager;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import static junit.framework.TestCase.assertFalse;
@@ -38,7 +38,7 @@ public class HealthManagerTest extends SpringBootBaseTest {
      * Test is ignored as it shuts down entire hazelcast-instance causing multiple tests to fail
      */
     @Test
-    @Ignore
+    @Disabled
     public void testShutDownDiscovered() {
         assertTrue(healthManager.isHazelcastAlive());
         extendedHazelcastService.shutdown();

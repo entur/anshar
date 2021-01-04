@@ -55,7 +55,7 @@ public class HeartbeatRoute extends BaseRouteBuilder {
 
     @Override
     public void configure() throws Exception {
-        singletonFrom("quartz2://anshar.outbound.subscription.manager?fireNow=true&trigger.repeatInterval=" + HEARTBEAT_INTERVAL_MILLIS,
+        singletonFrom("quartz://anshar.outbound.subscription.manager?fireNow=true&trigger.repeatInterval=" + HEARTBEAT_INTERVAL_MILLIS,
                 "anshar.outbound.subscription.manager.route")
             .process(p -> {
                 final Set<String> subscriptionIds = serverSubscriptionManager.subscriptions.keySet();

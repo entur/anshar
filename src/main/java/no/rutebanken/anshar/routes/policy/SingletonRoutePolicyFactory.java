@@ -17,6 +17,7 @@ package no.rutebanken.anshar.routes.policy;
 
 import no.rutebanken.anshar.data.collections.ExtendedHazelcastService;
 import org.apache.camel.CamelContext;
+import org.apache.camel.NamedNode;
 import org.apache.camel.model.RouteDefinition;
 import org.apache.camel.spi.RoutePolicy;
 import org.apache.camel.spi.RoutePolicyFactory;
@@ -76,9 +77,9 @@ public class SingletonRoutePolicyFactory implements RoutePolicyFactory {
     }
 
     @Override
-    public RoutePolicy createRoutePolicy(CamelContext camelContext, String routeId, RouteDefinition routeDefinition) {
+    public RoutePolicy createRoutePolicy(CamelContext camelContext, String routeId, NamedNode routeDefinition) {
         try {
-            if (!ignorePolicy && SINGLETON_ROUTE_DEFINITION_GROUP_NAME.equals(routeDefinition.getGroup())) {
+            if (!ignorePolicy && SINGLETON_ROUTE_DEFINITION_GROUP_NAME.equals(((RouteDefinition)routeDefinition).getGroup())) {
                 return build(routeId);
             }
         } catch (Exception e) {

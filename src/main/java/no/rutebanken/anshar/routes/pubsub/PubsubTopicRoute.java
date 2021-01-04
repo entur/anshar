@@ -37,7 +37,7 @@ public class PubsubTopicRoute extends RouteBuilder {
              */
             from("direct:send.to.pubsub.topic.estimated_timetable")
                     .to("direct:siri.transform.data")
-                    .to("xslt:xsl/splitAndFilterNotMonitored.xsl")
+                    .to("xslt-saxon:xsl/splitAndFilterNotMonitored.xsl")
                     .split().tokenizeXML("Siri").streaming()
                     .to("direct:map.jaxb.to.protobuf")
                     .wireTap("direct:log.pubsub.et.traffic")
@@ -50,7 +50,7 @@ public class PubsubTopicRoute extends RouteBuilder {
              */
             from("direct:send.to.pubsub.topic.vehicle_monitoring")
                     .to("direct:siri.transform.data")
-                    .to("xslt:xsl/split.xsl")
+                    .to("xslt-saxon:xsl/split.xsl")
                     .split().tokenizeXML("Siri").streaming()
                     .to("direct:map.jaxb.to.protobuf")
                     .wireTap("direct:log.pubsub.vm.traffic")
@@ -63,7 +63,7 @@ public class PubsubTopicRoute extends RouteBuilder {
              */
             from("direct:send.to.pubsub.topic.situation_exchange")
                     .to("direct:siri.transform.data")
-                    .to("xslt:xsl/split.xsl")
+                    .to("xslt-saxon:xsl/split.xsl")
                     .split().tokenizeXML("Siri").streaming()
                     .to("direct:map.jaxb.to.protobuf")
                     .wireTap("direct:log.pubsub.sx.traffic")

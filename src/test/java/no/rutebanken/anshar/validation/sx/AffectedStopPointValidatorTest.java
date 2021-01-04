@@ -17,8 +17,8 @@ package no.rutebanken.anshar.validation.sx;
 
 import no.rutebanken.anshar.routes.validation.validators.sx.AffectedStopPointValidator;
 import no.rutebanken.anshar.validation.CustomValidatorTest;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import javax.xml.bind.ValidationEvent;
 
@@ -30,7 +30,7 @@ public class AffectedStopPointValidatorTest extends CustomValidatorTest {
     private static AffectedStopPointValidator validator;
     private final String fieldName = "StopPointRef";
 
-    @BeforeClass
+    @BeforeAll
     public static void init() {
         validator = new AffectedStopPointValidator();
     }

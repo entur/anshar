@@ -16,9 +16,9 @@
 package no.rutebanken.anshar.data;
 
 import no.rutebanken.anshar.integration.SpringBootBaseTest;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.org.siri.siri20.CourseOfJourneyRefStructure;
 import uk.org.siri.siri20.LocationStructure;
@@ -45,7 +45,7 @@ public class VehicleActivitiesTest extends SpringBootBaseTest {
     @Autowired
     private VehicleActivities vehicleActivities;
     
-    @Before
+    @BeforeEach
     public void init() {
         vehicleActivities.clearAll();
     }
@@ -112,7 +112,7 @@ public class VehicleActivitiesTest extends SpringBootBaseTest {
     }
 
     @Test
-    @Ignore
+    @Disabled
     public void testUpdatedVehicleWrongOrder() {
 
         //Add element
@@ -147,7 +147,7 @@ public class VehicleActivitiesTest extends SpringBootBaseTest {
     }
 
     @Test
-    @Ignore
+    @Disabled
     public void testUpdatedVehicleNoRecordedAtTime() {
 
         //Add element

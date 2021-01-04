@@ -17,8 +17,8 @@ package no.rutebanken.anshar.validation.et;
 
 import no.rutebanken.anshar.routes.validation.validators.et.EstimatedArrivalStatusValidator;
 import no.rutebanken.anshar.validation.CustomValidatorTest;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import static junit.framework.TestCase.assertNotNull;
 import static junit.framework.TestCase.assertNull;
@@ -28,7 +28,7 @@ public class EstimatedArrivalStatusValidatorTest extends CustomValidatorTest {
     private static EstimatedArrivalStatusValidator validator;
     private final String fieldName = "ArrivalStatus";
 
-    @BeforeClass
+    @BeforeAll
     public static void init() {
         validator = new EstimatedArrivalStatusValidator();
     }

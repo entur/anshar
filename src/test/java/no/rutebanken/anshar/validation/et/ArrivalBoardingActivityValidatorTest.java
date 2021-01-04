@@ -17,8 +17,8 @@ package no.rutebanken.anshar.validation.et;
 
 import no.rutebanken.anshar.routes.validation.validators.et.ArrivalBoardingActivityValidator;
 import no.rutebanken.anshar.validation.CustomValidatorTest;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import static junit.framework.TestCase.assertNotNull;
 import static junit.framework.TestCase.assertNull;
@@ -28,7 +28,7 @@ public class ArrivalBoardingActivityValidatorTest extends CustomValidatorTest {
     private static ArrivalBoardingActivityValidator validator;
     private final String fieldName = "ArrivalBoardingActivity";
 
-    @BeforeClass
+    @BeforeAll
     public static void init() {
         validator = new ArrivalBoardingActivityValidator();
     }

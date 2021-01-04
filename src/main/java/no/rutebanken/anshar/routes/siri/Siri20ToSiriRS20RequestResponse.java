@@ -22,7 +22,7 @@ import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
-import org.apache.camel.component.http4.HttpMethods;
+import org.apache.camel.component.http.HttpMethods;
 
 import static no.rutebanken.anshar.routes.HttpParameter.PARAM_SUBSCRIPTION_ID;
 
@@ -47,7 +47,7 @@ public class Siri20ToSiriRS20RequestResponse extends SiriSubscriptionRouteBuilde
         if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.REQUEST_RESPONSE |
                 subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.POLLING_FETCHED_DELIVERY) {
             releaseLeadershipOnError = true;
-            singletonFrom("quartz2://anshar/monitor_" + subscriptionSetup.getRequestResponseRouteName() + "?fireNow=true&trigger.repeatInterval=" + heartbeatIntervalMillis,
+            singletonFrom("quartz://anshar/monitor_" + subscriptionSetup.getRequestResponseRouteName() + "?fireNow=true&trigger.repeatInterval=" + heartbeatIntervalMillis,
                     monitoringRouteId)
                     .choice()
                     .when(p -> requestData(subscriptionSetup.getSubscriptionId(), p.getFromRouteId()))
@@ -60,7 +60,7 @@ public class Siri20ToSiriRS20RequestResponse extends SiriSubscriptionRouteBuilde
 
         from("direct:" + subscriptionSetup.getServiceRequestRouteName())
             .log("Retrieving data " + subscriptionSetup.toString())
-            .bean(helper, "createSiriDataRequest", false)
+            .bean(helper, "createSiriDataRequest")
             .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
             .setExchangePattern(ExchangePattern.InOut) // Make sure we wait for a response
             .removeHeaders("CamelHttp*") // Remove any incoming HTTP headers as they interfere with the outgoing definition

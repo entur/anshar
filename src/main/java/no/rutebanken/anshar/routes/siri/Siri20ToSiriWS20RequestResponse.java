@@ -49,7 +49,7 @@ public class Siri20ToSiriWS20RequestResponse extends SiriSubscriptionRouteBuilde
                 subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.POLLING_FETCHED_DELIVERY) {
 
             releaseLeadershipOnError = true;
-            singletonFrom("quartz2://anshar/monitor_" + subscriptionSetup.getRequestResponseRouteName() + "?fireNow=true&trigger.repeatInterval=" + heartbeatIntervalMillis,
+            singletonFrom("quartz://anshar/monitor_" + subscriptionSetup.getRequestResponseRouteName() + "?fireNow=true&trigger.repeatInterval=" + heartbeatIntervalMillis,
                     monitoringRouteId)
                     .choice()
                     .when(p -> requestData(subscriptionSetup.getSubscriptionId(), p.getFromRouteId()))
@@ -62,27 +62,19 @@ public class Siri20ToSiriWS20RequestResponse extends SiriSubscriptionRouteBuilde
 
         String endpointUrl = getRequestUrl(subscriptionSetup);
 
-        if (endpointUrl.startsWith("https4://")) {
-            endpointUrl = endpointUrl.replaceFirst("https4", "https");
-        } else if (endpointUrl.startsWith("http4://")) {
-            endpointUrl = endpointUrl.replaceFirst("http4", "http");
-        } else {
-            endpointUrl = "http://" + endpointUrl;
-        }
-
         from("direct:" + subscriptionSetup.getServiceRequestRouteName())
                 .log("Retrieving data " + subscriptionSetup.toString())
-                .bean(helper, "createSiriDataRequest", false)
+                .bean(helper, "createSiriDataRequest")
                 .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
                 .setExchangePattern(ExchangePattern.InOut) // Make sure we wait for a response
                 .setHeader("SOAPAction", simple(getSoapAction(subscriptionSetup))) // extract and compute SOAPAction (Microsoft requirement)
                 .setHeader("operatorNamespace", constant(subscriptionSetup.getOperatorNamespace())) // Need to make SOAP request with endpoint specific element namespace
                 .setHeader("endpointUrl", constant(endpointUrl)) // Need to make SOAP request with endpoint specific element namespace
-                .to("xslt:xsl/siri_raw_soap.xsl?saxon=true&allowStAX=false&resultHandlerFactory=#streamResultHandlerFactory") // Convert SIRI raw request to SOAP version
-                .to("xslt:xsl/siri_14_20.xsl?saxon=true&allowStAX=false&resultHandlerFactory=#streamResultHandlerFactory") // Convert SIRI raw request to SOAP version
+                .to("xslt-saxon:xsl/siri_raw_soap.xsl?allowStAX=false&resultHandlerFactory=#streamResultHandlerFactory") // Convert SIRI raw request to SOAP version
+                .to("xslt-saxon:xsl/siri_14_20.xsl?allowStAX=false&resultHandlerFactory=#streamResultHandlerFactory") // Convert SIRI raw request to SOAP version
                 .removeHeaders("CamelHttp*") // Remove any incoming HTTP headers as they interfere with the outgoing definition
                 .setHeader(Exchange.CONTENT_TYPE, constant(subscriptionSetup.getContentType())) // Necessary when talking to Microsoft web services
-                .setHeader(Exchange.HTTP_METHOD, constant(org.apache.camel.component.http4.HttpMethods.POST))
+                .setHeader(Exchange.HTTP_METHOD, constant(org.apache.camel.component.http.HttpMethods.POST))
                 .process(addCustomHeaders())
                 .to("log:request:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .doTry()

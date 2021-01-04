@@ -2,7 +2,7 @@ package no.rutebanken.anshar.validation.et;
 
 import no.rutebanken.anshar.routes.validation.validators.et.UpdateReceivedTooSoonValidator;
 import no.rutebanken.anshar.validation.CustomValidatorTest;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import java.time.ZonedDateTime;
 

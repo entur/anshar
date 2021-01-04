@@ -17,8 +17,8 @@ package no.rutebanken.anshar.outbound;
 
 import no.rutebanken.anshar.routes.outbound.SiriHelper;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import uk.org.siri.siri20.LineRef;
 import uk.org.siri.siri20.Siri;
 import uk.org.siri.siri20.VehicleActivityStructure;
@@ -35,7 +35,7 @@ public class SiriHelperTest {
     private SiriObjectFactory siriObjectFactory;
 
 
-    @Before
+    @BeforeEach
     public void setUp() {
         siriObjectFactory = new SiriObjectFactory(Instant.now());
         siriHelper = new SiriHelper(siriObjectFactory);

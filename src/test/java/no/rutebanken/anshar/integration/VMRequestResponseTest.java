@@ -19,8 +19,8 @@ import io.restassured.http.ContentType;
 import no.rutebanken.anshar.data.VehicleActivities;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.subscription.SiriDataType;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.rutebanken.siri20.util.SiriXml;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.org.siri.siri20.CourseOfJourneyRefStructure;
@@ -48,7 +48,7 @@ public class VMRequestResponseTest extends BaseHttpTest {
 
     private final String vehicleReference = "1234";
 
-    @Before
+    @BeforeEach
     public void addData() {
         super.init();
         repo.clearAll();
@@ -68,7 +68,7 @@ public class VMRequestResponseTest extends BaseHttpTest {
                     .post("anshar/services")
                 .then()
                     .statusCode(200)
-                    .root("Siri.ServiceDelivery.VehicleMonitoringDelivery.VehicleActivity.MonitoredVehicleJourney")
+                    .rootPath("Siri.ServiceDelivery.VehicleMonitoringDelivery.VehicleActivity.MonitoredVehicleJourney")
                         .body("VehicleRef", equalTo(vehicleReference))
                         .body("DataSource", equalTo(dataSource))
         ;
@@ -86,7 +86,7 @@ public class VMRequestResponseTest extends BaseHttpTest {
                     .post("anshar/services?excludedDatasetIds=DUMMY")
                 .then()
                     .statusCode(200)
-                        .root("Siri.ServiceDelivery.VehicleMonitoringDelivery.VehicleActivity.MonitoredVehicleJourney")
+                        .rootPath("Siri.ServiceDelivery.VehicleMonitoringDelivery.VehicleActivity.MonitoredVehicleJourney")
                         .body("VehicleRef", equalTo(vehicleReference))
                         .body("DataSource", equalTo(dataSource))
         ;
@@ -98,7 +98,7 @@ public class VMRequestResponseTest extends BaseHttpTest {
                 .post("anshar/services?excludedDatasetIds="+dataSource)
                 .then()
                 .statusCode(200)
-                    .root("Siri.ServiceDelivery.VehicleMonitoringDelivery")
+                    .rootPath("Siri.ServiceDelivery.VehicleMonitoringDelivery")
                         .body("$", not(hasKey("VehicleActivity")))
         ;
     }
@@ -113,7 +113,7 @@ public class VMRequestResponseTest extends BaseHttpTest {
                 .then()
                 .statusCode(200)
                 .contentType(ContentType.XML)
-                .root("Siri.ServiceDelivery.VehicleMonitoringDelivery.VehicleActivity.MonitoredVehicleJourney")
+                .rootPath("Siri.ServiceDelivery.VehicleMonitoringDelivery.VehicleActivity.MonitoredVehicleJourney")
                 .body("VehicleRef", equalTo(vehicleReference))
                 .body("DataSource", equalTo(dataSource))
         ;
@@ -130,7 +130,7 @@ public class VMRequestResponseTest extends BaseHttpTest {
                 .then()
                     .statusCode(200)
                 .contentType(ContentType.XML)
-                    .root("Siri.ServiceDelivery.VehicleMonitoringDelivery.VehicleActivity.MonitoredVehicleJourney")
+                    .rootPath("Siri.ServiceDelivery.VehicleMonitoringDelivery.VehicleActivity.MonitoredVehicleJourney")
                         .body("VehicleRef", equalTo(vehicleReference))
                         .body("DataSource", equalTo(dataSource))
         ;
@@ -141,7 +141,7 @@ public class VMRequestResponseTest extends BaseHttpTest {
                 .then()
                     .statusCode(200)
                     .contentType(ContentType.XML)
-                    .root("Siri.ServiceDelivery.VehicleMonitoringDelivery")
+                    .rootPath("Siri.ServiceDelivery.VehicleMonitoringDelivery")
                         .body("$", not(hasKey("VehicleActivity")))
         ;
     }

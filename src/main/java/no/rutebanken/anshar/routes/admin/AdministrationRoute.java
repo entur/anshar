@@ -87,7 +87,7 @@ public class AdministrationRoute extends RestRouteBuilder {
         long verificationIntervalMillis = 10 * 60 * 1000;
         // fireNow=false  : allow all instances to start completely before checking during redeploy
         // repeatInterval : Use repeat interval to check every 10 minutes after startup - not every 10 minutes on clock
-        from("quartz2://anshar.verify.locks?fireNow=false&trigger.repeatInterval=" + verificationIntervalMillis)
+        from("quartz://anshar.verify.locks?fireNow=false&trigger.repeatInterval=" + verificationIntervalMillis)
             .log("Verifying locks - start")
             .process(p -> {
                 final Map<String, String> locksMap = helper.getAllLocks();

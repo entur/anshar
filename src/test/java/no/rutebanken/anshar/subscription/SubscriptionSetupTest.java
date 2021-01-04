@@ -16,8 +16,8 @@
 package no.rutebanken.anshar.subscription;
 
 import no.rutebanken.anshar.subscription.helpers.RequestType;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -32,7 +32,7 @@ public class SubscriptionSetupTest {
     private SubscriptionSetup setup_1;
     private SubscriptionSetup setup_2;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         HashMap<RequestType, String> urlMap_1 = new HashMap<>();
         urlMap_1.put(RequestType.SUBSCRIBE, "http://localhost:1234/subscribe");

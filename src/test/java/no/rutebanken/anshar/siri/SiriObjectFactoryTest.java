@@ -18,7 +18,7 @@ package no.rutebanken.anshar.siri;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import uk.org.siri.siri20.EstimatedTimetableRequestStructure;
 import uk.org.siri.siri20.EstimatedTimetableSubscriptionStructure;
 import uk.org.siri.siri20.Siri;

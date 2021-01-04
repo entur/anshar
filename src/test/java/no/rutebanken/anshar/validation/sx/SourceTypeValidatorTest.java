@@ -17,8 +17,8 @@ package no.rutebanken.anshar.validation.sx;
 
 import no.rutebanken.anshar.routes.validation.validators.sx.SourceTypeValidator;
 import no.rutebanken.anshar.validation.CustomValidatorTest;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import javax.xml.bind.ValidationEvent;
 
@@ -30,7 +30,7 @@ public class SourceTypeValidatorTest extends CustomValidatorTest {
     private static SourceTypeValidator validator;
     private final String fieldName = "SourceType";
 
-    @BeforeClass
+    @BeforeAll
     public static void init() {
         validator = new SourceTypeValidator();
     }

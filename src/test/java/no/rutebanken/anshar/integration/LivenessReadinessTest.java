@@ -15,7 +15,7 @@
 
 package no.rutebanken.anshar.integration;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import static io.restassured.RestAssured.given;
 

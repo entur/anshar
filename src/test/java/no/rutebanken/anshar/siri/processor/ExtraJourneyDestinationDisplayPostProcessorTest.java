@@ -3,7 +3,7 @@ package no.rutebanken.anshar.siri.processor;
 import no.rutebanken.anshar.integration.SpringBootBaseTest;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.routes.siri.processor.ExtraJourneyDestinationDisplayPostProcessor;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import uk.org.siri.siri20.EstimatedCall;
 import uk.org.siri.siri20.EstimatedVehicleJourney;
 import uk.org.siri.siri20.NaturalLanguageStringStructure;

@@ -152,13 +152,6 @@ public class CamelRouteManager {
 
         if (serviceDeliveryContainsData(payload)) {
             String remoteEndPoint = subscription.getAddress();
-            if (remoteEndPoint.startsWith("http://")) {
-                //Translating URL to camel-format
-                remoteEndPoint = "http4://" + remoteEndPoint.substring("http://".length());
-            } else if (remoteEndPoint.startsWith("https://")) {
-                //Translating URL to camel-format
-                remoteEndPoint = "https4://" + remoteEndPoint.substring("https://".length());
-            }
 
             Map<String, Object> headers = new HashMap<>();
             headers.put("endpoint", remoteEndPoint);

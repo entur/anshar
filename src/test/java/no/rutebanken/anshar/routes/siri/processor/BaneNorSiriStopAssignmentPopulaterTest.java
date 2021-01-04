@@ -7,8 +7,8 @@ import no.rutebanken.anshar.routes.siri.processor.routedata.NetexUpdaterService;
 import no.rutebanken.anshar.routes.siri.transformer.ApplicationContextHolder;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import org.apache.commons.lang3.StringUtils;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
 import org.slf4j.Logger;
@@ -40,7 +40,7 @@ import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 
-@Ignore
+@Disabled
 public class BaneNorSiriStopAssignmentPopulaterTest {
 
     private static final Logger logger = LoggerFactory.getLogger(BaneNorSiriStopAssignmentPopulaterTest.class);

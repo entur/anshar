@@ -1,11 +1,11 @@
 package no.rutebanken.anshar.routes.mqtt;
 
 
-import org.apache.camel.ThreadPoolRejectedPolicy;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.builder.ThreadPoolProfileBuilder;
 import org.apache.camel.component.paho.PahoConstants;
 import org.apache.camel.spi.ThreadPoolProfile;
+import org.apache.camel.util.concurrent.ThreadPoolRejectedPolicy;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

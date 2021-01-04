@@ -18,7 +18,7 @@ package no.rutebanken.anshar.siri.transformer;
 import no.rutebanken.anshar.routes.siri.handlers.OutboundIdMappingPolicy;
 import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
 import no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import uk.org.siri.siri20.LineRef;
 
 import static junit.framework.TestCase.assertEquals;

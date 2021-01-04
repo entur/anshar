@@ -17,8 +17,8 @@ package no.rutebanken.anshar.validation.sx;
 
 import no.rutebanken.anshar.routes.validation.validators.sx.FramedVehicleJourneyRefValidator;
 import no.rutebanken.anshar.validation.CustomValidatorTest;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.w3c.dom.Node;
 
 import static junit.framework.TestCase.assertNotNull;
@@ -29,7 +29,7 @@ public class FramedVehicleJourneyRefValidatorTest extends CustomValidatorTest {
     private static FramedVehicleJourneyRefValidator validator;
     private final String fieldName = "FramedVehicleJourneyRef";
 
-    @BeforeClass
+    @BeforeAll
     public static void init() {
         validator = new FramedVehicleJourneyRefValidator();
     }

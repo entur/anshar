@@ -17,8 +17,8 @@ package no.rutebanken.anshar.validation.sx;
 
 import no.rutebanken.anshar.routes.validation.validators.sx.ParticipantRefValidator;
 import no.rutebanken.anshar.validation.CustomValidatorTest;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import static junit.framework.TestCase.assertNotNull;
 import static junit.framework.TestCase.assertNull;
@@ -28,7 +28,7 @@ public class ParticipantRefValidatorTest extends CustomValidatorTest {
     private static ParticipantRefValidator validator;
     private final String fieldName = "ParticipantRef";
 
-    @BeforeClass
+    @BeforeAll
     public static void init() {
         validator = new ParticipantRefValidator();
     }

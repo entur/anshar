@@ -17,8 +17,8 @@ package no.rutebanken.anshar.validation.vm;
 
 import no.rutebanken.anshar.routes.validation.validators.vm.VehicleLocationValidator;
 import no.rutebanken.anshar.validation.CustomValidatorTest;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import javax.xml.bind.ValidationEvent;
 
@@ -32,7 +32,7 @@ public class VehicleLocationValidatorTest extends CustomValidatorTest {
     private final String latFieldName = "Latitude";
     private final String lonFieldName = "Longitude";
 
-    @BeforeClass
+    @BeforeAll
     public static void init() {
         validator = new VehicleLocationValidator();
     }

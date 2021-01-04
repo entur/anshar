@@ -17,8 +17,8 @@ package no.rutebanken.anshar.validation.et;
 
 import no.rutebanken.anshar.routes.validation.validators.et.SaneDelayValidator;
 import no.rutebanken.anshar.validation.CustomValidatorTest;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import javax.xml.bind.ValidationEvent;
 
@@ -29,7 +29,7 @@ public class SaneDelayValidatorTest extends CustomValidatorTest {
 
     private static SaneDelayValidator validator;
 
-    @BeforeClass
+    @BeforeAll
     public static void init() {
         validator = new SaneDelayValidator();
     }

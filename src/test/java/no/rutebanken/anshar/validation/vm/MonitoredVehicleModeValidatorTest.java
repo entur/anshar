@@ -17,8 +17,8 @@ package no.rutebanken.anshar.validation.vm;
 
 import no.rutebanken.anshar.routes.validation.validators.vm.MonitoredVehicleModeValidator;
 import no.rutebanken.anshar.validation.CustomValidatorTest;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import uk.org.siri.siri20.VehicleModesEnumeration;
 
 import static junit.framework.TestCase.assertNotNull;
@@ -29,7 +29,7 @@ public class MonitoredVehicleModeValidatorTest extends CustomValidatorTest {
     private static MonitoredVehicleModeValidator validator;
     private final String fieldName = "VehicleMode";
 
-    @BeforeClass
+    @BeforeAll
     public static void init() {
         validator = new MonitoredVehicleModeValidator();
     }

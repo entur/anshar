@@ -17,8 +17,8 @@ package no.rutebanken.anshar.data;
 
 import no.rutebanken.anshar.integration.SpringBootBaseTest;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.org.siri.siri20.HalfOpenTimestampOutputRangeStructure;
 import uk.org.siri.siri20.PtSituationElement;
@@ -39,7 +39,7 @@ public class SituationsTest extends SpringBootBaseTest {
     @Autowired
     private SiriObjectFactory siriObjectFactory;
 
-    @Before
+    @BeforeEach
     public void init() {
         situations.clearAll();
     }

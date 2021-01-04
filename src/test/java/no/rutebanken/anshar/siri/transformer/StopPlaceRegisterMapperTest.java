@@ -21,8 +21,8 @@ import no.rutebanken.anshar.routes.mapping.StopPlaceUpdaterService;
 import no.rutebanken.anshar.routes.siri.transformer.ApplicationContextHolder;
 import no.rutebanken.anshar.routes.siri.transformer.impl.StopPlaceRegisterMapper;
 import no.rutebanken.anshar.subscription.SiriDataType;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import uk.org.siri.siri20.JourneyPlaceRefStructure;
 
 import java.util.ArrayList;
@@ -37,7 +37,7 @@ public class StopPlaceRegisterMapperTest extends SpringBootBaseTest {
 
     private Map<String, String> stopPlaceMap;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
 
         stopPlaceMap = new HashMap<>();

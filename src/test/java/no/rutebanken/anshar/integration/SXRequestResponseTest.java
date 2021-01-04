@@ -19,8 +19,8 @@ import io.restassured.http.ContentType;
 import no.rutebanken.anshar.data.Situations;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.subscription.SiriDataType;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.rutebanken.siri20.util.SiriXml;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.org.siri.siri20.HalfOpenTimestampOutputRangeStructure;
@@ -42,7 +42,7 @@ public class SXRequestResponseTest extends BaseHttpTest {
     private final String participantRef = "SX";
     private final String situationNumber = "TTT:SituationNumber:1234";
 
-    @Before
+    @BeforeEach
     public void addData() {
         super.init();
         repo.clearAll();
@@ -61,7 +61,7 @@ public class SXRequestResponseTest extends BaseHttpTest {
                     .post("anshar/services")
                 .then()
                     .statusCode(200)
-                    .root("Siri.ServiceDelivery.SituationExchangeDelivery.Situations.PtSituationElement")
+                    .rootPath("Siri.ServiceDelivery.SituationExchangeDelivery.Situations.PtSituationElement")
                         .body("SituationNumber", equalTo(situationNumber))
                         .body("ParticipantRef", equalTo(participantRef))
         ;
@@ -77,7 +77,7 @@ public class SXRequestResponseTest extends BaseHttpTest {
                 .then()
                 .statusCode(200)
                 .contentType(ContentType.XML)
-                .root("Siri.ServiceDelivery.SituationExchangeDelivery.Situations.PtSituationElement")
+                .rootPath("Siri.ServiceDelivery.SituationExchangeDelivery.Situations.PtSituationElement")
                     .body("SituationNumber", equalTo(situationNumber))
                     .body("ParticipantRef", equalTo(participantRef))
         ;

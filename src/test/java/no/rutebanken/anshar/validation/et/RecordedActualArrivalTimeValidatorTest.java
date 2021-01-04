@@ -17,8 +17,8 @@ package no.rutebanken.anshar.validation.et;
 
 import no.rutebanken.anshar.routes.validation.validators.et.RecordedActualArrivalTimeValidator;
 import no.rutebanken.anshar.validation.CustomValidatorTest;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import javax.xml.bind.ValidationEvent;
 
@@ -31,7 +31,7 @@ public class RecordedActualArrivalTimeValidatorTest extends CustomValidatorTest 
     private final String fieldName = "ActualArrivalTime";
     private final String comparisonField = "ActualDepartureTime";
 
-    @BeforeClass
+    @BeforeAll
     public static void init() {
         validator = new RecordedActualArrivalTimeValidator();
     }

@@ -17,8 +17,8 @@ package no.rutebanken.anshar.validation.et;
 
 import no.rutebanken.anshar.routes.validation.validators.et.ExtraJourneyValidator;
 import no.rutebanken.anshar.validation.CustomValidatorTest;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import static junit.framework.TestCase.assertNotNull;
 import static junit.framework.TestCase.assertNull;
@@ -43,7 +43,7 @@ public class ExtraJourneyValidatorTest extends CustomValidatorTest{
 
     private final String estimatedVehicleJourneyCode = "NSR:ServiceJourney:1234-1234-1234-EXTRA";
 
-    @BeforeClass
+    @BeforeAll
     public static void init() {
         validator = new ExtraJourneyValidator();
     }

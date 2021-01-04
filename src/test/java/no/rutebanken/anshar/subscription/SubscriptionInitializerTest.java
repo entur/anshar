@@ -24,8 +24,8 @@ import no.rutebanken.anshar.routes.siri.Siri20ToSiriWS14Subscription;
 import no.rutebanken.anshar.routes.siri.Siri20ToSiriWS20RequestResponse;
 import no.rutebanken.anshar.routes.siri.Siri20ToSiriWS20Subscription;
 import org.apache.camel.builder.RouteBuilder;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
@@ -155,7 +155,7 @@ public class SubscriptionInitializerTest extends SpringBootBaseTest {
     }
 
     @Test
-    @Ignore(value = "Not yet supported - ignoring for now")
+    @Disabled(value = "Not yet supported - ignoring for now")
     public void testSiri14SoapSubscribeInitialDataSupply() {
         SubscriptionSetup subscriptionSetup = createSubscriptionSetup(SubscriptionSetup.SubscriptionMode.SUBSCRIBE, SubscriptionSetup.ServiceType.SOAP, "1.4");
         subscriptionSetup.setDataSupplyRequestForInitialDelivery(true);
