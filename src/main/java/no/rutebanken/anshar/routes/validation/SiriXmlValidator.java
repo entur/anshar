@@ -203,14 +203,14 @@ public class SiriXmlValidator extends ApplicationContextHolder {
 
             Siri siri = unmarshaller.unmarshal(reader, Siri.class).getValue();
 
-            final String breadcrumbId = MDC.get("camel.breadcrumbId");
+            final String exchangeId = MDC.get("camel.exchangeId");
 
             if (siri.getServiceDelivery() != null && configuration.isFullValidationEnabled()) {
                 validated = true;
                 validationExecutorService.execute(() -> {
-                    MDC.put("camel.breadcrumbId", breadcrumbId);
+                    MDC.put("camel.exchangeId", exchangeId);
                     performValidation(subscriptionSetup, xml, handler);
-                    MDC.remove("camel.breadcrumbId");
+                    MDC.remove("camel.exchangeId");
                 });
             }
 
@@ -218,9 +218,9 @@ public class SiriXmlValidator extends ApplicationContextHolder {
                 validated = true;
                 // Validator is activated - produce complete report from formatted XML
                 validationReportExecutorService.execute(() -> {
-                    MDC.put("camel.breadcrumbId", breadcrumbId);
+                    MDC.put("camel.exchangeId", exchangeId);
                     performValidation(subscriptionSetup, siri);
-                    MDC.remove("camel.breadcrumbId");
+                    MDC.remove("camel.exchangeId");
                 });
             }
 
