@@ -72,7 +72,7 @@ public class MqttProducerRoute extends RouteBuilder {
 
             from("direct:post.to.paho.client")
                     .routeId("post.to.paho.client")
-                    .to("paho:default/topic?qos=1&clientId=" + clientId + "&brokerUrl" + host + "&userName=" + username + "&password=" + password)
+                    .to("paho:default/topic?qos=1&clientId=" + clientId + "&brokerUrl=" + host + "&userName=" + username + "&password=" + password)
                     .to("direct:log.mqtt.traffic");
 
             from("direct:log.mqtt.traffic")
