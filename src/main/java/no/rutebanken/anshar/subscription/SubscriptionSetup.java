@@ -184,13 +184,11 @@ public class SubscriptionSetup implements Serializable {
                 final String url = entry.getValue();
                 if (!url.startsWith("http")) {
                     if (!url.isEmpty()) {
-                        if (url.startsWith("https4")) {
-                            entry.setValue(url.replaceFirst("https4://", "https://"));
-                        } else {
-                            entry.setValue("http://" + url);
-                        }
+                        entry.setValue("http://" + url);
                         logger.warn("Prefixing url with 'http://': ", entry.getValue());
                     }
+                } else if (url.startsWith("https4")) {
+                    entry.setValue(url.replaceFirst("https4://", "https://"));
                 }
             }
         }
