@@ -34,19 +34,19 @@ public class MqttProducerRoute extends RouteBuilder {
     private AtomicInteger counter = new AtomicInteger();
     private AtomicInteger queueLength = new AtomicInteger();
 
-    @Bean
-    MqttConnectOptions connectOptions() {
-        MqttConnectOptions connectOptions = new MqttConnectOptions();
-        connectOptions.setServerURIs(new String[] {host});
-        connectOptions.setUserName(username);
-        connectOptions.setPassword(password.toCharArray());
-        connectOptions.setMaxInflight(1000);
-        connectOptions.setAutomaticReconnect(true);
-
-        log.info("MQTT connects to host {} with user {}.", host, username);
-
-        return connectOptions;
-    }
+//    @Bean
+//    MqttConnectOptions connectOptions() {
+//        MqttConnectOptions connectOptions = new MqttConnectOptions();
+//        connectOptions.setServerURIs(new String[] {host});
+//        connectOptions.setUserName(username);
+//        connectOptions.setPassword(password.toCharArray());
+//        connectOptions.setMaxInflight(1000);
+//        connectOptions.setAutomaticReconnect(true);
+//
+//        log.info("MQTT connects to host {} with user {}.", host, username);
+//
+//        return connectOptions;
+//    }
 
     @Override
     public void configure() {
@@ -72,7 +72,7 @@ public class MqttProducerRoute extends RouteBuilder {
 
             from("direct:post.to.paho.client")
                     .routeId("post.to.paho.client")
-                    .to("paho:default/topic?qos=1&clientId=" + clientId)
+                    .to("paho:default/topic?qos=1&clientId=" + clientId + "&brokerUrl" + host + "&userName=" + username + "&password=" + password)
                     .to("direct:log.mqtt.traffic");
 
             from("direct:log.mqtt.traffic")
