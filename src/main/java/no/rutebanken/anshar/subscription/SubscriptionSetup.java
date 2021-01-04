@@ -451,8 +451,10 @@ public class SubscriptionSetup implements Serializable {
             for (Map.Entry<RequestType, String> entry : urlMap.entrySet()) {
                 final String url = entry.getValue();
                 if (!url.startsWith("http")) {
-                    entry.setValue("http://" + url);
-                    logger.warn("Prefixing url with 'http://': ", entry.getValue());
+                    if (!url.isEmpty()) {
+                        entry.setValue("http://" + url);
+                        logger.warn("Prefixing url with 'http://': ", entry.getValue());
+                    }
                 }
             }
         }
@@ -554,10 +556,10 @@ public class SubscriptionSetup implements Serializable {
             logger.info("getOperatorNamespace() does not match [{}] vs [{}]", getOperatorNamespace(), that.getOperatorNamespace());
             return false;
         }
-        if (!getUrlMap().equals(that.getUrlMap())) {
-            logger.info("getUrlMap() does not match [{}] vs [{}]", getUrlMap(), that.getUrlMap());
-            return false;
-        }
+//        if (!getUrlMap().equals(that.getUrlMap())) {
+//            logger.info("getUrlMap() does not match [{}] vs [{}]", getUrlMap(), that.getUrlMap());
+//            return false;
+//        }
         if (!getVersion().equals(that.getVersion())) {
             logger.info("getVersion() does not match [{}] vs [{}]", getVersion(), that.getVersion());
             return false;
