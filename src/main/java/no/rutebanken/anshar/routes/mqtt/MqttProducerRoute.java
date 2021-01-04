@@ -42,6 +42,9 @@ public class MqttProducerRoute extends RouteBuilder {
         connectOptions.setPassword(password.toCharArray());
         connectOptions.setMaxInflight(1000);
         connectOptions.setAutomaticReconnect(true);
+
+        log.info("MQTT connects to host {} with user {}.", host, username);
+
         return connectOptions;
     }
 
@@ -68,6 +71,7 @@ public class MqttProducerRoute extends RouteBuilder {
                     .wireTap("direct:post.to.paho.client").executorServiceRef("mqtt-tp-profile");
 
             from("direct:post.to.paho.client")
+                    .routeId("post.to.paho.client")
                     .to("paho:default/topic?qos=1&clientId=" + clientId)
                     .to("direct:log.mqtt.traffic");
 
