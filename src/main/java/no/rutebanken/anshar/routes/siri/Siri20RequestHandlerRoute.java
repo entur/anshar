@@ -113,6 +113,7 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
         ;
 
         from("direct:process.incoming.request")
+                .removeHeaders("<Siri*") //Since Camel 3, entire body is also included as header
                 .to("log:incoming:" + getClass().getSimpleName() + "?showAll=true&multiline=true&showStreams=true")
                 .choice()
                     .when(e -> subscriptionExistsAndIsActive(e))
@@ -215,6 +216,7 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
 
         if (existsAndIsActive) {
             e.getOut().setHeaders(e.getIn().getHeaders());
+            e.getOut().setBody(e.getIn().getBody());
 
             if (!"2.0".equals(subscriptionSetup.getVersion())) {
                 e.getOut().setHeader(TRANSFORM_VERSION, TRANSFORM_VERSION);
