@@ -72,7 +72,11 @@ public class ProtobufConverterRoute extends RouteBuilder {
      */
     private String fixEncodingErrorsInXml(String body, String subscriptionId) {
 
-        if (body == null) return body;
+        if (body == null) {
+            // This should never happen (!), keeping it for now, but should be removed
+            body = "";
+            log.warn("Body is null!!!");
+        }
 
         boolean replacedChars = false;
         if (body.indexOf("Ã¦") >= 0) {
