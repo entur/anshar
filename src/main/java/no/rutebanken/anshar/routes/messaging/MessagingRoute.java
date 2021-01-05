@@ -59,7 +59,7 @@ public class MessagingRoute extends RestRouteBuilder {
                 .process(p -> { // Remove lots of unecessary headers
                     p.getOut().setBody(p.getIn().getBody());
                     p.getOut().setHeader("subscriptionId", p.getIn().getHeader("subscriptionId"));
-                    p.getOut().setHeader("camel.exchangeId", p.getIn().getExchange().getExchangeId());
+                    p.getOut().setHeader("breadcrumbId", p.getIn().getHeader("breadcrumbId"));
                 })
 //                .to("xslt-saxon:xsl/split.xsl").split().tokenizeXML("Siri").streaming()
                 .choice()

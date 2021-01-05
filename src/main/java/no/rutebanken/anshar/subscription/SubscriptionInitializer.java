@@ -81,6 +81,7 @@ public class SubscriptionInitializer implements CamelContextAware {
     @PostConstruct
     void createSubscriptions() {
         camelContext.setUseMDCLogging(true);
+        camelContext.setUseBreadcrumb(true);
 
 
         final Map<String, Object> mappingBeans = ApplicationContextHolder.getContext().getBeansWithAnnotation(Mapping.class);
