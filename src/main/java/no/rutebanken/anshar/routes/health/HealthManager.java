@@ -16,7 +16,7 @@
 package no.rutebanken.anshar.routes.health;
 
 import com.hazelcast.core.HazelcastInstanceNotActiveException;
-import com.hazelcast.core.IMap;
+import com.hazelcast.map.IMap;
 import no.rutebanken.anshar.data.collections.HealthCheckKey;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import org.json.simple.JSONArray;

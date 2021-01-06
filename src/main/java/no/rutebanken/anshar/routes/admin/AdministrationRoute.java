@@ -79,7 +79,6 @@ public class AdministrationRoute extends RestRouteBuilder {
         rest("/anshar").tag("internal.admin")
                 .get("/stats").produces(MediaType.TEXT_HTML).to(STATS_ROUTE)
                 .put("/stats").to(OPERATION_ROUTE)
-                .get("/clusterstats").produces(MediaType.APPLICATION_JSON).to(CLUSTERSTATS_ROUTE)
                 .get("/unmapped").produces(MediaType.TEXT_HTML).to(UNMAPPED_ROUTE)
                 .get("/unmapped/{datasetId}").produces(MediaType.TEXT_HTML).to(UNMAPPED_ROUTE)
         ;
@@ -220,11 +219,6 @@ public class AdministrationRoute extends RestRouteBuilder {
                 .routeId("admin.flush.data")
         ;
 
-        //Return cluster status
-        from(CLUSTERSTATS_ROUTE)
-                .bean(extendedHazelcastService, "listNodes(${header.stats})")
-                .routeId("admin.clusterstats")
-        ;
 
         //Return unmapped ids
         from(UNMAPPED_ROUTE)

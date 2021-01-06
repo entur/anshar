@@ -15,7 +15,7 @@
 
 package no.rutebanken.anshar.data;
 
-import com.hazelcast.core.IMap;
+import com.hazelcast.map.IMap;
 import com.hazelcast.query.Predicate;
 import no.rutebanken.anshar.data.collections.ExtendedHazelcastService;
 import no.rutebanken.anshar.metrics.PrometheusMetricsService;
@@ -216,7 +216,7 @@ abstract class SiriRepository<T> {
     abstract void clearAllByDatasetId(String datasetId);
 
 
-    Predicate<SiriObjectStorageKey, Serializable> createCodespacePredicate(String datasetId) {
+    Predicate<SiriObjectStorageKey, T> createCodespacePredicate(String datasetId) {
         return entry -> {
             if (entry.getKey().getCodespaceId() != null) {
                 final String codespaceId = entry.getKey().getCodespaceId();
@@ -226,7 +226,7 @@ abstract class SiriRepository<T> {
         };
     }
 
-    Predicate<SiriObjectStorageKey, Serializable> createLineRefPredicate(String lineRef) {
+    Predicate<SiriObjectStorageKey, T> createLineRefPredicate(String lineRef) {
         return entry -> {
             if (entry.getKey().getLineRef() != null) {
                 final String ref = entry.getKey().getLineRef();

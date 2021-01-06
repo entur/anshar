@@ -94,7 +94,7 @@
             </dependency>
             <dependency>
                 <groupId>org.entur.helpers</groupId>
-                <artifactId>hazelcast-helper</artifactId>
+                <artifactId>hazelcast4-helper</artifactId>
                 <version>${entur.helpers.version}</version>
             </dependency>
             <dependency>
@@ -131,7 +131,7 @@
         </dependency>
         <dependency>
             <groupId>org.entur.helpers</groupId>
-            <artifactId>hazelcast-helper</artifactId>
+            <artifactId>hazelcast4-helper</artifactId>
         </dependency>
         <dependency>
             <groupId>org.entur.helpers</groupId>
@@ -241,7 +241,7 @@
         <dependency>
             <groupId>com.hazelcast</groupId>
             <artifactId>hazelcast</artifactId>
-            <version>3.12.5</version>
+            <version>4.1</version>
         </dependency>
 
         <dependency>

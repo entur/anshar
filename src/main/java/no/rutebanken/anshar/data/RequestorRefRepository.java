@@ -15,7 +15,7 @@
 
 package no.rutebanken.anshar.data;
 
-import com.hazelcast.core.IMap;
+import com.hazelcast.map.IMap;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import org.springframework.beans.factory.annotation.Autowired;

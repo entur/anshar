@@ -15,7 +15,7 @@
 
 package no.rutebanken.anshar.routes.outbound;
 
-import com.hazelcast.core.IMap;
+import com.hazelcast.map.IMap;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.routes.BaseRouteBuilder;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;

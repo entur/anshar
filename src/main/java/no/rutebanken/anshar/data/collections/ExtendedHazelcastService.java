@@ -15,15 +15,13 @@
 
 package no.rutebanken.anshar.data.collections;
 
+import com.hazelcast.collection.ISet;
 import com.hazelcast.config.SerializerConfig;
-import com.hazelcast.core.Cluster;
 import com.hazelcast.core.DistributedObject;
 import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.IMap;
-import com.hazelcast.core.ISet;
 import com.hazelcast.core.LifecycleEvent;
-import com.hazelcast.core.Member;
-import com.hazelcast.core.ReplicatedMap;
+import com.hazelcast.map.IMap;
+import com.hazelcast.replicatedmap.ReplicatedMap;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.data.RequestorRefStats;
 import no.rutebanken.anshar.data.SiriObjectStorageKey;
@@ -58,7 +56,7 @@ public class ExtendedHazelcastService extends HazelCastService {
     private Logger logger = LoggerFactory.getLogger(ExtendedHazelcastService.class);
 
     public ExtendedHazelcastService(@Autowired KubernetesService kubernetesService, @Autowired AnsharConfiguration cfg) {
-        super(kubernetesService, cfg.getHazelcastManagementUrl());
+        super(kubernetesService);
     }
 
     public void addBeforeShuttingDownHook(Runnable destroyFunction) {
@@ -219,43 +217,6 @@ public class ExtendedHazelcastService extends HazelCastService {
     @Bean
     public IMap<Enum<HealthCheckKey>, Instant> getHealthCheckMap() {
         return hazelcast.getMap("anshar.admin.health");
-    }
-
-    public String listNodes(Boolean includeStats) {
-        JSONObject root = new JSONObject();
-        JSONArray clusterMembers = new JSONArray();
-        Cluster cluster = hazelcast.getCluster();
-        if (cluster != null) {
-            Set<Member> members = cluster.getMembers();
-            if (members != null && !members.isEmpty()) {
-                for (Member member : members) {
-
-                    JSONObject obj = getJsonObjectForHzMember(includeStats, member);
-                    clusterMembers.add(obj);
-                }
-            }
-        }
-        root.put("members", clusterMembers);
-        return root.toString();
-    }
-
-    private JSONObject getJsonObjectForHzMember(Boolean includeStats, Member member) {
-        JSONObject obj = new JSONObject();
-        obj.put("uuid", member.getUuid());
-        obj.put("host", member.getAddress().getHost());
-        obj.put("port", member.getAddress().getPort());
-        obj.put("local", member.localMember());
-
-        if (Boolean.TRUE.equals(includeStats)) {
-            JSONObject stats = new JSONObject();
-            Collection<DistributedObject> distributedObjects = hazelcast.getDistributedObjects();
-            for (DistributedObject distributedObject : distributedObjects) {
-                stats.put(distributedObject.getName(), hazelcast.getMap(distributedObject.getName()).getLocalMapStats().toJson());
-            }
-
-            obj.put("localmapstats", stats);
-        }
-        return obj;
     }
 
     @Bean

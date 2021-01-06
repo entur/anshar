@@ -16,8 +16,8 @@
 package no.rutebanken.anshar.subscription;
 
 
-import com.hazelcast.core.IMap;
-import com.hazelcast.core.ReplicatedMap;
+import com.hazelcast.map.IMap;
+import com.hazelcast.replicatedmap.ReplicatedMap;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.data.EstimatedTimetables;
 import no.rutebanken.anshar.data.RequestorRefRepository;
@@ -73,7 +73,7 @@ public class SubscriptionManager {
 
     @Autowired
     @Qualifier("getLastActivityMap")
-    private ReplicatedMap<String, java.time.Instant> lastActivity;
+    private ReplicatedMap<String, Instant> lastActivity;
 
     @Autowired
     @Qualifier("getDataReceivedMap")

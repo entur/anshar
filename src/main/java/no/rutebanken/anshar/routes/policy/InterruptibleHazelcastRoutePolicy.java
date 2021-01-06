@@ -17,7 +17,7 @@ package no.rutebanken.anshar.routes.policy;
 
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.HazelcastInstanceNotActiveException;
-import com.hazelcast.core.IMap;
+import com.hazelcast.map.IMap;
 import org.apache.camel.component.hazelcast.policy.HazelcastRoutePolicy;
 import org.apache.camel.util.StringHelper;
 import org.slf4j.Logger;

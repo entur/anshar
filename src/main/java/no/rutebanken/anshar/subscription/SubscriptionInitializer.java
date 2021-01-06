@@ -49,6 +49,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.ServiceConfigurationError;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Component
 public class SubscriptionInitializer implements CamelContextAware {
@@ -100,6 +101,8 @@ public class SubscriptionInitializer implements CamelContextAware {
             Set<String> subscriptionIds = new HashSet<>();
             Set<String> subscriptionNames = new HashSet<>();
 
+            Set<Long> subscriptionInternalIds = new HashSet<>();
+
             List<SubscriptionSetup> actualSubscriptionSetups = new ArrayList<>();
 
             // Validation and consistency-verification
@@ -119,6 +122,11 @@ public class SubscriptionInitializer implements CamelContextAware {
                 if (subscriptionNames.contains(subscriptionSetup.getVendor())) {
                     //Verify vendor-uniqueness
                     throw new ServiceConfigurationError("Vendor is NOT unique for vendor="+subscriptionSetup.getVendor());
+                }
+
+                if (subscriptionInternalIds.contains(subscriptionSetup.getInternalId())) {
+                    //Verify internalId-uniqueness
+                    throw new ServiceConfigurationError("InternalId is NOT unique for ID="+subscriptionSetup.getInternalId());
                 }
 
 
@@ -169,6 +177,7 @@ public class SubscriptionInitializer implements CamelContextAware {
                         actualSubscriptionSetups.add(subscriptionSetup);
                         subscriptionIds.add(subscriptionSetup.getSubscriptionId());
                         subscriptionNames.add(subscriptionSetup.getVendor());
+                        subscriptionInternalIds.add(subscriptionSetup.getInternalId());
                     } else {
                         logger.info("Subscription with internalId={} already registered - keep existing. {}", subscriptionSetup.getInternalId(), subscriptionSetup);
                         actualSubscriptionSetups.add(existingSubscription);
