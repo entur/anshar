@@ -21,7 +21,7 @@ import java.io.InputStream;
 
 public interface BlobStoreRepository {
 
-    void uploadBlob(String objectName, byte[] bytes, boolean makePublic);
+    void uploadBlob(String objectName, byte[] bytes);
 
     void setStorage(Storage storage);
 

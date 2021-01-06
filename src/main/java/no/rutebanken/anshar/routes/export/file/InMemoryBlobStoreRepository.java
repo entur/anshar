@@ -32,7 +32,7 @@ public class InMemoryBlobStoreRepository implements BlobStoreRepository {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Override
-    public void uploadBlob(String objectName, byte[] bytes, boolean makePublic) {
+    public void uploadBlob(String objectName, byte[] bytes) {
         logger.info("blob with name {}, size {} ignored for in-memory-blobstore", objectName, bytes.length);
     }
 

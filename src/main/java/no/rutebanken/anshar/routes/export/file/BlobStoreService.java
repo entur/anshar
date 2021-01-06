@@ -52,16 +52,16 @@ public class BlobStoreService {
 
 	public void uploadBlob(@Header(value = RealtimeDataFileUploader.ZIP_FILE_PATH) String path) throws IOException {
 		File f = new File(path);
-		repository.uploadBlob(f.getName(), Files.readAllBytes(f.toPath()), true);
+		repository.uploadBlob(f.getName(), Files.readAllBytes(f.toPath()));
 	}
 
 	public void uploadBlob(String name, byte[] data) {
-		uploadBlob(name, data, true);
+		uploadBlob(name, data);
 	}
 
 	public void uploadBlob(String name, byte[] data, boolean makePublic) {
 		if (data != null) {
-			repository.uploadBlob(name, data, makePublic);
+			repository.uploadBlob(name, data);
 		}
 	}
 
