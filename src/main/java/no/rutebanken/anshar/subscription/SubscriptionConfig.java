@@ -16,11 +16,13 @@
 package no.rutebanken.anshar.subscription;
 
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @PropertySource(value = "${anshar.subscriptions.config.path}", factory = YamlPropertySourceFactory.class)
 @ConfigurationProperties(prefix = "anshar")
@@ -29,7 +31,16 @@ public class SubscriptionConfig {
 
     private List<SubscriptionSetup> subscriptions;
 
+    @Value("${anshar.subscriptions.datatypes.filter:}")
+    List<SiriDataType> dataTypes;
+
+
     public List<SubscriptionSetup> getSubscriptions() {
+        if (dataTypes != null && !dataTypes.isEmpty()) {
+            return subscriptions.stream()
+                .filter(sub -> dataTypes.contains(sub.getSubscriptionType()))
+                .collect(Collectors.toList());
+        }
         return subscriptions;
     }
 
