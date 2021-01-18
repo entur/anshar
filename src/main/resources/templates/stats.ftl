@@ -296,17 +296,34 @@ Request count: ${item.requestCount}">${item.id}</span></td>
             </table>
         </div>
         <div class="tab-pane" id="map" role="tabpanel" aria-labelledby="map-tab" align="center">
-
-            <button type="button" class="btn btn-success text-success" onclick="showMap()">Show map</button> <br />
-            <iframe id="mapFrame" width="90%" height="90%" align="center" frameborder="0"></iframe>
+            <table class="table table-striped">
+                <thead>
+                <tr><th colspan="2"><h4>Available vehicle maps</h4></th></tr>
+                <tr>
+                    <th >Environment</th>
+                    <th >URL</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td >Dev</td>
+                    <td ><a href="https://vehicle-map.dev.entur.org/" target="_blank">https://vehicle-map.dev.entur.org/</a></td>
+                </tr>
+                <tr>
+                    <td >Staging</td>
+                    <td ><a href="https://vehicle-map.staging.entur.org/" target="_blank">https://vehicle-map.staging.entur.org/</a></td>
+                </tr>
+                <tr>
+                    <td >Production</td>
+                    <td ><a href="https://vehicle-map.entur.org/" target="_blank">https://vehicle-map.entur.org/</a></td>
+                </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
 </body>
 <script>
-    function showMap() {
-        document.getElementById("mapFrame"). src = "https://jsfiddle.net/lassetyr/cj0xaoyw/show";
-    }
     $(function () {
         $(document).ready(function(){
             //Manage hash in URL to open the right tab
