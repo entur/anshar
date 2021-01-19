@@ -347,7 +347,7 @@ public class ServerSubscriptionManager {
         Siri delivery = siriObjectFactory.createVMServiceDelivery(addedOrUpdated);
 
         if (pushToTopicEnabled) {
-            siriVmTopicProducer.sendBody(delivery);
+            siriVmTopicProducer.asyncSendBody(siriVmTopicProducer.getDefaultEndpoint(), delivery);
         }
 
         subscriptions.values().stream().filter(subscriptionRequest ->
@@ -370,7 +370,7 @@ public class ServerSubscriptionManager {
         Siri delivery = siriObjectFactory.createSXServiceDelivery(addedOrUpdated);
 
         if (pushToTopicEnabled) {
-            siriSxTopicProducer.sendBody(delivery);
+            siriSxTopicProducer.asyncSendBody(siriSxTopicProducer.getDefaultEndpoint(), delivery);
         }
 
         subscriptions.values().stream().filter(subscriptionRequest ->
@@ -392,7 +392,7 @@ public class ServerSubscriptionManager {
         Siri delivery = siriObjectFactory.createETServiceDelivery(addedOrUpdated);
 
         if (pushToTopicEnabled) {
-            siriEtTopicProducer.sendBody(delivery);
+            siriEtTopicProducer.asyncSendBody(siriEtTopicProducer.getDefaultEndpoint(), delivery);
         }
 
         subscriptions.values().stream().filter(subscriptionRequest ->
