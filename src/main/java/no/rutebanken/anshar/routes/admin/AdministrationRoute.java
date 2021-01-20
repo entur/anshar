@@ -148,9 +148,13 @@ public class AdministrationRoute extends RestRouteBuilder {
         //Return subscription status
         from(STATS_ROUTE)
                 .process(p -> {
+                    long t1 = System.currentTimeMillis();
                     JSONObject stats = subscriptionManager.buildStats();
-
+                    long t2 = System.currentTimeMillis();
                     stats.put("outbound", serverSubscriptionManager.getSubscriptionsAsJson());
+                    long t3 = System.currentTimeMillis();
+
+                    log.info("Build stats: {} ms, builds subscriptions: {} ms", (t2-t1), (t3-t2));
                     p.getOut().setBody(stats);
                 })
                 .to("freemarker:templates/stats.ftl")
