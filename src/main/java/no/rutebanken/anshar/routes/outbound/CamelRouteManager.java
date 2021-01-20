@@ -20,6 +20,7 @@ import org.apache.camel.Produce;
 import org.apache.camel.ProducerTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -67,11 +68,11 @@ public class CamelRouteManager {
             logger.info("ConsumerAddress is null - ignoring data.");
             return;
         }
-
+        final String breadcrumbId = MDC.get("camel.breadcrumbId");
         ExecutorService executorService = getOrCreateExecutorService(subscriptionRequest);
         executorService.submit(() -> {
             try {
-
+                MDC.put("camel.breadcrumbId", breadcrumbId);
                 if (!subscriptionManager.subscriptions.containsKey(subscriptionRequest.getSubscriptionId())) {
                     // Short circuit if subscription has been terminated while waiting
                     return;
@@ -108,6 +109,8 @@ public class CamelRouteManager {
                 subscriptionManager.pushFailedForSubscription(subscriptionRequest.getSubscriptionId());
 
                 removeDeadSubscriptionExecutors(subscriptionManager);
+            } finally {
+                MDC.remove("camel.breadcrumbId");
             }
         });
     }
@@ -154,6 +157,7 @@ public class CamelRouteManager {
             String remoteEndPoint = subscription.getAddress();
 
             Map<String, Object> headers = new HashMap<>();
+            headers.put("breadcrumbId", MDC.get("camel.breadcrumbId"));
             headers.put("endpoint", remoteEndPoint);
             headers.put("SubscriptionId", subscription.getSubscriptionId());
             headers.put(OUTPUT_ADAPTERS_HEADER_NAME, subscription.getValueAdapters());
