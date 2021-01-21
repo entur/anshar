@@ -258,16 +258,19 @@ public class SiriLiteRoute extends RestRouteBuilder {
                 .process(p -> {
 
 
+                    logger.info("Fetching monitored ET-data");
                     Siri response = siriObjectFactory.createETServiceDelivery(estimatedTimetables.getAllMonitored());
-
 
                     List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(OutboundIdMappingPolicy.DEFAULT);
 
+                    logger.info("Transforming monitored ET-data");
                     response = SiriValueTransformer.transform(response, outboundAdapters);
 
                     HttpServletResponse out = p.getIn().getBody(HttpServletResponse.class);
 
+                    logger.info("Streaming monitored ET-data");
                     streamOutput(p, response, out);
+                    logger.info("Done processing monitored ET-data");
                 })
                 .log("RequestTracer - Request done (ET)")
                 .otherwise()
