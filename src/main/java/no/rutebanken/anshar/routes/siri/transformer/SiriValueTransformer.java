@@ -81,8 +81,14 @@ public class SiriValueTransformer {
     }
 
     public static Siri transform(Siri siri, List<ValueAdapter> adapters) {
+        return transform(siri, adapters, false);
+    }
+    public static Siri transform(Siri siri, List<ValueAdapter> adapters, boolean detailedLogging) {
         if (siri == null) {
             return null;
+        }
+        if (detailedLogging) {
+            logger.info("SIRI Transform: starting");
         }
         Siri transformed;
         try {
@@ -90,6 +96,10 @@ public class SiriValueTransformer {
         } catch (Exception e) {
             logger.warn("Unable to transform SIRI-object", e);
             return siri;
+        }
+
+        if (detailedLogging) {
+            logger.info("SIRI Transform: deepCopy done");
         }
         if (transformed != null && adapters != null) {
 
@@ -100,6 +110,9 @@ public class SiriValueTransformer {
                 }
             }
 
+            if (detailedLogging) {
+                logger.info("SIRI Transform: {} valueAdapters added", valueAdapters.size());
+            }
             List<PostProcessor> postProcessors = new ArrayList<>();
             for (ValueAdapter valueAdapter : adapters) {
                 if ((valueAdapter instanceof PostProcessor)) {
@@ -107,20 +120,38 @@ public class SiriValueTransformer {
                 }
             }
 
+            if (detailedLogging) {
+                logger.info("SIRI Transform: {} postProcessors added", postProcessors.size());
+            }
             for (ValueAdapter a : valueAdapters) {
                 try {
                     applyAdapter(transformed, a);
+
+                    if (detailedLogging) {
+                        logger.info("SIRI Transform: valueAdapter {} processed", a.toString());
+                    }
                 } catch (Throwable t) {
                     logger.warn("Caught exception while transforming SIRI-object.", t);
                 }
+            }
+            if (detailedLogging) {
+                logger.info("SIRI Transform: valueAdapters processed");
             }
 
             for (PostProcessor processor : postProcessors) {
                 try {
                     processor.process(transformed);
+
+                    if (detailedLogging) {
+                        logger.info("SIRI Transform: valueAdapter {} processed", processor.toString());
+                    }
                 } catch (Throwable t) {
                     logger.warn("Caught exception while post-processing SIRI-object with processor '" + processor + "'", t);
                 }
+            }
+
+            if (detailedLogging) {
+                logger.info("SIRI Transform: {} postProcessors processed");
             }
         }
 

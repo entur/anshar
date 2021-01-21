@@ -264,7 +264,7 @@ public class SiriLiteRoute extends RestRouteBuilder {
                     List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(OutboundIdMappingPolicy.DEFAULT);
 
                     logger.info("Transforming monitored ET-data");
-                    response = SiriValueTransformer.transform(response, outboundAdapters);
+                    response = SiriValueTransformer.transform(response, outboundAdapters, true);
 
                     HttpServletResponse out = p.getIn().getBody(HttpServletResponse.class);
 
