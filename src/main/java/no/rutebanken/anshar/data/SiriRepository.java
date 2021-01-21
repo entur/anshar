@@ -23,6 +23,7 @@ import no.rutebanken.anshar.routes.siri.transformer.ApplicationContextHolder;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 
 import javax.xml.bind.DatatypeConverter;
 import java.io.ByteArrayOutputStream;
@@ -39,6 +40,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -146,14 +148,27 @@ abstract class SiriRepository<T> {
 
     void updateChangeTrackers(IMap<String, Instant> lastUpdateRequested, IMap<String, Set<SiriObjectStorageKey>> changesMap,
                               String key, Set<SiriObjectStorageKey> changes, int trackingPeriodMinutes, TimeUnit timeUnit) {
-        long t1 = System.currentTimeMillis();
+        final String breadcrumbId = MDC.get("camel.breadcrumbId");
 
-        changesMap.executeOnKey(key, new ReplaceSetEntryProcessor(changes));
-        changesMap.setTtl(key, trackingPeriodMinutes, timeUnit);
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        executorService.execute(() -> {
+            try {
+                MDC.put("camel.breadcrumbId", breadcrumbId);
 
-        lastUpdateRequested.set(key, Instant.now(), trackingPeriodMinutes, timeUnit);
+                long t1 = System.currentTimeMillis();
 
-        logger.info("Replacing changes for requestor {} took {} ms. ({})", key, (System.currentTimeMillis()-t1), this.getClass().getSimpleName());
+                changesMap.executeOnKey(key, new ReplaceSetEntryProcessor(changes));
+                changesMap.setTtl(key, trackingPeriodMinutes, timeUnit);
+
+                lastUpdateRequested.set(key, Instant.now(), trackingPeriodMinutes, timeUnit);
+
+                logger.info("Replacing changes for requestor async {} took {} ms. ({})",
+                    key,(System.currentTimeMillis() - t1),this.getClass().getSimpleName());
+            } finally {
+                MDC.remove("camel.breadcrumbId");
+            }
+        });
+        logger.info("Changetracker-update submitted");
     }
 
     /**
