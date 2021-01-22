@@ -30,7 +30,7 @@ public class SiriOutputTransformerRoute extends RouteBuilder {
 
     @Override
     public void configure() {
-        List<ValueAdapter> outboundAdapters = new MappingAdapterPresets().getOutboundAdapters(OutboundIdMappingPolicy.DEFAULT);
+        final List<ValueAdapter> outboundAdapters = MappingAdapterPresets.getOutboundAdapters(OutboundIdMappingPolicy.DEFAULT);
 
         from("direct:siri.transform.data")
                 .process(p -> {
@@ -43,7 +43,11 @@ public class SiriOutputTransformerRoute extends RouteBuilder {
                         adapters = outboundAdapters;
                     }
 
-                    p.getOut().setBody(SiriValueTransformer.transform(p.getIn().getBody(Siri.class), adapters));
+                    p.getOut().setBody(SiriValueTransformer.transform(
+                        p.getIn().getBody(Siri.class),
+                        adapters,
+                        false,
+                        false));
                     p.getOut().setHeaders(p.getIn().getHeaders());
                 })
                 .routeId("siri.transformer.route")

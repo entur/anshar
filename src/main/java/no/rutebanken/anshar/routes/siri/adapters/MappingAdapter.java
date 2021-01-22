@@ -36,9 +36,9 @@ public abstract class MappingAdapter {
 
     public abstract List<ValueAdapter> getValueAdapters(SubscriptionSetup subscriptionSetup);
 
-    public List<ValueAdapter> getOutboundValueAdapters(OutboundIdMappingPolicy mappingPolicy) {
-        return new MappingAdapterPresets().getOutboundAdapters(mappingPolicy);
-    }
+//    public List<ValueAdapter> getOutboundValueAdapters(OutboundIdMappingPolicy mappingPolicy) {
+//        return MappingAdapterPresets.getOutboundAdapters(mappingPolicy);
+//    }
     List<ValueAdapter> createNsrIdMappingAdapters(SiriDataType type, String datasetId, List<String> idMappingPrefixes) {
         List<ValueAdapter> nsr = new ArrayList<>();
         nsr.add(new StopPlaceRegisterMapper(type, datasetId, StopPlaceRef.class, idMappingPrefixes, "StopPlace"));

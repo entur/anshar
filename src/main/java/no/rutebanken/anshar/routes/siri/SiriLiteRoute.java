@@ -26,6 +26,7 @@ import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
+import no.rutebanken.anshar.subscription.SiriDataType;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import no.rutebanken.anshar.subscription.helpers.MappingAdapterPresets;
 import org.apache.camel.Exchange;
@@ -70,9 +71,6 @@ public class SiriLiteRoute extends RestRouteBuilder {
 
     @Autowired
     private EstimatedTimetables estimatedTimetables;
-
-    @Autowired
-    private MappingAdapterPresets mappingAdapterPresets;
 
     @Autowired
     private PrometheusMetricsService metrics;
@@ -129,11 +127,14 @@ public class SiriLiteRoute extends RestRouteBuilder {
 
                         Siri response = situations.createServiceDelivery(requestorId, datasetId, etClientName, maxSize);
 
-                        List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(SiriHandler.getIdMappingPolicy(originalId));
+                        List<ValueAdapter> outboundAdapters = MappingAdapterPresets.getOutboundAdapters(
+                            SiriDataType.SITUATION_EXCHANGE,
+                            SiriHandler.getIdMappingPolicy(originalId)
+                        );
                         if ("test".equals(originalId)) {
                             outboundAdapters = null;
                         }
-                        response = SiriValueTransformer.transform(response, outboundAdapters);
+                        response = SiriValueTransformer.transform(response, outboundAdapters, false, false);
 
                         HttpServletResponse out = p.getIn().getBody(HttpServletResponse.class);
 
@@ -178,11 +179,14 @@ public class SiriLiteRoute extends RestRouteBuilder {
                             response = vehicleActivities.createServiceDelivery(requestorId, datasetId, etClientName, excludedIdList, maxSize);
                         }
 
-                        List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(SiriHandler.getIdMappingPolicy(originalId));
+                        List<ValueAdapter> outboundAdapters = MappingAdapterPresets.getOutboundAdapters(
+                            SiriDataType.VEHICLE_MONITORING,
+                            SiriHandler.getIdMappingPolicy(originalId)
+                        );
                         if ("test".equals(originalId)) {
                             outboundAdapters = null;
                         }
-                        response = SiriValueTransformer.transform(response, outboundAdapters);
+                        response = SiriValueTransformer.transform(response, outboundAdapters, false, false);
 
                         HttpServletResponse out = p.getIn().getBody(HttpServletResponse.class);
 
@@ -234,11 +238,14 @@ public class SiriLiteRoute extends RestRouteBuilder {
                             response = estimatedTimetables.createServiceDelivery(requestorId, datasetId, etClientName, excludedIdList, maxSize, previewIntervalMillis);
                         }
 
-                        List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(SiriHandler.getIdMappingPolicy(originalId));
+                        List<ValueAdapter> outboundAdapters = MappingAdapterPresets.getOutboundAdapters(
+                            SiriDataType.ESTIMATED_TIMETABLE,
+                            SiriHandler.getIdMappingPolicy(originalId)
+                        );
                         if ("test".equals(originalId)) {
                             outboundAdapters = null;
                         }
-                        response = SiriValueTransformer.transform(response, outboundAdapters);
+                        response = SiriValueTransformer.transform(response, outboundAdapters, false, false);
 
                         HttpServletResponse out = p.getIn().getBody(HttpServletResponse.class);
 
@@ -261,10 +268,13 @@ public class SiriLiteRoute extends RestRouteBuilder {
                     logger.info("Fetching monitored ET-data");
                     Siri response = siriObjectFactory.createETServiceDelivery(estimatedTimetables.getAllMonitored());
 
-                    List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(OutboundIdMappingPolicy.DEFAULT);
+                    List<ValueAdapter> outboundAdapters = MappingAdapterPresets.getOutboundAdapters(
+                                                                                    SiriDataType.ESTIMATED_TIMETABLE,
+                                                                                    OutboundIdMappingPolicy.DEFAULT
+                                                                                );
 
                     logger.info("Transforming monitored ET-data");
-                    response = SiriValueTransformer.transform(response, outboundAdapters, true);
+                    response = SiriValueTransformer.transform(response, outboundAdapters, false, true);
 
                     HttpServletResponse out = p.getIn().getBody(HttpServletResponse.class);
 

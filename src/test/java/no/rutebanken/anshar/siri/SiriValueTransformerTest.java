@@ -144,10 +144,10 @@ public class SiriValueTransformerTest extends SpringBootBaseTest {
         assertEquals("LineRef has not been padded as expected", paddedLineRef, getLineRefFromSiriObj(siri));
         assertEquals("BlockRef should not be padded", blockRefValue, getBlockRefFromSiriObj(siri));
 
-        Siri mappedIdSiri = SiriValueTransformer.transform(siri, new MappingAdapterPresets().getOutboundAdapters(OutboundIdMappingPolicy.DEFAULT));
+        Siri mappedIdSiri = SiriValueTransformer.transform(siri, MappingAdapterPresets.getOutboundAdapters(OutboundIdMappingPolicy.DEFAULT));
         assertEquals("Outbound adapters did not return mapped id", mappedLineRefValue, getLineRefFromSiriObj(mappedIdSiri));
 
-        Siri originalIdSiri = SiriValueTransformer.transform(siri, new MappingAdapterPresets().getOutboundAdapters(OutboundIdMappingPolicy.ORIGINAL_ID));
+        Siri originalIdSiri = SiriValueTransformer.transform(siri, MappingAdapterPresets.getOutboundAdapters(OutboundIdMappingPolicy.ORIGINAL_ID));
         assertEquals("Outbound adapters did not return original id", lineRefValue, getLineRefFromSiriObj(originalIdSiri));
 
     }

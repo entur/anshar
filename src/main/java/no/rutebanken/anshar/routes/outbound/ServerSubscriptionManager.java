@@ -78,9 +78,6 @@ public class ServerSubscriptionManager {
     @Autowired
     private SiriObjectFactory siriObjectFactory;
 
-    @Autowired
-    private MappingAdapterPresets mappingAdapterPresets;
-
     @Value("${anshar.outbound.heartbeatinterval.minimum}")
     private long minimumHeartbeatInterval = 10000;
 
@@ -197,7 +194,7 @@ public class ServerSubscriptionManager {
                 getHeartbeatInterval(subscriptionRequest),
                 getChangeBeforeUpdates(subscriptionRequest),
                 siriHelper.getFilter(subscriptionRequest),
-                mappingAdapterPresets.getOutboundAdapters(outboundIdMappingPolicy),
+                MappingAdapterPresets.getOutboundAdapters(outboundIdMappingPolicy),
                 findSubscriptionIdentifier(subscriptionRequest),
                 subscriptionRequest.getRequestorRef().getValue(),
                 findInitialTerminationTime(subscriptionRequest),

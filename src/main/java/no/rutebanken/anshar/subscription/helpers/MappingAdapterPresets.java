@@ -20,6 +20,7 @@ import no.rutebanken.anshar.routes.siri.processor.RemoveEmojiPostProcessor;
 import no.rutebanken.anshar.routes.siri.processor.RuterOutboundDatedVehicleRefAdapter;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter;
+import no.rutebanken.anshar.subscription.SiriDataType;
 import org.springframework.stereotype.Component;
 import uk.org.ifopt.siri20.StopPlaceRef;
 import uk.org.siri.siri20.*;
@@ -27,10 +28,36 @@ import uk.org.siri.siri20.*;
 import java.util.ArrayList;
 import java.util.List;
 
-@Component
 public class MappingAdapterPresets {
 
-    public List<ValueAdapter> getOutboundAdapters(OutboundIdMappingPolicy outboundIdMappingPolicy) {
+    public static List<ValueAdapter> getOutboundAdapters(SiriDataType dataType, OutboundIdMappingPolicy outboundIdMappingPolicy) {
+        List<ValueAdapter> adapters = new ArrayList<>();
+        adapters.add(new OutboundIdAdapter(StopPointRef.class, outboundIdMappingPolicy));
+        adapters.add(new OutboundIdAdapter(LineRef.class, outboundIdMappingPolicy));
+
+        switch (dataType) {
+            case ESTIMATED_TIMETABLE:
+                adapters.add(new OutboundIdAdapter(JourneyPlaceRefStructure.class, outboundIdMappingPolicy));
+                adapters.add(new OutboundIdAdapter(DestinationRef.class, outboundIdMappingPolicy));
+                break;
+            case VEHICLE_MONITORING:
+                adapters.add(new OutboundIdAdapter(JourneyPlaceRefStructure.class, outboundIdMappingPolicy));
+                adapters.add(new OutboundIdAdapter(DestinationRef.class, outboundIdMappingPolicy));
+                adapters.add(new OutboundIdAdapter(CourseOfJourneyRefStructure.class, outboundIdMappingPolicy));
+                adapters.add(new RuterOutboundDatedVehicleRefAdapter(MappingAdapterPresets.class, outboundIdMappingPolicy));
+                break;
+            case SITUATION_EXCHANGE:
+                adapters.add(new OutboundIdAdapter(RequestorRef.class, outboundIdMappingPolicy));
+                adapters.add(new OutboundIdAdapter(StopPlaceRef.class, outboundIdMappingPolicy));
+                adapters.add(new RemoveEmojiPostProcessor(outboundIdMappingPolicy));
+                break;
+            default:
+                return getOutboundAdapters(outboundIdMappingPolicy);
+        }
+        return adapters;
+    }
+
+    public static List<ValueAdapter> getOutboundAdapters(OutboundIdMappingPolicy outboundIdMappingPolicy) {
         List<ValueAdapter> adapters = new ArrayList<>();
         adapters.add(new OutboundIdAdapter(LineRef.class, outboundIdMappingPolicy));
         adapters.add(new OutboundIdAdapter(StopPointRef.class, outboundIdMappingPolicy));
@@ -43,7 +70,7 @@ public class MappingAdapterPresets {
         adapters.add(new OutboundIdAdapter(RequestorRef.class, outboundIdMappingPolicy));
 
         //Adding postprocessor for Ruter DatedVehicleRef
-        adapters.add(new RuterOutboundDatedVehicleRefAdapter(this.getClass(), outboundIdMappingPolicy));
+        adapters.add(new RuterOutboundDatedVehicleRefAdapter(MappingAdapterPresets.class, outboundIdMappingPolicy));
 
         // Adding postprocessor for removing emojis etc. from SX-messages
         adapters.add(new RemoveEmojiPostProcessor(outboundIdMappingPolicy));

@@ -18,10 +18,14 @@ package no.rutebanken.anshar.routes.export.file;
 import no.rutebanken.anshar.routes.outbound.SiriHelper;
 import no.rutebanken.anshar.routes.siri.handlers.OutboundIdMappingPolicy;
 import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
+import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
+import no.rutebanken.anshar.subscription.SiriDataType;
 import no.rutebanken.anshar.subscription.helpers.MappingAdapterPresets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import uk.org.siri.siri20.Siri;
+
+import java.util.List;
 
 @Component
 public class ExportHelper {
@@ -29,21 +33,34 @@ public class ExportHelper {
     @Autowired
     private SiriHelper siriHelper;
 
-    @Autowired
-    private MappingAdapterPresets mappingAdapterPresets;
 
     public Siri exportET() {
-        return transform(siriHelper.getAllET());
+        return transform(siriHelper.getAllET(),
+            MappingAdapterPresets.getOutboundAdapters(
+                SiriDataType.ESTIMATED_TIMETABLE,
+                OutboundIdMappingPolicy.DEFAULT)
+        );
     }
     public Siri exportSX() {
-        return transform(siriHelper.getAllSX());
+        return transform(siriHelper.getAllSX(),
+            MappingAdapterPresets.getOutboundAdapters(
+                SiriDataType.SITUATION_EXCHANGE,
+                OutboundIdMappingPolicy.DEFAULT)
+        );
     }
     public Siri exportVM() {
-        return transform(siriHelper.getAllVM());
+        return transform(siriHelper.getAllVM(),
+            MappingAdapterPresets.getOutboundAdapters(SiriDataType.VEHICLE_MONITORING,
+                OutboundIdMappingPolicy.DEFAULT)
+        );
     }
 
-    private Siri transform(Siri body) {
-        return SiriValueTransformer.transform(body, mappingAdapterPresets.getOutboundAdapters(OutboundIdMappingPolicy.DEFAULT));
+    private Siri transform(Siri body, List<ValueAdapter> adapters) {
+        return SiriValueTransformer.transform(
+            body,
+            adapters,
+            false,
+            true);
     }
 
 }

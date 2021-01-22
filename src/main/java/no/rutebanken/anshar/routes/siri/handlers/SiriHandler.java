@@ -103,9 +103,6 @@ public class SiriHandler {
     private HealthManager healthManager;
 
     @Autowired
-    private MappingAdapterPresets mappingAdapterPresets;
-
-    @Autowired
     private SiriXmlValidator siriXmlValidator;
 
     @Autowired
@@ -196,11 +193,12 @@ public class SiriHandler {
             if (serviceRequest.getRequestorRef() != null) {
                 requestorRef = serviceRequest.getRequestorRef().getValue();
             }
-
+            SiriDataType dataType = null;
             if (hasValues(serviceRequest.getSituationExchangeRequests())) {
+                dataType = SiriDataType.SITUATION_EXCHANGE;
                 serviceResponse = situations.createServiceDelivery(requestorRef, datasetId, clientTrackingName, maxSize);
             } else if (hasValues(serviceRequest.getVehicleMonitoringRequests())) {
-
+                dataType = SiriDataType.VEHICLE_MONITORING;
                 Map<Class, Set<String>> filterMap = new HashMap<>();
                 for (VehicleMonitoringRequestStructure req : serviceRequest.getVehicleMonitoringRequests()) {
                     LineRef lineRef = req.getLineRef();
@@ -225,6 +223,7 @@ public class SiriHandler {
 
                 serviceResponse = SiriHelper.filterSiriPayload(siri, filterMap);
             } else if (hasValues(serviceRequest.getEstimatedTimetableRequests())) {
+                dataType = SiriDataType.ESTIMATED_TIMETABLE;
                 Duration previewInterval = serviceRequest.getEstimatedTimetableRequests().get(0).getPreviewInterval();
                 long previewIntervalInMillis = -1;
 
@@ -235,9 +234,15 @@ public class SiriHandler {
                 serviceResponse = estimatedTimetables.createServiceDelivery(requestorRef, datasetId, clientTrackingName, excludedDatasetIdList, maxSize, previewIntervalInMillis);
             }
 
+
             if (serviceResponse != null) {
                 metrics.countOutgoingData(serviceResponse, SubscriptionSetup.SubscriptionMode.REQUEST_RESPONSE);
-                return SiriValueTransformer.transform(serviceResponse, mappingAdapterPresets.getOutboundAdapters(outboundIdMappingPolicy));
+                return SiriValueTransformer.transform(
+                    serviceResponse,
+                    MappingAdapterPresets.getOutboundAdapters(dataType, outboundIdMappingPolicy),
+                    false,
+                    true
+                );
             }
         }
 
