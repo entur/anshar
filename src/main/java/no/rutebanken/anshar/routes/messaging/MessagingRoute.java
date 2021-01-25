@@ -47,7 +47,10 @@ public class MessagingRoute extends RestRouteBuilder {
         String queueConsumerParameters = "?concurrentConsumers="+configuration.getConcurrentConsumers();
 
 
-        final String pubsubQueueName = messageQueueCamelRoutePrefix + CamelRouteNames.TRANSFORM_QUEUE;
+        final String pubsubQueueSX = messageQueueCamelRoutePrefix + CamelRouteNames.TRANSFORM_QUEUE_SX;
+        final String pubsubQueueVM = messageQueueCamelRoutePrefix + CamelRouteNames.TRANSFORM_QUEUE_VM;
+        final String pubsubQueueET = messageQueueCamelRoutePrefix + CamelRouteNames.TRANSFORM_QUEUE_ET;
+        final String pubsubQueueDefault = messageQueueCamelRoutePrefix + CamelRouteNames.TRANSFORM_QUEUE_DEFAULT;
 
         if (messageQueueCamelRoutePrefix.contains("direct")) {
             queueConsumerParameters = "";
@@ -56,19 +59,36 @@ public class MessagingRoute extends RestRouteBuilder {
         from("direct:enqueue.message")
                 .setBody(body().convertToString())
                 .to("direct:transform.siri")
-                .process(p -> { // Remove lots of unecessary headers
+                .process(p -> { // Remove lots of unnecessary headers
                     p.getOut().setBody(p.getIn().getBody());
                     p.getOut().setHeader("subscriptionId", p.getIn().getHeader("subscriptionId"));
                     p.getOut().setHeader("breadcrumbId", p.getIn().getHeader("breadcrumbId"));
                 })
-//                .to("xslt-saxon:xsl/split.xsl").split().tokenizeXML("Siri").streaming()
                 .choice()
+                    // DataReadyNotification is processed immediately
                     .when().xpath("/siri:Siri/siri:DataReadyNotification", ns)
-                    .to("direct:"+CamelRouteNames.FETCHED_DELIVERY_QUEUE)
-                .endChoice()
-                .otherwise()
+                        .to("direct:"+CamelRouteNames.FETCHED_DELIVERY_QUEUE)
+                    .endChoice()
+                    .otherwise()
+                        // All other deliveries are handled through pubsub
+                        .choice()
+                            .when().xpath("/siri:Siri/siri:ServiceDelivery/siri:SituationExchangeDelivery", ns)
+                                .setHeader("target_topic", simple(pubsubQueueSX))
+                            .endChoice()
+                            .when().xpath("/siri:Siri/siri:ServiceDelivery/siri:VehicleMonitoringDelivery", ns)
+                                .setHeader("target_topic", simple(pubsubQueueVM))
+                            .endChoice()
+                            .when().xpath("/siri:Siri/siri:ServiceDelivery/siri:EstimatedTimetableDelivery", ns)
+                                .setHeader("target_topic", simple(pubsubQueueET))
+                            .endChoice()
+                            .otherwise()
+                                // Ensure all data is processed
+                                .setHeader("target_topic", simple(pubsubQueueDefault))
+                            .endChoice()
+                        .end()
                     .to("direct:compress.jaxb")
-                  .to(pubsubQueueName)
+                    .log("Sending data to topic ${header.target_topic}")
+                    .toD("${header.target_topic}")
                 .end()
         ;
 
@@ -87,26 +107,35 @@ public class MessagingRoute extends RestRouteBuilder {
                 .end()
         ;
 
-        from(pubsubQueueName + queueConsumerParameters)
+        from(pubsubQueueDefault + queueConsumerParameters)
                 .to("direct:decompress.jaxb")
-//                .to("direct:map.protobuf.to.jaxb")
-                .log("Processing data from " + pubsubQueueName + ", size ${header.Content-Length}")
-                .to("direct:" + CamelRouteNames.DEFAULT_PROCESSOR_QUEUE)
-                .routeId("incoming.transform")
+                .log("Processing data from " + pubsubQueueDefault + ", size ${header.Content-Length}")
+                .to("direct:" + CamelRouteNames.PROCESSOR_QUEUE_DEFAULT)
+                .routeId("incoming.transform.default")
         ;
-//
-//        from("direct:" + CamelRouteNames.ROUTER_QUEUE)
-//                .choice()
-//                .when().xpath("/siri:Siri/siri:DataReadyNotification", ns)
-//                    .to("direct:"+CamelRouteNames.FETCHED_DELIVERY_QUEUE)
-//                .endChoice()
-//                .otherwise()
-//                    .to("direct:"+CamelRouteNames.DEFAULT_PROCESSOR_QUEUE)
-//                .end()
-//                .routeId("incoming.redirect")
-//        ;
 
-        from("direct:" + CamelRouteNames.DEFAULT_PROCESSOR_QUEUE)
+        from(pubsubQueueSX + queueConsumerParameters)
+                .to("direct:decompress.jaxb")
+                .log("Processing data from " + pubsubQueueSX + ", size ${header.Content-Length}")
+                .to("direct:" + CamelRouteNames.PROCESSOR_QUEUE_DEFAULT)
+                .routeId("incoming.transform.sx")
+        ;
+
+        from(pubsubQueueVM + queueConsumerParameters)
+                .to("direct:decompress.jaxb")
+                .log("Processing data from " + pubsubQueueVM + ", size ${header.Content-Length}")
+                .to("direct:" + CamelRouteNames.PROCESSOR_QUEUE_DEFAULT)
+                .routeId("incoming.transform.vm")
+        ;
+
+        from(pubsubQueueET + queueConsumerParameters)
+                .to("direct:decompress.jaxb")
+                .log("Processing data from " + pubsubQueueET + ", size ${header.Content-Length}")
+                .to("direct:" + CamelRouteNames.PROCESSOR_QUEUE_DEFAULT)
+                .routeId("incoming.transform.et")
+        ;
+
+        from("direct:" + CamelRouteNames.PROCESSOR_QUEUE_DEFAULT)
                 .process(p -> {
 
                     String subscriptionId = p.getIn().getHeader("subscriptionId", String.class);

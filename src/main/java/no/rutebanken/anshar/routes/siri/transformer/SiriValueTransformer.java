@@ -121,7 +121,10 @@ public class SiriValueTransformer {
             }
         }
 
-        if (transformed != null && adapters != null) {
+        if (transformed != null && // Object exists
+            adapters != null &&    // Has mapping-rules
+            transformed.getServiceDelivery() != null // Has actual data to map
+        ) {
 
             List<ValueAdapter> valueAdapters = new ArrayList<>();
             for (ValueAdapter adapter : adapters) {

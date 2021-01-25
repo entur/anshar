@@ -24,8 +24,19 @@ public class CamelRouteNames {
 
 
     private static final String QUEUE_PREFIX = "anshar.siri";
-    public static final String TRANSFORM_QUEUE = QUEUE_PREFIX + ".transform";
-    public static final String DEFAULT_PROCESSOR_QUEUE = QUEUE_PREFIX + ".process";
-    public static final String FETCHED_DELIVERY_QUEUE = DEFAULT_PROCESSOR_QUEUE + ".fetched.delivery";
+
+    public static final String TRANSFORM_QUEUE_DEFAULT = QUEUE_PREFIX + ".transform";
+    public static final String TRANSFORM_QUEUE_SX = QUEUE_PREFIX + ".transform.sx";
+    public static final String TRANSFORM_QUEUE_VM = QUEUE_PREFIX + ".transform.vm";
+    public static final String TRANSFORM_QUEUE_ET = QUEUE_PREFIX + ".transform.et";
+
+    public static final String PROCESSOR_QUEUE_DEFAULT = QUEUE_PREFIX + ".process";
+
+    // TODO: Would splitting up this processing increase performance?
+//    public static final String PROCESSOR_QUEUE_SX = QUEUE_PREFIX + ".process.sx";
+//    public static final String PROCESSOR_QUEUE_VM = QUEUE_PREFIX + ".process.vm";
+//    public static final String PROCESSOR_QUEUE_ET = QUEUE_PREFIX + ".process.et";
+
+    public static final String FETCHED_DELIVERY_QUEUE = PROCESSOR_QUEUE_DEFAULT + ".fetched.delivery";
 
 }
