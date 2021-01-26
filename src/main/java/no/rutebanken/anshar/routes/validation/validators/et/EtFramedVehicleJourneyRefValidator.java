@@ -16,6 +16,7 @@
 package no.rutebanken.anshar.routes.validation.validators.et;
 
 import no.rutebanken.anshar.routes.validation.validators.CustomValidator;
+import no.rutebanken.anshar.routes.validation.validators.ProfileValidationEventOrList;
 import no.rutebanken.anshar.routes.validation.validators.Validator;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import org.springframework.stereotype.Component;
@@ -61,13 +62,14 @@ public class EtFramedVehicleJourneyRefValidator extends CustomValidator {
 
     @Override
     public ValidationEvent isValid(Node node) {
+        ProfileValidationEventOrList validationEvents = new ProfileValidationEventOrList();
 
         String dataFrameRef = getChildNodeValue(node, DATA_FRAMEREF_FIELDNAME);
         if (dataFrameRef == null) {
-            return createEvent(node, DATA_FRAMEREF_FIELDNAME, "valid date", dataFrameRef, ValidationEvent.FATAL_ERROR);
+            validationEvents.addEvent(createEvent(node, DATA_FRAMEREF_FIELDNAME, "valid date", dataFrameRef, ValidationEvent.FATAL_ERROR));
         } else {
             if (!isValidDate(dataFrameRef)) {
-                return createEvent(node, DATA_FRAMEREF_FIELDNAME, "valid date with PATTERN " + PATTERN, dataFrameRef, ValidationEvent.FATAL_ERROR);
+                validationEvents.addEvent(createEvent(node, DATA_FRAMEREF_FIELDNAME, "valid date with PATTERN " + PATTERN, dataFrameRef, ValidationEvent.FATAL_ERROR));
 
             }
         }
@@ -75,10 +77,10 @@ public class EtFramedVehicleJourneyRefValidator extends CustomValidator {
         String datedVehicleJourneyRef = getChildNodeValue(node, "DatedVehicleJourneyRef");
         if (!isValidGenericId("ServiceJourney", datedVehicleJourneyRef)) {
 
-            return createEvent(node, "DatedVehicleJourneyRef", "CODESPACE:ServiceJourney:ID", datedVehicleJourneyRef, ValidationEvent.FATAL_ERROR);
+            validationEvents.addEvent(createEvent(node, "DatedVehicleJourneyRef", "CODESPACE:ServiceJourney:ID", datedVehicleJourneyRef, ValidationEvent.FATAL_ERROR));
         }
 
-        return null;
+        return validationEvents;
     }
 
     private boolean isValidDate(String date) {
