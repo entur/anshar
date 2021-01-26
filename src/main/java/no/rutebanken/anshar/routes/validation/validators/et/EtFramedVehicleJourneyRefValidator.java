@@ -87,6 +87,12 @@ public class EtFramedVehicleJourneyRefValidator extends CustomValidator {
         } catch (ParseException e) {
             return false;
         }
+
+        if (date.length() != PATTERN.length()) {
+            // If length does not match, date cannot match pattern
+            return false;
+        }
+
         return true;
     }
 }
