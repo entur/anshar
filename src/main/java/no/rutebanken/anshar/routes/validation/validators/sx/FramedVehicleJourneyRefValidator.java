@@ -74,6 +74,9 @@ public class FramedVehicleJourneyRefValidator extends CustomValidator {
             validationEvents.addEvent(createEvent(node, "DatedVehicleJourneyRef", "valid ServiceJourney-ID", datedVehicleJourneyRef, ValidationEvent.ERROR));
         }
 
+        if (validationEvents.getEvents().isEmpty()) {
+            return null;
+        }
         return validationEvents;
     }
 

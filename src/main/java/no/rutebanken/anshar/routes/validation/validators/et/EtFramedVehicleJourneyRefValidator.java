@@ -80,6 +80,9 @@ public class EtFramedVehicleJourneyRefValidator extends CustomValidator {
             validationEvents.addEvent(createEvent(node, "DatedVehicleJourneyRef", "CODESPACE:ServiceJourney:ID", datedVehicleJourneyRef, ValidationEvent.FATAL_ERROR));
         }
 
+        if (validationEvents.getEvents().isEmpty()) {
+            return null;
+        }
         return validationEvents;
     }
 
