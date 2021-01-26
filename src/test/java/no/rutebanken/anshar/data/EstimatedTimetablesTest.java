@@ -75,7 +75,6 @@ public class EstimatedTimetablesTest extends SpringBootBaseTest {
 
     @Test
     public void testGetUpdatesOnly() {
-        int previousSize = estimatedTimetables.getAll().size();
 
         estimatedTimetables.add("test", createEstimatedVehicleJourney("1234-update", "4321", 0, 30, ZonedDateTime.now().plusHours(1), true));
         estimatedTimetables.add("test", createEstimatedVehicleJourney("2345-update", "4321", 0, 30, ZonedDateTime.now().plusHours(1), true));
@@ -87,7 +86,7 @@ public class EstimatedTimetablesTest extends SpringBootBaseTest {
         // Added 3
         String requestorId = UUID.randomUUID().toString();
 
-        assertEquals(previousSize + 3, estimatedTimetables.getAllUpdates(requestorId, null).size());
+        assertEquals( 3, estimatedTimetables.getAllUpdates(requestorId, null).size());
 
         estimatedTimetables.add("test", createEstimatedVehicleJourney("4567-update", "4321", 0, 30, ZonedDateTime.now().plusHours(1), true));
         estimatedTimetables.commitChanges();
@@ -101,7 +100,7 @@ public class EstimatedTimetablesTest extends SpringBootBaseTest {
         assertEquals("Returning partial updates when nothing has changed", 0, estimatedTimetables.getAllUpdates(requestorId, null).size());
 
         //Verify that all elements still exist
-        assertEquals(previousSize+4, estimatedTimetables.getAll().size());
+        assertEquals(4, estimatedTimetables.getAll().size());
     }
 
     @Test
@@ -344,6 +343,8 @@ public class EstimatedTimetablesTest extends SpringBootBaseTest {
         estimatedTimetables.add(datasetId, createEstimatedVehicleJourney("2345", "2", 0, 30, ZonedDateTime.now().plusHours(1), true));
         estimatedTimetables.add(datasetId, createEstimatedVehicleJourney("3456", "3", 0, 30, ZonedDateTime.now().plusHours(1), true));
 
+        estimatedTimetables.commitChanges();
+
         // Added 3
         String requestorId = UUID.randomUUID().toString();
 
@@ -377,10 +378,10 @@ public class EstimatedTimetablesTest extends SpringBootBaseTest {
     public void testServiceDeliveryWithPreviewInterval() {
         String datasetId = "PreviewIntervalTest";
 
-        estimatedTimetables.add(datasetId, createEstimatedVehicleJourney("1234", "1", 0, 30, ZonedDateTime.now().plusMinutes(1), true));
-        estimatedTimetables.add(datasetId, createEstimatedVehicleJourney("2345", "2", 0, 30, ZonedDateTime.now().plusMinutes(10), true));
+        estimatedTimetables.add(datasetId, createEstimatedVehicleJourney("1234", "1", 0, 30, ZonedDateTime.now().plusMinutes(10), true));
+        estimatedTimetables.add(datasetId, createEstimatedVehicleJourney("2345", "2", 0, 30, ZonedDateTime.now().plusMinutes(100), true));
 
-        Siri serviceDelivery_1 = estimatedTimetables.createServiceDelivery(null, datasetId, 10, 2*60*1000);
+        Siri serviceDelivery_1 = estimatedTimetables.createServiceDelivery(null, datasetId, 10, 20*60*1000);
         assertNotNull(serviceDelivery_1);
         assertNotNull(serviceDelivery_1.getServiceDelivery());
         assertNotNull(serviceDelivery_1.getServiceDelivery().getEstimatedTimetableDeliveries());
@@ -389,7 +390,7 @@ public class EstimatedTimetablesTest extends SpringBootBaseTest {
         assertFalse(serviceDelivery_1.getServiceDelivery().isMoreData());
 
 
-        Siri serviceDelivery_10 = estimatedTimetables.createServiceDelivery(null, datasetId, 10, 11*60*1000);
+        Siri serviceDelivery_10 = estimatedTimetables.createServiceDelivery(null, datasetId, 10, 110*60*1000);
         assertNotNull(serviceDelivery_10);
         assertNotNull(serviceDelivery_10.getServiceDelivery());
         assertNotNull(serviceDelivery_10.getServiceDelivery().getEstimatedTimetableDeliveries());
@@ -403,7 +404,7 @@ public class EstimatedTimetablesTest extends SpringBootBaseTest {
         estimatedVehicleJourneyWithCancellation.setCancellation(Boolean.TRUE);
         estimatedTimetables.add(datasetId, estimatedVehicleJourneyWithCancellation);
 
-        Siri serviceDelivery_30 = estimatedTimetables.createServiceDelivery(null, datasetId, 10, 11*60*1000);
+        Siri serviceDelivery_30 = estimatedTimetables.createServiceDelivery(null, datasetId, 10, 110*60*1000);
 
         assertNotNull(serviceDelivery_30);
         assertNotNull(serviceDelivery_30.getServiceDelivery());
