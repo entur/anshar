@@ -6,6 +6,7 @@ import no.rutebanken.anshar.routes.CamelRouteNames;
 import no.rutebanken.anshar.routes.RestRouteBuilder;
 import no.rutebanken.anshar.routes.dataformat.SiriDataFormatHelper;
 import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
+import no.rutebanken.anshar.subscription.SiriDataType;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.camel.Exchange;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.InputStream;
 
+import static no.rutebanken.anshar.routes.HttpParameter.INTERNAL_SIRI_DATA_TYPE;
 import static no.rutebanken.anshar.routes.HttpParameter.PARAM_USE_ORIGINAL_ID;
 import static no.rutebanken.anshar.routes.siri.Siri20RequestHandlerRoute.TRANSFORM_SOAP;
 import static no.rutebanken.anshar.routes.siri.Siri20RequestHandlerRoute.TRANSFORM_VERSION;
@@ -57,38 +59,33 @@ public class MessagingRoute extends RestRouteBuilder {
         }
 
         from("direct:enqueue.message")
-                .setBody(body().convertToString())
+                .convertBodyTo(String.class)
                 .to("direct:transform.siri")
-                .process(p -> { // Remove lots of unnecessary headers
-                    p.getOut().setBody(p.getIn().getBody());
-                    p.getOut().setHeader("subscriptionId", p.getIn().getHeader("subscriptionId"));
-                    p.getOut().setHeader("breadcrumbId", p.getIn().getHeader("breadcrumbId"));
-                })
                 .choice()
-                    // DataReadyNotification is processed immediately
-                    .when().xpath("/siri:Siri/siri:DataReadyNotification", ns)
-                        .to("direct:"+CamelRouteNames.FETCHED_DELIVERY_QUEUE)
+                    .when(header(INTERNAL_SIRI_DATA_TYPE).isEqualTo(SiriDataType.ESTIMATED_TIMETABLE.name()))
+                        .setHeader("target_topic", simple(pubsubQueueET))
+                    .endChoice()
+                    .when(header(INTERNAL_SIRI_DATA_TYPE).isEqualTo(SiriDataType.VEHICLE_MONITORING.name()))
+                        .setHeader("target_topic", simple(pubsubQueueVM))
+                    .endChoice()
+                    .when(header(INTERNAL_SIRI_DATA_TYPE).isEqualTo(SiriDataType.SITUATION_EXCHANGE.name()))
+                        .setHeader("target_topic", simple(pubsubQueueSX))
                     .endChoice()
                     .otherwise()
-                        // All other deliveries are handled through pubsub
-                        .choice()
-                            .when().xpath("/siri:Siri/siri:ServiceDelivery/siri:SituationExchangeDelivery", ns)
-                                .setHeader("target_topic", simple(pubsubQueueSX))
-                            .endChoice()
-                            .when().xpath("/siri:Siri/siri:ServiceDelivery/siri:VehicleMonitoringDelivery", ns)
-                                .setHeader("target_topic", simple(pubsubQueueVM))
-                            .endChoice()
-                            .when().xpath("/siri:Siri/siri:ServiceDelivery/siri:EstimatedTimetableDelivery", ns)
-                                .setHeader("target_topic", simple(pubsubQueueET))
-                            .endChoice()
-                            .otherwise()
-                                // Ensure all data is processed
-                                .setHeader("target_topic", simple(pubsubQueueDefault))
-                            .endChoice()
+                        // DataReadyNotification is processed immediately
+                        .when().xpath("/siri:Siri/siri:DataReadyNotification", ns)
+                            .setHeader("target_topic", simple("direct:"+CamelRouteNames.FETCHED_DELIVERY_QUEUE))
+                        .endChoice()
+                        .otherwise()
+                            // Ensure all data is processed
+                            .setHeader("target_topic", simple(pubsubQueueDefault))
                         .end()
-                    .to("direct:compress.jaxb")
-                    .log("Sending data to topic ${header.target_topic}")
-                    .toD("${header.target_topic}")
+                    .end()
+                .end()
+                .removeHeaders("*", "subscriptionId", "breadcrumbId", "target_topic")
+                .log("Sending data to topic ${header.target_topic}")
+                .to("direct:compress.jaxb")
+                .toD("${header.target_topic}")
                 .end()
         ;
 

@@ -35,6 +35,7 @@ import javax.ws.rs.core.MediaType;
 import java.io.InputStream;
 import java.util.List;
 
+import static no.rutebanken.anshar.routes.HttpParameter.INTERNAL_SIRI_DATA_TYPE;
 import static no.rutebanken.anshar.routes.HttpParameter.PARAM_DATASET_ID;
 import static no.rutebanken.anshar.routes.HttpParameter.PARAM_EXCLUDED_DATASET_ID;
 import static no.rutebanken.anshar.routes.HttpParameter.PARAM_MAX_SIZE;
@@ -118,9 +119,11 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
                 .choice()
                     .when(e -> subscriptionExistsAndIsActive(e))
                         //Valid subscription
+                        .convertBodyTo(String.class)
                         .process(p -> {
-                            p.getOut().setBody(p.getIn().getBody(String.class));
-                            p.getOut().setHeaders(p.getIn().getHeaders());
+                            p.getMessage().setBody(p.getIn().getBody());
+                            p.getMessage().setHeaders(p.getIn().getHeaders());
+                            p.getMessage().setHeader(INTERNAL_SIRI_DATA_TYPE, getSubscriptionDataType(p));
                         })
                         .to("direct:enqueue.message")
                         .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
@@ -198,6 +201,19 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
                 .routeId("process.service")
         ;
 
+    }
+
+    private String getSubscriptionDataType(Exchange e) {
+        String subscriptionId = e.getIn().getHeader(PARAM_SUBSCRIPTION_ID, String.class);
+        if (subscriptionId == null || subscriptionId.isEmpty()) {
+            return null;
+        }
+        SubscriptionSetup subscriptionSetup = subscriptionManager.get(subscriptionId);
+
+        if (subscriptionSetup == null) {
+            return null;
+        }
+        return subscriptionSetup.getSubscriptionType().name();
     }
 
     private boolean subscriptionExistsAndIsActive(Exchange e) {

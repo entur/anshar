@@ -24,6 +24,7 @@ import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
 import org.apache.camel.component.http.HttpMethods;
 
+import static no.rutebanken.anshar.routes.HttpParameter.INTERNAL_SIRI_DATA_TYPE;
 import static no.rutebanken.anshar.routes.HttpParameter.PARAM_SUBSCRIPTION_ID;
 
 public class Siri20ToSiriRS20RequestResponse extends SiriSubscriptionRouteBuilder {
@@ -74,6 +75,7 @@ public class Siri20ToSiriRS20RequestResponse extends SiriSubscriptionRouteBuilde
                 .log("Got response " + subscriptionSetup.toString())
                 .to("log:response:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .setHeader(PARAM_SUBSCRIPTION_ID, simple(subscriptionSetup.getSubscriptionId()))
+                .setHeader(INTERNAL_SIRI_DATA_TYPE, simple(subscriptionSetup.getSubscriptionType().name()))
                 .to("direct:enqueue.message")
             .doCatch(Exception.class)
                 .log("Caught exception -" + (releaseLeadershipOnError ? "":" NOT") + " releasing leadership: " + subscriptionSetup.toString())

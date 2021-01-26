@@ -33,6 +33,7 @@ public class HttpParameter {
     public static final String PARAM_PREVIEW_INTERVAL   = "previewIntervalMinutes";
     public static final String PARAM_RESPONSE_CODE   = "CamelHttpResponseCode";
     public static final String PARAM_PATH           = "CamelHttpPath";
+    public static final String INTERNAL_SIRI_DATA_TYPE           = "InternalSiriDatatype";
 
     public static List<String> getParameterValuesAsList(Message msg, String headerName) {
         String excludedDatasetIds = msg.getHeader(headerName, String.class);

@@ -23,6 +23,7 @@ import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
 
+import static no.rutebanken.anshar.routes.HttpParameter.INTERNAL_SIRI_DATA_TYPE;
 import static no.rutebanken.anshar.routes.HttpParameter.PARAM_SUBSCRIPTION_ID;
 import static no.rutebanken.anshar.routes.siri.Siri20RequestHandlerRoute.TRANSFORM_SOAP;
 import static no.rutebanken.anshar.routes.siri.Siri20RequestHandlerRoute.TRANSFORM_VERSION;
@@ -82,6 +83,7 @@ public class Siri20ToSiriWS14RequestResponse extends SiriSubscriptionRouteBuilde
                     .setHeader(TRANSFORM_VERSION, constant(TRANSFORM_VERSION))
                     .setHeader(TRANSFORM_SOAP, constant(TRANSFORM_SOAP))
                     .setHeader(PARAM_SUBSCRIPTION_ID, simple(subscriptionSetup.getSubscriptionId()))
+                    .setHeader(INTERNAL_SIRI_DATA_TYPE, simple(subscriptionSetup.getSubscriptionType().name()))
                     .to("direct:enqueue.message")
                 .doCatch(Exception.class)
                     .log("Caught exception - releasing leadership: " + subscriptionSetup.toString())
