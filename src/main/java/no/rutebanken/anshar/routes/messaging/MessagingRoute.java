@@ -83,8 +83,8 @@ public class MessagingRoute extends RestRouteBuilder {
                     .end()
                 .end()
                 .removeHeaders("*", "subscriptionId", "breadcrumbId", "target_topic")
-                .log("Sending data to topic ${header.target_topic}")
                 .to("direct:compress.jaxb")
+                .log("Sending data to topic ${header.target_topic}")
                 .toD("${header.target_topic}")
                 .end()
         ;
@@ -105,29 +105,29 @@ public class MessagingRoute extends RestRouteBuilder {
         ;
 
         from(pubsubQueueDefault + queueConsumerParameters)
-                .to("direct:decompress.jaxb")
                 .log("Processing data from " + pubsubQueueDefault + ", size ${header.Content-Length}")
+                .to("direct:decompress.jaxb")
                 .to("direct:" + CamelRouteNames.PROCESSOR_QUEUE_DEFAULT)
                 .routeId("incoming.transform.default")
         ;
 
         from(pubsubQueueSX + queueConsumerParameters)
-                .to("direct:decompress.jaxb")
                 .log("Processing data from " + pubsubQueueSX + ", size ${header.Content-Length}")
+                .to("direct:decompress.jaxb")
                 .to("direct:" + CamelRouteNames.PROCESSOR_QUEUE_DEFAULT)
                 .routeId("incoming.transform.sx")
         ;
 
         from(pubsubQueueVM + queueConsumerParameters)
-                .to("direct:decompress.jaxb")
                 .log("Processing data from " + pubsubQueueVM + ", size ${header.Content-Length}")
+                .to("direct:decompress.jaxb")
                 .to("direct:" + CamelRouteNames.PROCESSOR_QUEUE_DEFAULT)
                 .routeId("incoming.transform.vm")
         ;
 
         from(pubsubQueueET + queueConsumerParameters)
-                .to("direct:decompress.jaxb")
                 .log("Processing data from " + pubsubQueueET + ", size ${header.Content-Length}")
+                .to("direct:decompress.jaxb")
                 .to("direct:" + CamelRouteNames.PROCESSOR_QUEUE_DEFAULT)
                 .routeId("incoming.transform.et")
         ;
