@@ -105,29 +105,29 @@ public class MessagingRoute extends RestRouteBuilder {
         ;
 
         from(pubsubQueueDefault + queueConsumerParameters)
-                .log("Processing data from " + pubsubQueueDefault + ", size ${header.Content-Length}")
                 .to("direct:decompress.jaxb")
+                .log("Processing data from " + pubsubQueueDefault + ", size ${header.Content-Length}")
                 .to("direct:" + CamelRouteNames.PROCESSOR_QUEUE_DEFAULT)
                 .routeId("incoming.transform.default")
         ;
 
         from(pubsubQueueSX + queueConsumerParameters)
-                .log("Processing data from " + pubsubQueueSX + ", size ${header.Content-Length}")
                 .to("direct:decompress.jaxb")
+                .log("Processing data from " + pubsubQueueSX + ", size ${header.Content-Length}")
                 .to("direct:" + CamelRouteNames.PROCESSOR_QUEUE_DEFAULT)
                 .routeId("incoming.transform.sx")
         ;
 
         from(pubsubQueueVM + queueConsumerParameters)
-                .log("Processing data from " + pubsubQueueVM + ", size ${header.Content-Length}")
                 .to("direct:decompress.jaxb")
+                .log("Processing data from " + pubsubQueueVM + ", size ${header.Content-Length}")
                 .to("direct:" + CamelRouteNames.PROCESSOR_QUEUE_DEFAULT)
                 .routeId("incoming.transform.vm")
         ;
 
         from(pubsubQueueET + queueConsumerParameters)
-                .log("Processing data from " + pubsubQueueET + ", size ${header.Content-Length}")
                 .to("direct:decompress.jaxb")
+                .log("Processing data from " + pubsubQueueET + ", size ${header.Content-Length}")
                 .to("direct:" + CamelRouteNames.PROCESSOR_QUEUE_DEFAULT)
                 .routeId("incoming.transform.et")
         ;
