@@ -86,6 +86,7 @@ public class MessagingRoute extends RestRouteBuilder {
                 .to("direct:compress.jaxb")
                 .log("Sending data to topic ${header.target_topic}")
                 .toD("${header.target_topic}")
+                .log("Data sent")
                 .end()
         ;
 
