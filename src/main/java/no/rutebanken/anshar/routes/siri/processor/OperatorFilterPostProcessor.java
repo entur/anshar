@@ -17,6 +17,8 @@ package no.rutebanken.anshar.routes.siri.processor;
 
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.subscription.SiriDataType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.org.siri.siri20.EstimatedTimetableDeliveryStructure;
 import uk.org.siri.siri20.EstimatedVersionFrameStructure;
 import uk.org.siri.siri20.Siri;
@@ -29,6 +31,8 @@ import static no.rutebanken.anshar.routes.siri.transformer.MappingNames.LINE_MAP
 import static no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter.createCombinedId;
 
 public class OperatorFilterPostProcessor extends ValueAdapter implements PostProcessor {
+    private static final Logger logger = LoggerFactory.getLogger(OperatorFilterPostProcessor.class);
+
     private final List<String> operatorsToIgnore;
     private final String datasetId;
 
@@ -62,8 +66,18 @@ public class OperatorFilterPostProcessor extends ValueAdapter implements PostPro
                             if (estimatedVersionFrameStructure != null) {
 
                                 if (operatorsToIgnore != null && !operatorsToIgnore.isEmpty()) {
+                                    final int sizeBefore = estimatedVersionFrameStructure
+                                        .getEstimatedVehicleJourneies()
+                                        .size();
+
                                     estimatedVersionFrameStructure.getEstimatedVehicleJourneies()
                                             .removeIf(et -> et.getOperatorRef() != null && operatorsToIgnore.contains(et.getOperatorRef().getValue()));
+
+                                    int ignoredUpdates = sizeBefore - estimatedVersionFrameStructure
+                                                                        .getEstimatedVehicleJourneies()
+                                                                        .size();
+
+                                    logger.info("Removed {} updates from ignored operators {}", ignoredUpdates, operatorsToIgnore);
                                 }
 
                                 estimatedVersionFrameStructure.getEstimatedVehicleJourneies()

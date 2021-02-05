@@ -52,6 +52,8 @@ public class BaneNorEtValueAdapters extends MappingAdapter {
         operatorOverrideMapping.put("VYT", "VYG");
 
         List<String> operatorsToIgnore = Collections.emptyList();
+        //List<String> operatorsToIgnore = Arrays.asList("FLY");
+
         valueAdapters.add(new OperatorFilterPostProcessor(subscriptionSetup.getDatasetId(), operatorsToIgnore, operatorOverrideMapping));
 
         valueAdapters.add(new BaneNorRemoveFreightTrainPostProcessor(subscriptionSetup.getDatasetId()));
