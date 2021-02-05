@@ -31,7 +31,7 @@ import static no.rutebanken.anshar.routes.siri.transformer.MappingNames.LINE_MAP
 import static no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter.createCombinedId;
 
 public class OperatorFilterPostProcessor extends ValueAdapter implements PostProcessor {
-    private static final Logger logger = LoggerFactory.getLogger(OperatorFilterPostProcessor.class);
+    private static transient final Logger logger = LoggerFactory.getLogger(OperatorFilterPostProcessor.class);
 
     private final List<String> operatorsToIgnore;
     private final String datasetId;
