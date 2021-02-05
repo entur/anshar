@@ -61,8 +61,7 @@ public class PtSituationElementValidator extends CustomValidator {
                     "Source",
                     "Progress",
                     "ValidityPeriod",
-                    "ReportType",
-                    "Summary"
+                    "ReportType"
             );
         } else {
             return verifyRequiredFields(node, FIELDNAME,
