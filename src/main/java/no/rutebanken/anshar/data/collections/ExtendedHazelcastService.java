@@ -61,6 +61,7 @@ public class ExtendedHazelcastService extends HazelCastService {
 
     public void addBeforeShuttingDownHook(Runnable destroyFunction) {
         hazelcast.getLifecycleService().addLifecycleListener(lifecycleEvent -> {
+            logger.info("Ignoring LifecycleEvent: {}", lifecycleEvent);
             if (lifecycleEvent.getState().equals(LifecycleEvent.LifecycleState.SHUTTING_DOWN)) {
                 logger.info("Shutting down - committing all changes.");
                 destroyFunction.run();
