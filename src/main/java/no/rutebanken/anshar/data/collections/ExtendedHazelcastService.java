@@ -41,6 +41,7 @@ import uk.org.siri.siri20.EstimatedVehicleJourney;
 import uk.org.siri.siri20.PtSituationElement;
 import uk.org.siri.siri20.VehicleActivityStructure;
 
+import javax.annotation.PreDestroy;
 import java.math.BigInteger;
 import java.time.Instant;
 import java.time.ZonedDateTime;
@@ -71,6 +72,13 @@ public class ExtendedHazelcastService extends HazelCastService {
             }
         });
         logger.info("Lifecycle: Shutdownhook added.");
+    }
+
+    @PreDestroy
+    private void customShutdown() {
+        logger.info("Attempting to shutdown through LifecycleService");
+        hazelcast.getLifecycleService().shutdown();
+        logger.info("Shutdown through LifecycleService");
     }
 
     public HazelcastInstance getHazelcastInstance() {
