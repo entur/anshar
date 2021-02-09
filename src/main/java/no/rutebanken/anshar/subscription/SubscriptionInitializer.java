@@ -77,6 +77,7 @@ public class SubscriptionInitializer implements CamelContextAware {
     @Override
     public void setCamelContext(CamelContext camelContext) {
         this.camelContext = camelContext;
+        logger.info("ShutdownStrategy: {}", camelContext.getShutdownStrategy());
     }
 
     @PostConstruct
