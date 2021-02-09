@@ -92,7 +92,6 @@ abstract class SiriRepository<T> {
                 commitChanges();
             }
         });
-        logger.info("Added shutdown-hook");
     }
 
     /**
