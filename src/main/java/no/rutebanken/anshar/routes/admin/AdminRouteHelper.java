@@ -50,6 +50,8 @@ public class AdminRouteHelper {
     @Autowired
     private ExtendedHazelcastService hazelcastService;
 
+    protected boolean shutdownTriggered;
+
     public void flushDataFromSubscription(String subscriptionId) {
         ExecutorService executor = Executors.newSingleThreadExecutor();
         SubscriptionSetup subscriptionSetup = subscriptionManager.get(subscriptionId);
@@ -62,6 +64,10 @@ public class AdminRouteHelper {
         final String lockMap = "ansharRouteLockMap";
         logger.warn("Force unlocking of key {} from map {}", lockId, lockMap);
         hazelcastService.getHazelcastInstance().getMap(lockMap).forceUnlock(lockId);
+    }
+
+    public boolean isNotShuttingDown() {
+        return !shutdownTriggered;
     }
 
     public Map<String, String> getAllLocks() {

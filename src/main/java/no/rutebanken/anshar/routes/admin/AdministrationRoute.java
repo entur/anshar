@@ -74,6 +74,7 @@ public class AdministrationRoute extends RestRouteBuilder {
                 .get("").produces(MediaType.TEXT_HTML).to(STATS_ROUTE)
                 .put("").to(OPERATION_ROUTE)
                 .get("/locks").to("direct:locks")
+                .get("/prepare-shutdown").to("direct:prepare-shutdown")
         ;
 
         rest("/anshar").tag("internal.admin")
@@ -223,6 +224,13 @@ public class AdministrationRoute extends RestRouteBuilder {
                 .routeId("admin.flush.data")
         ;
 
+
+        //Prepare Camel shutdown
+        from("direct:prepare-shutdown")
+            .log("Triggered to prepare for shutdown")
+                .process(p -> helper.shutdownTriggered = true)
+                .routeId("admin.prepare.shutdown")
+        ;
 
         //Return unmapped ids
         from(UNMAPPED_ROUTE)

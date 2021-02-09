@@ -4,6 +4,7 @@ import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.metrics.PrometheusMetricsService;
 import no.rutebanken.anshar.routes.CamelRouteNames;
 import no.rutebanken.anshar.routes.RestRouteBuilder;
+import no.rutebanken.anshar.routes.admin.AdminRouteHelper;
 import no.rutebanken.anshar.routes.dataformat.SiriDataFormatHelper;
 import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
 import no.rutebanken.anshar.subscription.SiriDataType;
@@ -11,6 +12,7 @@ import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
+import org.apache.camel.Predicate;
 import org.apache.camel.component.http.HttpMethods;
 import org.apache.camel.support.builder.Namespaces;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +39,9 @@ public class MessagingRoute extends RestRouteBuilder {
 
     @Autowired
     private PrometheusMetricsService metrics;
+
+    @Autowired
+    private AdminRouteHelper adminRouteHelper;
 
     @Override
     public void configure() throws Exception {
@@ -105,32 +110,43 @@ public class MessagingRoute extends RestRouteBuilder {
                 .end()
         ;
 
+        // When shutdown has been triggered - stop processing data from pubsub
+        Predicate readFromPubsub = exchange -> adminRouteHelper.isNotShuttingDown();
+
         from(pubsubQueueDefault + queueConsumerParameters)
+            .choice().when(readFromPubsub)
                 .to("direct:decompress.jaxb")
                 .log("Processing data from " + pubsubQueueDefault + ", size ${header.Content-Length}")
                 .wireTap("direct:" + CamelRouteNames.PROCESSOR_QUEUE_DEFAULT)
-                .routeId("incoming.transform.default")
+            .endChoice()
+            .routeId("incoming.transform.default")
         ;
 
         from(pubsubQueueSX + queueConsumerParameters)
+            .choice().when(readFromPubsub)
                 .to("direct:decompress.jaxb")
                 .log("Processing data from " + pubsubQueueSX + ", size ${header.Content-Length}")
                 .wireTap("direct:" + CamelRouteNames.PROCESSOR_QUEUE_DEFAULT)
-                .routeId("incoming.transform.sx")
+            .endChoice()
+            .routeId("incoming.transform.sx")
         ;
 
         from(pubsubQueueVM + queueConsumerParameters)
+            .choice().when(readFromPubsub)
                 .to("direct:decompress.jaxb")
                 .log("Processing data from " + pubsubQueueVM + ", size ${header.Content-Length}")
                 .wireTap("direct:" + CamelRouteNames.PROCESSOR_QUEUE_DEFAULT)
-                .routeId("incoming.transform.vm")
+            .endChoice()
+            .routeId("incoming.transform.vm")
         ;
 
         from(pubsubQueueET + queueConsumerParameters)
+            .choice().when(readFromPubsub)
                 .to("direct:decompress.jaxb")
                 .log("Processing data from " + pubsubQueueET + ", size ${header.Content-Length}")
                 .wireTap("direct:" + CamelRouteNames.PROCESSOR_QUEUE_DEFAULT)
-                .routeId("incoming.transform.et")
+            .endChoice()
+            .routeId("incoming.transform.et")
         ;
 
         from("direct:" + CamelRouteNames.PROCESSOR_QUEUE_DEFAULT)
