@@ -42,6 +42,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -78,6 +79,13 @@ public class SubscriptionInitializer implements CamelContextAware {
     public void setCamelContext(CamelContext camelContext) {
         this.camelContext = camelContext;
         logger.info("ShutdownStrategy: {}", camelContext.getShutdownStrategy());
+    }
+
+    @PreDestroy
+    void shutdown() {
+        logger.info("Triggering Camel shutdown");
+        this.camelContext.shutdown();
+        logger.info("Triggered Camel shutdown");
     }
 
     @PostConstruct
