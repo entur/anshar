@@ -33,6 +33,9 @@ import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static no.rutebanken.anshar.routes.policy.SingletonRoutePolicyFactory.DEFAULT_LOCK_VALUE;
@@ -228,7 +231,15 @@ public class AdministrationRoute extends RestRouteBuilder {
         //Prepare Camel shutdown
         from("direct:prepare-shutdown")
             .log("Triggered to prepare for shutdown")
-                .process(p -> helper.shutdownTriggered = true)
+                .process(p -> {
+                    helper.shutdownTriggered = true;
+
+                    final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
+
+                    executorService.schedule(() -> getContext().shutdown(), 5, TimeUnit.SECONDS);
+                    executorService.schedule(() -> extendedHazelcastService.shutdown(), 10, TimeUnit.SECONDS);
+
+                })
                 .routeId("admin.prepare.shutdown")
         ;
 
