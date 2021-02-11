@@ -119,6 +119,7 @@ public class MessagingRoute extends RestRouteBuilder {
                 .log("Processing data from " + pubsubQueueDefault + ", size ${header.Content-Length}")
                 .wireTap("direct:" + CamelRouteNames.PROCESSOR_QUEUE_DEFAULT)
             .endChoice()
+            .startupOrder(100004)
             .routeId("incoming.transform.default")
         ;
 
@@ -128,6 +129,7 @@ public class MessagingRoute extends RestRouteBuilder {
                 .log("Processing data from " + pubsubQueueSX + ", size ${header.Content-Length}")
                 .wireTap("direct:" + CamelRouteNames.PROCESSOR_QUEUE_DEFAULT)
             .endChoice()
+            .startupOrder(100003)
             .routeId("incoming.transform.sx")
         ;
 
@@ -137,6 +139,7 @@ public class MessagingRoute extends RestRouteBuilder {
                 .log("Processing data from " + pubsubQueueVM + ", size ${header.Content-Length}")
                 .wireTap("direct:" + CamelRouteNames.PROCESSOR_QUEUE_DEFAULT)
             .endChoice()
+            .startupOrder(100002)
             .routeId("incoming.transform.vm")
         ;
 
@@ -146,6 +149,7 @@ public class MessagingRoute extends RestRouteBuilder {
                 .log("Processing data from " + pubsubQueueET + ", size ${header.Content-Length}")
                 .wireTap("direct:" + CamelRouteNames.PROCESSOR_QUEUE_DEFAULT)
             .endChoice()
+            .startupOrder(100001)
             .routeId("incoming.transform.et")
         ;
 
