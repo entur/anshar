@@ -75,7 +75,7 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
                         InputStream body = p.getIn().getBody(InputStream.class);
                         if (body != null && body.available() > 0) {
                             handler.handleIncomingSiri(subscriptionSetup.getSubscriptionId(), body);
-                        } else if ("200".equals(responseCode)) {
+                        } else if ("200".equals(responseCode) | "201".equals(responseCode)) {
                             logger.info("SubscriptionResponse OK - Async response performs actual registration");
                             subscriptionManager.activatePendingSubscription(subscriptionSetup.getSubscriptionId());
                         } else {

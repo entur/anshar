@@ -92,7 +92,7 @@ public class Siri20ToSiriWS14Subscription extends SiriSubscriptionRouteBuilder {
                 .process(p -> {
 
                     String responseCode = p.getIn().getHeader(PARAM_RESPONSE_CODE, String.class);
-                    if ("200".equals(responseCode)) {
+                    if ("200".equals(responseCode) | "201".equals(responseCode)) {
                         logger.info("SubscriptionResponse OK - Async response performs actual registration");
                         subscriptionManager.activatePendingSubscription(subscriptionSetup.getSubscriptionId());
                     } else {
