@@ -55,7 +55,7 @@ public class AffectedStopPointValidatorTest extends CustomValidatorTest {
         String xml = createXml(fieldName, "NSR:StopPlace:1234");
 
         final ValidationEvent valid = validator.isValid(createXmlNode(xml));
-        assertNotNull(fieldName+" with StopPlace flagged as invalid", valid);
+        assertNull(fieldName+" with StopPlace flagged as invalid", valid);
     }
 
     @Test

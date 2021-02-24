@@ -15,10 +15,13 @@
 
 package no.rutebanken.anshar.routes.validation.validators.sx;
 
-import no.rutebanken.anshar.routes.validation.validators.NsrQuayValidator;
+import no.rutebanken.anshar.routes.validation.validators.CustomValidator;
 import no.rutebanken.anshar.routes.validation.validators.Validator;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import org.springframework.stereotype.Component;
+import org.w3c.dom.Node;
+
+import javax.xml.bind.ValidationEvent;
 
 import static no.rutebanken.anshar.routes.validation.validators.Constants.AFFECTED_STOP_POINT;
 
@@ -28,9 +31,11 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.AFFECT
  */
 @Validator(profileName = "norway", targetType = SiriDataType.SITUATION_EXCHANGE)
 @Component
-public class AffectedStopPointValidator extends NsrQuayValidator {
+public class AffectedStopPointValidator extends CustomValidator {
 
     private String path;
+
+    private String FIELDNAME;
 
     public AffectedStopPointValidator() {
         FIELDNAME = "StopPointRef";
@@ -40,5 +45,18 @@ public class AffectedStopPointValidator extends NsrQuayValidator {
     @Override
     public String getXpath() {
         return path;
+    }
+
+    @Override
+    public ValidationEvent isValid(Node node) {
+        String nodeValue = getNodeValue(node);
+
+        final boolean validQuayRef = isValidNsrId("NSR:Quay:", nodeValue);
+        final boolean validStopPlaceRef = isValidNsrId("NSR:StopPlace:", nodeValue);
+
+        if (!validQuayRef && !validStopPlaceRef) {
+            return createEvent(node, FIELDNAME, "NSR:Quay:ID or NSR:StopPlace:ID", nodeValue, ValidationEvent.FATAL_ERROR);
+        }
+        return null;
     }
 }

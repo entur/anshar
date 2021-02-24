@@ -165,6 +165,8 @@ public class EstimatedTimetablesTest extends SpringBootBaseTest {
 
         siri = estimatedTimetables.createServiceDelivery(requestorId, null, 2);
 
+        sleep(250);
+
         assertFalse(siri.getServiceDelivery().isMoreData());
         assertEquals(0, siri
                 .getServiceDelivery().getEstimatedTimetableDeliveries().get(0)
