@@ -118,6 +118,13 @@ public class AnsharConfiguration {
     @Value("${anshar.admin.blocked.clients:}")
     private List<String> blockedEtClientNames;
 
+    @Value("${anshar.redis.enabled:}")
+    private boolean isRedisEnabled;
+
+    public boolean isRedisEnabled() {
+        return isRedisEnabled;
+    }
+
     public String getHazelcastManagementUrl() {
         return hazelcastManagementUrl;
     }

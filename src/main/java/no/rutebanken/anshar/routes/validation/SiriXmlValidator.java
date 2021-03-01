@@ -16,8 +16,6 @@
 package no.rutebanken.anshar.routes.validation;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.hazelcast.map.IMap;
-import com.hazelcast.replicatedmap.ReplicatedMap;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.metrics.PrometheusMetricsService;
 import no.rutebanken.anshar.routes.siri.transformer.ApplicationContextHolder;
@@ -29,6 +27,8 @@ import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.redisson.api.RMap;
+import org.redisson.api.RMapCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -103,27 +103,27 @@ public class SiriXmlValidator extends ApplicationContextHolder {
      */
     @Autowired
     @Qualifier("getValidationResultRefMap")
-    private IMap<String, List<String>> validationResultRefs;
+    private RMap<String, List<String>> validationResultRefs;
 
     @Autowired
     @Qualifier("getValidationResultSiriMap")
-    private IMap<String, byte[]> validatedSiri;
+    private RMap<String, byte[]> validatedSiri;
 
     @Autowired
     @Qualifier("getValidationSizeTracker")
-    private IMap<String, Long> validationSize;
+    private RMap<String, Long> validationSize;
 
     @Autowired
     @Qualifier("getValidationResultJsonMap")
-    private IMap<String, JSONObject> validationResults;
+    private RMap<String, JSONObject> validationResults;
 
     @Autowired
     @Qualifier("getSubscriptionsMap")
-    private ReplicatedMap<String, SubscriptionSetup> subscriptions;
+    private RMap<String, SubscriptionSetup> subscriptions;
 
     @Autowired
     @Qualifier("getValidationFilterMap")
-    private ReplicatedMap<String, String> validationFilters;
+    private RMap<String, String> validationFilters;
 
     @Autowired
     private SubscriptionManager subscriptionManager;
@@ -404,17 +404,17 @@ public class SiriXmlValidator extends ApplicationContextHolder {
 
         if (validationRefs != null) {
             for (String ref : validationRefs) {
-                validationResults.delete(ref);
-                validatedSiri.delete(ref);
+                validationResults.fastRemove(ref);
+                validatedSiri.fastRemove(ref);
             }
 
-            validationSize.delete(subscriptionId);
-            validationResultRefs.delete(subscriptionId);
+            validationSize.fastRemove(subscriptionId);
+            validationResultRefs.fastRemove(subscriptionId);
         }
     }
 
     public void addFilter(String subscriptionId, String validationFilter) {
-        validationFilters.remove(subscriptionId);
+        validationFilters.fastRemove(subscriptionId);
         if (validationFilter != null && !validationFilter.isEmpty()) {
             validationFilters.put(subscriptionId, validationFilter);
         }
@@ -491,10 +491,10 @@ public class SiriXmlValidator extends ApplicationContextHolder {
 
         final Long totalXmlSize = (validationSize.getOrDefault(subscriptionSetup.getSubscriptionId(), 0L) + byteArray.length);
 
-        validatedSiri.set(newUniqueReference, byteArray);
-        validationResults.set(newUniqueReference, jsonObject);
-        validationResultRefs.set(subscriptionSetup.getSubscriptionId(), subscriptionValidationRefs);
-        validationSize.set(subscriptionSetup.getSubscriptionId(), totalXmlSize);
+        validatedSiri.fastPut(newUniqueReference, byteArray);
+        validationResults.fastPut(newUniqueReference, jsonObject);
+        validationResultRefs.fastPut(subscriptionSetup.getSubscriptionId(), subscriptionValidationRefs);
+        validationSize.fastPut(subscriptionSetup.getSubscriptionId(), totalXmlSize);
 
         if (totalXmlSize > (configuration.getMaxTotalXmlSizeOfValidation() * 1024*1024)) {
             subscriptionSetup.setValidation(false);

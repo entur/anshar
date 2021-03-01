@@ -15,12 +15,12 @@
 
 package no.rutebanken.anshar.routes.health;
 
-import com.hazelcast.core.HazelcastInstanceNotActiveException;
-import com.hazelcast.map.IMap;
 import no.rutebanken.anshar.data.collections.HealthCheckKey;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.redisson.api.RMap;
+import org.redisson.client.RedisConnectionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,11 +45,11 @@ public class HealthManager {
 
     @Autowired
     @Qualifier("getHealthCheckMap")
-    private IMap<Enum<HealthCheckKey>, Instant> healthCheckMap;
+    private RMap<Enum<HealthCheckKey>, Instant> healthCheckMap;
 
     @Autowired
     @Qualifier("getUnmappedIds")
-    private IMap<String, Map<SiriDataType, Set<String>>> unmappedIds;
+    private RMap<String, Map<SiriDataType, Set<String>>> unmappedIds;
 
     @Value("${anshar.admin.health.allowed.inactivity.seconds:999}")
     private long allowedInactivityTime;
@@ -59,10 +59,10 @@ public class HealthManager {
 
     public boolean isHazelcastAlive() {
         try {
-            healthCheckMap.set(HealthCheckKey.NODE_LIVENESS_CHECK, Instant.now());
+            healthCheckMap.fastPut(HealthCheckKey.NODE_LIVENESS_CHECK, Instant.now());
             return healthCheckMap.containsKey(HealthCheckKey.NODE_LIVENESS_CHECK);
-        } catch (HazelcastInstanceNotActiveException e) {
-            logger.warn("HazelcastInstance not active - ", e);
+        } catch (RedisConnectionException e) {
+            logger.warn("Redis not active - ", e);
             return false;
         }
     }
@@ -70,13 +70,13 @@ public class HealthManager {
     @Bean
     public Instant serverStartTime() {
         if (!healthCheckMap.containsKey(HealthCheckKey.SERVER_START_TIME)) {
-            healthCheckMap.set(HealthCheckKey.SERVER_START_TIME, Instant.now());
+            healthCheckMap.fastPut(HealthCheckKey.SERVER_START_TIME, Instant.now());
         }
         return healthCheckMap.get(HealthCheckKey.SERVER_START_TIME);
     }
 
     public void dataReceived() {
-        healthCheckMap.set(HealthCheckKey.HEALTH_CHECK_INCOMING_DATA, Instant.now());
+        healthCheckMap.fastPut(HealthCheckKey.HEALTH_CHECK_INCOMING_DATA, Instant.now());
     }
 
 
@@ -143,7 +143,7 @@ public class HealthManager {
         ids.add(id);
         unmappedIds.put(type, ids);
 
-        this.unmappedIds.set(datasetId, unmappedIds);
+        this.unmappedIds.fastPut(datasetId, unmappedIds);
     }
 
     public void removeUnmappedId(SiriDataType type, String datasetId, String id) {
@@ -153,6 +153,6 @@ public class HealthManager {
         ids.remove(id);
         unmappedIds.put(type, ids);
 
-        this.unmappedIds.set(datasetId, unmappedIds);
+        this.unmappedIds.fastPut(datasetId, unmappedIds);
     }
 }

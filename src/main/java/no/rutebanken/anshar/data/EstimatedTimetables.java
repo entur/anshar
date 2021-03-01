@@ -15,15 +15,13 @@
 
 package no.rutebanken.anshar.data;
 
-import com.hazelcast.map.IMap;
-import com.hazelcast.replicatedmap.ReplicatedMap;
-import com.hazelcast.query.Predicates;
 import no.rutebanken.anshar.config.AnsharConfiguration;
-import no.rutebanken.anshar.data.collections.ExtendedHazelcastService;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import org.quartz.utils.counter.Counter;
 import org.quartz.utils.counter.CounterImpl;
+import org.redisson.api.RMap;
+import org.redisson.api.RMapCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,27 +62,27 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
     private final Logger logger = LoggerFactory.getLogger(EstimatedTimetables.class);
 
     @Autowired
-    private IMap<SiriObjectStorageKey, EstimatedVehicleJourney> timetableDeliveries;
+    private RMapCache<SiriObjectStorageKey, EstimatedVehicleJourney> timetableDeliveries;
 
     @Autowired
     @Qualifier("getEtChecksumMap")
-    private ReplicatedMap<SiriObjectStorageKey,String> checksumCache;
+    private RMapCache<SiriObjectStorageKey,String> checksumCache;
 
     @Autowired
     @Qualifier("getIdForPatternChangesMap")
-    private ReplicatedMap<SiriObjectStorageKey, String> idForPatternChanges;
+    private RMapCache<SiriObjectStorageKey, String> idForPatternChanges;
 
     @Autowired
     @Qualifier("getIdStartTimeMap")
-    private ReplicatedMap<SiriObjectStorageKey, ZonedDateTime> idStartTimeMap;
+    private RMapCache<SiriObjectStorageKey, ZonedDateTime> idStartTimeMap;
 
     @Autowired
     @Qualifier("getEstimatedTimetableChangesMap")
-    private IMap<String, Set<SiriObjectStorageKey>> changesMap;
+    private RMapCache<String, Set<SiriObjectStorageKey>> changesMap;
 
     @Autowired
     @Qualifier("getLastEtUpdateRequest")
-    private IMap<String, Instant> lastUpdateRequested;
+    private RMapCache<String, Instant> lastUpdateRequested;
 
     @Autowired
     private AnsharConfiguration configuration;
@@ -95,12 +93,9 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
     @Autowired
     private SiriObjectFactory siriObjectFactory;
 
-    @Autowired
-    ExtendedHazelcastService hazelcastService;
-
     @PostConstruct
     private void initializeUpdateCommitter() {
-        super.initBufferCommitter(hazelcastService, lastUpdateRequested, changesMap, configuration.getChangeBufferCommitFrequency());
+        super.initBufferCommitter(lastUpdateRequested, changesMap, configuration.getChangeBufferCommitFrequency());
     }
 
     /**
@@ -117,10 +112,13 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
 
         long t1 = System.currentTimeMillis();
 
-        com.hazelcast.query.Predicate cancelledPredicate = Predicates.equal("cancellation", "true");
-        com.hazelcast.query.Predicate monitoredPredicate = Predicates.equal( "monitored", "true");
+        Collection<EstimatedVehicleJourney> monitoredVehicleJourneys = timetableDeliveries.readAllValues().stream()
+            .filter(estimatedVehicleJourney ->
+                        (estimatedVehicleJourney.isMonitored() != null && estimatedVehicleJourney.isMonitored()) |
+                        (estimatedVehicleJourney.isCancellation() != null && estimatedVehicleJourney.isCancellation()
+                        )
+            ).collect(Collectors.toSet());
 
-        Collection<EstimatedVehicleJourney> monitoredVehicleJourneys = timetableDeliveries.values(Predicates.or(monitoredPredicate, cancelledPredicate));
         logger.info("Got {} monitored journeys in {} ms", monitoredVehicleJourneys.size(), (System.currentTimeMillis()-t1));
 
         return monitoredVehicleJourneys;
@@ -141,19 +139,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                         sizeMap.put(datasetId, count+1);
                     });
         logger.debug("Calculating data-distribution (ET) took {} ms: {}", (System.currentTimeMillis()-t1), sizeMap);
-        return sizeMap;
-    }
 
-    public Map<String, Integer> getLocalDatasetSize() {
-        Map<String, Integer> sizeMap = new HashMap<>();
-        long t1 = System.currentTimeMillis();
-        timetableDeliveries.localKeySet().forEach(key -> {
-                        String datasetId = key.getCodespaceId();
-
-                        Integer count = sizeMap.getOrDefault(datasetId, 0);
-                        sizeMap.put(datasetId, count+1);
-                    });
-        logger.debug("Calculating local data-distribution (ET) took {} ms: {}", (System.currentTimeMillis()-t1), sizeMap);
         return sizeMap;
     }
 
@@ -165,18 +151,22 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
 
     @Override
     public void clearAllByDatasetId(String datasetId) {
+        final Predicate<SiriObjectStorageKey> codespacePredicate = createCodespacePredicate(datasetId);
 
-        Set<SiriObjectStorageKey> idsToRemove = timetableDeliveries.keySet(createCodespacePredicate(datasetId));
+        Set<SiriObjectStorageKey> idsToRemove = timetableDeliveries.keySet().stream()
+            .filter(key -> codespacePredicate.test(key)).collect(Collectors.toSet());
 
         logger.warn("Removing all data ({} ids) for {}", idsToRemove.size(), datasetId);
 
         for (SiriObjectStorageKey id : idsToRemove) {
-            timetableDeliveries.delete(id);
+            timetableDeliveries.fastRemove(id);
 
-            checksumCache.remove(id);
-            idStartTimeMap.remove(id);
-            idForPatternChanges.remove(id);
+            checksumCache.fastRemove(id);
+            idStartTimeMap.fastRemove(id);
+            idForPatternChanges.fastRemove(id);
         }
+        logger.warn("Removing all data done");
+
     }
 
     public void clearAll() {
@@ -198,7 +188,10 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
             return o1_firstTimestamp.compareTo(o2_firstTimestamp);
         });
 
-        final Set<SiriObjectStorageKey> lineRefKeys = timetableDeliveries.keySet(createLineRefPredicate(lineRef));
+        final Predicate<SiriObjectStorageKey> lineRefPredicate = createLineRefPredicate(lineRef);
+
+        final Set<SiriObjectStorageKey> lineRefKeys = timetableDeliveries.keySet().stream()
+            .filter(key -> lineRefPredicate.test(key)).collect(Collectors.toSet());
 
         matchingEstimatedVehicleJourneys.addAll(timetableDeliveries.getAll(lineRefKeys).values());
 
@@ -232,8 +225,12 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
         Set<SiriObjectStorageKey> idSet = changesMap.getOrDefault(requestorId, allIds);
 
         if (idSet == allIds) {
+            final Predicate<SiriObjectStorageKey> codespacePredicate = createCodespacePredicate(datasetId);
             idSet.addAll(timetableDeliveries
-                    .keySet(entry -> datasetId == null || ((SiriObjectStorageKey) entry.getKey()).getCodespaceId().equals(datasetId))
+                    .keySet().stream()
+                    .filter(entry -> {
+                        return datasetId == null || codespacePredicate.test(entry);
+                    }).collect(Collectors.toSet())
             );
         }
 
@@ -592,10 +589,10 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
 
                     changes.add(key);
                     addedData.add(et);
-                    timetableDeliveries.set(key, et, expiration, TimeUnit.MILLISECONDS);
-                    checksumCache.put(key, currentChecksum, expiration, TimeUnit.MILLISECONDS);
+                    timetableDeliveries.fastPut(key, et, expiration, TimeUnit.MILLISECONDS);
+                    checksumCache.fastPut(key, currentChecksum, expiration, TimeUnit.MILLISECONDS);
 
-                    idStartTimeMap.put(key, getFirstAimedTime(et), expiration, TimeUnit.MILLISECONDS);
+                    idStartTimeMap.fastPut(key, getFirstAimedTime(et), expiration, TimeUnit.MILLISECONDS);
                 } else {
                     outdatedCounter.increment();
                 }

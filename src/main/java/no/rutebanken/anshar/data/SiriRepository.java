@@ -15,16 +15,16 @@
 
 package no.rutebanken.anshar.data;
 
-import com.hazelcast.map.IMap;
-import com.hazelcast.query.Predicate;
-import no.rutebanken.anshar.data.collections.ExtendedHazelcastService;
 import no.rutebanken.anshar.metrics.PrometheusMetricsService;
 import no.rutebanken.anshar.routes.siri.transformer.ApplicationContextHolder;
 import no.rutebanken.anshar.subscription.SiriDataType;
+import org.redisson.api.RMap;
+import org.redisson.api.RMapCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
+import javax.annotation.PreDestroy;
 import javax.xml.bind.DatatypeConverter;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -44,14 +44,16 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer.SEPARATOR;
 
 abstract class SiriRepository<T> {
 
-    private IMap<String, Instant> lastUpdateRequested;
-    private IMap<String, Set<SiriObjectStorageKey>> changesMap;
+    private RMapCache<String, Instant> lastUpdateRequested;
+
+    private RMapCache<String, Set<SiriObjectStorageKey>> changesMap;
 
     abstract Collection<T> getAll();
 
@@ -73,9 +75,20 @@ abstract class SiriRepository<T> {
 
     final Set<SiriObjectStorageKey> dirtyChanges = Collections.synchronizedSet(new HashSet<>());
 
+    /**
+     * Adds ids to local change-buffer
+     * @param changes
+     */
+    void markIdsAsUpdated(Set<SiriObjectStorageKey> changes) {
+        if (!changes.isEmpty()) {
+            dirtyChanges.addAll(changes);
+            logger.info("Added {} updates to {} dirty-buffer, now has {} pending updates", changes.size(), this.getClass().getSimpleName(), dirtyChanges.size());
+        }
+    }
+
     private ScheduledExecutorService singleThreadScheduledExecutor;
 
-    void initBufferCommitter(ExtendedHazelcastService hazelcastService, IMap<String, Instant> lastUpdateRequested, IMap<String, Set<SiriObjectStorageKey>> changesMap, int commitFrequency) {
+    void initBufferCommitter(RMapCache<String, Instant> lastUpdateRequested, RMapCache<String, Set<SiriObjectStorageKey>> changesMap, int commitFrequency) {
         this.lastUpdateRequested = lastUpdateRequested;
         this.changesMap = changesMap;
 
@@ -86,12 +99,13 @@ abstract class SiriRepository<T> {
 
             singleThreadScheduledExecutor.scheduleWithFixedDelay(this::commitChanges, 0, commitFrequency, TimeUnit.SECONDS);
         }
+    }
 
-        hazelcastService.addBeforeShuttingDownHook(() -> {
-            while (!dirtyChanges.isEmpty()) {
-                commitChanges();
-            }
-        });
+    @PreDestroy
+    private void commitAllChanges() {
+        while (!dirtyChanges.isEmpty()) {
+            commitChanges();
+        }
     }
 
     /**
@@ -109,15 +123,17 @@ abstract class SiriRepository<T> {
 
                 changesMap.keySet().forEach(key -> {
                     if (!lastUpdateRequested.containsKey(key)) {
-                        changesMap.delete(key);
+                        changesMap.remove(key);
+                    } else {
+                        final Set<SiriObjectStorageKey> values = changesMap.get(key);
+                        values.addAll(bufferedChanges);
+                        changesMap.fastPut(key, values);
                     }
                 });
 
-                if (!changesMap.isEmpty()) {
-                    changesMap.executeOnEntries(new AppendChangesToSetEntryProcessor(bufferedChanges));
-                    logger.info("Updating changes for {} requestors ({}), committed {} changes, update took {} ms",
-                            changesMap.size(), this.getClass().getSimpleName(), bufferedChanges.size(), (System.currentTimeMillis() - t1));
-                }
+                logger.info("Updating changes for {} requestors ({}), committed {} changes, update took {} ms",
+                    changesMap.size(), this.getClass().getSimpleName(), bufferedChanges.size(), (System.currentTimeMillis() - t1));
+
             } else {
                 logger.debug("No changes - ignoring commit ({})", this.getClass().getSimpleName());
             }
@@ -128,16 +144,6 @@ abstract class SiriRepository<T> {
     }
 
 
-    /**
-     * Adds ids to local change-buffer
-     * @param changes
-     */
-    void markIdsAsUpdated(Set<SiriObjectStorageKey> changes) {
-        if (!changes.isEmpty()) {
-            dirtyChanges.addAll(changes);
-            logger.info("Added {} updates to {} dirty-buffer, now has {} pending updates", changes.size(), this.getClass().getSimpleName(), dirtyChanges.size());
-        }
-    }
 
     void markDataReceived(SiriDataType dataType, String datasetId, long totalSize, long updatedSize, long expiredSize, long ignoredSize) {
         if (metrics == null) {
@@ -146,7 +152,7 @@ abstract class SiriRepository<T> {
         metrics.registerIncomingData(dataType, datasetId, totalSize, updatedSize, expiredSize, ignoredSize);
     }
 
-    void updateChangeTrackers(IMap<String, Instant> lastUpdateRequested, IMap<String, Set<SiriObjectStorageKey>> changesMap,
+    void updateChangeTrackers(RMapCache<String, Instant> lastUpdateRequested, RMapCache<String, Set<SiriObjectStorageKey>> changesMap,
                               String key, Set<SiriObjectStorageKey> changes, int trackingPeriodMinutes, TimeUnit timeUnit) {
         final String breadcrumbId = MDC.get("camel.breadcrumbId");
 
@@ -157,13 +163,13 @@ abstract class SiriRepository<T> {
 
                 long t1 = System.currentTimeMillis();
 
-                changesMap.executeOnKey(key, new ReplaceSetEntryProcessor(changes));
-                changesMap.setTtl(key, trackingPeriodMinutes, timeUnit);
+                changesMap.put(key,changes, trackingPeriodMinutes, timeUnit);
 
-                lastUpdateRequested.set(key, Instant.now(), trackingPeriodMinutes, timeUnit);
+                lastUpdateRequested.put(key, Instant.now(), trackingPeriodMinutes, timeUnit);
 
                 logger.info("Replacing changes for requestor async {} took {} ms. ({})",
-                    key,(System.currentTimeMillis() - t1),this.getClass().getSimpleName());
+                        key,(System.currentTimeMillis() - t1),this.getClass().getSimpleName()
+                );
             } finally {
                 MDC.remove("camel.breadcrumbId");
             }
@@ -194,9 +200,11 @@ abstract class SiriRepository<T> {
      * @param datasetId
      * @return
      */
-    Collection<T> getValuesByDatasetId(IMap<SiriObjectStorageKey, T> collection, String datasetId) {
+    Collection<T> getValuesByDatasetId(RMap<SiriObjectStorageKey, T> collection, String datasetId) {
 
-        final Set<SiriObjectStorageKey> codespaceKeys = collection.keySet(createCodespacePredicate(datasetId));
+        final Predicate<SiriObjectStorageKey> codespacePredicate = createCodespacePredicate(datasetId);
+        final Set<SiriObjectStorageKey> codespaceKeys = collection.readAllKeySet().stream()
+            .filter(key ->codespacePredicate.test(key)).collect(Collectors.toSet());
 
         return collection.getAll(codespaceKeys).values();
     }
@@ -231,20 +239,20 @@ abstract class SiriRepository<T> {
     abstract void clearAllByDatasetId(String datasetId);
 
 
-    Predicate<SiriObjectStorageKey, T> createCodespacePredicate(String datasetId) {
+    Predicate<SiriObjectStorageKey> createCodespacePredicate(String datasetId) {
         return entry -> {
-            if (entry.getKey().getCodespaceId() != null) {
-                final String codespaceId = entry.getKey().getCodespaceId();
+            if (entry.getCodespaceId() != null) {
+                final String codespaceId = entry.getCodespaceId();
                 return codespaceId.equals(datasetId);
             }
             return false;
         };
     }
 
-    Predicate<SiriObjectStorageKey, T> createLineRefPredicate(String lineRef) {
+    Predicate<SiriObjectStorageKey> createLineRefPredicate(String lineRef) {
         return entry -> {
-            if (entry.getKey().getLineRef() != null) {
-                final String ref = entry.getKey().getLineRef();
+            if (entry.getLineRef() != null) {
+                final String ref = entry.getLineRef();
 
                 return ref.startsWith(lineRef + SEPARATOR) ||
                         ref.endsWith(SEPARATOR + lineRef) ||

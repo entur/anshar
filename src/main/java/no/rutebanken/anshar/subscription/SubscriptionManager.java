@@ -16,8 +16,6 @@
 package no.rutebanken.anshar.subscription;
 
 
-import com.hazelcast.map.IMap;
-import com.hazelcast.replicatedmap.ReplicatedMap;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.data.EstimatedTimetables;
 import no.rutebanken.anshar.data.RequestorRefRepository;
@@ -31,6 +29,8 @@ import no.rutebanken.anshar.subscription.helpers.RequestType;
 import org.apache.commons.io.FileUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.redisson.api.RMap;
+import org.redisson.api.RMapCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,37 +69,37 @@ public class SubscriptionManager {
 
     @Autowired
     @Qualifier("getSubscriptionsMap")
-    public ReplicatedMap<String, SubscriptionSetup> subscriptions;
+    public RMap<String, SubscriptionSetup> subscriptions;
 
     @Autowired
     @Qualifier("getLastActivityMap")
-    private ReplicatedMap<String, Instant> lastActivity;
+    private RMap<String, Instant> lastActivity;
 
     @Autowired
     @Qualifier("getDataReceivedMap")
-    private ReplicatedMap<String, java.time.Instant> dataReceived;
+    private RMap<String, java.time.Instant> dataReceived;
 
     @Autowired
     @Qualifier("getReceivedBytesMap")
-    private IMap<String, Long> receivedBytes;
+    private RMap<String, Long> receivedBytes;
 
     @Autowired
     @Qualifier("getActivatedTimestampMap")
-    IMap<String, java.time.Instant> activatedTimestamp;
+    RMap<String, java.time.Instant> activatedTimestamp;
 
     @Value("${anshar.environment}")
     private String environment;
 
     @Autowired
     @Qualifier("getHitcountMap")
-    private IMap<String, Integer> hitcount;
+    private RMap<String, Integer> hitcount;
 
     @Autowired
     @Qualifier("getForceRestartMap")
-    private IMap<String, String> forceRestart;
+    private RMap<String, String> forceRestart;
 
     @Autowired
-    private IMap<String, BigInteger> objectCounter;
+    private RMap<String, BigInteger> objectCounter;
 
     @Autowired
     private SiriObjectFactory siriObjectFactory;
@@ -118,15 +118,15 @@ public class SubscriptionManager {
 
     @Autowired
     @Qualifier("getSituationChangesMap")
-    private IMap<String, Set<SiriObjectStorageKey>> sxChanges;
+    private RMapCache<String, Set<SiriObjectStorageKey>> sxChanges;
 
     @Autowired
     @Qualifier("getEstimatedTimetableChangesMap")
-    private IMap<String, Set<SiriObjectStorageKey>> etChanges;
+    private RMapCache<String, Set<SiriObjectStorageKey>> etChanges;
 
     @Autowired
     @Qualifier("getVehicleChangesMap")
-    private IMap<String, Set<SiriObjectStorageKey>> vmChanges;
+    private RMapCache<String, Set<SiriObjectStorageKey>> vmChanges;
 
     @Autowired
     private RequestorRefRepository requestorRefRepository;
@@ -268,7 +268,7 @@ public class SubscriptionManager {
                 dataReceived(subscriptionId);
             }
             if (!receivedBytes.containsKey(subscriptionId)) {
-                receivedBytes.set(subscriptionId, 0L);
+                receivedBytes.fastPut(subscriptionId, 0L);
             }
             return true;
         }
@@ -286,7 +286,7 @@ public class SubscriptionManager {
     }
 
     void forceRestart(String subscriptionId) {
-        forceRestart.set(subscriptionId, subscriptionId);
+        forceRestart.fastPut(subscriptionId, subscriptionId);
     }
 
     public boolean isForceRestart(String subscriptionId) {
@@ -656,7 +656,7 @@ public class SubscriptionManager {
             dataReceived.put(subscriptionId, Instant.now());
 
             if (receivedByteCount > 0) {
-                receivedBytes.set(subscriptionId,
+                receivedBytes.fastPut(subscriptionId,
                         receivedBytes.getOrDefault(subscriptionId, 0L) + receivedByteCount);
             }
         }
