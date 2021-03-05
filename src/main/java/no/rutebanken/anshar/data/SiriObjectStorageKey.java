@@ -1,23 +1,16 @@
 package no.rutebanken.anshar.data;
 
 import com.google.common.base.Objects;
-import org.json.JSONObject;
 
-import java.io.IOException;
-import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.util.StringJoiner;
 
 public class SiriObjectStorageKey implements Serializable {
 
-    static final String CODESPACE_ID_LABEL = "codespaceId";
-    static final String LINE_REF_LABEL = "lineRef";
-    static final String KEY_LABEL = "key";
-    private String codespaceId;
-    private String lineRef;
+    private final String codespaceId;
+    private final String lineRef;
 
-    private String key;
-
+    private final String key;
 
     public SiriObjectStorageKey(String codespaceId, String lineRef, String key) {
         this.codespaceId = codespaceId;

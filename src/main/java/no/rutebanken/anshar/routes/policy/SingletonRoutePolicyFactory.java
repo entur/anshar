@@ -16,7 +16,6 @@
 package no.rutebanken.anshar.routes.policy;
 
 import no.rutebanken.anshar.data.collections.ExtendedHazelcastService;
-import no.rutebanken.anshar.data.collections.RedisService;
 import org.apache.camel.CamelContext;
 import org.apache.camel.NamedNode;
 import org.apache.camel.model.RouteDefinition;

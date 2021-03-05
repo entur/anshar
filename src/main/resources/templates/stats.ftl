@@ -273,7 +273,7 @@ Request count: ${item.requestCount}">${item.id}</span></td>
                         <td>
                             CAUTION - terminates ALL subscriptions!!! <br />
                             Will stop <i>all</i> incoming data immediately.<br />
-                            Usecase: Server is to be taken down controlled, and all subscriptions should be stopped.
+                            Use case: Server is to be taken down controlled, and all subscriptions should be stopped.
                         </td>
                         <td>
                             <span style="cursor: pointer"  class="glyphicon glyphicon-stop text-danger" onclick="administerSubscription('terminateAll', '')"></span>
@@ -286,23 +286,10 @@ Request count: ${item.requestCount}">${item.id}</span></td>
                     <tr id="accordion_admin_start" class="collapse ">
                         <td>
                             CAUTION - Triggers immediate restart of ALL active subscriptions!!!<br />
-                            Usecase: Server has just been started, and all subscriptions should be activated ASAP instead of waiting for health-trigger.
+                            Use case: Server has just been started, and all subscriptions should be activated ASAP instead of waiting for health-trigger.
                         </td>
                         <td>
                             <span style="cursor: pointer"  class="glyphicon glyphicon-refresh text-success" onclick="administerSubscription('startAll', '')"></span>
-                        </td>
-                    </tr>
-
-                    <tr data-toggle="collapse" data-target="#accordion_admin_flush" style="cursor: pointer" class="clickable danger">
-                        <td colspan="2">Delete ALL data</td>
-                    </tr>
-                    <tr id="accordion_admin_flush" class="collapse ">
-                        <td>
-                            CAUTION - Deletes all SIRI-data, all subscriptions, all trackers - everything!!!<br />
-                            Usecase: Before a full restart where all existing data needs to be flushed.
-                        </td>
-                        <td>
-                            <span style="cursor: pointer"  class="glyphicon glyphicon-trash text-danger" onclick="administerSubscription('flushAll', '')"></span>
                         </td>
                     </tr>
                 </tbody>

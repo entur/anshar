@@ -15,12 +15,17 @@
 
 package no.rutebanken.anshar.data;
 
+import com.hazelcast.core.EntryEvent;
+import com.hazelcast.map.IMap;
+import com.hazelcast.map.MapEvent;
+import com.hazelcast.replicatedmap.ReplicatedMap;
 import no.rutebanken.anshar.config.AnsharConfiguration;
+import no.rutebanken.anshar.data.collections.ExtendedHazelcastService;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.subscription.SiriDataType;
+import org.apache.camel.component.hazelcast.listener.MapEntryListener;
 import org.quartz.utils.counter.Counter;
 import org.quartz.utils.counter.CounterImpl;
-import org.redisson.api.RMapCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,7 +49,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @Repository
@@ -52,20 +56,20 @@ public class Situations extends SiriRepository<PtSituationElement> {
     private final Logger logger = LoggerFactory.getLogger(Situations.class);
 
     @Autowired
-    private RMapCache<SiriObjectStorageKey , PtSituationElement>  situationElements;
+    private IMap<SiriObjectStorageKey , PtSituationElement>  situationElements;
 
     @Autowired
     @Qualifier("getSxChecksumMap")
-    private RMapCache<SiriObjectStorageKey,String> checksumCache;
+    private ReplicatedMap<SiriObjectStorageKey,String> checksumCache;
 
     @Autowired
     @Qualifier("getSituationChangesMap")
-    private RMapCache<String, Set<SiriObjectStorageKey>> changesMap;
+    private IMap<String, Set<SiriObjectStorageKey>> changesMap;
 
 
     @Autowired
     @Qualifier("getLastSxUpdateRequest")
-    private RMapCache<String, Instant> lastUpdateRequested;
+    private IMap<String, Instant> lastUpdateRequested;
 
     @Autowired
     private SiriObjectFactory siriObjectFactory;
@@ -75,6 +79,51 @@ public class Situations extends SiriRepository<PtSituationElement> {
 
     @Autowired
     private RequestorRefRepository requestorRefRepository;
+
+    @Autowired
+    ExtendedHazelcastService hazelcastService;
+
+    @PostConstruct
+    private void initializeUpdateCommitter() {
+        super.initBufferCommitter(hazelcastService, lastUpdateRequested, changesMap, configuration.getChangeBufferCommitFrequency());
+
+        situationElements.addEntryListener(new MapEntryListener<SiriObjectStorageKey, PtSituationElement>() {
+            @Override
+            public void mapEvicted(MapEvent mapEvent) {
+                logger.info("Map evicted - {} entries affected", mapEvent.getNumberOfEntriesAffected());
+            }
+
+            @Override
+            public void mapCleared(MapEvent mapEvent) {
+                logger.info("Map cleared - {} entries affected", mapEvent.getNumberOfEntriesAffected());
+            }
+
+            @Override
+            public void entryUpdated(EntryEvent<SiriObjectStorageKey, PtSituationElement> entryEvent) {
+                logger.info("Updated SX message with key {}", entryEvent.getKey().getKey());
+            }
+
+            @Override
+            public void entryRemoved(EntryEvent<SiriObjectStorageKey, PtSituationElement> entryEvent) {
+                logger.info("Removed SX message with key {}", entryEvent.getKey().getKey());
+            }
+
+            @Override
+            public void entryMerged(EntryEvent<SiriObjectStorageKey, PtSituationElement> entryEvent) {
+                logger.info("Merged SX message with key {}", entryEvent.getKey().getKey());
+            }
+
+            @Override
+            public void entryEvicted(EntryEvent<SiriObjectStorageKey, PtSituationElement> entryEvent) {
+                logger.info("Evicted SX message with key {}", entryEvent.getKey().getKey());
+            }
+
+            @Override
+            public void entryAdded(EntryEvent<SiriObjectStorageKey, PtSituationElement> entryEvent) {
+                logger.info("Added SX message with key {}", entryEvent.getKey().getKey());
+            }
+        }, false);
+    }
 
     /**
      * @return All situationElements
@@ -87,10 +136,6 @@ public class Situations extends SiriRepository<PtSituationElement> {
         return situationElements.keySet().size();
     }
 
-    @PostConstruct
-    private void initializeUpdateCommitter() {
-        super.initBufferCommitter(lastUpdateRequested, changesMap, configuration.getChangeBufferCommitFrequency());
-    }
 
     public Map<String, Integer> getDatasetSize() {
         Map<String, Integer> sizeMap = new HashMap<>();
@@ -102,9 +147,23 @@ public class Situations extends SiriRepository<PtSituationElement> {
             sizeMap.put(datasetId, count+1);
         });
         logger.debug("Calculating data-distribution (SX) took {} ms: {}", (System.currentTimeMillis()-t1), sizeMap);
-
         return sizeMap;
     }
+
+
+    public Map<String, Integer> getLocalDatasetSize() {
+        Map<String, Integer> sizeMap = new HashMap<>();
+        long t1 = System.currentTimeMillis();
+        situationElements.localKeySet().forEach(key -> {
+            String datasetId = key.getCodespaceId();
+
+            Integer count = sizeMap.getOrDefault(datasetId, 0);
+            sizeMap.put(datasetId, count+1);
+        });
+        logger.debug("Calculating data-distribution (SX) took {} ms: {}", (System.currentTimeMillis()-t1), sizeMap);
+        return sizeMap;
+    }
+
 
     public Integer getDatasetSize(String datasetId) {
         return Math.toIntExact(situationElements.keySet().stream()
@@ -115,10 +174,7 @@ public class Situations extends SiriRepository<PtSituationElement> {
     @Override
     public void clearAllByDatasetId(String datasetId) {
 
-        final Predicate<SiriObjectStorageKey> codespacePredicate = createCodespacePredicate(
-            datasetId);
-        Set<SiriObjectStorageKey> idsToRemove = situationElements.keySet()
-            .stream().filter(key -> codespacePredicate.test(key)).collect(Collectors.toSet());
+        Set<SiriObjectStorageKey> idsToRemove = situationElements.keySet(createCodespacePredicate(datasetId));
 
         logger.warn("Removing all data ({} ids) for {}", idsToRemove.size(), datasetId);
 
@@ -222,7 +278,7 @@ public class Situations extends SiriRepository<PtSituationElement> {
         if (requestorId != null) {
 
             Set<SiriObjectStorageKey> idSet = changesMap.get(requestorId);
-            lastUpdateRequested.fastPut(requestorId, Instant.now(), configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
+            lastUpdateRequested.set(requestorId, Instant.now(), configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
             if (idSet != null) {
                 Set<SiriObjectStorageKey> datasetFilteredIdSet = new HashSet<>();
 
@@ -314,15 +370,13 @@ public class Situations extends SiriRepository<PtSituationElement> {
             if (keepByProgressStatus(situation) && updated) {
                 long expiration = getExpiration(situation);
                 if (expiration > 0) { //expiration < 0 => already expired
-                    situationElements.fastPut(key, situation, expiration, TimeUnit.MILLISECONDS);
-
+                    situationElements.set(key, situation, expiration, TimeUnit.MILLISECONDS);
                     checksumCache.put(key, currentChecksum, expiration, TimeUnit.MILLISECONDS);
                     changes.add(key);
                     addedData.add(situation);
                 } else if (situationElements.containsKey(key)) {
                     // Situation is no longer valid
-                    situationElements.remove(key);
-
+                    situationElements.delete(key);
                     checksumCache.remove(key);
                 }
                 if (expiration < 0) {

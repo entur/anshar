@@ -15,11 +15,10 @@
 
 package no.rutebanken.anshar.routes.admin;
 
-import com.google.common.collect.Maps;
 import no.rutebanken.anshar.data.EstimatedTimetables;
 import no.rutebanken.anshar.data.Situations;
 import no.rutebanken.anshar.data.VehicleActivities;
-import no.rutebanken.anshar.data.collections.RedisService;
+import no.rutebanken.anshar.data.collections.ExtendedHazelcastService;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.slf4j.Logger;
@@ -49,7 +48,7 @@ public class AdminRouteHelper {
     private EstimatedTimetables estimatedTimetables;
 
     @Autowired
-    private RedisService redisService;
+    private ExtendedHazelcastService hazelcastService;
 
     protected boolean shutdownTriggered;
 
@@ -64,7 +63,7 @@ public class AdminRouteHelper {
     public void forceUnlock(String lockId) {
         final String lockMap = "ansharRouteLockMap";
         logger.warn("Force unlocking of key {} from map {}", lockId, lockMap);
-//        redisService.getRouteLockMap().getLock(lockId).forceUnlock();
+        hazelcastService.getHazelcastInstance().getMap(lockMap).forceUnlock(lockId);
     }
 
     public boolean isNotShuttingDown() {
@@ -73,7 +72,7 @@ public class AdminRouteHelper {
 
     public Map<String, String> getAllLocks() {
         final String lockMap = "ansharRouteLockMap";
-        return Maps.newHashMap();//redisService.getRouteLockMap();
+        return hazelcastService.getHazelcastInstance().getMap(lockMap);
     }
 
     private void flushData(String datasetId, String dataType) {

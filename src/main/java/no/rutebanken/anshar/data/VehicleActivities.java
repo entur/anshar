@@ -15,14 +15,15 @@
 
 package no.rutebanken.anshar.data;
 
+import com.hazelcast.map.IMap;
+import com.hazelcast.replicatedmap.ReplicatedMap;
 import no.rutebanken.anshar.config.AnsharConfiguration;
+import no.rutebanken.anshar.data.collections.ExtendedHazelcastService;
 import no.rutebanken.anshar.routes.mqtt.SiriVmMqttHandler;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import org.quartz.utils.counter.Counter;
 import org.quartz.utils.counter.CounterImpl;
-import org.redisson.api.RMap;
-import org.redisson.api.RMapCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,7 +56,6 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @Repository
@@ -63,19 +63,19 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
     private final Logger logger = LoggerFactory.getLogger(VehicleActivities.class);
 
     @Autowired
-    private RMapCache<SiriObjectStorageKey, VehicleActivityStructure> monitoredVehicles;
+    private IMap<SiriObjectStorageKey, VehicleActivityStructure> monitoredVehicles;
 
     @Autowired
     @Qualifier("getVehicleChangesMap")
-    private RMapCache<String, Set<SiriObjectStorageKey>> changesMap;
+    private IMap<String, Set<SiriObjectStorageKey>> changesMap;
 
     @Autowired
     @Qualifier("getVmChecksumMap")
-    private RMapCache<SiriObjectStorageKey,String> checksumCache;
+    private ReplicatedMap<SiriObjectStorageKey,String> checksumCache;
 
     @Autowired
     @Qualifier("getLastVmUpdateRequest")
-    private RMapCache<String, Instant> lastUpdateRequested;
+    private IMap<String, Instant> lastUpdateRequested;
 
     @Autowired
     private SiriVmMqttHandler siriVmMqttHandler;
@@ -89,16 +89,19 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
     @Autowired
     private RequestorRefRepository requestorRefRepository;
 
+    @Autowired
+    ExtendedHazelcastService hazelcastService;
+
+    @PostConstruct
+    private void initializeUpdateCommitter() {
+        super.initBufferCommitter(hazelcastService, lastUpdateRequested, changesMap, configuration.getChangeBufferCommitFrequency());
+    }
+
     /**
      * @return All vehicle activities
      */
     public Collection<VehicleActivityStructure> getAll() {
         return monitoredVehicles.values();
-    }
-
-    @PostConstruct
-    private void initializeUpdateCommitter() {
-        super.initBufferCommitter(lastUpdateRequested, changesMap, configuration.getChangeBufferCommitFrequency());
     }
 
     public int getSize() {
@@ -115,9 +118,22 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
             sizeMap.put(datasetId, count+1);
         });
         logger.debug("Calculating data-distribution (VM) took {} ms: {}", (System.currentTimeMillis()-t1), sizeMap);
-
         return sizeMap;
     }
+
+    public Map<String, Integer> getLocalDatasetSize() {
+        Map<String, Integer> sizeMap = new HashMap<>();
+        long t1 = System.currentTimeMillis();
+        monitoredVehicles.localKeySet().forEach(key -> {
+            String datasetId = key.getCodespaceId();
+
+            Integer count = sizeMap.getOrDefault(datasetId, 0);
+            sizeMap.put(datasetId, count+1);
+        });
+        logger.debug("Calculating data-distribution (VM) took {} ms: {}", (System.currentTimeMillis()-t1), sizeMap);
+        return sizeMap;
+    }
+
 
     public Integer getDatasetSize(String datasetId) {
         return Math.toIntExact(monitoredVehicles.keySet().stream()
@@ -128,18 +144,13 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
     @Override
     public void clearAllByDatasetId(String datasetId) {
 
-        final Predicate<SiriObjectStorageKey> codespacePredicate = createCodespacePredicate(
-            datasetId);
-
-        Set<SiriObjectStorageKey> idsToRemove = monitoredVehicles.keySet().stream()
-            .filter(key -> codespacePredicate.test(key))
-            .collect(Collectors.toSet());
+        Set<SiriObjectStorageKey> idsToRemove = monitoredVehicles.keySet(createCodespacePredicate(datasetId));
 
         logger.warn("Removing all data ({} ids) for {}", idsToRemove.size(), datasetId);
 
         for (SiriObjectStorageKey id : idsToRemove) {
-            monitoredVehicles.fastRemove(id);
-            checksumCache.fastRemove(id);
+            monitoredVehicles.delete(id);
+            checksumCache.remove(id);
         }
     }
 
@@ -166,7 +177,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
         if (requestorId != null) {
 
             Set<SiriObjectStorageKey> idSet = changesMap.get(requestorId);
-            lastUpdateRequested.fastPut(requestorId, Instant.now(), configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
+            lastUpdateRequested.set(requestorId, Instant.now(), configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
             if (idSet != null) {
                 Set<SiriObjectStorageKey> datasetFilteredIdSet = new HashSet<>();
 
@@ -210,10 +221,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
     public Siri createServiceDelivery(final String lineRef) {
         SortedSet<VehicleActivityStructure> vehicleActivityStructures = new TreeSet<>(Comparator.comparing(AbstractItemStructure::getRecordedAtTime));
 
-        final Predicate<SiriObjectStorageKey> lineRefPredicate = createLineRefPredicate(lineRef);
-
-        final Set<SiriObjectStorageKey> lineRefKeys = monitoredVehicles.keySet().stream()
-            .filter(key -> lineRefPredicate.test(key)).collect(Collectors.toSet());
+        final Set<SiriObjectStorageKey> lineRefKeys = monitoredVehicles.keySet(createLineRefPredicate(lineRef));
 
         vehicleActivityStructures.addAll(monitoredVehicles.getAll(lineRefKeys).values());
 
@@ -347,9 +355,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
                         if (expiration > 0 && keep) {
                             changes.add(key);
                             addedData.add(activity);
-
-                            monitoredVehicles.fastPut(key, activity, expiration, TimeUnit.MILLISECONDS);
-
+                            monitoredVehicles.set(key, activity, expiration, TimeUnit.MILLISECONDS);
                             checksumCache.put(key, currentChecksum, expiration, TimeUnit.MILLISECONDS);
                             siriVmMqttHandler.pushToMqttAsync(datasetId, activity);
 

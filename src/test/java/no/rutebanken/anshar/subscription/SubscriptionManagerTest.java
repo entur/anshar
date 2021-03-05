@@ -116,14 +116,14 @@ public class SubscriptionManagerTest extends SpringBootBaseTest {
         String subscriptionId = subscription.getSubscriptionId();
 
         subscriptionManager.addSubscription(subscriptionId, subscription);
-        subscriptionManager.activatedTimestamp.fastPut(subscriptionId, Instant.now().minusSeconds(3600));
+        subscriptionManager.activatedTimestamp.set(subscriptionId, Instant.now().minusSeconds(3600));
 
         assertTrue(subscriptionManager.isSubscriptionHealthy(subscriptionId));
 
         restartTime = ZonedDateTime.now().minusMinutes(2).format(timeFormatter);
         subscription.setRestartTime(restartTime);
         subscriptionManager.addSubscription(subscriptionId, subscription);
-        subscriptionManager.activatedTimestamp.fastPut(subscriptionId, Instant.now().minusSeconds(3600));
+        subscriptionManager.activatedTimestamp.set(subscriptionId, Instant.now().minusSeconds(3600));
 
         assertFalse(subscriptionManager.isSubscriptionHealthy(subscriptionId));
         assertTrue(subscriptionManager.isForceRestart(subscriptionId));
@@ -137,7 +137,7 @@ public class SubscriptionManagerTest extends SpringBootBaseTest {
         String subscriptionId = subscription.getSubscriptionId();
 
         subscriptionManager.addSubscription(subscriptionId, subscription);
-        subscriptionManager.activatedTimestamp.fastPut(subscriptionId, Instant.now().minusSeconds(3600));
+        subscriptionManager.activatedTimestamp.set(subscriptionId, Instant.now().minusSeconds(3600));
 
         assertTrue(subscriptionManager.isSubscriptionHealthy(subscriptionId));
 

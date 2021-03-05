@@ -24,8 +24,6 @@ import org.apache.camel.Produce;
 import org.apache.camel.ProducerTemplate;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.redisson.api.RMap;
-import org.redisson.api.RMapCache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -67,15 +65,15 @@ public class ServerSubscriptionManager {
     private final Logger logger = LoggerFactory.getLogger(ServerSubscriptionManager.class);
 
     @Autowired
-    RMapCache<String, OutboundSubscriptionSetup> subscriptions;
+    IMap<String, OutboundSubscriptionSetup> subscriptions;
 
     @Autowired
     @Qualifier("getFailTrackerMap")
-    private RMap<String, Instant> failTrackerMap;
+    private IMap<String, Instant> failTrackerMap;
 
     @Autowired
     @Qualifier("getHeartbeatTimestampMap")
-    private RMap<String, Instant> heartbeatTimestampMap;
+    private IMap<String, Instant> heartbeatTimestampMap;
 
     @Autowired
     private SiriObjectFactory siriObjectFactory;
@@ -252,8 +250,8 @@ public class ServerSubscriptionManager {
 
     private OutboundSubscriptionSetup removeSubscription(String subscriptionId) {
         logger.info("Removing subscription {}", subscriptionId);
-        failTrackerMap.fastRemove(subscriptionId);
-        heartbeatTimestampMap.fastRemove(subscriptionId);
+        failTrackerMap.delete(subscriptionId);
+        heartbeatTimestampMap.remove(subscriptionId);
         return subscriptions.remove(subscriptionId);
     }
 
@@ -434,7 +432,7 @@ public class ServerSubscriptionManager {
                 removeSubscription(subscriptionId);
             } else {
                 logger.info("Outbound subscription {} has not responded for {}s, will be cancelled after {}s.", subscriptionId, terminationTime/1000, gracePeriod/1000);
-                failTrackerMap.fastPut(subscriptionId, firstFail);
+                failTrackerMap.set(subscriptionId, firstFail);
             }
         }
     }
@@ -442,7 +440,7 @@ public class ServerSubscriptionManager {
     public void clearFailTracker(String subscriptionId) {
         if (failTrackerMap.containsKey(subscriptionId)) {
             logger.info("Subscription {} is now responding - clearing failtracker", subscriptionId);
-            failTrackerMap.remove(subscriptionId);
+            failTrackerMap.delete(subscriptionId);
         }
     }
 }

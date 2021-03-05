@@ -199,7 +199,7 @@ public class VehicleActivitiesTest extends SpringBootBaseTest {
 
         //Added one
         assertEquals(1, vehicleActivities.getAllUpdates("1234-1234", null).size());
-        sleep(250);
+
 
         //None added
         assertEquals(0, vehicleActivities.getAllUpdates("1234-1234", null).size());

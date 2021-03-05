@@ -15,11 +15,11 @@
 
 package no.rutebanken.anshar.routes.health;
 
+import com.hazelcast.collection.ISet;
 import no.rutebanken.anshar.metrics.PrometheusMetricsService;
 import no.rutebanken.anshar.routes.RestRouteBuilder;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import org.apache.camel.Exchange;
-import org.redisson.api.RSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,7 +72,7 @@ public class LivenessReadinessRoute extends RestRouteBuilder {
 
     @Autowired
     @Qualifier("getUnhealthySubscriptionsSet")
-    private RSet<String> unhealthySubscriptionsAlreadyNotified;
+    private ISet<String> unhealthySubscriptionsAlreadyNotified;
 
     @Autowired
     private HealthManager healthManager;

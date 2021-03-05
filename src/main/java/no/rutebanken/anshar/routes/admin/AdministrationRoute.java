@@ -15,7 +15,7 @@
 
 package no.rutebanken.anshar.routes.admin;
 
-import no.rutebanken.anshar.data.collections.RedisService;
+import no.rutebanken.anshar.data.collections.ExtendedHazelcastService;
 import no.rutebanken.anshar.routes.RestRouteBuilder;
 import no.rutebanken.anshar.routes.health.HealthManager;
 import no.rutebanken.anshar.routes.outbound.ServerSubscriptionManager;
@@ -51,7 +51,7 @@ public class AdministrationRoute extends RestRouteBuilder {
     private static final String UNMAPPED_ROUTE = "direct:unmapped";
 
     @Autowired
-    private RedisService redisService;
+    private ExtendedHazelcastService extendedHazelcastService;
 
     @Autowired
     private SubscriptionManager subscriptionManager;
@@ -188,9 +188,6 @@ public class AdministrationRoute extends RestRouteBuilder {
                 .when(header(operationHeaderName).isEqualTo("flush"))
                     .to("direct:flush.data.from.subscription")
                 .endChoice()
-                .when(header(operationHeaderName).isEqualTo("flushAll"))
-                    .to("direct:flush.all.data")
-                .endChoice()
             .end()
         ;
 
@@ -230,14 +227,6 @@ public class AdministrationRoute extends RestRouteBuilder {
                 .routeId("admin.flush.data")
         ;
 
-        //Return subscription status
-        from("direct:flush.all.data")
-                .process(p -> {
-                    redisService.clearAllRedisMaps();
-                })
-                .routeId("admin.flush.all.data")
-        ;
-
 
         //Prepare Camel shutdown
         from("direct:prepare-shutdown")
@@ -248,7 +237,7 @@ public class AdministrationRoute extends RestRouteBuilder {
                     final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
 
                     executorService.schedule(() -> getContext().shutdown(), 5, TimeUnit.SECONDS);
-                    executorService.schedule(() -> redisService.shutdown(), 10, TimeUnit.SECONDS);
+                    executorService.schedule(() -> extendedHazelcastService.shutdown(), 10, TimeUnit.SECONDS);
 
                 })
                 .routeId("admin.prepare.shutdown")

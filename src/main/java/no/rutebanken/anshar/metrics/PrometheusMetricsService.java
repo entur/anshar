@@ -15,6 +15,7 @@
 
 package no.rutebanken.anshar.metrics;
 
+import com.hazelcast.replicatedmap.ReplicatedMap;
 import io.micrometer.core.instrument.ImmutableTag;
 import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.Tag;
@@ -29,8 +30,6 @@ import no.rutebanken.anshar.routes.validation.ValidationType;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
-import org.redisson.api.RMap;
-import org.redisson.api.RMapCache;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import uk.org.siri.siri20.EstimatedTimetableDeliveryStructure;
@@ -204,24 +203,24 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
         }
 
         EstimatedTimetables estimatedTimetables = ApplicationContextHolder.getContext().getBean(EstimatedTimetables.class);
-        Map<String, Integer> datasetSize = estimatedTimetables.getDatasetSize();
+        Map<String, Integer> datasetSize = estimatedTimetables.getLocalDatasetSize();
         for (Map.Entry<String, Integer> entry : datasetSize.entrySet()) {
             gaugeDataset(SiriDataType.ESTIMATED_TIMETABLE, entry.getKey(), entry.getValue());
         }
 
         Situations situations = ApplicationContextHolder.getContext().getBean(Situations.class);
-        datasetSize = situations.getDatasetSize();
+        datasetSize = situations.getLocalDatasetSize();
         for (Map.Entry<String, Integer> entry : datasetSize.entrySet()) {
             gaugeDataset(SiriDataType.SITUATION_EXCHANGE, entry.getKey(), entry.getValue());
         }
 
         VehicleActivities vehicleActivities = ApplicationContextHolder.getContext().getBean(VehicleActivities.class);
-        datasetSize = vehicleActivities.getDatasetSize();
+        datasetSize = vehicleActivities.getLocalDatasetSize();
         for (Map.Entry<String, Integer> entry : datasetSize.entrySet()) {
             gaugeDataset(SiriDataType.VEHICLE_MONITORING, entry.getKey(), entry.getValue());
         }
 
-        RMap<String, SubscriptionSetup> subscriptions = manager.subscriptions;
+        ReplicatedMap<String, SubscriptionSetup> subscriptions = manager.subscriptions;
         for (SubscriptionSetup subscription : subscriptions.values()) {
 
             SiriDataType subscriptionType = subscription.getSubscriptionType();

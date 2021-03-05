@@ -15,7 +15,7 @@
 
 package no.rutebanken.anshar.health;
 
-import no.rutebanken.anshar.data.collections.RedisService;
+import no.rutebanken.anshar.data.collections.ExtendedHazelcastService;
 import no.rutebanken.anshar.integration.SpringBootBaseTest;
 import no.rutebanken.anshar.routes.health.HealthManager;
 import org.junit.jupiter.api.Disabled;
@@ -32,7 +32,7 @@ public class HealthManagerTest extends SpringBootBaseTest {
     private HealthManager healthManager;
 
     @Autowired
-    private RedisService redisService;
+    private ExtendedHazelcastService extendedHazelcastService;
 
     /*
      * Test is ignored as it shuts down entire hazelcast-instance causing multiple tests to fail
@@ -41,7 +41,7 @@ public class HealthManagerTest extends SpringBootBaseTest {
     @Disabled
     public void testShutDownDiscovered() {
         assertTrue(healthManager.isHazelcastAlive());
-        redisService.shutdown();
+        extendedHazelcastService.shutdown();
         assertFalse(healthManager.isHazelcastAlive());
     }
 }

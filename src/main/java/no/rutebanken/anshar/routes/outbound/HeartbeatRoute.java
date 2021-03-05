@@ -15,11 +15,11 @@
 
 package no.rutebanken.anshar.routes.outbound;
 
+import com.hazelcast.map.IMap;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.routes.BaseRouteBuilder;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
-import org.redisson.api.RMapCache;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -38,7 +38,7 @@ public class HeartbeatRoute extends BaseRouteBuilder {
 
     @Autowired
     @Qualifier("getHeartbeatTimestampMap")
-    private RMapCache<String, Instant> heartbeatTimestampMap;
+    private IMap<String, Instant> heartbeatTimestampMap;
 
     @Autowired
     private ServerSubscriptionManager serverSubscriptionManager;
@@ -71,7 +71,7 @@ public class HeartbeatRoute extends BaseRouteBuilder {
                             Siri heartbeatNotification = siriObjectFactory.createHeartbeatNotification(outboundSubscriptionSetup.getSubscriptionId());
                             camelRouteManager.pushSiriData(heartbeatNotification, outboundSubscriptionSetup, serverSubscriptionManager);
 
-                            heartbeatTimestampMap.fastPut(subscriptionId, Instant.now(), heartbeatInterval, TimeUnit.MILLISECONDS);
+                            heartbeatTimestampMap.put(subscriptionId, Instant.now(), heartbeatInterval, TimeUnit.MILLISECONDS);
                         }
                     } else {
                         log.info("Outbound subscription {} not found.", subscriptionId);

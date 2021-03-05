@@ -15,10 +15,9 @@
 
 package no.rutebanken.anshar.data;
 
+import com.hazelcast.map.IMap;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.subscription.SiriDataType;
-import org.redisson.api.RMap;
-import org.redisson.api.RMapCache;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -30,7 +29,7 @@ import java.util.concurrent.TimeUnit;
 public class RequestorRefRepository {
 
     @Autowired
-    private RMapCache<String[], RequestorRefStats> requestorRefs;
+    private IMap<String[], RequestorRefStats> requestorRefs;
 
     @Autowired
     private AnsharConfiguration configuration;
@@ -47,7 +46,7 @@ public class RequestorRefRepository {
 
         stats.touch(Instant.now());
 
-        requestorRefs.fastPut(key, stats, configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
+        requestorRefs.set(key, stats, configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
     }
 
     private String[] createKey(@NotNull String requestorRef, @NotNull SiriDataType dataType) {
