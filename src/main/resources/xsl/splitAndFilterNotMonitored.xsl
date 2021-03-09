@@ -13,7 +13,7 @@
     <xsl:template name="Siri" match="/siri:Siri">
 
         <xsl:for-each select="/siri:Siri/siri:ServiceDelivery/siri:EstimatedTimetableDelivery/siri:EstimatedJourneyVersionFrame/siri:EstimatedVehicleJourney[siri:Monitored/text()='true'] | /siri:Siri/siri:ServiceDelivery/siri:EstimatedTimetableDelivery/siri:EstimatedJourneyVersionFrame/siri:EstimatedVehicleJourney[siri:Cancellation/text()='true']">
-            <Siri xmlns="http://www.siri.org.uk/siri" version="2.0">>
+            <Siri xmlns="http://www.siri.org.uk/siri" version="2.0">
                 <ServiceDelivery>
                     <xsl:copy-of select="/siri:Siri/siri:ServiceDelivery/siri:ResponseTimestamp"></xsl:copy-of>
                     <xsl:copy-of select="/siri:Siri/siri:ServiceDelivery/siri:ProducerRef"></xsl:copy-of>
