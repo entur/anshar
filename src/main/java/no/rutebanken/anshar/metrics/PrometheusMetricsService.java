@@ -52,6 +52,7 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
     private static final String MAPPING_NAME_TAG = "mappingName";
 
     private static final String KAFKA_STATUS_TAG = "kafkaStatus";
+    private static final String KAFKA_TOPIC_NAME = "kafkaTopic";
 
     private static final String CODESPACE_TAG_NAME = "codespace";
     private static final String VALIDATION_TYPE_TAG_NAME = "validationType";
@@ -109,8 +110,9 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
     }
 
     public enum KafkaStatus {SENT, ACKED, FAILED}
-    public void registerKafkaRecord(KafkaStatus status) {
+    public void registerKafkaRecord(String topic, KafkaStatus status) {
         List<Tag> counterTags = new ArrayList<>();
+        counterTags.add(new ImmutableTag(KAFKA_TOPIC_NAME, topic));
         counterTags.add(new ImmutableTag(KAFKA_STATUS_TAG, status.name()));
 
         counter(KAFKA_COUNTER_NAME, counterTags).increment();

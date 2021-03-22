@@ -122,21 +122,21 @@ public class KafkaPublisher {
             }
 
             //Fire and forget
-            producer.send(record, createCallback());
-            metricsService.registerKafkaRecord(PrometheusMetricsService.KafkaStatus.SENT);
+            producer.send(record, createCallback(topicName));
+            metricsService.registerKafkaRecord(topicName, PrometheusMetricsService.KafkaStatus.SENT);
         }
 
     }
 
-    private Callback createCallback() {
+    private Callback createCallback(final String topicName) {
         return (recordMetadata, e) -> {
             if (e != null) {
                 // Failed
                 log.warn("Publishing to kafka failed", e);
-                metricsService.registerKafkaRecord(PrometheusMetricsService.KafkaStatus.FAILED);
+                metricsService.registerKafkaRecord(topicName, PrometheusMetricsService.KafkaStatus.FAILED);
             } else {
                 // Success
-                metricsService.registerKafkaRecord(PrometheusMetricsService.KafkaStatus.ACKED);
+                metricsService.registerKafkaRecord(topicName, PrometheusMetricsService.KafkaStatus.ACKED);
             }
         };
     }
