@@ -29,12 +29,15 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Properties;
 
 @Service
 public class KafkaPublisher {
     private final Logger log = LoggerFactory.getLogger(KafkaPublisher.class);
+
+    public static final String CODESPACE_ID_KAFKA_HEADER_NAME = "codespaceId";
 
     @Value("${anshar.kafka.enabled:false}")
     private boolean kafkaEnabled;
@@ -94,15 +97,24 @@ public class KafkaPublisher {
 
     }
 
-    public void publishToKafka(String topicName, String siriData, Map metadataHeaders) {
+    public void publishToKafka(String topicName, String siriData, Map<String, String> metadataHeaders) {
         if (!kafkaEnabled) {
             log.debug("Push to Kafka is disabled, should have pushed update ");
             return;
         }
 
         if (producer != null) {
+
+            final ProducerRecord record = new ProducerRecord(topicName, siriData);
+            if (metadataHeaders.containsKey(CODESPACE_ID_KAFKA_HEADER_NAME)) {
+                record.headers().add(CODESPACE_ID_KAFKA_HEADER_NAME,
+                    metadataHeaders.get(CODESPACE_ID_KAFKA_HEADER_NAME)
+                        .getBytes(StandardCharsets.UTF_8)
+                );
+            }
+
             //Fire and forget
-            producer.send(new ProducerRecord(topicName, siriData, metadataHeaders));
+            producer.send(record);
         }
 
     }

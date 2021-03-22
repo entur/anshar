@@ -56,6 +56,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static java.time.temporal.ChronoUnit.MILLIS;
+import static no.rutebanken.anshar.routes.kafka.KafkaPublisher.CODESPACE_ID_KAFKA_HEADER_NAME;
 
 @SuppressWarnings("unchecked")
 @Service
@@ -351,7 +352,7 @@ public class ServerSubscriptionManager {
         Siri delivery = siriObjectFactory.createVMServiceDelivery(addedOrUpdated);
 
         if (pushToTopicEnabled) {
-            siriVmTopicProducer.asyncSendBody(siriVmTopicProducer.getDefaultEndpoint(), delivery);
+            siriVmTopicProducer.asyncRequestBodyAndHeader(siriVmTopicProducer.getDefaultEndpoint(), delivery, CODESPACE_ID_KAFKA_HEADER_NAME, datasetId);
         }
 
         subscriptions.values().stream().filter(subscriptionRequest ->
@@ -377,7 +378,7 @@ public class ServerSubscriptionManager {
         Siri delivery = siriObjectFactory.createSXServiceDelivery(addedOrUpdated);
 
         if (pushToTopicEnabled) {
-            siriSxTopicProducer.asyncSendBody(siriSxTopicProducer.getDefaultEndpoint(), delivery);
+            siriSxTopicProducer.asyncRequestBodyAndHeader(siriSxTopicProducer.getDefaultEndpoint(), delivery, CODESPACE_ID_KAFKA_HEADER_NAME, datasetId);
         }
 
         subscriptions.values().stream().filter(subscriptionRequest ->
@@ -404,7 +405,7 @@ public class ServerSubscriptionManager {
         Siri delivery = siriObjectFactory.createETServiceDelivery(addedOrUpdated);
 
         if (pushToTopicEnabled) {
-            siriEtTopicProducer.asyncSendBody(siriEtTopicProducer.getDefaultEndpoint(), delivery);
+            siriEtTopicProducer.asyncRequestBodyAndHeader(siriEtTopicProducer.getDefaultEndpoint(), delivery, CODESPACE_ID_KAFKA_HEADER_NAME, datasetId);
         }
 
         subscriptions.values().stream().filter(subscriptionRequest ->
