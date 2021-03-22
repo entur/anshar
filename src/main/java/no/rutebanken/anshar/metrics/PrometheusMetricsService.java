@@ -51,6 +51,8 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
     private static final String AGENCY_TAG_NAME = "agency";
     private static final String MAPPING_NAME_TAG = "mappingName";
 
+    private static final String KAFKA_STATUS_TAG = "kafkaStatus";
+
     private static final String CODESPACE_TAG_NAME = "codespace";
     private static final String VALIDATION_TYPE_TAG_NAME = "validationType";
     private static final String VALIDATION_RULE_TAG_NAME = "category";
@@ -69,6 +71,8 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
     private static final String DATA_OUTBOUND_COUNTER_NAME = METRICS_PREFIX + "data.outbound";
 
     private static final String DATA_MAPPING_COUNTER_NAME = METRICS_PREFIX + "data.mapping";
+
+    private static final String KAFKA_COUNTER_NAME = METRICS_PREFIX + "data.kafka";
 
     private static final String DATA_VALIDATION_COUNTER = METRICS_PREFIX + "data.validation";
     private static final String DATA_VALIDATION_RESULT_COUNTER = METRICS_PREFIX + "data.validation.result";
@@ -102,6 +106,14 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
         counterTags.add(new ImmutableTag(MAPPING_NAME_TAG, mappingName.toString()));
 
         counter(DATA_MAPPING_COUNTER_NAME, counterTags).increment(mappedCount);
+    }
+
+    public enum KafkaStatus {SENT, ACKED, FAILED}
+    public void registerKafkaRecord(KafkaStatus status) {
+        List<Tag> counterTags = new ArrayList<>();
+        counterTags.add(new ImmutableTag(KAFKA_STATUS_TAG, status.name()));
+
+        counter(KAFKA_COUNTER_NAME, counterTags).increment();
     }
 
     public void countOutgoingData(Siri siri, SubscriptionSetup.SubscriptionMode mode) {

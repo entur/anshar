@@ -17,14 +17,17 @@
 package no.rutebanken.anshar.routes.kafka;
 
 import net.logstash.logback.encoder.org.apache.commons.lang3.StringUtils;
+import no.rutebanken.anshar.metrics.PrometheusMetricsService;
 import org.apache.camel.component.kafka.KafkaConfiguration;
 import org.apache.kafka.clients.CommonClientConfigs;
+import org.apache.kafka.clients.producer.Callback;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.config.SaslConfigs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -65,6 +68,9 @@ public class KafkaPublisher {
 
     private KafkaProducer producer;
 
+    @Autowired
+    PrometheusMetricsService metricsService;
+
     @PostConstruct
     public void init() {
         if (!kafkaEnabled) {
@@ -79,6 +85,8 @@ public class KafkaPublisher {
         properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, brokers);
         properties.put(ProducerConfig.CLIENT_ID_CONFIG, clientId);
         properties.put(ProducerConfig.COMPRESSION_TYPE_CONFIG, "gzip");
+        properties.put(ProducerConfig.RETRIES_CONFIG, "10");
+        properties.put(ProducerConfig.RETRY_BACKOFF_MS_CONFIG, "100");
 
         // Security
         if (!StringUtils.isEmpty(saslUsername) && !StringUtils.isEmpty(saslPassword)) {
@@ -114,9 +122,23 @@ public class KafkaPublisher {
             }
 
             //Fire and forget
-            producer.send(record);
+            producer.send(record, createCallback());
+            metricsService.registerKafkaRecord(PrometheusMetricsService.KafkaStatus.SENT);
         }
 
+    }
+
+    private Callback createCallback() {
+        return (recordMetadata, e) -> {
+            if (e != null) {
+                // Failed
+                log.warn("Publishing to kafka failed", e);
+                metricsService.registerKafkaRecord(PrometheusMetricsService.KafkaStatus.FAILED);
+            } else {
+                // Success
+                metricsService.registerKafkaRecord(PrometheusMetricsService.KafkaStatus.ACKED);
+            }
+        };
     }
 
 }
