@@ -94,8 +94,14 @@ public class NetexProcessor {
             List<JAXBElement<? extends DayTypeRefStructure>> dayTypeRefs = serviceJourney.getDayTypes().getDayTypeRef();
             for (JAXBElement<? extends DayTypeRefStructure> dayTypeRef : dayTypeRefs) {
                 DayTypeAssignment dayTypeAssignment = dayTypeAssignmentByDayTypeId.get(dayTypeRef.getValue().getRef());
-                LocalDateTime date = dayTypeAssignment.getDate();
-                dates.add(new ServiceDate(date.getYear(), date.getMonthValue(), date.getDayOfMonth()));
+                if (dayTypeAssignment != null) {
+                    LocalDateTime date = dayTypeAssignment.getDate();
+                    final ServiceDate d = new ServiceDate(date.getYear(),
+                        date.getMonthValue(),
+                        date.getDayOfMonth()
+                    );
+                    dates.add(d);
+                }
             }
             tripDates.put(serviceJourneyId, dates);
         }
