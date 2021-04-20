@@ -34,12 +34,12 @@ public class MonitoredOperatorRefValidatorTest extends CustomValidatorTest {
     }
 
     @Test
-    public void testValidParticipant() {
-        assertNull("Valid "+fieldName+" flagged as invalid", validator.isValid(createXmlNode(fieldName, "ENT")));
+    public void testValidOperator() {
+        assertNull("Valid "+fieldName+" flagged as invalid", validator.isValid(createXmlNode(fieldName, "ENT:Operator:123")));
     }
 
     @Test
-    public void testInvalidParticipant() {
-        assertNotNull("Invalid "+fieldName+" flagged as valid", validator.isValid(createXmlNode(fieldName, "Internettbussene")));
+    public void testInvalidOperatorRef() {
+        assertNotNull("Invalid "+fieldName+" flagged as valid", validator.isValid(createXmlNode(fieldName, "ENT")));
     }
 }
