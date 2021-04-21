@@ -287,7 +287,11 @@ public class SiriHandler {
             } else if (incoming.getSubscriptionResponse() != null) {
                 SubscriptionResponseStructure subscriptionResponse = incoming.getSubscriptionResponse();
                 subscriptionResponse.getResponseStatuses().forEach(responseStatus -> {
-                    if (responseStatus.isStatus() != null && responseStatus.isStatus()) {
+                    if (responseStatus.isStatus() == null ||
+                        (responseStatus.isStatus() != null && responseStatus.isStatus())) {
+
+                        // If no status is provided it is handled as "true"
+
                         subscriptionManager.activatePendingSubscription(subscriptionId);
                     }
                 });
