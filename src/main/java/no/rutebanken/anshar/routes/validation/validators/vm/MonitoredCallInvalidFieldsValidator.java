@@ -48,9 +48,7 @@ public class MonitoredCallInvalidFieldsValidator extends NsrQuayValidator {
     @Override
     public ValidationEvent isValid(Node node) {
         return verifyNonExistingFields(node, FIELDNAME,
-                "ActualArrivalTime",
                 "LatestExpectedArrivalTime",
-                "ActualDepartureTime",
                 "EarliestExpectedDepartureTime",
                 "DepartureStopAssignment");
 
