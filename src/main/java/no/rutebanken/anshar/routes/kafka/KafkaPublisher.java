@@ -119,11 +119,11 @@ public class KafkaPublisher {
                     metadataHeaders.get(CODESPACE_ID_KAFKA_HEADER_NAME)
                         .getBytes(StandardCharsets.UTF_8)
                 );
-                if ("TRO".equals(metadataHeaders.get(CODESPACE_ID_KAFKA_HEADER_NAME ))) {
-                    if (siriData.contains("ProgressBetweenStops")) {
-                        log.info("Sending VM-data with ProgressBetweenStops to kafka: {}", siriData);
-                    }
-                }
+//                if ("TRO".equals(metadataHeaders.get(CODESPACE_ID_KAFKA_HEADER_NAME ))) {
+//                    if (siriData.contains("ProgressBetweenStops")) {
+//                        log.info("Sending VM-data with ProgressBetweenStops to kafka: {}", siriData);
+//                    }
+//                }
             }
 
             //Fire and forget
