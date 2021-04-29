@@ -121,7 +121,7 @@ public class KafkaPublisher {
                 );
                 if ("TRO".equals(metadataHeaders.get(CODESPACE_ID_KAFKA_HEADER_NAME ))) {
                     if (siriData.contains("ProgressBetweenStops")) {
-                        log.info("Sending VM-data with ProgressBetweenStops to kafka: {)", siriData);
+                        log.info("Sending VM-data with ProgressBetweenStops to kafka: {}", siriData);
                     }
                 }
             }
