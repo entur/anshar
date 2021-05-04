@@ -189,20 +189,21 @@ public class VehicleActivitiesTest extends SpringBootBaseTest {
         vehicleActivities.add("test", createVehicleActivityStructure(ZonedDateTime.now(), prefix+"2345"));
         vehicleActivities.add("test", createVehicleActivityStructure(ZonedDateTime.now(), prefix+"3456"));
 
-        sleep(250);
+        sleep(50);
 
         // Added 3
         assertEquals(previousSize+3, vehicleActivities.getAllUpdates("1234-1234", null).size());
 
         vehicleActivities.add("test", createVehicleActivityStructure(ZonedDateTime.now(), prefix+"4567"));
-        sleep(250);
+        sleep(50);
 
         //Added one
         assertEquals(1, vehicleActivities.getAllUpdates("1234-1234", null).size());
-
+        sleep(50);
 
         //None added
         assertEquals(0, vehicleActivities.getAllUpdates("1234-1234", null).size());
+        sleep(50);
 
         //Verify that all elements still exist
         assertEquals(previousSize+4, vehicleActivities.getAll().size());
