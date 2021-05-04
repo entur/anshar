@@ -127,6 +127,7 @@ public class EstimatedTimetablesTest extends SpringBootBaseTest {
         sleep(50);
 
         Siri siri = estimatedTimetables.createServiceDelivery(requestorId, null, 2);
+        sleep(50);
 
         assertTrue(siri.getServiceDelivery().isMoreData());
         assertEquals(2, siri
@@ -135,6 +136,7 @@ public class EstimatedTimetablesTest extends SpringBootBaseTest {
                 .getEstimatedVehicleJourneies().size());
 
         siri = estimatedTimetables.createServiceDelivery(requestorId, null, 2);
+        sleep(50);
 
         assertFalse(siri.getServiceDelivery().isMoreData());
         assertEquals(1, siri
@@ -143,6 +145,7 @@ public class EstimatedTimetablesTest extends SpringBootBaseTest {
                 .getEstimatedVehicleJourneies().size());
 
         siri = estimatedTimetables.createServiceDelivery(requestorId, null, 2);
+        sleep(50);
 
         assertFalse(siri.getServiceDelivery().isMoreData());
         assertEquals(0, siri
