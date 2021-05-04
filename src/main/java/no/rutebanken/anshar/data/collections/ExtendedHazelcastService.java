@@ -116,24 +116,19 @@ public class ExtendedHazelcastService {
     public Config getHazelcastConfig() {
         Config cfg = (new Config()).setInstanceName(UUID.randomUUID().toString()).setProperty("hazelcast.phone.home.enabled", "false");
 
-        JoinConfig joinCfg = (new JoinConfig()).setMulticastConfig(new MulticastConfig().setEnabled(false));
+        //Disabling default config
+        cfg.getNetworkConfig().getJoin().getMulticastConfig().setEnabled(false);
 
         if (isKubernetesEnabled) {
             cfg.getNetworkConfig().getJoin().getKubernetesConfig()
-                .setEnabled(isKubernetesEnabled);
-
-            cfg.getNetworkConfig().getJoin().getKubernetesConfig()
+                .setEnabled(isKubernetesEnabled)
                 .setProperty("namespace", namespace)
                 .setProperty("service-name", serviceName);
 
         } else {
-            TcpIpConfig tcpIpConfig = new TcpIpConfig().setEnabled(true);
-            tcpIpConfig.setMembers(Arrays.asList("127.0.0.1:5701", "127.0.0.1:5702"));
-            joinCfg.setTcpIpConfig(tcpIpConfig);
-
-            NetworkConfig networkCfg = (new NetworkConfig()).setJoin(joinCfg);
-            networkCfg.getInterfaces().setEnabled(false);
-            cfg.setNetworkConfig(networkCfg);
+            cfg.getNetworkConfig().getJoin().getTcpIpConfig()
+                .setEnabled(true)
+                .setMembers(Arrays.asList("127.0.0.1:5701", "127.0.0.1:5702"));
         }
 
         getSerializerConfigs().forEach( cfg.getSerializationConfig()::addSerializerConfig);
