@@ -94,11 +94,6 @@
             </dependency>
             <dependency>
                 <groupId>org.entur.helpers</groupId>
-                <artifactId>hazelcast4-helper</artifactId>
-                <version>${entur.helpers.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.entur.helpers</groupId>
                 <artifactId>gcp-storage</artifactId>
                 <version>${entur.helpers.version}</version>
                 <exclusions>
@@ -128,10 +123,6 @@
         <dependency>
             <groupId>org.apache.camel.springboot</groupId>
             <artifactId>camel-spring-boot-starter</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.entur.helpers</groupId>
-            <artifactId>hazelcast4-helper</artifactId>
         </dependency>
         <dependency>
             <groupId>org.entur.helpers</groupId>
@@ -191,11 +182,6 @@
         </dependency>
         <dependency>
             <groupId>org.apache.camel</groupId>
-            <artifactId>camel-hazelcast</artifactId>
-            <version>${camel-version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.camel</groupId>
             <artifactId>camel-freemarker</artifactId>
             <version>${camel-version}</version>
         </dependency>
@@ -227,6 +213,11 @@
             <version>2.7.0</version>
         </dependency>
         <dependency>
+            <groupId>org.apache.camel</groupId>
+            <artifactId>camel-hazelcast</artifactId>
+            <version>${camel-version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
@@ -253,6 +244,11 @@
             <groupId>com.hazelcast</groupId>
             <artifactId>hazelcast</artifactId>
             <version>4.0.3</version>
+        </dependency>
+        <dependency>
+            <groupId>com.hazelcast</groupId>
+            <artifactId>hazelcast-kubernetes</artifactId>
+            <version>2.2.2</version>
         </dependency>
 
         <dependency>
