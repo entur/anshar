@@ -16,15 +16,7 @@
 package no.rutebanken.anshar.data.collections;
 
 import com.hazelcast.collection.ISet;
-import com.hazelcast.config.Config;
-import com.hazelcast.config.JoinConfig;
-import com.hazelcast.config.MapConfig;
-import com.hazelcast.config.MulticastConfig;
-import com.hazelcast.config.NetworkConfig;
-import com.hazelcast.config.SerializationConfig;
 import com.hazelcast.config.SerializerConfig;
-import com.hazelcast.config.TcpIpConfig;
-import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.LifecycleEvent;
 import com.hazelcast.map.IMap;
@@ -35,10 +27,10 @@ import no.rutebanken.anshar.routes.outbound.OutboundSubscriptionSetup;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.json.simple.JSONObject;
+import org.rutebanken.hazelcasthelper.service.HazelCastService;
+import org.rutebanken.hazelcasthelper.service.KubernetesService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -47,44 +39,26 @@ import uk.org.siri.siri20.EstimatedVehicleJourney;
 import uk.org.siri.siri20.PtSituationElement;
 import uk.org.siri.siri20.VehicleActivityStructure;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.math.BigInteger;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 
 @Service
 @Configuration
-public class ExtendedHazelcastService {
+public class ExtendedHazelcastService extends HazelCastService {
 
     private Logger logger = LoggerFactory.getLogger(ExtendedHazelcastService.class);
-
-    private final boolean isKubernetesEnabled;
-    private final String namespace;
-    private final String serviceName;
-
-    @Value("${entur.hazelcast.backup.count.sync:2}")
-    private int backupCount;
-
-    @Value("${entur.hazelcast.backup.count.async:0}")
-    private int backupCountAsync;
-
-    @Autowired
-    @Qualifier("hazelcastInstance")
-    private HazelcastInstance hazelcast;
 
     public ExtendedHazelcastService(@Value("${anshar.hazelcast.kubernetes.enabled:false}") boolean isKubernetesEnabled,
         @Value("${anshar.hazelcast.kubernetes.namespace:}") String namespace,
         @Value("${anshar.hazelcast.kubernetes.serviceName:}") String serviceName) {
-        this.isKubernetesEnabled = isKubernetesEnabled;
-        this.namespace = namespace;
-        this.serviceName = serviceName;
+
+        super(new KubernetesService(null, serviceName, namespace, isKubernetesEnabled));
     }
 
     public void addBeforeShuttingDownHook(Runnable destroyFunction) {
@@ -101,10 +75,6 @@ public class ExtendedHazelcastService {
         logger.info("Lifecycle: Shutdownhook added.");
     }
 
-    public void shutdown() {
-        hazelcast.shutdown();
-    }
-
     @PreDestroy
     private void customShutdown() {
         logger.info("Attempting to shutdown through LifecycleService");
@@ -112,45 +82,11 @@ public class ExtendedHazelcastService {
         logger.info("Shutdown through LifecycleService");
     }
 
-    @Bean
-    public Config getHazelcastConfig() {
-        Config cfg = (new Config()).setInstanceName(UUID.randomUUID().toString()).setProperty("hazelcast.phone.home.enabled", "false");
-
-        //Disabling default config
-        cfg.getNetworkConfig().getJoin().getMulticastConfig().setEnabled(false);
-
-        if (isKubernetesEnabled) {
-            cfg.getNetworkConfig().getJoin().getKubernetesConfig()
-                .setEnabled(isKubernetesEnabled)
-                .setProperty("namespace", namespace)
-                .setProperty("service-name", serviceName);
-
-        } else {
-            cfg.getNetworkConfig().getJoin().getTcpIpConfig()
-                .setEnabled(true)
-                .setMembers(Arrays.asList("127.0.0.1:5701", "127.0.0.1:5702"));
-        }
-
-        getSerializerConfigs().forEach( cfg.getSerializationConfig()::addSerializerConfig);
-
-        MapConfig mapConfig = cfg.getMapConfig("default");
-
-        logger.info("Old config: b_count {} async_b_count {} read_backup_data {}", mapConfig.getBackupCount(), mapConfig.getAsyncBackupCount(), mapConfig.isReadBackupData());
-
-        mapConfig.setBackupCount(backupCount)
-            .setAsyncBackupCount(backupCountAsync)
-            .setReadBackupData(true);
-
-        logger.info("New config: b_count {} async_b_count {} read_backup_data {}", mapConfig.getBackupCount(), mapConfig.getAsyncBackupCount(), mapConfig.isReadBackupData());
-
-        return cfg;
-    }
-
     public HazelcastInstance getHazelcastInstance() {
         return hazelcast;
     }
 
-//    @Override
+    @Override
     public List<SerializerConfig> getSerializerConfigs() {
 
         return Arrays.asList(
