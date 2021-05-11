@@ -652,6 +652,17 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                     }
                 }
             }
+            if (lastStopId == null) {
+                if (element.getRecordedCalls() != null && element.getRecordedCalls().getRecordedCalls() != null && !element.getRecordedCalls().getRecordedCalls().isEmpty()) {
+                    final List<RecordedCall> recordedCalls = element.getRecordedCalls().getRecordedCalls();
+                    if (recordedCalls.get(recordedCalls.size()-1) != null) {
+                        final StopPointRef stopPointRef = recordedCalls.get(recordedCalls.size()-1).getStopPointRef();
+                        if (stopPointRef != null) {
+                            lastStopId = getOriginalId(stopPointRef.getValue());
+                        }
+                    }
+                }
+            }
             key.append((element.getOperatorRef() != null ? element.getOperatorRef().getValue() : "null"))
                     .append(":")
                     .append((element.getVehicleRef() != null ? element.getVehicleRef().getValue() : "null"))
