@@ -20,8 +20,8 @@ import no.rutebanken.anshar.validation.CustomValidatorTest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import static junit.framework.TestCase.assertNotNull;
-import static junit.framework.TestCase.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class ExtraJourneyValidatorTest extends CustomValidatorTest{
 
@@ -58,7 +58,7 @@ public class ExtraJourneyValidatorTest extends CustomValidatorTest{
 
         String xml = mergeXml(extraJourney, vehicleMode, routeRef, groupOfLines, estimatedVehicleJourney);
 
-        assertNull("Correct " + extraJourneyFieldName + " flagged as invalid", validator.isValid(createXmlNode(xml).getFirstChild()));
+        assertNull(validator.isValid(createXmlNode(xml).getFirstChild()), "Correct " + extraJourneyFieldName + " flagged as invalid");
     }
 
     @Test
@@ -70,21 +70,21 @@ public class ExtraJourneyValidatorTest extends CustomValidatorTest{
 
         String xml = mergeXml(extraJourney, vehicleMode, routeRef, groupOfLines);
 
-        assertNull("Correct " + extraJourneyFieldName + " flagged as valid", validator.isValid(createXmlNode(xml).getFirstChild()));
+        assertNull(validator.isValid(createXmlNode(xml).getFirstChild()), "Correct " + extraJourneyFieldName + " flagged as valid");
     }
 
     @Test
     public void testEmptyExtraJourney() throws Exception{
         String xml = createXml(extraJourneyFieldName, "");
 
-        assertNotNull("Empty " + extraJourneyFieldName + " flagged as valid", validator.isValid(createXmlNode(xml)));
+        assertNotNull(validator.isValid(createXmlNode(xml)), "Empty " + extraJourneyFieldName + " flagged as valid");
     }
 
     @Test
     public void testExtraJourneyNoVehicleMode() throws Exception{
         String xml = createXml(extraJourneyFieldName, "true");
 
-        assertNotNull("Empty " + vehicleModeName + " flagged as valid", validator.isValid(createXmlNode(xml)));
+        assertNotNull(validator.isValid(createXmlNode(xml)), "Empty " + vehicleModeName + " flagged as valid");
     }
 
     @Test
@@ -96,7 +96,7 @@ public class ExtraJourneyValidatorTest extends CustomValidatorTest{
 
         String xml = mergeXml(extraJourney, vehicleMode, routeRef, groupOfLines);
 
-        assertNotNull("Empty " + extraJourneyFieldName + " flagged as valid", validator.isValid(createXmlNode(xml).getFirstChild()));
+        assertNotNull(validator.isValid(createXmlNode(xml).getFirstChild()), "Empty " + extraJourneyFieldName + " flagged as valid");
     }
 
     @Test
@@ -108,7 +108,7 @@ public class ExtraJourneyValidatorTest extends CustomValidatorTest{
 
         String xml = mergeXml(extraJourney, vehicleMode, routeRef, groupOfLines);
 
-        assertNotNull("Empty " + extraJourneyFieldName + " flagged as valid", validator.isValid(createXmlNode(xml).getFirstChild()));
+        assertNotNull(validator.isValid(createXmlNode(xml).getFirstChild()), "Empty " + extraJourneyFieldName + " flagged as valid");
     }
 
     @Test
@@ -120,7 +120,7 @@ public class ExtraJourneyValidatorTest extends CustomValidatorTest{
 
         String xml = mergeXml(extraJourney, vehicleMode, routeRef, groupOfLines);
 
-        assertNotNull("Empty " + extraJourneyFieldName + " flagged as valid", validator.isValid(createXmlNode(xml).getFirstChild()));
+        assertNotNull(validator.isValid(createXmlNode(xml).getFirstChild()), "Empty " + extraJourneyFieldName + " flagged as valid");
     }
 
     @Test
@@ -132,7 +132,7 @@ public class ExtraJourneyValidatorTest extends CustomValidatorTest{
 
         String xml = mergeXml(extraJourney, vehicleMode, routeRef, groupOfLines);
 
-        assertNotNull("Empty " + extraJourneyFieldName + " flagged as valid", validator.isValid(createXmlNode(xml).getFirstChild()));
+        assertNotNull(validator.isValid(createXmlNode(xml).getFirstChild()), "Empty " + extraJourneyFieldName + " flagged as valid");
     }
 
     @Test
@@ -144,6 +144,6 @@ public class ExtraJourneyValidatorTest extends CustomValidatorTest{
 
         String xml = mergeXml(extraJourney, vehicleMode, routeRef, groupOfLines);
 
-        assertNotNull("Empty " + extraJourneyFieldName + " flagged as valid", validator.isValid(createXmlNode(xml).getFirstChild()));
+        assertNotNull(validator.isValid(createXmlNode(xml).getFirstChild()), "Empty " + extraJourneyFieldName + " flagged as valid");
     }
 }

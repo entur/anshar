@@ -7,7 +7,7 @@ import org.w3c.dom.NodeList;
 
 import javax.xml.bind.ValidationEvent;
 
-import static junit.framework.TestCase.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class AffectedRouteValidatorTest extends CustomValidatorTest {
 

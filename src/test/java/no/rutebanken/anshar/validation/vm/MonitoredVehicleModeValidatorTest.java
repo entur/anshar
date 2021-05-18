@@ -21,8 +21,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import uk.org.siri.siri20.VehicleModesEnumeration;
 
-import static junit.framework.TestCase.assertNotNull;
-import static junit.framework.TestCase.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class MonitoredVehicleModeValidatorTest extends CustomValidatorTest {
 
@@ -50,6 +50,6 @@ public class MonitoredVehicleModeValidatorTest extends CustomValidatorTest {
     @Test
     public void testInvalidModes() throws Exception {
         assertNotNull(validator.isValid(createXmlNode(fieldName, VehicleModesEnumeration.UNDERGROUND.value())));
-        assertNotNull("non-enum value flagged as valid", validator.isValid(createXmlNode(fieldName, "testing")));
+        assertNotNull(validator.isValid(createXmlNode(fieldName, "testing")), "non-enum value flagged as valid");
     }
 }

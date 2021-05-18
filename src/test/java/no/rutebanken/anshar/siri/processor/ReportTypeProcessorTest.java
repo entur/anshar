@@ -27,8 +27,8 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class ReportTypeProcessorTest extends SpringBootBaseTest {
 

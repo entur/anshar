@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 import java.util.HashSet;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 
 @Disabled

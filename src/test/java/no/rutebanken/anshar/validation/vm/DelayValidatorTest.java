@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test;
 
 import javax.xml.bind.ValidationEvent;
 
-import static junit.framework.TestCase.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class DelayValidatorTest extends CustomValidatorTest{
 

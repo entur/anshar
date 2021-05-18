@@ -21,8 +21,8 @@ import no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter;
 import org.junit.jupiter.api.Test;
 import uk.org.siri.siri20.LineRef;
 
-import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class OutboundIdAdapterTest {
 

@@ -20,8 +20,8 @@ import no.rutebanken.anshar.subscription.SiriDataType;
 import org.junit.jupiter.api.Test;
 import uk.org.siri.siri20.LineRef;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class PrefixAdapterTest {
 

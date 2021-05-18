@@ -22,8 +22,8 @@ import org.junit.jupiter.api.Test;
 
 import javax.xml.bind.ValidationEvent;
 
-import static junit.framework.TestCase.assertNotNull;
-import static junit.framework.TestCase.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class SituationNumberValidatorTest extends CustomValidatorTest {
 
@@ -39,14 +39,20 @@ public class SituationNumberValidatorTest extends CustomValidatorTest {
     public void testNumberedSituationNumber() throws Exception{
         String xml = createXml(fieldName, "1234");
 
-        assertNotNull("Valid "+fieldName+" flagged as invalid", validator.isValid(createXmlNode(xml)));
+        assertNotNull(
+            validator.isValid(createXmlNode(xml)),
+            "Valid "+fieldName+" flagged as invalid"
+        );
     }
 
     @Test
     public void testCombinedSituationNumber() throws Exception{
         String xml = createXml(fieldName, "status-12344321");
 
-        assertNotNull("Valid "+fieldName+" flagged as invalid", validator.isValid(createXmlNode(xml)));
+        assertNotNull(
+            validator.isValid(createXmlNode(xml)),
+            "Valid "+fieldName+" flagged as invalid"
+        );
     }
 
     @Test
@@ -54,6 +60,9 @@ public class SituationNumberValidatorTest extends CustomValidatorTest {
         String xml = createXml(fieldName, "ENT:SituationNumber:1234");
 
         final ValidationEvent valid = validator.isValid(createXmlNode(xml));
-        assertNull("Invalid "+fieldName+" flagged as valid", valid);
+        assertNull(
+            valid,
+            "Invalid "+fieldName+" flagged as valid"
+        );
     }
 }

@@ -20,8 +20,8 @@ import no.rutebanken.anshar.validation.CustomValidatorTest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import static junit.framework.TestCase.assertNotNull;
-import static junit.framework.TestCase.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class ParticipantRefValidatorTest extends CustomValidatorTest {
 
@@ -37,13 +37,13 @@ public class ParticipantRefValidatorTest extends CustomValidatorTest {
     public void testValidParticipant() throws Exception{
         String xml = createXml(fieldName, "ENT");
 
-        assertNull("Valid "+fieldName+" flagged as invalid", validator.isValid(createXmlNode(xml)));
+        assertNull(validator.isValid(createXmlNode(xml)), "Valid "+fieldName+" flagged as invalid");
     }
 
     @Test
     public void testInvalidParticipant() throws Exception{
         String xml = createXml(fieldName, "N");
 
-        assertNotNull("Invalid "+fieldName+" flagged as valid", validator.isValid(createXmlNode(xml)));
+        assertNotNull(validator.isValid(createXmlNode(xml)), "Invalid "+fieldName+" flagged as valid");
     }
 }

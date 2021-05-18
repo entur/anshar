@@ -24,9 +24,9 @@ import uk.org.acbs.siri20.AccessibilityEnumeration;
 
 import javax.xml.bind.ValidationEvent;
 
-import static junit.framework.TestCase.assertNotNull;
-import static junit.framework.TestCase.assertNull;
-import static junit.framework.TestCase.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static uk.org.acbs.siri20.AccessibilityEnumeration.FALSE;
 import static uk.org.acbs.siri20.AccessibilityEnumeration.TRUE;
 import static uk.org.acbs.siri20.AccessibilityEnumeration.UNKNOWN;

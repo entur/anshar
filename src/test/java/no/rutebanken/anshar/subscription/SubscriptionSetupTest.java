@@ -16,17 +16,16 @@
 package no.rutebanken.anshar.subscription;
 
 import no.rutebanken.anshar.subscription.helpers.RequestType;
-import org.junit.Ignore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
-import static junit.framework.TestCase.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 public class SubscriptionSetupTest {
 

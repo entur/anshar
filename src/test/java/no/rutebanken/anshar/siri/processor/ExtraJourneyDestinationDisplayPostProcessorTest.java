@@ -13,9 +13,9 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
-import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.assertFalse;
-import static junit.framework.TestCase.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static no.rutebanken.anshar.routes.siri.processor.ExtraJourneyDestinationDisplayPostProcessor.DUMMY_DESTINATION_DISPLAY;
 
 public class ExtraJourneyDestinationDisplayPostProcessorTest extends SpringBootBaseTest {
@@ -71,7 +71,10 @@ public class ExtraJourneyDestinationDisplayPostProcessorTest extends SpringBootB
         final List<NaturalLanguageStringStructure> nonExtraDisplays = getFirstDestinationDisplays(
             nonExtraJourney);
 
-        assertTrue("Dummy DestinationDisplay should NOT be set on non-extraJourneys", nonExtraDisplays.isEmpty());
+        assertTrue(
+            nonExtraDisplays.isEmpty(),
+            "Dummy DestinationDisplay should NOT be set on non-extraJourneys"
+        );
     }
 
     private List<NaturalLanguageStringStructure> getFirstDestinationDisplays(Siri nonExtraJourney) {

@@ -22,8 +22,8 @@ import org.junit.jupiter.api.Test;
 
 import javax.xml.bind.ValidationEvent;
 
-import static junit.framework.TestCase.assertNotNull;
-import static junit.framework.TestCase.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class SaneDelayValidatorTest extends CustomValidatorTest {
 
@@ -39,7 +39,7 @@ public class SaneDelayValidatorTest extends CustomValidatorTest {
 
         ValidationEvent valid = validator.isValid(createXmlNode(increasingRecordedEstimatedCalls));
 
-        assertNull("Valid, sane delays flagged as invalid", valid);
+        assertNull(valid, "Valid, sane delays flagged as invalid");
     }
 
     @Test
@@ -47,7 +47,7 @@ public class SaneDelayValidatorTest extends CustomValidatorTest {
 
         ValidationEvent valid = validator.isValid(createXmlNode(tooLongDelayRecordedCalls));
 
-        assertNotNull("Too long delay flagged as sane", valid);
+        assertNotNull(valid, "Too long delay flagged as sane");
     }
 
 
@@ -56,7 +56,7 @@ public class SaneDelayValidatorTest extends CustomValidatorTest {
 
         ValidationEvent valid = validator.isValid(createXmlNode(tooLongDelayRecordedCalls));
 
-        assertNotNull("Too long delay flagged as sane", valid);
+        assertNotNull(valid, "Too long delay flagged as sane");
     }
 
 
@@ -65,11 +65,11 @@ public class SaneDelayValidatorTest extends CustomValidatorTest {
 
         ValidationEvent validArrival = validator.isValid(createXmlNode(increasingRecordedCallsMissingActualArrival));
 
-        assertNull("Missing values flagged as too long", validArrival);
+        assertNull(validArrival, "Missing values flagged as too long");
 
         ValidationEvent validDeparture = validator.isValid(createXmlNode(increasingRecordedCallsMissingActualDeparture));
 
-        assertNull("Missing values flagged as too long", validDeparture);
+        assertNull(validDeparture, "Missing values flagged as too long");
     }
 
 

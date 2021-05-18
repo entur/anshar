@@ -27,7 +27,7 @@ import uk.org.siri.siri20.VehicleRef;
 import java.time.Instant;
 import java.util.*;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class SiriHelperTest {
 
@@ -56,7 +56,10 @@ public class SiriHelperTest {
         vmElements.add(createVehicleActivity("5444", "44"));
 
 
-        assertFalse("Filters are not unique", filterMatchingLineRef_1.equals(filterMatchingLineRef_2));
+        assertFalse(
+            filterMatchingLineRef_1.equals(filterMatchingLineRef_2),
+            "Filters are not unique"
+        );
 
         Siri serviceDelivery = siriObjectFactory.createVMServiceDelivery(vmElements);
 
@@ -82,15 +85,17 @@ public class SiriHelperTest {
         assertTrue(filtered.getServiceDelivery().getVehicleMonitoringDeliveries().size() == 1);
         assertNotNull(filtered.getServiceDelivery().getVehicleMonitoringDeliveries().get(0).getVehicleActivities());
 
-        assertEquals("Non-matching element has not been removed", 3, filtered.getServiceDelivery().getVehicleMonitoringDeliveries().get(0).getVehicleActivities().size());
-        assertEquals("Original object has been altered", 6, serviceDelivery.getServiceDelivery().getVehicleMonitoringDeliveries().get(0).getVehicleActivities().size());
+        assertEquals(3, filtered.getServiceDelivery().getVehicleMonitoringDeliveries().get(0).getVehicleActivities().size(), "Non-matching element has not been removed");
+        assertEquals(6, serviceDelivery.getServiceDelivery().getVehicleMonitoringDeliveries().get(0).getVehicleActivities().size(), "Original object has been altered");
 
         for (VehicleActivityStructure activityStructure : filtered.getServiceDelivery().getVehicleMonitoringDeliveries().get(0).getVehicleActivities()) {
             assertNotNull(activityStructure.getMonitoredVehicleJourney());
             assertNotNull(activityStructure.getMonitoredVehicleJourney().getLineRef());
 
-            assertTrue("Filtered LineRef does not match",
-                    matchingValues.contains(activityStructure.getMonitoredVehicleJourney().getLineRef().getValue()));
+            assertTrue(
+                matchingValues.contains(activityStructure.getMonitoredVehicleJourney().getLineRef().getValue()),
+                "Filtered LineRef does not match"
+            );
         }
 
         Map<Class, Set<String>> doublefilter = new HashMap<>();
@@ -106,18 +111,22 @@ public class SiriHelperTest {
         assertTrue(doubleFiltered.getServiceDelivery().getVehicleMonitoringDeliveries().size() == 1);
         assertNotNull(doubleFiltered.getServiceDelivery().getVehicleMonitoringDeliveries().get(0).getVehicleActivities());
 
-        assertEquals("Non-matching element has not been removed", 1, doubleFiltered.getServiceDelivery().getVehicleMonitoringDeliveries().get(0).getVehicleActivities().size());
-        assertEquals("Original object has been altered", 6, serviceDelivery.getServiceDelivery().getVehicleMonitoringDeliveries().get(0).getVehicleActivities().size());
+        assertEquals(1, doubleFiltered.getServiceDelivery().getVehicleMonitoringDeliveries().get(0).getVehicleActivities().size(), "Non-matching element has not been removed");
+        assertEquals(6, serviceDelivery.getServiceDelivery().getVehicleMonitoringDeliveries().get(0).getVehicleActivities().size(), "Original object has been altered");
 
         for (VehicleActivityStructure activityStructure : doubleFiltered.getServiceDelivery().getVehicleMonitoringDeliveries().get(0).getVehicleActivities()) {
             assertNotNull(activityStructure.getMonitoredVehicleJourney());
             assertNotNull(activityStructure.getMonitoredVehicleJourney().getLineRef());
             assertNotNull(activityStructure.getMonitoredVehicleJourney().getVehicleRef());
 
-            assertTrue("Filtered LineRef does not match",
-                    activityStructure.getMonitoredVehicleJourney().getLineRef().getValue().equals(filterMatchingLineRef_1));
-            assertTrue("Filtered VehicleRef does not match",
-                    activityStructure.getMonitoredVehicleJourney().getVehicleRef().getValue().equals(filterMatchingVehicleRef_1));
+            assertTrue(
+                activityStructure.getMonitoredVehicleJourney().getLineRef().getValue().equals(filterMatchingLineRef_1),
+                "Filtered LineRef does not match"
+            );
+            assertTrue(
+                activityStructure.getMonitoredVehicleJourney().getVehicleRef().getValue().equals(filterMatchingVehicleRef_1),
+                "Filtered VehicleRef does not match"
+            );
         }
     }
 
@@ -144,9 +153,9 @@ public class SiriHelperTest {
         int sizeAfter = siri.getServiceDelivery().getVehicleMonitoringDeliveries().get(0).getVehicleActivities().size();
         int filteredSizeAfter = filtered.getServiceDelivery().getVehicleMonitoringDeliveries().get(0).getVehicleActivities().size();
 
-        assertEquals("Original object has been modified", sizeBefore, sizeAfter);
+        assertEquals(sizeBefore, sizeAfter, "Original object has been modified");
 
-        assertTrue("VM-elements have not been filtered", sizeAfter > filteredSizeAfter);
+        assertTrue(sizeAfter > filteredSizeAfter, "VM-elements have not been filtered");
 
         Map<Class, Set<String>> filter2 = new HashMap<>();
         Set<String> matchingValues2 = new HashSet<>();
@@ -159,10 +168,11 @@ public class SiriHelperTest {
         int sizeAfter2 = siri.getServiceDelivery().getVehicleMonitoringDeliveries().get(0).getVehicleActivities().size();
         int filteredSizeAfter2 = filtered.getServiceDelivery().getVehicleMonitoringDeliveries().get(0).getVehicleActivities().size();
 
-        assertFalse("", filtered.getServiceDelivery().getVehicleMonitoringDeliveries().get(0).getVehicleActivities().get(0).getMonitoredVehicleJourney().getLineRef().getValue()
-                .equals(filtered2.getServiceDelivery().getVehicleMonitoringDeliveries().get(0).getVehicleActivities().get(0).getMonitoredVehicleJourney().getLineRef().getValue()));
-        assertEquals("Original size does not match", sizeAfter, sizeAfter2);
-        assertEquals("Filtered size does not match", filteredSizeAfter, filteredSizeAfter2);
+        assertNotEquals(
+            filtered.getServiceDelivery().getVehicleMonitoringDeliveries().get(0).getVehicleActivities().get(0).getMonitoredVehicleJourney().getLineRef().getValue(),
+            filtered2.getServiceDelivery().getVehicleMonitoringDeliveries().get(0).getVehicleActivities().get(0).getMonitoredVehicleJourney().getLineRef().getValue());
+        assertEquals(sizeAfter, sizeAfter2, "Original size does not match");
+        assertEquals(filteredSizeAfter, filteredSizeAfter2, "Filtered size does not match");
     }
 
     @Test

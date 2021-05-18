@@ -22,10 +22,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static junit.framework.TestCase.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static no.rutebanken.anshar.routes.siri.processor.BaneNorSiriStopAssignmentPopulaterTest.unmarshallSiriFile;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
 public class BaneNorSiriEtRewriterTest extends SpringBootBaseTest {

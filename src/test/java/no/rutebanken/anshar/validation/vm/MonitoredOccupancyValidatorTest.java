@@ -23,7 +23,7 @@ import uk.org.siri.siri20.OccupancyEnumeration;
 
 import javax.xml.bind.ValidationEvent;
 
-import static junit.framework.TestCase.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class MonitoredOccupancyValidatorTest extends CustomValidatorTest {
 

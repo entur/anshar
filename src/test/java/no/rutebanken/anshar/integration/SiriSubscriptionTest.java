@@ -29,8 +29,8 @@ import uk.org.siri.siri20.Siri;
 import javax.xml.bind.JAXBException;
 
 import static io.restassured.RestAssured.given;
-import static junit.framework.TestCase.assertTrue;
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class SiriSubscriptionTest extends BaseHttpTest {
 

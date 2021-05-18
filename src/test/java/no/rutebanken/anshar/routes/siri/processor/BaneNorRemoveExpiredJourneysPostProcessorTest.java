@@ -27,7 +27,7 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import static junit.framework.TestCase.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class BaneNorRemoveExpiredJourneysPostProcessorTest extends SpringBootBaseTest {
     SiriObjectFactory  objFactory = new SiriObjectFactory(Instant.now());

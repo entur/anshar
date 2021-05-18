@@ -31,7 +31,7 @@ import java.io.StringWriter;
 import java.math.BigInteger;
 import java.util.List;
 
-import static junit.framework.TestCase.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class EstimatedVehicleJourneyOrderValidatorTest extends CustomValidatorTest {
     static JAXBContext jaxbContext;
@@ -59,7 +59,7 @@ public class EstimatedVehicleJourneyOrderValidatorTest extends CustomValidatorTe
             call.setOrder(BigInteger.valueOf(i+1));
             estimatedCalls.add(call);
         }
-        assertNull("Valid Order flagged as invalid", validator.isValid(convertToXmlNode(journey)));
+        assertNull(validator.isValid(convertToXmlNode(journey)), "Valid Order flagged as invalid");
     }
 
     @Test
@@ -85,7 +85,7 @@ public class EstimatedVehicleJourneyOrderValidatorTest extends CustomValidatorTe
             estimatedCalls.add(call);
         }
 
-        assertNull("Recorded- and EstimatedCalls with correct Order flagged as valid", validator.isValid(convertToXmlNode(journey)));
+        assertNull(validator.isValid(convertToXmlNode(journey)), "Recorded- and EstimatedCalls with correct Order flagged as valid");
     }
 
     @Test
@@ -103,7 +103,7 @@ public class EstimatedVehicleJourneyOrderValidatorTest extends CustomValidatorTe
             estimatedCalls.add(call);
         }
 
-        assertNotNull("Single missing Order flagged as valid", validator.isValid(convertToXmlNode(journey)));
+        assertNotNull(validator.isValid(convertToXmlNode(journey)), "Single missing Order flagged as valid");
     }
 
     @Test
@@ -132,7 +132,7 @@ public class EstimatedVehicleJourneyOrderValidatorTest extends CustomValidatorTe
             estimatedCalls.add(call);
         }
 
-        assertNotNull("Single missing Order flagged as valid", validator.isValid(convertToXmlNode(journey)));
+        assertNotNull(validator.isValid(convertToXmlNode(journey)), "Single missing Order flagged as valid");
 
     }
 

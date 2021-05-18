@@ -21,8 +21,8 @@ import org.junit.jupiter.api.Test;
 
 import javax.xml.bind.ValidationEvent;
 
-import static junit.framework.TestCase.assertNotNull;
-import static junit.framework.TestCase.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class IncreasingTimesValidatorTest extends CustomValidatorTest {
 
@@ -34,7 +34,7 @@ public class IncreasingTimesValidatorTest extends CustomValidatorTest {
 
         ValidationEvent valid = validator.isValid(createXmlNode(increasingEstimatedCalls));
 
-        assertNull("Valid, increasing times - all EstimatedCalls - flagged as invalid", valid);
+        assertNull(valid, "Valid, increasing times - all EstimatedCalls - flagged as invalid");
 
     }
 
@@ -42,7 +42,7 @@ public class IncreasingTimesValidatorTest extends CustomValidatorTest {
     public void testIncreasingRecordedEstimatedCalls() {
         ValidationEvent valid = validator.isValid(createXmlNode(increasingRecordedEstimatedCalls));
 
-        assertNull("Valid, increasing times - Recorded- and EstimatedCalls - flagged as invalid", valid);
+        assertNull(valid, "Valid, increasing times - Recorded- and EstimatedCalls - flagged as invalid");
     }
 
 
@@ -51,7 +51,7 @@ public class IncreasingTimesValidatorTest extends CustomValidatorTest {
 
         ValidationEvent valid = validator.isValid(createXmlNode(nonIncreasingRecordedEstimatedCalls));
 
-        assertNotNull("Invalid, non-increasing times - Recorded- and EstimatedCalls - flagged as valid", valid);
+        assertNotNull(valid, "Invalid, non-increasing times - Recorded- and EstimatedCalls - flagged as valid");
     }
 
 
@@ -60,7 +60,7 @@ public class IncreasingTimesValidatorTest extends CustomValidatorTest {
 
         ValidationEvent valid = validator.isValid(createXmlNode(negativeDwellTimeEstimatedCalls));
 
-        assertNotNull("Negative dwell-times flagged as valid", valid);
+        assertNotNull(valid, "Negative dwell-times flagged as valid");
     }
 
     @Test
@@ -68,7 +68,7 @@ public class IncreasingTimesValidatorTest extends CustomValidatorTest {
 
         ValidationEvent valid = validator.isValid(createXmlNode(negativeDwellTimeWithCancellationEstimatedCalls));
 
-        assertNull("Negative dwell-times flagged as invalid even though departure is cancelled", valid);
+        assertNull(valid, "Negative dwell-times flagged as invalid even though departure is cancelled");
     }
 
 

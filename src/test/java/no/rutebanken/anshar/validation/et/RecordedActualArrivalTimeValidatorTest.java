@@ -22,8 +22,8 @@ import org.junit.jupiter.api.Test;
 
 import javax.xml.bind.ValidationEvent;
 
-import static junit.framework.TestCase.assertNotNull;
-import static junit.framework.TestCase.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class RecordedActualArrivalTimeValidatorTest extends CustomValidatorTest {
 
@@ -40,7 +40,7 @@ public class RecordedActualArrivalTimeValidatorTest extends CustomValidatorTest 
     public void testArrivalOnly() throws Exception{
         String xml = createXml(fieldName, "2018-04-16T10:00:00+02:00");
 
-        assertNull("Valid "+fieldName+" flagged as invalid", validator.isValid(createXmlNode(xml).getFirstChild()));
+        assertNull(validator.isValid(createXmlNode(xml).getFirstChild()), "Valid "+fieldName+" flagged as invalid");
     }
 
 
@@ -51,7 +51,7 @@ public class RecordedActualArrivalTimeValidatorTest extends CustomValidatorTest 
 
         String xml = "<PLACEHOLDER>" + arrival + departure + "</PLACEHOLDER>";
 
-        assertNull("Valid "+fieldName+" flagged as invalid", validator.isValid(createXmlNode(xml).getFirstChild()));
+        assertNull(validator.isValid(createXmlNode(xml).getFirstChild()), "Valid "+fieldName+" flagged as invalid");
     }
 
     @Test
@@ -61,7 +61,7 @@ public class RecordedActualArrivalTimeValidatorTest extends CustomValidatorTest 
 
         String xml = "<PLACEHOLDER>" + arrival + departure + "</PLACEHOLDER>";
 
-        assertNull("Valid "+fieldName+" flagged as invalid", validator.isValid(createXmlNode(xml).getFirstChild()));
+        assertNull(validator.isValid(createXmlNode(xml).getFirstChild()), "Valid "+fieldName+" flagged as invalid");
     }
 
     @Test
@@ -72,6 +72,6 @@ public class RecordedActualArrivalTimeValidatorTest extends CustomValidatorTest 
         String xml = "<dummy>" + arrival + departure + "</dummy>";
 
         final ValidationEvent valid = validator.isValid(createXmlNode(xml).getFirstChild());
-        assertNotNull("Invalid "+fieldName+" flagged as valid", valid);
+        assertNotNull(valid, "Invalid "+fieldName+" flagged as valid");
     }
 }

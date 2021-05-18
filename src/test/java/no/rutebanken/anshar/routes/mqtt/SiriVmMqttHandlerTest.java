@@ -29,8 +29,8 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Calendar;
 
-import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class SiriVmMqttHandlerTest {
 
@@ -115,7 +115,7 @@ public class SiriVmMqttHandlerTest {
         } catch (NullPointerException npe) {
             gotExpectedException = true;
         }
-        assertTrue("Did not get expected NullPointerException", gotExpectedException);
+        assertTrue(gotExpectedException, "Did not get expected NullPointerException");
     }
 
     @Test
@@ -133,7 +133,10 @@ public class SiriVmMqttHandlerTest {
             exceptionThrown = true;
         }
 
-        assertTrue("Expected NullPointerException to be thrown for incomplete message", exceptionThrown);
+        assertTrue(
+            exceptionThrown,
+            "Expected NullPointerException to be thrown for incomplete message"
+        );
     }
 
     @Test
@@ -150,7 +153,10 @@ public class SiriVmMqttHandlerTest {
             exceptionThrown = true;
         }
 
-        assertTrue("Expected NullPointerException to be thrown for incomplete message", exceptionThrown);
+        assertTrue(
+            exceptionThrown,
+            "Expected NullPointerException to be thrown for incomplete message"
+        );
     }
 
 

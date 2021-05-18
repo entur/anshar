@@ -20,7 +20,7 @@ import no.rutebanken.anshar.validation.CustomValidatorTest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import static junit.framework.TestCase.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class OccupancyValidatorTest extends CustomValidatorTest {
 
@@ -36,19 +36,19 @@ public class OccupancyValidatorTest extends CustomValidatorTest {
     public void testOccupancyFull() throws Exception{
         String xml = createXml(fieldName, "full");
 
-        assertNull("Valid " + fieldName + " flagged as invalid", validator.isValid(createXmlNode(xml)));
+        assertNull(validator.isValid(createXmlNode(xml)), "Valid " + fieldName + " flagged as invalid");
     }
     @Test
     public void testOccupancySeatsvaiable() throws Exception{
         String xml = createXml(fieldName, "seatsAvailable");
 
-        assertNull("Valid " + fieldName + " flagged as invalid", validator.isValid(createXmlNode(xml)));
+        assertNull(validator.isValid(createXmlNode(xml)), "Valid " + fieldName + " flagged as invalid");
     }
     @Test
     public void testOccupancyStandingAvailable() throws Exception{
         String xml = createXml(fieldName, "standingAvailable");
 
-        assertNull("Valid " + fieldName + " flagged as invalid", validator.isValid(createXmlNode(xml)));
+        assertNull(validator.isValid(createXmlNode(xml)), "Valid " + fieldName + " flagged as invalid");
     }
 
 

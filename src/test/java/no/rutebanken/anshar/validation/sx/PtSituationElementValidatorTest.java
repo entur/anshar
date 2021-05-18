@@ -22,8 +22,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.w3c.dom.Node;
 
-import static junit.framework.TestCase.assertNotNull;
-import static junit.framework.TestCase.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class PtSituationElementValidatorTest extends CustomValidatorTest {
 
@@ -71,7 +71,7 @@ public class PtSituationElementValidatorTest extends CustomValidatorTest {
                                             affects)
                                 );
 
-        assertNull("Valid " + fieldName + " flagged as invalid", validator.isValid(node));
+        assertNull(validator.isValid(node), "Valid " + fieldName + " flagged as invalid");
     }
 
     @Test
@@ -87,7 +87,7 @@ public class PtSituationElementValidatorTest extends CustomValidatorTest {
                                             affects)
                                 );
 
-        assertNotNull("Missing creationTime flagged as valid", validator.isValid(node));
+        assertNotNull(validator.isValid(node), "Missing creationTime flagged as valid");
     }
 
     @Test
@@ -103,7 +103,7 @@ public class PtSituationElementValidatorTest extends CustomValidatorTest {
                                             affects)
                                 );
 
-        assertNotNull("Missing participantRef flagged as valid", validator.isValid(node));
+        assertNotNull(validator.isValid(node), "Missing participantRef flagged as valid");
     }
 
     @Test
@@ -119,7 +119,7 @@ public class PtSituationElementValidatorTest extends CustomValidatorTest {
                                             affects)
                                 );
 
-        assertNotNull("Missing situationNumber flagged as valid", validator.isValid(node));
+        assertNotNull(validator.isValid(node), "Missing situationNumber flagged as valid");
     }
 
     @Test
@@ -135,7 +135,7 @@ public class PtSituationElementValidatorTest extends CustomValidatorTest {
                                             affects)
                                 );
 
-        assertNotNull("Missing source flagged as valid", validator.isValid(node));
+        assertNotNull(validator.isValid(node), "Missing source flagged as valid");
     }
 
     @Test
@@ -151,7 +151,7 @@ public class PtSituationElementValidatorTest extends CustomValidatorTest {
                                             affects)
                                 );
 
-        assertNotNull("Missing progress flagged as valid", validator.isValid(node));
+        assertNotNull(validator.isValid(node), "Missing progress flagged as valid");
     }
 
     @Test
@@ -167,7 +167,7 @@ public class PtSituationElementValidatorTest extends CustomValidatorTest {
                                             affects)
                                 );
 
-        assertNotNull("Missing validityPeriod flagged as valid", validator.isValid(node));
+        assertNotNull(validator.isValid(node), "Missing validityPeriod flagged as valid");
     }
 
     @Test
@@ -183,7 +183,7 @@ public class PtSituationElementValidatorTest extends CustomValidatorTest {
                                             affects)
                                 );
 
-        assertNotNull("Missing reportType flagged as valid", validator.isValid(node));
+        assertNotNull(validator.isValid(node), "Missing reportType flagged as valid");
     }
 
     @Test
@@ -199,7 +199,7 @@ public class PtSituationElementValidatorTest extends CustomValidatorTest {
                                             affects)
                                 );
 
-        assertNotNull("Missing summary flagged as valid", validator.isValid(node));
+        assertNotNull(validator.isValid(node), "Missing summary flagged as valid");
     }
 
     @Test
@@ -215,7 +215,7 @@ public class PtSituationElementValidatorTest extends CustomValidatorTest {
                                             null)
                                 );
 
-        assertNotNull("Missing affects flagged as valid", validator.isValid(node));
+        assertNotNull(validator.isValid(node), "Missing affects flagged as valid");
     }
 
 }

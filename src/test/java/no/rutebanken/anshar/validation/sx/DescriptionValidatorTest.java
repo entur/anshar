@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import javax.xml.bind.ValidationEvent;
 
-import static junit.framework.TestCase.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class DescriptionValidatorTest extends CustomValidatorTest {
 
@@ -24,6 +24,9 @@ public class DescriptionValidatorTest extends CustomValidatorTest {
         String xml = "<PLACEHOLDER><Description>&lt;b&gt;lorem ipsum&lt;/b&gt;</Description></PLACEHOLDER>";
 
         final ValidationEvent valid = validator.isValid(createXmlNode(xml));
-        assertNotNull("Description with HTML-code flagged as valid", valid);
+        assertNotNull(
+            valid,
+            "Description with HTML-code flagged as valid"
+        );
     }
 }

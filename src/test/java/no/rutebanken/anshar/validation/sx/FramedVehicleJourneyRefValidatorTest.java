@@ -21,8 +21,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.w3c.dom.Node;
 
-import static junit.framework.TestCase.assertNotNull;
-import static junit.framework.TestCase.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class FramedVehicleJourneyRefValidatorTest extends CustomValidatorTest {
 
@@ -38,28 +38,37 @@ public class FramedVehicleJourneyRefValidatorTest extends CustomValidatorTest {
     public void testCompleteFramedVehicleJourney() throws Exception{
         Node node = createFramedVehicleJourneyRef("2018-12-31", "TTT:ServiceJourney:1234");
 
-        assertNull("Valid "+fieldName+" flagged as invalid", validator.isValid(node));
+        assertNull(
+            validator.isValid(node),
+            "Valid "+fieldName+" flagged as invalid"
+        );
     }
 
     @Test
     public void testEmptyDataFrameRef() throws Exception{
         Node node = createFramedVehicleJourneyRef("", "TTT:ServiceJourney:1234");
 
-        assertNotNull("Empty DataFrameRef flagged as valid", validator.isValid(node));
+        assertNotNull(validator.isValid(node), "Empty DataFrameRef flagged as valid");
     }
 
     @Test
     public void testInvalidFramedVehicleJourneyRef() throws Exception{
         Node node = createFramedVehicleJourneyRef("2018-12-31", "1234");
 
-        assertNotNull("Invalid FramedVehicleJourneyRef flagged as valid", validator.isValid(node));
+        assertNotNull(
+            validator.isValid(node),
+            "Invalid FramedVehicleJourneyRef flagged as valid"
+        );
     }
 
     @Test
     public void testInvalidDateFrameRef() throws Exception{
         Node node = createFramedVehicleJourneyRef("1122334455", "TTT:ServiceJourney:123");
 
-        assertNotNull("Invalid FramedVehicleJourneyRef flagged as valid", validator.isValid(node));
+        assertNotNull(
+            validator.isValid(node),
+            "Invalid FramedVehicleJourneyRef flagged as valid"
+        );
     }
 
     private Node createFramedVehicleJourneyRef(String dataFrameRef, String framedVehicleJourney) throws Exception {

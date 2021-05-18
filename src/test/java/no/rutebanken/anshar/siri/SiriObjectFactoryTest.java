@@ -32,10 +32,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class SiriObjectFactoryTest {
 
@@ -62,8 +62,14 @@ public class SiriObjectFactoryTest {
 
         ZonedDateTime initialTerminationTime = subscription.getInitialTerminationTime();
 
-        assertTrue("Initial terminationtime has not been calculated correctly", ZonedDateTime.now().plusHours(hoursUntilInitialTermination).minusMinutes(1).isBefore(initialTerminationTime));
-        assertTrue("Initial terminationtime has not been calculated correctly", ZonedDateTime.now().plusHours(hoursUntilInitialTermination).plusMinutes(1).isAfter(initialTerminationTime));
+        assertTrue(
+            ZonedDateTime.now().plusHours(hoursUntilInitialTermination).minusMinutes(1).isBefore(initialTerminationTime),
+            "Initial terminationtime has not been calculated correctly"
+        );
+        assertTrue(
+            ZonedDateTime.now().plusHours(hoursUntilInitialTermination).plusMinutes(1).isAfter(initialTerminationTime),
+            "Initial terminationtime has not been calculated correctly"
+        );
 
     }
 
@@ -110,8 +116,14 @@ public class SiriObjectFactoryTest {
 
         ZonedDateTime initialTerminationTime = subscription.getInitialTerminationTime();
 
-        assertTrue("Initial terminationtime has not been calculated correctly", ZonedDateTime.now().plusHours(hoursUntilInitialTermination).minusMinutes(1).isBefore(initialTerminationTime));
-        assertTrue("Initial terminationtime has not been calculated correctly", ZonedDateTime.now().plusHours(hoursUntilInitialTermination).plusMinutes(1).isAfter(initialTerminationTime));
+        assertTrue(
+            ZonedDateTime.now().plusHours(hoursUntilInitialTermination).minusMinutes(1).isBefore(initialTerminationTime),
+            "Initial terminationtime has not been calculated correctly"
+        );
+        assertTrue(
+            ZonedDateTime.now().plusHours(hoursUntilInitialTermination).plusMinutes(1).isAfter(initialTerminationTime),
+            "Initial terminationtime has not been calculated correctly"
+        );
 
 
 
@@ -204,8 +216,14 @@ public class SiriObjectFactoryTest {
 
         ZonedDateTime initialTerminationTime = subscription.getInitialTerminationTime();
 
-        assertTrue("Initial terminationtime has not been calculated correctly", ZonedDateTime.now().plusHours(hoursUntilInitialTermination).minusMinutes(1).isBefore(initialTerminationTime));
-        assertTrue("Initial terminationtime has not been calculated correctly", ZonedDateTime.now().plusHours(hoursUntilInitialTermination).plusMinutes(1).isAfter(initialTerminationTime));
+        assertTrue(
+            ZonedDateTime.now().plusHours(hoursUntilInitialTermination).minusMinutes(1).isBefore(initialTerminationTime),
+            "Initial terminationtime has not been calculated correctly"
+        );
+        assertTrue(
+            ZonedDateTime.now().plusHours(hoursUntilInitialTermination).plusMinutes(1).isAfter(initialTerminationTime),
+            "Initial terminationtime has not been calculated correctly"
+        );
 
 
     }

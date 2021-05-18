@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import javax.xml.bind.ValidationEvent;
 
-import static junit.framework.TestCase.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class AdviceValidatorTest extends CustomValidatorTest {
 
@@ -24,6 +24,6 @@ public class AdviceValidatorTest extends CustomValidatorTest {
         String xml = "<PLACEHOLDER><Advice>&lt;b&gt;lorem ipsum&lt;/b&gt;</Advice></PLACEHOLDER>";
 
         final ValidationEvent valid = validator.isValid(createXmlNode(xml));
-        assertNotNull("Advice with HTML-code flagged as valid", valid);
+        assertNotNull(valid, "Advice with HTML-code flagged as valid");
     }
 }

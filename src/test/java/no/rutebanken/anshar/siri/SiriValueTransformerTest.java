@@ -42,9 +42,9 @@ import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.List;
 
-import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.assertNull;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class SiriValueTransformerTest extends SpringBootBaseTest {
 
@@ -69,8 +69,8 @@ public class SiriValueTransformerTest extends SpringBootBaseTest {
         Siri siri = createSiriObject(lineRefValue, blockRefValue);
 
         siri = SiriValueTransformer.transform(siri, null);
-        assertEquals("LineRef should not be altered", lineRefValue, getLineRefFromSiriObj(siri));
-        assertEquals("BlockRef should not be altered", blockRefValue, getBlockRefFromSiriObj(siri));
+        assertEquals(lineRefValue, getLineRefFromSiriObj(siri), "LineRef should not be altered");
+        assertEquals(blockRefValue, getBlockRefFromSiriObj(siri), "BlockRef should not be altered");
 
         assertNotNull(siri);
     }
@@ -91,8 +91,8 @@ public class SiriValueTransformerTest extends SpringBootBaseTest {
 
         siri = SiriValueTransformer.transform(siri, mappingAdapters);
 
-        assertEquals("LineRef has not been padded as expected", paddedLineRef, getLineRefFromSiriObj(siri));
-        assertEquals("BlockRef should not be padded", blockRefValue, getBlockRefFromSiriObj(siri));
+        assertEquals(paddedLineRef, getLineRefFromSiriObj(siri), "LineRef has not been padded as expected");
+        assertEquals(blockRefValue, getBlockRefFromSiriObj(siri), "BlockRef should not be padded");
 
     }
 
@@ -113,8 +113,8 @@ public class SiriValueTransformerTest extends SpringBootBaseTest {
 
         siri = SiriValueTransformer.transform(siri, mappingAdapters);
 
-        assertEquals("LineRef has not been padded as expected", paddedLineRef, getLineRefFromSiriObj(siri));
-        assertEquals("BlockRef should not be padded", blockRefValue, getBlockRefFromSiriObj(siri));
+        assertEquals(paddedLineRef, getLineRefFromSiriObj(siri), "LineRef has not been padded as expected");
+        assertEquals(blockRefValue, getBlockRefFromSiriObj(siri), "BlockRef should not be padded");
 
     }
 
@@ -141,14 +141,14 @@ public class SiriValueTransformerTest extends SpringBootBaseTest {
 
         siri = SiriValueTransformer.transform(siri, mappingAdapters);
 
-        assertEquals("LineRef has not been padded as expected", paddedLineRef, getLineRefFromSiriObj(siri));
-        assertEquals("BlockRef should not be padded", blockRefValue, getBlockRefFromSiriObj(siri));
+        assertEquals(paddedLineRef, getLineRefFromSiriObj(siri), "LineRef has not been padded as expected");
+        assertEquals(blockRefValue, getBlockRefFromSiriObj(siri), "BlockRef should not be padded");
 
         Siri mappedIdSiri = SiriValueTransformer.transform(siri, MappingAdapterPresets.getOutboundAdapters(OutboundIdMappingPolicy.DEFAULT));
-        assertEquals("Outbound adapters did not return mapped id", mappedLineRefValue, getLineRefFromSiriObj(mappedIdSiri));
+        assertEquals(mappedLineRefValue, getLineRefFromSiriObj(mappedIdSiri), "Outbound adapters did not return mapped id");
 
         Siri originalIdSiri = SiriValueTransformer.transform(siri, MappingAdapterPresets.getOutboundAdapters(OutboundIdMappingPolicy.ORIGINAL_ID));
-        assertEquals("Outbound adapters did not return original id", lineRefValue, getLineRefFromSiriObj(originalIdSiri));
+        assertEquals(lineRefValue, getLineRefFromSiriObj(originalIdSiri), "Outbound adapters did not return original id");
 
     }
 
@@ -166,7 +166,7 @@ public class SiriValueTransformerTest extends SpringBootBaseTest {
 
         siri = SiriValueTransformer.transform(siri, mappingAdapters);
 
-        assertEquals("LineRef has not been trimmed as expected", trimmedLineRef, getLineRefFromSiriObj(siri));
+        assertEquals(trimmedLineRef, getLineRefFromSiriObj(siri), "LineRef has not been trimmed as expected");
 
     }
 
@@ -184,7 +184,7 @@ public class SiriValueTransformerTest extends SpringBootBaseTest {
 
         siri = SiriValueTransformer.transform(siri, mappingAdapters);
 
-        assertEquals("LineRef has not been trimmed as expected", trimmedLineRef, getLineRefFromSiriObj(siri));
+        assertEquals(trimmedLineRef, getLineRefFromSiriObj(siri), "LineRef has not been trimmed as expected");
 
     }
 
@@ -204,8 +204,8 @@ public class SiriValueTransformerTest extends SpringBootBaseTest {
 
         siri = SiriValueTransformer.transform(siri, mappingAdapters);
 
-        assertEquals("BlockRef has not been padded as expected", paddedBlockRef, getBlockRefFromSiriObj(siri));
-        assertEquals("LineRef should not be padded", lineRefValue, getLineRefFromSiriObj(siri));
+        assertEquals(paddedBlockRef, getBlockRefFromSiriObj(siri), "BlockRef has not been padded as expected");
+        assertEquals(lineRefValue, getLineRefFromSiriObj(siri), "LineRef should not be padded");
 
     }
 
@@ -228,8 +228,8 @@ public class SiriValueTransformerTest extends SpringBootBaseTest {
 
         siri = SiriValueTransformer.transform(siri, mappingAdapters);
 
-        assertEquals("LineRef has not been padded as expected", paddedLineRef, getLineRefFromSiriObj(siri));
-        assertEquals("BlockRef has not been padded as expected", paddedBlockRef, getBlockRefFromSiriObj(siri));
+        assertEquals(paddedLineRef, getLineRefFromSiriObj(siri), "LineRef has not been padded as expected");
+        assertEquals(paddedBlockRef, getBlockRefFromSiriObj(siri), "BlockRef has not been padded as expected");
 
     }
 
@@ -254,11 +254,11 @@ public class SiriValueTransformerTest extends SpringBootBaseTest {
 
         Siri transformed = SiriValueTransformer.transform(siri, mappingAdapters);
 
-        assertEquals("LineRef has not been padded as expected", paddedLineRef, getLineRefFromSiriObj(transformed));
-        assertEquals("BlockRef has not been padded as expected", paddedBlockRef, getBlockRefFromSiriObj(transformed));
+        assertEquals(paddedLineRef, getLineRefFromSiriObj(transformed), "LineRef has not been padded as expected");
+        assertEquals(paddedBlockRef, getBlockRefFromSiriObj(transformed), "BlockRef has not been padded as expected");
 
-        assertEquals("Original Lineref has been altered", lineRefValue, getLineRefFromSiriObj(siri));
-        assertEquals("Original Blockref has been altered", blockRefValue, getBlockRefFromSiriObj(siri));
+        assertEquals(lineRefValue, getLineRefFromSiriObj(siri), "Original Lineref has been altered");
+        assertEquals(blockRefValue, getBlockRefFromSiriObj(siri), "Original Blockref has been altered");
 
     }
 

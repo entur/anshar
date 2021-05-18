@@ -20,8 +20,8 @@ import no.rutebanken.anshar.validation.CustomValidatorTest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import static junit.framework.TestCase.assertNotNull;
-import static junit.framework.TestCase.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class EstimatedArrivalStatusValidatorTest extends CustomValidatorTest {
 
@@ -36,17 +36,17 @@ public class EstimatedArrivalStatusValidatorTest extends CustomValidatorTest {
     @Test
     public void testValid() throws Exception{
 
-        assertNull("Valid " + fieldName + " flagged as invalid", validator.isValid(createXmlNode(fieldName, "arrived")));
-        assertNull("Valid " + fieldName + " flagged as invalid", validator.isValid(createXmlNode(fieldName, "cancelled")));
-        assertNull("Valid " + fieldName + " flagged as invalid", validator.isValid(createXmlNode(fieldName, "missed")));
-        assertNull("Valid " + fieldName + " flagged as invalid", validator.isValid(createXmlNode(fieldName, "early")));
-        assertNull("Valid " + fieldName + " flagged as invalid", validator.isValid(createXmlNode(fieldName, "onTime")));
-        assertNull("Valid " + fieldName + " flagged as invalid", validator.isValid(createXmlNode(fieldName, "delayed")));
+        assertNull(validator.isValid(createXmlNode(fieldName, "arrived")), "Valid " + fieldName + " flagged as invalid");
+        assertNull(validator.isValid(createXmlNode(fieldName, "cancelled")), "Valid " + fieldName + " flagged as invalid");
+        assertNull(validator.isValid(createXmlNode(fieldName, "missed")), "Valid " + fieldName + " flagged as invalid");
+        assertNull(validator.isValid(createXmlNode(fieldName, "early")), "Valid " + fieldName + " flagged as invalid");
+        assertNull(validator.isValid(createXmlNode(fieldName, "onTime")), "Valid " + fieldName + " flagged as invalid");
+        assertNull(validator.isValid(createXmlNode(fieldName, "delayed")), "Valid " + fieldName + " flagged as invalid");
     }
     @Test
     public void testInvalid() throws Exception{
 
-        assertNotNull("Invalid " + fieldName + " flagged as valid", validator.isValid(createXmlNode(fieldName, "no_report")));
+        assertNotNull(validator.isValid(createXmlNode(fieldName, "no_report")), "Invalid " + fieldName + " flagged as valid");
     }
 
 

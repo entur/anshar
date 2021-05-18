@@ -6,8 +6,8 @@ import org.junit.jupiter.api.Test;
 
 import java.time.ZonedDateTime;
 
-import static junit.framework.TestCase.assertNotNull;
-import static junit.framework.TestCase.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class UpdateReceivedTooSoonValidatorTest extends CustomValidatorTest {
 

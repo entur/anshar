@@ -28,8 +28,8 @@ import uk.org.siri.siri20.WorkflowStatusEnumeration;
 import java.time.ZonedDateTime;
 
 import static no.rutebanken.anshar.helpers.SleepUtil.sleep;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class SituationsTest extends SpringBootBaseTest {
 
@@ -52,7 +52,7 @@ public class SituationsTest extends SpringBootBaseTest {
 
         situations.add("test", element);
 
-        assertEquals("Situation not added", previousSize + 1, situations.getAll().size());
+        assertEquals(previousSize + 1, situations.getAll().size(), "Situation not added");
     }
 
     @Test
@@ -64,7 +64,7 @@ public class SituationsTest extends SpringBootBaseTest {
 
         situations.add("test", element);
 
-        assertEquals("Draft-situation added", previousSize, situations.getAll().size());
+        assertEquals(previousSize, situations.getAll().size(), "Draft-situation added");
     }
 
     @Test
@@ -72,7 +72,7 @@ public class SituationsTest extends SpringBootBaseTest {
         int previousSize = situations.getAll().size();
         situations.add("test", null);
 
-        assertEquals("Null-situation added", previousSize, situations.getAll().size());
+        assertEquals(previousSize, situations.getAll().size(), "Null-situation added");
     }
 
     @Test

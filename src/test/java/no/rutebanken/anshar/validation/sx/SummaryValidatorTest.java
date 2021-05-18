@@ -22,8 +22,8 @@ import org.junit.jupiter.api.Test;
 
 import javax.xml.bind.ValidationEvent;
 
-import static junit.framework.TestCase.assertNotNull;
-import static junit.framework.TestCase.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class SummaryValidatorTest extends CustomValidatorTest {
 
@@ -38,7 +38,7 @@ public class SummaryValidatorTest extends CustomValidatorTest {
     public void testEmptySummary() throws Exception{
         String xml = "<PLACEHOLDER><Summary></Summary></PLACEHOLDER>";
 
-        assertNotNull("Empty Summary flagged as valid", validator.isValid(createXmlNode(xml)));
+        assertNotNull(validator.isValid(createXmlNode(xml)), "Empty Summary flagged as valid");
     }
 
     @Test
@@ -46,7 +46,7 @@ public class SummaryValidatorTest extends CustomValidatorTest {
         String xml = "<PLACEHOLDER><Summary>lorem ipsum</Summary></PLACEHOLDER>";
 
         final ValidationEvent valid = validator.isValid(createXmlNode(xml));
-        assertNull("Valid Summary flagged as invalid", valid);
+        assertNull(valid, "Valid Summary flagged as invalid");
     }
 
     @Test
@@ -54,7 +54,7 @@ public class SummaryValidatorTest extends CustomValidatorTest {
         String xml = "<PLACEHOLDER><Summary>&lt;b&gt;lorem ipsum&lt;/b&gt;</Summary></PLACEHOLDER>";
 
         final ValidationEvent valid = validator.isValid(createXmlNode(xml));
-        assertNotNull("Summary with HTML-code flagged as valid", valid);
+        assertNotNull(valid, "Summary with HTML-code flagged as valid");
     }
 
     @Test
@@ -66,7 +66,7 @@ public class SummaryValidatorTest extends CustomValidatorTest {
         String xml = "<PLACEHOLDER><Summary>" + msg + "</Summary></PLACEHOLDER>";
 
         final ValidationEvent valid = validator.isValid(createXmlNode(xml));
-        assertNotNull("Valid Summary flagged as invalid", valid);
+        assertNotNull(valid, "Valid Summary flagged as invalid");
     }
 
     @Test
@@ -74,7 +74,7 @@ public class SummaryValidatorTest extends CustomValidatorTest {
         String xml = "<PLACEHOLDER><Summary lang=\"NO\">lorem ipsum</Summary><Summary lang=\"EN\">lorem ipsum</Summary></PLACEHOLDER>";
 
         final ValidationEvent valid = validator.isValid(createXmlNode(xml));
-        assertNull("Multiple summaries with language flagged as invalid", valid);
+        assertNull(valid, "Multiple summaries with language flagged as invalid");
     }
 
     @Test
@@ -82,7 +82,7 @@ public class SummaryValidatorTest extends CustomValidatorTest {
         String xml = "<PLACEHOLDER><Summary lang=\"NO\">lorem ipsum</Summary><Summary lang=\"NO\">lorem ipsum</Summary></PLACEHOLDER>";
 
         final ValidationEvent valid = validator.isValid(createXmlNode(xml));
-        assertNotNull("Multiple summaries with same language flagged as valid", valid);
+        assertNotNull(valid, "Multiple summaries with same language flagged as valid");
     }
 
     @Test
@@ -90,6 +90,6 @@ public class SummaryValidatorTest extends CustomValidatorTest {
         String xml = "<PLACEHOLDER><Summary >lorem ipsum</Summary><Summary >lorem ipsum</Summary></PLACEHOLDER>";
 
         final ValidationEvent valid = validator.isValid(createXmlNode(xml));
-        assertNotNull("Multiple summaries without language flagged as valid", valid);
+        assertNotNull(valid, "Multiple summaries without language flagged as valid");
     }
 }

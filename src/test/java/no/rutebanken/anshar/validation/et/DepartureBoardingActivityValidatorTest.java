@@ -20,8 +20,8 @@ import no.rutebanken.anshar.validation.CustomValidatorTest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import static junit.framework.TestCase.assertNotNull;
-import static junit.framework.TestCase.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class DepartureBoardingActivityValidatorTest extends CustomValidatorTest {
 
@@ -36,14 +36,14 @@ public class DepartureBoardingActivityValidatorTest extends CustomValidatorTest 
     @Test
     public void testValid() throws Exception{
 
-        assertNull("Valid " + fieldName + " flagged as invalid", validator.isValid(createXmlNode(fieldName, "boarding")));
-        assertNull("Valid " + fieldName + " flagged as invalid", validator.isValid(createXmlNode(fieldName, "noBoarding")));
-        assertNull("Valid " + fieldName + " flagged as invalid", validator.isValid(createXmlNode(fieldName, "passThru")));
+        assertNull(validator.isValid(createXmlNode(fieldName, "boarding")), "Valid " + fieldName + " flagged as invalid");
+        assertNull(validator.isValid(createXmlNode(fieldName, "noBoarding")), "Valid " + fieldName + " flagged as invalid");
+        assertNull(validator.isValid(createXmlNode(fieldName, "passThru")), "Valid " + fieldName + " flagged as invalid");
     }
     @Test
     public void testInvalid() throws Exception{
 
-        assertNotNull("Invalid " + fieldName + " flagged as valid", validator.isValid(createXmlNode(fieldName, "alighting")));
+        assertNotNull(validator.isValid(createXmlNode(fieldName, "alighting")), "Invalid " + fieldName + " flagged as valid");
     }
 
 

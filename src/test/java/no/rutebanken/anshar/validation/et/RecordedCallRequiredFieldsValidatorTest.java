@@ -22,8 +22,8 @@ import org.junit.jupiter.api.Test;
 
 import javax.xml.bind.ValidationEvent;
 
-import static junit.framework.TestCase.assertNull;
-import static org.springframework.test.util.AssertionErrors.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class RecordedCallRequiredFieldsValidatorTest extends CustomValidatorTest {
 
@@ -48,7 +48,7 @@ public class RecordedCallRequiredFieldsValidatorTest extends CustomValidatorTest
                         "</RecordedCall>";
         ValidationEvent valid = validator.isValid(createXmlNode(actualTimesSet));
 
-        assertNull("Both actual-times set - flagged as invalid", valid);
+        assertNull(valid, "Both actual-times set - flagged as invalid");
     }
 
     @Test
@@ -64,7 +64,7 @@ public class RecordedCallRequiredFieldsValidatorTest extends CustomValidatorTest
                         "</RecordedCall>";
         ValidationEvent valid = validator.isValid(createXmlNode(actualTimesSet));
 
-        assertNull("Expected arrival set - flagged as invalid", valid);
+        assertNull(valid, "Expected arrival set - flagged as invalid");
     }
 
     @Test
@@ -80,7 +80,7 @@ public class RecordedCallRequiredFieldsValidatorTest extends CustomValidatorTest
                         "</RecordedCall>";
         ValidationEvent valid = validator.isValid(createXmlNode(actualTimesSet));
 
-        assertNull("Expected arrival set - flagged as invalid", valid);
+        assertNull(valid, "Expected arrival set - flagged as invalid");
     }
 
 
@@ -96,7 +96,7 @@ public class RecordedCallRequiredFieldsValidatorTest extends CustomValidatorTest
                         "</RecordedCall>";
         ValidationEvent valid = validator.isValid(createXmlNode(actualTimesSet));
 
-        assertNotNull("No actual-times set - flagged as valid", valid);
+        assertNotNull(valid, "No actual-times set - flagged as valid");
     }
 
     @Test
@@ -111,7 +111,7 @@ public class RecordedCallRequiredFieldsValidatorTest extends CustomValidatorTest
                         "</RecordedCall>";
         ValidationEvent valid = validator.isValid(createXmlNode(actualTimesSet));
 
-        assertNotNull("Updated arrival not set - flagged as valid", valid);
+        assertNotNull(valid, "Updated arrival not set - flagged as valid");
     }
 
     @Test
@@ -126,6 +126,6 @@ public class RecordedCallRequiredFieldsValidatorTest extends CustomValidatorTest
                         "</RecordedCall>";
         ValidationEvent valid = validator.isValid(createXmlNode(actualTimesSet));
 
-        assertNotNull("Updated arrival not set - flagged as valid", valid);
+        assertNotNull(valid, "Updated arrival not set - flagged as valid");
     }
 }

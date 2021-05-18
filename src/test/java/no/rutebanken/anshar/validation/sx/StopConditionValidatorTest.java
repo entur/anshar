@@ -20,8 +20,8 @@ import no.rutebanken.anshar.validation.CustomValidatorTest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import static junit.framework.TestCase.assertNotNull;
-import static junit.framework.TestCase.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class StopConditionValidatorTest extends CustomValidatorTest {
 
@@ -37,24 +37,24 @@ public class StopConditionValidatorTest extends CustomValidatorTest {
     public void testEmptyStopCondition() throws Exception{
         String xml = createXml(fieldName, "");
 
-        assertNotNull("Empty "+fieldName+ " flagged as valid", validator.isValid(createXmlNode(xml)));
+        assertNotNull(validator.isValid(createXmlNode(xml)),"Empty "+fieldName+ " flagged as valid");
     }
 
     @Test
     public void testValidStopCondition() throws Exception{
 
-        assertNull("Valid "+fieldName+" flagged as invalid", validator.isValid(createXmlNode(fieldName, "exceptionalStop")));
-        assertNull("Valid "+fieldName+" flagged as invalid", validator.isValid(createXmlNode(fieldName, "destination")));
-        assertNull("Valid "+fieldName+" flagged as invalid", validator.isValid(createXmlNode(fieldName, "notStopping")));
-        assertNull("Valid "+fieldName+" flagged as invalid", validator.isValid(createXmlNode(fieldName, "requestStop")));
-        assertNull("Valid "+fieldName+" flagged as invalid", validator.isValid(createXmlNode(fieldName, "startPoint")));
-        assertNull("Valid "+fieldName+" flagged as invalid", validator.isValid(createXmlNode(fieldName, "stop")));
+        assertNull(validator.isValid(createXmlNode(fieldName, "exceptionalStop")), "Valid "+fieldName+" flagged as invalid");
+        assertNull(validator.isValid(createXmlNode(fieldName, "destination")), "Valid "+fieldName+" flagged as invalid");
+        assertNull(validator.isValid(createXmlNode(fieldName, "notStopping")), "Valid "+fieldName+" flagged as invalid");
+        assertNull(validator.isValid(createXmlNode(fieldName, "requestStop")), "Valid "+fieldName+" flagged as invalid");
+        assertNull(validator.isValid(createXmlNode(fieldName, "startPoint")), "Valid "+fieldName+" flagged as invalid");
+        assertNull(validator.isValid(createXmlNode(fieldName, "stop")), "Valid "+fieldName+" flagged as invalid");
     }
 
     @Test
     public void testInvalidStopCondition() throws Exception{
 
-        assertNotNull("Valid "+fieldName+" flagged as invalid", validator.isValid(createXmlNode(fieldName, "additionalStop")));
+        assertNotNull(validator.isValid(createXmlNode(fieldName, "additionalStop")), "Valid "+fieldName+" flagged as invalid");
 
     }
 }

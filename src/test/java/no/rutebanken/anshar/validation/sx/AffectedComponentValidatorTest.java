@@ -25,7 +25,7 @@ import uk.org.ifopt.siri20.StopPlaceComponentTypeEnumeration;
 
 import javax.xml.bind.ValidationEvent;
 
-import static junit.framework.TestCase.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class AffectedComponentValidatorTest extends CustomValidatorTest {
 

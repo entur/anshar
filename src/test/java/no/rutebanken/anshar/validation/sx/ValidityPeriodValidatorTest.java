@@ -24,8 +24,8 @@ import org.w3c.dom.Node;
 import javax.xml.bind.ValidationEvent;
 import java.time.ZonedDateTime;
 
-import static junit.framework.TestCase.assertNotNull;
-import static junit.framework.TestCase.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class ValidityPeriodValidatorTest extends CustomValidatorTest {
 
@@ -41,14 +41,20 @@ public class ValidityPeriodValidatorTest extends CustomValidatorTest {
     public void testOpenEndedValidityPeriod() throws Exception {
         String xml = "<ValidityPeriod><StartTime>" + ZonedDateTime.now() + "</StartTime></ValidityPeriod>";
 
-        assertNull("Open ended ValidityPeriod reported as invalid", validator.isValid(createXmlNode(xml)));
+        assertNull(
+            validator.isValid(createXmlNode(xml)),
+            "Open ended ValidityPeriod reported as invalid"
+        );
     }
 
     @Test
     public void testEmptyStartTime() throws Exception {
         String xml = "<ValidityPeriod><StartTime></StartTime></ValidityPeriod>";
 
-        assertNotNull("Open ended ValidityPeriod reported as valid", validator.isValid(createXmlNode(xml)));
+        assertNotNull(
+            validator.isValid(createXmlNode(xml)),
+            "Open ended ValidityPeriod reported as valid"
+        );
     }
 
     @Test
@@ -57,7 +63,10 @@ public class ValidityPeriodValidatorTest extends CustomValidatorTest {
 
         final Node siriNode = createXmlNode(xml);
 
-        assertNotNull("Open ended ValidityPeriod reported as valid when Progress is 'closed'", validator.isValid(siriNode.getLastChild().getLastChild()));
+        assertNotNull(
+            validator.isValid(siriNode.getLastChild().getLastChild()),
+            "Open ended ValidityPeriod reported as valid when Progress is 'closed'"
+        );
     }
 
     @Test
@@ -67,7 +76,10 @@ public class ValidityPeriodValidatorTest extends CustomValidatorTest {
         final Node siriNode = createXmlNode(xml);
 
         final ValidationEvent valid = validator.isValid(siriNode.getLastChild());
-        assertNotNull("Open ended ValidityPeriod reported as valid when Progress is 'closed'", valid);
+        assertNotNull(
+            valid,
+            "Open ended ValidityPeriod reported as valid when Progress is 'closed'"
+        );
     }
 
     @Test
@@ -76,7 +88,10 @@ public class ValidityPeriodValidatorTest extends CustomValidatorTest {
 
         final Node siriNode = createXmlNode(xml);
 
-        assertNull("Open ended ValidityPeriod reported as valid when Progress is 'closed'", validator.isValid(siriNode.getLastChild()));
+        assertNull(
+            validator.isValid(siriNode.getLastChild()),
+            "Open ended ValidityPeriod reported as valid when Progress is 'closed'"
+        );
     }
 
     @Test
@@ -86,7 +101,10 @@ public class ValidityPeriodValidatorTest extends CustomValidatorTest {
         final Node siriNode = createXmlNode(xml);
 
         final ValidationEvent valid = validator.isValid(siriNode);
-        assertNotNull("Open ended ValidityPeriod reported as valid when Progress is 'closed'", valid);
+        assertNotNull(
+            valid,
+            "Open ended ValidityPeriod reported as valid when Progress is 'closed'"
+        );
     }
 
 }

@@ -22,8 +22,8 @@ import org.junit.jupiter.api.Test;
 
 import javax.xml.bind.ValidationEvent;
 
-import static junit.framework.TestCase.assertNotNull;
-import static junit.framework.TestCase.assertNull;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class SourceTypeValidatorTest extends CustomValidatorTest {
 
@@ -39,14 +39,14 @@ public class SourceTypeValidatorTest extends CustomValidatorTest {
     public void testDirectReportType() throws Exception{
         String xml = createXml(fieldName, "directReport");
 
-        assertNull("Valid "+fieldName+" flagged as invalid", validator.isValid(createXmlNode(xml)));
+        assertNull(validator.isValid(createXmlNode(xml)), "Valid "+fieldName+" flagged as invalid");
     }
 
     @Test
     public void testFaxReportType() throws Exception{
         String xml = createXml(fieldName, "fax");
 
-        assertNotNull("Invalid "+fieldName+" flagged as valid", validator.isValid(createXmlNode(xml)));
+        assertNotNull(validator.isValid(createXmlNode(xml)), "Invalid "+fieldName+" flagged as valid");
     }
 
     @Test
@@ -54,6 +54,6 @@ public class SourceTypeValidatorTest extends CustomValidatorTest {
         String xml = createXml(fieldName, "");
 
         final ValidationEvent valid = validator.isValid(createXmlNode(xml));
-        assertNotNull("Invalid "+fieldName+" flagged as valid", valid);
+        assertNotNull(valid, "Invalid "+fieldName+" flagged as valid");
     }
 }
