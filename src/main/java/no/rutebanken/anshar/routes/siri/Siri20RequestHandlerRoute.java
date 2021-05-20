@@ -114,6 +114,10 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
         ;
 
         from("direct:process.incoming.request")
+                .threads()
+                    .poolSize(10)
+                    .maxPoolSize(200)
+                    .keepAliveTime(30)
                 .removeHeaders("<Siri*") //Since Camel 3, entire body is also included as header
                 .to("log:incoming:" + getClass().getSimpleName() + "?showAll=true&multiline=true&showStreams=true")
                 .choice()
