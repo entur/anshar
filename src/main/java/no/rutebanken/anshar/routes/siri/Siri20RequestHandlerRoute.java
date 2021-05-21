@@ -114,22 +114,12 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
         ;
 
         from("direct:process.incoming.request")
-                .threads()
-                    .poolSize(10)
-                    .maxPoolSize(200)
-                    .keepAliveTime(30)
                 .removeHeaders("<Siri*") //Since Camel 3, entire body is also included as header
                 .to("log:incoming:" + getClass().getSimpleName() + "?showAll=true&multiline=true&showStreams=true")
                 .choice()
                     .when(e -> subscriptionExistsAndIsActive(e))
                         //Valid subscription
-                        .convertBodyTo(String.class)
-                        .process(p -> {
-                            p.getMessage().setBody(p.getIn().getBody());
-                            p.getMessage().setHeaders(p.getIn().getHeaders());
-                            p.getMessage().setHeader(INTERNAL_SIRI_DATA_TYPE, getSubscriptionDataType(p));
-                        })
-                        .to("direct:enqueue.message")
+                        .to("seda:async.process.request?waitForTaskToComplete=Never")
                         .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
                         .setBody(constant(null))
                     .endChoice()
@@ -142,6 +132,17 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
                     .endChoice()
             .routeId("process.incoming")
                 ;
+
+        from("seda:async.process.request?concurrentConsumers=20")
+            .convertBodyTo(String.class)
+            .process(p -> {
+                p.getMessage().setBody(p.getIn().getBody());
+                p.getMessage().setHeaders(p.getIn().getHeaders());
+                p.getMessage().setHeader(INTERNAL_SIRI_DATA_TYPE, getSubscriptionDataType(p));
+            })
+            .to("direct:enqueue.message")
+            .routeId("async.process.incoming")
+        ;
 
         from("direct:process.subscription.request")
                 .to("log:subRequest:" + getClass().getSimpleName() + "?showAll=true&multiline=true&showStreams=true")
