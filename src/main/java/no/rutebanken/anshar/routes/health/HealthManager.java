@@ -108,6 +108,10 @@ public class HealthManager {
         return unmappedIds.getOrDefault(datasetId, new HashMap<>());
     }
 
+    public Map<SiriDataType, Set<String>> clearUnmappedIds(String datasetId) {
+        return unmappedIds.remove(datasetId);
+    }
+
     public JSONObject getUnmappedIdsAsJson(String datasetId) {
         JSONObject result = new JSONObject();
         if (datasetId == null) {

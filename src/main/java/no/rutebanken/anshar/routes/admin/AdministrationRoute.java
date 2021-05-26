@@ -78,6 +78,7 @@ public class AdministrationRoute extends RestRouteBuilder {
                 .put("").to(OPERATION_ROUTE)
                 .get("/locks").to("direct:locks")
                 .get("/prepare-shutdown").to("direct:prepare-shutdown")
+                .delete("/unmapped/{datasetId}").to("direct:clear-unmapped")
         ;
 
         rest("/anshar").tag("internal.admin")
@@ -225,6 +226,13 @@ public class AdministrationRoute extends RestRouteBuilder {
         from("direct:flush.data.from.subscription")
                 .bean(helper, "flushDataFromSubscription(${header.subscriptionId})")
                 .routeId("admin.flush.data")
+        ;
+
+
+        //Return subscription status
+        from("direct:clear-unmapped")
+                .bean(healthManager, "clearUnmappedIds(${header.datasetId})")
+                .routeId("admin.clear.unmapped")
         ;
 
 
