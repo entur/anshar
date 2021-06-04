@@ -31,6 +31,7 @@ import org.rutebanken.hazelcasthelper.service.HazelCastService;
 import org.rutebanken.hazelcasthelper.service.KubernetesService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -54,11 +55,8 @@ public class ExtendedHazelcastService extends HazelCastService {
 
     private Logger logger = LoggerFactory.getLogger(ExtendedHazelcastService.class);
 
-    public ExtendedHazelcastService(@Value("${anshar.hazelcast.kubernetes.enabled:false}") boolean isKubernetesEnabled,
-        @Value("${anshar.hazelcast.kubernetes.namespace:}") String namespace,
-        @Value("${anshar.hazelcast.kubernetes.serviceName:}") String serviceName) {
-
-        super(new KubernetesService(null, serviceName, namespace, isKubernetesEnabled));
+    public ExtendedHazelcastService(@Autowired KubernetesService kubernetesService) {
+        super(kubernetesService);
     }
 
     public void addBeforeShuttingDownHook(Runnable destroyFunction) {
