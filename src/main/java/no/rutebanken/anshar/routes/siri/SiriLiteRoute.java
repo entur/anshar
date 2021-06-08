@@ -102,6 +102,7 @@ public class SiriLiteRoute extends RestRouteBuilder {
                         .param().required(false).name(PARAM_MAX_SIZE).type(RestParamType.query).description("Specify max number of returned elements").dataType("integer").endParam()
 
                 .get("/et-monitored").to("direct:anshar.rest.et.monitored")
+                .get("/sx-cached").to("direct:anshar.rest.sx.cached")
         ;
 
         // Dataproviders
@@ -286,6 +287,37 @@ public class SiriLiteRoute extends RestRouteBuilder {
                 .otherwise()
                 .to("direct:anshar.invalid.tracking.header.response")
                 .routeId("incoming.rest.et.monitored")
+        ;
+
+        from("direct:anshar.rest.sx.cached")
+                .log("RequestTracer - Incoming request (SX)")
+                .to("log:restRequest:" + getClass().getSimpleName() + "?showAll=false&showHeaders=true")
+                .choice()
+                .when(e -> isTrackingHeaderAcceptable(e))
+                    .process(p -> {
+                        String requestorId = resolveRequestorId(p.getIn().getBody(HttpServletRequest.class));
+
+                        logger.info("Fetching cached SX-data");
+                        Siri response = siriObjectFactory.createSXServiceDelivery(situations.getAllCached(requestorId));
+
+                        List<ValueAdapter> outboundAdapters = MappingAdapterPresets.getOutboundAdapters(
+                                                                                        SiriDataType.SITUATION_EXCHANGE,
+                                                                                        OutboundIdMappingPolicy.DEFAULT
+                                                                                    );
+
+                        logger.info("Transforming cached SX-data");
+                        response = SiriValueTransformer.transform(response, outboundAdapters, false, true);
+
+                        HttpServletResponse out = p.getIn().getBody(HttpServletResponse.class);
+
+                        logger.info("Streaming cached SX-data");
+                        streamOutput(p, response, out);
+                        logger.info("Done processing cached SX-data");
+                    })
+                    .log("RequestTracer - Request done (SX)")
+                .otherwise()
+                    .to("direct:anshar.invalid.tracking.header.response")
+                .routeId("incoming.rest.sx.cached")
         ;
 
     }

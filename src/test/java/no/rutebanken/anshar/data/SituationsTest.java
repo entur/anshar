@@ -139,6 +139,36 @@ public class SituationsTest extends SpringBootBaseTest {
         assertEquals(previousSize+4, situations.getAll().size());
     }
 
+    @Test
+    public void testGetUpdatesOnlyFromCache() {
+
+        int previousSize = situations.getAll().size();
+
+        String prefix = "cache-updates-";
+        situations.add("test", createPtSituationElement("ruter", prefix+"1234", ZonedDateTime.now().minusDays(1), ZonedDateTime.now().plusHours(1)));
+        situations.add("test", createPtSituationElement("ruter", prefix+"2345", ZonedDateTime.now().minusDays(1), ZonedDateTime.now().plusHours(1)));
+        situations.add("test", createPtSituationElement("ruter", prefix+"3456", ZonedDateTime.now().minusDays(1), ZonedDateTime.now().plusHours(1)));
+
+        sleep(50);
+
+        // Added 3
+        assertEquals(previousSize+3, situations.getAllCached("1234-1234-cache").size());
+
+        situations.add("test", createPtSituationElement("ruter", prefix+"4567", ZonedDateTime.now().minusDays(1), ZonedDateTime.now().plusHours(1)));
+
+        sleep(50);
+
+        //Added one
+        assertEquals(1, situations.getAllCached("1234-1234-cache").size());
+        sleep(50);
+
+        //None added
+        assertEquals(0, situations.getAllCached("1234-1234-cache").size());
+        sleep(50);
+        //Verify that all elements still exist
+        assertEquals(previousSize+4, situations.getAll().size());
+    }
+
     private PtSituationElement createPtSituationElement(String participantRef, String situationNumber, ZonedDateTime startTime, ZonedDateTime endTime) {
         PtSituationElement element = new PtSituationElement();
         element.setCreationTime(ZonedDateTime.now());

@@ -83,6 +83,51 @@ public class Situations extends SiriRepository<PtSituationElement> {
     @Autowired
     ExtendedHazelcastService hazelcastService;
 
+    Map<SiriObjectStorageKey, PtSituationElement> cache = new HashMap<>();
+
+    public Collection<PtSituationElement> getAllCached(String requestorId) {
+        if (cache.size() != situationElements.size()) {
+            logger.info("Synchronizing cache - as size does not match: {} vs. {}", cache.size(), situationElements.size());
+            cache.clear();
+            for (SiriObjectStorageKey siriObjectStorageKey : situationElements.keySet()) {
+                cache.put(siriObjectStorageKey, situationElements.get(siriObjectStorageKey));
+            }
+        }
+        if (requestorId != null) {
+            try {
+                requestorRefRepository.touchRequestorRef(requestorId,
+                    null,
+                    null,
+                    SiriDataType.SITUATION_EXCHANGE
+                );
+
+                if (changesMap.containsKey(requestorId)) {
+                    final Set<SiriObjectStorageKey> changes = changesMap.get(requestorId);
+                    Set<PtSituationElement> updates = new HashSet<>();
+                    for (SiriObjectStorageKey key : changes) {
+                        final PtSituationElement element = cache.get(key);
+                        if (element != null) {
+                            updates.add(element);
+                        }
+                    }
+
+                    return updates;
+                }
+            } finally {
+                updateChangeTrackers(lastUpdateRequested,
+                    changesMap,
+                    requestorId,
+                    new HashSet<>(),
+                    configuration.getTrackingPeriodMinutes(),
+                    TimeUnit.MINUTES
+                );
+            }
+        }
+
+
+        return cache.values();
+    }
+
     @PostConstruct
     private void initializeUpdateCommitter() {
         super.initBufferCommitter(hazelcastService, lastUpdateRequested, changesMap, configuration.getChangeBufferCommitFrequency());
@@ -101,26 +146,31 @@ public class Situations extends SiriRepository<PtSituationElement> {
             @Override
             public void entryUpdated(EntryEvent<SiriObjectStorageKey, PtSituationElement> entryEvent) {
                 logger.info("Updated SX message with key {}", entryEvent.getKey().getKey());
+                cache.replace(entryEvent.getKey(), entryEvent.getValue());
             }
 
             @Override
             public void entryRemoved(EntryEvent<SiriObjectStorageKey, PtSituationElement> entryEvent) {
                 logger.info("Removed SX message with key {}", entryEvent.getKey().getKey());
+                cache.remove(entryEvent.getKey());
             }
 
             @Override
             public void entryMerged(EntryEvent<SiriObjectStorageKey, PtSituationElement> entryEvent) {
                 logger.info("Merged SX message with key {}", entryEvent.getKey().getKey());
+                cache.replace(entryEvent.getKey(), entryEvent.getValue());
             }
 
             @Override
             public void entryEvicted(EntryEvent<SiriObjectStorageKey, PtSituationElement> entryEvent) {
                 logger.info("Evicted SX message with key {}", entryEvent.getKey().getKey());
+                cache.remove(entryEvent.getKey());
             }
 
             @Override
             public void entryAdded(EntryEvent<SiriObjectStorageKey, PtSituationElement> entryEvent) {
                 logger.info("Added SX message with key {}", entryEvent.getKey().getKey());
+                cache.put(entryEvent.getKey(), situationElements.get(entryEvent.getKey()));
             }
         }, false);
     }
