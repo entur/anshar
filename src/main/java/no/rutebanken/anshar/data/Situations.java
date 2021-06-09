@@ -15,6 +15,7 @@
 
 package no.rutebanken.anshar.data;
 
+import com.google.common.collect.Maps;
 import com.hazelcast.core.EntryEvent;
 import com.hazelcast.map.IMap;
 import com.hazelcast.map.MapEvent;
@@ -83,16 +84,11 @@ public class Situations extends SiriRepository<PtSituationElement> {
     @Autowired
     ExtendedHazelcastService hazelcastService;
 
-    Map<SiriObjectStorageKey, PtSituationElement> cache = new HashMap<>();
+    Map<SiriObjectStorageKey, PtSituationElement> cache = Maps.newConcurrentMap();
 
     public Collection<PtSituationElement> getAllCached(String requestorId) {
-        if (cache.size() != situationElements.size()) {
-            logger.info("Synchronizing cache - as size does not match: {} vs. {}", cache.size(), situationElements.size());
-            cache.clear();
-            for (SiriObjectStorageKey siriObjectStorageKey : situationElements.keySet()) {
-                cache.put(siriObjectStorageKey, situationElements.get(siriObjectStorageKey));
-            }
-        }
+       syncCache();
+
         if (requestorId != null) {
             try {
                 requestorRefRepository.touchRequestorRef(requestorId,
@@ -124,8 +120,26 @@ public class Situations extends SiriRepository<PtSituationElement> {
             }
         }
 
+        return cache
+            .values()
+            .stream()
+            .filter(v -> v != null)
+            .collect(Collectors.toList());
+    }
 
-        return cache.values();
+    private void syncCache() {
+        if (cache.size() != situationElements.size()) {
+            logger.info(
+                "Synchronizing cache - as size does not match: {} vs. {}",
+                cache.size(),
+                situationElements.size()
+            );
+
+            cache.clear();
+            for (SiriObjectStorageKey siriObjectStorageKey : situationElements.keySet()) {
+                cache.put(siriObjectStorageKey, situationElements.get(siriObjectStorageKey));
+            }
+        }
     }
 
     @PostConstruct
@@ -146,7 +160,7 @@ public class Situations extends SiriRepository<PtSituationElement> {
             @Override
             public void entryUpdated(EntryEvent<SiriObjectStorageKey, PtSituationElement> entryEvent) {
                 logger.debug("Updated SX message with key {}", entryEvent.getKey().getKey());
-                cache.replace(entryEvent.getKey(), entryEvent.getValue());
+                cache.put(entryEvent.getKey(), entryEvent.getValue());
             }
 
             @Override
@@ -158,7 +172,7 @@ public class Situations extends SiriRepository<PtSituationElement> {
             @Override
             public void entryMerged(EntryEvent<SiriObjectStorageKey, PtSituationElement> entryEvent) {
                 logger.debug("Merged SX message with key {}", entryEvent.getKey().getKey());
-                cache.replace(entryEvent.getKey(), entryEvent.getValue());
+                cache.put(entryEvent.getKey(), entryEvent.getValue());
             }
 
             @Override
@@ -170,9 +184,12 @@ public class Situations extends SiriRepository<PtSituationElement> {
             @Override
             public void entryAdded(EntryEvent<SiriObjectStorageKey, PtSituationElement> entryEvent) {
                 logger.debug("Added SX message with key {}", entryEvent.getKey().getKey());
-                cache.put(entryEvent.getKey(), situationElements.get(entryEvent.getKey()));
+                cache.put(entryEvent.getKey(), entryEvent.getValue());
             }
-        }, false);
+        }, true);
+
+        // Initial synchronization of cache
+        syncCache();
     }
 
     /**
