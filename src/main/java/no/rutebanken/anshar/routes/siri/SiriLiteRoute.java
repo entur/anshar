@@ -137,8 +137,9 @@ public class SiriLiteRoute extends RestRouteBuilder {
                         }
                         response = SiriValueTransformer.transform(response, outboundAdapters, false, false);
 
-                        HttpServletResponse out = p.getIn().getBody(HttpServletResponse.class);
+                        metrics.countOutgoingData(response, SubscriptionSetup.SubscriptionMode.LITE);
 
+                        HttpServletResponse out = p.getIn().getBody(HttpServletResponse.class);
                         streamOutput(p, response, out);
                     })
                     .log("RequestTracer - Request done (SX)")
@@ -188,6 +189,8 @@ public class SiriLiteRoute extends RestRouteBuilder {
                             outboundAdapters = null;
                         }
                         response = SiriValueTransformer.transform(response, outboundAdapters, false, false);
+
+                        metrics.countOutgoingData(response, SubscriptionSetup.SubscriptionMode.LITE);
 
                         HttpServletResponse out = p.getIn().getBody(HttpServletResponse.class);
 
@@ -248,6 +251,8 @@ public class SiriLiteRoute extends RestRouteBuilder {
                         }
                         response = SiriValueTransformer.transform(response, outboundAdapters, false, false);
 
+                        metrics.countOutgoingData(response, SubscriptionSetup.SubscriptionMode.LITE);
+
                         HttpServletResponse out = p.getIn().getBody(HttpServletResponse.class);
 
                         streamOutput(p, response, out);
@@ -277,8 +282,9 @@ public class SiriLiteRoute extends RestRouteBuilder {
                     logger.info("Transforming monitored ET-data");
                     response = SiriValueTransformer.transform(response, outboundAdapters, false, true);
 
-                    HttpServletResponse out = p.getIn().getBody(HttpServletResponse.class);
+                    metrics.countOutgoingData(response, SubscriptionSetup.SubscriptionMode.LITE);
 
+                    HttpServletResponse out = p.getIn().getBody(HttpServletResponse.class);
                     logger.info("Streaming monitored ET-data");
                     streamOutput(p, response, out);
                     logger.info("Done processing monitored ET-data");
@@ -308,6 +314,8 @@ public class SiriLiteRoute extends RestRouteBuilder {
                         logger.info("Transforming cached SX-data");
                         response = SiriValueTransformer.transform(response, outboundAdapters, false, true);
 
+                        metrics.countOutgoingData(response, SubscriptionSetup.SubscriptionMode.LITE);
+
                         HttpServletResponse out = p.getIn().getBody(HttpServletResponse.class);
 
                         logger.info("Streaming cached SX-data");
@@ -320,27 +328,6 @@ public class SiriLiteRoute extends RestRouteBuilder {
                 .routeId("incoming.rest.sx.cached")
         ;
 
-    }
-
-    private void streamOutput(Exchange p, Siri response, HttpServletResponse out) throws IOException, JAXBException {
-
-        metrics.countOutgoingData(response, SubscriptionSetup.SubscriptionMode.LITE);
-
-        if (MediaType.APPLICATION_JSON.equals(p.getIn().getHeader(HttpHeaders.CONTENT_TYPE)) |
-                MediaType.APPLICATION_JSON.equals(p.getIn().getHeader(HttpHeaders.ACCEPT))) {
-            out.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
-            SiriJson.toJson(response, out.getOutputStream());
-        } else if ("application/x-protobuf".equals(p.getIn().getHeader(HttpHeaders.CONTENT_TYPE)) |
-                "application/x-protobuf".equals(p.getIn().getHeader(HttpHeaders.ACCEPT))) {
-            final byte[] bytes = SiriMapper.mapToPbf(response).toByteArray();
-            out.setHeader(HttpHeaders.CONTENT_TYPE, "application/x-protobuf");
-            out.setHeader(HttpHeaders.CONTENT_LENGTH, ""+bytes.length);
-            out.getOutputStream().write(bytes);
-        } else {
-            out.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_XML);
-            SiriXml.toXml(response, null, out.getOutputStream());
-        }
-        p.getMessage().setBody(out.getOutputStream());
     }
 
     /**

@@ -20,11 +20,20 @@ import org.apache.camel.Exchange;
 import org.apache.camel.InvalidPayloadException;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.http.HttpHeaders;
+import org.entur.protobuf.mapper.SiriMapper;
+import org.rutebanken.siri20.util.SiriJson;
+import org.rutebanken.siri20.util.SiriXml;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import uk.org.siri.siri20.Siri;
 
+import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.core.MediaType;
+import javax.xml.bind.JAXBException;
 import javax.xml.bind.UnmarshalException;
+import java.io.IOException;
 import java.net.ConnectException;
 import java.util.HashMap;
 import java.util.Map;
@@ -156,6 +165,24 @@ public class RestRouteBuilder extends RouteBuilder {
         }
 
         return values;
+    }
+    protected void streamOutput(Exchange p, Siri response, HttpServletResponse out) throws IOException, JAXBException {
+
+        if (MediaType.APPLICATION_JSON.equals(p.getIn().getHeader(HttpHeaders.CONTENT_TYPE)) |
+            MediaType.APPLICATION_JSON.equals(p.getIn().getHeader(HttpHeaders.ACCEPT))) {
+            out.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
+            SiriJson.toJson(response, out.getOutputStream());
+        } else if ("application/x-protobuf".equals(p.getIn().getHeader(HttpHeaders.CONTENT_TYPE)) |
+            "application/x-protobuf".equals(p.getIn().getHeader(HttpHeaders.ACCEPT))) {
+            final byte[] bytes = SiriMapper.mapToPbf(response).toByteArray();
+            out.setHeader(HttpHeaders.CONTENT_TYPE, "application/x-protobuf");
+            out.setHeader(HttpHeaders.CONTENT_LENGTH, ""+bytes.length);
+            out.getOutputStream().write(bytes);
+        } else {
+            out.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_XML);
+            SiriXml.toXml(response, null, out.getOutputStream());
+        }
+        p.getMessage().setBody(out.getOutputStream());
     }
 
 }

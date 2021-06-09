@@ -31,6 +31,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 import uk.org.siri.siri20.Siri;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.MediaType;
 import java.io.InputStream;
 import java.util.List;
@@ -92,6 +93,10 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
                 .post("/services/{" + PARAM_DATASET_ID + "}").to("direct:process.service.request")
                     .description("Endpoint used for SIRI ServiceRequest limited to single dataprovider.")
                     .param().required(false).name(PARAM_DATASET_ID).type(RestParamType.path).description("The id of the Codespace to limit data to").dataType("string").endParam()
+
+                // Endpoints that returned cached data
+                .post("/services-cache").to("direct:process.service.request.cache")
+                .post("/services-cache/{" + PARAM_DATASET_ID + "}").to("direct:process.service.request.cache")
 
 
                 .post("/subscribe").to("direct:process.subscription.request")
@@ -204,6 +209,25 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
                 .otherwise()
                     .to("direct:anshar.invalid.tracking.header.response")
                 .routeId("process.service")
+        ;
+
+        from("direct:process.service.request.cache")
+            .to("log:serRequest:" + getClass().getSimpleName() + "?showAll=true&multiline=true&showStreams=true")
+            .process(p -> {
+                Message msg = p.getIn();
+
+                String datasetId = msg.getHeader(PARAM_DATASET_ID, String.class);
+
+                Siri response = handler.handleSiriCacheRequest(msg.getBody(InputStream.class), datasetId);
+                if (response != null) {
+                    logger.info("Found ServiceRequest-response, streaming response");
+                }
+                HttpServletResponse out = p.getIn().getBody(HttpServletResponse.class);
+
+                streamOutput(p, response, out);
+            })
+            .to("log:serResponse:" + getClass().getSimpleName() + "?showAll=true&multiline=true&showStreams=true")
+            .routeId("process.service.cache")
         ;
 
     }

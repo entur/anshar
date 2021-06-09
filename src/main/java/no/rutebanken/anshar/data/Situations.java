@@ -127,18 +127,20 @@ public class Situations extends SiriRepository<PtSituationElement> {
             .collect(Collectors.toList());
     }
 
-    private void syncCache() {
+    void syncCache() {
         if (cache.size() != situationElements.size()) {
-            logger.info(
-                "Synchronizing cache - as size does not match: {} vs. {}",
-                cache.size(),
-                situationElements.size()
-            );
+            final long t1 = System.currentTimeMillis();
+            final int size = cache.size();
 
             cache.clear();
-            for (SiriObjectStorageKey siriObjectStorageKey : situationElements.keySet()) {
-                cache.put(siriObjectStorageKey, situationElements.get(siriObjectStorageKey));
-            }
+            cache.putAll(situationElements);
+
+            logger.info(
+                "Synchronizing cache - as size does not match: {} vs. {}. Took {}ms.",
+                size,
+                situationElements.size(),
+                System.currentTimeMillis()-t1
+            );
         }
     }
 

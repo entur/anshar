@@ -64,6 +64,7 @@ import javax.xml.stream.XMLStreamException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -149,6 +150,61 @@ public class SiriHandler {
         }
         return null;
     }
+
+    public Siri handleSiriCacheRequest(InputStream body, String datasetId) throws XMLStreamException, JAXBException {
+
+        Siri incoming = SiriValueTransformer.parseXml(body);
+
+        if (incoming.getServiceRequest() != null) {
+            ServiceRequest serviceRequest = incoming.getServiceRequest();
+            String requestorRef = null;
+
+            Siri serviceResponse = null;
+
+            if (serviceRequest.getRequestorRef() != null) {
+                requestorRef = serviceRequest.getRequestorRef().getValue();
+            }
+
+            SiriDataType dataType = null;
+            if (hasValues(serviceRequest.getSituationExchangeRequests())) {
+                dataType = SiriDataType.SITUATION_EXCHANGE;
+
+                final Collection<PtSituationElement> elements = situations.getAllCached(requestorRef);
+                serviceResponse =  siriObjectFactory.createSXServiceDelivery(elements);
+
+            } else if (hasValues(serviceRequest.getVehicleMonitoringRequests())) {
+                dataType = SiriDataType.VEHICLE_MONITORING;
+
+                // TODO: Implement cache for VM-data?
+                final Collection<VehicleActivityStructure> elements = vehicleActivities.getAllUpdates(
+                    requestorRef,
+                    datasetId
+                );
+                serviceResponse = siriObjectFactory.createVMServiceDelivery(elements);
+
+            } else if (hasValues(serviceRequest.getEstimatedTimetableRequests())) {
+                dataType = SiriDataType.ESTIMATED_TIMETABLE;
+
+                // TODO: Implement cache for ET-data?
+                final Collection<EstimatedVehicleJourney> elements = estimatedTimetables.getAllMonitored();
+                serviceResponse = siriObjectFactory.createETServiceDelivery(elements);
+
+            }
+
+
+            if (serviceResponse != null) {
+                metrics.countOutgoingData(serviceResponse, SubscriptionSetup.SubscriptionMode.REQUEST_RESPONSE);
+                return SiriValueTransformer.transform(
+                    serviceResponse,
+                    MappingAdapterPresets.getOutboundAdapters(dataType, OutboundIdMappingPolicy.DEFAULT),
+                    false,
+                    true
+                );
+            }
+        }
+        return null;
+    }
+
 
     /**
      * Handling incoming requests from external clients
