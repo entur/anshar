@@ -22,6 +22,7 @@ import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.data.collections.ExtendedHazelcastService;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.subscription.SiriDataType;
+import org.apache.camel.component.hazelcast.listener.MapEntryListener;
 import org.quartz.utils.counter.Counter;
 import org.quartz.utils.counter.CounterImpl;
 import org.slf4j.Logger;
@@ -90,9 +91,6 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
     private AnsharConfiguration configuration;
 
     @Autowired
-    private RequestorRefRepository requestorRefRepository;
-
-    @Autowired
     private SiriObjectFactory siriObjectFactory;
 
     @Autowired
@@ -103,11 +101,21 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
         super.initBufferCommitter(hazelcastService, lastUpdateRequested, changesMap, configuration.getChangeBufferCommitFrequency());
     }
 
+    @Override
+    protected MapEntryListener<SiriObjectStorageKey, EstimatedVehicleJourney> createMapListener() {
+        // Cache not yet implemented for ET
+        return null;
+    }
+
     /**
      * @return All ET-elements
      */
     public Collection<EstimatedVehicleJourney> getAll() {
         return timetableDeliveries.values();
+    }
+
+    public Map<SiriObjectStorageKey, EstimatedVehicleJourney> getAllAsMap() {
+        return timetableDeliveries;
     }
 
     /**

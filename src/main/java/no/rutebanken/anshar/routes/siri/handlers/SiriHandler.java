@@ -151,7 +151,9 @@ public class SiriHandler {
         return null;
     }
 
-    public Siri handleSiriCacheRequest(InputStream body, String datasetId) throws XMLStreamException, JAXBException {
+    public Siri handleSiriCacheRequest(
+        InputStream body, String datasetId, String clientTrackingName
+    ) throws XMLStreamException, JAXBException {
 
         Siri incoming = SiriValueTransformer.parseXml(body);
 
@@ -169,16 +171,19 @@ public class SiriHandler {
             if (hasValues(serviceRequest.getSituationExchangeRequests())) {
                 dataType = SiriDataType.SITUATION_EXCHANGE;
 
-                final Collection<PtSituationElement> elements = situations.getAllCached(requestorRef);
+                final Collection<PtSituationElement> elements = situations.getAllCachedUpdates(requestorRef,
+                    datasetId,
+                    clientTrackingName
+                );
                 serviceResponse =  siriObjectFactory.createSXServiceDelivery(elements);
 
             } else if (hasValues(serviceRequest.getVehicleMonitoringRequests())) {
                 dataType = SiriDataType.VEHICLE_MONITORING;
 
-                // TODO: Implement cache for VM-data?
-                final Collection<VehicleActivityStructure> elements = vehicleActivities.getAllUpdates(
+                final Collection<VehicleActivityStructure> elements = vehicleActivities.getAllCachedUpdates(
                     requestorRef,
-                    datasetId
+                    datasetId,
+                    clientTrackingName
                 );
                 serviceResponse = siriObjectFactory.createVMServiceDelivery(elements);
 

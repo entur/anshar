@@ -91,7 +91,7 @@ public class RestRouteBuilder extends RouteBuilder {
     protected boolean isTrackingHeaderAcceptable(Exchange e) {
         String camelHttpMethod = (String) e.getIn().getHeader("CamelHttpMethod");
 
-        String header = (String) e.getIn().getHeader(configuration.getTrackingHeaderName());
+        String header = e.getIn().getHeader(configuration.getTrackingHeaderName(), String.class);
         if (header != null && configuration.getBlockedEtClientNames().contains(header)) {
             logger.info("Blocked request from {} = {}", configuration.getTrackingHeaderName(), header);
             return false;

@@ -15,13 +15,16 @@
 
 package no.rutebanken.anshar.data;
 
+import com.hazelcast.core.EntryEvent;
 import com.hazelcast.map.IMap;
+import com.hazelcast.map.MapEvent;
 import com.hazelcast.replicatedmap.ReplicatedMap;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.data.collections.ExtendedHazelcastService;
 import no.rutebanken.anshar.routes.mqtt.SiriVmMqttHandler;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.subscription.SiriDataType;
+import org.apache.camel.component.hazelcast.listener.MapEntryListener;
 import org.quartz.utils.counter.Counter;
 import org.quartz.utils.counter.CounterImpl;
 import org.slf4j.Logger;
@@ -36,6 +39,7 @@ import uk.org.siri.siri20.DirectionRefStructure;
 import uk.org.siri.siri20.LineRef;
 import uk.org.siri.siri20.LocationStructure;
 import uk.org.siri.siri20.MessageRefStructure;
+import uk.org.siri.siri20.PtSituationElement;
 import uk.org.siri.siri20.Siri;
 import uk.org.siri.siri20.VehicleActivityStructure;
 import uk.org.siri.siri20.VehicleRef;
@@ -87,14 +91,13 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
     private AnsharConfiguration configuration;
 
     @Autowired
-    private RequestorRefRepository requestorRefRepository;
-
-    @Autowired
     ExtendedHazelcastService hazelcastService;
 
     @PostConstruct
     private void initializeUpdateCommitter() {
         super.initBufferCommitter(hazelcastService, lastUpdateRequested, changesMap, configuration.getChangeBufferCommitFrequency());
+
+        monitoredVehicles.addEntryListener(createMapListener(), true);
     }
 
     /**
@@ -102,6 +105,10 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
      */
     public Collection<VehicleActivityStructure> getAll() {
         return monitoredVehicles.values();
+    }
+
+    public Map<SiriObjectStorageKey, VehicleActivityStructure> getAllAsMap() {
+        return monitoredVehicles;
     }
 
     public int getSize() {
@@ -119,6 +126,61 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
         });
         logger.debug("Calculating data-distribution (VM) took {} ms: {}", (System.currentTimeMillis()-t1), sizeMap);
         return sizeMap;
+    }
+
+    @Override
+    protected MapEntryListener<SiriObjectStorageKey, VehicleActivityStructure> createMapListener() {
+        return new MapEntryListener<SiriObjectStorageKey, VehicleActivityStructure>() {
+            @Override
+            public void mapEvicted(MapEvent mapEvent) {
+                //ignore
+            }
+
+            @Override
+            public void mapCleared(MapEvent mapEvent) {
+               //ignore
+            }
+
+            @Override
+            public void entryUpdated(
+                EntryEvent<SiriObjectStorageKey, VehicleActivityStructure> entryEvent
+            ) {
+                //ignore
+                cache.put(entryEvent.getKey(), entryEvent.getValue());
+            }
+
+            @Override
+            public void entryRemoved(
+                EntryEvent<SiriObjectStorageKey, VehicleActivityStructure> entryEvent
+            ) {
+                //ignore
+                cache.remove(entryEvent.getKey());
+            }
+
+            @Override
+            public void entryMerged(
+                EntryEvent<SiriObjectStorageKey, VehicleActivityStructure> entryEvent
+            ) {
+                //ignore
+                cache.put(entryEvent.getKey(), entryEvent.getValue());
+            }
+
+            @Override
+            public void entryEvicted(
+                EntryEvent<SiriObjectStorageKey, VehicleActivityStructure> entryEvent
+            ) {
+                //ignore;
+                cache.remove(entryEvent.getKey());
+            }
+
+            @Override
+            public void entryAdded(
+                EntryEvent<SiriObjectStorageKey, VehicleActivityStructure> entryEvent
+            ) {
+                //ignore
+                cache.put(entryEvent.getKey(), entryEvent.getValue());
+            }
+        };
     }
 
     public Map<String, Integer> getLocalDatasetSize() {

@@ -209,6 +209,36 @@ public class VehicleActivitiesTest extends SpringBootBaseTest {
         assertEquals(previousSize+4, vehicleActivities.getAll().size());
     }
 
+    @Test
+    public void testGetUpdatesOnlyFromCache() {
+        int previousSize = vehicleActivities.getAll().size();
+
+        String prefix = "updateOnly-";
+        vehicleActivities.add("test", createVehicleActivityStructure(ZonedDateTime.now(), prefix+"1234"));
+        vehicleActivities.add("test", createVehicleActivityStructure(ZonedDateTime.now(), prefix+"2345"));
+        vehicleActivities.add("test", createVehicleActivityStructure(ZonedDateTime.now(), prefix+"3456"));
+
+        sleep(50);
+
+        // Added 3
+        assertEquals(previousSize+3, vehicleActivities.getAllCachedUpdates("1234-1234", null, null).size());
+
+        vehicleActivities.add("test", createVehicleActivityStructure(ZonedDateTime.now(), prefix+"4567"));
+        sleep(50);
+
+        //Added one
+        assertEquals(1, vehicleActivities.getAllCachedUpdates("1234-1234", null, null).size());
+        sleep(50);
+
+        //None added
+        assertEquals(0, vehicleActivities.getAllCachedUpdates("1234-1234", null, null).size());
+        sleep(50);
+
+        //Verify that all elements still exist
+        assertEquals(previousSize+4, vehicleActivities.getAll().size());
+        assertEquals(previousSize+4, vehicleActivities.getAllCachedUpdates(null,null, null).size());
+    }
+
     private VehicleActivityStructure createVehicleActivityStructure(ZonedDateTime recordedAtTime, String vehicleReference) {
         VehicleActivityStructure element = new VehicleActivityStructure();
         element.setRecordedAtTime(recordedAtTime);

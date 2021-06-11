@@ -217,8 +217,9 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
                 Message msg = p.getIn();
 
                 String datasetId = msg.getHeader(PARAM_DATASET_ID, String.class);
+                String clientTrackingName = p.getIn().getHeader(configuration.getTrackingHeaderName(), String.class);
 
-                Siri response = handler.handleSiriCacheRequest(msg.getBody(InputStream.class), datasetId);
+                Siri response = handler.handleSiriCacheRequest(msg.getBody(InputStream.class), datasetId, clientTrackingName);
                 if (response != null) {
                     logger.info("Found ServiceRequest-response, streaming response");
                 }

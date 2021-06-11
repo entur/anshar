@@ -150,20 +150,22 @@ public class SituationsTest extends SpringBootBaseTest {
         situations.add("test", createPtSituationElement("ruter", prefix+"3456", ZonedDateTime.now().minusDays(1), ZonedDateTime.now().plusHours(1)));
 
         sleep(50);
-
+        String datasetId = null;
         // Added 3
-        assertEquals(previousSize+3, situations.getAllCached("1234-1234-cache").size());
+        assertEquals(previousSize+3, situations.getAllCachedUpdates("1234-1234-cache", datasetId,
+            null
+        ).size());
 
         situations.add("test", createPtSituationElement("ruter", prefix+"4567", ZonedDateTime.now().minusDays(1), ZonedDateTime.now().plusHours(1)));
 
         sleep(50);
 
         //Added one
-        assertEquals(1, situations.getAllCached("1234-1234-cache").size());
+        assertEquals(1, situations.getAllCachedUpdates("1234-1234-cache", datasetId, null).size());
         sleep(50);
 
         //None added
-        assertEquals(0, situations.getAllCached("1234-1234-cache").size());
+        assertEquals(0, situations.getAllCachedUpdates("1234-1234-cache", datasetId, null).size());
         sleep(50);
         //Verify that all elements still exist
         assertEquals(previousSize+4, situations.getAll().size());

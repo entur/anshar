@@ -29,12 +29,7 @@ import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import no.rutebanken.anshar.subscription.helpers.MappingAdapterPresets;
-import org.apache.camel.Exchange;
 import org.apache.camel.model.rest.RestParamType;
-import org.apache.http.HttpHeaders;
-import org.entur.protobuf.mapper.SiriMapper;
-import org.rutebanken.siri20.util.SiriJson;
-import org.rutebanken.siri20.util.SiriXml;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,9 +38,6 @@ import uk.org.siri.siri20.Siri;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.core.MediaType;
-import javax.xml.bind.JAXBException;
-import java.io.IOException;
 import java.util.List;
 
 import static no.rutebanken.anshar.routes.HttpParameter.PARAM_DATASET_ID;
@@ -103,6 +95,7 @@ public class SiriLiteRoute extends RestRouteBuilder {
 
                 .get("/et-monitored").to("direct:anshar.rest.et.monitored")
                 .get("/sx-cached").to("direct:anshar.rest.sx.cached")
+                .get("/vm-cached").to("direct:anshar.rest.vm.cached")
         ;
 
         // Dataproviders
@@ -302,9 +295,13 @@ public class SiriLiteRoute extends RestRouteBuilder {
                 .when(e -> isTrackingHeaderAcceptable(e))
                     .process(p -> {
                         String requestorId = resolveRequestorId(p.getIn().getBody(HttpServletRequest.class));
+                        String datasetId = p.getIn().getHeader(PARAM_DATASET_ID, String.class);
+                        String clientTrackingName = p.getIn().getHeader(configuration.getTrackingHeaderName(), String.class);
 
                         logger.info("Fetching cached SX-data");
-                        Siri response = siriObjectFactory.createSXServiceDelivery(situations.getAllCached(requestorId));
+                        Siri response = siriObjectFactory.createSXServiceDelivery(situations.getAllCachedUpdates(requestorId,
+                            datasetId, clientTrackingName
+                        ));
 
                         List<ValueAdapter> outboundAdapters = MappingAdapterPresets.getOutboundAdapters(
                                                                                         SiriDataType.SITUATION_EXCHANGE,
@@ -326,6 +323,43 @@ public class SiriLiteRoute extends RestRouteBuilder {
                 .otherwise()
                     .to("direct:anshar.invalid.tracking.header.response")
                 .routeId("incoming.rest.sx.cached")
+        ;
+        from("direct:anshar.rest.vm.cached")
+                .log("RequestTracer - Incoming request (VM)")
+                .to("log:restRequest:" + getClass().getSimpleName() + "?showAll=false&showHeaders=true")
+                .choice()
+                .when(e -> isTrackingHeaderAcceptable(e))
+                    .process(p -> {
+                        String requestorId = resolveRequestorId(p.getIn().getBody(HttpServletRequest.class));
+                        String datasetId = p.getIn().getHeader(PARAM_DATASET_ID, String.class);
+                        String clientTrackingName = p.getIn().getHeader(configuration.getTrackingHeaderName(), String.class);
+
+                        logger.info("Fetching cached VM-data");
+                        Siri response = siriObjectFactory.createVMServiceDelivery(vehicleActivities.getAllCachedUpdates(requestorId,
+                            datasetId,
+                            clientTrackingName
+                        ));
+
+                        List<ValueAdapter> outboundAdapters = MappingAdapterPresets.getOutboundAdapters(
+                                                                                        SiriDataType.VEHICLE_MONITORING,
+                                                                                        OutboundIdMappingPolicy.DEFAULT
+                                                                                    );
+
+                        logger.info("Transforming cached VM-data");
+                        response = SiriValueTransformer.transform(response, outboundAdapters, false, true);
+
+                        metrics.countOutgoingData(response, SubscriptionSetup.SubscriptionMode.LITE);
+
+                        HttpServletResponse out = p.getIn().getBody(HttpServletResponse.class);
+
+                        logger.info("Streaming cached VM-data");
+                        streamOutput(p, response, out);
+                        logger.info("Done processing cached VM-data");
+                    })
+                    .log("RequestTracer - Request done (VM)")
+                .otherwise()
+                    .to("direct:anshar.invalid.tracking.header.response")
+                .routeId("incoming.rest.vm.cached")
         ;
 
     }

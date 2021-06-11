@@ -79,119 +79,74 @@ public class Situations extends SiriRepository<PtSituationElement> {
     private AnsharConfiguration configuration;
 
     @Autowired
-    private RequestorRefRepository requestorRefRepository;
-
-    @Autowired
     ExtendedHazelcastService hazelcastService;
-
-    Map<SiriObjectStorageKey, PtSituationElement> cache = Maps.newConcurrentMap();
-
-    public Collection<PtSituationElement> getAllCached(String requestorId) {
-       syncCache();
-
-        if (requestorId != null) {
-            try {
-                requestorRefRepository.touchRequestorRef(requestorId,
-                    null,
-                    null,
-                    SiriDataType.SITUATION_EXCHANGE
-                );
-
-                if (changesMap.containsKey(requestorId)) {
-                    final Set<SiriObjectStorageKey> changes = changesMap.get(requestorId);
-                    Set<PtSituationElement> updates = new HashSet<>();
-                    for (SiriObjectStorageKey key : changes) {
-                        final PtSituationElement element = cache.get(key);
-                        if (element != null) {
-                            updates.add(element);
-                        }
-                    }
-
-                    return updates;
-                }
-            } finally {
-                updateChangeTrackers(lastUpdateRequested,
-                    changesMap,
-                    requestorId,
-                    new HashSet<>(),
-                    configuration.getTrackingPeriodMinutes(),
-                    TimeUnit.MINUTES
-                );
-            }
-        }
-
-        return cache
-            .values()
-            .stream()
-            .filter(v -> v != null)
-            .collect(Collectors.toList());
-    }
-
-    void syncCache() {
-        if (cache.size() != situationElements.size()) {
-            final long t1 = System.currentTimeMillis();
-            final int size = cache.size();
-
-            cache.clear();
-            cache.putAll(situationElements);
-
-            logger.info(
-                "Synchronizing cache - as size does not match: {} vs. {}. Took {}ms.",
-                size,
-                situationElements.size(),
-                System.currentTimeMillis()-t1
-            );
-        }
-    }
 
     @PostConstruct
     private void initializeUpdateCommitter() {
         super.initBufferCommitter(hazelcastService, lastUpdateRequested, changesMap, configuration.getChangeBufferCommitFrequency());
 
-        situationElements.addEntryListener(new MapEntryListener<SiriObjectStorageKey, PtSituationElement>() {
+        situationElements.addEntryListener(createMapListener(), true);
+    }
+
+    @Override
+    protected MapEntryListener<SiriObjectStorageKey, PtSituationElement> createMapListener() {
+        return new MapEntryListener<SiriObjectStorageKey, PtSituationElement>() {
             @Override
             public void mapEvicted(MapEvent mapEvent) {
-                logger.debug("Map evicted - {} entries affected", mapEvent.getNumberOfEntriesAffected());
+                logger.debug(
+                    "Map evicted - {} entries affected",
+                    mapEvent.getNumberOfEntriesAffected()
+                );
             }
 
             @Override
             public void mapCleared(MapEvent mapEvent) {
-                logger.debug("Map cleared - {} entries affected", mapEvent.getNumberOfEntriesAffected());
+                logger.debug(
+                    "Map cleared - {} entries affected",
+                    mapEvent.getNumberOfEntriesAffected()
+                );
             }
 
             @Override
-            public void entryUpdated(EntryEvent<SiriObjectStorageKey, PtSituationElement> entryEvent) {
+            public void entryUpdated(
+                EntryEvent<SiriObjectStorageKey, PtSituationElement> entryEvent
+            ) {
                 logger.debug("Updated SX message with key {}", entryEvent.getKey().getKey());
                 cache.put(entryEvent.getKey(), entryEvent.getValue());
             }
 
             @Override
-            public void entryRemoved(EntryEvent<SiriObjectStorageKey, PtSituationElement> entryEvent) {
+            public void entryRemoved(
+                EntryEvent<SiriObjectStorageKey, PtSituationElement> entryEvent
+            ) {
                 logger.debug("Removed SX message with key {}", entryEvent.getKey().getKey());
                 cache.remove(entryEvent.getKey());
             }
 
             @Override
-            public void entryMerged(EntryEvent<SiriObjectStorageKey, PtSituationElement> entryEvent) {
+            public void entryMerged(
+                EntryEvent<SiriObjectStorageKey, PtSituationElement> entryEvent
+            ) {
                 logger.debug("Merged SX message with key {}", entryEvent.getKey().getKey());
                 cache.put(entryEvent.getKey(), entryEvent.getValue());
             }
 
             @Override
-            public void entryEvicted(EntryEvent<SiriObjectStorageKey, PtSituationElement> entryEvent) {
+            public void entryEvicted(
+                EntryEvent<SiriObjectStorageKey, PtSituationElement> entryEvent
+            ) {
                 logger.debug("Evicted SX message with key {}", entryEvent.getKey().getKey());
                 cache.remove(entryEvent.getKey());
             }
 
             @Override
-            public void entryAdded(EntryEvent<SiriObjectStorageKey, PtSituationElement> entryEvent) {
+            public void entryAdded(
+                EntryEvent<SiriObjectStorageKey, PtSituationElement> entryEvent
+            ) {
                 logger.debug("Added SX message with key {}", entryEvent.getKey().getKey());
                 cache.put(entryEvent.getKey(), entryEvent.getValue());
             }
-        }, true);
-
-        // Initial synchronization of cache
-        syncCache();
+        };
     }
 
     /**
@@ -199,6 +154,10 @@ public class Situations extends SiriRepository<PtSituationElement> {
      */
     public Collection<PtSituationElement> getAll() {
         return situationElements.values();
+    }
+
+    public Map<SiriObjectStorageKey, PtSituationElement> getAllAsMap() {
+        return situationElements;
     }
 
     public int getSize() {

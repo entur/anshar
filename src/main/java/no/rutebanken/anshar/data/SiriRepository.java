@@ -15,16 +15,20 @@
 
 package no.rutebanken.anshar.data;
 
+import com.google.common.collect.Maps;
 import com.hazelcast.map.IMap;
 import com.hazelcast.query.Predicate;
 import no.rutebanken.anshar.data.collections.ExtendedHazelcastService;
 import no.rutebanken.anshar.metrics.PrometheusMetricsService;
 import no.rutebanken.anshar.routes.siri.transformer.ApplicationContextHolder;
 import no.rutebanken.anshar.subscription.SiriDataType;
+import org.apache.camel.component.hazelcast.listener.MapEntryListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
+import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.annotation.PostConstruct;
 import javax.xml.bind.DatatypeConverter;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -53,7 +57,10 @@ abstract class SiriRepository<T> {
     private IMap<String, Instant> lastUpdateRequested;
     private IMap<String, Set<SiriObjectStorageKey>> changesMap;
 
+
     abstract Collection<T> getAll();
+
+    abstract Map<SiriObjectStorageKey, T> getAllAsMap();
 
     abstract int getSize();
 
@@ -74,6 +81,80 @@ abstract class SiriRepository<T> {
     final Set<SiriObjectStorageKey> dirtyChanges = Collections.synchronizedSet(new HashSet<>());
 
     private ScheduledExecutorService singleThreadScheduledExecutor;
+
+    @Autowired
+    protected RequestorRefRepository requestorRefRepository;
+
+    Map<SiriObjectStorageKey, T> cache = Maps.newConcurrentMap();
+
+    protected abstract MapEntryListener<SiriObjectStorageKey, T> createMapListener();
+
+    public Collection<T> getAllCachedUpdates(
+            String requestorId, String datasetId, String clientTrackingName
+    ) {
+        syncCache();
+
+        if (requestorId != null) {
+            try {
+                requestorRefRepository.touchRequestorRef(requestorId,
+                    datasetId,
+                    clientTrackingName,
+                    SiriDataType.SITUATION_EXCHANGE
+                );
+
+                if (changesMap.containsKey(requestorId)) {
+                    Set<SiriObjectStorageKey> changes = changesMap.get(requestorId);
+
+                    changes = changes.stream()
+                        .filter((k) -> datasetId == null || k.getCodespaceId().equals(datasetId))
+                        .collect(Collectors.toSet());
+
+                    List<T> updates = new ArrayList<>();
+                    for (SiriObjectStorageKey key : changes) {
+                        final T element = cache.get(key);
+                        if (element != null) {
+                            updates.add(element);
+                        }
+                    }
+                    return updates;
+                }
+            } finally {
+                updateChangeTrackers(lastUpdateRequested,
+                    changesMap,
+                    requestorId,
+                    new HashSet<>(),
+                    2,
+                    TimeUnit.MINUTES
+                );
+            }
+        }
+
+        return cache
+            .entrySet()
+            .stream()
+            .filter((entry) -> entry.getValue() != null)
+            .filter((entry) -> datasetId == null || entry.getKey().getCodespaceId().equals(datasetId))
+            .map(Map.Entry::getValue)
+            .collect(Collectors.toList());
+    }
+
+    @PostConstruct
+    void syncCache() {
+        if (cache.size() != getSize()) {
+            final long t1 = System.currentTimeMillis();
+            final int size = cache.size();
+
+            cache.clear();
+            cache.putAll(getAllAsMap());
+
+            logger.info(
+                "Synchronizing cache - as size does not match: {} vs. {}. Took {}ms.",
+                size,
+                getSize(),
+                System.currentTimeMillis()-t1
+            );
+        }
+    }
 
     void initBufferCommitter(ExtendedHazelcastService hazelcastService, IMap<String, Instant> lastUpdateRequested, IMap<String, Set<SiriObjectStorageKey>> changesMap, int commitFrequency) {
         this.lastUpdateRequested = lastUpdateRequested;
