@@ -148,10 +148,16 @@ abstract class SiriRepository<T> {
             cache.putAll(getAllAsMap());
 
             logger.info(
-                "Synchronizing cache - as size does not match: {} vs. {}. Took {}ms.",
+                "Synchronizing cache - as size does not match: {} vs. {}. Took {}ms ({}).",
                 size,
                 getSize(),
-                System.currentTimeMillis()-t1
+                System.currentTimeMillis()-t1,
+                this.getClass().getSimpleName()
+            );
+        } else {
+            logger.info(
+                "Cache appears to be in sync ({})",
+                this.getClass().getSimpleName()
             );
         }
     }
