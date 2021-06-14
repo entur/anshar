@@ -16,7 +16,9 @@
 package no.rutebanken.anshar.data;
 
 import com.google.common.collect.Maps;
+import com.hazelcast.core.EntryEvent;
 import com.hazelcast.map.IMap;
+import com.hazelcast.map.MapEvent;
 import com.hazelcast.query.Predicate;
 import no.rutebanken.anshar.data.collections.ExtendedHazelcastService;
 import no.rutebanken.anshar.metrics.PrometheusMetricsService;
@@ -27,6 +29,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
+import uk.org.siri.siri20.PtSituationElement;
+import uk.org.siri.siri20.VehicleActivityStructure;
 
 import javax.annotation.PostConstruct;
 import javax.xml.bind.DatatypeConverter;
@@ -87,8 +91,69 @@ abstract class SiriRepository<T> {
 
     Map<SiriObjectStorageKey, T> cache = Maps.newConcurrentMap();
 
-    protected abstract MapEntryListener<SiriObjectStorageKey, T> createMapListener();
-    boolean cacheEnabled = false;
+    private boolean cacheEnabled = false;
+
+    protected MapEntryListener<SiriObjectStorageKey, T> createMapListener() {
+        {
+            cacheEnabled = true;
+
+            return new MapEntryListener<>() {
+                @Override
+                public void mapEvicted(MapEvent mapEvent) {
+                    logger.debug("Map evicted - {} entries affected",
+                        mapEvent.getNumberOfEntriesAffected()
+                    );
+                }
+
+                @Override
+                public void mapCleared(MapEvent mapEvent) {
+                    logger.debug("Map cleared - {} entries affected",
+                        mapEvent.getNumberOfEntriesAffected()
+                    );
+                }
+
+                @Override
+                public void entryUpdated(
+                    EntryEvent<SiriObjectStorageKey, T> entryEvent
+                ) {
+                    logger.debug("Updated value with key {}", entryEvent.getKey().getKey());
+                    cache.put(entryEvent.getKey(), entryEvent.getValue());
+                }
+
+                @Override
+                public void entryRemoved(
+                    EntryEvent<SiriObjectStorageKey, T> entryEvent
+                ) {
+                    logger.debug("Removed value with key {}", entryEvent.getKey().getKey());
+                    cache.remove(entryEvent.getKey());
+                }
+
+                @Override
+                public void entryMerged(
+                    EntryEvent<SiriObjectStorageKey, T> entryEvent
+                ) {
+                    logger.debug("Merged value with key {}", entryEvent.getKey().getKey());
+                    cache.put(entryEvent.getKey(), entryEvent.getValue());
+                }
+
+                @Override
+                public void entryEvicted(
+                    EntryEvent<SiriObjectStorageKey, T> entryEvent
+                ) {
+                    logger.debug("Evicted value with key {}", entryEvent.getKey().getKey());
+                    cache.remove(entryEvent.getKey());
+                }
+
+                @Override
+                public void entryAdded(
+                    EntryEvent<SiriObjectStorageKey, T> entryEvent
+                ) {
+                    logger.debug("Added value with key {}", entryEvent.getKey().getKey());
+                    cache.put(entryEvent.getKey(), entryEvent.getValue());
+                }
+            };
+        }
+    }
 
     public Collection<T> getAllCachedUpdates(
             String requestorId, String datasetId, String clientTrackingName
@@ -139,7 +204,6 @@ abstract class SiriRepository<T> {
             .collect(Collectors.toList());
     }
 
-    @PostConstruct
     void syncCache() {
         if (!cacheEnabled) {
             //Ignore

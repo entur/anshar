@@ -97,7 +97,6 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
         super.initBufferCommitter(hazelcastService, lastUpdateRequested, changesMap, configuration.getChangeBufferCommitFrequency());
 
         monitoredVehicles.addEntryListener(createMapListener(), true);
-        cacheEnabled = true;
     }
 
     /**
@@ -126,61 +125,6 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
         });
         logger.debug("Calculating data-distribution (VM) took {} ms: {}", (System.currentTimeMillis()-t1), sizeMap);
         return sizeMap;
-    }
-
-    @Override
-    protected MapEntryListener<SiriObjectStorageKey, VehicleActivityStructure> createMapListener() {
-        return new MapEntryListener<SiriObjectStorageKey, VehicleActivityStructure>() {
-            @Override
-            public void mapEvicted(MapEvent mapEvent) {
-                //ignore
-            }
-
-            @Override
-            public void mapCleared(MapEvent mapEvent) {
-               //ignore
-            }
-
-            @Override
-            public void entryUpdated(
-                EntryEvent<SiriObjectStorageKey, VehicleActivityStructure> entryEvent
-            ) {
-                //ignore
-                cache.put(entryEvent.getKey(), entryEvent.getValue());
-            }
-
-            @Override
-            public void entryRemoved(
-                EntryEvent<SiriObjectStorageKey, VehicleActivityStructure> entryEvent
-            ) {
-                //ignore
-                cache.remove(entryEvent.getKey());
-            }
-
-            @Override
-            public void entryMerged(
-                EntryEvent<SiriObjectStorageKey, VehicleActivityStructure> entryEvent
-            ) {
-                //ignore
-                cache.put(entryEvent.getKey(), entryEvent.getValue());
-            }
-
-            @Override
-            public void entryEvicted(
-                EntryEvent<SiriObjectStorageKey, VehicleActivityStructure> entryEvent
-            ) {
-                //ignore;
-                cache.remove(entryEvent.getKey());
-            }
-
-            @Override
-            public void entryAdded(
-                EntryEvent<SiriObjectStorageKey, VehicleActivityStructure> entryEvent
-            ) {
-                //ignore
-                cache.put(entryEvent.getKey(), entryEvent.getValue());
-            }
-        };
     }
 
     public Map<String, Integer> getLocalDatasetSize() {
