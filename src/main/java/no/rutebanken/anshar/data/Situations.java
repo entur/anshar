@@ -15,7 +15,6 @@
 
 package no.rutebanken.anshar.data;
 
-import com.google.common.collect.Maps;
 import com.hazelcast.core.EntryEvent;
 import com.hazelcast.map.IMap;
 import com.hazelcast.map.MapEvent;
@@ -86,6 +85,8 @@ public class Situations extends SiriRepository<PtSituationElement> {
         super.initBufferCommitter(hazelcastService, lastUpdateRequested, changesMap, configuration.getChangeBufferCommitFrequency());
 
         situationElements.addEntryListener(createMapListener(), true);
+
+        cacheEnabled = true;
     }
 
     @Override

@@ -39,7 +39,6 @@ import uk.org.siri.siri20.DirectionRefStructure;
 import uk.org.siri.siri20.LineRef;
 import uk.org.siri.siri20.LocationStructure;
 import uk.org.siri.siri20.MessageRefStructure;
-import uk.org.siri.siri20.PtSituationElement;
 import uk.org.siri.siri20.Siri;
 import uk.org.siri.siri20.VehicleActivityStructure;
 import uk.org.siri.siri20.VehicleRef;
@@ -98,6 +97,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
         super.initBufferCommitter(hazelcastService, lastUpdateRequested, changesMap, configuration.getChangeBufferCommitFrequency());
 
         monitoredVehicles.addEntryListener(createMapListener(), true);
+        cacheEnabled = true;
     }
 
     /**

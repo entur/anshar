@@ -88,6 +88,7 @@ abstract class SiriRepository<T> {
     Map<SiriObjectStorageKey, T> cache = Maps.newConcurrentMap();
 
     protected abstract MapEntryListener<SiriObjectStorageKey, T> createMapListener();
+    boolean cacheEnabled = false;
 
     public Collection<T> getAllCachedUpdates(
             String requestorId, String datasetId, String clientTrackingName
@@ -140,6 +141,10 @@ abstract class SiriRepository<T> {
 
     @PostConstruct
     void syncCache() {
+        if (!cacheEnabled) {
+            //Ignore
+            return;
+        }
         if (cache.size() != getSize()) {
             final long t1 = System.currentTimeMillis();
             final int size = cache.size();
