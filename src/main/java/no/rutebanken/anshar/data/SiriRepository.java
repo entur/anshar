@@ -96,7 +96,7 @@ abstract class SiriRepository<T> {
 
         //Entry expired by TTL
         map.addEntryListener((EntryExpiredListener<SiriObjectStorageKey, T>) entryEvent -> {
-            logger.debug("cache - expired {}", entryEvent.getKey());
+            logger.info("cache - expired {}", entryEvent.getKey());
             cache.remove(entryEvent.getKey());
         }, false);
 
