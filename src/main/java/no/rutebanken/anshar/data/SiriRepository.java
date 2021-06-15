@@ -177,8 +177,15 @@ abstract class SiriRepository<T> {
             final long t1 = System.currentTimeMillis();
             final int size = cache.size();
 
+            final Map<SiriObjectStorageKey, T> allAsMap = getAllAsMap();
+
+            for (SiriObjectStorageKey key : allAsMap.keySet()) {
+                cache.remove(key);
+            }
+            logger.info("Extra keys in cache: {}", cache.keySet());
+
             cache.clear();
-            cache.putAll(getAllAsMap());
+            cache.putAll(allAsMap);
 
             logger.info(
                 "Synchronizing cache - as size does not match: {} vs. {}. Took {}ms ({}).",
