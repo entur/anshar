@@ -309,7 +309,7 @@ public class SiriLiteRoute extends RestRouteBuilder {
                                                                                     );
 
                         logger.info("Transforming cached SX-data");
-                        response = SiriValueTransformer.transform(response, outboundAdapters, false, true);
+                        response = SiriValueTransformer.transform(response, outboundAdapters, false, false);
 
                         metrics.countOutgoingData(response, SubscriptionSetup.SubscriptionMode.LITE);
 
@@ -346,7 +346,7 @@ public class SiriLiteRoute extends RestRouteBuilder {
                                                                                     );
 
                         logger.info("Transforming cached VM-data");
-                        response = SiriValueTransformer.transform(response, outboundAdapters, false, true);
+                        response = SiriValueTransformer.transform(response, outboundAdapters, false, false);
 
                         metrics.countOutgoingData(response, SubscriptionSetup.SubscriptionMode.LITE);
 

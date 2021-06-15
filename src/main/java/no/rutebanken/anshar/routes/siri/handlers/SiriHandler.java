@@ -205,7 +205,7 @@ public class SiriHandler {
                     serviceResponse,
                     MappingAdapterPresets.getOutboundAdapters(dataType, OutboundIdMappingPolicy.DEFAULT),
                     false,
-                    true
+                    false
                 );
             }
         }
@@ -304,7 +304,7 @@ public class SiriHandler {
                     serviceResponse,
                     MappingAdapterPresets.getOutboundAdapters(dataType, outboundIdMappingPolicy),
                     false,
-                    true
+                    false
                 );
             }
         }
