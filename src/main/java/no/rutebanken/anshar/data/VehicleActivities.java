@@ -358,7 +358,6 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
                         if (expiration > 0 && keep) {
                             changes.add(key);
                             addedData.add(activity);
-                            logger.info("Added key: {}", key);
                             monitoredVehicles.set(key, activity, expiration, TimeUnit.MILLISECONDS);
                             checksumCache.put(key, currentChecksum, expiration, TimeUnit.MILLISECONDS);
                             siriVmMqttHandler.pushToMqttAsync(datasetId, activity);
