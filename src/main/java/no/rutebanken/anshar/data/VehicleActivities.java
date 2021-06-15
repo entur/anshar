@@ -15,16 +15,13 @@
 
 package no.rutebanken.anshar.data;
 
-import com.hazelcast.core.EntryEvent;
 import com.hazelcast.map.IMap;
-import com.hazelcast.map.MapEvent;
 import com.hazelcast.replicatedmap.ReplicatedMap;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.data.collections.ExtendedHazelcastService;
 import no.rutebanken.anshar.routes.mqtt.SiriVmMqttHandler;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.subscription.SiriDataType;
-import org.apache.camel.component.hazelcast.listener.MapEntryListener;
 import org.quartz.utils.counter.Counter;
 import org.quartz.utils.counter.CounterImpl;
 import org.slf4j.Logger;
@@ -96,7 +93,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
     private void initializeUpdateCommitter() {
         super.initBufferCommitter(hazelcastService, lastUpdateRequested, changesMap, configuration.getChangeBufferCommitFrequency());
 
-        monitoredVehicles.addEntryListener(createMapListener(), true);
+        enableCache(monitoredVehicles);
     }
 
     /**
@@ -361,6 +358,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
                         if (expiration > 0 && keep) {
                             changes.add(key);
                             addedData.add(activity);
+                            logger.info("Added key: {}", key);
                             monitoredVehicles.set(key, activity, expiration, TimeUnit.MILLISECONDS);
                             checksumCache.put(key, currentChecksum, expiration, TimeUnit.MILLISECONDS);
                             siriVmMqttHandler.pushToMqttAsync(datasetId, activity);

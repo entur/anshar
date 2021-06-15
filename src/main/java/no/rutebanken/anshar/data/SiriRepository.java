@@ -16,23 +16,21 @@
 package no.rutebanken.anshar.data;
 
 import com.google.common.collect.Maps;
-import com.hazelcast.core.EntryEvent;
 import com.hazelcast.map.IMap;
-import com.hazelcast.map.MapEvent;
+import com.hazelcast.map.listener.EntryAddedListener;
+import com.hazelcast.map.listener.EntryExpiredListener;
+import com.hazelcast.map.listener.EntryRemovedListener;
+import com.hazelcast.map.listener.EntryUpdatedListener;
 import com.hazelcast.query.Predicate;
 import no.rutebanken.anshar.data.collections.ExtendedHazelcastService;
 import no.rutebanken.anshar.metrics.PrometheusMetricsService;
 import no.rutebanken.anshar.routes.siri.transformer.ApplicationContextHolder;
 import no.rutebanken.anshar.subscription.SiriDataType;
-import org.apache.camel.component.hazelcast.listener.MapEntryListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
-import uk.org.siri.siri20.PtSituationElement;
-import uk.org.siri.siri20.VehicleActivityStructure;
 
-import javax.annotation.PostConstruct;
 import javax.xml.bind.DatatypeConverter;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -60,7 +58,6 @@ abstract class SiriRepository<T> {
 
     private IMap<String, Instant> lastUpdateRequested;
     private IMap<String, Set<SiriObjectStorageKey>> changesMap;
-
 
     abstract Collection<T> getAll();
 
@@ -93,66 +90,33 @@ abstract class SiriRepository<T> {
 
     private boolean cacheEnabled = false;
 
-    protected MapEntryListener<SiriObjectStorageKey, T> createMapListener() {
-        {
-            cacheEnabled = true;
+    protected void enableCache(IMap<SiriObjectStorageKey, T> map) {
 
-            return new MapEntryListener<>() {
-                @Override
-                public void mapEvicted(MapEvent mapEvent) {
-                    logger.debug("Map evicted - {} entries affected",
-                        mapEvent.getNumberOfEntriesAffected()
-                    );
-                }
+        cacheEnabled = true;
 
-                @Override
-                public void mapCleared(MapEvent mapEvent) {
-                    logger.debug("Map cleared - {} entries affected",
-                        mapEvent.getNumberOfEntriesAffected()
-                    );
-                }
+        //Entry expired by TTL
+        map.addEntryListener((EntryExpiredListener<SiriObjectStorageKey, T>) entryEvent -> {
+            logger.debug("cache - expired {}", entryEvent.getKey());
+            cache.remove(entryEvent.getKey());
+        }, false);
 
-                @Override
-                public void entryUpdated(
-                    EntryEvent<SiriObjectStorageKey, T> entryEvent
-                ) {
-                    logger.debug("Updated value with key {}", entryEvent.getKey().getKey());
-                    cache.put(entryEvent.getKey(), entryEvent.getValue());
-                }
+        // Entry added - new data
+        map.addEntryListener((EntryAddedListener<SiriObjectStorageKey, T>) entryEvent -> {
+            logger.debug("cache - added {}", entryEvent.getKey());
+            cache.put(entryEvent.getKey(), entryEvent.getValue());
+        }, true);
 
-                @Override
-                public void entryRemoved(
-                    EntryEvent<SiriObjectStorageKey, T> entryEvent
-                ) {
-                    logger.debug("Removed value with key {}", entryEvent.getKey().getKey());
-                    cache.remove(entryEvent.getKey());
-                }
+        // Entry updated - new version
+        map.addEntryListener((EntryUpdatedListener<SiriObjectStorageKey, T>) entryEvent -> {
+            logger.debug("cache - updated {}", entryEvent.getKey());
+            cache.put(entryEvent.getKey(), entryEvent.getValue());
+        }, true);
 
-                @Override
-                public void entryMerged(
-                    EntryEvent<SiriObjectStorageKey, T> entryEvent
-                ) {
-                    logger.debug("Merged value with key {}", entryEvent.getKey().getKey());
-                    cache.put(entryEvent.getKey(), entryEvent.getValue());
-                }
-
-                @Override
-                public void entryEvicted(
-                    EntryEvent<SiriObjectStorageKey, T> entryEvent
-                ) {
-                    logger.debug("Evicted value with key {}", entryEvent.getKey().getKey());
-                    cache.remove(entryEvent.getKey());
-                }
-
-                @Override
-                public void entryAdded(
-                    EntryEvent<SiriObjectStorageKey, T> entryEvent
-                ) {
-                    logger.debug("Added value with key {}", entryEvent.getKey().getKey());
-                    cache.put(entryEvent.getKey(), entryEvent.getValue());
-                }
-            };
-        }
+        // Entry removed - e.g. "delete all for codespace"
+        map.addEntryListener((EntryRemovedListener<SiriObjectStorageKey, T>) entryEvent -> {
+            logger.debug("cache - removed {}", entryEvent.getKey());
+            cache.remove(entryEvent.getKey());
+        }, false);
     }
 
     public Collection<T> getAllCachedUpdates(

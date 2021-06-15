@@ -101,12 +101,6 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
         super.initBufferCommitter(hazelcastService, lastUpdateRequested, changesMap, configuration.getChangeBufferCommitFrequency());
     }
 
-    @Override
-    protected MapEntryListener<SiriObjectStorageKey, EstimatedVehicleJourney> createMapListener() {
-        // Cache not yet implemented for ET
-        return null;
-    }
-
     /**
      * @return All ET-elements
      */
