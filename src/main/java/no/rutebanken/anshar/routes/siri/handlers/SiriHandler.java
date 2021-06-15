@@ -175,6 +175,7 @@ public class SiriHandler {
                     datasetId,
                     clientTrackingName
                 );
+                logger.info("Returning {} elements from cache", elements.size());
                 serviceResponse =  siriObjectFactory.createSXServiceDelivery(elements);
 
             } else if (hasValues(serviceRequest.getVehicleMonitoringRequests())) {
@@ -185,6 +186,7 @@ public class SiriHandler {
                     datasetId,
                     clientTrackingName
                 );
+                logger.info("Returning {} elements from cache", elements.size());
                 serviceResponse = siriObjectFactory.createVMServiceDelivery(elements);
 
             } else if (hasValues(serviceRequest.getEstimatedTimetableRequests())) {
