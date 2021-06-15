@@ -213,25 +213,28 @@ public class VehicleActivitiesTest extends SpringBootBaseTest {
     public void testGetUpdatesOnlyFromCache() {
         int previousSize = vehicleActivities.getAll().size();
 
-        String prefix = "updateOnly-";
-        vehicleActivities.add("test", createVehicleActivityStructure(ZonedDateTime.now(), prefix+"1234"));
-        vehicleActivities.add("test", createVehicleActivityStructure(ZonedDateTime.now(), prefix+"2345"));
-        vehicleActivities.add("test", createVehicleActivityStructure(ZonedDateTime.now(), prefix+"3456"));
+        String prefix = "cachedUpdateOnly-";
+        final String datasetId = "cache-vm-test";
+        final String requestorId = "cache-vm-1234-1234";
+
+        vehicleActivities.add(datasetId, createVehicleActivityStructure(ZonedDateTime.now(), prefix+"1234"));
+        vehicleActivities.add(datasetId, createVehicleActivityStructure(ZonedDateTime.now(), prefix+"2345"));
+        vehicleActivities.add(datasetId, createVehicleActivityStructure(ZonedDateTime.now(), prefix+"3456"));
 
         sleep(50);
 
         // Added 3
-        assertEquals(previousSize+3, vehicleActivities.getAllCachedUpdates("1234-1234", null, null).size());
+        assertEquals(previousSize+3, vehicleActivities.getAllCachedUpdates(requestorId, null, null).size());
 
-        vehicleActivities.add("test", createVehicleActivityStructure(ZonedDateTime.now(), prefix+"4567"));
+        vehicleActivities.add(datasetId, createVehicleActivityStructure(ZonedDateTime.now(), prefix+"4567"));
         sleep(50);
 
         //Added one
-        assertEquals(1, vehicleActivities.getAllCachedUpdates("1234-1234", null, null).size());
+        assertEquals(1, vehicleActivities.getAllCachedUpdates(requestorId, null, null).size());
         sleep(50);
 
         //None added
-        assertEquals(0, vehicleActivities.getAllCachedUpdates("1234-1234", null, null).size());
+        assertEquals(0, vehicleActivities.getAllCachedUpdates(requestorId, null, null).size());
         sleep(50);
 
         //Verify that all elements still exist

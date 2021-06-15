@@ -18,7 +18,9 @@ package no.rutebanken.anshar.data;
 import com.google.common.collect.Maps;
 import com.hazelcast.map.IMap;
 import com.hazelcast.map.listener.EntryAddedListener;
+import com.hazelcast.map.listener.EntryEvictedListener;
 import com.hazelcast.map.listener.EntryExpiredListener;
+import com.hazelcast.map.listener.EntryLoadedListener;
 import com.hazelcast.map.listener.EntryRemovedListener;
 import com.hazelcast.map.listener.EntryUpdatedListener;
 import com.hazelcast.query.Predicate;
@@ -88,41 +90,52 @@ abstract class SiriRepository<T> {
 
     Map<SiriObjectStorageKey, T> cache = Maps.newConcurrentMap();
 
-    private boolean cacheEnabled = false;
-
     protected void enableCache(IMap<SiriObjectStorageKey, T> map) {
-
-        cacheEnabled = true;
-
-        //Entry expired by TTL
-        map.addEntryListener((EntryExpiredListener<SiriObjectStorageKey, T>) entryEvent -> {
-            logger.info("cache - expired {}", entryEvent.getKey());
-            cache.remove(entryEvent.getKey());
-        }, false);
 
         // Entry added - new data
         map.addEntryListener((EntryAddedListener<SiriObjectStorageKey, T>) entryEvent -> {
-            logger.info("cache - added {}", entryEvent.getKey());
+            logger.debug("cache - added {}", entryEvent.getKey());
             cache.put(entryEvent.getKey(), entryEvent.getValue());
         }, true);
 
         // Entry updated - new version
         map.addEntryListener((EntryUpdatedListener<SiriObjectStorageKey, T>) entryEvent -> {
-            logger.info("cache - updated {}", entryEvent.getKey());
+            logger.debug("cache - updated {}", entryEvent.getKey());
             cache.put(entryEvent.getKey(), entryEvent.getValue());
         }, true);
 
-        // Entry removed - e.g. "delete all for codespace"
-        map.addEntryListener((EntryRemovedListener<SiriObjectStorageKey, T>) entryEvent -> {
-            logger.info("cache - removed {}", entryEvent.getKey());
+        //Entry expired by TTL
+        map.addEntryListener((EntryExpiredListener<SiriObjectStorageKey, T>) entryEvent -> {
+            logger.debug("cache - expired {}", entryEvent.getKey());
             cache.remove(entryEvent.getKey());
         }, false);
+
+        // Entry evicted
+        map.addEntryListener((EntryEvictedListener<SiriObjectStorageKey, T>) entryEvent -> {
+            logger.debug("cache - evicted {}", entryEvent.getKey());
+            cache.remove(entryEvent.getKey());
+        }, false);
+
+        // Entry removed - e.g. "delete all for codespace"
+        map.addEntryListener((EntryRemovedListener<SiriObjectStorageKey, T>) entryEvent -> {
+            logger.debug("cache - removed {}", entryEvent.getKey());
+            cache.remove(entryEvent.getKey());
+        }, false);
+
+        map.addEntryListener((EntryLoadedListener<SiriObjectStorageKey, T>) entryEvent -> {
+            logger.debug("cache - loaded {}", entryEvent.getKey());
+            cache.remove(entryEvent.getKey());
+        }, false);
+
+        // Initialize cache
+        long t1 = System.currentTimeMillis();
+        cache.putAll(getAllAsMap());
+        logger.info("Cache initialized with {} elements in {} ms", cache.size(), (System.currentTimeMillis()-t1));
     }
 
     public Collection<T> getAllCachedUpdates(
             String requestorId, String datasetId, String clientTrackingName
     ) {
-        syncCache();
 
         if (requestorId != null) {
             try {
@@ -166,40 +179,6 @@ abstract class SiriRepository<T> {
             .filter((entry) -> datasetId == null || entry.getKey().getCodespaceId().equals(datasetId))
             .map(Map.Entry::getValue)
             .collect(Collectors.toList());
-    }
-
-    void syncCache() {
-        if (!cacheEnabled) {
-            //Ignore
-            return;
-        }
-        if (cache.size() != getSize()) {
-            final long t1 = System.currentTimeMillis();
-            final int size = cache.size();
-
-            final Map<SiriObjectStorageKey, T> allAsMap = getAllAsMap();
-
-            for (SiriObjectStorageKey key : allAsMap.keySet()) {
-                cache.remove(key);
-            }
-            logger.info("Extra keys in cache: {}", cache.keySet());
-
-            cache.clear();
-            cache.putAll(allAsMap);
-
-            logger.info(
-                "Synchronizing cache - as size does not match: {} vs. {}. Took {}ms ({}).",
-                size,
-                getSize(),
-                System.currentTimeMillis()-t1,
-                this.getClass().getSimpleName()
-            );
-        } else {
-            logger.info(
-                "Cache appears to be in sync ({})",
-                this.getClass().getSimpleName()
-            );
-        }
     }
 
     void initBufferCommitter(ExtendedHazelcastService hazelcastService, IMap<String, Instant> lastUpdateRequested, IMap<String, Set<SiriObjectStorageKey>> changesMap, int commitFrequency) {

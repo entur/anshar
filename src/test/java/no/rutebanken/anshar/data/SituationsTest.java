@@ -144,19 +144,20 @@ public class SituationsTest extends SpringBootBaseTest {
 
         int previousSize = situations.getAll().size();
 
-        String prefix = "cache-updates-";
-        situations.add("test", createPtSituationElement("ruter", prefix+"1234", ZonedDateTime.now().minusDays(1), ZonedDateTime.now().plusHours(1)));
-        situations.add("test", createPtSituationElement("ruter", prefix+"2345", ZonedDateTime.now().minusDays(1), ZonedDateTime.now().plusHours(1)));
-        situations.add("test", createPtSituationElement("ruter", prefix+"3456", ZonedDateTime.now().minusDays(1), ZonedDateTime.now().plusHours(1)));
+        String prefix = "cache-updates-sx-";
+        String datasetId = "cache-sx-datasetid";
+
+        situations.add(datasetId, createPtSituationElement("ruter", prefix+"1234", ZonedDateTime.now().minusDays(1), ZonedDateTime.now().plusHours(1)));
+        situations.add(datasetId, createPtSituationElement("ruter", prefix+"2345", ZonedDateTime.now().minusDays(1), ZonedDateTime.now().plusHours(1)));
+        situations.add(datasetId, createPtSituationElement("ruter", prefix+"3456", ZonedDateTime.now().minusDays(1), ZonedDateTime.now().plusHours(1)));
 
         sleep(50);
-        String datasetId = null;
         // Added 3
         assertEquals(previousSize+3, situations.getAllCachedUpdates("1234-1234-cache", datasetId,
             null
         ).size());
 
-        situations.add("test", createPtSituationElement("ruter", prefix+"4567", ZonedDateTime.now().minusDays(1), ZonedDateTime.now().plusHours(1)));
+        situations.add(datasetId, createPtSituationElement("ruter", prefix+"4567", ZonedDateTime.now().minusDays(1), ZonedDateTime.now().plusHours(1)));
 
         sleep(50);
 
