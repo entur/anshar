@@ -19,6 +19,7 @@ import io.restassured.http.ContentType;
 import no.rutebanken.anshar.data.VehicleActivities;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.subscription.SiriDataType;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.rutebanken.siri20.util.SiriXml;
@@ -43,16 +44,22 @@ import static org.hamcrest.Matchers.not;
 public class VMRequestResponseTest extends BaseHttpTest {
 
     @Autowired
-    private
-    VehicleActivities repo;
+    private VehicleActivities repo;
 
-    private final String vehicleReference = "1234";
+    private final String vehicleReference = "12345";
 
     @BeforeEach
     public void addData() {
         super.init();
         repo.clearAll();
         repo.add(dataSource, createVehicleActivityStructure(ZonedDateTime.now(), vehicleReference, dataSource));
+        sleep(250);
+    }
+
+    @AfterEach
+    public void cleanup() {
+        repo.clearAllByDatasetId(dataSource);
+        // allow cache to be synced
         sleep(250);
     }
 
