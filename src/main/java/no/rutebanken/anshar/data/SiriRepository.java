@@ -20,7 +20,6 @@ import com.hazelcast.map.IMap;
 import com.hazelcast.map.listener.EntryAddedListener;
 import com.hazelcast.map.listener.EntryEvictedListener;
 import com.hazelcast.map.listener.EntryExpiredListener;
-import com.hazelcast.map.listener.EntryLoadedListener;
 import com.hazelcast.map.listener.EntryRemovedListener;
 import com.hazelcast.map.listener.EntryUpdatedListener;
 import com.hazelcast.query.Predicate;
@@ -91,39 +90,41 @@ abstract class SiriRepository<T> {
     Map<SiriObjectStorageKey, T> cache = Maps.newConcurrentMap();
 
     protected void enableCache(IMap<SiriObjectStorageKey, T> map) {
+        enableCache(map, null);
+    }
+    protected void enableCache(IMap<SiriObjectStorageKey, T> map, java.util.function.Predicate<T> includeInCachePredicate) {
 
         // Entry added - new data
         map.addEntryListener((EntryAddedListener<SiriObjectStorageKey, T>) entryEvent -> {
-            logger.debug("cache - added {}", entryEvent.getKey());
-            cache.put(entryEvent.getKey(), entryEvent.getValue());
+
+            if (includeInCachePredicate == null || includeInCachePredicate.test(entryEvent.getValue())) {
+                cache.put(entryEvent.getKey(), entryEvent.getValue());
+            }
         }, true);
 
         // Entry updated - new version
         map.addEntryListener((EntryUpdatedListener<SiriObjectStorageKey, T>) entryEvent -> {
-            logger.debug("cache - updated {}", entryEvent.getKey());
-            cache.put(entryEvent.getKey(), entryEvent.getValue());
+
+            if (includeInCachePredicate == null || includeInCachePredicate.test(entryEvent.getValue())) {
+                cache.put(entryEvent.getKey(), entryEvent.getValue());
+            }
         }, true);
 
         //Entry expired by TTL
         map.addEntryListener((EntryExpiredListener<SiriObjectStorageKey, T>) entryEvent -> {
-            logger.debug("cache - expired {}", entryEvent.getKey());
+
             cache.remove(entryEvent.getKey());
         }, false);
 
         // Entry evicted
         map.addEntryListener((EntryEvictedListener<SiriObjectStorageKey, T>) entryEvent -> {
-            logger.debug("cache - evicted {}", entryEvent.getKey());
+
             cache.remove(entryEvent.getKey());
         }, false);
 
         // Entry removed - e.g. "delete all for codespace"
         map.addEntryListener((EntryRemovedListener<SiriObjectStorageKey, T>) entryEvent -> {
-            logger.debug("cache - removed {}", entryEvent.getKey());
-            cache.remove(entryEvent.getKey());
-        }, false);
 
-        map.addEntryListener((EntryLoadedListener<SiriObjectStorageKey, T>) entryEvent -> {
-            logger.debug("cache - loaded {}", entryEvent.getKey());
             cache.remove(entryEvent.getKey());
         }, false);
 

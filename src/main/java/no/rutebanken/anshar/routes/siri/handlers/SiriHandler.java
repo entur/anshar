@@ -192,8 +192,9 @@ public class SiriHandler {
             } else if (hasValues(serviceRequest.getEstimatedTimetableRequests())) {
                 dataType = SiriDataType.ESTIMATED_TIMETABLE;
 
-                // TODO: Implement cache for ET-data?
-                final Collection<EstimatedVehicleJourney> elements = estimatedTimetables.getAllMonitored();
+                final Collection<EstimatedVehicleJourney> elements = estimatedTimetables.getAllCachedUpdates(requestorRef, datasetId, clientTrackingName);
+
+                logger.info("Returning {} elements from cache", elements.size());
                 serviceResponse = siriObjectFactory.createETServiceDelivery(elements);
 
             }

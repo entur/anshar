@@ -16,13 +16,12 @@
 package no.rutebanken.anshar.data;
 
 import com.hazelcast.map.IMap;
-import com.hazelcast.replicatedmap.ReplicatedMap;
 import com.hazelcast.query.Predicates;
+import com.hazelcast.replicatedmap.ReplicatedMap;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.data.collections.ExtendedHazelcastService;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.subscription.SiriDataType;
-import org.apache.camel.component.hazelcast.listener.MapEntryListener;
 import org.quartz.utils.counter.Counter;
 import org.quartz.utils.counter.CounterImpl;
 import org.slf4j.Logger;
@@ -99,6 +98,11 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
     @PostConstruct
     private void initializeUpdateCommitter() {
         super.initBufferCommitter(hazelcastService, lastUpdateRequested, changesMap, configuration.getChangeBufferCommitFrequency());
+        enableCache(timetableDeliveries,
+            // Only cache monitored/cancelled trips
+            value -> (Boolean.TRUE.equals(value.isMonitored()) |
+                Boolean.TRUE.equals(value.isCancellation()))
+        );
     }
 
     /**

@@ -94,6 +94,7 @@ public class SiriLiteRoute extends RestRouteBuilder {
                         .param().required(false).name(PARAM_MAX_SIZE).type(RestParamType.query).description("Specify max number of returned elements").dataType("integer").endParam()
 
                 .get("/et-monitored").to("direct:anshar.rest.et.monitored")
+                .get("/et-monitored-cached").to("direct:anshar.rest.et.monitored.cached")
                 .get("/sx-cached").to("direct:anshar.rest.sx.cached")
                 .get("/vm-cached").to("direct:anshar.rest.vm.cached")
         ;
@@ -324,6 +325,7 @@ public class SiriLiteRoute extends RestRouteBuilder {
                     .to("direct:anshar.invalid.tracking.header.response")
                 .routeId("incoming.rest.sx.cached")
         ;
+
         from("direct:anshar.rest.vm.cached")
                 .log("RequestTracer - Incoming request (VM)")
                 .to("log:restRequest:" + getClass().getSimpleName() + "?showAll=false&showHeaders=true")
@@ -362,6 +364,40 @@ public class SiriLiteRoute extends RestRouteBuilder {
                 .routeId("incoming.rest.vm.cached")
         ;
 
+
+        from("direct:anshar.rest.et.monitored.cached")
+            .log("RequestTracer - Incoming request (ET)")
+            .to("log:restRequest:" + getClass().getSimpleName() + "?showAll=false&showHeaders=true")
+            .choice()
+            .when(e -> isTrackingHeaderAcceptable(e))
+            .process(p -> {
+
+                logger.info("Fetching cached ET-data");
+
+                String clientTrackingName = p.getIn().getHeader(configuration.getTrackingHeaderName(), String.class);
+
+                Siri response = siriObjectFactory.createETServiceDelivery(estimatedTimetables.getAllCachedUpdates(null, null, clientTrackingName));
+
+                List<ValueAdapter> outboundAdapters = MappingAdapterPresets.getOutboundAdapters(
+                    SiriDataType.ESTIMATED_TIMETABLE,
+                    OutboundIdMappingPolicy.DEFAULT
+                );
+
+                logger.info("Transforming cached ET-data");
+                response = SiriValueTransformer.transform(response, outboundAdapters, false, true);
+
+                metrics.countOutgoingData(response, SubscriptionSetup.SubscriptionMode.LITE);
+
+                HttpServletResponse out = p.getIn().getBody(HttpServletResponse.class);
+                logger.info("Streaming cached ET-data");
+                streamOutput(p, response, out);
+                logger.info("Done processing cached ET-data");
+            })
+            .log("RequestTracer - Request done (ET)")
+            .otherwise()
+            .to("direct:anshar.invalid.tracking.header.response")
+            .routeId("incoming.rest.et.cached")
+        ;
     }
 
     /**
