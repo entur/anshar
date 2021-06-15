@@ -102,19 +102,19 @@ abstract class SiriRepository<T> {
 
         // Entry added - new data
         map.addEntryListener((EntryAddedListener<SiriObjectStorageKey, T>) entryEvent -> {
-            logger.debug("cache - added {}", entryEvent.getKey());
+            logger.info("cache - added {}", entryEvent.getKey());
             cache.put(entryEvent.getKey(), entryEvent.getValue());
         }, true);
 
         // Entry updated - new version
         map.addEntryListener((EntryUpdatedListener<SiriObjectStorageKey, T>) entryEvent -> {
-            logger.debug("cache - updated {}", entryEvent.getKey());
+            logger.info("cache - updated {}", entryEvent.getKey());
             cache.put(entryEvent.getKey(), entryEvent.getValue());
         }, true);
 
         // Entry removed - e.g. "delete all for codespace"
         map.addEntryListener((EntryRemovedListener<SiriObjectStorageKey, T>) entryEvent -> {
-            logger.debug("cache - removed {}", entryEvent.getKey());
+            logger.info("cache - removed {}", entryEvent.getKey());
             cache.remove(entryEvent.getKey());
         }, false);
     }
