@@ -130,7 +130,17 @@ abstract class SiriRepository<T> {
 
         // Initialize cache
         long t1 = System.currentTimeMillis();
-        cache.putAll(getAllAsMap());
+
+        final Map<SiriObjectStorageKey, T> allAsMap = getAllAsMap();
+        if (includeInCachePredicate != null) {
+            for (Map.Entry<SiriObjectStorageKey, T> entry : allAsMap.entrySet()) {
+                if (includeInCachePredicate.test(entry.getValue())) {
+                    cache.put(entry.getKey(), entry.getValue());
+                }
+            }
+        } else {
+            cache.putAll(allAsMap);
+        }
         logger.info("Cache initialized with {} elements in {} ms", cache.size(), (System.currentTimeMillis()-t1));
     }
 
