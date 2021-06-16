@@ -94,9 +94,9 @@ public class SiriLiteRoute extends RestRouteBuilder {
                         .param().required(false).name(PARAM_MAX_SIZE).type(RestParamType.query).description("Specify max number of returned elements").dataType("integer").endParam()
 
                 .get("/et-monitored").to("direct:anshar.rest.et.monitored")
-                .get("/et-monitored-cached").to("direct:anshar.rest.et.monitored.cached")
-                .get("/sx-cached").to("direct:anshar.rest.sx.cached")
-                .get("/vm-cached").to("direct:anshar.rest.vm.cached")
+                .get("/et-monitored-cache").to("direct:anshar.rest.et.monitored.cached")
+                .get("/sx-cache").to("direct:anshar.rest.sx.cached")
+                .get("/vm-cache").to("direct:anshar.rest.vm.cached")
         ;
 
         // Dataproviders
@@ -389,6 +389,7 @@ public class SiriLiteRoute extends RestRouteBuilder {
                 metrics.countOutgoingData(response, SubscriptionSetup.SubscriptionMode.LITE);
 
                 HttpServletResponse out = p.getIn().getBody(HttpServletResponse.class);
+
                 logger.info("Streaming cached ET-data");
                 streamOutput(p, response, out);
                 logger.info("Done processing cached ET-data");
