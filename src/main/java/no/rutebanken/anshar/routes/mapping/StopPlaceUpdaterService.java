@@ -23,7 +23,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executors;
@@ -38,7 +40,9 @@ public class StopPlaceUpdaterService {
 
     private static final Object LOCK = new Object();
 
-    private final ConcurrentMap<String, String> stopPlaceMappings = new ConcurrentHashMap<>();
+    private transient final ConcurrentMap<String, String> stopPlaceMappings = new ConcurrentHashMap<>();
+
+    private transient final Set<String> validNsrIds = new HashSet<>();
 
     @Autowired
     private StopPlaceRegisterMappingFetcher stopPlaceRegisterMappingFetcher;
@@ -66,6 +70,10 @@ public class StopPlaceUpdaterService {
         return stopPlaceMappings.get(id);
     }
 
+    public boolean isKnownId(String id) {
+        return validNsrIds.contains(id);
+    }
+
     @PostConstruct
     private void initialize() {
 
@@ -81,6 +89,9 @@ public class StopPlaceUpdaterService {
         synchronized (LOCK) {
             updateStopPlaceMapping(quayMappingPath);
             updateStopPlaceMapping(stopPlaceMappingPath);
+
+            validNsrIds.retainAll(stopPlaceMappings.values());
+            validNsrIds.addAll(stopPlaceMappings.values());
         }
     }
 

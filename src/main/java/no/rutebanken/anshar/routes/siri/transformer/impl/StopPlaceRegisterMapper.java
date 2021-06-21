@@ -59,13 +59,22 @@ public class StopPlaceRegisterMapper extends ValueAdapter {
 
 
     public String apply(String id) {
-        if (id == null || id.isEmpty() || id.startsWith("NSR:")) {
-            return id;
-        }
         StopPlaceUpdaterService stopPlaceService = ApplicationContextHolder.getContext().getBean(StopPlaceUpdaterService.class);
 
         if (healthManager == null) {
             healthManager = ApplicationContextHolder.getContext().getBean(HealthManager.class);
+        }
+
+        if (id == null || id.isEmpty() || id.startsWith("NSR:")) {
+            if (!stopPlaceService.isKnownId(id)) {
+                if (unmappedAlreadyAdded.add(id)) {
+                    healthManager.addUnmappedId(type, datasetId, id);
+                }
+            } else if (unmappedAlreadyAdded.contains(id)) {
+                healthManager.removeUnmappedId(type, datasetId, id);
+                unmappedAlreadyAdded.remove(id);
+            }
+            return id;
         }
 
         String mappedValue = null;
