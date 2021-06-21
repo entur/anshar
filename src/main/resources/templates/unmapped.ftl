@@ -44,6 +44,10 @@
         </tbody>
     </table>
     </div>
+    <div class="row">
+        <sup><span class="glyphicon glyphicon-info-sign text-info"></span></sup>
+        Unmapped ids with "NSR"-prefix indicates that the id references a stop/quay that has been shut down, and is no longer valid.
+    </div>
 </div>
 </body>
 </html>
