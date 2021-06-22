@@ -99,9 +99,10 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
     private void initializeUpdateCommitter() {
         super.initBufferCommitter(hazelcastService, lastUpdateRequested, changesMap, configuration.getChangeBufferCommitFrequency());
         enableCache(timetableDeliveries,
-            // Only cache monitored/cancelled trips
+            // Only cache monitored/cancelled/extra trips
             value -> (Boolean.TRUE.equals(value.isMonitored()) |
-                Boolean.TRUE.equals(value.isCancellation()))
+                Boolean.TRUE.equals(value.isCancellation()) |
+                Boolean.TRUE.equals(value.isExtraJourney()))
         );
     }
 
