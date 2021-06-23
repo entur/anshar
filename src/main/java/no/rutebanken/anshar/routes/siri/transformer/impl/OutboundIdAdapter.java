@@ -19,8 +19,12 @@ package no.rutebanken.anshar.routes.siri.transformer.impl;
 import no.rutebanken.anshar.routes.siri.handlers.OutboundIdMappingPolicy;
 import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class OutboundIdAdapter extends ValueAdapter {
+
+    private final Logger logger = LoggerFactory.getLogger(OutboundIdAdapter.class);
 
     private final OutboundIdMappingPolicy outboundIdMappingPolicy;
 
@@ -34,15 +38,21 @@ public class OutboundIdAdapter extends ValueAdapter {
     }
 
     public String apply(String text) {
-        if (text == null || text.isEmpty()) {
-            return text;
-        }
-        if (text.contains(SiriValueTransformer.SEPARATOR)) {
-            if (outboundIdMappingPolicy == OutboundIdMappingPolicy.DEFAULT) {
-                text = getMappedId(text);
-            } else if (outboundIdMappingPolicy == OutboundIdMappingPolicy.ORIGINAL_ID) {
-                text = getOriginalId(text);
+        try {
+            if (text == null || text.isEmpty()) {
+                return text;
             }
+            if (text.contains(SiriValueTransformer.SEPARATOR)) {
+                if (outboundIdMappingPolicy == OutboundIdMappingPolicy.DEFAULT) {
+                    text = getMappedId(text);
+                }
+                else if (outboundIdMappingPolicy == OutboundIdMappingPolicy.ORIGINAL_ID) {
+                    text = getOriginalId(text);
+                }
+            }
+        } catch (NullPointerException npe) {
+            logger.warn("Caught NullPointerException while mapping ID.", npe);
+            logger.warn("Caught exception when mapping value '{}'", text);
         }
         return text;
     }
