@@ -74,7 +74,7 @@ public class StopPlaceRegisterMapperTest extends SpringBootBaseTest {
 
         StopPlaceRegisterMapper mapper = new StopPlaceRegisterMapper(SiriDataType.VEHICLE_MONITORING, "TST",JourneyPlaceRefStructure.class, prefixes);
 
-        assertEquals("NSR:QUAY:11223344", mapper.apply("1234"));
+        assertEquals("NSR:Quay:11223344", mapper.apply("1234"));
     }
 
     @Test
@@ -88,7 +88,7 @@ public class StopPlaceRegisterMapperTest extends SpringBootBaseTest {
 
         StopPlaceRegisterMapper mapper = new StopPlaceRegisterMapper(SiriDataType.VEHICLE_MONITORING, "TST",JourneyPlaceRefStructure.class, prefixes);
 
-        assertEquals("NSR:QUAY:11223344", mapper.apply("1234"));
+        assertEquals("NSR:Quay:11223344", mapper.apply("1234"));
     }
 
     @Test
@@ -103,7 +103,7 @@ public class StopPlaceRegisterMapperTest extends SpringBootBaseTest {
 
         StopPlaceRegisterMapper mapper = new StopPlaceRegisterMapper(SiriDataType.VEHICLE_MONITORING, "TST",JourneyPlaceRefStructure.class, prefixes);
 
-        assertEquals("NSR:QUAY:44444444", mapper.apply("5555"));
+        assertEquals("NSR:Quay:44444444", mapper.apply("5555"));
     }
 
 
@@ -114,7 +114,7 @@ public class StopPlaceRegisterMapperTest extends SpringBootBaseTest {
 
         StopPlaceRegisterMapper mapper = new StopPlaceRegisterMapper(SiriDataType.VEHICLE_MONITORING, "TST",JourneyPlaceRefStructure.class, prefixes);
 
-        assertEquals("NSR:QUAY:11223344", mapper.apply("NSR:QUAY:11223344"));
+        assertEquals("NSR:Quay:11223344", mapper.apply("NSR:Quay:11223344"));
     }
 
     @Test
@@ -134,7 +134,7 @@ public class StopPlaceRegisterMapperTest extends SpringBootBaseTest {
 
         String datasetId = "TST_" + System.currentTimeMillis();
         String originalId = "4321";
-        String mappedId = "NSR:QUAY:44332211";
+        String mappedId = "NSR:Quay:44332211";
 
         StopPlaceRegisterMapper mapper = new StopPlaceRegisterMapper(SiriDataType.VEHICLE_MONITORING, datasetId,JourneyPlaceRefStructure.class, prefixes);
 
