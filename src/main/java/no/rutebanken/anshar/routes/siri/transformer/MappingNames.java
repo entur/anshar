@@ -6,6 +6,7 @@ public enum MappingNames {
         STOP_AND_PLATFORM_TO_NSR("Map station/platform to NSR"),
         TRAIN_STATION_TO_NSR("Map station to NSR"),
         ORIGINAL_ID_TO_NSR("Map stopId to NSR"),
+        INVALID_NSR_ID("Invalid NSR id"),
         REMOVE_FREIGHT_TRAIN("Remove freight train"),
         REMOVE_UNKNOWN_DEPARTURE("Remove unknown departure"),
         RESTRUCTURE_DEPARTURE("Restructure departure"),

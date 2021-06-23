@@ -15,6 +15,7 @@
 
 package no.rutebanken.anshar.routes.mapping;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import no.rutebanken.anshar.routes.export.file.BlobStoreService;
 import org.quartz.utils.counter.Counter;
 import org.quartz.utils.counter.CounterImpl;
@@ -24,8 +25,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
@@ -37,6 +40,20 @@ public class StopPlaceRegisterMappingFetcher {
 
     @Autowired
     BlobStoreService blobStoreService;
+
+    public Map<String, Collection<String>> fetchStopPlaceQuayJson(String name) {
+
+        final InputStream json = blobStoreService.getBlob(name);
+
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            return mapper.readValue(json, HashMap.class);
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+        return new HashMap<>();
+    }
 
     public Map<String, String> fetchStopPlaceMapping(String name) {
 

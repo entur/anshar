@@ -27,32 +27,44 @@ import uk.org.siri.siri20.JourneyPlaceRefStructure;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class StopPlaceRegisterMapperTest extends SpringBootBaseTest {
 
     private Map<String, String> stopPlaceMap;
+    private Set<String> stopQuays;
 
     @BeforeEach
     public void setUp() throws Exception {
 
         stopPlaceMap = new HashMap<>();
-        stopPlaceMap.put("1234", "NSR:QUAY:11223344");
-        stopPlaceMap.put("ABC:Quay:1234", "NSR:QUAY:11223344");
-        stopPlaceMap.put("ABC:Quay:2345", "NSR:QUAY:22334455");
-        stopPlaceMap.put("ABC:Quay:3456", "NSR:QUAY:33445566");
-        stopPlaceMap.put("ABC:Quay:4567", "NSR:QUAY:44556677");
-        stopPlaceMap.put("ABC:Quay:5678", "NSR:QUAY:55667788");
-        stopPlaceMap.put("XYZ:Quay:5555", "NSR:QUAY:44444444");
+        stopPlaceMap.put("1234", "NSR:Quay:11223344");
+        stopPlaceMap.put("ABC:Quay:1234", "NSR:Quay:11223344");
+        stopPlaceMap.put("ABC:Quay:2345", "NSR:Quay:22334455");
+        stopPlaceMap.put("ABC:Quay:3456", "NSR:Quay:33445566");
+        stopPlaceMap.put("ABC:Quay:4567", "NSR:Quay:44556677");
+        stopPlaceMap.put("ABC:Quay:5678", "NSR:Quay:55667788");
+        stopPlaceMap.put("XYZ:Quay:5555", "NSR:Quay:44444444");
 
         StopPlaceUpdaterService stopPlaceService = ApplicationContextHolder.getContext().getBean(StopPlaceUpdaterService.class);
 
         //Manually adding custom mapping to Spring context
         stopPlaceService.addStopPlaceMappings(stopPlaceMap);
+
+        stopQuays = new HashSet<>();
+        stopQuays.addAll(stopPlaceMap.values());
+        stopQuays.add("NSR:StopPlace:1");
+        stopQuays.add("NSR:Quay:1");
+        stopQuays.add("NSR:Quay:2");
+        stopQuays.add("NSR:Quay:3");
+        stopPlaceService.addStopQuays(stopQuays);
     }
 
     @Test
@@ -148,5 +160,20 @@ public class StopPlaceRegisterMapperTest extends SpringBootBaseTest {
         ids = unmappedIds.get(SiriDataType.VEHICLE_MONITORING);
         assertEquals(0, ids.size());
 
+    }
+
+    @Test
+    public void testValidNsrId() {
+        StopPlaceUpdaterService stopPlaceService = ApplicationContextHolder.getContext().getBean(StopPlaceUpdaterService.class);
+
+        String validId = (String) stopQuays.toArray()[0];
+
+        for (String id : stopQuays) {
+            assertTrue(stopPlaceService.isKnownId(id));
+        }
+        final String unknownId = "NSR:Quay:9";
+
+        assertFalse(stopQuays.contains(unknownId));
+        assertFalse(stopPlaceService.isKnownId(unknownId));
     }
 }
