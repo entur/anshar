@@ -155,6 +155,7 @@ public class SiriValueTransformer {
                     }
                 } catch (Throwable t) {
                     logger.warn("Caught exception while transforming SIRI-object.", t);
+                    logger.info("SIRI Transform: valueAdapter {} failed", a.toString());
                 }
             }
             if (detailedLogging) {
