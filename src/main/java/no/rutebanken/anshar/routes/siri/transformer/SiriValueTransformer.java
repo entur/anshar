@@ -196,7 +196,7 @@ public class SiriValueTransformer {
     private static void applyAdapter(Object obj, ValueAdapter adapter) throws Throwable {
 
         //Only apply to Siri-classes
-        if (obj.getClass().getName().startsWith("uk.org.siri")) {
+        if (obj != null && obj.getClass().getName().startsWith("uk.org.siri")) {
 
             GetterKey getterKey = new GetterKey(obj.getClass(), adapter);
             Set<Method> allMethods = cachedGettersForAdapter.get(getterKey);

@@ -53,6 +53,7 @@ public class OutboundIdAdapter extends ValueAdapter {
         } catch (NullPointerException npe) {
             logger.warn("Caught NullPointerException while mapping ID.", npe);
             logger.warn("Caught exception when mapping value '{}'", text);
+            throw npe;
         }
         return text;
     }
