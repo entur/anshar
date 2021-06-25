@@ -1,0 +1,144 @@
+{
+  "data": {
+    "trip": {
+      "tripPatterns": [
+        {
+          "expectedStartTime": "2021-06-30T11:39:00+02:00",
+          "duration": 6360,
+          "walkDistance": 372.092,
+          "legs": [
+            {
+              "aimedStartTime": "2021-06-30T11:39:00+02:00",
+              "expectedStartTime": "2021-06-30T11:39:00+02:00",
+              "aimedEndTime": "2021-06-30T11:59:00+02:00",
+              "expectedEndTime": "2021-06-30T11:59:00+02:00",
+              "mode": "rail",
+              "serviceJourney": {
+                "privateCode": "815"
+              },
+              "line": {
+                "id": "NSB:Line:R11"
+              },
+              "fromEstimatedCall": {
+                "quay": {
+                  "name": "Oslo S",
+                  "publicCode": "5"
+                },
+                "aimedArrivalTime": "2021-06-30T11:36:00+02:00",
+                "expectedArrivalTime": "2021-06-30T11:36:00+02:00",
+                "aimedDepartureTime": "2021-06-30T11:39:00+02:00",
+                "expectedDepartureTime": "2021-06-30T11:39:00+02:00",
+                "realtime": false
+              },
+              "intermediateEstimatedCalls": [
+                {
+                  "quay": {
+                    "name": "Nationaltheatret stasjon",
+                    "publicCode": "2"
+                  },
+                  "aimedArrivalTime": "2021-06-30T11:40:00+02:00",
+                  "expectedArrivalTime": "2021-06-30T11:40:00+02:00",
+                  "aimedDepartureTime": "2021-06-30T11:41:00+02:00",
+                  "expectedDepartureTime": "2021-06-30T11:41:00+02:00",
+                  "realtime": false
+                },
+                {
+                  "quay": {
+                    "name": "Skøyen stasjon",
+                    "publicCode": "1"
+                  },
+                  "aimedArrivalTime": "2021-06-30T11:44:00+02:00",
+                  "expectedArrivalTime": "2021-06-30T11:44:00+02:00",
+                  "aimedDepartureTime": "2021-06-30T11:45:00+02:00",
+                  "expectedDepartureTime": "2021-06-30T11:45:00+02:00",
+                  "realtime": false
+                },
+                {
+                  "quay": {
+                    "name": "Lysaker stasjon",
+                    "publicCode": "2"
+                  },
+                  "aimedArrivalTime": "2021-06-30T11:48:00+02:00",
+                  "expectedArrivalTime": "2021-06-30T11:48:00+02:00",
+                  "aimedDepartureTime": "2021-06-30T11:49:00+02:00",
+                  "expectedDepartureTime": "2021-06-30T11:49:00+02:00",
+                  "realtime": false
+                },
+                {
+                  "quay": {
+                    "name": "Sandvika stasjon",
+                    "publicCode": "1"
+                  },
+                  "aimedArrivalTime": "2021-06-30T11:53:00+02:00",
+                  "expectedArrivalTime": "2021-06-30T11:53:00+02:00",
+                  "aimedDepartureTime": "2021-06-30T11:54:00+02:00",
+                  "expectedDepartureTime": "2021-06-30T11:54:00+02:00",
+                  "realtime": false
+                }
+              ],
+              "toEstimatedCall": {
+                "quay": {
+                  "name": "Asker stasjon",
+                  "publicCode": "1"
+                },
+                "aimedArrivalTime": "2021-06-30T11:59:00+02:00",
+                "expectedArrivalTime": "2021-06-30T11:59:00+02:00",
+                "aimedDepartureTime": "2021-06-30T11:59:00+02:00",
+                "expectedDepartureTime": "2021-06-30T11:59:00+02:00",
+                "realtime": false
+              }
+            },
+            {
+              "aimedStartTime": "2021-06-30T11:59:00+02:00",
+              "expectedStartTime": "2021-06-30T11:59:00+02:00",
+              "aimedEndTime": "2021-06-30T12:03:39+02:00",
+              "expectedEndTime": "2021-06-30T12:03:39+02:00",
+              "mode": "foot",
+              "serviceJourney": null,
+              "line": null,
+              "fromEstimatedCall": null,
+              "intermediateEstimatedCalls": [],
+              "toEstimatedCall": null
+            },
+            {
+              "aimedStartTime": "2021-06-30T12:14:00+02:00",
+              "expectedStartTime": "2021-06-30T12:14:00+02:00",
+              "aimedEndTime": "2021-06-30T13:25:00+02:00",
+              "expectedEndTime": "2021-06-30T13:25:00+02:00",
+              "mode": "bus",
+              "serviceJourney": {
+                "privateCode": "815"
+              },
+              "line": {
+                "id": "NSB:Line:R11B"
+              },
+              "fromEstimatedCall": {
+                "quay": {
+                  "name": "Lensmannslia",
+                  "publicCode": null
+                },
+                "aimedArrivalTime": "2021-06-30T12:14:00+02:00",
+                "expectedArrivalTime": "2021-06-30T12:14:00+02:00",
+                "aimedDepartureTime": "2021-06-30T12:14:00+02:00",
+                "expectedDepartureTime": "2021-06-30T12:14:00+02:00",
+                "realtime": false
+              },
+              "intermediateEstimatedCalls": [],
+              "toEstimatedCall": {
+                "quay": {
+                  "name": "Tønsberg stasjon",
+                  "publicCode": null
+                },
+                "aimedArrivalTime": "2021-06-30T13:25:00+02:00",
+                "expectedArrivalTime": "2021-06-30T13:25:00+02:00",
+                "aimedDepartureTime": "2021-06-30T13:25:00+02:00",
+                "expectedDepartureTime": "2021-06-30T13:25:00+02:00",
+                "realtime": false
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
