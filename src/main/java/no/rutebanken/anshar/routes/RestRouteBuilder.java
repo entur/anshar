@@ -182,7 +182,7 @@ public class RestRouteBuilder extends RouteBuilder {
                 out.setHeader(HttpHeaders.CONTENT_LENGTH, "" + bytes.length);
                 out.getOutputStream().write(bytes);
             } catch (NullPointerException npe) {
-                File file = new File("ET.nullpointer.xml");
+                File file = new File("ET-" + System.currentTimeMillis() + ".xml");
                 log.error("Caught NullPointerException, data written to " + file.getAbsolutePath(), npe);
                 SiriXml.toXml(response, null, new FileOutputStream(file));
             }
