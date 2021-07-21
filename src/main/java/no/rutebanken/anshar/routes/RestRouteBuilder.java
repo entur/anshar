@@ -33,6 +33,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.MediaType;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.UnmarshalException;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.util.HashMap;
@@ -174,10 +176,16 @@ public class RestRouteBuilder extends RouteBuilder {
             SiriJson.toJson(response, out.getOutputStream());
         } else if ("application/x-protobuf".equals(p.getIn().getHeader(HttpHeaders.CONTENT_TYPE)) |
             "application/x-protobuf".equals(p.getIn().getHeader(HttpHeaders.ACCEPT))) {
-            final byte[] bytes = SiriMapper.mapToPbf(response).toByteArray();
-            out.setHeader(HttpHeaders.CONTENT_TYPE, "application/x-protobuf");
-            out.setHeader(HttpHeaders.CONTENT_LENGTH, ""+bytes.length);
-            out.getOutputStream().write(bytes);
+            try {
+                final byte[] bytes = SiriMapper.mapToPbf(response).toByteArray();
+                out.setHeader(HttpHeaders.CONTENT_TYPE, "application/x-protobuf");
+                out.setHeader(HttpHeaders.CONTENT_LENGTH, "" + bytes.length);
+                out.getOutputStream().write(bytes);
+            } catch (NullPointerException npe) {
+                File file = new File("ET.nullpointer.xml");
+                log.error("Caught NullPointerException, data written to " + file.getAbsolutePath(), npe);
+                SiriXml.toXml(response, null, new FileOutputStream(file));
+            }
         } else {
             out.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_XML);
             SiriXml.toXml(response, null, out.getOutputStream());
