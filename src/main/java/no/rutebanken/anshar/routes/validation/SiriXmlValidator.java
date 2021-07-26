@@ -209,7 +209,10 @@ public class SiriXmlValidator extends ApplicationContextHolder {
                 validated = true;
                 validationExecutorService.execute(() -> {
                     MDC.put("camel.breadcrumbId", breadcrumbId);
-                    performValidation(subscriptionSetup, xml, handler);
+                    final boolean valid = performValidation(subscriptionSetup, xml, handler);
+                    if (!valid) {
+                        logger.info("Validation results: ", handler.toJSON());
+                    }
                     MDC.remove("camel.breadcrumbId");
                 });
             }
