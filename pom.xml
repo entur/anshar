@@ -42,7 +42,7 @@
         <camel-version>3.7.0</camel-version>
 
         <metrics.version>3.2.3</metrics.version>
-        <entur.helpers.version>1.0.52</entur.helpers.version>
+        <entur.helpers.version>1.0.55-SNAPSHOT</entur.helpers.version>
     </properties>
 
     <distributionManagement>

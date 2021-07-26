@@ -55,8 +55,10 @@ public class ExtendedHazelcastService extends HazelCastService {
 
     private Logger logger = LoggerFactory.getLogger(ExtendedHazelcastService.class);
 
-    public ExtendedHazelcastService(@Autowired KubernetesService kubernetesService) {
+    public ExtendedHazelcastService(@Autowired KubernetesService kubernetesService,
+                                    @Value("${entur.hazelcast.backup.count.sync}") int backupCountSync) {
         super(kubernetesService);
+        setBackupCount(backupCountSync);
     }
 
     public void addBeforeShuttingDownHook(Runnable destroyFunction) {
