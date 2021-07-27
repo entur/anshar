@@ -63,7 +63,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
-import java.io.StringReader;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -188,48 +187,52 @@ public class SiriXmlValidator extends ApplicationContextHolder {
         throws XMLStreamException {
         try {
             long parseStart = System.currentTimeMillis();
-            boolean validated = false;
+
             Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
 
             XMLStreamReader reader = xmlInputFactory.createXMLStreamReader(xml);
 
-            SiriValidationEventHandler handler = new SiriValidationEventHandler();
+            final SiriValidationEventHandler schemaValidationHandler = new SiriValidationEventHandler();
 
-            if (configuration.isFullValidationEnabled()) {
-                validated = true;
+            if (configuration.isFullValidationEnabled() || 
+                                    subscriptionSetup.isValidation()) {
+                // Add schema to validate against
                 unmarshaller.setSchema(schema);
-                unmarshaller.setEventHandler(handler);
+
+                // Add event-handler to collect validation-issues
+                unmarshaller.setEventHandler(schemaValidationHandler);
             }
 
             Siri siri = unmarshaller.unmarshal(reader, Siri.class).getValue();
 
+            boolean rejectInvalidSiriData = false;
+            if (rejectInvalidSiriData && !schemaValidationHandler.categorizedEvents.isEmpty()) {
+                // TODO: Reject invalid XML!!!
+                // return null;
+            }
+
             final String breadcrumbId = MDC.get("camel.breadcrumbId");
 
             if (siri.getServiceDelivery() != null && configuration.isFullValidationEnabled()) {
-                validated = true;
                 validationExecutorService.execute(() -> {
                     MDC.put("camel.breadcrumbId", breadcrumbId);
-                    final boolean valid = performValidation(subscriptionSetup, xml, handler);
-                    if (!valid) {
-                        logger.info("Validation results: ", handler.toJSON());
-                    }
+                    performValidation(subscriptionSetup, xml, schemaValidationHandler);
                     MDC.remove("camel.breadcrumbId");
                 });
             }
 
             if (siri.getServiceDelivery() != null && subscriptionSetup.isValidation()) {
-                validated = true;
                 // Validator is activated - produce complete report from formatted XML
                 validationReportExecutorService.execute(() -> {
                     MDC.put("camel.breadcrumbId", breadcrumbId);
-                    performValidation(subscriptionSetup, siri);
+                    performValidation(subscriptionSetup, siri, schemaValidationHandler);
                     MDC.remove("camel.breadcrumbId");
                 });
             }
 
             long parseDone = System.currentTimeMillis();
 
-            logger.info("Parsing XML took {} ms, validated: {} ", parseDone-parseStart, validated);
+            logger.info("Parsing and validating XML took {} ms ", parseDone-parseStart);
 
             return siri;
         } catch (XMLStreamException e) {
@@ -243,7 +246,7 @@ public class SiriXmlValidator extends ApplicationContextHolder {
 
     private static AtomicInteger concurrentValidationThreads = new AtomicInteger();
     private boolean performValidation(
-        SubscriptionSetup subscriptionSetup, InputStream xml, SiriValidationEventHandler handler
+        SubscriptionSetup subscriptionSetup, InputStream xml, SiriValidationEventHandler schemaValidationResults
     ) {
         concurrentValidationThreads.incrementAndGet();
         long validationStart = System.currentTimeMillis();
@@ -253,12 +256,12 @@ public class SiriXmlValidator extends ApplicationContextHolder {
 
             String originalXml = new String(xml.readAllBytes());
 
-            SiriValidationEventHandler profileHandler = new SiriValidationEventHandler();
-            validateAttributes(originalXml, subscriptionSetup.getSubscriptionType(), profileHandler);
+            SiriValidationEventHandler profileValidationResults = new SiriValidationEventHandler();
+            validateAttributes(originalXml, subscriptionSetup.getSubscriptionType(), profileValidationResults);
 
-            addValidationMetrics(subscriptionSetup, handler, profileHandler);
+            addValidationMetrics(subscriptionSetup, schemaValidationResults, profileValidationResults);
 
-            return handler.categorizedEvents.isEmpty() && profileHandler.categorizedEvents.isEmpty();
+            return schemaValidationResults.categorizedEvents.isEmpty() && profileValidationResults.categorizedEvents.isEmpty();
 
         } catch (Throwable t) {
             logger.warn("Validation failed", t);
@@ -297,10 +300,8 @@ public class SiriXmlValidator extends ApplicationContextHolder {
             schemaHandler.categorizedEvents.isEmpty(), profileHandler.categorizedEvents.isEmpty());
     }
 
-    private void performValidation(SubscriptionSetup subscriptionSetup, Siri siri) {
+    private void performValidation(SubscriptionSetup subscriptionSetup, Siri siri, SiriValidationEventHandler schemaValidationResults) {
         try {
-
-            Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
 
             long t1 = System.currentTimeMillis();
 
@@ -313,9 +314,7 @@ public class SiriXmlValidator extends ApplicationContextHolder {
             }
 
             /*
-
-               Re-marshalling - and unmarshalling - object to ensure correct line numbers in report.
-
+             * Re-marshalling SIRI-data for filtering-purposes
              */
             Marshaller marshaller = jaxbContext.createMarshaller();
             marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
@@ -332,24 +331,14 @@ public class SiriXmlValidator extends ApplicationContextHolder {
                 return;
             }
 
-            StringReader sr= new StringReader(originalXml);
-
-            SiriValidationEventHandler handler = new SiriValidationEventHandler();
-            SiriValidationEventHandler profileHandler = new SiriValidationEventHandler();
-
-            unmarshaller.setSchema(schema);
-            unmarshaller.setEventHandler(handler);
-
-            //Unmarshalling with schema-validation
-            unmarshaller.unmarshal(sr);
-
+            SiriValidationEventHandler profileValidationResults = new SiriValidationEventHandler();
             if (configuration.isProfileValidation()) {
                 // Custom validation of attribute contents
-                validateAttributes(originalXml, type, profileHandler);
+                validateAttributes(originalXml, type, profileValidationResults);
             }
 
-            JSONObject schemaEvents = handler.toJSON();
-            JSONObject profileEvents = profileHandler.toJSON();
+            JSONObject schemaEvents = schemaValidationResults.toJSON();
+            JSONObject profileEvents = profileValidationResults.toJSON();
 
             JSONObject combinedEvents = new JSONObject();
             combinedEvents.put("schema", schemaEvents);
