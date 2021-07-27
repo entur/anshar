@@ -233,8 +233,12 @@ public class SiriXmlValidator extends ApplicationContextHolder {
         schemaHandler.categorizedEvents
             .entrySet()
             .forEach(type -> {
-                metricsService.addValidationMetrics(subscriptionType, codespaceId,
-                SCHEMA_VALIDATION, "Schema",type.getValue().size());
+                final Map<String, ValidationEvent> validations = type.getValue();
+                for (String key : validations.keySet()) {
+                    metricsService.addValidationMetrics(subscriptionType, codespaceId,
+                        SCHEMA_VALIDATION, key, schemaHandler.equalsEventCounter.get(key));
+                }
+
             });
 
         profileHandler.categorizedEvents
