@@ -21,7 +21,7 @@
   <parent>
       <groupId>org.rutebanken.superpom</groupId>
       <artifactId>superpom</artifactId>
-      <version>1.0.26</version>
+      <version>1.0.28</version>
   </parent>
 
 
@@ -36,13 +36,13 @@
 
         <!-- versions for use in mvn plugins as we cannot inherit them from a BOM -->
         <docker.maven.plugin.version>0.21.0</docker.maven.plugin.version>
-        <spring-boot-plugin.version>2.4.7</spring-boot-plugin.version>
-        <spring-boot.version>2.4.7</spring-boot.version>
+        <spring-boot-plugin.version>2.5.3</spring-boot-plugin.version>
+        <spring-boot.version>2.5.3</spring-boot.version>
 
         <camel-version>3.11.0</camel-version>
 
         <metrics.version>3.2.3</metrics.version>
-        <entur.helpers.version>1.0.55</entur.helpers.version>
+        <entur.helpers.version>1.0.57</entur.helpers.version>
     </properties>
 
     <distributionManagement>
@@ -251,7 +251,7 @@
         <dependency>
             <groupId>com.hazelcast</groupId>
             <artifactId>hazelcast</artifactId>
-            <version>4.0.3</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
