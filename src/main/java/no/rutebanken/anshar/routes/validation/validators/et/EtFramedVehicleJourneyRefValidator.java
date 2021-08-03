@@ -91,6 +91,10 @@ public class EtFramedVehicleJourneyRefValidator extends CustomValidator {
             format.parse(date);
         } catch (ParseException e) {
             return false;
+        } catch (NumberFormatException e) {
+            // Happens sometimes without actually being wrong...
+            // Return false to flag for manual follow-up
+            return false;
         }
 
         if (date.length() != PATTERN.length()) {
