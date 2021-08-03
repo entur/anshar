@@ -140,7 +140,6 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
 
         from("seda:async.process.request?concurrentConsumers=20")
             .convertBodyTo(String.class)
-            .to("xslt-saxon:xsl/indent.xsl?allowStAX=false&resultHandlerFactory=#streamResultHandlerFactory")
             .process(p -> {
                 p.getMessage().setBody(p.getIn().getBody());
                 p.getMessage().setHeaders(p.getIn().getHeaders());

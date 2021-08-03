@@ -108,6 +108,14 @@ public class MessagingRoute extends RestRouteBuilder {
                     .to("xslt-saxon:xsl/siri_14_20.xsl?allowStAX=false&resultHandlerFactory=#streamResultHandlerFactory") // Convert from v1.4 to 2.0
                 .endChoice()
                 .end()
+                .to("direct:format.xml")
+        ;
+
+        from("direct:format.xml")
+            .log("PERFORMANCE: Formatting XML")
+            .to("xslt-saxon:xsl/indent.xsl?allowStAX=false&resultHandlerFactory=#streamResultHandlerFactory")
+            .log("PERFORMANCE: Formatting XML - done")
+            .routeId("incoming.format.xml")
         ;
 
         // When shutdown has been triggered - stop processing data from pubsub
