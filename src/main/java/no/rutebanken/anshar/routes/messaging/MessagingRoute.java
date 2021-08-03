@@ -112,9 +112,7 @@ public class MessagingRoute extends RestRouteBuilder {
         ;
 
         from("direct:format.xml")
-            .log("PERFORMANCE: Formatting XML")
             .to("xslt-saxon:xsl/indent.xsl?allowStAX=false&resultHandlerFactory=#streamResultHandlerFactory")
-            .log("PERFORMANCE: Formatting XML - done")
             .routeId("incoming.format.xml")
         ;
 
