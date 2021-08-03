@@ -64,7 +64,7 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
     protected SubscriptionManager manager;
 
     private static final String METRICS_PREFIX = "app.anshar.";
-    private static final String DATA_COUNTER_NAME = METRICS_PREFIX + "data";
+    private static final String DATA_COUNTER_NAME = METRICS_PREFIX + "data.counter";
     private static final String DATA_TOTAL_COUNTER_NAME = METRICS_PREFIX + "data.total";
     private static final String DATA_SUCCESS_COUNTER_NAME = METRICS_PREFIX + "data.success";
     private static final String DATA_EXPIRED_COUNTER_NAME = METRICS_PREFIX + "data.expired";
