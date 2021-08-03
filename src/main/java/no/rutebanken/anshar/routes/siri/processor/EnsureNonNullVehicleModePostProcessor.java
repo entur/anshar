@@ -46,7 +46,8 @@ public class EnsureNonNullVehicleModePostProcessor extends ValueAdapter implemen
                             .getEstimatedVehicleJourneies();
                         for (EstimatedVehicleJourney estimatedVehicleJourney : estimatedVehicleJourneies) {
                             if (estimatedVehicleJourney.getVehicleModes() != null) {
-                                if (estimatedVehicleJourney.getVehicleModes().get(0) == null) {
+                                if (!estimatedVehicleJourney.getVehicleModes().isEmpty() &&
+                                    estimatedVehicleJourney.getVehicleModes().get(0) == null) {
                                     logger.warn("Clearing VehicleMode");
                                     estimatedVehicleJourney.getVehicleModes().clear();
                                 }
