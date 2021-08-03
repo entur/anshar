@@ -2,7 +2,7 @@
                 xmlns:siri="http://www.siri.org.uk/siri"
                 version="1.0">
 
-    <xsl:output method="xml" indent="yes" />
+    <xsl:output method="xml" indent="no" />
 
     <xsl:template match="/">
         <root>
