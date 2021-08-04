@@ -1,6 +1,7 @@
 package no.rutebanken.anshar.routes.mqtt;
 
 
+import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.builder.ThreadPoolProfileBuilder;
 import org.apache.camel.component.paho.PahoConstants;
@@ -51,13 +52,16 @@ public class MqttProducerRoute extends RouteBuilder {
                 .setHeader(PahoConstants.CAMEL_PAHO_OVERRIDE_TOPIC, simple("${header.topic}"))
                 .wireTap("direct:post.to.paho.client").executorServiceRef("mqtt-tp-profile");
 
-        from("direct:post.to.paho.client")
+        if (mqttEnabled) {
+            from("direct:post.to.paho.client")
                 .routeId("post.to.paho.client")
-                .choice()
-                .when(p -> mqttEnabled)
-                    .to("paho:default/topic?qos=1&clientId=" + clientId + "&brokerUrl=" + host + "&userName=" + username + "&password=" + password)
-                    .to("direct:log.mqtt.traffic")
-                .endChoice();
+                .to("paho:default/topic?qos=1&clientId=" + clientId + "&brokerUrl=" + host + "&userName=" + username + "&password=" + password)
+                .to("direct:log.mqtt.traffic");
+        } else {
+            from("direct:post.to.paho.client")
+                .routeId("disabled.post.to.paho.client")
+                .log(LoggingLevel.DEBUG, "Skip sending to MQTT");
+        }
 
         from("direct:log.mqtt.traffic")
                 .routeId("log.mqtt")
