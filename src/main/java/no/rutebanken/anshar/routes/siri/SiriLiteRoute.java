@@ -35,9 +35,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uk.org.siri.siri20.Siri;
+import uk.org.siri.siri20.VehicleActivityStructure;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Collection;
 import java.util.List;
 
 import static no.rutebanken.anshar.routes.HttpParameter.PARAM_DATASET_ID;
@@ -81,7 +83,7 @@ public class SiriLiteRoute extends RestRouteBuilder {
                         .param().required(false).name(PARAM_USE_ORIGINAL_ID).type(RestParamType.query).description("Option to return original Ids").dataType("boolean").endParam()
                         .param().required(false).name(PARAM_MAX_SIZE).type(RestParamType.query).description("Specify max number of returned elements").dataType("integer").endParam()
 
-                .get("/vm").to("direct:anshar.rest.vm")
+                .get("/vm").to("direct:anshar.rest.vm.cached")
                         .param().required(false).name(PARAM_DATASET_ID).type(RestParamType.query).description("The id of the dataset to get").dataType("string").endParam()
                         .param().required(false).name(PARAM_EXCLUDED_DATASET_ID).type(RestParamType.query).description("Comma-separated list of dataset-IDs to be excluded from response").dataType("string").endParam()
                         .param().required(false).name(PARAM_USE_ORIGINAL_ID).type(RestParamType.query).description("Option to return original Ids").dataType("boolean").endParam()
@@ -337,10 +339,22 @@ public class SiriLiteRoute extends RestRouteBuilder {
                         String clientTrackingName = p.getIn().getHeader(configuration.getTrackingHeaderName(), String.class);
 
                         logger.info("Fetching cached VM-data");
-                        Siri response = siriObjectFactory.createVMServiceDelivery(vehicleActivities.getAllCachedUpdates(requestorId,
-                            datasetId,
-                            clientTrackingName
-                        ));
+                        final Collection<VehicleActivityStructure> cachedUpdates = vehicleActivities
+                            .getAllCachedUpdates(requestorId, datasetId, clientTrackingName);
+                        List<String> excludedIdList = getParameterValuesAsList(p.getIn(), PARAM_EXCLUDED_DATASET_ID);
+
+                        if (excludedIdList != null && !excludedIdList.isEmpty()) {
+                            cachedUpdates.removeIf(vehicle -> {
+                                if (vehicle.getMonitoredVehicleJourney() != null &&
+                                    vehicle.getMonitoredVehicleJourney().getDataSource() != null) {
+                                    // Return 'true' if codespaceId should be excluded
+                                    return excludedIdList.contains(vehicle.getMonitoredVehicleJourney().getDataSource());
+                                }
+                                return false;
+                            });
+                        }
+
+                        Siri response = siriObjectFactory.createVMServiceDelivery(cachedUpdates);
 
                         List<ValueAdapter> outboundAdapters = MappingAdapterPresets.getOutboundAdapters(
                                                                                         SiriDataType.VEHICLE_MONITORING,
