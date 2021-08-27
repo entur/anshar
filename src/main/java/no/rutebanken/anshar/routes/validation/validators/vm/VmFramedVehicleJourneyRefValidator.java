@@ -27,7 +27,6 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
-import static no.rutebanken.anshar.routes.validation.validators.Constants.AFFECTED_VEHICLE_JOURNEY;
 import static no.rutebanken.anshar.routes.validation.validators.Constants.MONITORED_VEHICLE_JOURNEY;
 
 /**
@@ -83,14 +82,15 @@ public class VmFramedVehicleJourneyRefValidator extends CustomValidator {
     }
 
     private boolean isValidDate(String date) {
-        try {
-            format.parse(date);
-        } catch (ParseException e) {
-            return false;
-        }
 
         if (date.length() != PATTERN.length()) {
             // If length does not match, date cannot match pattern
+            return false;
+        }
+
+        try {
+            format.parse(date);
+        } catch (ParseException e) {
             return false;
         }
 
