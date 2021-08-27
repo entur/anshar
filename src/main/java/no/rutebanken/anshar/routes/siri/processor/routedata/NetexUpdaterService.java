@@ -15,6 +15,8 @@
 
 package no.rutebanken.anshar.routes.siri.processor.routedata;
 
+import org.rutebanken.netex.model.LocationStructure;
+import org.rutebanken.netex.model.VehicleModeEnumeration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -62,6 +64,8 @@ public class NetexUpdaterService {
     private static Map<String, List<ServiceDate>> tripDates = new HashMap<>();
     private static Map<String, String> parentStops = new HashMap<>();
     private static Map<String, String> quayPublicCodes = new HashMap<>();
+    protected static Map<String, LocationStructure> locations = new HashMap<>();
+    protected static Map<String, VehicleModeEnumeration> modes = new HashMap<>();
 
     public static boolean isStopIdOrParentMatch(String stop1, String stop2) {
         return stop1.equals(stop2) || parentStops.get(stop2).equals(parentStops.get(stop1));
@@ -155,9 +159,13 @@ public class NetexUpdaterService {
         Map<String, List<ServiceDate>> tmpTripDates = new HashMap<>();
         Map<String, String> tmpParentStops = new HashMap<>();
         Map<String, String> tmpQuayPublicCodes = new HashMap<>();
+        Map<String, LocationStructure> tmpLocations = new HashMap<>();
+        Map<String, VehicleModeEnumeration> tmpModes = new HashMap<>();
 
         for (String path : paths) {
-            readNeTEx(path, tmpTripStops, tmpTrainNumberTrips, tmpTripDates, tmpParentStops, tmpQuayPublicCodes);
+            readNeTEx(path, tmpTripStops, tmpTrainNumberTrips, tmpTripDates, tmpParentStops, tmpQuayPublicCodes,
+                tmpLocations, tmpModes
+            );
         }
 
         // Swapping updated data
@@ -166,6 +174,8 @@ public class NetexUpdaterService {
         tripDates = tmpTripDates;
         parentStops = tmpParentStops;
         quayPublicCodes = tmpQuayPublicCodes;
+        locations = tmpLocations;
+        modes = tmpModes;
         logger.info("Read and merged {} NeTEx files in {} ms", paths.length, (System.currentTimeMillis()-start));
     }
 
@@ -209,8 +219,12 @@ public class NetexUpdaterService {
         return null;
     }
 
-    private static void readNeTEx(String path, Map<String, List<StopTime>> tripStops, Map<String, Set<String>> trainNumberTrips,
-                                  Map<String, List<ServiceDate>> tripDates, Map<String, String> parentStops, Map<String, String> quayPublicCodes) {
+    private static void readNeTEx(
+        String path, Map<String, List<StopTime>> tripStops, Map<String, Set<String>> trainNumberTrips,
+        Map<String, List<ServiceDate>> tripDates,
+        Map<String, String> parentStops, Map<String, String> quayPublicCodes,
+        Map<String, LocationStructure> locations, Map<String, VehicleModeEnumeration> tmpModes
+    ) {
         try {
 
             NetexProcessor netexProcessor = new NetexProcessor();
@@ -220,6 +234,8 @@ public class NetexUpdaterService {
             tripDates.putAll(netexProcessor.getTripDates());
             parentStops.putAll(netexProcessor.getParentStops());
             quayPublicCodes.putAll(netexProcessor.getPublicCodeByQuayId());
+            locations.putAll(netexProcessor.getLocations());
+            tmpModes.putAll(netexProcessor.getModes());
         } catch (IOException e) {
             logger.error("Could not load NeTEx file from path {}", path);
         }

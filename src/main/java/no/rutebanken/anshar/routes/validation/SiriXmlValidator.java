@@ -23,6 +23,7 @@ import no.rutebanken.anshar.metrics.PrometheusMetricsService;
 import no.rutebanken.anshar.routes.siri.transformer.ApplicationContextHolder;
 import no.rutebanken.anshar.routes.validation.validators.CustomValidator;
 import no.rutebanken.anshar.routes.validation.validators.ProfileValidationEventOrList;
+import no.rutebanken.anshar.routes.validation.validators.SiriObjectValidator;
 import no.rutebanken.anshar.routes.validation.validators.Validator;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
@@ -204,7 +205,7 @@ public class SiriXmlValidator extends ApplicationContextHolder {
             if (siri.getServiceDelivery() != null && validate) {
                 validationExecutorService.execute(() -> {
                     MDC.put("camel.breadcrumbId", breadcrumbId);
-                    performProfileValidation(subscriptionSetup, xml, schemaValidationHandler);
+                    performProfileValidation(subscriptionSetup, xml, siri, schemaValidationHandler);
                     MDC.remove("camel.breadcrumbId");
                 });
             }
@@ -254,7 +255,7 @@ public class SiriXmlValidator extends ApplicationContextHolder {
 
     private static AtomicInteger concurrentValidationThreads = new AtomicInteger();
     private boolean performProfileValidation(
-        SubscriptionSetup subscriptionSetup, InputStream xml, SiriValidationEventHandler schemaValidationResults
+        SubscriptionSetup subscriptionSetup, InputStream xml, Siri siri, SiriValidationEventHandler schemaValidationResults
     ) {
         concurrentValidationThreads.incrementAndGet();
         long validationStart = System.currentTimeMillis();
@@ -278,7 +279,7 @@ public class SiriXmlValidator extends ApplicationContextHolder {
 
             SiriValidationEventHandler profileValidationResults = new SiriValidationEventHandler();
 
-            validateAttributes(originalXml, type, profileValidationResults);
+            validateAttributes(originalXml, type, siri, profileValidationResults);
 
             if (subscriptionSetup.isValidation()) {
                 final long t1 = System.currentTimeMillis();
@@ -326,7 +327,9 @@ public class SiriXmlValidator extends ApplicationContextHolder {
         return subscriptionSetup.getValidationFilter() != null && !subscriptionSetup.getValidationFilter().isEmpty();
     }
 
-    private void validateAttributes(String siri, SiriDataType type, SiriValidationEventHandler handler) throws XPathExpressionException, ParserConfigurationException, IOException, SAXException {
+    private void validateAttributes(
+        String siriXml, SiriDataType type, Siri siri, SiriValidationEventHandler handler
+    ) throws XPathExpressionException, ParserConfigurationException, IOException, SAXException {
         if (validationRules.isEmpty()) {
             populateValidationRules();
         }
@@ -334,16 +337,15 @@ public class SiriXmlValidator extends ApplicationContextHolder {
         XPath xpath = xpathFactory.newXPath();
         DocumentBuilder builder = builderFactory.newDocumentBuilder();
 
-        InputStream stream = new ByteArrayInputStream(siri.getBytes(StandardCharsets.UTF_8));
+        InputStream stream = new ByteArrayInputStream(siriXml.getBytes(StandardCharsets.UTF_8));
 
         Document xmlDocument = builder.parse(stream);
 
         int errorCounter = 0;
         int ruleCounter = 0;
         for (CustomValidator rule : validationRules.get(type)) {
-            NodeList nodes = (NodeList) xpath.evaluate(rule.getXpath(), xmlDocument, XPathConstants.NODESET);
-            for (int i = 0; i < nodes.getLength(); i++) {
-                ValidationEvent event = rule.isValid(nodes.item(i));
+            if (rule instanceof SiriObjectValidator) {
+                ValidationEvent event = ((SiriObjectValidator)rule).isValid(siri);
                 ruleCounter++;
                 if (event != null) {
                     if (event instanceof ProfileValidationEventOrList) {
@@ -354,6 +356,30 @@ public class SiriXmlValidator extends ApplicationContextHolder {
                     } else {
                         handler.handleCategorizedEvent(rule.getCategoryName(), event);
                         errorCounter++;
+                    }
+                }
+            } else {
+                NodeList nodes = (NodeList) xpath.evaluate(rule.getXpath(),
+                    xmlDocument,
+                    XPathConstants.NODESET
+                );
+                for (int i = 0; i < nodes.getLength(); i++) {
+                    ValidationEvent event = rule.isValid(nodes.item(i));
+                    ruleCounter++;
+                    if (event != null) {
+                        if (event instanceof ProfileValidationEventOrList) {
+                            for (ValidationEvent validationEvent : ((ProfileValidationEventOrList) event)
+                                .getEvents()) {
+                                handler.handleCategorizedEvent(rule.getCategoryName(),
+                                    validationEvent
+                                );
+                                errorCounter++;
+                            }
+                        }
+                        else {
+                            handler.handleCategorizedEvent(rule.getCategoryName(), event);
+                            errorCounter++;
+                        }
                     }
                 }
             }

@@ -16,7 +16,32 @@
 package no.rutebanken.anshar.routes.siri.processor.routedata;
 
 import org.apache.commons.io.IOUtils;
-import org.rutebanken.netex.model.*;
+import org.rutebanken.netex.model.AllVehicleModesOfTransportEnumeration;
+import org.rutebanken.netex.model.Common_VersionFrameStructure;
+import org.rutebanken.netex.model.CompositeFrame;
+import org.rutebanken.netex.model.DayTypeAssignment;
+import org.rutebanken.netex.model.DayTypeRefStructure;
+import org.rutebanken.netex.model.JourneyPattern;
+import org.rutebanken.netex.model.JourneyPatternsInFrame_RelStructure;
+import org.rutebanken.netex.model.Journey_VersionStructure;
+import org.rutebanken.netex.model.JourneysInFrame_RelStructure;
+import org.rutebanken.netex.model.LocationStructure;
+import org.rutebanken.netex.model.PassengerStopAssignment;
+import org.rutebanken.netex.model.PointInLinkSequence_VersionedChildStructure;
+import org.rutebanken.netex.model.PublicationDeliveryStructure;
+import org.rutebanken.netex.model.Quay;
+import org.rutebanken.netex.model.ServiceAlterationEnumeration;
+import org.rutebanken.netex.model.ServiceCalendarFrame;
+import org.rutebanken.netex.model.ServiceFrame;
+import org.rutebanken.netex.model.ServiceJourney;
+import org.rutebanken.netex.model.SiteFrame;
+import org.rutebanken.netex.model.StopAssignment_VersionStructure;
+import org.rutebanken.netex.model.StopAssignmentsInFrame_RelStructure;
+import org.rutebanken.netex.model.StopPlace;
+import org.rutebanken.netex.model.StopPointInJourneyPattern;
+import org.rutebanken.netex.model.TimetableFrame;
+import org.rutebanken.netex.model.TimetabledPassingTime;
+import org.rutebanken.netex.model.VehicleModeEnumeration;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -28,7 +53,12 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -48,6 +78,8 @@ public class NetexProcessor {
     private Map<String, Set<String>> trainNumberTrips = new HashMap<>();
     private Map<String, List<ServiceDate>> tripDates = new HashMap<>();
     private static Map<String, String> parentStops = new HashMap<>();
+    private Map<String, LocationStructure> locations = new HashMap<>();
+    private Map<String, VehicleModeEnumeration> modes = new HashMap<>();
 
     static {
         try {
@@ -75,6 +107,14 @@ public class NetexProcessor {
 
     public Map<String, String> getPublicCodeByQuayId() {
         return publicCodeByQuayId;
+    }
+
+    public Map<String, LocationStructure> getLocations() {
+        return locations;
+    }
+
+    public Map<String, VehicleModeEnumeration> getModes() {
+        return modes;
     }
 
     private Unmarshaller createUnmarshaller() throws JAXBException {
@@ -265,14 +305,32 @@ public class NetexProcessor {
                 List<StopPlace> stopPlaces = sf.getStopPlaces().getStopPlace();
                 for (StopPlace stopPlace : stopPlaces) {
                     String parentId = stopPlace.getId();
+
+                    if (stopPlace.getCentroid() != null && stopPlace.getCentroid().getLocation() != null) {
+                        locations.put(stopPlace.getId(), stopPlace.getCentroid().getLocation());
+                    }
+                    VehicleModeEnumeration mode = null;
+                    if (stopPlace.getTransportMode() != null) {
+                         mode = stopPlace.getTransportMode();
+                         modes.put(stopPlace.getId(), mode);
+                    }
+
                     if (stopPlace.getQuays() != null) {
                         List<Object> quayRefOrQuay = stopPlace.getQuays().getQuayRefOrQuay();
                         for (Object o : quayRefOrQuay) {
                             if (o instanceof Quay) {
                                 Quay quay = (Quay) o;
                                 parentStops.put(quay.getId(), parentId);
+                                modes.put(quay.getId(), mode);
+
                                 if (quay.getPublicCode() != null && !quay.getPublicCode().isEmpty()) {
                                     publicCodeByQuayId.put(quay.getId(), quay.getPublicCode());
+                                }
+
+                                if (quay.getCentroid() != null && quay.getCentroid().getLocation() != null) {
+                                    locations.put(quay.getId(), quay.getCentroid().getLocation());
+                                } else {
+                                    System.err.println();
                                 }
                             }
                         }

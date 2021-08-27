@@ -91,8 +91,8 @@ public class MessagingRoute extends RestRouteBuilder {
                 .to("direct:compress.jaxb")
                 .log("Sending data to topic ${header.target_topic}")
                 .toD("${header.target_topic}")
-                .log("Data sent")
                 .end()
+                .routeId("add.to.queue")
         ;
 
         from("direct:transform.siri")
@@ -121,8 +121,8 @@ public class MessagingRoute extends RestRouteBuilder {
 
         from(pubsubQueueDefault + queueConsumerParameters)
             .choice().when(readFromPubsub)
-                .to("direct:decompress.jaxb")
                 .log("Processing data from " + pubsubQueueDefault + ", size ${header.Content-Length}")
+                .to("direct:decompress.jaxb")
                 .wireTap("direct:" + CamelRouteNames.PROCESSOR_QUEUE_DEFAULT)
             .endChoice()
             .startupOrder(100004)
@@ -131,8 +131,8 @@ public class MessagingRoute extends RestRouteBuilder {
 
         from(pubsubQueueSX + queueConsumerParameters)
             .choice().when(readFromPubsub)
-                .to("direct:decompress.jaxb")
                 .log("Processing data from " + pubsubQueueSX + ", size ${header.Content-Length}")
+                .to("direct:decompress.jaxb")
                 .wireTap("direct:" + CamelRouteNames.PROCESSOR_QUEUE_DEFAULT)
             .endChoice()
             .startupOrder(100003)
@@ -141,8 +141,8 @@ public class MessagingRoute extends RestRouteBuilder {
 
         from(pubsubQueueVM + queueConsumerParameters)
             .choice().when(readFromPubsub)
-                .to("direct:decompress.jaxb")
                 .log("Processing data from " + pubsubQueueVM + ", size ${header.Content-Length}")
+                .to("direct:decompress.jaxb")
                 .wireTap("direct:" + CamelRouteNames.PROCESSOR_QUEUE_DEFAULT)
             .endChoice()
             .startupOrder(100002)
@@ -151,8 +151,8 @@ public class MessagingRoute extends RestRouteBuilder {
 
         from(pubsubQueueET + queueConsumerParameters)
             .choice().when(readFromPubsub)
-                .to("direct:decompress.jaxb")
                 .log("Processing data from " + pubsubQueueET + ", size ${header.Content-Length}")
+                .to("direct:decompress.jaxb")
                 .wireTap("direct:" + CamelRouteNames.PROCESSOR_QUEUE_DEFAULT)
             .endChoice()
             .startupOrder(100001)

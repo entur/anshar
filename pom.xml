@@ -43,6 +43,7 @@
 
         <metrics.version>3.2.3</metrics.version>
         <entur.helpers.version>1.0.57</entur.helpers.version>
+        <geotools.version>21.2</geotools.version>
     </properties>
 
     <distributionManagement>
@@ -278,6 +279,19 @@
             <version>1.0.9</version>
         </dependency>
 
+        <!-- Geotools needed for calculating speed between stops-->
+        <dependency>
+            <groupId>org.geotools</groupId>
+            <artifactId>gt-main</artifactId>
+            <version>${geotools.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.geotools</groupId>
+            <artifactId>gt-referencing</artifactId>
+            <version>${geotools.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
@@ -464,6 +478,11 @@
             <id>github</id>
             <name>Entur Github package repo</name>
             <url>https://maven.pkg.github.com/entur/siri-protobuf-mapper</url>
+        </repository>
+        <repository>
+            <id>osgeo</id>
+            <name>Open Source Geospatial Foundation Repository</name>
+            <url>https://repo.osgeo.org/repository/release/</url>
         </repository>
     </repositories>
 </project>

@@ -49,6 +49,7 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
 
     private static final String DATATYPE_TAG_NAME = "dataType";
     private static final String AGENCY_TAG_NAME = "agency";
+    private static final String MAPPING_ID_TAG = "mappingId";
     private static final String MAPPING_NAME_TAG = "mappingName";
 
     private static final String KAFKA_STATUS_TAG = "kafkaStatus";
@@ -105,6 +106,7 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
         counterTags.add(new ImmutableTag(DATATYPE_TAG_NAME, dataType.name()));
         counterTags.add(new ImmutableTag(AGENCY_TAG_NAME, agencyId));
         counterTags.add(new ImmutableTag(MAPPING_NAME_TAG, mappingName.toString()));
+        counterTags.add(new ImmutableTag(MAPPING_ID_TAG, mappingName.name()));
 
         counter(DATA_MAPPING_COUNTER_NAME, counterTags).increment(mappedCount);
     }
