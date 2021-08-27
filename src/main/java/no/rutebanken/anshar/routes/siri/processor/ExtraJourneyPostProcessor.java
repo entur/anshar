@@ -167,7 +167,8 @@ public class ExtraJourneyPostProcessor extends ValueAdapter implements PostProce
         final ZonedDateTime fromTime = times.getLeft();
         final ZonedDateTime toTime = times.getRight();
 
-        if (toTime.isAfter(fromTime)) {
+        if (fromTime != null && toTime != null &&
+            toTime.isAfter(fromTime)) {
             final int kph = StopsUtil.calculateSpeedKph(fromStop, toStop,
                 fromTime,
                 toTime

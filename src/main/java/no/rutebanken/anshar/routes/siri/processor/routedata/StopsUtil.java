@@ -92,6 +92,9 @@ public class StopsUtil {
 
     private static int calculateSpeedKph(double distanceInMeters, ZonedDateTime departureTime, ZonedDateTime arrivalTime) {
         final long seconds = arrivalTime.toEpochSecond() - departureTime.toEpochSecond();
+        if (seconds <= 0) {
+            return -1;
+        }
         double metersPerSecond = distanceInMeters/seconds;
         double kilometersPerHour = metersPerSecond * 3.6;
         return (int)kilometersPerHour;
