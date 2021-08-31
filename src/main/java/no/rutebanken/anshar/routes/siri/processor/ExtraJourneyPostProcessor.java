@@ -88,17 +88,25 @@ public class ExtraJourneyPostProcessor extends ValueAdapter implements PostProce
                                             final RecordedCall thisCall = calls.get(i);
                                             final RecordedCall nextCall = calls.get(i + 1);
 
-                                            final String fromStop = getMappedId(thisCall
-                                                .getStopPointRef()
-                                                .getValue());
-                                            final String toStop = getMappedId(nextCall
-                                                .getStopPointRef()
-                                                .getValue());
+                                            if (thisCall.getStopPointRef() != null &&
+                                                nextCall.getStopPointRef() != null) {
 
-                                            Pair<ZonedDateTime, ZonedDateTime> times = getTimes(thisCall,
-                                                nextCall
-                                            );
-                                            validateContents(vehicleModes, fromStop, toStop, times);
+                                                final String fromStop = getMappedId(thisCall
+                                                    .getStopPointRef()
+                                                    .getValue());
+                                                final String toStop = getMappedId(nextCall
+                                                    .getStopPointRef()
+                                                    .getValue());
+
+                                                Pair<ZonedDateTime, ZonedDateTime> times = getTimes(thisCall,
+                                                    nextCall
+                                                );
+                                                validateContents(vehicleModes,
+                                                    fromStop,
+                                                    toStop,
+                                                    times
+                                                );
+                                            }
                                         }
                                     }
                                     final EstimatedVehicleJourney.EstimatedCalls estimatedCalls = estimatedVehicleJourney
@@ -111,18 +119,26 @@ public class ExtraJourneyPostProcessor extends ValueAdapter implements PostProce
                                             final EstimatedCall thisCall = calls.get(i);
                                             final EstimatedCall nextCall = calls.get(i + 1);
 
-                                            final String fromStop = getMappedId(thisCall
-                                                .getStopPointRef()
-                                                .getValue());
-                                            final String toStop = getMappedId(nextCall
-                                                .getStopPointRef()
-                                                .getValue());
+                                            if (thisCall.getStopPointRef() != null &&
+                                                nextCall.getStopPointRef() != null) {
 
-                                            Pair<ZonedDateTime, ZonedDateTime> times = getTimes(thisCall,
-                                                nextCall
-                                            );
+                                                final String fromStop = getMappedId(thisCall
+                                                    .getStopPointRef()
+                                                    .getValue());
+                                                final String toStop = getMappedId(nextCall
+                                                    .getStopPointRef()
+                                                    .getValue());
 
-                                            validateContents(vehicleModes, fromStop, toStop, times);
+                                                Pair<ZonedDateTime, ZonedDateTime> times = getTimes(thisCall,
+                                                    nextCall
+                                                );
+
+                                                validateContents(vehicleModes,
+                                                    fromStop,
+                                                    toStop,
+                                                    times
+                                                );
+                                            }
                                         }
                                     }
                                 } catch (TooFastException e) {

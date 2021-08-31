@@ -93,14 +93,17 @@ public class StopModeValidator extends SiriObjectValidator {
                                         final RecordedCall thisCall = calls.get(i);
                                         final RecordedCall nextCall = calls.get(i + 1);
 
-                                        final String fromStop = getMappedId(thisCall
-                                            .getStopPointRef()
-                                            .getValue());
-                                        final String toStop = getMappedId(nextCall
-                                            .getStopPointRef()
-                                            .getValue());
+                                        if (thisCall.getStopPointRef() != null &&
+                                            nextCall.getStopPointRef() != null) {
+                                            final String fromStop = getMappedId(thisCall
+                                                .getStopPointRef()
+                                                .getValue());
+                                            final String toStop = getMappedId(nextCall
+                                                .getStopPointRef()
+                                                .getValue());
 
-                                        validate(vehicleModes, fromStop, toStop);
+                                            validate(vehicleModes, fromStop, toStop);
+                                        }
                                     }
                                 }
                                 final EstimatedVehicleJourney.EstimatedCalls estimatedCalls = estimatedVehicleJourney
@@ -113,14 +116,17 @@ public class StopModeValidator extends SiriObjectValidator {
                                         final EstimatedCall thisCall = calls.get(i);
                                         final EstimatedCall nextCall = calls.get(i + 1);
 
-                                        final String fromStop = getMappedId(thisCall
-                                            .getStopPointRef()
-                                            .getValue());
-                                        final String toStop = getMappedId(nextCall
-                                            .getStopPointRef()
-                                            .getValue());
+                                        if (thisCall.getStopPointRef() != null &&
+                                            nextCall.getStopPointRef() != null) {
+                                            final String fromStop = getMappedId(thisCall
+                                                .getStopPointRef()
+                                                .getValue());
+                                            final String toStop = getMappedId(nextCall
+                                                .getStopPointRef()
+                                                .getValue());
 
-                                        validate(vehicleModes, fromStop, toStop);
+                                            validate(vehicleModes, fromStop, toStop);
+                                        }
                                     }
                                 }
                             }
