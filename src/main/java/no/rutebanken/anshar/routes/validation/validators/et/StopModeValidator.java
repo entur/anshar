@@ -87,22 +87,11 @@ public class StopModeValidator extends SiriObjectValidator {
                                     .getRecordedCalls();
                                 if (recordedCalls != null && recordedCalls.getRecordedCalls() != null) {
                                     final List<RecordedCall> calls = recordedCalls.getRecordedCalls();
-                                    for (
-                                        int i = 0; i < calls.size() - 2; i++
-                                    ) { // -2 to loop through "this" and "next"
-                                        final RecordedCall thisCall = calls.get(i);
-                                        final RecordedCall nextCall = calls.get(i + 1);
-
-                                        if (thisCall.getStopPointRef() != null &&
-                                            nextCall.getStopPointRef() != null) {
-                                            final String fromStop = getMappedId(thisCall
-                                                .getStopPointRef()
-                                                .getValue());
-                                            final String toStop = getMappedId(nextCall
-                                                .getStopPointRef()
-                                                .getValue());
-
-                                            validate(vehicleModes, fromStop, toStop);
+                                    for (RecordedCall call : calls) {
+                                        if (call.getStopPointRef() != null) {
+                                            validate(vehicleModes,
+                                                getMappedId(call.getStopPointRef().getValue())
+                                            );
                                         }
                                     }
                                 }
@@ -110,22 +99,11 @@ public class StopModeValidator extends SiriObjectValidator {
                                     .getEstimatedCalls();
                                 if (estimatedCalls != null && estimatedCalls.getEstimatedCalls() != null) {
                                     final List<EstimatedCall> calls = estimatedCalls.getEstimatedCalls();
-                                    for (
-                                        int i = 0; i < calls.size() - 2; i++
-                                    ) { // -2 to loop through "this" and "next"
-                                        final EstimatedCall thisCall = calls.get(i);
-                                        final EstimatedCall nextCall = calls.get(i + 1);
-
-                                        if (thisCall.getStopPointRef() != null &&
-                                            nextCall.getStopPointRef() != null) {
-                                            final String fromStop = getMappedId(thisCall
-                                                .getStopPointRef()
-                                                .getValue());
-                                            final String toStop = getMappedId(nextCall
-                                                .getStopPointRef()
-                                                .getValue());
-
-                                            validate(vehicleModes, fromStop, toStop);
+                                    for (EstimatedCall call : calls) {
+                                        if (call.getStopPointRef() != null) {
+                                            validate(vehicleModes,
+                                                getMappedId(call.getStopPointRef().getValue())
+                                            );
                                         }
                                     }
                                 }
@@ -140,18 +118,17 @@ public class StopModeValidator extends SiriObjectValidator {
 
     private void validate(
         List<VehicleModesEnumeration> vehicleModes,
-        String fromStop, String toStop
+        String stopRef
     ) throws InvalidVehicleModeForStopException {
 
-        verifyMode(vehicleModes, fromStop);
-        verifyMode(vehicleModes, toStop);
+        verifyMode(vehicleModes, stopRef);
     }
 
 
-    private void verifyMode(List<VehicleModesEnumeration> vehicleModes, String stop)
+    private void verifyMode(List<VehicleModesEnumeration> vehicleModes, String stopRef)
         throws InvalidVehicleModeForStopException {
-        if (!StopsUtil.doesVehicleModeMatchStopMode(vehicleModes, stop)) {
-            throw new InvalidVehicleModeForStopException(vehicleModes, stop);
+        if (!StopsUtil.doesVehicleModeMatchStopMode(vehicleModes, stopRef)) {
+            throw new InvalidVehicleModeForStopException(vehicleModes, stopRef);
         }
     }
 }
