@@ -143,9 +143,11 @@ public class ExtraJourneyPostProcessor extends ValueAdapter implements PostProce
                                     }
                                 } catch (TooFastException e) {
                                     getMetricsService().registerDataMapping(SiriDataType.ESTIMATED_TIMETABLE, datasetId, EXTRA_JOURNEY_TOO_FAST, 1);
+                                    logger.info("Removing {}, cause: {}", estimatedVehicleJourney.getEstimatedVehicleJourneyCode(), e.getMessage());
                                     extraJourneysToRemove.add(estimatedVehicleJourney);
                                 } catch (InvalidVehicleModeForStopException e) {
                                     getMetricsService().registerDataMapping(SiriDataType.ESTIMATED_TIMETABLE, datasetId, EXTRA_JOURNEY_INVALID_MODE, 1);
+                                    logger.info("Removing {}, cause: {}", estimatedVehicleJourney.getEstimatedVehicleJourneyCode(), e.getMessage());
                                     extraJourneysToRemove.add(estimatedVehicleJourney);
                                 }
                             }
