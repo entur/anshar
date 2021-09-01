@@ -18,6 +18,7 @@ import uk.org.siri.siri20.EstimatedVehicleJourney;
 import uk.org.siri.siri20.EstimatedVersionFrameStructure;
 import uk.org.siri.siri20.RecordedCall;
 import uk.org.siri.siri20.Siri;
+import uk.org.siri.siri20.StopPointRef;
 
 import javax.xml.bind.ValidationEvent;
 import java.time.ZonedDateTime;
@@ -121,19 +122,14 @@ public class SaneSpeedValidator extends SiriObjectValidator {
                                         final EstimatedCall thisCall = calls.get(i);
                                         final EstimatedCall nextCall = calls.get(i + 1);
 
-                                        if (thisCall.getStopPointRef() != null &&
-                                            nextCall.getStopPointRef() != null) {
-
-                                            final String fromStop = getMappedId(thisCall
-                                                .getStopPointRef()
-                                                .getValue());
-                                            final String toStop = getMappedId(nextCall
-                                                .getStopPointRef()
-                                                .getValue());
+                                        final StopPointRef thisStop = thisCall.getStopPointRef();
+                                        final StopPointRef nextStop = nextCall.getStopPointRef();
+                                        if (thisStop != null && nextStop != null) {
 
                                             try {
-                                                validate(fromStop,
-                                                    toStop,
+                                                validate(
+                                                    getMappedId(thisStop.getValue()),
+                                                    getMappedId(nextStop.getValue()),
                                                     getTimes(thisCall, nextCall)
                                                 );
                                             }
