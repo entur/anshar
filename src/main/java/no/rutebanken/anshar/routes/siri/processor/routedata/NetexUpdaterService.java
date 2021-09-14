@@ -64,8 +64,10 @@ public class NetexUpdaterService {
     private static Map<String, List<ServiceDate>> tripDates = new HashMap<>();
     private static Map<String, String> parentStops = new HashMap<>();
     private static Map<String, String> quayPublicCodes = new HashMap<>();
-    protected static Map<String, LocationStructure> locations = new HashMap<>();
-    protected static Map<String, VehicleModeEnumeration> modes = new HashMap<>();
+
+    //public for testing-purposes
+    public static Map<String, LocationStructure> locations = new HashMap<>();
+    public static Map<String, VehicleModeEnumeration> modes = new HashMap<>();
 
     public static boolean isStopIdOrParentMatch(String stop1, String stop2) {
         return stop1.equals(stop2) || parentStops.get(stop2).equals(parentStops.get(stop1));

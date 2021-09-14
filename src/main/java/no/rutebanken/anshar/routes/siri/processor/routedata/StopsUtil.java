@@ -81,7 +81,8 @@ public class StopsUtil {
         return calculateSpeedKph(getDistance(fromRef, toRef), departureTime, arrivalTime);
     }
 
-    private static double getDistance(String fromRef, String toRef) {
+    //public for testing-purposes
+    public static double getDistance(String fromRef, String toRef) {
         try {
             return distanceCache.get(Pair.of(fromRef, toRef));
         }
@@ -90,7 +91,7 @@ public class StopsUtil {
         }
     }
 
-    private static int calculateSpeedKph(double distanceInMeters, ZonedDateTime departureTime, ZonedDateTime arrivalTime) {
+    public static int calculateSpeedKph(double distanceInMeters, ZonedDateTime departureTime, ZonedDateTime arrivalTime) {
         final long seconds = arrivalTime.toEpochSecond() - departureTime.toEpochSecond();
         if (seconds <= 0) {
             return -1;
