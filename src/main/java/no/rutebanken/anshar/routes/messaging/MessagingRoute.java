@@ -170,14 +170,21 @@ public class MessagingRoute extends RestRouteBuilder {
         getContext().getExecutorServiceManager().registerThreadPoolProfile(processorThreadPool);
 
         from("direct:process.queue.default.async")
+            .setHeader("data.received", () -> System.currentTimeMillis())
             .wireTap("direct:" + CamelRouteNames.PROCESSOR_QUEUE_DEFAULT)
-            .executorServiceRef("async-processor-tp-profile")
+//            .executorServiceRef("async-processor-tp-profile")
             .routeId("process.queue.default.async")
         ;
 
 
         from("direct:" + CamelRouteNames.PROCESSOR_QUEUE_DEFAULT)
+                .setHeader("data.processed", () -> System.currentTimeMillis())
                 .process(p -> {
+
+                    long queueTime = p.getIn().getHeader("data.processed", Long.class) - p.getIn().getHeader("data.received", Long.class);
+                    if (queueTime > 1000) {
+                        log.warn("Processing was queued for {} ms", queueTime);
+                    }
 
                     String subscriptionId = p.getIn().getHeader("subscriptionId", String.class);
                     String datasetId = null;
