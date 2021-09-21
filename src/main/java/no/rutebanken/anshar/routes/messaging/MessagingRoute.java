@@ -162,8 +162,8 @@ public class MessagingRoute extends RestRouteBuilder {
         ;
 
         ThreadPoolProfile processorThreadPool = new ThreadPoolProfileBuilder("async-processor-tp-profile")
-            .maxPoolSize(2000)
-            .maxQueueSize(5000)
+            .maxPoolSize(1000)
+            .maxQueueSize(1000)
             .poolSize(50)
             .build();
 
