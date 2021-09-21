@@ -172,7 +172,7 @@ public class MessagingRoute extends RestRouteBuilder {
         from("direct:process.queue.default.async")
             .setHeader("data.received", () -> System.currentTimeMillis())
             .wireTap("direct:" + CamelRouteNames.PROCESSOR_QUEUE_DEFAULT)
-//            .executorServiceRef("async-processor-tp-profile")
+            .executorServiceRef("async-processor-tp-profile")
             .routeId("process.queue.default.async")
         ;
 
