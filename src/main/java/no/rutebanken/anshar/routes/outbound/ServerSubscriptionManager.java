@@ -54,6 +54,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 import static java.time.temporal.ChronoUnit.MILLIS;
 import static no.rutebanken.anshar.routes.kafka.KafkaPublisher.CODESPACE_ID_KAFKA_HEADER_NAME;
@@ -178,7 +179,7 @@ public class ServerSubscriptionManager {
 
             if (delivery != null) {
                 logger.info("Sending initial delivery to {}", subscription.getAddress());
-                camelRouteManager.pushSiriData(delivery, subscription, this);
+                camelRouteManager.pushSiriData(delivery, subscription, this, false);
             }
             return subscriptionResponse;
         }
@@ -309,7 +310,7 @@ public class ServerSubscriptionManager {
             Siri terminateSubscriptionResponse = siriObjectFactory.createTerminateSubscriptionResponse(subscriptionRef);
             logger.info("Sending TerminateSubscriptionResponse to {}", subscriptionRequest.getAddress());
 
-            camelRouteManager.pushSiriData(terminateSubscriptionResponse, subscriptionRequest, this);
+            camelRouteManager.pushSiriData(terminateSubscriptionResponse, subscriptionRequest, this, true);
         } else {
             logger.trace("Got TerminateSubscriptionRequest for non-existing subscription");
         }
@@ -355,14 +356,29 @@ public class ServerSubscriptionManager {
             siriVmTopicProducer.asyncRequestBodyAndHeader(siriVmTopicProducer.getDefaultEndpoint(), delivery, CODESPACE_ID_KAFKA_HEADER_NAME, datasetId);
         }
 
-        subscriptions.values().stream().filter(subscriptionRequest ->
-                        ( subscriptionRequest.getSubscriptionType().equals(SiriDataType.VEHICLE_MONITORING) &&
-                                (subscriptionRequest.getDatasetId() == null || (subscriptionRequest.getDatasetId().equals(datasetId))))
+        final List<OutboundSubscriptionSetup> recipients = subscriptions
+            .values()
+            .stream()
+            .filter(subscriptionRequest -> (
+                    subscriptionRequest.getSubscriptionType().equals(SiriDataType.VEHICLE_MONITORING)
+                        && (
+                        subscriptionRequest.getDatasetId() == null || (
+                            subscriptionRequest
+                                .getDatasetId()
+                                .equals(datasetId)
+                        )
+                    )
+                )
 
-        ).forEach(subscription ->
+            )
+            .collect(Collectors.toList());
 
-                camelRouteManager.pushSiriData(delivery, subscription, this)
-        );
+        boolean logFullContents = true;
+        for (OutboundSubscriptionSetup recipient : recipients) {
+            camelRouteManager.pushSiriData(delivery, recipient, this, logFullContents);
+            logFullContents = false;
+        }
+
         MDC.remove("camel.breadcrumbId");
     }
 
@@ -381,14 +397,28 @@ public class ServerSubscriptionManager {
             siriSxTopicProducer.asyncRequestBodyAndHeader(siriSxTopicProducer.getDefaultEndpoint(), delivery, CODESPACE_ID_KAFKA_HEADER_NAME, datasetId);
         }
 
-        subscriptions.values().stream().filter(subscriptionRequest ->
-                        (subscriptionRequest.getSubscriptionType().equals(SiriDataType.SITUATION_EXCHANGE) &&
-                                (subscriptionRequest.getDatasetId() == null || (subscriptionRequest.getDatasetId().equals(datasetId))))
+        final List<OutboundSubscriptionSetup> recipients = subscriptions
+            .values()
+            .stream()
+            .filter(subscriptionRequest -> (
+                    subscriptionRequest.getSubscriptionType().equals(SiriDataType.SITUATION_EXCHANGE)
+                        && (
+                        subscriptionRequest.getDatasetId() == null || (
+                            subscriptionRequest
+                                .getDatasetId()
+                                .equals(datasetId)
+                        )
+                    )
+                )
 
-        ).forEach(subscription ->
+            )
+            .collect(Collectors.toList());
 
-                camelRouteManager.pushSiriData(delivery, subscription, this)
-        );
+        boolean logFullContents = true;
+        for (OutboundSubscriptionSetup recipient : recipients) {
+            camelRouteManager.pushSiriData(delivery, recipient, this, logFullContents);
+            logFullContents = false;
+        }
 
         MDC.remove("camel.breadcrumbId");
     }
@@ -408,13 +438,28 @@ public class ServerSubscriptionManager {
             siriEtTopicProducer.asyncRequestBodyAndHeader(siriEtTopicProducer.getDefaultEndpoint(), delivery, CODESPACE_ID_KAFKA_HEADER_NAME, datasetId);
         }
 
-        subscriptions.values().stream().filter(subscriptionRequest ->
-                        (subscriptionRequest.getSubscriptionType().equals(SiriDataType.ESTIMATED_TIMETABLE) &&
-                                (subscriptionRequest.getDatasetId() == null || (subscriptionRequest.getDatasetId().equals(datasetId))))
+        final List<OutboundSubscriptionSetup> recipients = subscriptions
+            .values()
+            .stream()
+            .filter(subscriptionRequest -> (
+                    subscriptionRequest.getSubscriptionType().equals(SiriDataType.ESTIMATED_TIMETABLE)
+                        && (
+                        subscriptionRequest.getDatasetId() == null || (
+                            subscriptionRequest
+                                .getDatasetId()
+                                .equals(datasetId)
+                        )
+                    )
+                )
 
-        ).forEach(subscription ->
-                camelRouteManager.pushSiriData(delivery, subscription, this)
-        );
+            )
+            .collect(Collectors.toList());
+
+        boolean logFullContents = true;
+        for (OutboundSubscriptionSetup recipient : recipients) {
+            camelRouteManager.pushSiriData(delivery, recipient, this, logFullContents);
+            logFullContents = false;
+        }
         MDC.remove("camel.breadcrumbId");
     }
 

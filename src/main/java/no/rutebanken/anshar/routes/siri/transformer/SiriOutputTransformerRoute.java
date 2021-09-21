@@ -17,6 +17,7 @@ package no.rutebanken.anshar.routes.siri.transformer;
 
 import no.rutebanken.anshar.routes.siri.handlers.OutboundIdMappingPolicy;
 import no.rutebanken.anshar.subscription.helpers.MappingAdapterPresets;
+import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
 import org.springframework.stereotype.Service;
 import uk.org.siri.siri20.Siri;
@@ -50,8 +51,9 @@ public class SiriOutputTransformerRoute extends RouteBuilder {
                         false));
                     p.getOut().setHeaders(p.getIn().getHeaders());
                 })
+                .log(LoggingLevel.DEBUG, "Transformed SIRI")
                 .routeId("siri.transformer.route")
-                .log("Transformed SIRI");
+            ;
     }
 
 }
