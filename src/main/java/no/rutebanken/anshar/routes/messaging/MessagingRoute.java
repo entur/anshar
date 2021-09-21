@@ -13,7 +13,9 @@ import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.Predicate;
+import org.apache.camel.builder.ThreadPoolProfileBuilder;
 import org.apache.camel.component.http.HttpMethods;
+import org.apache.camel.spi.ThreadPoolProfile;
 import org.apache.camel.support.builder.Namespaces;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -123,7 +125,7 @@ public class MessagingRoute extends RestRouteBuilder {
             .choice().when(readFromPubsub)
                 .log("Processing data from " + pubsubQueueDefault + ", size ${header.Content-Length}")
                 .to("direct:decompress.jaxb")
-                .wireTap("direct:" + CamelRouteNames.PROCESSOR_QUEUE_DEFAULT)
+                .to("direct:process.queue.default.async")
             .endChoice()
             .startupOrder(100004)
             .routeId("incoming.transform.default")
@@ -133,7 +135,7 @@ public class MessagingRoute extends RestRouteBuilder {
             .choice().when(readFromPubsub)
                 .log("Processing data from " + pubsubQueueSX + ", size ${header.Content-Length}")
                 .to("direct:decompress.jaxb")
-                .wireTap("direct:" + CamelRouteNames.PROCESSOR_QUEUE_DEFAULT)
+                .to("direct:process.queue.default.async")
             .endChoice()
             .startupOrder(100003)
             .routeId("incoming.transform.sx")
@@ -143,7 +145,7 @@ public class MessagingRoute extends RestRouteBuilder {
             .choice().when(readFromPubsub)
                 .log("Processing data from " + pubsubQueueVM + ", size ${header.Content-Length}")
                 .to("direct:decompress.jaxb")
-                .wireTap("direct:" + CamelRouteNames.PROCESSOR_QUEUE_DEFAULT)
+                .to("direct:process.queue.default.async")
             .endChoice()
             .startupOrder(100002)
             .routeId("incoming.transform.vm")
@@ -153,11 +155,26 @@ public class MessagingRoute extends RestRouteBuilder {
             .choice().when(readFromPubsub)
                 .log("Processing data from " + pubsubQueueET + ", size ${header.Content-Length}")
                 .to("direct:decompress.jaxb")
-                .wireTap("direct:" + CamelRouteNames.PROCESSOR_QUEUE_DEFAULT)
+                .to("direct:process.queue.default.async")
             .endChoice()
             .startupOrder(100001)
             .routeId("incoming.transform.et")
         ;
+
+        ThreadPoolProfile processorThreadPool = new ThreadPoolProfileBuilder("async-processor-tp-profile")
+            .maxPoolSize(2000)
+            .maxQueueSize(5000)
+            .poolSize(50)
+            .build();
+
+        getContext().getExecutorServiceManager().registerThreadPoolProfile(processorThreadPool);
+
+        from("direct:process.queue.default.async")
+            .wireTap("direct:" + CamelRouteNames.PROCESSOR_QUEUE_DEFAULT)
+            .executorServiceRef("async-processor-tp-profile")
+            .routeId("process.queue.default.async")
+        ;
+
 
         from("direct:" + CamelRouteNames.PROCESSOR_QUEUE_DEFAULT)
                 .process(p -> {
