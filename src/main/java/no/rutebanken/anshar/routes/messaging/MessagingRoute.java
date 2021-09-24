@@ -13,9 +13,7 @@ import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.Predicate;
-import org.apache.camel.builder.ThreadPoolProfileBuilder;
 import org.apache.camel.component.http.HttpMethods;
-import org.apache.camel.spi.ThreadPoolProfile;
 import org.apache.camel.support.builder.Namespaces;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -161,18 +159,9 @@ public class MessagingRoute extends RestRouteBuilder {
             .routeId("incoming.transform.et")
         ;
 
-        ThreadPoolProfile processorThreadPool = new ThreadPoolProfileBuilder("async-processor-tp-profile")
-            .maxPoolSize(1000)
-            .maxQueueSize(1000)
-            .poolSize(50)
-            .build();
-
-        getContext().getExecutorServiceManager().registerThreadPoolProfile(processorThreadPool);
-
         from("direct:process.queue.default.async")
             .setHeader("data.received", () -> System.currentTimeMillis())
             .to("direct:" + CamelRouteNames.PROCESSOR_QUEUE_DEFAULT)
-//            .executorServiceRef("async-processor-tp-profile")
             .routeId("process.queue.default.async")
         ;
 
