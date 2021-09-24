@@ -51,8 +51,7 @@ public class OutboundSiriDistributionRoute extends RouteBuilder {
                 .removeHeader("showBody")
                 .toD("${header.endpoint}")
                 .bean(subscriptionManager, "clearFailTracker(${header.SubscriptionId})")
-                .to("log:push-resp:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
-                .log(LoggingLevel.INFO, "POST complete ${header.SubscriptionId}");
+                .log(LoggingLevel.INFO, "POST complete ${header.SubscriptionId} - Response: [${header.CamelHttpResponseCode} ${header.CamelHttpResponseText}]");
 
     }
 }
