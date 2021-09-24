@@ -430,7 +430,6 @@ public class ServerSubscriptionManager {
         }
 
         MDC.put("camel.breadcrumbId", breadcrumbId);
-        logger.info("Pushing {} ET updates to outbound subscriptions", addedOrUpdated.size());
 
         Siri delivery = siriObjectFactory.createETServiceDelivery(addedOrUpdated);
 
@@ -454,6 +453,8 @@ public class ServerSubscriptionManager {
 
             )
             .collect(Collectors.toList());
+
+        logger.info("Pushing {} ET updates to {} outbound subscriptions", addedOrUpdated.size(), recipients.size());
 
         boolean logFullContents = true;
         for (OutboundSubscriptionSetup recipient : recipients) {
