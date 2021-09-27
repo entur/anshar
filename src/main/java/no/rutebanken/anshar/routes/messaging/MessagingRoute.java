@@ -91,6 +91,7 @@ public class MessagingRoute extends RestRouteBuilder {
                 .to("direct:compress.jaxb")
                 .log("Sending data to topic ${header.target_topic}")
                 .toD("${header.target_topic}")
+                .setHeader("data.sent", () -> System.currentTimeMillis())
                 .end()
                 .routeId("add.to.queue")
         ;
@@ -160,18 +161,17 @@ public class MessagingRoute extends RestRouteBuilder {
         ;
 
         from("direct:process.queue.default.async")
-            .setHeader("data.received", () -> System.currentTimeMillis())
             .to("direct:" + CamelRouteNames.PROCESSOR_QUEUE_DEFAULT)
             .routeId("process.queue.default.async")
         ;
 
 
         from("direct:" + CamelRouteNames.PROCESSOR_QUEUE_DEFAULT)
-                .setHeader("data.processed", () -> System.currentTimeMillis())
+                .setHeader("data.received", () -> System.currentTimeMillis())
                 .process(p -> {
 
-                    long queueTime = p.getIn().getHeader("data.processed", Long.class) - p.getIn().getHeader("data.received", Long.class);
-                    if (queueTime > 1000) {
+                    long queueTime = p.getIn().getHeader("data.received", Long.class) - p.getIn().getHeader("data.sent", Long.class);
+                    if (queueTime > 100) {
                         log.warn("Processing was queued for {} ms", queueTime);
                     }
 
