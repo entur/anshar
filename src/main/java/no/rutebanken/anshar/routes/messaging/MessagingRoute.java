@@ -90,8 +90,8 @@ public class MessagingRoute extends RestRouteBuilder {
                 .removeHeaders("*", "subscriptionId", "breadcrumbId", "target_topic")
                 .to("direct:compress.jaxb")
                 .log("Sending data to topic ${header.target_topic}")
-                .toD("${header.target_topic}")
                 .setHeader("data.sent", () -> System.currentTimeMillis())
+                .toD("${header.target_topic}")
                 .end()
                 .routeId("add.to.queue")
         ;
@@ -170,9 +170,13 @@ public class MessagingRoute extends RestRouteBuilder {
                 .setHeader("data.received", () -> System.currentTimeMillis())
                 .process(p -> {
 
-                    long queueTime = p.getIn().getHeader("data.received", Long.class) - p.getIn().getHeader("data.sent", Long.class);
-                    if (queueTime > 100) {
-                        log.warn("Processing was queued for {} ms", queueTime);
+                    if (p.getIn().getHeader("data.sent") != null) {
+                        long queueTime = p.getIn().getHeader("data.received", Long.class) - p
+                            .getIn()
+                            .getHeader("data.sent", Long.class);
+                        if (queueTime > 100) {
+                            log.warn("Processing was queued for {} ms", queueTime);
+                        }
                     }
 
                     String subscriptionId = p.getIn().getHeader("subscriptionId", String.class);
