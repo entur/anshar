@@ -13,6 +13,7 @@ import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.Predicate;
+import org.apache.camel.component.google.pubsub.GooglePubsubConstants;
 import org.apache.camel.component.http.HttpMethods;
 import org.apache.camel.support.builder.Namespaces;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -90,6 +91,7 @@ public class MessagingRoute extends RestRouteBuilder {
                 .removeHeaders("*", "subscriptionId", "breadcrumbId", "target_topic")
                 .to("direct:compress.jaxb")
                 .log("Sending data to topic ${header.target_topic}")
+                .setHeader(GooglePubsubConstants.ORDERING_KEY, () -> System.currentTimeMillis())
                 .toD("${header.target_topic}")
                 .end()
                 .routeId("add.to.queue")
