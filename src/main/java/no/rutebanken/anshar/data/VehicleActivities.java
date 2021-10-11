@@ -19,7 +19,6 @@ import com.hazelcast.map.IMap;
 import com.hazelcast.replicatedmap.ReplicatedMap;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.data.collections.ExtendedHazelcastService;
-import no.rutebanken.anshar.routes.mqtt.SiriVmMqttHandler;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import org.quartz.utils.counter.Counter;
@@ -76,9 +75,6 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
     @Autowired
     @Qualifier("getLastVmUpdateRequest")
     private IMap<String, Instant> lastUpdateRequested;
-
-    @Autowired
-    private SiriVmMqttHandler siriVmMqttHandler;
 
     @Autowired
     private SiriObjectFactory siriObjectFactory;
@@ -360,7 +356,6 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
                             addedData.add(activity);
                             monitoredVehicles.set(key, activity, expiration, TimeUnit.MILLISECONDS);
                             checksumCache.put(key, currentChecksum, expiration, TimeUnit.MILLISECONDS);
-                            siriVmMqttHandler.pushToMqttAsync(datasetId, activity);
 
                         } else {
                             outdatedCounter.increment();

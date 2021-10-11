@@ -204,11 +204,6 @@
         </dependency>
         <dependency>
             <groupId>org.apache.camel</groupId>
-            <artifactId>camel-paho</artifactId>
-            <version>${camel-version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.camel</groupId>
             <artifactId>camel-xslt-saxon</artifactId>
             <version>${camel-version}</version>
         </dependency>
