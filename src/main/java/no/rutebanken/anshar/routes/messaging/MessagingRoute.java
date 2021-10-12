@@ -162,7 +162,7 @@ public class MessagingRoute extends RestRouteBuilder {
         ;
 
         from("direct:process.queue.default.async")
-            .to("direct:" + CamelRouteNames.PROCESSOR_QUEUE_DEFAULT)
+            .wireTap("direct:" + CamelRouteNames.PROCESSOR_QUEUE_DEFAULT)
             .routeId("process.queue.default.async")
         ;
 
