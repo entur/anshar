@@ -55,29 +55,34 @@ public class HeartbeatRoute extends BaseRouteBuilder {
 
     @Override
     public void configure() throws Exception {
+        final String routeId = "anshar.outbound.subscription.manager.route";
         singletonFrom("quartz://anshar.outbound.subscription.manager?fireNow=true&trigger.repeatInterval=" + HEARTBEAT_INTERVAL_MILLIS,
-                "anshar.outbound.subscription.manager.route")
-            .process(p -> {
-                final Set<String> subscriptionIds = serverSubscriptionManager.subscriptions.keySet();
-                for (String subscriptionId : subscriptionIds) {
-                    final OutboundSubscriptionSetup outboundSubscriptionSetup = serverSubscriptionManager.subscriptions.get(subscriptionId);
+            routeId
+        )
+            .choice()
+            .when(p -> isLeader(routeId))
+                .process(p -> {
+                    final Set<String> subscriptionIds = serverSubscriptionManager.subscriptions.keySet();
+                    for (String subscriptionId : subscriptionIds) {
+                        final OutboundSubscriptionSetup outboundSubscriptionSetup = serverSubscriptionManager.subscriptions.get(subscriptionId);
 
-                    if (outboundSubscriptionSetup != null) {
-                        if (LocalDateTime.now().isAfter(outboundSubscriptionSetup.getInitialTerminationTime().toLocalDateTime())) {
-                            serverSubscriptionManager.terminateSubscription(outboundSubscriptionSetup.getSubscriptionId());
-                        } else if (!heartbeatTimestampMap.containsKey(subscriptionId)) {
-                            final long heartbeatInterval = outboundSubscriptionSetup.getHeartbeatInterval();
+                        if (outboundSubscriptionSetup != null) {
+                            if (LocalDateTime.now().isAfter(outboundSubscriptionSetup.getInitialTerminationTime().toLocalDateTime())) {
+                                serverSubscriptionManager.terminateSubscription(outboundSubscriptionSetup.getSubscriptionId());
+                            } else if (!heartbeatTimestampMap.containsKey(subscriptionId)) {
+                                final long heartbeatInterval = outboundSubscriptionSetup.getHeartbeatInterval();
 
-                            Siri heartbeatNotification = siriObjectFactory.createHeartbeatNotification(outboundSubscriptionSetup.getSubscriptionId());
-                            camelRouteManager.pushSiriData(heartbeatNotification, outboundSubscriptionSetup, serverSubscriptionManager, true);
+                                Siri heartbeatNotification = siriObjectFactory.createHeartbeatNotification(outboundSubscriptionSetup.getSubscriptionId());
+                                camelRouteManager.pushSiriData(heartbeatNotification, outboundSubscriptionSetup, serverSubscriptionManager, true);
 
-                            heartbeatTimestampMap.put(subscriptionId, Instant.now(), heartbeatInterval, TimeUnit.MILLISECONDS);
+                                heartbeatTimestampMap.put(subscriptionId, Instant.now(), heartbeatInterval, TimeUnit.MILLISECONDS);
+                            }
+                        } else {
+                            log.info("Outbound subscription {} not found.", subscriptionId);
                         }
-                    } else {
-                        log.info("Outbound subscription {} not found.", subscriptionId);
                     }
-                }
-            })
+                })
+            .endChoice()
         ;
     }
 }
