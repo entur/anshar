@@ -28,6 +28,7 @@ import no.rutebanken.anshar.routes.siri.adapters.Mapping;
 import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
 import no.rutebanken.anshar.routes.siri.processor.AddOrderToAllCallsPostProcessor;
 import no.rutebanken.anshar.routes.siri.processor.CodespaceProcessor;
+import no.rutebanken.anshar.routes.siri.processor.EnsureIncreasingTimesForCancelledStopsProcessor;
 import no.rutebanken.anshar.routes.siri.processor.EnsureNonNullVehicleModePostProcessor;
 import no.rutebanken.anshar.routes.siri.processor.ExtraJourneyDestinationDisplayPostProcessor;
 import no.rutebanken.anshar.routes.siri.processor.ExtraJourneyPostProcessor;
@@ -149,6 +150,7 @@ public class SubscriptionInitializer implements CamelContextAware {
                         //Is added to ALL subscriptions
                         valueAdapters.add(new CodespaceProcessor(subscriptionSetup.getDatasetId()));
                         valueAdapters.add(new ReportTypeProcessor(subscriptionSetup.getDatasetId()));
+                        valueAdapters.add(new EnsureIncreasingTimesForCancelledStopsProcessor(subscriptionSetup.getDatasetId()));
                         valueAdapters.add(new RemovePersonalInformationProcessor());
                         valueAdapters.add(new ExtraJourneyDestinationDisplayPostProcessor(subscriptionSetup.getDatasetId()));
                         valueAdapters.add(new AddOrderToAllCallsPostProcessor(subscriptionSetup.getDatasetId()));
