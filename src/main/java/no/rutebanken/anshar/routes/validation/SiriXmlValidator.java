@@ -402,10 +402,20 @@ public class SiriXmlValidator extends ApplicationContextHolder {
         }
     }
 
-    public JSONObject getValidationResults(long internalId) {
-        SubscriptionSetup subscriptionById = subscriptionManager.getSubscriptionById(internalId);
 
-        String subscriptionId = subscriptionById.getSubscriptionId();
+    public JSONObject getValidationResults(String internalIdStr) {
+
+        String subscriptionId;
+        try {
+            Long internalId = Long.valueOf(internalIdStr);
+            SubscriptionSetup subscriptionById = subscriptionManager.getSubscriptionById(internalId);
+
+            subscriptionId = subscriptionById.getSubscriptionId();
+
+        } catch (NumberFormatException nfe) {
+            subscriptionId = internalIdStr;
+        }
+
         List<String> validationRefs = validationResultRefs.get(subscriptionId);
 
         SubscriptionSetup subscriptionSetup = subscriptions.get(subscriptionId);
