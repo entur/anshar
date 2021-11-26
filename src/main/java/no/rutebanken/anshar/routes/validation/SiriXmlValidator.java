@@ -64,13 +64,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.EnumMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -408,7 +402,10 @@ public class SiriXmlValidator extends ApplicationContextHolder {
         }
     }
 
-    public JSONObject getValidationResults(String subscriptionId) {
+    public JSONObject getValidationResults(long internalId) {
+        SubscriptionSetup subscriptionById = subscriptionManager.getSubscriptionById(internalId);
+
+        String subscriptionId = subscriptionById.getSubscriptionId();
         List<String> validationRefs = validationResultRefs.get(subscriptionId);
 
         SubscriptionSetup subscriptionSetup = subscriptions.get(subscriptionId);

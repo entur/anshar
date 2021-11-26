@@ -50,7 +50,7 @@ public class ValidationRoute extends RestRouteBuilder {
 
         from("direct:validation.toggle")
                 .filter(header(PARAM_SUBSCRIPTION_ID).isNotNull())
-                .process(p -> toggleValidation((String) p.getIn().getHeader(PARAM_SUBSCRIPTION_ID), (String) p.getIn().getHeader("filter")))
+                .process(p -> toggleValidation(p.getIn().getHeader(PARAM_SUBSCRIPTION_ID, Long.class), (String) p.getIn().getHeader("filter")))
                 .routeId("admin.validation.toggle")
         ;
 
@@ -73,15 +73,15 @@ public class ValidationRoute extends RestRouteBuilder {
 
     }
 
-    private void toggleValidation(String subscriptionId, String validationFilter) {
+    private void toggleValidation(Long subscriptionId, String validationFilter) {
         log.info("got validationFilter: " + validationFilter);
-        SubscriptionSetup subscriptionSetup = subscriptionManager.get(subscriptionId);
+        SubscriptionSetup subscriptionSetup = subscriptionManager.getSubscriptionById(subscriptionId);
         if (subscriptionSetup != null) {
             subscriptionSetup.setValidation(! subscriptionSetup.isValidation());
             if (subscriptionSetup.isValidation()) {
                 //Validation has now been switched on - clear previous results
-                siriXmlValidator.clearValidationResults(subscriptionId);
-                siriXmlValidator.addFilter(subscriptionId, validationFilter);
+                siriXmlValidator.clearValidationResults(subscriptionSetup.getSubscriptionId());
+                siriXmlValidator.addFilter(subscriptionSetup.getSubscriptionId(), validationFilter);
                 subscriptionSetup.setValidationFilter(validationFilter);
             }
             log.info("Toggling validation, validation is now {}", (subscriptionSetup.isValidation()?"active":"disabled"));
