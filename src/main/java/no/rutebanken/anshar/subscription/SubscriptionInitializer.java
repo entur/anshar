@@ -17,10 +17,23 @@ package no.rutebanken.anshar.subscription;
 
 import com.google.common.base.Preconditions;
 import no.rutebanken.anshar.config.AnsharConfiguration;
-import no.rutebanken.anshar.routes.siri.*;
+import no.rutebanken.anshar.routes.siri.Siri20ToSiriRS14Subscription;
+import no.rutebanken.anshar.routes.siri.Siri20ToSiriRS20RequestResponse;
+import no.rutebanken.anshar.routes.siri.Siri20ToSiriRS20Subscription;
+import no.rutebanken.anshar.routes.siri.Siri20ToSiriWS14RequestResponse;
+import no.rutebanken.anshar.routes.siri.Siri20ToSiriWS14Subscription;
+import no.rutebanken.anshar.routes.siri.Siri20ToSiriWS20RequestResponse;
+import no.rutebanken.anshar.routes.siri.Siri20ToSiriWS20Subscription;
 import no.rutebanken.anshar.routes.siri.adapters.Mapping;
 import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
-import no.rutebanken.anshar.routes.siri.processor.*;
+import no.rutebanken.anshar.routes.siri.processor.AddOrderToAllCallsPostProcessor;
+import no.rutebanken.anshar.routes.siri.processor.CodespaceProcessor;
+import no.rutebanken.anshar.routes.siri.processor.EnsureIncreasingTimesForCancelledStopsProcessor;
+import no.rutebanken.anshar.routes.siri.processor.EnsureNonNullVehicleModePostProcessor;
+import no.rutebanken.anshar.routes.siri.processor.ExtraJourneyDestinationDisplayPostProcessor;
+import no.rutebanken.anshar.routes.siri.processor.ExtraJourneyPostProcessor;
+import no.rutebanken.anshar.routes.siri.processor.RemovePersonalInformationProcessor;
+import no.rutebanken.anshar.routes.siri.processor.ReportTypeProcessor;
 import no.rutebanken.anshar.routes.siri.transformer.ApplicationContextHolder;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.subscription.helpers.RequestType;
@@ -34,7 +47,13 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.ServiceConfigurationError;
+import java.util.Set;
 
 @Component
 public class SubscriptionInitializer implements CamelContextAware {
@@ -129,19 +148,15 @@ public class SubscriptionInitializer implements CamelContextAware {
                         List<ValueAdapter> valueAdapters = (List<ValueAdapter>) adapterClass.getMethod("getValueAdapters", SubscriptionSetup.class).invoke(adapterClass.newInstance(), subscriptionSetup);
 
                         //Is added to ALL subscriptions
-                        String datasetId = subscriptionSetup.getDatasetId();
-                        if (!configuration.getKeepCodespaceForDatasource().contains(datasetId)) {
-                            valueAdapters.add(new CodespaceProcessor(datasetId));
-                        }
-
-                        valueAdapters.add(new ReportTypeProcessor(datasetId));
-                        valueAdapters.add(new EnsureIncreasingTimesForCancelledStopsProcessor(datasetId));
+                        valueAdapters.add(new CodespaceProcessor(subscriptionSetup.getDatasetId()));
+                        valueAdapters.add(new ReportTypeProcessor(subscriptionSetup.getDatasetId()));
+                        valueAdapters.add(new EnsureIncreasingTimesForCancelledStopsProcessor(subscriptionSetup.getDatasetId()));
                         valueAdapters.add(new RemovePersonalInformationProcessor());
-                        valueAdapters.add(new ExtraJourneyDestinationDisplayPostProcessor(datasetId));
-                        valueAdapters.add(new AddOrderToAllCallsPostProcessor(datasetId));
+                        valueAdapters.add(new ExtraJourneyDestinationDisplayPostProcessor(subscriptionSetup.getDatasetId()));
+                        valueAdapters.add(new AddOrderToAllCallsPostProcessor(subscriptionSetup.getDatasetId()));
 
                         valueAdapters.add(new EnsureNonNullVehicleModePostProcessor());
-                        valueAdapters.add(new ExtraJourneyPostProcessor(datasetId));
+                        valueAdapters.add(new ExtraJourneyPostProcessor(subscriptionSetup.getDatasetId()));
 
                         subscriptionSetup.getMappingAdapters().addAll(valueAdapters);
                     } catch (Exception e) {

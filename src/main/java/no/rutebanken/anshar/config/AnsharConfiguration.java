@@ -118,9 +118,6 @@ public class AnsharConfiguration {
     @Value("${anshar.admin.blocked.clients:}")
     private List<String> blockedEtClientNames;
 
-    @Value("${anshar.mapping.keepCodespaceForDatasource:}")
-    private List<String> keepCodespaceForDatasource;
-
     public String getHazelcastManagementUrl() {
         return hazelcastManagementUrl;
     }
@@ -242,9 +239,5 @@ public class AnsharConfiguration {
 
     public List<String> getBlockedEtClientNames() {
         return blockedEtClientNames;
-    }
-
-    public List<String> getKeepCodespaceForDatasource() {
-        return keepCodespaceForDatasource;
     }
 }
