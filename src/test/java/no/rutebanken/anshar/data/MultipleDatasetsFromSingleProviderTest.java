@@ -91,6 +91,8 @@ public class MultipleDatasetsFromSingleProviderTest extends SpringBootBaseTest {
         assertEquals(2, rut.size());
         tst = vehicleActivities.getAll("TST");
         assertEquals(1, tst.size());
+
+        manager.removeSubscription(subscriptionSetup.getSubscriptionId());
     }
 
     @Test
@@ -132,6 +134,7 @@ public class MultipleDatasetsFromSingleProviderTest extends SpringBootBaseTest {
         tst = estimatedTimetables.getAll("TST");
         assertEquals(1, tst.size());
 
+        manager.removeSubscription(subscriptionSetup.getSubscriptionId());
 
     }
 
@@ -174,6 +177,7 @@ public class MultipleDatasetsFromSingleProviderTest extends SpringBootBaseTest {
         assertEquals(2, rutJourneys.size());
         tstJourneys = situations.getAll("TST");
         assertEquals(1, tstJourneys.size());
+        manager.removeSubscription(subscriptionSetup.getSubscriptionId());
     }
 
     private PtSituationElement createSX(String codespaceId) {
