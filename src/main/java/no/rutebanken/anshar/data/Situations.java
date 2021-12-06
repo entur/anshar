@@ -37,14 +37,7 @@ import javax.annotation.PostConstruct;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -152,6 +145,7 @@ public class Situations extends SiriRepository<PtSituationElement> {
         logger.error("Deleting all data - should only be used in test!!!");
         situationElements.clear();
         checksumCache.clear();
+        cache.clear();
     }
 
     public Siri createServiceDelivery(String requestorId, String datasetId, String clientName, int maxSize) {

@@ -5,16 +5,12 @@ import no.rutebanken.anshar.metrics.PrometheusMetricsService;
 import no.rutebanken.anshar.routes.CamelRouteNames;
 import no.rutebanken.anshar.routes.RestRouteBuilder;
 import no.rutebanken.anshar.routes.admin.AdminRouteHelper;
-import no.rutebanken.anshar.routes.dataformat.SiriDataFormatHelper;
 import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
-import org.apache.camel.Exchange;
-import org.apache.camel.LoggingLevel;
 import org.apache.camel.Predicate;
 import org.apache.camel.component.google.pubsub.GooglePubsubConstants;
-import org.apache.camel.component.http.HttpMethods;
 import org.apache.camel.support.builder.Namespaces;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -204,23 +200,5 @@ public class MessagingRoute extends RestRouteBuilder {
                 .endChoice()
                 .routeId("incoming.processor.fetched_delivery")
         ;
-
-        if (configuration.getSiriVmPositionForwardingUrl() != null) {
-            from("direct:forward.position.data")
-                    .routeId("forward.position.data")
-                    .bean(metrics, "countOutgoingData(${body}, VM_POSITION_FORWARDING)")
-                    .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
-                    .choice()
-                        .when().xpath("/siri:Siri/siri:ServiceDelivery/siri:VehicleMonitoringDelivery", ns)
-                            .removeHeaders("Camel*")
-                            .setHeader(Exchange.HTTP_METHOD, constant(HttpMethods.POST))
-                            .to(configuration.getSiriVmPositionForwardingUrl())
-                        .endChoice()
-                    .end()
-            ;
-        } else {
-            from("direct:forward.position.data")
-                    .log(LoggingLevel.INFO, "Ignoring position-update from ${header.subscriptionId}");
-        }
     }
 }

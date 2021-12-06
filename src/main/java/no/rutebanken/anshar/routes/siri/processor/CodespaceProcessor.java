@@ -45,7 +45,8 @@ public class CodespaceProcessor extends ValueAdapter implements PostProcessor {
                     for (EstimatedVersionFrameStructure estimatedJourneyVersionFrame : estimatedJourneyVersionFrames) {
                         List<EstimatedVehicleJourney> estimatedVehicleJourneies = estimatedJourneyVersionFrame.getEstimatedVehicleJourneies();
                         for (EstimatedVehicleJourney estimatedVehicleJourney : estimatedVehicleJourneies) {
-                            estimatedVehicleJourney.setDataSource(codespace);
+                            String original = estimatedVehicleJourney.getDataSource();
+                            estimatedVehicleJourney.setDataSource(getMappedCodespace(original));
                         }
                     }
                 }
@@ -79,7 +80,8 @@ public class CodespaceProcessor extends ValueAdapter implements PostProcessor {
                         for (VehicleActivityStructure vehicleActivity : vehicleActivities) {
 
                             if (vehicleActivity.getMonitoredVehicleJourney() != null) {
-                                vehicleActivity.getMonitoredVehicleJourney().setDataSource(codespace);
+                                String original = vehicleActivity.getMonitoredVehicleJourney().getDataSource();
+                                vehicleActivity.getMonitoredVehicleJourney().setDataSource(getMappedCodespace(original));
                             }
                         }
                     }

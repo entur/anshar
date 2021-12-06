@@ -111,10 +111,6 @@ public class AnsharConfiguration {
     @Value("${anshar.message.queue.camel.route.prefix}")
     private String messageQueueCamelRoutePrefix;
 
-
-    @Value("${anshar.sirivm.position.forward.url:}")
-    private String siriVmPositionForwardingUrl;
-
     @Value("${anshar.admin.blocked.clients:}")
     private List<String> blockedEtClientNames;
 
@@ -228,13 +224,6 @@ public class AnsharConfiguration {
 
     public String getMessageQueueCamelRoutePrefix() {
         return messageQueueCamelRoutePrefix;
-    }
-
-    public String getSiriVmPositionForwardingUrl() {
-        if (siriVmPositionForwardingUrl != null && siriVmPositionForwardingUrl.isEmpty()) {
-            siriVmPositionForwardingUrl = null;
-        }
-        return siriVmPositionForwardingUrl;
     }
 
     public List<String> getBlockedEtClientNames() {

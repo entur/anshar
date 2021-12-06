@@ -30,32 +30,13 @@ import no.rutebanken.anshar.subscription.SiriDataType;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import no.rutebanken.anshar.subscription.helpers.MappingAdapterPresets;
-import org.apache.camel.Produce;
-import org.apache.camel.ProducerTemplate;
 import org.json.simple.JSONObject;
 import org.rutebanken.siri20.util.SiriXml;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import uk.org.siri.siri20.ErrorCodeStructure;
-import uk.org.siri.siri20.ErrorDescriptionStructure;
-import uk.org.siri.siri20.EstimatedTimetableDeliveryStructure;
-import uk.org.siri.siri20.EstimatedVehicleJourney;
-import uk.org.siri.siri20.LineRef;
-import uk.org.siri.siri20.PtSituationElement;
-import uk.org.siri.siri20.RequestorRef;
-import uk.org.siri.siri20.ServiceDeliveryErrorConditionElement;
-import uk.org.siri.siri20.ServiceRequest;
-import uk.org.siri.siri20.Siri;
-import uk.org.siri.siri20.SituationExchangeDeliveryStructure;
-import uk.org.siri.siri20.SubscriptionResponseStructure;
-import uk.org.siri.siri20.TerminateSubscriptionRequestStructure;
-import uk.org.siri.siri20.TerminateSubscriptionResponseStructure;
-import uk.org.siri.siri20.VehicleActivityStructure;
-import uk.org.siri.siri20.VehicleMonitoringDeliveryStructure;
-import uk.org.siri.siri20.VehicleMonitoringRequestStructure;
-import uk.org.siri.siri20.VehicleRef;
+import uk.org.siri.siri20.*;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.UnmarshalException;
@@ -63,14 +44,7 @@ import javax.xml.datatype.Duration;
 import javax.xml.stream.XMLStreamException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter.getOriginalId;
 
@@ -108,11 +82,6 @@ public class SiriHandler {
 
     @Autowired
     private PrometheusMetricsService metrics;
-
-
-    @Produce(uri = "direct:forward.position.data")
-    ProducerTemplate positionForwardRoute;
-
 
     public Siri handleIncomingSiri(String subscriptionId, InputStream xml) throws UnmarshalException {
         return handleIncomingSiri(subscriptionId, xml, null, -1);
@@ -383,7 +352,7 @@ public class SiriHandler {
                                             logger.info(getErrorContents(sx.getErrorCondition()));
                                         } else {
                                             if (sx.getSituations() != null && sx.getSituations().getPtSituationElements() != null) {
-                                                if (subscriptionSetup.isUseCodespaceFromParticipantRef()) {
+                                                if (subscriptionSetup.isUseProvidedCodespaceId()) {
                                                     Map<String, List<PtSituationElement>> situationsByCodespace = splitSituationsByCodespace(sx.getSituations().getPtSituationElements());
                                                     for (String codespace : situationsByCodespace.keySet()) {
 
@@ -435,10 +404,26 @@ public class SiriHandler {
                                             logger.info(getErrorContents(vm.getErrorCondition()));
                                         } else {
                                             if (vm.getVehicleActivities() != null) {
-                                                if (subscriptionSetup.forwardPositionData()) {
-                                                    positionForwardRoute.sendBody(incoming);
-                                                    addedOrUpdated.addAll(vm.getVehicleActivities());
-                                                    logger.info("Forwarding VM positiondata for {} vehicles.", vm.getVehicleActivities().size());
+                                                if (subscriptionSetup.isUseProvidedCodespaceId()) {
+                                                    Map<String, List<VehicleActivityStructure>> vehiclesByCodespace = splitVehicleMonitoringByCodespace(vm.getVehicleActivities());
+                                                    for (String codespace : vehiclesByCodespace.keySet()) {
+
+                                                        // List containing added situations for current codespace
+                                                        List<VehicleActivityStructure> addedVehicles = new ArrayList();
+
+                                                        addedVehicles.addAll(vehicleActivities.addAll(
+                                                                codespace,
+                                                                vehiclesByCodespace.get(codespace)
+                                                        ));
+
+                                                        // Push updates to subscribers on this codespace
+                                                        serverSubscriptionManager.pushUpdatesAsync(subscriptionSetup.getSubscriptionType(), addedVehicles, codespace);
+
+                                                        // Add to complete list of added situations
+                                                        addedOrUpdated.addAll(addedVehicles);
+
+                                                    }
+
                                                 } else {
                                                     addedOrUpdated.addAll(
                                                             vehicleActivities.addAll(subscriptionSetup.getDatasetId(), vm.getVehicleActivities())
@@ -473,9 +458,31 @@ public class SiriHandler {
                                             if (et.getEstimatedJourneyVersionFrames() != null) {
                                                 et.getEstimatedJourneyVersionFrames().forEach(versionFrame -> {
                                                     if (versionFrame != null && versionFrame.getEstimatedVehicleJourneies() != null) {
-                                                        addedOrUpdated.addAll(
-                                                                estimatedTimetables.addAll(subscriptionSetup.getDatasetId(), versionFrame.getEstimatedVehicleJourneies())
-                                                        );
+                                                        if (subscriptionSetup.isUseProvidedCodespaceId()) {
+                                                            Map<String, List<EstimatedVehicleJourney>> journeysByCodespace = splitEstimatedTimetablesByCodespace(versionFrame.getEstimatedVehicleJourneies());
+                                                            for (String codespace : journeysByCodespace.keySet()) {
+
+                                                                // List containing added situations for current codespace
+                                                                List<EstimatedVehicleJourney> addedJourneys = new ArrayList();
+
+                                                                addedJourneys.addAll(estimatedTimetables.addAll(
+                                                                        codespace,
+                                                                        journeysByCodespace.get(codespace)
+                                                                ));
+
+                                                                // Push updates to subscribers on this codespace
+                                                                serverSubscriptionManager.pushUpdatesAsync(subscriptionSetup.getSubscriptionType(), addedJourneys, codespace);
+
+                                                                // Add to complete list of added situations
+                                                                addedOrUpdated.addAll(addedJourneys);
+
+                                                            }
+
+                                                        } else {
+                                                            addedOrUpdated.addAll(
+                                                                    estimatedTimetables.addAll(subscriptionSetup.getDatasetId(), versionFrame.getEstimatedVehicleJourneies())
+                                                            );
+                                                        }
                                                     }
                                                 });
                                             }
@@ -534,6 +541,61 @@ public class SiriHandler {
         }
         return result;
     }
+
+    private Map<String, List<VehicleActivityStructure>> splitVehicleMonitoringByCodespace(
+            List<VehicleActivityStructure> activityStructures
+    ) {
+        Map<String, List<VehicleActivityStructure>> result = new HashMap<>();
+        for (VehicleActivityStructure vmElement : activityStructures) {
+            if (vmElement.getMonitoredVehicleJourney() != null) {
+
+                final String dataSource = vmElement.getMonitoredVehicleJourney().getDataSource();
+                if (dataSource != null) {
+
+                    final String codespace = getOriginalId(dataSource);
+                    //Override mapped value if present
+                    vmElement.getMonitoredVehicleJourney().setDataSource(codespace);
+
+                    final List<VehicleActivityStructure> vehicles = result.getOrDefault(
+                            codespace,
+                            new ArrayList<>()
+                    );
+
+                    vehicles.add(vmElement);
+                    result.put(codespace, vehicles);
+                }
+            }
+        }
+        return result;
+    }
+
+    private Map<String, List<EstimatedVehicleJourney>> splitEstimatedTimetablesByCodespace(
+            List<EstimatedVehicleJourney> estimatedVehicleJourneys
+    ) {
+        Map<String, List<EstimatedVehicleJourney>> result = new HashMap<>();
+        for (EstimatedVehicleJourney etElement : estimatedVehicleJourneys) {
+            if (etElement.getDataSource() != null) {
+
+                final String dataSource = etElement.getDataSource();
+                if (dataSource != null) {
+
+                    final String codespace = getOriginalId(dataSource);
+                    //Override mapped value if present
+                    etElement.setDataSource(codespace);
+
+                    final List<EstimatedVehicleJourney> etJourneys = result.getOrDefault(
+                            codespace,
+                            new ArrayList<>()
+                    );
+
+                    etJourneys.add(etElement);
+                    result.put(codespace, etJourneys);
+                }
+            }
+        }
+        return result;
+    }
+
 
     /**
      * Creates a json-string containing all potential errormessage-values

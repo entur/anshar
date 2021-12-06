@@ -27,12 +27,7 @@ import org.slf4j.LoggerFactory;
 import java.io.Serializable;
 import java.text.MessageFormat;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class SubscriptionSetup implements Serializable {
 
@@ -76,16 +71,16 @@ public class SubscriptionSetup implements Serializable {
 
     private boolean forwardPositionData;
 
-    private boolean useCodespaceFromParticipantRef = false;
+    private boolean useProvidedCodespaceId = false;
 
-    public boolean isUseCodespaceFromParticipantRef() {
-        return useCodespaceFromParticipantRef;
+    public boolean isUseProvidedCodespaceId() {
+        return useProvidedCodespaceId;
     }
 
-    public void setUseCodespaceFromParticipantRef(
-        boolean useCodespaceFromParticipantRef
+    public void setUseProvidedCodespaceId(
+        boolean useProvidedCodespaceId
     ) {
-        this.useCodespaceFromParticipantRef = useCodespaceFromParticipantRef;
+        this.useProvidedCodespaceId = useProvidedCodespaceId;
     }
 
     public DataNotReceivedAction getDataNotReceivedAction() {
