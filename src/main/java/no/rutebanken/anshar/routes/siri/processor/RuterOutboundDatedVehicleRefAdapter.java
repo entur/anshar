@@ -23,6 +23,9 @@ import uk.org.siri.siri20.*;
 
 import java.util.List;
 
+import static no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter.getMappedId;
+import static no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter.getOriginalId;
+
 public class RuterOutboundDatedVehicleRefAdapter extends ValueAdapter implements PostProcessor {
 
     private final OutboundIdMappingPolicy outboundIdMappingPolicy;
@@ -91,14 +94,6 @@ public class RuterOutboundDatedVehicleRefAdapter extends ValueAdapter implements
             }
         }
         return text;
-    }
-
-    private static String getOriginalId(String text) {
-        return text.substring(0, text.indexOf(SiriValueTransformer.SEPARATOR));
-    }
-
-    private static String getMappedId(String text) {
-        return text.substring(text.indexOf(SiriValueTransformer.SEPARATOR)+1);
     }
 
     @Override

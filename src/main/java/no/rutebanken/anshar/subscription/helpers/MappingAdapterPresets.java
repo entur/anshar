@@ -16,12 +16,12 @@
 package no.rutebanken.anshar.subscription.helpers;
 
 import no.rutebanken.anshar.routes.siri.handlers.OutboundIdMappingPolicy;
+import no.rutebanken.anshar.routes.siri.processor.CodespaceOutboundProcessor;
 import no.rutebanken.anshar.routes.siri.processor.RemoveEmojiPostProcessor;
 import no.rutebanken.anshar.routes.siri.processor.RuterOutboundDatedVehicleRefAdapter;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter;
 import no.rutebanken.anshar.subscription.SiriDataType;
-import org.springframework.stereotype.Component;
 import uk.org.ifopt.siri20.StopPlaceRef;
 import uk.org.siri.siri20.*;
 
@@ -34,6 +34,7 @@ public class MappingAdapterPresets {
         List<ValueAdapter> adapters = new ArrayList<>();
         adapters.add(new OutboundIdAdapter(StopPointRef.class, outboundIdMappingPolicy));
         adapters.add(new OutboundIdAdapter(LineRef.class, outboundIdMappingPolicy));
+        adapters.add(new CodespaceOutboundProcessor(outboundIdMappingPolicy));
 
         switch (dataType) {
             case ESTIMATED_TIMETABLE:
