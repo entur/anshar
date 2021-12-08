@@ -75,6 +75,9 @@ public class MappingAdapterPresets {
 
         // Adding postprocessor for removing emojis etc. from SX-messages
         adapters.add(new RemoveEmojiPostProcessor(outboundIdMappingPolicy));
+
+        // Postprocessor to set "correct" datasource/codespaceId
+        adapters.add(new CodespaceOutboundProcessor(outboundIdMappingPolicy));
         return adapters;
     }
 }
