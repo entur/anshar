@@ -44,6 +44,9 @@
         <metrics.version>3.2.3</metrics.version>
         <entur.helpers.version>1.0.57</entur.helpers.version>
         <geotools.version>21.2</geotools.version>
+
+        <!-- https://spring.io/blog/2021/12/10/log4j2-vulnerability-and-spring-boot -->
+        <log4j2.version>2.15.0</log4j2.version>
     </properties>
 
     <distributionManagement>
