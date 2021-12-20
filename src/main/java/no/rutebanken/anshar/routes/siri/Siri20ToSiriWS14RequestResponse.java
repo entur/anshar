@@ -16,6 +16,7 @@
 package no.rutebanken.anshar.routes.siri;
 
 import no.rutebanken.anshar.config.AnsharConfiguration;
+import no.rutebanken.anshar.routes.TimeOutProcessor;
 import no.rutebanken.anshar.routes.dataformat.SiriDataFormatHelper;
 import no.rutebanken.anshar.routes.siri.helpers.SiriRequestFactory;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
@@ -55,7 +56,14 @@ public class Siri20ToSiriWS14RequestResponse extends SiriSubscriptionRouteBuilde
                     monitoringRouteId)
                     .choice()
                     .when(p -> requestData(subscriptionSetup.getSubscriptionId(), p.getFromRouteId()))
-                    .to("direct:" + subscriptionSetup.getServiceRequestRouteName())
+                        .doTry()
+                            .process(new TimeOutProcessor("direct:" + subscriptionSetup.getServiceRequestRouteName(), heartbeatIntervalMillis))
+                        .doCatch(Exception.class)
+                    .log("Caught exception - releasing leadership: " + subscriptionSetup.toString())
+                            .process(p -> {
+                                releaseLeadership(monitoringRouteId);
+                            })
+                        .endDoTry()
                     .endChoice()
             ;
         } else {
@@ -84,7 +92,7 @@ public class Siri20ToSiriWS14RequestResponse extends SiriSubscriptionRouteBuilde
                     .setHeader(TRANSFORM_SOAP, constant(TRANSFORM_SOAP))
                     .setHeader(PARAM_SUBSCRIPTION_ID, simple(subscriptionSetup.getSubscriptionId()))
                     .setHeader(INTERNAL_SIRI_DATA_TYPE, simple(subscriptionSetup.getSubscriptionType().name()))
-                    .to("direct:enqueue.message")
+                    .to("direct:process.message.synchronous")
                 .doCatch(Exception.class)
                     .log("Caught exception - releasing leadership: " + subscriptionSetup.toString())
                     .to("log:response:" + getClass().getSimpleName() + "?showCaughtException=true&showAll=true&multiline=true")
