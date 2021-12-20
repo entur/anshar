@@ -52,12 +52,15 @@ public class Siri20ToSiriWS14RequestResponse extends SiriSubscriptionRouteBuilde
                 subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.POLLING_FETCHED_DELIVERY) {
 
             releaseLeadershipOnError = true;
+
+            TimeOutProcessor timeOutProcessor = new TimeOutProcessor("direct:" + subscriptionSetup.getServiceRequestRouteName(), heartbeatIntervalMillis);
+
             singletonFrom("quartz://anshar/monitor_" + subscriptionSetup.getRequestResponseRouteName() + "?fireNow=true&trigger.repeatInterval=" + heartbeatIntervalMillis,
                     monitoringRouteId)
                     .choice()
                     .when(p -> requestData(subscriptionSetup.getSubscriptionId(), p.getFromRouteId()))
                         .doTry()
-                            .process(new TimeOutProcessor("direct:" + subscriptionSetup.getServiceRequestRouteName(), heartbeatIntervalMillis))
+                            .process(timeOutProcessor)
                         .doCatch(Exception.class)
                     .log("Caught exception - releasing leadership: " + subscriptionSetup.toString())
                             .process(p -> {

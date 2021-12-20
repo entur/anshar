@@ -29,8 +29,9 @@ public class TimeOutProcessor implements Processor {
         ProducerTemplate producerTemplate = exchange.getFromEndpoint().getCamelContext().createProducerTemplate();
         try {
 
-            future = producerTemplate.asyncSend(route, exchange);
-            exchange.getIn().setBody(future.get(timeoutMillis, TimeUnit.MILLISECONDS));
+            future = producerTemplate.asyncRequestBodyAndHeaders(route, exchange.getIn().getBody(), exchange.getIn().getHeaders(), Exchange.class);
+            exchange.getMessage().setHeaders(exchange.getIn().getHeaders());
+            exchange.getMessage().setBody(future.get(timeoutMillis, TimeUnit.MILLISECONDS));
             producerTemplate.stop();
             future.cancel(true);
         } catch (TimeoutException e) {
