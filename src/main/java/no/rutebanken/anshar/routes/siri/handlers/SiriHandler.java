@@ -311,6 +311,11 @@ public class SiriHandler {
 
             Siri incoming = SiriValueTransformer.transform(originalInput, subscriptionSetup.getMappingAdapters());
 
+            if (incoming == null) {
+                // Transforming may have timed out
+                return;
+            }
+
             if (incoming.getHeartbeatNotification() != null) {
                 subscriptionManager.touchSubscription(subscriptionId);
                 logger.info("Heartbeat - {}", subscriptionSetup);
