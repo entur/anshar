@@ -593,7 +593,9 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                     }
 
                     changes.add(key);
+                    timingTracer.mark("changes.add");
                     addedData.add(et);
+                    timingTracer.mark("addedData.add");
                     timetableDeliveries.set(key, et, expiration, TimeUnit.MILLISECONDS);
                     timingTracer.mark("timetableDeliveries.set");
                     checksumCache.put(key, currentChecksum, expiration, TimeUnit.MILLISECONDS);
