@@ -518,6 +518,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
         Counter notUpdatedCounter = new CounterImpl(0);
         List<String> unchangedIds = new ArrayList<>();
         etList.forEach(et -> {
+            long t1 = System.currentTimeMillis();
             SiriObjectStorageKey key = createKey(datasetId, et);
 
             String currentChecksum = null;
@@ -598,6 +599,10 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                     outdatedCounter.increment();
                 }
 
+            }
+            long elapsed = System.currentTimeMillis() - t1;
+            if (elapsed > 50) {
+                logger.info("Adding object with key {} took {} ms", key, elapsed);
             }
         });
 
