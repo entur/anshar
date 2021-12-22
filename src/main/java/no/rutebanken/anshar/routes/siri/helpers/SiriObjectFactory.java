@@ -31,44 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import uk.org.siri.siri20.CheckStatusRequestStructure;
-import uk.org.siri.siri20.CheckStatusResponseStructure;
-import uk.org.siri.siri20.DataReadyRequestStructure;
-import uk.org.siri.siri20.DataSupplyRequestStructure;
-import uk.org.siri.siri20.EstimatedTimetableDeliveryStructure;
-import uk.org.siri.siri20.EstimatedTimetableRequestStructure;
-import uk.org.siri.siri20.EstimatedTimetableSubscriptionStructure;
-import uk.org.siri.siri20.EstimatedVehicleJourney;
-import uk.org.siri.siri20.EstimatedVersionFrameStructure;
-import uk.org.siri.siri20.HeartbeatNotificationStructure;
-import uk.org.siri.siri20.LineDirectionStructure;
-import uk.org.siri.siri20.LineRef;
-import uk.org.siri.siri20.MessageQualifierStructure;
-import uk.org.siri.siri20.OperatorRefStructure;
-import uk.org.siri.siri20.OtherErrorStructure;
-import uk.org.siri.siri20.PtSituationElement;
-import uk.org.siri.siri20.RequestorRef;
-import uk.org.siri.siri20.ResponseStatus;
-import uk.org.siri.siri20.ServiceDelivery;
-import uk.org.siri.siri20.ServiceDeliveryErrorConditionElement;
-import uk.org.siri.siri20.ServiceRequest;
-import uk.org.siri.siri20.Siri;
-import uk.org.siri.siri20.SituationExchangeDeliveryStructure;
-import uk.org.siri.siri20.SituationExchangeRequestStructure;
-import uk.org.siri.siri20.SituationExchangeSubscriptionStructure;
-import uk.org.siri.siri20.SubscriptionContextStructure;
-import uk.org.siri.siri20.SubscriptionQualifierStructure;
-import uk.org.siri.siri20.SubscriptionRequest;
-import uk.org.siri.siri20.SubscriptionResponseStructure;
-import uk.org.siri.siri20.TerminateSubscriptionRequestStructure;
-import uk.org.siri.siri20.TerminateSubscriptionResponseStructure;
-import uk.org.siri.siri20.TerminationResponseStatusStructure;
-import uk.org.siri.siri20.VehicleActivityStructure;
-import uk.org.siri.siri20.VehicleMonitoringDeliveryStructure;
-import uk.org.siri.siri20.VehicleMonitoringRefStructure;
-import uk.org.siri.siri20.VehicleMonitoringRequestStructure;
-import uk.org.siri.siri20.VehicleMonitoringSubscriptionStructure;
-import uk.org.siri.siri20.VehicleRef;
+import uk.org.siri.siri20.*;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.datatype.DatatypeConfigurationException;
@@ -609,6 +572,21 @@ public class SiriObjectFactory {
     	Kryo kryo = kryoPool.borrow();
         try {
         	return kryo.copy(siri);
+        } finally {
+        	kryoPool.release(kryo);
+        }
+    }
+
+    /**
+     * Creates a deep copy of provided object
+     * @param estimatedVehicleJourney
+     * @return
+     * @throws JAXBException
+     */
+    public static EstimatedVehicleJourney deepCopy(EstimatedVehicleJourney estimatedVehicleJourney) {
+    	Kryo kryo = kryoPool.borrow();
+        try {
+        	return kryo.copy(estimatedVehicleJourney);
         } finally {
         	kryoPool.release(kryo);
         }
