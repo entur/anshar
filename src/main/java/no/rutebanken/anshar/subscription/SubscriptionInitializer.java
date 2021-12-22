@@ -123,17 +123,6 @@ public class SubscriptionInitializer implements CamelContextAware {
                 }
 
                 List<ValueAdapter> valueAdapters = new ArrayList<>();
-                //Is added to ALL subscriptions
-                valueAdapters.add(new CodespaceProcessor(subscriptionSetup.getDatasetId()));
-                valueAdapters.add(new ReportTypeProcessor(subscriptionSetup.getDatasetId()));
-                valueAdapters.add(new EnsureIncreasingTimesForCancelledStopsProcessor(subscriptionSetup.getDatasetId()));
-                valueAdapters.add(new RemovePersonalInformationProcessor());
-                valueAdapters.add(new ExtraJourneyDestinationDisplayPostProcessor(subscriptionSetup.getDatasetId()));
-                valueAdapters.add(new AddOrderToAllCallsPostProcessor(subscriptionSetup.getDatasetId()));
-
-                valueAdapters.add(new EnsureNonNullVehicleModePostProcessor());
-                valueAdapters.add(new ExtraJourneyPostProcessor(subscriptionSetup.getDatasetId()));
-
 
                 if (mappingAdaptersById.containsKey(subscriptionSetup.getMappingAdapterId())) {
                     Class adapterClass = mappingAdaptersById.get(subscriptionSetup.getMappingAdapterId());
@@ -144,6 +133,17 @@ public class SubscriptionInitializer implements CamelContextAware {
                         throw new ServiceConfigurationError("Invalid mappingAdapterId for subscription " + subscriptionSetup, e);
                     }
                 }
+                //Is added to ALL subscriptions AFTER subscription-specific adapters
+                valueAdapters.add(new CodespaceProcessor(subscriptionSetup.getDatasetId()));
+                valueAdapters.add(new ReportTypeProcessor(subscriptionSetup.getDatasetId()));
+                valueAdapters.add(new EnsureIncreasingTimesForCancelledStopsProcessor(subscriptionSetup.getDatasetId()));
+                valueAdapters.add(new RemovePersonalInformationProcessor());
+                valueAdapters.add(new ExtraJourneyDestinationDisplayPostProcessor(subscriptionSetup.getDatasetId()));
+                valueAdapters.add(new AddOrderToAllCallsPostProcessor(subscriptionSetup.getDatasetId()));
+
+                valueAdapters.add(new EnsureNonNullVehicleModePostProcessor());
+                valueAdapters.add(new ExtraJourneyPostProcessor(subscriptionSetup.getDatasetId()));
+
                 subscriptionSetup.getMappingAdapters().addAll(valueAdapters);
 
                 if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.FETCHED_DELIVERY |
