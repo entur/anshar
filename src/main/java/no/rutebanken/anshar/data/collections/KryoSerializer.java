@@ -25,13 +25,15 @@ import org.objenesis.strategy.StdInstantiatorStrategy;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.InflaterInputStream;
 
 public class KryoSerializer implements ByteArraySerializer {
 
     private static final KryoPool kryoPool;
-
+    private static AtomicInteger writeOperations = new AtomicInteger(0);
+    private static AtomicInteger readOperations = new AtomicInteger(0);
     static {
         KryoFactory factory = () -> {
             Kryo kryo = new Kryo();
@@ -46,6 +48,7 @@ public class KryoSerializer implements ByteArraySerializer {
 
     @Override
     public byte[] write(Object o) {
+        writeOperations.incrementAndGet();
         Kryo kryo = kryoPool.borrow();
         try {
                 ByteArrayOutputStream byteArrayOutputStream =
@@ -59,11 +62,16 @@ public class KryoSerializer implements ByteArraySerializer {
             return byteArrayOutputStream.toByteArray();
         } finally {
             kryoPool.release(kryo);
+            int runningOperations = writeOperations.decrementAndGet();
+            if (runningOperations > 0) {
+                System.err.println("Still writing: " + runningOperations);
+            }
         }
     }
 
     @Override
     public Object read(byte[] bytes) {
+        readOperations.incrementAndGet();
         Kryo kryo = kryoPool.borrow();
 
         try {
@@ -74,6 +82,10 @@ public class KryoSerializer implements ByteArraySerializer {
             return kryo.readClassAndObject(input);
         } finally {
             kryoPool.release(kryo);
+            int runningOperations = readOperations.decrementAndGet();
+            if (runningOperations > 0) {
+                System.err.println("Still reading: " + runningOperations);
+            }
         }
     }
 
