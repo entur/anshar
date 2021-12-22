@@ -22,6 +22,8 @@ import com.esotericsoftware.kryo.pool.KryoFactory;
 import com.esotericsoftware.kryo.pool.KryoPool;
 import com.hazelcast.nio.serialization.ByteArraySerializer;
 import org.objenesis.strategy.StdInstantiatorStrategy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -30,6 +32,7 @@ import java.util.zip.DeflaterOutputStream;
 import java.util.zip.InflaterInputStream;
 
 public class KryoSerializer implements ByteArraySerializer {
+    private Logger logger = LoggerFactory.getLogger(KryoSerializer.class);
 
     private static final KryoPool kryoPool;
     private static AtomicInteger writeOperations = new AtomicInteger(0);
@@ -64,7 +67,7 @@ public class KryoSerializer implements ByteArraySerializer {
             kryoPool.release(kryo);
             int runningOperations = writeOperations.decrementAndGet();
             if (runningOperations > 0) {
-                System.err.println("Still writing: " + runningOperations);
+                logger.info("concurrent writes: {}", runningOperations);
             }
         }
     }
@@ -84,7 +87,7 @@ public class KryoSerializer implements ByteArraySerializer {
             kryoPool.release(kryo);
             int runningOperations = readOperations.decrementAndGet();
             if (runningOperations > 0) {
-                System.err.println("Still reading: " + runningOperations);
+                logger.info("concurrent reads: {}", runningOperations);
             }
         }
     }
