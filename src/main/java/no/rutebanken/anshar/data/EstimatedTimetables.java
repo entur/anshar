@@ -20,6 +20,7 @@ import com.hazelcast.query.Predicates;
 import com.hazelcast.replicatedmap.ReplicatedMap;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.data.collections.ExtendedHazelcastService;
+import no.rutebanken.anshar.data.util.TimingTracer;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import org.quartz.utils.counter.Counter;
@@ -516,10 +517,12 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
 
         Counter outdatedCounter = new CounterImpl(0);
         Counter notUpdatedCounter = new CounterImpl(0);
-        List<String> unchangedIds = new ArrayList<>();
         etList.forEach(et -> {
             long t1 = System.currentTimeMillis();
+            TimingTracer timingTracer = new TimingTracer();
             SiriObjectStorageKey key = createKey(datasetId, et);
+
+            timingTracer.mark("createKey");
 
             String currentChecksum = null;
             ZonedDateTime recordedAtTime = et.getRecordedAtTime();
@@ -527,6 +530,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                 // Calculate checksum without "RecordedTime" - thus ignoring "fake" updates
                 et.setRecordedAtTime(null);
                 currentChecksum = getChecksum(et);
+                timingTracer.mark("getChecksum");
             } catch (Exception e) {
                 //Ignore - data will be updated
             } finally {
@@ -546,6 +550,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                 //Does not exist
                 updated = true;
             }
+            timingTracer.mark("compareChecksum");
 
             boolean keep = false;
 
@@ -554,6 +559,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
 
                 existing = timetableDeliveries.get(key);
 
+                timingTracer.mark("getExisting");
                 if (existing != null &&
                         (et.getRecordedAtTime() != null && existing.getRecordedAtTime() != null)) {
 
@@ -562,28 +568,25 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                     } else {
                         logger.info("Newer data has already been processed - ignoring ET-element");
                     }
+                    timingTracer.mark("compareRecordedAtTime");
                 } else {
                     keep = true;
                 }
 
             } else {
                 notUpdatedCounter.increment();
-                if (datasetId.equals("KOL")) {
-                    try {
-                        unchangedIds.add(et.getFramedVehicleJourneyRef().getDatedVehicleJourneyRef());
-                    } catch (Throwable t) {
-                        logger.info("Could not get DatedVehicleJourneyRef.", t);
-                    }
-                }
             }
             if (keep) {
 
                 long expiration = getExpiration(et);
+                timingTracer.mark("getExpiration");
                 if (expiration > 0) {
 
                     if (hasPatternChanges(et)) {
+                        timingTracer.mark("hasPatternChanges");
                         // Keep track of all valid ET with pattern-changes
                         idForPatternChanges.put(key, key.getKey(), expiration, TimeUnit.MILLISECONDS);
+                        timingTracer.mark("idForPatternChanges.put");
                         if (et.isMonitored() == null) {
                             et.setMonitored(true);
                         }
@@ -592,11 +595,15 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                     changes.add(key);
                     addedData.add(et);
                     timetableDeliveries.set(key, et, expiration, TimeUnit.MILLISECONDS);
+                    timingTracer.mark("timetableDeliveries.set");
                     checksumCache.put(key, currentChecksum, expiration, TimeUnit.MILLISECONDS);
+                    timingTracer.mark("checksumCache.put");
 
                     idStartTimeMap.put(key, getFirstAimedTime(et), expiration, TimeUnit.MILLISECONDS);
+                    timingTracer.mark("idStartTimeMap.put");
                 } else {
                     outdatedCounter.increment();
+                    timingTracer.mark("outdatedCounter.increment");
                 }
 
             }
@@ -604,14 +611,12 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
             if (elapsed > 50) {
                 logger.info("Adding object with key {} took {} ms", key, elapsed);
             }
+            if (timingTracer.getTotalTime() > 500) {
+                logger.info(timingTracer.toString());
+            }
         });
 
         logger.info("Updated {} (of {}), {} outdated, {} without changes", changes.size(), etList.size(), outdatedCounter.getValue(), notUpdatedCounter.getValue());
-
-
-        if (datasetId.equals("KOL")) {
-            logger.info("Unchanged ids: {}", unchangedIds);
-        }
 
         markDataReceived(SiriDataType.ESTIMATED_TIMETABLE, datasetId, etList.size(), changes.size(), outdatedCounter.getValue(), notUpdatedCounter.getValue());
 
