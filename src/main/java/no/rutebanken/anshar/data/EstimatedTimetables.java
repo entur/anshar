@@ -317,53 +317,61 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
      * @return
      */
     private boolean hasPatternChanges(EstimatedVehicleJourney estimatedVehicleJourney) {
-        if (estimatedVehicleJourney != null) {
-            String vehicleRef = null;
-            if (estimatedVehicleJourney.getVehicleRef() != null && estimatedVehicleJourney.getVehicleRef().getValue() != null) {
-                vehicleRef = estimatedVehicleJourney.getVehicleRef().getValue();
-            }
-            if (estimatedVehicleJourney.isCancellation() != null && estimatedVehicleJourney.isCancellation()) {
-                if (vehicleRef != null) {
-                    logger.info("Cancellation:  Operator {}, vehicleRef {}, Cancelled journey", estimatedVehicleJourney.getDataSource(), vehicleRef);
+        long t1 = System.currentTimeMillis();
+        try {
+            if (estimatedVehicleJourney != null) {
+                String vehicleRef = null;
+                if (estimatedVehicleJourney.getVehicleRef() != null && estimatedVehicleJourney.getVehicleRef().getValue() != null) {
+                    vehicleRef = estimatedVehicleJourney.getVehicleRef().getValue();
                 }
-                return true;
-            }
-            if (estimatedVehicleJourney.isExtraJourney() != null && estimatedVehicleJourney.isExtraJourney()) {
-                return true;
-            }
-            if (estimatedVehicleJourney.getEstimatedCalls() != null && estimatedVehicleJourney.getEstimatedCalls().getEstimatedCalls() != null) {
-                List<EstimatedCall> estimatedCalls = estimatedVehicleJourney.getEstimatedCalls().getEstimatedCalls();
+                if (estimatedVehicleJourney.isCancellation() != null && estimatedVehicleJourney.isCancellation()) {
+                    if (vehicleRef != null) {
+                        logger.info("Cancellation:  Operator {}, vehicleRef {}, Cancelled journey", estimatedVehicleJourney.getDataSource(), vehicleRef);
+                    }
+                    return true;
+                }
+                if (estimatedVehicleJourney.isExtraJourney() != null && estimatedVehicleJourney.isExtraJourney()) {
+                    return true;
+                }
+                if (estimatedVehicleJourney.getEstimatedCalls() != null && estimatedVehicleJourney.getEstimatedCalls().getEstimatedCalls() != null) {
+                    List<EstimatedCall> estimatedCalls = estimatedVehicleJourney.getEstimatedCalls().getEstimatedCalls();
 
-                ArrayList<String> cancelledStops = new ArrayList<>();
-                ArrayList<String> quayChanges = new ArrayList<>();
-                for (EstimatedCall estimatedCall : estimatedCalls) {
-                    if (estimatedCall.isCancellation() != null && estimatedCall.isCancellation()) {
-                        cancelledStops.add(estimatedCall.getStopPointRef().getValue());
-                    }
-                    StopAssignmentStructure stopAssignment = estimatedCall.getDepartureStopAssignment();
-                    if (stopAssignment == null) {
-                        stopAssignment = estimatedCall.getArrivalStopAssignment();
-                    }
-                    if (stopAssignment != null) {
-                        QuayRefStructure aimedQuayRef = stopAssignment.getAimedQuayRef();
-                        QuayRefStructure expectedQuayRef = stopAssignment.getExpectedQuayRef();
-                        if (aimedQuayRef != null && expectedQuayRef != null) {
-                            if (!aimedQuayRef.getValue().equals(expectedQuayRef.getValue())) {
-                                quayChanges.add(aimedQuayRef.getValue() + " => " + expectedQuayRef.getValue());
+                    ArrayList<String> cancelledStops = new ArrayList<>();
+                    ArrayList<String> quayChanges = new ArrayList<>();
+                    for (EstimatedCall estimatedCall : estimatedCalls) {
+                        if (estimatedCall.isCancellation() != null && estimatedCall.isCancellation()) {
+                            cancelledStops.add(estimatedCall.getStopPointRef().getValue());
+                        }
+                        StopAssignmentStructure stopAssignment = estimatedCall.getDepartureStopAssignment();
+                        if (stopAssignment == null) {
+                            stopAssignment = estimatedCall.getArrivalStopAssignment();
+                        }
+                        if (stopAssignment != null) {
+                            QuayRefStructure aimedQuayRef = stopAssignment.getAimedQuayRef();
+                            QuayRefStructure expectedQuayRef = stopAssignment.getExpectedQuayRef();
+                            if (aimedQuayRef != null && expectedQuayRef != null) {
+                                if (!aimedQuayRef.getValue().equals(expectedQuayRef.getValue())) {
+                                    quayChanges.add(aimedQuayRef.getValue() + " => " + expectedQuayRef.getValue());
+                                }
                             }
                         }
                     }
-                }
-                boolean hasCancelledStops = !cancelledStops.isEmpty();
-                if (hasCancelledStops && vehicleRef != null) {
-                    logger.info("Cancellation:  Operator {}, vehicleRef {}, stopPointRefs {}", estimatedVehicleJourney.getDataSource(), vehicleRef, cancelledStops);
-                }
+                    boolean hasCancelledStops = !cancelledStops.isEmpty();
+                    if (hasCancelledStops && vehicleRef != null) {
+                        logger.info("Cancellation:  Operator {}, vehicleRef {}, stopPointRefs {}", estimatedVehicleJourney.getDataSource(), vehicleRef, cancelledStops);
+                    }
 
-                boolean hasQuayChanges = !quayChanges.isEmpty();
-                if (hasQuayChanges) {
-                    logger.info("Quay changed:  Operator {}, vehicleRef {}, stopPointRefs {}", estimatedVehicleJourney.getDataSource(), vehicleRef, quayChanges);
+                    boolean hasQuayChanges = !quayChanges.isEmpty();
+                    if (hasQuayChanges) {
+                        logger.info("Quay changed:  Operator {}, vehicleRef {}, stopPointRefs {}", estimatedVehicleJourney.getDataSource(), vehicleRef, quayChanges);
+                    }
+                    return hasCancelledStops || hasQuayChanges;
                 }
-                return hasCancelledStops || hasQuayChanges;
+            }
+        } finally {
+            long elapsed = System.currentTimeMillis() - t1;
+            if (elapsed > 50) {
+                logger.info("Calculating pattern changes took {} ms", elapsed);
             }
         }
         return false;
