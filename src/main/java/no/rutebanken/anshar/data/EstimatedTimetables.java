@@ -632,6 +632,8 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
 
         markDataReceived(SiriDataType.ESTIMATED_TIMETABLE, datasetId, etList.size(), changes.size(), outdatedCounter.getValue(), notUpdatedCounter.getValue());
         TimingTracer timingTracer = new TimingTracer("all-et");
+
+        // TTL is set in EntryListener
         timetableDeliveries.setAll(changes);
         timingTracer.mark("timetableDeliveries.setAll");
 
@@ -642,10 +644,10 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
         timingTracer.mark("idStartTimeMap.setAll");
         for (SiriObjectStorageKey key : expirationMap.keySet()) {
             Long expiration = expirationMap.get(key);
-            timetableDeliveries.setTtl(key, expiration, TimeUnit.MILLISECONDS);
             checksumCache.setTtl(key, expiration, TimeUnit.MILLISECONDS);
             idStartTimeMap.setTtl(key, expiration, TimeUnit.MILLISECONDS);
         }
+
         timingTracer.mark("setTtl");
 
         markIdsAsUpdated(changes.keySet());

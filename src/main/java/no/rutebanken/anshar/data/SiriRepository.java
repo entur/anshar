@@ -17,11 +17,7 @@ package no.rutebanken.anshar.data;
 
 import com.google.common.collect.Maps;
 import com.hazelcast.map.IMap;
-import com.hazelcast.map.listener.EntryAddedListener;
-import com.hazelcast.map.listener.EntryEvictedListener;
-import com.hazelcast.map.listener.EntryExpiredListener;
-import com.hazelcast.map.listener.EntryRemovedListener;
-import com.hazelcast.map.listener.EntryUpdatedListener;
+import com.hazelcast.map.listener.*;
 import com.hazelcast.query.Predicate;
 import no.rutebanken.anshar.data.collections.ExtendedHazelcastService;
 import no.rutebanken.anshar.metrics.PrometheusMetricsService;
@@ -40,13 +36,7 @@ import java.io.Serializable;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -100,6 +90,7 @@ abstract class SiriRepository<T> {
             if (includeInCachePredicate == null || includeInCachePredicate.test(entryEvent.getValue())) {
                 cache.put(entryEvent.getKey(), entryEvent.getValue());
             }
+            map.setTtl(entryEvent.getKey(), getExpiration(entryEvent.getValue()), TimeUnit.MILLISECONDS);
         }, true);
 
         // Entry updated - new version
@@ -108,6 +99,7 @@ abstract class SiriRepository<T> {
             if (includeInCachePredicate == null || includeInCachePredicate.test(entryEvent.getValue())) {
                 cache.put(entryEvent.getKey(), entryEvent.getValue());
             }
+            map.setTtl(entryEvent.getKey(), getExpiration(entryEvent.getValue()), TimeUnit.MILLISECONDS);
         }, true);
 
         //Entry expired by TTL
