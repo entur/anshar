@@ -88,8 +88,10 @@ public abstract class BaseRouteBuilder extends SpringRouteBuilder {
         if (routePolicyList != null) {
             for (RoutePolicy routePolicy : routePolicyList) {
                 if (routePolicy instanceof InterruptibleHazelcastRoutePolicy) {
-                    ((InterruptibleHazelcastRoutePolicy) routePolicy).releaseLeadership();
-                    log.info("Leadership released: {}", routeId);
+                    if (isLeader(routeId)) {
+                        ((InterruptibleHazelcastRoutePolicy) routePolicy).releaseLeadership();
+                        log.info("Leadership released: {}", routeId);
+                    }
                 }
             }
         }
