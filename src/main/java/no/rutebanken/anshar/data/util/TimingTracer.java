@@ -6,11 +6,13 @@ import java.util.StringJoiner;
 
 public class TimingTracer {
 
+    private String name;
     private long lastMark;
     private long startTime;
 
     List<TimingPoint> timingPoints = new ArrayList<>();
-    public TimingTracer() {
+    public TimingTracer(String name) {
+        this.name = name;
         this.lastMark = System.currentTimeMillis();
         this.startTime = lastMark;
     }
@@ -27,6 +29,7 @@ public class TimingTracer {
     @Override
     public String toString() {
         return new StringJoiner(", ", TimingTracer.class.getSimpleName() + "[", "]")
+                .add("name=" + name)
                 .add("totalTime=" + getTotalTime())
                 .add("timingPoints=" + timingPoints)
                 .toString();

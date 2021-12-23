@@ -127,8 +127,8 @@ public class ExtendedHazelcastService extends HazelCastService {
     }
 
     @Bean
-    public ReplicatedMap<SiriObjectStorageKey, String> getIdForPatternChangesMap() {
-        return hazelcast.getReplicatedMap("anshar.et.index.pattern");
+    public IMap<SiriObjectStorageKey, String> getIdForPatternChangesMap() {
+        return hazelcast.getMap("anshar.et.index.pattern");
     }
 
     @Bean
@@ -137,8 +137,8 @@ public class ExtendedHazelcastService extends HazelCastService {
     }
 
     @Bean
-    public ReplicatedMap<SiriObjectStorageKey, String> getEtChecksumMap() {
-        return hazelcast.getReplicatedMap("anshar.et.checksum.cache");
+    public IMap<SiriObjectStorageKey, String> getEtChecksumMap() {
+        return hazelcast.getMap("anshar.et.checksum.cache");
     }
 
     @Bean
@@ -147,8 +147,8 @@ public class ExtendedHazelcastService extends HazelCastService {
     }
 
     @Bean
-    public ReplicatedMap<SiriObjectStorageKey, ZonedDateTime> getIdStartTimeMap() {
-        return hazelcast.getReplicatedMap("anshar.et.index.startTime");
+    public IMap<SiriObjectStorageKey, ZonedDateTime> getIdStartTimeMap() {
+        return hazelcast.getMap("anshar.et.index.startTime");
     }
 
     @Bean
