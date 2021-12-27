@@ -42,7 +42,7 @@
         <camel-version>3.11.0</camel-version>
 
         <metrics.version>3.2.3</metrics.version>
-        <entur.helpers.version>1.0.57</entur.helpers.version>
+        <entur.helpers.version>1.0.62</entur.helpers.version>
         <geotools.version>21.2</geotools.version>
 
         <!-- https://spring.io/blog/2021/12/10/log4j2-vulnerability-and-spring-boot -->
@@ -258,7 +258,8 @@
         <dependency>
             <groupId>com.hazelcast</groupId>
             <artifactId>hazelcast</artifactId>
-            <scope>provided</scope>
+<!--            <scope>provided</scope>-->
+            <version>4.1.8</version>
         </dependency>
 
         <dependency>
