@@ -27,11 +27,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.SerializationUtils;
 
 import javax.xml.bind.DatatypeConverter;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -417,14 +415,10 @@ abstract class SiriRepository<T> {
         return false;
     }
 
-    static String getChecksum(Serializable object) throws IOException, NoSuchAlgorithmException {
-        try (  ByteArrayOutputStream baos = new ByteArrayOutputStream();
-               ObjectOutputStream oos = new ObjectOutputStream(baos); )
-        {
-            oos.writeObject(object);
-            MessageDigest md = MessageDigest.getInstance("MD5");
-            byte[] thedigest = md.digest(baos.toByteArray());
-            return DatatypeConverter.printHexBinary(thedigest);
-        }
+    static String getChecksum(Serializable object) throws NoSuchAlgorithmException {
+        byte[] bytes = SerializationUtils.serialize(object);
+        MessageDigest md = MessageDigest.getInstance("MD5");
+        return DatatypeConverter.printHexBinary(md.digest(bytes));
+
     }
 }
