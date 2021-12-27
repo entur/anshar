@@ -24,6 +24,8 @@ import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
 
+import java.util.concurrent.TimeoutException;
+
 import static no.rutebanken.anshar.routes.HttpParameter.INTERNAL_SIRI_DATA_TYPE;
 import static no.rutebanken.anshar.routes.HttpParameter.PARAM_SUBSCRIPTION_ID;
 import static no.rutebanken.anshar.routes.siri.Siri20RequestHandlerRoute.TRANSFORM_SOAP;
@@ -61,8 +63,8 @@ public class Siri20ToSiriWS14RequestResponse extends SiriSubscriptionRouteBuilde
                     .when(p -> requestData(subscriptionSetup.getSubscriptionId(), p.getFromRouteId()))
                         .doTry()
                             .process(timeOutProcessor)
-                        .doCatch(Exception.class)
-                    .log("Caught exception - releasing leadership: " + subscriptionSetup.toString())
+                        .doCatch(TimeoutException.class)
+                            .log("Caught TimeoutException - releasing leadership: " + subscriptionSetup.toString())
                             .process(p -> {
                                 releaseLeadership(monitoringRouteId);
                             })

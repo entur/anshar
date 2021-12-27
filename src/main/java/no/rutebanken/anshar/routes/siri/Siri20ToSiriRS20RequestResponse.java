@@ -25,6 +25,8 @@ import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
 import org.apache.camel.component.http.HttpMethods;
 
+import java.util.concurrent.TimeoutException;
+
 import static no.rutebanken.anshar.routes.HttpParameter.INTERNAL_SIRI_DATA_TYPE;
 import static no.rutebanken.anshar.routes.HttpParameter.PARAM_SUBSCRIPTION_ID;
 
@@ -58,8 +60,8 @@ public class Siri20ToSiriRS20RequestResponse extends SiriSubscriptionRouteBuilde
                     .when(p -> requestData(subscriptionSetup.getSubscriptionId(), p.getFromRouteId()))
                     .doTry()
                         .process(timeOutProcessor)
-                    .doCatch(Exception.class)
-                        .log("Caught exception - releasing leadership: " + subscriptionSetup.toString())
+                    .doCatch(TimeoutException.class)
+                        .log("Caught TimeoutException - releasing leadership: " + subscriptionSetup.toString())
                         .process(p -> {
                             releaseLeadership(monitoringRouteId);
                         })
