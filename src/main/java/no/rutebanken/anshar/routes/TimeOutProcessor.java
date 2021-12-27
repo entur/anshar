@@ -33,13 +33,14 @@ public class TimeOutProcessor implements Processor {
 
         MDC.put(Exchange.BREADCRUMB_ID, exchange.getIn().getHeader(Exchange.BREADCRUMB_ID));
 
-        Future<Exchange> future = null;
+        Future<String> future = null;
         ProducerTemplate producerTemplate = exchange.getFromEndpoint().getCamelContext().createProducerTemplate();
         try {
 
-            future = producerTemplate.asyncRequestBodyAndHeaders(route, exchange.getIn().getBody(), exchange.getIn().getHeaders(), Exchange.class);
+            future = producerTemplate.asyncRequestBodyAndHeaders(route, exchange.getIn().getBody(), exchange.getIn().getHeaders(), String.class);
             exchange.getMessage().setHeaders(exchange.getIn().getHeaders());
-            exchange.getMessage().setBody(future.get(timeoutMillis, TimeUnit.MILLISECONDS));
+            String body = future.get(timeoutMillis, TimeUnit.MILLISECONDS);
+            exchange.getMessage().setBody(body);
             producerTemplate.stop();
             future.cancel(true);
         } catch (TimeoutException e) {
