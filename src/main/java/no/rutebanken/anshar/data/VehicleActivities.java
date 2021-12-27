@@ -290,6 +290,10 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
         vmList.stream()
                 .filter(activity -> activity.getMonitoredVehicleJourney() != null)
                 .filter(activity -> activity.getMonitoredVehicleJourney().getVehicleRef() != null)
+                .filter(activity -> activity.getMonitoredVehicleJourney().getFramedVehicleJourneyRef() == null ||
+                        ( activity.getMonitoredVehicleJourney().getFramedVehicleJourneyRef() != null &&
+                                activity.getMonitoredVehicleJourney().getFramedVehicleJourneyRef().getDatedVehicleJourneyRef() != null)
+                )
                 .forEach(activity -> {
 
                     SiriObjectStorageKey key = createKey(datasetId, activity.getMonitoredVehicleJourney());
