@@ -88,6 +88,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                 Boolean.TRUE.equals(value.isCancellation()) |
                 Boolean.TRUE.equals(value.isExtraJourney()))
         );
+        linkEntriesTtl(timetableDeliveries, checksumCache, idStartTimeMap);
     }
 
     /**
@@ -600,15 +601,10 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                     changes.put(key, et);
                     timingTracer.mark("changes.put");
 
-//                    timetableDeliveries.set(key, et, expiration, TimeUnit.MILLISECONDS);
-//                    timingTracer.mark("timetableDeliveries.set");
-
                     checksumCacheTmp.put(key, currentChecksum);
-//                    checksumCache.put(key, currentChecksum, expiration, TimeUnit.MILLISECONDS);
                     timingTracer.mark("checksumCache.put");
 
                     idStartTimeMapTmp.put(key, getFirstAimedTime(et));
-//                    idStartTimeMap.put(key, getFirstAimedTime(et), expiration, TimeUnit.MILLISECONDS);
                     timingTracer.mark("idStartTimeMap.put");
 
                     expirationMap.put(key, expiration);
@@ -633,22 +629,15 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
         markDataReceived(SiriDataType.ESTIMATED_TIMETABLE, datasetId, etList.size(), changes.size(), outdatedCounter.getValue(), notUpdatedCounter.getValue());
         TimingTracer timingTracer = new TimingTracer("all-et");
 
-        // TTL is set in EntryListener
-        timetableDeliveries.setAll(changes);
-        timingTracer.mark("timetableDeliveries.setAll");
-
+        // TTL is set in EntryListener when objects are added to main map
         checksumCache.setAll(checksumCacheTmp);
         timingTracer.mark("checksumCache.setAll");
 
         idStartTimeMap.setAll(idStartTimeMapTmp);
         timingTracer.mark("idStartTimeMap.setAll");
-        for (SiriObjectStorageKey key : expirationMap.keySet()) {
-            Long expiration = expirationMap.get(key);
-            checksumCache.setTtl(key, expiration, TimeUnit.MILLISECONDS);
-            idStartTimeMap.setTtl(key, expiration, TimeUnit.MILLISECONDS);
-        }
 
-        timingTracer.mark("setTtl");
+        timetableDeliveries.setAll(changes);
+        timingTracer.mark("timetableDeliveries.setAll");
 
         markIdsAsUpdated(changes.keySet());
         timingTracer.mark("markIdsAsUpdated");

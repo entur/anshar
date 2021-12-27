@@ -82,6 +82,7 @@ abstract class SiriRepository<T> {
     protected void enableCache(IMap<SiriObjectStorageKey, T> map) {
         enableCache(map, null);
     }
+
     protected void enableCache(IMap<SiriObjectStorageKey, T> map, java.util.function.Predicate<T> includeInCachePredicate) {
 
         // Entry added - new data
@@ -90,7 +91,6 @@ abstract class SiriRepository<T> {
             if (includeInCachePredicate == null || includeInCachePredicate.test(entryEvent.getValue())) {
                 cache.put(entryEvent.getKey(), entryEvent.getValue());
             }
-            map.setTtl(entryEvent.getKey(), getExpiration(entryEvent.getValue()), TimeUnit.MILLISECONDS);
         }, true);
 
         // Entry updated - new version
@@ -99,7 +99,6 @@ abstract class SiriRepository<T> {
             if (includeInCachePredicate == null || includeInCachePredicate.test(entryEvent.getValue())) {
                 cache.put(entryEvent.getKey(), entryEvent.getValue());
             }
-            map.setTtl(entryEvent.getKey(), getExpiration(entryEvent.getValue()), TimeUnit.MILLISECONDS);
         }, true);
 
         //Entry expired by TTL
@@ -134,6 +133,42 @@ abstract class SiriRepository<T> {
             cache.putAll(allAsMap);
         }
         logger.info("Cache initialized with {} elements in {} ms", cache.size(), (System.currentTimeMillis()-t1));
+    }
+
+    /**
+     * Links TTL for entries across provided IMaps
+     * @param map
+     * @param linkedMaps
+     */
+    void linkEntriesTtl(IMap<SiriObjectStorageKey, T> map, IMap<SiriObjectStorageKey, ? extends Object>... linkedMaps) {
+        {
+
+            // Entry added - new data
+            map.addEntryListener((EntryAddedListener<SiriObjectStorageKey, T>) entryEvent -> {
+                long expiration = getExpiration(entryEvent.getValue());
+                map.setTtl(entryEvent.getKey(),  expiration, TimeUnit.MILLISECONDS);
+                for (IMap<SiriObjectStorageKey, ?> linkedMap : linkedMaps) {
+                    try {
+                        linkedMap.setTtl(entryEvent.getKey(), expiration, TimeUnit.MILLISECONDS);
+                    } catch (Throwable t) {
+                        logger.warn("Caught exception", t);
+                    }
+                }
+            }, true);
+
+            // Entry updated - new version
+            map.addEntryListener((EntryUpdatedListener<SiriObjectStorageKey, T>) entryEvent -> {
+                long expiration = getExpiration(entryEvent.getValue());
+                map.setTtl(entryEvent.getKey(),  expiration, TimeUnit.MILLISECONDS);
+                for (IMap<SiriObjectStorageKey, ?> linkedMap : linkedMaps) {
+                    try {
+                        linkedMap.setTtl(entryEvent.getKey(),  expiration, TimeUnit.MILLISECONDS);
+                    } catch (Throwable t) {
+                        logger.warn("Caught exception", t);
+                    }
+                }
+            }, true);
+        }
     }
 
     public Collection<T> getAllCachedUpdates(
