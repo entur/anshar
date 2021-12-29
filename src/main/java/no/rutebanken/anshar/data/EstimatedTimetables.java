@@ -618,7 +618,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
             }
             long elapsed = timingTracer.getTotalTime();
             if (elapsed > 500) {
-                logger.info("Adding object with key {} took {} ms: {}", key, elapsed, timingTracer);
+                logger.info("Adding ET-object with key {} took {} ms: {}", key, elapsed, timingTracer);
             }
 
         });

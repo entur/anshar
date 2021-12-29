@@ -134,38 +134,47 @@ abstract class SiriRepository<T> {
     }
 
     /**
-     * Links TTL for entries across provided IMaps
+     * Links entries across provided Maps.
+     *
+     * TTL is set on main map, other maps are linked using EntryListeners:
+     *   When an object is removed/expired from the main map, it is also removed from the linked maps
+     *
      * @param map
      * @param linkedMaps
      */
-    void linkEntriesTtl(IMap<SiriObjectStorageKey, T> map, IMap<SiriObjectStorageKey, ? extends Object>... linkedMaps) {
+    void linkEntriesTtl(IMap<SiriObjectStorageKey, T> map, Map<SiriObjectStorageKey, ? extends Object>... linkedMaps) {
         {
 
             // Entry added - new data
             map.addEntryListener((EntryAddedListener<SiriObjectStorageKey, T>) entryEvent -> {
-                long expiration = getExpiration(entryEvent.getValue());
-                map.setTtl(entryEvent.getKey(),  expiration, TimeUnit.MILLISECONDS);
-                for (IMap<SiriObjectStorageKey, ?> linkedMap : linkedMaps) {
-                    try {
-                        linkedMap.setTtl(entryEvent.getKey(), expiration, TimeUnit.MILLISECONDS);
-                    } catch (Throwable t) {
-                        logger.warn("Caught exception", t);
-                    }
-                }
+                map.setTtl(entryEvent.getKey(), getExpiration(entryEvent.getValue()), TimeUnit.MILLISECONDS);
             }, true);
 
             // Entry updated - new version
             map.addEntryListener((EntryUpdatedListener<SiriObjectStorageKey, T>) entryEvent -> {
-                long expiration = getExpiration(entryEvent.getValue());
-                map.setTtl(entryEvent.getKey(),  expiration, TimeUnit.MILLISECONDS);
-                for (IMap<SiriObjectStorageKey, ?> linkedMap : linkedMaps) {
-                    try {
-                        linkedMap.setTtl(entryEvent.getKey(),  expiration, TimeUnit.MILLISECONDS);
-                    } catch (Throwable t) {
-                        logger.warn("Caught exception", t);
-                    }
-                }
+                map.setTtl(entryEvent.getKey(), getExpiration(entryEvent.getValue()), TimeUnit.MILLISECONDS);
             }, true);
+
+            //Entry expired by TTL
+            map.addEntryListener((EntryExpiredListener<SiriObjectStorageKey, T>) entryEvent -> {
+                for (Map<SiriObjectStorageKey, ?> linkedMap : linkedMaps) {
+                    linkedMap.remove(entryEvent.getKey());
+                }
+            }, false);
+
+            // Entry evicted
+            map.addEntryListener((EntryEvictedListener<SiriObjectStorageKey, T>) entryEvent -> {
+                for (Map<SiriObjectStorageKey, ?> linkedMap : linkedMaps) {
+                    linkedMap.remove(entryEvent.getKey());
+                }
+            }, false);
+
+            // Entry removed - e.g. "delete all for codespace"
+            map.addEntryListener((EntryRemovedListener<SiriObjectStorageKey, T>) entryEvent -> {
+                for (Map<SiriObjectStorageKey, ?> linkedMap : linkedMaps) {
+                    linkedMap.remove(entryEvent.getKey());
+                }
+            }, false);
         }
     }
 

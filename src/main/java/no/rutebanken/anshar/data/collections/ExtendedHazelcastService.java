@@ -132,8 +132,8 @@ public class ExtendedHazelcastService extends HazelCastService {
     }
 
     @Bean
-    public ReplicatedMap<SiriObjectStorageKey, String> getSxChecksumMap() {
-        return hazelcast.getReplicatedMap("anshar.sx.checksum.cache");
+    public IMap<SiriObjectStorageKey, String> getSxChecksumMap() {
+        return hazelcast.getMap("anshar.sx.checksum.cache");
     }
 
     @Bean
@@ -142,8 +142,8 @@ public class ExtendedHazelcastService extends HazelCastService {
     }
 
     @Bean
-    public ReplicatedMap<SiriObjectStorageKey, String> getVmChecksumMap() {
-        return hazelcast.getReplicatedMap("anshar.vm.checksum.cache");
+    public IMap<SiriObjectStorageKey, String> getVmChecksumMap() {
+        return hazelcast.getMap("anshar.vm.checksum.cache");
     }
 
     @Bean
