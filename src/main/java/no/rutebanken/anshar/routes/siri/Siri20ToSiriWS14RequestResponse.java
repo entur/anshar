@@ -16,15 +16,12 @@
 package no.rutebanken.anshar.routes.siri;
 
 import no.rutebanken.anshar.config.AnsharConfiguration;
-import no.rutebanken.anshar.routes.TimeOutProcessor;
 import no.rutebanken.anshar.routes.dataformat.SiriDataFormatHelper;
 import no.rutebanken.anshar.routes.siri.helpers.SiriRequestFactory;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
-
-import java.util.concurrent.TimeoutException;
 
 import static no.rutebanken.anshar.routes.HttpParameter.INTERNAL_SIRI_DATA_TYPE;
 import static no.rutebanken.anshar.routes.HttpParameter.PARAM_SUBSCRIPTION_ID;
@@ -54,21 +51,11 @@ public class Siri20ToSiriWS14RequestResponse extends SiriSubscriptionRouteBuilde
                 subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.POLLING_FETCHED_DELIVERY) {
 
             releaseLeadershipOnError = true;
-
-            TimeOutProcessor timeOutProcessor = new TimeOutProcessor("direct:" + subscriptionSetup.getServiceRequestRouteName(), heartbeatIntervalMillis);
-
             singletonFrom("quartz://anshar/monitor_" + subscriptionSetup.getRequestResponseRouteName() + "?fireNow=true&trigger.repeatInterval=" + heartbeatIntervalMillis,
                     monitoringRouteId)
                     .choice()
                     .when(p -> requestData(subscriptionSetup.getSubscriptionId(), p.getFromRouteId()))
-                        .doTry()
-                            .process(timeOutProcessor)
-                        .doCatch(TimeoutException.class)
-                            .log("Caught TimeoutException - releasing leadership: " + subscriptionSetup.toString())
-                            .process(p -> {
-                                releaseLeadership(monitoringRouteId);
-                            })
-                        .endDoTry()
+                    .to("direct:" + subscriptionSetup.getServiceRequestRouteName())
                     .endChoice()
             ;
         } else {

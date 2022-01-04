@@ -60,12 +60,6 @@ public class MessagingRoute extends RestRouteBuilder {
             queueConsumerParameters = "";
         }
 
-        from("direct:process.message.synchronous")
-                .convertBodyTo(String.class)
-                .to("direct:transform.siri")
-                .to("direct:" + CamelRouteNames.PROCESSOR_QUEUE_DEFAULT)
-        ;
-
         from("direct:enqueue.message")
                 .convertBodyTo(String.class)
                 .to("direct:transform.siri")
