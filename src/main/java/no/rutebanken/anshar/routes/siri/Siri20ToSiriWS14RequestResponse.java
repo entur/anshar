@@ -63,6 +63,7 @@ public class Siri20ToSiriWS14RequestResponse extends SiriSubscriptionRouteBuilde
         }
 
         from("direct:" + subscriptionSetup.getServiceRequestRouteName())
+                .process(p -> requestStarted())
                 .log("Retrieving data " + subscriptionSetup.toString())
                 .bean(helper, "createSiriDataRequest")
                 .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
@@ -93,6 +94,8 @@ public class Siri20ToSiriWS14RequestResponse extends SiriSubscriptionRouteBuilde
                             releaseLeadership(monitoringRouteId);
                         }
                     })
+                .doFinally()
+                    .process(p -> requestFinished())
                 .endDoTry()
                 .routeId("request.ws.14." + subscriptionSetup.getSubscriptionType() + "." + subscriptionSetup.getVendor())
         ;

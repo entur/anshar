@@ -39,6 +39,7 @@ public abstract class BaseRouteBuilder extends SpringRouteBuilder {
     protected final SubscriptionManager subscriptionManager;
 
     protected final AnsharConfiguration config;
+    private boolean isRunning;
 
     protected BaseRouteBuilder(AnsharConfiguration config, SubscriptionManager subscriptionManager) {
         this.subscriptionManager = subscriptionManager;
@@ -62,13 +63,29 @@ public abstract class BaseRouteBuilder extends SpringRouteBuilder {
     }
 
 
+    protected void requestFinished() {
+        this.isRunning = false;
+    }
+
+    protected void requestStarted() {
+        this.isRunning = true;
+    }
+
     protected boolean requestData(String subscriptionId, String fromRouteId) {
         SubscriptionSetup subscriptionSetup = subscriptionManager.get(subscriptionId);
 
         boolean isLeader = isLeader(fromRouteId);
         log.debug("isActive: {}, isActivated {}, isLeader {}: {}", subscriptionSetup.isActive(), subscriptionManager.isActiveSubscription(subscriptionId), isLeader, subscriptionSetup);
 
-        return (isLeader && subscriptionSetup.isActive() && subscriptionManager.isActiveSubscription(subscriptionId));
+        if (isLeader && subscriptionSetup.isActive() && subscriptionManager.isActiveSubscription(subscriptionId)) {
+            if (isRunning) {
+                log.info("Previous request still running - ignore polling-trigger for {}", subscriptionSetup);
+                return false;
+            } else {
+                return true;
+            }
+        }
+        return false;
     }
 
     protected boolean isLeader(String routeId) {
