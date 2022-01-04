@@ -318,7 +318,8 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
                     timingTracer.mark("checksumCache.get");
 
                     boolean updated;
-                    if (existingChecksum != null && monitoredVehicles.containsKey(key)) {
+//                    if (existingChecksum != null && monitoredVehicles.containsKey(key)) {
+                    if (existingChecksum != null) {
                         //Exists - compare values
                         updated =  !(currentChecksum.equals(existingChecksum));
                     } else {

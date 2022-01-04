@@ -543,7 +543,8 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
             String existingChecksum = checksumCache.get(key);
             timingTracer.mark("checksumCache.get");
             boolean updated;
-            if (existingChecksum != null && timetableDeliveries.containsKey(key)) {
+//            if (existingChecksum != null && timetableDeliveries.containsKey(key)) {
+            if (existingChecksum != null) {
                 //Exists - compare values
                 updated =  !(currentChecksum.equals(existingChecksum));
                 if (updated && et.isMonitored() == null) {
