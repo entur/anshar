@@ -22,7 +22,10 @@ import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
+import org.apache.camel.MessageHistory;
 import org.apache.camel.component.http.HttpMethods;
+
+import java.util.List;
 
 import static no.rutebanken.anshar.routes.HttpParameter.INTERNAL_SIRI_DATA_TYPE;
 import static no.rutebanken.anshar.routes.HttpParameter.PARAM_SUBSCRIPTION_ID;
@@ -59,7 +62,9 @@ public class Siri20ToSiriRS20RequestResponse extends SiriSubscriptionRouteBuilde
             releaseLeadershipOnError = false;
         }
 
+        String routeId = "request.rs.20." + subscriptionSetup.getSubscriptionType() + "." + subscriptionSetup.getVendor();
         from("direct:" + subscriptionSetup.getServiceRequestRouteName())
+            .messageHistory()
             .process(p -> requestStarted())
             .log("Retrieving data " + subscriptionSetup.toString())
             .bean(helper, "createSiriDataRequest")
@@ -87,9 +92,25 @@ public class Siri20ToSiriRS20RequestResponse extends SiriSubscriptionRouteBuilde
                     }
                 })
             .doFinally()
-                .process(p -> requestFinished())
+                .process(p -> {
+                    requestFinished();
+                    List<MessageHistory> list = p.getProperty(Exchange.MESSAGE_HISTORY, List.class);
+                    long elapsed = 0;
+                    for (MessageHistory history : list) {
+                        if (history.getRouteId().equals(routeId)) {
+                            elapsed += history.getElapsed();
+                        }
+                    }
+                    log.info("Processing data took {} ms.", elapsed);
+                    if (elapsed > heartbeatIntervalMillis) {
+                        log.info("Processing took longer than {} ms - releasing leadership", heartbeatIntervalMillis);
+                        if (releaseLeadershipOnError) {
+                            releaseLeadership(monitoringRouteId);
+                        }
+                    }
+                })
             .endDoTry()
-            .routeId("request.rs.20." + subscriptionSetup.getSubscriptionType() + "." + subscriptionSetup.getVendor())
+            .routeId(routeId)
         ;
     }
 
