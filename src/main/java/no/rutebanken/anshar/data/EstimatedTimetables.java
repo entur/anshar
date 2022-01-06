@@ -588,8 +588,9 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
 
                 if (expiration > 0) {
 
-                    if (hasPatternChanges(et)) {
-                        timingTracer.mark("hasPatternChanges");
+                    boolean hasPatternChanges = hasPatternChanges(et);
+                    timingTracer.mark("hasPatternChanges");
+                    if (hasPatternChanges) {
 
                         // Keep track of all valid ET with pattern-changes
                         idForPatternChanges.put(key, key.getKey(), expiration, TimeUnit.MILLISECONDS);
