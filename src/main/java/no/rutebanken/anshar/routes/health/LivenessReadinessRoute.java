@@ -122,16 +122,15 @@ public class LivenessReadinessRoute extends RestRouteBuilder {
                 .routeId("health.scrape")
         ;
 
-        // Application is ready to accept traffic
-        from("direct:ready")
+        // liveness
+        from("direct:up")
                 .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
                 .setBody(constant("OK"))
                 .routeId("health.ready")
         ;
 
-        // Application is (still) alive and well
-        from("direct:up")
-                //TODO: On error - POST to hubot - Ex: wget --post-data='{"source":"otp", "message":"Downloaded file is empty or not present. This makes OTP fail! Please check logs"}' http://hubot/hubot/say/
+        // readiness
+        from("direct:ready")
                 .choice()
                 .when(p -> !healthManager.isHazelcastAlive())
                     .log("Hazelcast is shut down")
