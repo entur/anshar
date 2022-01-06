@@ -83,6 +83,7 @@ public class AdministrationRoute extends RestRouteBuilder {
 
         rest("/anshar").tag("internal.admin")
                 .get("/stats").produces(MediaType.TEXT_HTML).to(STATS_ROUTE)
+                .get("/clusterstats").produces(MediaType.APPLICATION_JSON).to(CLUSTERSTATS_ROUTE)
                 .put("/stats").to(OPERATION_ROUTE)
                 .get("/unmapped").produces(MediaType.TEXT_HTML).to(UNMAPPED_ROUTE)
                 .get("/unmapped/{datasetId}").produces(MediaType.TEXT_HTML).to(UNMAPPED_ROUTE)
@@ -259,5 +260,9 @@ public class AdministrationRoute extends RestRouteBuilder {
                 .routeId("admin.unmapped")
         ;
 
+        from (CLUSTERSTATS_ROUTE)
+                .bean(helper, "listClusterStats")
+                .routeId("admin.clusterstats")
+        ;
     }
 }

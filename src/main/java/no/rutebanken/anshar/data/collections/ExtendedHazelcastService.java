@@ -15,8 +15,13 @@
 
 package no.rutebanken.anshar.data.collections;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.hazelcast.cluster.Cluster;
+import com.hazelcast.cluster.Member;
 import com.hazelcast.collection.ISet;
 import com.hazelcast.config.SerializerConfig;
+import com.hazelcast.core.DistributedObject;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.LifecycleEvent;
 import com.hazelcast.map.IMap;
@@ -26,6 +31,7 @@ import no.rutebanken.anshar.data.SiriObjectStorageKey;
 import no.rutebanken.anshar.routes.outbound.OutboundSubscriptionSetup;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.rutebanken.hazelcasthelper.service.HazelCastService;
 import org.rutebanken.hazelcasthelper.service.KubernetesService;
@@ -44,10 +50,7 @@ import javax.annotation.PreDestroy;
 import java.math.BigInteger;
 import java.time.Instant;
 import java.time.ZonedDateTime;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @Service
 @Configuration
@@ -277,5 +280,44 @@ public class ExtendedHazelcastService extends HazelCastService {
     @Bean
     public IMap<String[], RequestorRefStats> getRequestorRefs() {
         return hazelcast.getMap("anshar.activity.requestorref");
+    }
+
+    public String listNodes(boolean includeStats) {
+        JsonMapper jsonMapper = new JsonMapper();
+        JSONObject root = new JSONObject();
+        JSONArray clusterMembers = new JSONArray();
+        Cluster cluster = hazelcast.getCluster();
+        if (cluster != null) {
+            Set<Member> members = cluster.getMembers();
+            if (members != null && !members.isEmpty()) {
+                for (Member member : members) {
+
+                    JSONObject obj = new JSONObject();
+                    obj.put("uuid", member.getUuid().toString());
+                    obj.put("host", member.getAddress().getHost());
+                    obj.put("port", member.getAddress().getPort());
+                    obj.put("local", member.localMember());
+
+                    if (includeStats) {
+                        JSONObject stats = new JSONObject();
+                        Collection<DistributedObject> distributedObjects = hazelcast.getDistributedObjects();
+                        for (DistributedObject distributedObject : distributedObjects) {
+
+                            try {
+                                String jsonValue = jsonMapper.writeValueAsString(hazelcast.getMap(distributedObject.getName()).getLocalMapStats());
+                                stats.put(distributedObject.getName(), new org.json.JSONObject(jsonValue));
+                            } catch (JsonProcessingException e) {
+                                e.printStackTrace();
+                            }
+                        }
+
+                        obj.put("localmapstats", stats);
+                    }
+                    clusterMembers.add(obj);
+                }
+            }
+        }
+        root.put("members", clusterMembers);
+        return root.toString();
     }
 }

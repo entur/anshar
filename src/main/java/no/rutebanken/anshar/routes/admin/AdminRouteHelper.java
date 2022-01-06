@@ -75,6 +75,10 @@ public class AdminRouteHelper {
         return hazelcastService.getHazelcastInstance().getMap(lockMap);
     }
 
+    public String listClusterStats() {
+        return hazelcastService.listNodes(true);
+    }
+
     private void flushData(String datasetId, String dataType) {
         long t1 = System.currentTimeMillis();
         switch (dataType) {
