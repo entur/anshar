@@ -75,7 +75,7 @@ public abstract class BaseRouteBuilder extends SpringRouteBuilder {
         SubscriptionSetup subscriptionSetup = subscriptionManager.get(subscriptionId);
 
         boolean isLeader = isLeader(fromRouteId);
-        log.debug("isActive: {}, isActivated {}, isLeader {}: {}", subscriptionSetup.isActive(), subscriptionManager.isActiveSubscription(subscriptionId), isLeader, subscriptionSetup);
+        log.info("isActive: {}, isActivated {}, isLeader {}, isRunning {}: {}", subscriptionSetup.isActive(), subscriptionManager.isActiveSubscription(subscriptionId), isLeader, isRunning, subscriptionSetup);
 
         if (isLeader && subscriptionSetup.isActive() && subscriptionManager.isActiveSubscription(subscriptionId)) {
             if (isRunning) {
