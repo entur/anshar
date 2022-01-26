@@ -46,6 +46,7 @@ import static no.rutebanken.anshar.routes.policy.SingletonRoutePolicyFactory.DEF
 public class AdministrationRoute extends RestRouteBuilder {
 
     private static final String STATS_ROUTE = "direct:stats";
+    private static final String INTERNAL_STATS_ROUTE = "direct:internal.stats";
     private static final String OPERATION_ROUTE = "direct:operation";
     private static final String CLUSTERSTATS_ROUTE = "direct:clusterstats";
     private static final String UNMAPPED_ROUTE = "direct:unmapped";
@@ -83,6 +84,7 @@ public class AdministrationRoute extends RestRouteBuilder {
 
         rest("/anshar").tag("internal.admin")
                 .get("/stats").produces(MediaType.TEXT_HTML).to(STATS_ROUTE)
+                .get("/internalstats").produces(MediaType.APPLICATION_JSON).to(INTERNAL_STATS_ROUTE)
                 .get("/clusterstats").produces(MediaType.APPLICATION_JSON).to(CLUSTERSTATS_ROUTE)
                 .put("/stats").to(OPERATION_ROUTE)
                 .get("/unmapped").produces(MediaType.TEXT_HTML).to(UNMAPPED_ROUTE)
@@ -165,6 +167,16 @@ public class AdministrationRoute extends RestRouteBuilder {
                 })
                 .to("freemarker:templates/stats.ftl")
                 .routeId("admin.stats")
+        ;
+
+
+        from (INTERNAL_STATS_ROUTE)
+            .process(p -> {
+                JSONObject stats = subscriptionManager.buildStats();
+                stats.put("outbound", serverSubscriptionManager.getSubscriptionsAsJson());
+
+                p.getMessage().setBody(stats.toJSONString());
+            })
         ;
 
         final String operationHeaderName = "operation";
