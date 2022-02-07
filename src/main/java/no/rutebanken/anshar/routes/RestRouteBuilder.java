@@ -167,7 +167,7 @@ public class RestRouteBuilder extends RouteBuilder {
                     .to("direct:redirect.request.et")
             ;
             from("direct:redirect.request.et")
-                    .to(etHandlerBaseUrl + "${header.CamelHttpUri}?bridgeEndpoint=true")
+                    .toD(etHandlerBaseUrl + "${header.CamelHttpUri}?bridgeEndpoint=true")
             ;
         }
 
@@ -206,7 +206,7 @@ public class RestRouteBuilder extends RouteBuilder {
                     .to("direct:redirect.request.vm")
             ;
             from("direct:redirect.request.vm")
-                    .to(vmHandlerBaseUrl + "${header.CamelHttpUri}?bridgeEndpoint=true")
+                    .toD(vmHandlerBaseUrl + "${header.CamelHttpUri}?bridgeEndpoint=true")
             ;
         }
 
@@ -245,7 +245,7 @@ public class RestRouteBuilder extends RouteBuilder {
                     .to("direct:redirect.request.sx")
             ;
             from("direct:redirect.request.sx")
-                    .to(sxHandlerBaseUrl + "${header.CamelHttpUri}?bridgeEndpoint=true")
+                    .toD(sxHandlerBaseUrl + "${header.CamelHttpUri}?bridgeEndpoint=true")
             ;
         }
     }
