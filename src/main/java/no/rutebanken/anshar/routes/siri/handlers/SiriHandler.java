@@ -295,7 +295,7 @@ public class SiriHandler {
      * @throws JAXBException
      */
     private void processSiriClientRequest(String subscriptionId, InputStream xml)
-        throws XMLStreamException {
+            throws XMLStreamException, JAXBException {
         SubscriptionSetup subscriptionSetup = subscriptionManager.get(subscriptionId);
 
         if (subscriptionSetup != null) {
@@ -306,13 +306,11 @@ public class SiriHandler {
             } catch (IOException e) {
                 receivedBytes = 0;
             }
-
-            Siri originalInput = siriXmlValidator.parseXml(subscriptionSetup, xml);
-
-            Siri incoming = SiriValueTransformer.transform(originalInput, subscriptionSetup.getMappingAdapters());
-
+long t1 = System.currentTimeMillis();
+            Siri incoming = SiriXml.parseXml(xml);
+long t2 = System.currentTimeMillis();
+            logger.info("Parsing XML took {} ms, {} bytes", (t2-t1), receivedBytes);
             if (incoming == null) {
-                // Transforming may have timed out
                 return;
             }
 

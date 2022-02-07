@@ -114,6 +114,9 @@ public class AnsharConfiguration {
     @Value("${anshar.admin.blocked.clients:}")
     private List<String> blockedEtClientNames;
 
+    @Value("${anshar.application.mode:}")
+    private List<AppMode> appModes;
+
     public String getHazelcastManagementUrl() {
         return hazelcastManagementUrl;
     }
@@ -228,5 +231,24 @@ public class AnsharConfiguration {
 
     public List<String> getBlockedEtClientNames() {
         return blockedEtClientNames;
+    }
+
+    public List<AppMode> getAppModes() {
+        return appModes;
+    }
+    public boolean processET() {
+        return (appModes.isEmpty() || appModes.contains(AppMode.DATA_ET));
+    }
+    public boolean processVM() {
+        return (appModes.isEmpty() || appModes.contains(AppMode.DATA_VM));
+    }
+    public boolean processSX() {
+        return (appModes.isEmpty() || appModes.contains(AppMode.DATA_SX));
+    }
+    public boolean processAdmin() {
+        return (appModes.isEmpty() || appModes.contains(AppMode.PROXY));
+    }
+    public boolean processData() {
+        return (appModes.isEmpty() || ((appModes.contains(AppMode.DATA_ET) | appModes.contains(AppMode.DATA_VM) | appModes.contains(AppMode.DATA_SX))));
     }
 }

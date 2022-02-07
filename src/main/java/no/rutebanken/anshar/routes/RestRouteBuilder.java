@@ -20,6 +20,7 @@ import org.apache.camel.Exchange;
 import org.apache.camel.InvalidPayloadException;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.support.builder.Namespaces;
 import org.apache.http.HttpHeaders;
 import org.entur.protobuf.mapper.SiriMapper;
 import org.rutebanken.siri20.util.SiriJson;
@@ -27,6 +28,7 @@ import org.rutebanken.siri20.util.SiriXml;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import uk.org.siri.siri20.Siri;
 
 import javax.servlet.http.HttpServletResponse;
@@ -44,8 +46,23 @@ public class RestRouteBuilder extends RouteBuilder {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
+    protected Namespaces ns = new Namespaces("siri", "http://www.siri.org.uk/siri")
+            .add("xsd", "http://www.w3.org/2001/XMLSchema");
+
+
+    @Value("${anshar.data.handler.baseurl.vm:}")
+    protected String vmHandlerBaseUrl;
+
+    @Value("${anshar.data.handler.baseurl.et:}")
+    protected String etHandlerBaseUrl;
+
+    @Value("${anshar.data.handler.baseurl.sx:}")
+    protected String sxHandlerBaseUrl;
+
     @Autowired
     private AnsharConfiguration configuration;
+
+    private static boolean isDataHandlersInitialized = false;
 
     @Override
     public void configure() throws Exception {
@@ -75,6 +92,11 @@ public class RestRouteBuilder extends RouteBuilder {
                 .loggingLevel(LoggingLevel.INFO)
         );
 
+        if (!isDataHandlersInitialized) {
+            isDataHandlersInitialized=true;
+            createClientRequestRoutes();
+        }
+
         from("direct:anshar.invalid.tracking.header.response")
                 .removeHeaders("*")
                 .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("400")) //400 Bad request
@@ -90,6 +112,144 @@ public class RestRouteBuilder extends RouteBuilder {
         ;
 
     }
+
+    /*
+     * Creates routes to handle routing of incoming requests based on the mode the instance is started with
+     *
+     * PROXY redirects requests to et/vm/sx-instances
+     */
+    protected void createClientRequestRoutes() {
+
+        if (configuration.processET()) {
+            from("direct:process.et.subscription.request")
+                    .to("direct:internal.handle.subscription")
+            ;
+            from("direct:process.et.service.request")
+                    .to("direct:internal.process.service.request")
+            ;
+            from("direct:process.et.service.request.cache")
+                    .to("direct:internal.process.service.request.cache")
+            ;
+            //REST
+            from("direct:anshar.rest.et")
+                    .to("direct:internal.anshar.rest.et")
+            ;
+            from("direct:anshar.rest.et.cached")
+                    .to("direct:internal.anshar.rest.et.cached")
+            ;
+            from("direct:anshar.rest.et.monitored")
+                    .to("direct:internal.anshar.rest.et.monitored")
+            ;
+            from("direct:anshar.rest.et.monitored.cached")
+                    .to("direct:internal.anshar.rest.et.monitored.cached")
+            ;
+        } else {
+            from("direct:process.et.subscription.request")
+                    .to("direct:redirect.request.et")
+            ;
+            from("direct:process.et.service.request")
+                    .to("direct:redirect.request.et")
+            ;
+            from("direct:process.et.service.request.cache")
+                    .to("direct:redirect.request.et")
+            ;
+            //REST
+            from("direct:anshar.rest.et")
+                    .to("direct:redirect.request.et")
+            ;
+            from("direct:anshar.rest.et.cached")
+                    .to("direct:redirect.request.et")
+            ;
+            from("direct:anshar.rest.et.monitored")
+                    .to("direct:internal.anshar.rest.et.monitored")
+            ;
+            from("direct:anshar.rest.et.monitored.cached")
+                    .to("direct:redirect.request.et")
+            ;
+            from("direct:redirect.request.et")
+                    .to(etHandlerBaseUrl + "${header.CamelHttpUri}?bridgeEndpoint=true")
+            ;
+        }
+
+        if (configuration.processVM()) {
+            from("direct:process.vm.subscription.request")
+                    .to("direct:internal.handle.subscription")
+            ;
+            from("direct:process.vm.service.request")
+                    .to("direct:internal.process.service.request")
+            ;
+            from("direct:process.vm.service.request.cache")
+                    .to("direct:internal.process.service.request.cache")
+            ;
+            //REST
+            from("direct:anshar.rest.vm")
+                    .to("direct:internal.anshar.rest.vm")
+            ;
+            from("direct:anshar.rest.vm.cached")
+                    .to("direct:internal.anshar.rest.vm.cached")
+            ;
+
+        } else {
+            from("direct:process.vm.subscription.request")
+                    .to("direct:redirect.request.vm")
+            ;
+            from("direct:process.vm.service.request")
+                    .to("direct:redirect.request.vm")
+            ;
+            from("direct:process.vm.service.request.cache")
+                    .to("direct:redirect.request.vm")
+            ;
+            from("direct:anshar.rest.vm")
+                    .to("direct:redirect.request.vm")
+            ;
+            from("direct:anshar.rest.vm.cached")
+                    .to("direct:redirect.request.vm")
+            ;
+            from("direct:redirect.request.vm")
+                    .to(vmHandlerBaseUrl + "${header.CamelHttpUri}?bridgeEndpoint=true")
+            ;
+        }
+
+        if (configuration.processSX()) {
+            from("direct:process.sx.subscription.request")
+                    .to("direct:internal.handle.subscription")
+            ;
+            from("direct:process.sx.service.request")
+                    .to("direct:internal.process.service.request")
+            ;
+            from("direct:process.sx.service.request.cache")
+                    .to("direct:internal.process.service.request.cache")
+            ;
+
+            //REST
+            from("direct:anshar.rest.sx")
+                    .to("direct:internal.anshar.rest.sx")
+            ;
+            from("direct:anshar.rest.sx.cached")
+                    .to("direct:internal.anshar.rest.sx.cached")
+            ;
+        } else {
+            from("direct:process.sx.subscription.request")
+                    .to("direct:redirect.request.sx")
+            ;
+            from("direct:process.sx.service.request")
+                    .to("direct:redirect.request.sx")
+            ;
+            from("direct:process.sx.service.request.cache")
+                    .to("direct:redirect.request.sx")
+            ;
+            from("direct:anshar.rest.sx")
+                    .to("direct:redirect.request.sx")
+            ;
+            from("direct:anshar.rest.sx.cached")
+                    .to("direct:redirect.request.sx")
+            ;
+            from("direct:redirect.request.sx")
+                    .to(sxHandlerBaseUrl + "${header.CamelHttpUri}?bridgeEndpoint=true")
+            ;
+        }
+    }
+
     protected boolean isTrackingHeaderAcceptable(Exchange e) {
         String camelHttpMethod = (String) e.getIn().getHeader("CamelHttpMethod");
 

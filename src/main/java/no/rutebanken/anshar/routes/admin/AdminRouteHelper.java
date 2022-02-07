@@ -19,13 +19,19 @@ import no.rutebanken.anshar.data.EstimatedTimetables;
 import no.rutebanken.anshar.data.Situations;
 import no.rutebanken.anshar.data.VehicleActivities;
 import no.rutebanken.anshar.data.collections.ExtendedHazelcastService;
+import no.rutebanken.anshar.subscription.SiriDataType;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -96,4 +102,216 @@ public class AdminRouteHelper {
         }
         logger.info("Flushing all data of type {} for {} took {} ms", dataType, datasetId, (System.currentTimeMillis()-t1));
     }
+
+    static JSONObject mergeJsonStats(String jsonProxyStats, String jsonVmStats, String jsonEtStats, String jsonSxStats) {
+        JSONParser parser = new JSONParser();
+        try {
+            JSONObject proxyStats = (JSONObject) parser.parse(jsonProxyStats);
+            JSONObject vmStats = (JSONObject) parser.parse(jsonVmStats);
+            JSONObject etStats = (JSONObject) parser.parse(jsonEtStats);
+            JSONObject sxStats = (JSONObject) parser.parse(jsonSxStats);
+
+            mergeDataDistributionStats(proxyStats, vmStats, etStats, sxStats);
+
+            mergeSubscriptionStats(proxyStats, vmStats, etStats, sxStats);
+
+            mergePollingStats(proxyStats, vmStats, etStats, sxStats);
+
+            mergeOutboundSubscriptionStats(proxyStats, vmStats, etStats, sxStats);
+
+            return proxyStats ;
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private static void mergeOutboundSubscriptionStats(JSONObject proxyStats, JSONObject vmStats, JSONObject etStats, JSONObject sxStats) {
+        JSONArray outbound = (JSONArray) proxyStats.get("outbound");
+        JSONArray vmOutbound = (JSONArray) vmStats.get("outbound");
+        JSONArray etOutbound = (JSONArray) etStats.get("outbound");
+        JSONArray sxOutbound = (JSONArray) sxStats.get("outbound");
+
+
+        outbound.addAll(vmOutbound);
+        outbound.addAll(etOutbound);
+        outbound.addAll(sxOutbound);
+    }
+
+    private static void mergeDataDistributionStats(JSONObject proxyStats, JSONObject vmStats, JSONObject etStats, JSONObject sxStats) {
+        JSONObject elements = (JSONObject) proxyStats.get("elements");
+        JSONObject vmElements = (JSONObject) vmStats.get("elements");
+        JSONObject etElements = (JSONObject) etStats.get("elements");
+        JSONObject sxElements = (JSONObject) sxStats.get("elements");
+
+        elements.put("vm", vmElements.get("vm"));
+        elements.put("et", etElements.get("et"));
+        elements.put("sx", sxElements.get("sx"));
+
+        JSONArray distribution = (JSONArray) elements.get("distribution");
+        JSONArray vmDistribution = (JSONArray) vmElements.get("distribution");
+        JSONArray etDistribution = (JSONArray) etElements.get("distribution");
+        JSONArray sxDistribution = (JSONArray) sxElements.get("distribution");
+
+        Map<String, DataCounter> combinedDistribution = new HashMap<>();
+        // Populate ET-distribution
+        for (Object o : etDistribution) {
+            JSONObject counter = (JSONObject) o;
+            String datasetId = (String) counter.get("datasetId");
+            DataCounter etCounter = combinedDistribution.getOrDefault(datasetId, new DataCounter());
+            etCounter.et = (Long) counter.get("etCount");
+            combinedDistribution.put(datasetId, etCounter);
+        }
+        // Populate VM-distribution
+        for (Object o : vmDistribution) {
+            JSONObject counter = (JSONObject) o;
+            String datasetId = (String) counter.get("datasetId");
+            DataCounter vmCounter = combinedDistribution.getOrDefault(datasetId, new DataCounter());
+            vmCounter.vm = (Long) counter.get("vmCount");
+            combinedDistribution.put(datasetId, vmCounter);
+        }
+        // Populate SX-distribution
+        for (Object o : sxDistribution) {
+            JSONObject counter = (JSONObject) o;
+            String datasetId = (String) counter.get("datasetId");
+            DataCounter sxCounter = combinedDistribution.getOrDefault(datasetId, new DataCounter());
+            sxCounter.sx = (Long) counter.get("sxCount");
+            combinedDistribution.put(datasetId, sxCounter);
+        }
+        // Populate combined distribution
+        for (String s : combinedDistribution.keySet()) {
+            DataCounter dataCounter = combinedDistribution.get(s);
+            JSONObject counter = new JSONObject();
+            counter.put("datasetId", s);
+            counter.put("etCount", dataCounter.et);
+            counter.put("vmCount", dataCounter.vm);
+            counter.put("sxCount", dataCounter.sx);
+            distribution.add(counter);
+        }
+    }
+    private static void mergeSubscriptionStats(JSONObject proxyStats, JSONObject vmStats, JSONObject etStats, JSONObject sxStats) {
+        JSONArray subscriptionTypes = (JSONArray) proxyStats.get("types");
+        JSONArray vmSubscriptionTypes = (JSONArray) vmStats.get("types");
+        JSONArray etSubscriptionTypes = (JSONArray) etStats.get("types");
+        JSONArray sxSubscriptionTypes = (JSONArray) sxStats.get("types");
+        Map<String, JSONObject> etSubscriptions = filterSubscriptions(etSubscriptionTypes, SiriDataType.ESTIMATED_TIMETABLE);
+        Map<String, JSONObject> vmSubscriptions = filterSubscriptions(vmSubscriptionTypes, SiriDataType.VEHICLE_MONITORING);
+        Map<String, JSONObject> sxSubscriptions = filterSubscriptions(sxSubscriptionTypes, SiriDataType.SITUATION_EXCHANGE);
+
+        for (Object o : subscriptionTypes) {
+            JSONObject typeObj = (JSONObject) o;
+
+            if (typeObj.get("typeName").equals(SiriDataType.ESTIMATED_TIMETABLE.name())) {
+                JSONArray subscriptions = (JSONArray) typeObj.get("subscriptions");
+                for (Object et : subscriptions) {
+                    JSONObject subscription = (JSONObject) et;
+
+                    String subscriptionId = (String) subscription.get("subscriptionId");
+                    JSONObject subscriptionDetail = etSubscriptions.get(subscriptionId);
+                    updateSubscriptionDetails(subscription, subscriptionDetail);
+                }
+            }
+            if (typeObj.get("typeName").equals(SiriDataType.VEHICLE_MONITORING.name())) {
+                JSONArray subscriptions = (JSONArray) typeObj.get("subscriptions");
+                for (Object vm : subscriptions) {
+                    JSONObject subscription = (JSONObject) vm;
+
+                    String subscriptionId = (String) subscription.get("subscriptionId");
+                    JSONObject subscriptionDetail = vmSubscriptions.get(subscriptionId);
+                    updateSubscriptionDetails(subscription, subscriptionDetail);
+                }
+            }
+            if (typeObj.get("typeName").equals(SiriDataType.SITUATION_EXCHANGE.name())) {
+                JSONArray subscriptions = (JSONArray) typeObj.get("subscriptions");
+                for (Object sx : subscriptions) {
+                    JSONObject subscription = (JSONObject) sx;
+
+                    String subscriptionId = (String) subscription.get("subscriptionId");
+                    JSONObject subscriptionDetail = sxSubscriptions.get(subscriptionId);
+                    updateSubscriptionDetails(subscription, subscriptionDetail);
+                }
+            }
+
+        }
+    }
+
+    private static void updateSubscriptionDetails(JSONObject subscription, JSONObject subscriptionDetail) {
+        subscription.put("lastActivity", subscriptionDetail.get("lastActivity"));
+        subscription.put("bytecountLabel", subscriptionDetail.get("bytecountLabel"));
+        subscription.put("bytecount", subscriptionDetail.get("bytecount"));
+        subscription.put("objectcount", subscriptionDetail.get("objectcount"));
+        subscription.put("hitcount", subscriptionDetail.get("hitcount"));
+    }
+
+    private static Map<String, JSONObject> filterSubscriptions(JSONArray subscriptionWrappers, SiriDataType dataType) {
+        Map<String, JSONObject> result = new HashMap<>();
+        for (Object subscriptionWrapper : subscriptionWrappers) {
+            JSONObject wrapper = (JSONObject) subscriptionWrapper;
+            if (wrapper.get("typeName").equals(dataType.name())) {
+                JSONArray subscriptions = (JSONArray) wrapper.get("subscriptions");
+                for (Object subscriptionObj : subscriptions) {
+                    JSONObject subscription = (JSONObject) subscriptionObj;
+                    result.put((String) subscription.get("subscriptionId"), subscription);
+                }
+            }
+        }
+
+
+        return result;
+    }
+
+    private static void mergePollingStats(JSONObject proxyStats, JSONObject vmStats, JSONObject etStats, JSONObject sxStats) {
+        JSONArray polling = (JSONArray) proxyStats.get("polling");
+        JSONArray vmPolling = (JSONArray) vmStats.get("polling");
+        JSONArray etPolling = (JSONArray) etStats.get("polling");
+        JSONArray sxPolling = (JSONArray) sxStats.get("polling");
+
+        for (Object o : polling) {
+            JSONObject pollingObj = (JSONObject) o;
+
+            if (pollingObj.get("typeName").equals(SiriDataType.ESTIMATED_TIMETABLE.name())) {
+                JSONArray pollingArray = (JSONArray) pollingObj.get("polling");
+                for (Object et : etPolling) {
+                    JSONObject value = (JSONObject) et;
+                    if (value.get("typeName").equals(SiriDataType.ESTIMATED_TIMETABLE.name())) {
+                        for (Object pollingClient : (JSONArray) value.get("polling")) {
+                            if (!pollingArray.contains(pollingClient)) {
+                                pollingArray.add(pollingClient);
+                            }
+                        }
+                    }
+                }
+            }
+            if (pollingObj.get("typeName").equals(SiriDataType.VEHICLE_MONITORING.name())) {
+                JSONArray pollingArray = (JSONArray) pollingObj.get("polling");
+                for (Object obj : vmPolling) {
+                    JSONObject value = (JSONObject) obj;
+                    pollingArray.addAll((JSONArray)value.get("polling"));
+                    if (value.get("typeName").equals(SiriDataType.VEHICLE_MONITORING.name())) {
+                        for (Object pollingClient : (JSONArray) value.get("polling")) {
+                            if (!pollingArray.contains(pollingClient)) {
+                                pollingArray.add(pollingClient);
+                            }
+                        }
+                    }
+                }
+            }
+            if (pollingObj.get("typeName").equals(SiriDataType.SITUATION_EXCHANGE.name())) {
+                JSONArray pollingArray = (JSONArray) pollingObj.get("polling");
+                for (Object obj : sxPolling) {
+                    JSONObject value = (JSONObject) obj;
+                    if (value.get("typeName").equals(SiriDataType.SITUATION_EXCHANGE.name())) {
+                        for (Object pollingClient : (JSONArray) value.get("polling")) {
+                            if (!pollingArray.contains(pollingClient)) {
+                                pollingArray.add(pollingClient);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+class DataCounter {
+    long vm, et, sx;
 }

@@ -77,6 +77,9 @@ public class SubscriptionInitializer implements CamelContextAware {
         camelContext.setUseMDCLogging(true);
         camelContext.setUseBreadcrumb(true);
 
+        if (!configuration.getAppModes().isEmpty()) {
+            logger.info("App started with mode(s): {}", configuration.getAppModes());
+        }
 
         final Map<String, Object> mappingBeans = ApplicationContextHolder.getContext().getBeansWithAnnotation(Mapping.class);
         final Map<String, Class> mappingAdaptersById = new HashMap<>();
@@ -190,22 +193,23 @@ public class SubscriptionInitializer implements CamelContextAware {
                 }
 
             }
+            if (configuration.processAdmin()) {
+                // If not admin - do NOT add subscription-handlers
+                for (SubscriptionSetup subscriptionSetup : actualSubscriptionSetups) {
 
-            for (SubscriptionSetup subscriptionSetup : actualSubscriptionSetups) {
+                    try {
 
-                try {
+                        List<RouteBuilder> routeBuilder = getRouteBuilders(subscriptionSetup);
+                        //Adding all routes to current context
+                        for (RouteBuilder builder : routeBuilder) {
+                            camelContext.addRoutes(builder);
+                        }
 
-                    List<RouteBuilder> routeBuilder = getRouteBuilders(subscriptionSetup);
-                    //Adding all routes to current context
-                    for (RouteBuilder builder : routeBuilder) {
-                        camelContext.addRoutes(builder);
+                    } catch (Exception e) {
+                        logger.warn("Could not add subscription", e);
                     }
-
-                } catch (Exception e) {
-                    logger.warn("Could not add subscription", e);
                 }
             }
-
             for (SubscriptionSetup subscriptionSetup : actualSubscriptionSetups) {
                 if (!subscriptionManager.isSubscriptionRegistered(subscriptionSetup.getSubscriptionId())) {
                     subscriptionManager.addSubscription(subscriptionSetup.getSubscriptionId(), subscriptionSetup);

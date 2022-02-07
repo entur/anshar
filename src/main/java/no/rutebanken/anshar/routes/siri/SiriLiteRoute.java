@@ -42,13 +42,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.Collection;
 import java.util.List;
 
-import static no.rutebanken.anshar.routes.HttpParameter.PARAM_DATASET_ID;
-import static no.rutebanken.anshar.routes.HttpParameter.PARAM_EXCLUDED_DATASET_ID;
-import static no.rutebanken.anshar.routes.HttpParameter.PARAM_LINE_REF;
-import static no.rutebanken.anshar.routes.HttpParameter.PARAM_MAX_SIZE;
-import static no.rutebanken.anshar.routes.HttpParameter.PARAM_PREVIEW_INTERVAL;
-import static no.rutebanken.anshar.routes.HttpParameter.PARAM_USE_ORIGINAL_ID;
-import static no.rutebanken.anshar.routes.HttpParameter.getParameterValuesAsList;
+import static no.rutebanken.anshar.routes.HttpParameter.*;
 
 @Service
 public class SiriLiteRoute extends RestRouteBuilder {
@@ -102,7 +96,7 @@ public class SiriLiteRoute extends RestRouteBuilder {
         ;
 
         // Dataproviders
-        from("direct:anshar.rest.sx")
+        from("direct:internal.anshar.rest.sx")
                 .log("RequestTracer - Incoming request (SX)")
                 .to("log:restRequest:" + getClass().getSimpleName() + "?showAll=false&showHeaders=true")
                 .choice()
@@ -144,7 +138,7 @@ public class SiriLiteRoute extends RestRouteBuilder {
                 .routeId("incoming.rest.sx")
         ;
 
-        from("direct:anshar.rest.vm")
+        from("direct:internal.anshar.rest.vm")
                 .log("RequestTracer - Incoming request (VM)")
                 .to("log:restRequest:" + getClass().getSimpleName() + "?showAll=false&showHeaders=true")
                 .choice()
@@ -199,7 +193,7 @@ public class SiriLiteRoute extends RestRouteBuilder {
         ;
 
 
-        from("direct:anshar.rest.et")
+        from("direct:internal.anshar.rest.et")
                 .log("RequestTracer - Incoming request (ET)")
                 .to("log:restRequest:" + getClass().getSimpleName() + "?showAll=false&showHeaders=true")
                 .choice()
@@ -259,7 +253,7 @@ public class SiriLiteRoute extends RestRouteBuilder {
                 .routeId("incoming.rest.et")
         ;
 
-        from("direct:anshar.rest.et.monitored")
+        from("direct:internal.anshar.rest.et.monitored")
                 .log("RequestTracer - Incoming request (ET)")
                 .to("log:restRequest:" + getClass().getSimpleName() + "?showAll=false&showHeaders=true")
                 .choice()
@@ -291,7 +285,7 @@ public class SiriLiteRoute extends RestRouteBuilder {
                 .routeId("incoming.rest.et.monitored")
         ;
 
-        from("direct:anshar.rest.sx.cached")
+        from("direct:internal.anshar.rest.sx.cached")
                 .log("RequestTracer - Incoming request (SX)")
                 .to("log:restRequest:" + getClass().getSimpleName() + "?showAll=false&showHeaders=true")
                 .choice()
@@ -328,7 +322,7 @@ public class SiriLiteRoute extends RestRouteBuilder {
                 .routeId("incoming.rest.sx.cached")
         ;
 
-        from("direct:anshar.rest.vm.cached")
+        from("direct:internal.anshar.rest.vm.cached")
                 .log("RequestTracer - Incoming request (VM)")
                 .to("log:restRequest:" + getClass().getSimpleName() + "?showAll=false&showHeaders=true")
                 .choice()
@@ -379,7 +373,7 @@ public class SiriLiteRoute extends RestRouteBuilder {
         ;
 
 
-        from("direct:anshar.rest.et.monitored.cached")
+        from("direct:internal.anshar.rest.et.monitored.cached")
             .log("RequestTracer - Incoming request (ET)")
             .to("log:restRequest:" + getClass().getSimpleName() + "?showAll=false&showHeaders=true")
             .choice()

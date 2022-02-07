@@ -15,11 +15,15 @@
 
 package no.rutebanken.anshar.routes.admin;
 
+import com.google.common.net.HttpHeaders;
+import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.data.collections.ExtendedHazelcastService;
 import no.rutebanken.anshar.routes.RestRouteBuilder;
 import no.rutebanken.anshar.routes.health.HealthManager;
 import no.rutebanken.anshar.routes.outbound.ServerSubscriptionManager;
+import no.rutebanken.anshar.subscription.SiriDataType;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
+import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.commons.lang3.StringUtils;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +42,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import static no.rutebanken.anshar.routes.admin.AdminRouteHelper.mergeJsonStats;
 import static no.rutebanken.anshar.routes.policy.SingletonRoutePolicyFactory.DEFAULT_LOCK_VALUE;
 
 @SuppressWarnings("unchecked")
@@ -65,6 +70,9 @@ public class AdministrationRoute extends RestRouteBuilder {
 
     @Autowired
     private AdminRouteHelper helper;
+
+    @Autowired
+    private AnsharConfiguration configuration;
 
     @Value("${anshar.route.singleton.policy.automatic.verification:false}")
     private boolean autoLockVerificationEnabled;
@@ -153,29 +161,52 @@ public class AdministrationRoute extends RestRouteBuilder {
             .routeId("admin")
         ;
 
-        //Return subscription status
-        from(STATS_ROUTE)
-                .process(p -> {
-                    long t1 = System.currentTimeMillis();
-                    JSONObject stats = subscriptionManager.buildStats();
-                    long t2 = System.currentTimeMillis();
-                    stats.put("outbound", serverSubscriptionManager.getSubscriptionsAsJson());
-                    long t3 = System.currentTimeMillis();
-
-                    log.info("Build stats: {} ms, builds subscriptions: {} ms", (t2-t1), (t3-t2));
-                    p.getOut().setBody(stats);
-                })
-                .to("freemarker:templates/stats.ftl")
-                .routeId("admin.stats")
-        ;
-
+        if (configuration.processAdmin() && !configuration.processData()) {
+            from(STATS_ROUTE)
+                    .setHeader(HttpHeaders.CONTENT_TYPE, simple(MediaType.APPLICATION_JSON))
+                    .to(INTERNAL_STATS_ROUTE)
+                    .removeHeader(HttpHeaders.CONTENT_TYPE)
+                    .setProperty("proxy-stats", body())
+                    .to(vmHandlerBaseUrl + "/anshar/internalstats?bridgeEndpoint=true")
+                    .setProperty("vm-stats", body().convertTo(String.class))
+                    .to(etHandlerBaseUrl + "/anshar/internalstats?bridgeEndpoint=true")
+                    .setProperty("et-stats", body().convertTo(String.class))
+                    .to(sxHandlerBaseUrl + "/anshar/internalstats?bridgeEndpoint=true")
+                    .setProperty("sx-stats", body().convertTo(String.class))
+                    .process(p -> {
+                        JSONObject body = mergeJsonStats(
+                                p.getProperty("proxy-stats", String.class),
+                                p.getProperty("vm-stats", String.class),
+                                p.getProperty("et-stats", String.class),
+                                p.getProperty("sx-stats", String.class)
+                        );
+                        p.getMessage().setBody(body);
+                    })
+                    .setHeader(HttpHeaders.CONTENT_TYPE, simple(MediaType.TEXT_HTML))
+                    .to("freemarker:templates/stats.ftl")
+                    .routeId("admin.stats")
+            ;
+        } else {
+            //either proxy or data-handler
+            from(STATS_ROUTE)
+                    .setHeader(HttpHeaders.CONTENT_TYPE, simple(MediaType.APPLICATION_JSON))
+                    .to(INTERNAL_STATS_ROUTE)
+                    .setHeader(HttpHeaders.CONTENT_TYPE, simple(MediaType.TEXT_HTML))
+                    .to("freemarker:templates/stats.ftl")
+                    .routeId("admin.stats")
+            ;
+        }
 
         from (INTERNAL_STATS_ROUTE)
             .process(p -> {
                 JSONObject stats = subscriptionManager.buildStats();
                 stats.put("outbound", serverSubscriptionManager.getSubscriptionsAsJson());
 
-                p.getMessage().setBody(stats.toJSONString());
+                if (MediaType.APPLICATION_JSON.equals(p.getIn().getHeader(HttpHeaders.CONTENT_TYPE, String.class))) {
+                    p.getMessage().setBody(stats);
+                } else {
+                    p.getMessage().setBody(stats.toJSONString());
+                }
             })
         ;
 
@@ -216,11 +247,21 @@ public class AdministrationRoute extends RestRouteBuilder {
                 .routeId("admin.start")
         ;
 
-        //Return subscription status
-        from("direct:terminate.outbound.subscription")
-                .bean(serverSubscriptionManager, "terminateSubscription(${header.subscriptionId})")
-                .routeId("admin.terminate.subscription")
-        ;
+        if (!configuration.processData()) {
+            //Return subscription status
+            from("direct:terminate.outbound.subscription")
+                    .to("direct:redirect.request.et")
+                    .to("direct:redirect.request.vm")
+                    .to("direct:redirect.request.sx")
+                    .routeId("admin.terminate.subscription")
+            ;
+        } else {
+            //Return subscription status
+            from("direct:terminate.outbound.subscription")
+                    .bean(serverSubscriptionManager, "terminateSubscription(${header.subscriptionId})")
+                    .routeId("admin.terminate.subscription")
+            ;
+        }
 
         //Return subscription status
         from("direct:terminate.all.subscriptions")
@@ -237,10 +278,31 @@ public class AdministrationRoute extends RestRouteBuilder {
 
         //Return subscription status
         from("direct:flush.data.from.subscription")
-                .bean(helper, "flushDataFromSubscription(${header.subscriptionId})")
-                .routeId("admin.flush.data")
+                .process(p -> {
+                    String subscriptionId = p.getIn().getHeader("subscriptionId", String.class);
+                    SubscriptionSetup subscriptionSetup = subscriptionManager.get(subscriptionId);
+
+                    String dataType = subscriptionSetup.getSubscriptionType().toString();
+
+                    p.getMessage().setHeaders(p.getIn().getHeaders());
+                    p.getMessage().setHeader("SiriDataType", dataType);
+                })
+                .to("direct:internal.flush.data.from.subscription")
         ;
 
+        from("direct:internal.flush.data.from.subscription")
+                .choice()
+                    .when(p -> !configuration.processET() && p.getIn().getHeader("SiriDataType").equals(SiriDataType.ESTIMATED_TIMETABLE.name()))
+                        .to("direct:redirect.request.et")
+                    .when(p -> !configuration.processVM() && p.getIn().getHeader("SiriDataType").equals(SiriDataType.VEHICLE_MONITORING.name()))
+                        .to("direct:redirect.request.vm")
+                    .when(p -> !configuration.processSX() && p.getIn().getHeader("SiriDataType").equals(SiriDataType.SITUATION_EXCHANGE.name()))
+                        .to("direct:redirect.request.sx")
+                    .otherwise()
+                        .bean(helper, "flushDataFromSubscription(${header.subscriptionId})")
+                .endChoice()
+                .routeId("admin.internal.flush.data")
+        ;
 
         //Return subscription status
         from("direct:clear-unmapped")

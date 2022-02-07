@@ -6,14 +6,17 @@ import no.rutebanken.anshar.routes.CamelRouteNames;
 import no.rutebanken.anshar.routes.RestRouteBuilder;
 import no.rutebanken.anshar.routes.admin.AdminRouteHelper;
 import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
+import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
+import no.rutebanken.anshar.routes.validation.SiriXmlValidator;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.camel.Predicate;
 import org.apache.camel.component.google.pubsub.GooglePubsubConstants;
-import org.apache.camel.support.builder.Namespaces;
+import org.rutebanken.siri20.util.SiriXml;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import uk.org.siri.siri20.Siri;
 
 import java.io.InputStream;
 
@@ -38,15 +41,15 @@ public class MessagingRoute extends RestRouteBuilder {
     private PrometheusMetricsService metrics;
 
     @Autowired
+    private SiriXmlValidator siriXmlValidator;
+
+    @Autowired
     private AdminRouteHelper adminRouteHelper;
 
     @Override
     public void configure() throws Exception {
 
         String messageQueueCamelRoutePrefix = configuration.getMessageQueueCamelRoutePrefix();
-
-        Namespaces ns = new Namespaces("siri", "http://www.siri.org.uk/siri")
-                .add("xsd", "http://www.w3.org/2001/XMLSchema");
 
         String queueConsumerParameters = "?concurrentConsumers="+configuration.getConcurrentConsumers();
 
@@ -85,8 +88,7 @@ public class MessagingRoute extends RestRouteBuilder {
                             .setHeader("target_topic", simple("direct:"+CamelRouteNames.FETCHED_DELIVERY_QUEUE))
                         .endChoice()
                         .otherwise()
-                            // Ensure all data is processed
-                            .setHeader("target_topic", simple(pubsubQueueDefault))
+                            .to("log:not_processed:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                         .end()
                     .end()
                 .end()
@@ -95,6 +97,7 @@ public class MessagingRoute extends RestRouteBuilder {
                 .log("Sending data to topic ${header.target_topic}")
                 .setHeader(GooglePubsubConstants.ORDERING_KEY, () -> System.currentTimeMillis())
                 .toD("${header.target_topic}")
+                .bean(subscriptionManager, "dataReceived(${header.subscriptionId})")
                 .end()
                 .routeId("add.to.queue")
         ;
@@ -112,7 +115,21 @@ public class MessagingRoute extends RestRouteBuilder {
                     .to("xslt-saxon:xsl/siri_14_20.xsl?allowStAX=false&resultHandlerFactory=#streamResultHandlerFactory") // Convert from v1.4 to 2.0
                 .endChoice()
                 .end()
+                .to("direct:process.mapping")
                 .to("direct:format.xml")
+        ;
+
+
+        from("direct:process.mapping")
+                .process(p -> {
+                    SubscriptionSetup subscriptionSetup = subscriptionManager.get(p.getIn().getHeader("subscriptionId", String.class));
+                    Siri originalInput = siriXmlValidator.parseXml(subscriptionSetup, p.getIn().getBody(String.class));
+
+                    Siri incoming = SiriValueTransformer.transform(originalInput, subscriptionSetup.getMappingAdapters(), false, true);
+
+                    p.getMessage().setHeaders(p.getIn().getHeaders());
+                    p.getMessage().setBody(SiriXml.toXml(incoming));
+                })
         ;
 
         from("direct:format.xml")
@@ -122,46 +139,52 @@ public class MessagingRoute extends RestRouteBuilder {
 
         // When shutdown has been triggered - stop processing data from pubsub
         Predicate readFromPubsub = exchange -> adminRouteHelper.isNotShuttingDown();
+//        if (configuration.processData()) {
+//            from(pubsubQueueDefault + queueConsumerParameters)
+//                    .choice().when(readFromPubsub)
+//                    .log("Processing data from " + pubsubQueueDefault + ", size ${header.Content-Length}")
+//                    .to("direct:decompress.jaxb")
+//                    .to("direct:process.queue.default.async")
+//                    .endChoice()
+//                    .startupOrder(100004)
+//                    .routeId("incoming.transform.default")
+//            ;
+//        }
+        if (configuration.processSX()) {
+            from(pubsubQueueSX + queueConsumerParameters)
+                    .choice().when(readFromPubsub)
+                    .log("Processing data from " + pubsubQueueSX + ", size ${header.Content-Length}")
+                    .to("direct:decompress.jaxb")
+                    .to("direct:process.queue.default.async")
+                    .endChoice()
+                    .startupOrder(100003)
+                    .routeId("incoming.transform.sx")
+            ;
+        }
 
-        from(pubsubQueueDefault + queueConsumerParameters)
-            .choice().when(readFromPubsub)
-                .log("Processing data from " + pubsubQueueDefault + ", size ${header.Content-Length}")
-                .to("direct:decompress.jaxb")
-                .to("direct:process.queue.default.async")
-            .endChoice()
-            .startupOrder(100004)
-            .routeId("incoming.transform.default")
-        ;
+        if (configuration.processVM()) {
+            from(pubsubQueueVM + queueConsumerParameters)
+                    .choice().when(readFromPubsub)
+                    .log("Processing data from " + pubsubQueueVM + ", size ${header.Content-Length}")
+                    .to("direct:decompress.jaxb")
+                    .to("direct:process.queue.default.async")
+                    .endChoice()
+                    .startupOrder(100002)
+                    .routeId("incoming.transform.vm")
+            ;
+        }
 
-        from(pubsubQueueSX + queueConsumerParameters)
-            .choice().when(readFromPubsub)
-                .log("Processing data from " + pubsubQueueSX + ", size ${header.Content-Length}")
-                .to("direct:decompress.jaxb")
-                .to("direct:process.queue.default.async")
-            .endChoice()
-            .startupOrder(100003)
-            .routeId("incoming.transform.sx")
-        ;
-
-        from(pubsubQueueVM + queueConsumerParameters)
-            .choice().when(readFromPubsub)
-                .log("Processing data from " + pubsubQueueVM + ", size ${header.Content-Length}")
-                .to("direct:decompress.jaxb")
-                .to("direct:process.queue.default.async")
-            .endChoice()
-            .startupOrder(100002)
-            .routeId("incoming.transform.vm")
-        ;
-
-        from(pubsubQueueET + queueConsumerParameters)
-            .choice().when(readFromPubsub)
-                .log("Processing data from " + pubsubQueueET + ", size ${header.Content-Length}")
-                .to("direct:decompress.jaxb")
-                .to("direct:process.queue.default.async")
-            .endChoice()
-            .startupOrder(100001)
-            .routeId("incoming.transform.et")
-        ;
+        if (configuration.processET()) {
+            from(pubsubQueueET + queueConsumerParameters)
+                    .choice().when(readFromPubsub)
+                    .log("Processing data from " + pubsubQueueET + ", size ${header.Content-Length}")
+                    .to("direct:decompress.jaxb")
+                    .to("direct:process.queue.default.async")
+                    .endChoice()
+                    .startupOrder(100001)
+                    .routeId("incoming.transform.et")
+            ;
+        }
 
         from("direct:process.queue.default.async")
             .wireTap("direct:" + CamelRouteNames.PROCESSOR_QUEUE_DEFAULT)

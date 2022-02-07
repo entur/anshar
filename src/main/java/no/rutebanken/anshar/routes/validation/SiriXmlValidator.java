@@ -169,6 +169,12 @@ public class SiriXmlValidator extends ApplicationContextHolder {
     }
 
 
+    public Siri parseXml(SubscriptionSetup subscriptionSetup, String xml)
+        throws XMLStreamException {
+        ByteArrayInputStream stream = new ByteArrayInputStream(xml.getBytes());
+        return parseXml(subscriptionSetup, stream);
+    }
+
     public Siri parseXml(SubscriptionSetup subscriptionSetup, InputStream xml)
         throws XMLStreamException {
         try {

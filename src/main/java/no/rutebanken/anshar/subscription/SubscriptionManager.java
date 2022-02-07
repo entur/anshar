@@ -635,13 +635,11 @@ public class SubscriptionManager {
     }
     public void dataReceived(String subscriptionId, int receivedByteCount) {
         touchSubscription(subscriptionId);
-        if (isActiveSubscription(subscriptionId)) {
-            dataReceived.put(subscriptionId, Instant.now());
+        dataReceived.put(subscriptionId, Instant.now());
 
-            if (receivedByteCount > 0) {
-                receivedBytes.set(subscriptionId,
-                        receivedBytes.getOrDefault(subscriptionId, 0L) + receivedByteCount);
-            }
+        if (receivedByteCount > 0) {
+            receivedBytes.set(subscriptionId,
+                    receivedBytes.getOrDefault(subscriptionId, 0L) + receivedByteCount);
         }
     }
 
