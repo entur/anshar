@@ -104,12 +104,11 @@ public class AdminRouteHelper {
     }
 
     static JSONObject mergeJsonStats(String jsonProxyStats, String jsonVmStats, String jsonEtStats, String jsonSxStats) {
-        JSONParser parser = new JSONParser();
         try {
-            JSONObject proxyStats = (JSONObject) parser.parse(jsonProxyStats);
-            JSONObject vmStats = (JSONObject) parser.parse(jsonVmStats);
-            JSONObject etStats = (JSONObject) parser.parse(jsonEtStats);
-            JSONObject sxStats = (JSONObject) parser.parse(jsonSxStats);
+            JSONObject proxyStats = (JSONObject) new JSONParser().parse(jsonProxyStats);
+            JSONObject vmStats    = (JSONObject) new JSONParser().parse(jsonVmStats);
+            JSONObject etStats    = (JSONObject) new JSONParser().parse(jsonEtStats);
+            JSONObject sxStats    = (JSONObject) new JSONParser().parse(jsonSxStats);
 
             mergeDataDistributionStats(proxyStats, vmStats, etStats, sxStats);
 
