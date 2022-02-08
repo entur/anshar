@@ -167,7 +167,7 @@ public class RestRouteBuilder extends RouteBuilder {
                     .to("direct:redirect.request.et")
             ;
             from("direct:redirect.request.et")
-                    .toD(etHandlerBaseUrl + "${header.CamelHttpUri}?bridgeEndpoint=true")
+                    .toD(etHandlerBaseUrl + "${header.CamelHttpUri}?Content-Type=${header.Content-Type}&bridgeEndpoint=true")
             ;
         }
 
@@ -206,7 +206,7 @@ public class RestRouteBuilder extends RouteBuilder {
                     .to("direct:redirect.request.vm")
             ;
             from("direct:redirect.request.vm")
-                    .toD(vmHandlerBaseUrl + "${header.CamelHttpUri}?bridgeEndpoint=true")
+                    .toD(vmHandlerBaseUrl + "${header.CamelHttpUri}?Content-Type=${header.Content-Type}&bridgeEndpoint=true")
             ;
         }
 
@@ -245,7 +245,7 @@ public class RestRouteBuilder extends RouteBuilder {
                     .to("direct:redirect.request.sx")
             ;
             from("direct:redirect.request.sx")
-                    .toD(sxHandlerBaseUrl + "${header.CamelHttpUri}?bridgeEndpoint=true")
+                    .toD(sxHandlerBaseUrl + "${header.CamelHttpUri}?Content-Type=${header.Content-Type}&bridgeEndpoint=true")
             ;
         }
     }
@@ -332,14 +332,14 @@ public class RestRouteBuilder extends RouteBuilder {
 
         if (MediaType.APPLICATION_JSON.equals(p.getIn().getHeader(HttpHeaders.CONTENT_TYPE)) |
             MediaType.APPLICATION_JSON.equals(p.getIn().getHeader(HttpHeaders.ACCEPT))) {
-            out.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
+            p.getMessage().setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
             SiriJson.toJson(response, out.getOutputStream());
         } else if ("application/x-protobuf".equals(p.getIn().getHeader(HttpHeaders.CONTENT_TYPE)) |
             "application/x-protobuf".equals(p.getIn().getHeader(HttpHeaders.ACCEPT))) {
             try {
                 final byte[] bytes = SiriMapper.mapToPbf(response).toByteArray();
-                out.setHeader(HttpHeaders.CONTENT_TYPE, "application/x-protobuf");
-                out.setHeader(HttpHeaders.CONTENT_LENGTH, "" + bytes.length);
+                p.getMessage().setHeader(HttpHeaders.CONTENT_TYPE, "application/x-protobuf");
+                p.getMessage().setHeader(HttpHeaders.CONTENT_LENGTH, "" + bytes.length);
                 out.getOutputStream().write(bytes);
             } catch (NullPointerException npe) {
                 File file = new File("ET-" + System.currentTimeMillis() + ".xml");
@@ -347,7 +347,7 @@ public class RestRouteBuilder extends RouteBuilder {
                 SiriXml.toXml(response, null, new FileOutputStream(file));
             }
         } else {
-            out.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_XML);
+            p.getMessage().setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_XML);
             SiriXml.toXml(response, null, out.getOutputStream());
         }
         p.getMessage().setBody(out.getOutputStream());
