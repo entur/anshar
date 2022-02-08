@@ -22,8 +22,14 @@
 <body>
 <div class="jumbotron text-center">
     <h2>Anshar status/statistics</h2>
-    <small>Server started ${body.serverStarted}</small>
-    <small>(${body.secondsSinceDataReceived}s)</small>
+    <#if body.vmServerStarted??>
+        <small>Proxyserver started ${body.serverStarted}</small> <br />
+        <small>VM-server started ${body.vmServerStarted}</small> <br />
+        <small>ET-server started ${body.etServerStarted}</small> <br />
+        <small>SX-server started ${body.sxServerStarted}</small> <br />
+    <#else>
+        <small>Server started ${body.serverStarted}</small>
+    </#if>
     <br /><small>- ${body.environment} -</small>
 </div>
 <div class="container">

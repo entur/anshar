@@ -118,11 +118,19 @@ public class AdminRouteHelper {
 
             mergeOutboundSubscriptionStats(proxyStats, vmStats, etStats, sxStats);
 
+            mergeMetadata(proxyStats, vmStats, etStats, sxStats);
+
             return proxyStats ;
         } catch (ParseException e) {
             e.printStackTrace();
         }
         return null;
+    }
+
+    private static void mergeMetadata(JSONObject proxyStats, JSONObject vmStats, JSONObject etStats, JSONObject sxStats) {
+        proxyStats.put("vmServerStarted", vmStats.get("serverStarted"));
+        proxyStats.put("sxServerStarted", sxStats.get("serverStarted"));
+        proxyStats.put("etServerStarted", etStats.get("serverStarted"));
     }
 
     private static void mergeOutboundSubscriptionStats(JSONObject proxyStats, JSONObject vmStats, JSONObject etStats, JSONObject sxStats) {
