@@ -44,9 +44,6 @@
         <li class="nav-item text-right">
             <a class="nav-link" id="admin-tab" data-toggle="tab" href="#admin" onclick="location.hash='admin'" role="tab" aria-controls="admin" aria-selected="false">Admin <span class="glyphicon glyphicon-wrench"></span></a>
         </li>
-        <li class="nav-item">
-            <a class="nav-link" id="map-tab" data-toggle="tab" href="#map" onclick="location.hash='map'" role="tab" aria-controls="map" aria-selected="false">Vehicles <span class="glyphicon glyphicon-globe"></span></a>
-        </li>
     </ul>
 
     <div class="tab-content">
@@ -292,31 +289,6 @@ Request count: ${item.requestCount}">${item.id}</span></td>
                             <span style="cursor: pointer"  class="glyphicon glyphicon-refresh text-success" onclick="administerSubscription('startAll', '')"></span>
                         </td>
                     </tr>
-                </tbody>
-            </table>
-        </div>
-        <div class="tab-pane" id="map" role="tabpanel" aria-labelledby="map-tab" align="center">
-            <table class="table table-striped">
-                <thead>
-                <tr><th colspan="2"><h4>Available vehicle maps</h4></th></tr>
-                <tr>
-                    <th >Environment</th>
-                    <th >URL</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td >Dev</td>
-                    <td ><a href="https://vehicle-map.dev.entur.org/" target="_blank">https://vehicle-map.dev.entur.org/</a></td>
-                </tr>
-                <tr>
-                    <td >Staging</td>
-                    <td ><a href="https://vehicle-map.staging.entur.org/" target="_blank">https://vehicle-map.staging.entur.org/</a></td>
-                </tr>
-                <tr>
-                    <td >Production</td>
-                    <td ><a href="https://vehicle-map.entur.org/" target="_blank">https://vehicle-map.entur.org/</a></td>
-                </tr>
                 </tbody>
             </table>
         </div>
