@@ -61,24 +61,25 @@ public class RealtimeDataFileUploader extends BaseRouteBuilder {
 
         if (snapshotCronExpression == null || snapshotCronExpression.isEmpty()) {
             log.info("Uploading snapshot disabled");
-            return;
+//            return;
         }
 
         if (tmpFolder.endsWith("/")) {
-            tmpFolder = tmpFolder.substring(0, tmpFolder.length()-1);
+            tmpFolder = tmpFolder.substring(0, tmpFolder.length() - 1);
         }
 
         log.info("Uploading snapshot with cron-expression [{}], first upload at: {}.", snapshotCronExpression,
                 new CronExpression(snapshotCronExpression).getNextValidTimeAfter(new Date()));
 
-        singletonFrom("quartz://anshar.export.snapshot?cron=" + snapshotCronExpression
-                ,"anshar.export.snapshot")
-                .choice()
-                .when(p -> isLeader())
+        if (config.processAdmin() && config.processData()) {
+            singletonFrom("quartz://anshar.export.snapshot?cron=" + snapshotCronExpression
+                    , "anshar.export.snapshot")
+                    .choice()
+                    .when(p -> isLeader())
                     .setHeader(TMP_FOLDER, simple(tmpFolder))
-                    .setHeader(ZIP_FILE, simple("SIRI-SNAPSHOT-${date:now:yyyyMMdd-HHmmss}.zip"))
-                    .setHeader(ZIP_FILE_PATH, simple( "${header."+TMP_FOLDER+"}/${header."+ZIP_FILE+"}"))
-                    .log("Exporting snapshot to ${header."+ZIP_FILE+"}")
+                    .setHeader(ZIP_FILE, simple("SIRI-SNAPSHOT-${date:now:yyyyMMdd-HHmm00}.zip"))
+                    .setHeader(ZIP_FILE_PATH, simple("${header." + TMP_FOLDER + "}/${header." + ZIP_FILE + "}"))
+                    .log("Exporting snapshot to ${header." + ZIP_FILE + "}")
 
                     .bean(exportHelper, "exportET")
                     .setHeader("siriDataType", simple("ET"))
@@ -95,9 +96,71 @@ public class RealtimeDataFileUploader extends BaseRouteBuilder {
                     .to("direct:anshar.export.create.zip")
                     .to("direct:anshar.export.upload.zip")
                     .to("direct:anshar.export.delete.zip")
-                .end()
+                    .end()
+            ;
+        } else {
+            if (config.processET()) {
+                singletonFrom("quartz://anshar.export.et.snapshot?cron=" + snapshotCronExpression
+                        , "anshar.export.et.snapshot")
+                        .choice()
+                        .when(p -> isLeader())
+                        .setHeader(TMP_FOLDER, simple(tmpFolder))
+                        .setHeader(ZIP_FILE, simple("SIRI-SNAPSHOT-ET-${date:now:yyyyMMdd-HHmm00}.zip"))
+                        .setHeader(ZIP_FILE_PATH, simple("${header." + TMP_FOLDER + "}/${header." + ZIP_FILE + "}"))
+                        .log("Exporting snapshot to ${header." + ZIP_FILE + "}")
 
-        ;
+                        .bean(exportHelper, "exportET")
+                        .setHeader("siriDataType", simple("ET"))
+                        .to("direct:anshar.export.snapshot.create.file")
+
+                        .to("direct:anshar.export.create.zip")
+                        .to("direct:anshar.export.upload.zip")
+                        .to("direct:anshar.export.delete.zip")
+                        .end()
+                ;
+            }
+            if (config.processVM()) {
+                singletonFrom("quartz://anshar.export.vm.snapshot?cron=" + snapshotCronExpression
+                        , "anshar.export.vm.snapshot")
+                        .choice()
+                        .when(p -> isLeader())
+                        .setHeader(TMP_FOLDER, simple(tmpFolder))
+                        .setHeader(ZIP_FILE, simple("SIRI-SNAPSHOT-VM-${date:now:yyyyMMdd-HHmm00}.zip"))
+                        .setHeader(ZIP_FILE_PATH, simple("${header." + TMP_FOLDER + "}/${header." + ZIP_FILE + "}"))
+                        .log("Exporting snapshot to ${header." + ZIP_FILE + "}")
+
+                        .bean(exportHelper, "exportVM")
+                        .setHeader("siriDataType", simple("VM"))
+                        .to("direct:anshar.export.snapshot.create.file")
+
+                        .to("direct:anshar.export.create.zip")
+                        .to("direct:anshar.export.upload.zip")
+                        .to("direct:anshar.export.delete.zip")
+                        .end()
+                ;
+            }
+
+            if (config.processSX()) {
+                singletonFrom("quartz://anshar.export.sx.snapshot?cron=" + snapshotCronExpression
+                        , "anshar.export.sx.snapshot")
+                        .choice()
+                        .when(p -> isLeader())
+                        .setHeader(TMP_FOLDER, simple(tmpFolder))
+                        .setHeader(ZIP_FILE, simple("SIRI-SNAPSHOT-SX-${date:now:yyyyMMdd-HHmm00}.zip"))
+                        .setHeader(ZIP_FILE_PATH, simple("${header." + TMP_FOLDER + "}/${header." + ZIP_FILE + "}"))
+                        .log("Exporting snapshot to ${header." + ZIP_FILE + "}")
+
+                        .bean(exportHelper, "exportSX")
+                        .setHeader("siriDataType", simple("SX"))
+                        .to("direct:anshar.export.snapshot.create.file")
+
+                        .to("direct:anshar.export.create.zip")
+                        .to("direct:anshar.export.upload.zip")
+                        .to("direct:anshar.export.delete.zip")
+                        .end()
+                ;
+            }
+        }
 
         from("direct:anshar.export.snapshot.create.file")
                 .setHeader(FILE_NAME, simple("${header.siriDataType}.xml"))
