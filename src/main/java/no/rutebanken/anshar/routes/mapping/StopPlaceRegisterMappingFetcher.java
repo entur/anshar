@@ -42,15 +42,15 @@ public class StopPlaceRegisterMappingFetcher {
     BlobStoreService blobStoreService;
 
     public Map<String, Collection<String>> fetchStopPlaceQuayJson(String name) {
+        if (name != null && !name.isEmpty()) {
+            final InputStream json = blobStoreService.getBlob(name);
 
-        final InputStream json = blobStoreService.getBlob(name);
-
-        ObjectMapper mapper = new ObjectMapper();
-        try {
-            return mapper.readValue(json, HashMap.class);
-        }
-        catch (IOException e) {
-            e.printStackTrace();
+            ObjectMapper mapper = new ObjectMapper();
+            try {
+                return mapper.readValue(json, HashMap.class);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
         return new HashMap<>();
     }
