@@ -105,7 +105,7 @@ public class RealtimeDataFileUploader extends BaseRouteBuilder {
                         .choice()
                         .when(p -> isLeader("anshar.export.et.snapshot"))
                         .setHeader(TMP_FOLDER, simple(tmpFolder))
-                        .setHeader(ZIP_FILE, simple("SIRI-SNAPSHOT-ET-${date:now:yyyyMMdd-HHmm00}.zip"))
+                        .setHeader(ZIP_FILE, simple("SIRI-SNAPSHOT-${date:now:yyyyMMdd-HHmm00}-ET.zip"))
                         .setHeader(ZIP_FILE_PATH, simple("${header." + TMP_FOLDER + "}/${header." + ZIP_FILE + "}"))
                         .log("Exporting snapshot to ${header." + ZIP_FILE + "}")
 
@@ -125,7 +125,7 @@ public class RealtimeDataFileUploader extends BaseRouteBuilder {
                         .choice()
                         .when(p -> isLeader("anshar.export.vm.snapshot"))
                         .setHeader(TMP_FOLDER, simple(tmpFolder))
-                        .setHeader(ZIP_FILE, simple("SIRI-SNAPSHOT-VM-${date:now:yyyyMMdd-HHmm00}.zip"))
+                        .setHeader(ZIP_FILE, simple("SIRI-SNAPSHOT-${date:now:yyyyMMdd-HHmm00}-VM.zip"))
                         .setHeader(ZIP_FILE_PATH, simple("${header." + TMP_FOLDER + "}/${header." + ZIP_FILE + "}"))
                         .log("Exporting snapshot to ${header." + ZIP_FILE + "}")
 
@@ -146,7 +146,7 @@ public class RealtimeDataFileUploader extends BaseRouteBuilder {
                         .choice()
                         .when(p -> isLeader("anshar.export.sx.snapshot"))
                         .setHeader(TMP_FOLDER, simple(tmpFolder))
-                        .setHeader(ZIP_FILE, simple("SIRI-SNAPSHOT-SX-${date:now:yyyyMMdd-HHmm00}.zip"))
+                        .setHeader(ZIP_FILE, simple("SIRI-SNAPSHOT-${date:now:yyyyMMdd-HHmm00}-SX.zip"))
                         .setHeader(ZIP_FILE_PATH, simple("${header." + TMP_FOLDER + "}/${header." + ZIP_FILE + "}"))
                         .log("Exporting snapshot to ${header." + ZIP_FILE + "}")
 
