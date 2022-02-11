@@ -75,7 +75,7 @@ public class RealtimeDataFileUploader extends BaseRouteBuilder {
             singletonFrom("quartz://anshar.export.snapshot?cron=" + snapshotCronExpression
                     , "anshar.export.snapshot")
                     .choice()
-                    .when(p -> isLeader())
+                    .when(p -> isLeader("anshar.export.snapshot"))
                     .setHeader(TMP_FOLDER, simple(tmpFolder))
                     .setHeader(ZIP_FILE, simple("SIRI-SNAPSHOT-${date:now:yyyyMMdd-HHmm00}.zip"))
                     .setHeader(ZIP_FILE_PATH, simple("${header." + TMP_FOLDER + "}/${header." + ZIP_FILE + "}"))
@@ -103,7 +103,7 @@ public class RealtimeDataFileUploader extends BaseRouteBuilder {
                 singletonFrom("quartz://anshar.export.et.snapshot?cron=" + snapshotCronExpression
                         , "anshar.export.et.snapshot")
                         .choice()
-                        .when(p -> isLeader())
+                        .when(p -> isLeader("anshar.export.et.snapshot"))
                         .setHeader(TMP_FOLDER, simple(tmpFolder))
                         .setHeader(ZIP_FILE, simple("SIRI-SNAPSHOT-ET-${date:now:yyyyMMdd-HHmm00}.zip"))
                         .setHeader(ZIP_FILE_PATH, simple("${header." + TMP_FOLDER + "}/${header." + ZIP_FILE + "}"))
@@ -123,7 +123,7 @@ public class RealtimeDataFileUploader extends BaseRouteBuilder {
                 singletonFrom("quartz://anshar.export.vm.snapshot?cron=" + snapshotCronExpression
                         , "anshar.export.vm.snapshot")
                         .choice()
-                        .when(p -> isLeader())
+                        .when(p -> isLeader("anshar.export.vm.snapshot"))
                         .setHeader(TMP_FOLDER, simple(tmpFolder))
                         .setHeader(ZIP_FILE, simple("SIRI-SNAPSHOT-VM-${date:now:yyyyMMdd-HHmm00}.zip"))
                         .setHeader(ZIP_FILE_PATH, simple("${header." + TMP_FOLDER + "}/${header." + ZIP_FILE + "}"))
@@ -144,7 +144,7 @@ public class RealtimeDataFileUploader extends BaseRouteBuilder {
                 singletonFrom("quartz://anshar.export.sx.snapshot?cron=" + snapshotCronExpression
                         , "anshar.export.sx.snapshot")
                         .choice()
-                        .when(p -> isLeader())
+                        .when(p -> isLeader("anshar.export.sx.snapshot"))
                         .setHeader(TMP_FOLDER, simple(tmpFolder))
                         .setHeader(ZIP_FILE, simple("SIRI-SNAPSHOT-SX-${date:now:yyyyMMdd-HHmm00}.zip"))
                         .setHeader(ZIP_FILE_PATH, simple("${header." + TMP_FOLDER + "}/${header." + ZIP_FILE + "}"))
@@ -188,12 +188,6 @@ public class RealtimeDataFileUploader extends BaseRouteBuilder {
                     Arrays.stream(folder.listFiles(pathname -> pathname.getName().endsWith(".zip"))).forEach(File::delete);
                 })
                 .routeId("anshar.export.delete.zip");
-    }
-
-    private boolean isLeader() {
-        boolean isLeader = isLeader("anshar.export.snapshot");
-        log.info("Is leader: {}", isLeader);
-        return isLeader;
     }
 
     private static void zipFilesInFolder(String folder, String targetFilePath) {
