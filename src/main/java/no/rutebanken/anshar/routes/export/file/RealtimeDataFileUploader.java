@@ -61,7 +61,7 @@ public class RealtimeDataFileUploader extends BaseRouteBuilder {
 
         if (snapshotCronExpression == null || snapshotCronExpression.isEmpty()) {
             log.info("Uploading snapshot disabled");
-//            return;
+            return;
         }
 
         if (tmpFolder.endsWith("/")) {
