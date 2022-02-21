@@ -56,7 +56,7 @@ public class HeartbeatRoute extends BaseRouteBuilder {
     @Override
     public void configure() throws Exception {
         final String routeId = "anshar.outbound.subscription.manager.route";
-        singletonFrom("quartz://anshar.outbound.subscription.manager?fireNow=true&trigger.repeatInterval=" + HEARTBEAT_INTERVAL_MILLIS,
+        singletonFrom("quartz://anshar.outbound.subscription.manager?trigger.repeatInterval=" + HEARTBEAT_INTERVAL_MILLIS,
             routeId
         )
             .choice()

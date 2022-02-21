@@ -97,7 +97,7 @@ public abstract class SiriSubscriptionRouteBuilder extends BaseRouteBuilder {
             hasBeenStarted = subscriptionSetup.isActive();
         }
 
-        singletonFrom("quartz://anshar/monitor_" + subscriptionSetup.getSubscriptionId() + "?fireNow=true&trigger.repeatInterval=" + 15000,
+        singletonFrom("quartz://anshar/monitor_" + subscriptionSetup.getSubscriptionId() + "?trigger.repeatInterval=" + 15000,
                 "monitor.subscription." + subscriptionSetup.getVendor())
                 .choice()
                 .when(p -> shouldPerformDataNotReceivedAction(p.getFromRouteId()))
