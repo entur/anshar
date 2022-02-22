@@ -7,9 +7,12 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <script>
-        function administerSubscription(operation,id) {
+        function administerSubscription(operation,id, type) {
 
             var uri = "?operation=" + operation + "&subscriptionId="+id;
+            if (type != undefined) {
+                uri += "&type=" + type
+            }
             var xhr = new XMLHttpRequest();
             xhr.open('PUT', uri, true);
             xhr.onreadystatechange = function() {
@@ -279,7 +282,10 @@ Request count: ${item.requestCount}">${item.id}</span></td>
                             Use case: Server is to be taken down controlled, and all subscriptions should be stopped.
                         </td>
                         <td>
-                            <span style="cursor: pointer"  class="glyphicon glyphicon-stop text-danger" onclick="administerSubscription('terminateAll', '')"></span>
+                            <p><button type="button" class="btn btn-danger"  onclick="administerSubscription('terminateAll', '')"><span style="cursor: pointer"  class="glyphicon glyphicon-refresh"></span> ALL</button> </p>
+                            <p><button type="button" class="btn btn-danger"  onclick="administerSubscription('terminateAll', null, 'ESTIMATED_TIMETABLE')"><span style="cursor: pointer"  class="glyphicon glyphicon-refresh"></span> ET</button></p>
+                            <p><button type="button" class="btn btn-danger"  onclick="administerSubscription('terminateAll', null, 'VEHICLE_MONITORING')"><span style="cursor: pointer"  class="glyphicon glyphicon-refresh"></span> VM</button></p>
+                            <p><button type="button" class="btn btn-danger"  onclick="administerSubscription('terminateAll', null, 'SITUATION_EXCHANGE')"><span style="cursor: pointer"  class="glyphicon glyphicon-refresh"></span> SX</button></p>
                         </td>
                     </tr>
 
@@ -292,7 +298,10 @@ Request count: ${item.requestCount}">${item.id}</span></td>
                             Use case: Server has just been started, and all subscriptions should be activated ASAP instead of waiting for health-trigger.
                         </td>
                         <td>
-                            <span style="cursor: pointer"  class="glyphicon glyphicon-refresh text-success" onclick="administerSubscription('startAll', '')"></span>
+                            <p><button type="button" class="btn btn-danger"  onclick="administerSubscription('startAll', '')"><span style="cursor: pointer"  class="glyphicon glyphicon-refresh"></span> ALL</button> </p>
+                            <p><button type="button" class="btn btn-danger"  onclick="administerSubscription('startAll', null, 'ESTIMATED_TIMETABLE')"><span style="cursor: pointer"  class="glyphicon glyphicon-refresh"></span> ET</button></p>
+                            <p><button type="button" class="btn btn-danger"  onclick="administerSubscription('startAll', null, 'VEHICLE_MONITORING')"><span style="cursor: pointer"  class="glyphicon glyphicon-refresh"></span> VM</button></p>
+                            <p><button type="button" class="btn btn-danger"  onclick="administerSubscription('startAll', null, 'SITUATION_EXCHANGE')"><span style="cursor: pointer"  class="glyphicon glyphicon-refresh"></span> SX</button></p>
                         </td>
                     </tr>
                 </tbody>

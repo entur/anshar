@@ -264,14 +264,14 @@ public class AdministrationRoute extends RestRouteBuilder {
 
         //Return subscription status
         from("direct:terminate.all.subscriptions")
-                .bean(subscriptionManager, "terminateAllSubscriptions()")
+                .bean(subscriptionManager, "terminateAllSubscriptions(${header.type})")
                 .routeId("admin.terminate.all.subscriptions")
         ;
 
 
         //Return subscription status
         from("direct:restart.all.subscriptions")
-                .bean(subscriptionManager, "triggerRestartAllActiveSubscriptions()")
+                .bean(subscriptionManager, "triggerRestartAllActiveSubscriptions(${header.type})")
                 .routeId("admin.start.all.subscriptions")
         ;
 

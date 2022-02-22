@@ -557,24 +557,43 @@ public class SubscriptionManager {
     /**
      * Terminating all subscriptions - to be used before a full restart to
      */
-    public void terminateAllSubscriptions() {
-        logger.warn("Terminating ALL subscriptions");
-        for (String subscriptionId : subscriptions.keySet()) {
-            stopSubscription(subscriptionId);
+    public void terminateAllSubscriptions(SiriDataType type) {
+        logger.warn("Terminating ALL {}subscriptions", (type != null ? type + "-":""));
+        int counter = 0;
+        int inactiveCounter = 0;
+        for (SubscriptionSetup subscription : subscriptions.values()) {
+            if (type == null || subscription.getSubscriptionType().equals(type)) {
+                if (isActiveSubscription(subscription.getSubscriptionId())) {
+                    stopSubscription(subscription.getSubscriptionId());
+                    counter++;
+                } else {
+                    inactiveCounter++;
+                }
+            }
         }
+        logger.warn("Stopped {} subscriptions, {} inactive.", counter, inactiveCounter);
     }
 
 
     /**
      * Terminating all subscriptions - to be used before a full restart to
      */
-    public void triggerRestartAllActiveSubscriptions() {
-        logger.warn("Triggering restart of ALL active subscriptions");
-        for (String subscriptionId : subscriptions.keySet()) {
-            if (isActiveSubscription(subscriptionId)) {
-                forceRestart(subscriptionId);
+    public void triggerRestartAllActiveSubscriptions(SiriDataType type) {
+
+        logger.warn("Triggering restart of ALL active {}subscriptions", (type != null ? type + "-":""));
+        int counter = 0;
+        int inactiveCounter = 0;
+        for (SubscriptionSetup subscription : subscriptions.values()) {
+            if (type == null || subscription.getSubscriptionType().equals(type)) {
+                if (isActiveSubscription(subscription.getSubscriptionId())) {
+                    forceRestart(subscription.getSubscriptionId());
+                    counter++;
+                } else {
+                    inactiveCounter++;
+                }
             }
         }
+        logger.warn("Restarted {} subscriptions, {} inactive.", counter, inactiveCounter);
     }
 
     public void stopSubscription(String subscriptionId) {
