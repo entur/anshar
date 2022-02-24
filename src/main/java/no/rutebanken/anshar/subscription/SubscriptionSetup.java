@@ -274,20 +274,24 @@ public class SubscriptionSetup implements Serializable {
     }
 
     private String createDescription() {
+        String description = "";
         if (subscriptionMode.equals(SubscriptionMode.SUBSCRIBE)) {
-            return urlMap.get(RequestType.SUBSCRIBE);
+            description = urlMap.get(RequestType.SUBSCRIBE);
         } else {
             if (subscriptionType.equals(SiriDataType.ESTIMATED_TIMETABLE)) {
-                return urlMap.get(RequestType.GET_ESTIMATED_TIMETABLE);
+                description = urlMap.get(RequestType.GET_ESTIMATED_TIMETABLE);
             }
             if (subscriptionType.equals(SiriDataType.VEHICLE_MONITORING)) {
-                return urlMap.get(RequestType.GET_VEHICLE_MONITORING);
+                description = urlMap.get(RequestType.GET_VEHICLE_MONITORING);
             }
             if (subscriptionType.equals(SiriDataType.SITUATION_EXCHANGE)) {
-                return urlMap.get(RequestType.GET_SITUATION_EXCHANGE);
+                description = urlMap.get(RequestType.GET_SITUATION_EXCHANGE);
             }
         }
-        return "";
+        if (description.contains("?")) {
+            description = description.substring(0, description.indexOf("?"));
+        }
+        return description;
     }
 
     public long getInternalId() {
