@@ -276,16 +276,16 @@ public class SubscriptionSetup implements Serializable {
     private String createDescription() {
         String description = "";
         if (subscriptionMode.equals(SubscriptionMode.SUBSCRIBE)) {
-            description = urlMap.get(RequestType.SUBSCRIBE);
+            description = urlMap.getOrDefault(RequestType.SUBSCRIBE, "");
         } else {
             if (subscriptionType.equals(SiriDataType.ESTIMATED_TIMETABLE)) {
-                description = urlMap.get(RequestType.GET_ESTIMATED_TIMETABLE);
+                description = urlMap.getOrDefault(RequestType.GET_ESTIMATED_TIMETABLE, "");
             }
             if (subscriptionType.equals(SiriDataType.VEHICLE_MONITORING)) {
-                description = urlMap.get(RequestType.GET_VEHICLE_MONITORING);
+                description = urlMap.getOrDefault(RequestType.GET_VEHICLE_MONITORING, "");
             }
             if (subscriptionType.equals(SiriDataType.SITUATION_EXCHANGE)) {
-                description = urlMap.get(RequestType.GET_SITUATION_EXCHANGE);
+                description = urlMap.getOrDefault(RequestType.GET_SITUATION_EXCHANGE, "");
             }
         }
         if (description.contains("?")) {
