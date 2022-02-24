@@ -129,7 +129,10 @@
                 <#list body.subscriptions?sort_by("name") as item>
                 <tr class="${item.healthy???then(item.healthy?then("success","danger"), "warning")}">
                     <th>${item?counter}</th>
-                    <td>${item.name}</td>
+                    <td>
+                        ${item.name}<br />
+                        <small>${item.description}</small>
+                    </td>
                     <td>${item.status!""}</td>
                     <td>${item.subscriptionType}</td>
                     <td>

@@ -250,6 +250,7 @@ public class SubscriptionSetup implements Serializable {
         obj.put("activated", isActive());
         obj.put("vendor", getVendor());
         obj.put("name", getName());
+        obj.put("description", createDescription());
         obj.put("datasetId", getDatasetId());
         obj.put("subscriptionId", getSubscriptionId());
         obj.put("serviceType", getServiceType().toString());
@@ -270,6 +271,23 @@ public class SubscriptionSetup implements Serializable {
         obj.put("forwardPositionData", forwardPositionData());
 
         return obj;
+    }
+
+    private String createDescription() {
+        if (subscriptionMode.equals(SubscriptionMode.SUBSCRIBE)) {
+            return urlMap.get(RequestType.SUBSCRIBE);
+        } else {
+            if (subscriptionType.equals(SiriDataType.ESTIMATED_TIMETABLE)) {
+                return urlMap.get(RequestType.GET_ESTIMATED_TIMETABLE);
+            }
+            if (subscriptionType.equals(SiriDataType.VEHICLE_MONITORING)) {
+                return urlMap.get(RequestType.GET_VEHICLE_MONITORING);
+            }
+            if (subscriptionType.equals(SiriDataType.SITUATION_EXCHANGE)) {
+                return urlMap.get(RequestType.GET_SITUATION_EXCHANGE);
+            }
+        }
+        return "";
     }
 
     public long getInternalId() {
