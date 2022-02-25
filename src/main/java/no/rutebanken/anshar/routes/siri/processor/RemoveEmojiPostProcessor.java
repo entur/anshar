@@ -84,7 +84,7 @@ public class RemoveEmojiPostProcessor extends ValueAdapter implements PostProces
 
         boolean characterRemoved = false;
         for (char c : value.toCharArray()) {
-            if ((c > 32 && c <= 500) || specialCharactersToKeep.contains(c)) {
+            if (keepCharacter(c)) {
                 cleanedValue += (char) c;
             } else {
                 characterRemoved = true;
@@ -95,5 +95,9 @@ public class RemoveEmojiPostProcessor extends ValueAdapter implements PostProces
             logger.info("Removed unwanted characters from text [{}].", value);
         }
         return cleanedValue;
+    }
+
+    private boolean keepCharacter(char c) {
+        return (c > 30 && c <= 500) || specialCharactersToKeep.contains(c);
     }
 }
