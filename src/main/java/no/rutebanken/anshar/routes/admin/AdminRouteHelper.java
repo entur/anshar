@@ -66,6 +66,11 @@ public class AdminRouteHelper {
         }
     }
 
+
+    public void deleteSubscription(String subscriptionId) {
+        subscriptionManager.removeSubscription(subscriptionId, true);
+    }
+
     public void forceUnlock(String lockId) {
         final String lockMap = "ansharRouteLockMap";
         logger.warn("Force unlocking of key {} from map {}", lockId, lockMap);
@@ -243,11 +248,13 @@ public class AdminRouteHelper {
     }
 
     private static void updateSubscriptionDetails(JSONObject subscription, JSONObject subscriptionDetail) {
-        subscription.put("lastActivity", subscriptionDetail.get("lastActivity"));
-        subscription.put("bytecountLabel", subscriptionDetail.get("bytecountLabel"));
-        subscription.put("bytecount", subscriptionDetail.get("bytecount"));
-        subscription.put("objectcount", subscriptionDetail.get("objectcount"));
-        subscription.put("hitcount", subscriptionDetail.get("hitcount"));
+        if (subscriptionDetail != null) {
+            subscription.put("lastActivity", subscriptionDetail.get("lastActivity"));
+            subscription.put("bytecountLabel", subscriptionDetail.get("bytecountLabel"));
+            subscription.put("bytecount", subscriptionDetail.get("bytecount"));
+            subscription.put("objectcount", subscriptionDetail.get("objectcount"));
+            subscription.put("hitcount", subscriptionDetail.get("hitcount"));
+        }
     }
 
     private static Map<String, JSONObject> filterSubscriptions(JSONArray subscriptionWrappers, SiriDataType dataType) {

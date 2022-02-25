@@ -304,6 +304,46 @@ Request count: ${item.requestCount}">${item.id}</span></td>
                             <p><button type="button" class="btn btn-danger"  onclick="administerSubscription('startAll', null, 'SITUATION_EXCHANGE')"><span style="cursor: pointer"  class="glyphicon glyphicon-refresh"></span> SX</button></p>
                         </td>
                     </tr>
+
+                    <tr data-toggle="collapse" data-target="#accordion_admin_delete" style="cursor: pointer" class="clickable success">
+                        <td colspan="2">Delete subscriptions</td>
+                    </tr>
+                    <tr id="accordion_admin_delete" class="collapse ">
+                        <td  colspan="2">
+                            <table class="table">
+                                <tbody>
+                                <tr>
+                                    <td>
+                                        CAUTION - Actually deletes subscription!!<br />
+                                        Use case: Subscription has been removed from config, and has to be removed manually.<br />
+                                        <strong>Note: this removes the <i>record</i>, a redeploy is necessary to remove all traces.</strong>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <#list body.types as type>
+                                            <table class="table">
+                                                <tr><th colspan="4"><h4>${type.typeName}</h4></th></tr>
+                                                <#list type.subscriptions?sort_by("vendor") as item>
+                                                    <tr>
+                                                        <th style="vertical-align: middle">${item?counter}</th>
+                                                        <td style="vertical-align: middle">${item.name}</td>
+                                                        <td>${item.vendor}</td>
+                                                        <td>
+                                                            <div align="right">
+                                                                <span style="cursor: pointer"  class="glyphicon glyphicon-trash" onclick="administerSubscription('delete', '${item.subscriptionId}')"></span>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                </#list>
+                                            </table>
+                                        </#list>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </div>

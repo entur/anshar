@@ -232,6 +232,9 @@ public class AdministrationRoute extends RestRouteBuilder {
                 .when(header(operationHeaderName).isEqualTo("flush"))
                     .to("direct:flush.data.from.subscription")
                 .endChoice()
+                .when(header(operationHeaderName).isEqualTo("delete"))
+                    .to("direct:delete.subscription")
+                .endChoice()
             .end()
         ;
 
@@ -302,6 +305,36 @@ public class AdministrationRoute extends RestRouteBuilder {
                 .endChoice()
                 .routeId("admin.internal.flush.data")
         ;
+
+
+        //Return subscription status
+        from("direct:delete.subscription")
+                .bean(helper, "deleteSubscription(${header.subscriptionId})")
+                .to("direct:internal.delete.subscription")
+        ;
+
+        if (configuration.processAdmin() && !configuration.processData()) {
+            from("direct:internal.delete.subscription")
+                    .choice()
+                    .when(p -> !configuration.processET())
+                    .toD(etHandlerBaseUrl + "/anshar/stats?bridgeEndpoint=true&httpMethod=PUT&subscriptionId=${header.subscriptionId}")
+                    .end()
+                    .choice()
+                    .when(p -> !configuration.processVM())
+                    .toD(vmHandlerBaseUrl + "/anshar/stats?bridgeEndpoint=true&httpMethod=PUT&subscriptionId=${header.subscriptionId}")
+                    .end()
+                    .choice()
+                    .when(p -> !configuration.processSX())
+                    .toD(sxHandlerBaseUrl + "/anshar/stats?bridgeEndpoint=true&httpMethod=PUT&subscriptionId=${header.subscriptionId}")
+                    .end()
+                    .routeId("admin.internal.delete.subscription")
+            ;
+        } else {
+            from("direct:internal.delete.subscription")
+                    .log("Subscription deleted.")
+                    .routeId("admin.internal.delete.subscription")
+            ;
+        }
 
         //Return subscription status
         from("direct:clear-unmapped")
