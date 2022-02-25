@@ -122,15 +122,15 @@ public class LivenessReadinessRoute extends RestRouteBuilder {
                 .routeId("health.scrape")
         ;
 
-        // liveness
-        from("direct:up")
+        // readiness
+        from("direct:ready")
                 .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
                 .setBody(constant("OK"))
                 .routeId("health.ready")
         ;
 
-        // readiness
-        from("direct:ready")
+        // liveness
+        from("direct:up")
                 .choice()
                 .when(p -> !healthManager.isHazelcastAlive())
                     .log("Hazelcast is shut down")
