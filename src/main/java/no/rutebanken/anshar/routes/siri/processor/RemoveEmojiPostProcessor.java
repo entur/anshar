@@ -38,7 +38,6 @@ public class RemoveEmojiPostProcessor extends ValueAdapter implements PostProces
 
     private static transient List<Character> specialCharactersToKeep = Arrays.asList((char)8211, (char)8212);
 
-
     @Override
     protected String apply(String text) {
         return null;
@@ -73,23 +72,28 @@ public class RemoveEmojiPostProcessor extends ValueAdapter implements PostProces
             for (DefaultedTextStructure text : textStructures) {
                 String value = text.getValue();
 
-                String cleanedValue = "";
-
-                boolean characterRemoved = false;
-                for (char c : value.toCharArray()) {
-                    if (c <= 500 || specialCharactersToKeep.contains(c)) {
-                        cleanedValue += (char) c;
-                    } else {
-                        characterRemoved = true;
-                    }
-                }
-
-                if (characterRemoved) {
-                    logger.info("Removed emoji-like character from text [{}].", value);
-                }
+                String cleanedValue = cleanup(value);
                 text.setValue(cleanedValue);
 
             }
         }
+    }
+
+    private String cleanup(String value) {
+        String cleanedValue = "";
+
+        boolean characterRemoved = false;
+        for (char c : value.toCharArray()) {
+            if ((c > 32 && c <= 500) || specialCharactersToKeep.contains(c)) {
+                cleanedValue += (char) c;
+            } else {
+                characterRemoved = true;
+            }
+        }
+
+        if (characterRemoved) {
+            logger.info("Removed unwanted characters from text [{}].", value);
+        }
+        return cleanedValue;
     }
 }
