@@ -284,10 +284,10 @@ Request count: ${item.requestCount}">${item.id}</span></td>
                             Use case: Server is to be taken down controlled, and all subscriptions should be stopped.
                         </td>
                         <td>
-                            <p><button type="button" class="btn btn-danger"  onclick="administerSubscription('terminateAll', '')"><span style="cursor: pointer"  class="glyphicon glyphicon-refresh"></span> ALL</button> </p>
-                            <p><button type="button" class="btn btn-danger"  onclick="administerSubscription('terminateAll', null, 'ESTIMATED_TIMETABLE')"><span style="cursor: pointer"  class="glyphicon glyphicon-refresh"></span> ET</button></p>
-                            <p><button type="button" class="btn btn-danger"  onclick="administerSubscription('terminateAll', null, 'VEHICLE_MONITORING')"><span style="cursor: pointer"  class="glyphicon glyphicon-refresh"></span> VM</button></p>
-                            <p><button type="button" class="btn btn-danger"  onclick="administerSubscription('terminateAll', null, 'SITUATION_EXCHANGE')"><span style="cursor: pointer"  class="glyphicon glyphicon-refresh"></span> SX</button></p>
+                            <p><button type="button" class="btn btn-danger"  onclick="administerSubscription('terminateAll', '')"><span style="cursor: pointer"  class="glyphicon glyphicon-stop"></span> ALL</button> </p>
+                            <p><button type="button" class="btn btn-danger"  onclick="administerSubscription('terminateAll', null, 'ESTIMATED_TIMETABLE')"><span style="cursor: pointer"  class="glyphicon glyphicon-stop"></span> ET</button></p>
+                            <p><button type="button" class="btn btn-danger"  onclick="administerSubscription('terminateAll', null, 'VEHICLE_MONITORING')"><span style="cursor: pointer"  class="glyphicon glyphicon-stop"></span> VM</button></p>
+                            <p><button type="button" class="btn btn-danger"  onclick="administerSubscription('terminateAll', null, 'SITUATION_EXCHANGE')"><span style="cursor: pointer"  class="glyphicon glyphicon-stop"></span> SX</button></p>
                         </td>
                     </tr>
 
