@@ -26,10 +26,12 @@
 <div class="jumbotron text-center">
     <h2>Anshar status/statistics</h2>
     <#if body.vmServerStarted??>
-        <small>Proxyserver started ${body.serverStarted}</small> <br />
-        <small>VM-server started ${body.vmServerStarted}</small> <br />
-        <small>ET-server started ${body.etServerStarted}</small> <br />
-        <small>SX-server started ${body.sxServerStarted}</small> <br />
+    <table align="center" >
+        <tr><td align="right"><small>Proxyserver started:&nbsp;</small></td><td><small>${body.serverStarted}</small></td></tr>
+        <tr><td align="right"><small>VM-server started:&nbsp;</small></td> <td><small>${body.vmServerStarted}</small></td></tr>
+        <tr><td align="right"><small>ET-server started:&nbsp;</small></td> <td><small>${body.etServerStarted}</small></td></tr>
+        <tr><td align="right"><small>SX-server started:&nbsp;</small></td> <td><small>${body.sxServerStarted}</small></td></tr>
+    </table>
     <#else>
         <small>Server started ${body.serverStarted}</small>
     </#if>
