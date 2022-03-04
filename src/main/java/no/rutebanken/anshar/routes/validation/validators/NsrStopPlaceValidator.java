@@ -42,6 +42,10 @@ public abstract class NsrStopPlaceValidator extends CustomValidator {
             return  createEvent(node, FIELDNAME, "NSR:StopPlace:ID", nodeValue, ValidationEvent.FATAL_ERROR);
         }
 
+        if (!idExists(nodeValue)) {
+            return createCustomFieldEvent(node, "The ID ´" + nodeValue + "` does not exist in NSR.", ValidationEvent.FATAL_ERROR);
+        }
+
         return null;
     }
 }

@@ -57,6 +57,9 @@ public class AffectedStopPointValidator extends CustomValidator {
         if (!validQuayRef && !validStopPlaceRef) {
             return createEvent(node, FIELDNAME, "NSR:Quay:ID or NSR:StopPlace:ID", nodeValue, ValidationEvent.FATAL_ERROR);
         }
+        if (!idExists(nodeValue)) {
+            return createCustomFieldEvent(node, "The ID ´" + nodeValue + "` does not exist in NSR.", ValidationEvent.FATAL_ERROR);
+        }
         return null;
     }
 }

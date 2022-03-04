@@ -17,8 +17,9 @@ package no.rutebanken.anshar.validation.sx;
 
 import no.rutebanken.anshar.routes.validation.validators.sx.AffectedStopPointValidator;
 import no.rutebanken.anshar.validation.CustomValidatorTest;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.xml.bind.ValidationEvent;
 
@@ -27,12 +28,14 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class AffectedStopPointValidatorTest extends CustomValidatorTest {
 
-    private static AffectedStopPointValidator validator;
+    @Autowired
+    private AffectedStopPointValidator validator;
     private final String fieldName = "StopPointRef";
 
-    @BeforeAll
-    public static void init() {
-        validator = new AffectedStopPointValidator();
+    @BeforeEach
+    public void init() {
+        validator.prepareTestData("NSR:Quay:1234");
+        validator.prepareTestData("NSR:StopPlace:1234");
     }
 
     @Test

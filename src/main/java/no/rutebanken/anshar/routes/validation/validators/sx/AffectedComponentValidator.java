@@ -77,6 +77,9 @@ public class AffectedComponentValidator extends CustomValidator {
             if (componentRef == null || !isValidNsrId("NSR:Quay:", componentRef)) {
                 return  createEvent(node, "ComponentRef", "NSR:Quay:ID when ComponentType is 'quay'", componentRef, ValidationEvent.FATAL_ERROR);
             }
+            if (componentRef == null || !idExists(componentRef)) {
+                return  createEvent(node, "ComponentRef", "Valid quay-ID from NSR when ComponentType is 'quay'", componentRef, ValidationEvent.FATAL_ERROR);
+            }
         }
 
         String accessFeatureType = getChildNodeValue(node, "AccessFeatureType");

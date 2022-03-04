@@ -23,7 +23,7 @@ import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Value;
 
-public abstract class BaseHttpTest extends SpringBootBaseTest{
+public abstract class BaseHttpTest extends SpringBootBaseTest {
 
     static final String TEST_SUBSCRIPTION_ID = "test.subscription.id";
     @Value("${anshar.incoming.port}")

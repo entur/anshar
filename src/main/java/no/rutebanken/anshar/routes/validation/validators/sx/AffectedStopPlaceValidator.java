@@ -50,6 +50,11 @@ public class AffectedStopPlaceValidator extends CustomValidator {
         if (!isValidNsrId("NSR:StopPlace:", nodeValue) && !isValidNsrId("NSR:Quay:", nodeValue)) {
             return  createEvent(node, FIELDNAME, "NSR:StopPlace:ID or NSR:Quay:ID", nodeValue, ValidationEvent.FATAL_ERROR);
         }
+
+        if (!idExists(nodeValue)) {
+            return createCustomFieldEvent(node, "The ID ´" + nodeValue + "` does not exist in NSR.", ValidationEvent.FATAL_ERROR);
+        }
+
         return null;
     }
 }

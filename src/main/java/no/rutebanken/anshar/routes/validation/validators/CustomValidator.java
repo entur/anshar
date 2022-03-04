@@ -15,6 +15,8 @@
 
 package no.rutebanken.anshar.routes.validation.validators;
 
+import no.rutebanken.anshar.routes.mapping.StopPlaceUpdaterService;
+import no.rutebanken.anshar.routes.siri.transformer.ApplicationContextHolder;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -28,10 +30,13 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public abstract class CustomValidator {
 
     protected static final String FIELD_DELIMITER = "/";
+
+    private StopPlaceUpdaterService stopPlaceService;
 
     protected ZonedDateTime parseDate(String time) {
         try {
@@ -67,6 +72,17 @@ public abstract class CustomValidator {
 
     protected boolean isValidNsrId(String prefix, String nodeValue) {
         return nodeValue != null && nodeValue.startsWith(prefix);
+    }
+
+    protected boolean idExists(String nodeValue) {
+        if (stopPlaceService == null) {
+            stopPlaceService = ApplicationContextHolder.getContext().getBean(StopPlaceUpdaterService.class);
+        }
+        if (stopPlaceService != null) {
+            return stopPlaceService.isKnownId(nodeValue);
+        }
+        //return true if service is not instantiated
+        return true;
     }
 
     protected boolean isValidGenericId(String pattern, String nodeValue) {
@@ -268,5 +284,12 @@ public abstract class CustomValidator {
      */
     protected ValidationEvent createCustomFieldEvent(Node node, String message, int severity) {
         return new ValidationEventImpl(severity, message, new ValidationEventLocatorImpl(node));
+    }
+
+    public void prepareTestData(String id) {
+        if (stopPlaceService == null) {
+            stopPlaceService = new StopPlaceUpdaterService();
+        }
+        stopPlaceService.addStopQuays(Set.of(id));
     }
 }

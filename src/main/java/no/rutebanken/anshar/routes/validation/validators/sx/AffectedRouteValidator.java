@@ -16,9 +16,15 @@
 package no.rutebanken.anshar.routes.validation.validators.sx;
 
 import no.rutebanken.anshar.routes.validation.validators.NsrGenericIdValidator;
+import no.rutebanken.anshar.routes.validation.validators.ProfileValidationEventOrList;
 import no.rutebanken.anshar.routes.validation.validators.Validator;
 import no.rutebanken.anshar.subscription.SiriDataType;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.w3c.dom.Node;
+
+import javax.xml.bind.ValidationEvent;
+import java.util.List;
 
 import static no.rutebanken.anshar.routes.validation.validators.Constants.AFFECTED_ROUTE;
 
@@ -33,10 +39,43 @@ public class AffectedRouteValidator extends NsrGenericIdValidator {
 
     private String path;
 
+    @Autowired
+    private AffectedStopPointValidator stopPointValidator;
+
     public AffectedRouteValidator() {
         FIELDNAME = "RouteRef";
         ID_PATTERN = "Route";
-        path = AFFECTED_ROUTE + FIELD_DELIMITER + FIELDNAME;
+        path = AFFECTED_ROUTE;
+    }
+
+    @Override
+    public String getCategoryName() {
+        return "AffectedRoute";
+    }
+
+    @Override
+    public ValidationEvent isValid(Node node) {
+        String routeRef = getChildNodeValue(node, FIELDNAME);
+        if (routeRef != null) {
+            if (!super.isValidGenericId(ID_PATTERN, routeRef))  {
+                return createEvent(node, FIELDNAME, "Valid reference to route", routeRef, ValidationEvent.FATAL_ERROR);
+            }
+        }
+        ProfileValidationEventOrList eventList = new ProfileValidationEventOrList();
+        Node stopPoints = getChildNodeByName(node, "StopPoints");
+        if (stopPoints != null) {
+            List<Node> affectedStopPoints = getChildNodesByName(stopPoints, "AffectedStopPoint");
+            for (Node affectedStopPoint : affectedStopPoints) {
+                ValidationEvent validationEvent = stopPointValidator.isValid(getChildNodeByName(affectedStopPoint,"StopPointRef"));
+                if (validationEvent != null) {
+                    eventList.addEvent(validationEvent);
+                }
+            }
+        }
+        if (eventList.getEvents().isEmpty()) {
+            return null;
+        }
+        return eventList;
     }
 
     @Override

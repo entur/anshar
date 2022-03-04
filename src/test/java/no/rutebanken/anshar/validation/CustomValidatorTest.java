@@ -15,6 +15,7 @@
 
 package no.rutebanken.anshar.validation;
 
+import no.rutebanken.anshar.integration.SpringBootBaseTest;
 import no.rutebanken.anshar.routes.validation.validators.CustomValidator;
 import org.junit.jupiter.api.Test;
 import org.w3c.dom.Document;
@@ -34,7 +35,7 @@ import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class CustomValidatorTest {
+public class CustomValidatorTest extends SpringBootBaseTest {
 
     XPathFactory xpathFactory = XPathFactory.newInstance();
     XPath xpath = xpathFactory.newXPath();

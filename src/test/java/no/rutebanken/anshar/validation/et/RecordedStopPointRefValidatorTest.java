@@ -33,6 +33,7 @@ public class RecordedStopPointRefValidatorTest extends CustomValidatorTest {
     @BeforeAll
     public static void init() {
         validator = new RecordedStopPointRefValidator();
+        validator.prepareTestData("NSR:Quay:1234");
     }
 
     @Test
