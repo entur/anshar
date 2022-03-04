@@ -115,11 +115,6 @@ public class AffectedRouteValidatorTest extends CustomValidatorTest {
                 "<Routes>" +
                 "<AffectedRoute>" +
                 "<RouteRef>TST:Route:123</RouteRef>" +                /* <===   Tested value ===> */
-                "<StopPoints>" +
-                "<AffectedStopPoint>" +
-                "<StopPointRef>NSR:Quay:1234</StopPointRef>" +
-                "</AffectedStopPoint>" +
-                "</StopPoints>" +
                 "</AffectedRoute>" +
                 "</Routes>" +
                 "</AffectedLine>" +
