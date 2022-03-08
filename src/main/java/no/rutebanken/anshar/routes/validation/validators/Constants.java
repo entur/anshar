@@ -39,8 +39,8 @@ public class Constants {
 
     public static final String ESTIMATED_VEHICLE_JOURNEY = SERVICE_DELIVERY + "/EstimatedTimetableDelivery/EstimatedJourneyVersionFrame/EstimatedVehicleJourney";
     public static final String ESTIMATED_CALLS = ESTIMATED_VEHICLE_JOURNEY + "/EstimatedCalls";
-    public static final String ESTIMATED_CALL = ESTIMATED_VEHICLE_JOURNEY + ESTIMATED_CALLS + "/EstimatedCall";
-    public static final String RECORDED_CALL = ESTIMATED_VEHICLE_JOURNEY + "/RecordedCalls/RecordedCall";
+    public static final String ESTIMATED_CALL  = ESTIMATED_VEHICLE_JOURNEY + "/EstimatedCalls/EstimatedCall";
+    public static final String RECORDED_CALL   = ESTIMATED_VEHICLE_JOURNEY + "/RecordedCalls/RecordedCall";
 
 
     public static final String VEHICLE_ACTIVITY = SERVICE_DELIVERY + "/VehicleMonitoringDelivery/VehicleActivity";
