@@ -56,17 +56,20 @@ public class ValidationRoute extends RestRouteBuilder {
 
         from("direct:validation.list")
                 .bean(subscriptionManager, "getSubscriptionsForCodespace(${header."+ PARAM_CODESPACE+"})")
+                .to("direct:removeHeaders")
                 .to("freemarker:templates/validation.ftl")
                 .routeId("admin.validation.list")
         ;
         from("direct:validation.report")
                 .bean(siriXmlValidator, "getValidationResults(${header." + PARAM_SUBSCRIPTION_ID + "})")
+                .to("direct:removeHeaders")
                 .to("freemarker:templates/validation-report.ftl")
                 .routeId("admin.validation.report")
         ;
 
         from("direct:validation.siri")
                 .bean(siriXmlValidator, "getValidatedSiri(${header." + PARAM_VALIDATION_REF + "})")
+                .to("direct:removeHeaders")
                 .setHeader("Content-Disposition", simple("attachment; filename=\"SIRI.xml\""))
                 .routeId("admin.validation.siri")
         ;

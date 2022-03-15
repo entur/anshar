@@ -181,6 +181,7 @@ public class AdministrationRoute extends RestRouteBuilder {
                         );
                         p.getMessage().setBody(body);
                     })
+                    .to("direct:removeHeaders")
                     .setHeader(HttpHeaders.CONTENT_TYPE, simple(MediaType.TEXT_HTML))
                     .to("freemarker:templates/stats.ftl")
                     .routeId("admin.stats")
@@ -190,11 +191,15 @@ public class AdministrationRoute extends RestRouteBuilder {
             from(STATS_ROUTE)
                     .setHeader(HttpHeaders.CONTENT_TYPE, simple(MediaType.APPLICATION_JSON))
                     .to(INTERNAL_STATS_ROUTE)
+                    .to("direct:removeHeaders")
                     .setHeader(HttpHeaders.CONTENT_TYPE, simple(MediaType.TEXT_HTML))
                     .to("freemarker:templates/stats.ftl")
                     .routeId("admin.stats")
             ;
         }
+        from("direct:removeHeaders")
+                .removeHeaders("*")
+                .routeId("admin.remove.headers");
 
         from (INTERNAL_STATS_ROUTE)
             .process(p -> {
@@ -362,6 +367,7 @@ public class AdministrationRoute extends RestRouteBuilder {
         from(UNMAPPED_ROUTE)
                 .filter(header("datasetId").isNotNull())
                 .bean(healthManager, "getUnmappedIdsAsJson(${header.datasetId})")
+                .to("direct:removeHeaders")
                 .to("freemarker:templates/unmapped.ftl")
                 .routeId("admin.unmapped")
         ;
