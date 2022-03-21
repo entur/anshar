@@ -15,6 +15,7 @@
 
 package no.rutebanken.anshar.routes.siri.processor;
 
+import no.rutebanken.anshar.routes.siri.processor.routedata.AlreadyExistsException;
 import no.rutebanken.anshar.routes.siri.processor.routedata.InvalidVehicleModeForStopException;
 import no.rutebanken.anshar.routes.siri.processor.routedata.StopsUtil;
 import no.rutebanken.anshar.routes.siri.processor.routedata.TooFastException;
@@ -23,20 +24,14 @@ import no.rutebanken.anshar.subscription.SiriDataType;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.org.siri.siri20.EstimatedCall;
-import uk.org.siri.siri20.EstimatedTimetableDeliveryStructure;
-import uk.org.siri.siri20.EstimatedVehicleJourney;
-import uk.org.siri.siri20.EstimatedVersionFrameStructure;
-import uk.org.siri.siri20.RecordedCall;
-import uk.org.siri.siri20.Siri;
-import uk.org.siri.siri20.VehicleModesEnumeration;
+import uk.org.siri.siri20.*;
 
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import static no.rutebanken.anshar.routes.siri.transformer.MappingNames.EXTRA_JOURNEY_INVALID_MODE;
-import static no.rutebanken.anshar.routes.siri.transformer.MappingNames.EXTRA_JOURNEY_TOO_FAST;
+import static no.rutebanken.anshar.routes.siri.processor.routedata.NetexUpdaterService.getServiceDates;
+import static no.rutebanken.anshar.routes.siri.transformer.MappingNames.*;
 import static no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter.getMappedId;
 import static no.rutebanken.anshar.routes.validation.validators.et.SaneSpeedValidator.SANE_SPEED_LIMIT;
 import static org.apache.commons.lang3.BooleanUtils.isTrue;
@@ -74,7 +69,16 @@ public class ExtraJourneyPostProcessor extends ValueAdapter implements PostProce
 
                         for (EstimatedVehicleJourney estimatedVehicleJourney : estimatedVehicleJourneies) {
                             if (isTrue(estimatedVehicleJourney.isExtraJourney())) {
+                                String estimatedVehicleJourneyCode = estimatedVehicleJourney.getEstimatedVehicleJourneyCode();
                                 try {
+
+                                    if (estimatedVehicleJourneyCode != null) {
+                                        if (getServiceDates(estimatedVehicleJourneyCode) != null) {
+                                            throw new AlreadyExistsException(estimatedVehicleJourneyCode);
+                                        }
+                                    }
+
+
                                     final List<VehicleModesEnumeration> vehicleModes = estimatedVehicleJourney
                                         .getVehicleModes();
 
@@ -143,11 +147,15 @@ public class ExtraJourneyPostProcessor extends ValueAdapter implements PostProce
                                     }
                                 } catch (TooFastException e) {
                                     getMetricsService().registerDataMapping(SiriDataType.ESTIMATED_TIMETABLE, datasetId, EXTRA_JOURNEY_TOO_FAST, 1);
-                                    logger.info("Removing {}, cause: {}", estimatedVehicleJourney.getEstimatedVehicleJourneyCode(), e.getMessage());
+                                    logger.info("Removing {}, cause: {}", estimatedVehicleJourneyCode, e.getMessage());
                                     extraJourneysToRemove.add(estimatedVehicleJourney);
                                 } catch (InvalidVehicleModeForStopException e) {
                                     getMetricsService().registerDataMapping(SiriDataType.ESTIMATED_TIMETABLE, datasetId, EXTRA_JOURNEY_INVALID_MODE, 1);
-                                    logger.info("Removing {}, cause: {}", estimatedVehicleJourney.getEstimatedVehicleJourneyCode(), e.getMessage());
+                                    logger.info("Removing {}, cause: {}", estimatedVehicleJourneyCode, e.getMessage());
+                                    extraJourneysToRemove.add(estimatedVehicleJourney);
+                                } catch (AlreadyExistsException e) {
+                                    getMetricsService().registerDataMapping(SiriDataType.ESTIMATED_TIMETABLE, datasetId, EXTRA_JOURNEY_ID_EXISTS, 1);
+                                    logger.info("Removing {}, cause: {}", estimatedVehicleJourneyCode, e.getMessage());
                                     extraJourneysToRemove.add(estimatedVehicleJourney);
                                 }
                             }

@@ -19,7 +19,8 @@ public enum MappingNames {
         OVERRIDE_EMPTY_DESTINATION_DISPLAY_FOR_EXTRA_JOURNEYS("Override empty DestinationDisplay for ExtraJourneys"),
         ADD_ORDER_TO_CALLS("Add Order to calls"),
         EXTRA_JOURNEY_TOO_FAST("ExtraJourney is reported to travel too fast between stops"),
-        EXTRA_JOURNEY_INVALID_MODE("ExtraJourney mode does not match stops in use")
+        EXTRA_JOURNEY_INVALID_MODE("ExtraJourney mode does not match stops in use"),
+        EXTRA_JOURNEY_ID_EXISTS("ExtraJourney has ID that already exists in plan-data")
         ;
 
 
