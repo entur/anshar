@@ -30,7 +30,7 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import static no.rutebanken.anshar.routes.siri.processor.routedata.NetexUpdaterService.getServiceDates;
+import static no.rutebanken.anshar.routes.siri.processor.routedata.NetexUpdaterService.serviceJourneyIdExists;
 import static no.rutebanken.anshar.routes.siri.transformer.MappingNames.*;
 import static no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter.getMappedId;
 import static no.rutebanken.anshar.routes.validation.validators.et.SaneSpeedValidator.SANE_SPEED_LIMIT;
@@ -72,11 +72,10 @@ public class ExtraJourneyPostProcessor extends ValueAdapter implements PostProce
                                 String estimatedVehicleJourneyCode = estimatedVehicleJourney.getEstimatedVehicleJourneyCode();
                                 try {
 
-                                    if (estimatedVehicleJourneyCode != null) {
-                                        if (getServiceDates(estimatedVehicleJourneyCode) != null) {
-                                            throw new AlreadyExistsException(estimatedVehicleJourneyCode);
-                                        }
+                                    if (serviceJourneyIdExists(estimatedVehicleJourneyCode)) {
+                                        throw new AlreadyExistsException(estimatedVehicleJourneyCode);
                                     }
+
 
 
                                     final List<VehicleModesEnumeration> vehicleModes = estimatedVehicleJourney
