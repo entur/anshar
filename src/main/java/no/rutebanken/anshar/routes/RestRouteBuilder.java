@@ -167,7 +167,11 @@ public class RestRouteBuilder extends RouteBuilder {
                     .to("direct:redirect.request.et")
             ;
             from("direct:redirect.request.et")
-                    .toD(etHandlerBaseUrl + "${header.CamelHttpUri}?Content-Type=${header.Content-Type}&bridgeEndpoint=true&${header.CamelHttpQuery}")
+                    .choice().when(header("CamelHttpQuery").isNull())
+                        .toD(etHandlerBaseUrl + "${header.CamelHttpUri}?Content-Type=${header.Content-Type}&bridgeEndpoint=true")
+                    .otherwise()
+                        .toD(etHandlerBaseUrl + "${header.CamelHttpUri}?Content-Type=${header.Content-Type}&bridgeEndpoint=true&${header.CamelHttpQuery}")
+                    .endChoice()
             ;
         }
 
@@ -206,7 +210,11 @@ public class RestRouteBuilder extends RouteBuilder {
                     .to("direct:redirect.request.vm")
             ;
             from("direct:redirect.request.vm")
-                    .toD(vmHandlerBaseUrl + "${header.CamelHttpUri}?Content-Type=${header.Content-Type}&bridgeEndpoint=true&${header.CamelHttpQuery}")
+                    .choice().when(header("CamelHttpQuery").isNull())
+                        .toD(vmHandlerBaseUrl + "${header.CamelHttpUri}?Content-Type=${header.Content-Type}&bridgeEndpoint=true")
+                    .otherwise()
+                        .toD(vmHandlerBaseUrl + "${header.CamelHttpUri}?Content-Type=${header.Content-Type}&bridgeEndpoint=true&${header.CamelHttpQuery}")
+                    .endChoice()
             ;
         }
 
@@ -245,7 +253,11 @@ public class RestRouteBuilder extends RouteBuilder {
                     .to("direct:redirect.request.sx")
             ;
             from("direct:redirect.request.sx")
-                    .toD(sxHandlerBaseUrl + "${header.CamelHttpUri}?Content-Type=${header.Content-Type}&bridgeEndpoint=true&${header.CamelHttpQuery}")
+                    .choice().when(header("CamelHttpQuery").isNull())
+                        .toD(sxHandlerBaseUrl + "${header.CamelHttpUri}?Content-Type=${header.Content-Type}&bridgeEndpoint=true")
+                    .otherwise()
+                        .toD(sxHandlerBaseUrl + "${header.CamelHttpUri}?Content-Type=${header.Content-Type}&bridgeEndpoint=true&${header.CamelHttpQuery}")
+                    .endChoice()
             ;
         }
     }
