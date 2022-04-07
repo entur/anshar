@@ -31,6 +31,8 @@ import org.springframework.util.SerializationUtils;
 
 import javax.xml.bind.DatatypeConverter;
 import java.io.Serializable;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
@@ -394,12 +396,13 @@ abstract class SiriRepository<T> {
 
     Predicate<SiriObjectStorageKey, T> createLineRefPredicate(String lineRef) {
         return entry -> {
+            String decodedLine = URLDecoder.decode(lineRef, StandardCharsets.UTF_8);
             if (entry.getKey().getLineRef() != null) {
                 final String ref = entry.getKey().getLineRef();
 
-                return ref.startsWith(lineRef + SEPARATOR) ||
-                        ref.endsWith(SEPARATOR + lineRef) ||
-                        ref.equalsIgnoreCase(lineRef);
+                return ref.startsWith(decodedLine + SEPARATOR) ||
+                        ref.endsWith(SEPARATOR + decodedLine) ||
+                        ref.equalsIgnoreCase(decodedLine);
             }
             return false;
         };
