@@ -167,6 +167,12 @@ public class RestRouteBuilder extends RouteBuilder {
                     .to("direct:redirect.request.et")
             ;
             from("direct:redirect.request.et")
+                    // Setting default encoding if none is set
+                    .choice().when(header("Content-Type").isEqualTo(""))
+                        .setHeader("Content-Type", simple(MediaType.APPLICATION_XML))
+                    .end()
+
+                    //Force forwarding parameters - if used in query
                     .choice().when(header("CamelHttpQuery").isNull())
                         .toD(etHandlerBaseUrl + "${header.CamelHttpUri}?Content-Type=${header.Content-Type}&bridgeEndpoint=true")
                     .otherwise()
@@ -210,6 +216,12 @@ public class RestRouteBuilder extends RouteBuilder {
                     .to("direct:redirect.request.vm")
             ;
             from("direct:redirect.request.vm")
+                    // Setting default encoding if none is set
+                    .choice().when(header("Content-Type").isEqualTo(""))
+                    .setHeader("Content-Type", simple(MediaType.APPLICATION_XML))
+                    .end()
+
+                    //Force forwarding parameters - if used in query
                     .choice().when(header("CamelHttpQuery").isNull())
                         .toD(vmHandlerBaseUrl + "${header.CamelHttpUri}?Content-Type=${header.Content-Type}&bridgeEndpoint=true")
                     .otherwise()
@@ -253,6 +265,12 @@ public class RestRouteBuilder extends RouteBuilder {
                     .to("direct:redirect.request.sx")
             ;
             from("direct:redirect.request.sx")
+                    // Setting default encoding if none is set
+                    .choice().when(header("Content-Type").isEqualTo(""))
+                        .setHeader("Content-Type", simple(MediaType.APPLICATION_XML))
+                    .end()
+
+                    //Force forwarding parameters - if used in query
                     .choice().when(header("CamelHttpQuery").isNull())
                         .toD(sxHandlerBaseUrl + "${header.CamelHttpUri}?Content-Type=${header.Content-Type}&bridgeEndpoint=true")
                     .otherwise()
