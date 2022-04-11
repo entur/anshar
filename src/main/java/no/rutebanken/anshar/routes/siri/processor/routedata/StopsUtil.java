@@ -92,13 +92,17 @@ public class StopsUtil {
     }
 
     public static int calculateSpeedKph(double distanceInMeters, ZonedDateTime departureTime, ZonedDateTime arrivalTime) {
-        final long seconds = arrivalTime.toEpochSecond() - departureTime.toEpochSecond();
+        final long seconds = getSeconds(departureTime, arrivalTime);
         if (seconds <= 0) {
             return -1;
         }
         double metersPerSecond = distanceInMeters/seconds;
         double kilometersPerHour = metersPerSecond * 3.6;
         return (int)kilometersPerHour;
+    }
+
+    public static long getSeconds(ZonedDateTime departureTime, ZonedDateTime arrivalTime) {
+        return arrivalTime.toEpochSecond() - departureTime.toEpochSecond();
     }
 
 }

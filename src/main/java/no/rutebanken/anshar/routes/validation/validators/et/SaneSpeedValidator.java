@@ -172,7 +172,7 @@ public class SaneSpeedValidator extends SiriObjectValidator {
 
 
         if (kph > SANE_SPEED_LIMIT) {
-            throw new TooFastException(fromStop, toStop, (int)kph);
+            throw new TooFastException(fromStop, toStop, fromTime, toTime);
         } else {
             logger.debug("Calculated speed between {} and {}: {}", fromStop, toStop, kph);
         }

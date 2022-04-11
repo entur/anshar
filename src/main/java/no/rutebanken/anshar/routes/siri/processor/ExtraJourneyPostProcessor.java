@@ -24,14 +24,22 @@ import no.rutebanken.anshar.subscription.SiriDataType;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.org.siri.siri20.*;
+import uk.org.siri.siri20.EstimatedCall;
+import uk.org.siri.siri20.EstimatedTimetableDeliveryStructure;
+import uk.org.siri.siri20.EstimatedVehicleJourney;
+import uk.org.siri.siri20.EstimatedVersionFrameStructure;
+import uk.org.siri.siri20.RecordedCall;
+import uk.org.siri.siri20.Siri;
+import uk.org.siri.siri20.VehicleModesEnumeration;
 
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 import static no.rutebanken.anshar.routes.siri.processor.routedata.NetexUpdaterService.serviceJourneyIdExists;
-import static no.rutebanken.anshar.routes.siri.transformer.MappingNames.*;
+import static no.rutebanken.anshar.routes.siri.transformer.MappingNames.EXTRA_JOURNEY_ID_EXISTS;
+import static no.rutebanken.anshar.routes.siri.transformer.MappingNames.EXTRA_JOURNEY_INVALID_MODE;
+import static no.rutebanken.anshar.routes.siri.transformer.MappingNames.EXTRA_JOURNEY_TOO_FAST;
 import static no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter.getMappedId;
 import static no.rutebanken.anshar.routes.validation.validators.et.SaneSpeedValidator.SANE_SPEED_LIMIT;
 import static org.apache.commons.lang3.BooleanUtils.isTrue;
@@ -204,7 +212,7 @@ public class ExtraJourneyPostProcessor extends ValueAdapter implements PostProce
                     "Calculated speed between {} and {}: {} kph", fromStop, toStop,
                     kph
                 );
-                throw new TooFastException(fromStop, toStop, kph);
+                throw new TooFastException(fromStop, toStop, fromTime, toTime);
             }
             else {
                 logger.debug(
