@@ -61,7 +61,10 @@ public class OstfoldIdPlatformPostProcessor extends ValueAdapter implements Post
         stopPlaceRegisterMapper.disableMetrics();
     }
 
-    private String getNsrId(String stopPointRef, String platform) {
+    private String getMappedNsrId(String stopPointRef, String platform) {
+        if (stopPointRef.startsWith("NSR:")) {
+            return null;
+        }
         String originalId = StringUtils.leftPad(stopPointRef, 8, '0') + StringUtils.leftPad(platform, 2, '0');
 
         String nsrId = stopPlaceRegisterMapper.apply(originalId);
@@ -106,7 +109,7 @@ public class OstfoldIdPlatformPostProcessor extends ValueAdapter implements Post
                                     platform = monitoredCall.getDeparturePlatformName().getValue();
                                 }
 
-                                String nsrId = getNsrId(stopPointRefValue, platform);
+                                String nsrId = getMappedNsrId(stopPointRefValue, platform);
                                 if (nsrId != null) {
                                     monitoredCall.getStopPointRef().setValue(createCombinedId(stopPointRefValue, nsrId));
                                 }
@@ -125,7 +128,7 @@ public class OstfoldIdPlatformPostProcessor extends ValueAdapter implements Post
                                         platform = call.getDeparturePlatformName().getValue();
                                     }
 
-                                    String nsrId = getNsrId(stopPointRefValue, platform);
+                                    String nsrId = getMappedNsrId(stopPointRefValue, platform);
                                     if (nsrId != null) {
                                         call.getStopPointRef().setValue(createCombinedId(stopPointRefValue, nsrId));
                                         getMetricsService().registerDataMapping(SiriDataType.VEHICLE_MONITORING, datasetId, STOP_AND_PLATFORM_TO_NSR, 1);
@@ -161,7 +164,7 @@ public class OstfoldIdPlatformPostProcessor extends ValueAdapter implements Post
                                             platform = et.getDeparturePlatformName().getValue();
                                         }
 
-                                        String nsrId = getNsrId(stopPointRefValue, platform);
+                                        String nsrId = getMappedNsrId(stopPointRefValue, platform);
                                         if (nsrId != null) {
                                             et.getStopPointRef().setValue(createCombinedId(stopPointRefValue, nsrId));
                                             getMetricsService().registerDataMapping(SiriDataType.ESTIMATED_TIMETABLE, datasetId, STOP_AND_PLATFORM_TO_NSR, 1);
@@ -181,7 +184,7 @@ public class OstfoldIdPlatformPostProcessor extends ValueAdapter implements Post
                                             platform = rc.getDeparturePlatformName().getValue();
                                         }
 
-                                        String nsrId = getNsrId(stopPointRefValue, platform);
+                                        String nsrId = getMappedNsrId(stopPointRefValue, platform);
                                         if (nsrId != null) {
                                             rc.getStopPointRef().setValue(createCombinedId(stopPointRefValue, nsrId));
                                             getMetricsService().registerDataMapping(SiriDataType.ESTIMATED_TIMETABLE, datasetId, STOP_AND_PLATFORM_TO_NSR, 1);
