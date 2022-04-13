@@ -122,7 +122,7 @@
                 <th>Type</th>
                 <th>Filter (optional)</th>
                 <th>Results</th>
-                <th>On/Off <sup><span class="glyphicon glyphicon-info-sign text-info"></sup></th>
+                <th>On/Off <sup><span class="glyphicon glyphicon-info-sign text-info" ></span></sup></th>
             </tr>
             </thead>
             <tbody>
