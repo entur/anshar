@@ -86,7 +86,7 @@ public abstract class CustomValidator {
     }
 
     protected boolean isValidGenericId(String pattern, String nodeValue) {
-        return nodeValue != null && nodeValue.contains(pattern);
+        return nodeValue != null && nodeValue.contains(":"+pattern+":");
     }
 
     /**

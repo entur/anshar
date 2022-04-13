@@ -28,14 +28,14 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.ESTIMA
  */
 @Validator(profileName = "norway", targetType = SiriDataType.ESTIMATED_TIMETABLE)
 @Component
-public class DatedVehicleJourneyRefValidator extends NsrGenericIdValidator {
+public class EtDatedVehicleJourneyRefValidator extends NsrGenericIdValidator {
 
     private String path;
 
-    public DatedVehicleJourneyRefValidator() {
+    public EtDatedVehicleJourneyRefValidator() {
         FIELDNAME = "DatedVehicleJourneyRef";
-        ID_PATTERN = "ServiceJourney";
-        path = ESTIMATED_VEHICLE_JOURNEY + "/FramedVehicleJourneyRef/" + FIELDNAME;
+        ID_PATTERN = "DatedServiceJourney";
+        path = ESTIMATED_VEHICLE_JOURNEY + "/" + FIELDNAME;
     }
 
     @Override

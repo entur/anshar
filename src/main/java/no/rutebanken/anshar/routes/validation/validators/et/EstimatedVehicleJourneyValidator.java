@@ -52,21 +52,27 @@ public class EstimatedVehicleJourneyValidator extends CustomValidator {
     @Override
     public ValidationEvent isValid(Node node) {
         String extraJourneyValue = getChildNodeValue(node, "ExtraJourney");
-
         List<String> fieldNames = new ArrayList<>();
+
+        fieldNames.add("LineRef");
+        fieldNames.add("DirectionRef");
+        fieldNames.add("DataSource");
+        fieldNames.add("IsCompleteStopSequence");
+
         if (extraJourneyValue != null && Boolean.valueOf(extraJourneyValue)) {
             fieldNames.add("EstimatedVehicleJourneyCode");
             fieldNames.add("RouteRef");
             fieldNames.add("GroupOfLinesRef");
             fieldNames.add("ExternalLineRef");
         } else {
-            fieldNames.add("FramedVehicleJourneyRef");
+
+            if (getChildNodeValue(node,"FramedVehicleJourneyRef") == null) {
+                if (getChildNodeValue(node,"DatedVehicleJourneyRef") == null) {
+                    fieldNames.add("FramedVehicleJourneyRef or DatedVehicleJourneyRef");
+                }
+            }
 
         }
-        fieldNames.add("LineRef");
-        fieldNames.add("DirectionRef");
-        fieldNames.add("DataSource");
-        fieldNames.add("IsCompleteStopSequence");
         return verifyRequiredFields(node, FIELDNAME, fieldNames.toArray(new String[fieldNames.size()]));
     }
 }
