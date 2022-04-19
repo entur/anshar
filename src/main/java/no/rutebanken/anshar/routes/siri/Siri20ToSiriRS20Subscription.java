@@ -57,22 +57,23 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
         Map<RequestType, String> urlMap = subscriptionSetup.getUrlMap();
         SiriRequestFactory helper = new SiriRequestFactory(subscriptionSetup);
 
-        Map<String, String> oauthHeaders = new HashMap<>();
+        Map<OAuthConfigElement, String> oauthHeaders = new HashMap<>();
         if (subscriptionSetup.getOauth2Config() != null && !subscriptionSetup.getOauth2Config().isEmpty()) {
-            oauthHeaders.put(OAuthConfigElement.CLIENT_ID.name(), subscriptionSetup.getOauth2Config().get(OAuthConfigElement.CLIENT_ID));
-            oauthHeaders.put(OAuthConfigElement.CLIENT_SECRET.name(), subscriptionSetup.getOauth2Config().get(OAuthConfigElement.CLIENT_SECRET));
-            oauthHeaders.put(OAuthConfigElement.GRANT_TYPE.name(), subscriptionSetup.getOauth2Config().get(OAuthConfigElement.GRANT_TYPE));
-            oauthHeaders.put(OAuthConfigElement.SERVER.name(), subscriptionSetup.getOauth2Config().get(OAuthConfigElement.SERVER));
-            oauthHeaders.put(OAuthConfigElement.AUDIENCE.name(), subscriptionSetup.getOauth2Config().get(OAuthConfigElement.AUDIENCE));
+            oauthHeaders.put(OAuthConfigElement.CLIENT_ID, subscriptionSetup.getOauth2Config().get(OAuthConfigElement.CLIENT_ID));
+            oauthHeaders.put(OAuthConfigElement.CLIENT_SECRET, subscriptionSetup.getOauth2Config().get(OAuthConfigElement.CLIENT_SECRET));
+            oauthHeaders.put(OAuthConfigElement.GRANT_TYPE, subscriptionSetup.getOauth2Config().get(OAuthConfigElement.GRANT_TYPE));
+            oauthHeaders.put(OAuthConfigElement.SERVER, subscriptionSetup.getOauth2Config().get(OAuthConfigElement.SERVER));
+            oauthHeaders.put(OAuthConfigElement.AUDIENCE, subscriptionSetup.getOauth2Config().get(OAuthConfigElement.AUDIENCE));
         }
 
         //Start subscription
         Processor oauthHeadersProcess = exchange -> {
-            exchange.getMessage().setHeader("oauth-client-id", simple(oauthHeaders.get(OAuthConfigElement.CLIENT_ID)));
-            exchange.getMessage().setHeader("oauth-client-secret", simple(oauthHeaders.get(OAuthConfigElement.CLIENT_SECRET)));
-            exchange.getMessage().setHeader("oauth-grant-type", simple(oauthHeaders.get(OAuthConfigElement.GRANT_TYPE)));
-            exchange.getMessage().setHeader("oauth-server", simple(oauthHeaders.get(OAuthConfigElement.SERVER)));
-            exchange.getMessage().setHeader("oauth-audience", simple(oauthHeaders.get(OAuthConfigElement.AUDIENCE)));
+            exchange.getMessage().setHeader("oauth-client-id", oauthHeaders.get(OAuthConfigElement.CLIENT_ID));
+            exchange.getMessage().setHeader("oauth-client-secret", oauthHeaders.get(OAuthConfigElement.CLIENT_SECRET));
+            exchange.getMessage().setHeader("oauth-grant-type", oauthHeaders.get(OAuthConfigElement.GRANT_TYPE));
+            exchange.getMessage().setHeader("oauth-server", oauthHeaders.get(OAuthConfigElement.SERVER));
+            exchange.getMessage().setHeader("oauth-audience", oauthHeaders.get(OAuthConfigElement.AUDIENCE));
+            logger.info("Configuring OAuth for subscription {}", subscriptionSetup);
         };
 
         from("direct:" + subscriptionSetup.getStartSubscriptionRouteName())
