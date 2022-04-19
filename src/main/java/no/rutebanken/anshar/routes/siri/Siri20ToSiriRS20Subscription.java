@@ -19,6 +19,7 @@ import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.routes.dataformat.SiriDataFormatHelper;
 import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
 import no.rutebanken.anshar.routes.siri.helpers.SiriRequestFactory;
+import no.rutebanken.anshar.subscription.OAuthConfigElement;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import no.rutebanken.anshar.subscription.helpers.RequestType;
@@ -30,6 +31,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 import java.net.ConnectException;
+import java.util.HashMap;
 import java.util.Map;
 
 import static no.rutebanken.anshar.routes.HttpParameter.PARAM_RESPONSE_CODE;
@@ -54,9 +56,28 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
         Map<RequestType, String> urlMap = subscriptionSetup.getUrlMap();
         SiriRequestFactory helper = new SiriRequestFactory(subscriptionSetup);
 
+        Map<OAuthConfigElement, String> oauthHeaders = new HashMap<>();
+        if (subscriptionSetup.getOauth2Config() != null && !subscriptionSetup.getOauth2Config().isEmpty()) {
+            oauthHeaders.put(OAuthConfigElement.CLIENT_ID, subscriptionSetup.getOauth2Config().get(OAuthConfigElement.CLIENT_ID));
+            oauthHeaders.put(OAuthConfigElement.CLIENT_SECRET, subscriptionSetup.getOauth2Config().get(OAuthConfigElement.CLIENT_SECRET));
+            oauthHeaders.put(OAuthConfigElement.GRANT_TYPE, subscriptionSetup.getOauth2Config().get(OAuthConfigElement.GRANT_TYPE));
+            oauthHeaders.put(OAuthConfigElement.SERVER, subscriptionSetup.getOauth2Config().get(OAuthConfigElement.SERVER));
+            oauthHeaders.put(OAuthConfigElement.AUDIENCE, subscriptionSetup.getOauth2Config().get(OAuthConfigElement.AUDIENCE));
+        }
+
         //Start subscription
         from("direct:" + subscriptionSetup.getStartSubscriptionRouteName())
                 .log("Starting subscription " + subscriptionSetup.toString())
+                .choice()
+                    .when(p -> !oauthHeaders.isEmpty())
+                    .setHeader("oauth-client-id", constant(oauthHeaders.get(OAuthConfigElement.CLIENT_ID)))
+                    .setHeader("oauth-client-secret", simple(oauthHeaders.get(OAuthConfigElement.CLIENT_SECRET)))
+                    .setHeader("oauth-grant-type", simple(oauthHeaders.get(OAuthConfigElement.GRANT_TYPE)))
+                    .setHeader("oauth-server", simple(oauthHeaders.get(OAuthConfigElement.SERVER)))
+                    .setHeader("oauth-audience", simple(oauthHeaders.get(OAuthConfigElement.AUDIENCE)))
+                    .to("direct:oauth2.authorize")
+                    .removeHeaders("oauth*") //cleanup
+                .end()
                 .bean(helper, "createSiriSubscriptionRequest")
                 .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
                 .setExchangePattern(ExchangePattern.InOut) // Make sure we wait for a response

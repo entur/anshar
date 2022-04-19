@@ -226,6 +226,13 @@
             <artifactId>camel-hazelcast</artifactId>
             <version>${camel-version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.apache.camel</groupId>
+            <artifactId>camel-jackson</artifactId>
+            <version>${camel-version}</version>
+        </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
@@ -265,7 +272,7 @@
         <dependency>
             <groupId>org.entur</groupId>
             <artifactId>siri-java-model</artifactId>
-            <version>0.12</version>
+            <version>0.14</version>
         </dependency>
 
         <dependency>

@@ -27,7 +27,12 @@ import org.slf4j.LoggerFactory;
 import java.io.Serializable;
 import java.text.MessageFormat;
 import java.time.Duration;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class SubscriptionSetup implements Serializable {
 
@@ -65,6 +70,8 @@ public class SubscriptionSetup implements Serializable {
     private String vehicleMonitoringRefValue;
     private boolean validation;
     private String restartTime;
+
+    private Map<OAuthConfigElement, String> oauth2Config;
 
     private DataNotReceivedAction dataNotReceivedAction;
     private String validationFilter;
@@ -544,6 +551,13 @@ public class SubscriptionSetup implements Serializable {
 
     public void setForwardPositionData(boolean forwardPositionData) {
         this.forwardPositionData = forwardPositionData;
+    }
+
+    public void setOauth2Config(Map<OAuthConfigElement, String> oauth2Config) {
+        this.oauth2Config = oauth2Config;
+    }
+    public Map<OAuthConfigElement, String> getOauth2Config() {
+        return oauth2Config;
     }
 
     /**
