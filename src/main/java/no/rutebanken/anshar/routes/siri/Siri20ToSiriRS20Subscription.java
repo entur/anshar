@@ -25,6 +25,7 @@ import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import no.rutebanken.anshar.subscription.helpers.RequestType;
 import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
+import org.apache.camel.Processor;
 import org.apache.camel.http.common.HttpMethods;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,25 +57,29 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
         Map<RequestType, String> urlMap = subscriptionSetup.getUrlMap();
         SiriRequestFactory helper = new SiriRequestFactory(subscriptionSetup);
 
-        Map<OAuthConfigElement, String> oauthHeaders = new HashMap<>();
+        Map<String, String> oauthHeaders = new HashMap<>();
         if (subscriptionSetup.getOauth2Config() != null && !subscriptionSetup.getOauth2Config().isEmpty()) {
-            oauthHeaders.put(OAuthConfigElement.CLIENT_ID, subscriptionSetup.getOauth2Config().get(OAuthConfigElement.CLIENT_ID));
-            oauthHeaders.put(OAuthConfigElement.CLIENT_SECRET, subscriptionSetup.getOauth2Config().get(OAuthConfigElement.CLIENT_SECRET));
-            oauthHeaders.put(OAuthConfigElement.GRANT_TYPE, subscriptionSetup.getOauth2Config().get(OAuthConfigElement.GRANT_TYPE));
-            oauthHeaders.put(OAuthConfigElement.SERVER, subscriptionSetup.getOauth2Config().get(OAuthConfigElement.SERVER));
-            oauthHeaders.put(OAuthConfigElement.AUDIENCE, subscriptionSetup.getOauth2Config().get(OAuthConfigElement.AUDIENCE));
+            oauthHeaders.put(OAuthConfigElement.CLIENT_ID.name(), subscriptionSetup.getOauth2Config().get(OAuthConfigElement.CLIENT_ID));
+            oauthHeaders.put(OAuthConfigElement.CLIENT_SECRET.name(), subscriptionSetup.getOauth2Config().get(OAuthConfigElement.CLIENT_SECRET));
+            oauthHeaders.put(OAuthConfigElement.GRANT_TYPE.name(), subscriptionSetup.getOauth2Config().get(OAuthConfigElement.GRANT_TYPE));
+            oauthHeaders.put(OAuthConfigElement.SERVER.name(), subscriptionSetup.getOauth2Config().get(OAuthConfigElement.SERVER));
+            oauthHeaders.put(OAuthConfigElement.AUDIENCE.name(), subscriptionSetup.getOauth2Config().get(OAuthConfigElement.AUDIENCE));
         }
 
         //Start subscription
+        Processor oauthHeadersProcess = exchange -> {
+            exchange.getMessage().setHeader("oauth-client-id", simple(oauthHeaders.get(OAuthConfigElement.CLIENT_ID)));
+            exchange.getMessage().setHeader("oauth-client-secret", simple(oauthHeaders.get(OAuthConfigElement.CLIENT_SECRET)));
+            exchange.getMessage().setHeader("oauth-grant-type", simple(oauthHeaders.get(OAuthConfigElement.GRANT_TYPE)));
+            exchange.getMessage().setHeader("oauth-server", simple(oauthHeaders.get(OAuthConfigElement.SERVER)));
+            exchange.getMessage().setHeader("oauth-audience", simple(oauthHeaders.get(OAuthConfigElement.AUDIENCE)));
+        };
+
         from("direct:" + subscriptionSetup.getStartSubscriptionRouteName())
                 .log("Starting subscription " + subscriptionSetup.toString())
                 .choice()
                     .when(p -> !oauthHeaders.isEmpty())
-                    .setHeader("oauth-client-id", constant(oauthHeaders.get(OAuthConfigElement.CLIENT_ID)))
-                    .setHeader("oauth-client-secret", simple(oauthHeaders.get(OAuthConfigElement.CLIENT_SECRET)))
-                    .setHeader("oauth-grant-type", simple(oauthHeaders.get(OAuthConfigElement.GRANT_TYPE)))
-                    .setHeader("oauth-server", simple(oauthHeaders.get(OAuthConfigElement.SERVER)))
-                    .setHeader("oauth-audience", simple(oauthHeaders.get(OAuthConfigElement.AUDIENCE)))
+                    .process(oauthHeadersProcess)
                     .to("direct:oauth2.authorize")
                     .removeHeaders("oauth*") //cleanup
                 .end()
@@ -118,11 +123,7 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
             from("direct:" + subscriptionSetup.getCheckStatusRouteName())
                     .choice()
                         .when(p -> !oauthHeaders.isEmpty())
-                            .setHeader("oauth-client-id", constant(oauthHeaders.get(OAuthConfigElement.CLIENT_ID)))
-                            .setHeader("oauth-client-secret", simple(oauthHeaders.get(OAuthConfigElement.CLIENT_SECRET)))
-                            .setHeader("oauth-grant-type", simple(oauthHeaders.get(OAuthConfigElement.GRANT_TYPE)))
-                            .setHeader("oauth-server", simple(oauthHeaders.get(OAuthConfigElement.SERVER)))
-                            .setHeader("oauth-audience", simple(oauthHeaders.get(OAuthConfigElement.AUDIENCE)))
+                            .process(oauthHeadersProcess)
                             .to("direct:oauth2.authorize")
                         .removeHeaders("oauth*") //cleanup
                     .end()
@@ -173,11 +174,7 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
                 .log("Cancelling subscription " + subscriptionSetup.toString())
                 .choice()
                     .when(p -> !oauthHeaders.isEmpty())
-                        .setHeader("oauth-client-id", constant(oauthHeaders.get(OAuthConfigElement.CLIENT_ID)))
-                        .setHeader("oauth-client-secret", simple(oauthHeaders.get(OAuthConfigElement.CLIENT_SECRET)))
-                        .setHeader("oauth-grant-type", simple(oauthHeaders.get(OAuthConfigElement.GRANT_TYPE)))
-                        .setHeader("oauth-server", simple(oauthHeaders.get(OAuthConfigElement.SERVER)))
-                        .setHeader("oauth-audience", simple(oauthHeaders.get(OAuthConfigElement.AUDIENCE)))
+                        .process(oauthHeadersProcess)
                         .to("direct:oauth2.authorize")
                     .removeHeaders("oauth*") //cleanup
                 .end()
