@@ -21,7 +21,7 @@ anshar:
       oauth2Config:
         SERVER: <oauth-server>
         AUDIENCE: <audience>
-        GRANT_TYPE: client_credentials>
+        GRANT_TYPE: client_credentials
         CLIENT_ID: <client-id>
         CLIENT_SECRET: <client-secret>
       version: 2.0
