@@ -116,6 +116,16 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
         if (urlMap.get(RequestType.CHECK_STATUS) != null) {
             //Check status-request checks the server status - NOT the subscription
             from("direct:" + subscriptionSetup.getCheckStatusRouteName())
+                    .choice()
+                        .when(p -> !oauthHeaders.isEmpty())
+                            .setHeader("oauth-client-id", constant(oauthHeaders.get(OAuthConfigElement.CLIENT_ID)))
+                            .setHeader("oauth-client-secret", simple(oauthHeaders.get(OAuthConfigElement.CLIENT_SECRET)))
+                            .setHeader("oauth-grant-type", simple(oauthHeaders.get(OAuthConfigElement.GRANT_TYPE)))
+                            .setHeader("oauth-server", simple(oauthHeaders.get(OAuthConfigElement.SERVER)))
+                            .setHeader("oauth-audience", simple(oauthHeaders.get(OAuthConfigElement.AUDIENCE)))
+                            .to("direct:oauth2.authorize")
+                        .removeHeaders("oauth*") //cleanup
+                    .end()
                 .bean(helper, "createSiriCheckStatusRequest")
                 .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
                 .removeHeaders("CamelHttp*") // Remove any incoming HTTP headers as they interfere with the outgoing definition
@@ -161,6 +171,16 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
         //Cancel subscription
         from("direct:" + subscriptionSetup.getCancelSubscriptionRouteName())
                 .log("Cancelling subscription " + subscriptionSetup.toString())
+                .choice()
+                    .when(p -> !oauthHeaders.isEmpty())
+                        .setHeader("oauth-client-id", constant(oauthHeaders.get(OAuthConfigElement.CLIENT_ID)))
+                        .setHeader("oauth-client-secret", simple(oauthHeaders.get(OAuthConfigElement.CLIENT_SECRET)))
+                        .setHeader("oauth-grant-type", simple(oauthHeaders.get(OAuthConfigElement.GRANT_TYPE)))
+                        .setHeader("oauth-server", simple(oauthHeaders.get(OAuthConfigElement.SERVER)))
+                        .setHeader("oauth-audience", simple(oauthHeaders.get(OAuthConfigElement.AUDIENCE)))
+                        .to("direct:oauth2.authorize")
+                    .removeHeaders("oauth*") //cleanup
+                .end()
                 .bean(helper, "createSiriTerminateSubscriptionRequest")
                 .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
                 .setExchangePattern(ExchangePattern.InOut) // Make sure we wait for a response
