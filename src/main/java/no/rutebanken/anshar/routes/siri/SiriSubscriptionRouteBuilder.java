@@ -15,7 +15,6 @@
 
 package no.rutebanken.anshar.routes.siri;
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.data.EstimatedTimetables;
@@ -28,7 +27,6 @@ import no.rutebanken.anshar.subscription.helpers.RequestType;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.component.http.HttpMethods;
-import org.apache.camel.model.dataformat.JsonLibrary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -123,29 +121,6 @@ public abstract class SiriSubscriptionRouteBuilder extends BaseRouteBuilder {
                     .to("direct:" + subscriptionSetup.getCheckStatusRouteName()) // Check status
                 .end()
         ;
-
-        from("direct:oauth2.authorize")
-
-                .choice()
-                    .when(header("oauth-server").isNotNull())
-                        .setHeader("CamelHttpMethod").simple("POST")
-                        .setHeader("Content-Type").simple(MediaType.APPLICATION_JSON)
-                        .setBody()
-                            .simple("{\"grant_type\": \"${header.oauth-grant-type}\", \"client_id\": \"${header.oauth-client-id}\", \"client_secret\": \"${header.oauth-client-secret}\", \"audience\": \"${header.oauth-audience}\"}")
-                .toD("${header.oauth-server}")
-                .unmarshal().json(JsonLibrary.Jackson, ResponseToken.class)
-                .choice()
-                    .when().simple("${header.CamelHttpResponseCode} == 200")
-                        .setHeader("Authorization").simple("Bearer ${body.access_token}")
-                        .log("Authenticated!!!")
-                    .otherwise()
-                        .log("Not Authenticated!!!")
-                    .end()
-                .end()
-                .routeId("anshar.oauth2.authorize")
-        ;
-
-
     }
 
     private boolean shouldPerformDataNotReceivedAction(String routeId) {
@@ -225,37 +200,5 @@ public abstract class SiriSubscriptionRouteBuilder extends BaseRouteBuilder {
         boolean isHealthy = subscriptionManager.isSubscriptionHealthy(subscriptionSetup.getSubscriptionId());
 
         return (hasBeenStarted & !isActive) || (hasBeenStarted & isActive & !isHealthy);
-    }
-}
-
-
-@JacksonXmlRootElement
-class ResponseToken {
-    private String access_token;
-    private String token_type;
-    private long expires_in;
-
-    public String getAccess_token() {
-        return access_token;
-    }
-
-    public void setAccess_token(String access_token) {
-        this.access_token = access_token;
-    }
-
-    public String getToken_type() {
-        return token_type;
-    }
-
-    public void setToken_type(String token_type) {
-        this.token_type = token_type;
-    }
-
-    public long getExpires_in() {
-        return expires_in;
-    }
-
-    public void setExpires_in(long expires_in) {
-        this.expires_in = expires_in;
     }
 }

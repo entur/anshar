@@ -58,7 +58,7 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
         SiriRequestFactory helper = new SiriRequestFactory(subscriptionSetup);
 
         Map<OAuthConfigElement, String> oauthHeaders = new HashMap<>();
-        if (subscriptionSetup.getOauth2Config() != null && !subscriptionSetup.getOauth2Config().isEmpty()) {
+        if (subscriptionSetup.getOauth2Config() != null) {
             oauthHeaders.put(OAuthConfigElement.CLIENT_ID, subscriptionSetup.getOauth2Config().get(OAuthConfigElement.CLIENT_ID));
             oauthHeaders.put(OAuthConfigElement.CLIENT_SECRET, subscriptionSetup.getOauth2Config().get(OAuthConfigElement.CLIENT_SECRET));
             oauthHeaders.put(OAuthConfigElement.GRANT_TYPE, subscriptionSetup.getOauth2Config().get(OAuthConfigElement.GRANT_TYPE));
@@ -78,11 +78,9 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
 
         from("direct:" + subscriptionSetup.getStartSubscriptionRouteName())
                 .log("Starting subscription " + subscriptionSetup.toString())
-                .choice()
-                    .when(p -> !oauthHeaders.isEmpty())
+                .choice().when(p -> !oauthHeaders.isEmpty())
                     .process(oauthHeadersProcess)
                     .to("direct:oauth2.authorize")
-                    .removeHeaders("oauth*") //cleanup
                 .end()
                 .bean(helper, "createSiriSubscriptionRequest")
                 .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
@@ -126,7 +124,6 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
                         .when(p -> !oauthHeaders.isEmpty())
                             .process(oauthHeadersProcess)
                             .to("direct:oauth2.authorize")
-                        .removeHeaders("oauth*") //cleanup
                     .end()
                 .bean(helper, "createSiriCheckStatusRequest")
                 .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
@@ -173,11 +170,9 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
         //Cancel subscription
         from("direct:" + subscriptionSetup.getCancelSubscriptionRouteName())
                 .log("Cancelling subscription " + subscriptionSetup.toString())
-                .choice()
-                    .when(p -> !oauthHeaders.isEmpty())
-                        .process(oauthHeadersProcess)
-                        .to("direct:oauth2.authorize")
-                    .removeHeaders("oauth*") //cleanup
+                .choice() .when(p -> !oauthHeaders.isEmpty())
+                    .process(oauthHeadersProcess)
+                    .to("direct:oauth2.authorize")
                 .end()
                 .bean(helper, "createSiriTerminateSubscriptionRequest")
                 .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
