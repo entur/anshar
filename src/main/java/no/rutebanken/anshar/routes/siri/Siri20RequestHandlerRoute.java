@@ -165,9 +165,10 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
                         .to("direct:process.et.subscription.request")
                         .when().xpath("/siri:Siri/siri:TerminateSubscriptionRequest", ns)
                             // Forwarding TerminateRequest to all data-instances
-                            .to("direct:process.et.subscription.request")
-                            .to("direct:process.vm.subscription.request")
-                            .to("direct:process.sx.subscription.request")
+                            .wireTap("direct:process.et.subscription.request")
+                            .wireTap("direct:process.vm.subscription.request")
+                            .wireTap("direct:process.sx.subscription.request")
+                            .to("direct:internal.handle.subscription") //Build response
                     .endChoice()
                 .otherwise()
                     .to("direct:anshar.invalid.tracking.header.response")

@@ -166,19 +166,26 @@ public class RestRouteBuilder extends RouteBuilder {
             from("direct:anshar.rest.et.monitored.cached")
                     .to("direct:redirect.request.et")
             ;
-            from("direct:redirect.request.et")
-                    // Setting default encoding if none is set
-                    .choice().when(header("Content-Type").isEqualTo(""))
-                        .setHeader("Content-Type", simple(MediaType.APPLICATION_XML))
-                    .end()
+            if (etHandlerBaseUrl.isBlank()) {
+                from("direct:redirect.request.et")
+                        .log("Ignore redirect")
+                        ;
 
-                    //Force forwarding parameters - if used in query
-                    .choice().when(header("CamelHttpQuery").isNull())
+            } else {
+                from("direct:redirect.request.et")
+                        // Setting default encoding if none is set
+                        .choice().when(header("Content-Type").isEqualTo(""))
+                        .setHeader("Content-Type", simple(MediaType.APPLICATION_XML))
+                        .end()
+
+                        //Force forwarding parameters - if used in query
+                        .choice().when(header("CamelHttpQuery").isNull())
                         .toD(etHandlerBaseUrl + "${header.CamelHttpUri}?Content-Type=${header.Content-Type}&bridgeEndpoint=true")
-                    .otherwise()
+                        .otherwise()
                         .toD(etHandlerBaseUrl + "${header.CamelHttpUri}?Content-Type=${header.Content-Type}&bridgeEndpoint=true&${header.CamelHttpQuery}")
-                    .endChoice()
-            ;
+                        .endChoice()
+                ;
+            }
         }
 
         if (configuration.processVM()) {
@@ -215,19 +222,27 @@ public class RestRouteBuilder extends RouteBuilder {
             from("direct:anshar.rest.vm.cached")
                     .to("direct:redirect.request.vm")
             ;
-            from("direct:redirect.request.vm")
-                    // Setting default encoding if none is set
-                    .choice().when(header("Content-Type").isEqualTo(""))
-                    .setHeader("Content-Type", simple(MediaType.APPLICATION_XML))
-                    .end()
 
-                    //Force forwarding parameters - if used in query
-                    .choice().when(header("CamelHttpQuery").isNull())
+            if (vmHandlerBaseUrl.isBlank()) {
+                from("direct:redirect.request.vm")
+                        .log("Ignore redirect")
+                ;
+
+            } else {
+                from("direct:redirect.request.vm")
+                        // Setting default encoding if none is set
+                        .choice().when(header("Content-Type").isEqualTo(""))
+                        .setHeader("Content-Type", simple(MediaType.APPLICATION_XML))
+                        .end()
+
+                        //Force forwarding parameters - if used in query
+                        .choice().when(header("CamelHttpQuery").isNull())
                         .toD(vmHandlerBaseUrl + "${header.CamelHttpUri}?Content-Type=${header.Content-Type}&bridgeEndpoint=true")
-                    .otherwise()
+                        .otherwise()
                         .toD(vmHandlerBaseUrl + "${header.CamelHttpUri}?Content-Type=${header.Content-Type}&bridgeEndpoint=true&${header.CamelHttpQuery}")
-                    .endChoice()
-            ;
+                        .endChoice()
+                ;
+            }
         }
 
         if (configuration.processSX()) {
@@ -264,19 +279,27 @@ public class RestRouteBuilder extends RouteBuilder {
             from("direct:anshar.rest.sx.cached")
                     .to("direct:redirect.request.sx")
             ;
-            from("direct:redirect.request.sx")
-                    // Setting default encoding if none is set
-                    .choice().when(header("Content-Type").isEqualTo(""))
-                        .setHeader("Content-Type", simple(MediaType.APPLICATION_XML))
-                    .end()
 
-                    //Force forwarding parameters - if used in query
-                    .choice().when(header("CamelHttpQuery").isNull())
+            if (sxHandlerBaseUrl.isBlank()) {
+                from("direct:redirect.request.sx")
+                        .log("Ignore redirect")
+                ;
+
+            } else {
+                from("direct:redirect.request.sx")
+                        // Setting default encoding if none is set
+                        .choice().when(header("Content-Type").isEqualTo(""))
+                        .setHeader("Content-Type", simple(MediaType.APPLICATION_XML))
+                        .end()
+
+                        //Force forwarding parameters - if used in query
+                        .choice().when(header("CamelHttpQuery").isNull())
                         .toD(sxHandlerBaseUrl + "${header.CamelHttpUri}?Content-Type=${header.Content-Type}&bridgeEndpoint=true")
-                    .otherwise()
+                        .otherwise()
                         .toD(sxHandlerBaseUrl + "${header.CamelHttpUri}?Content-Type=${header.Content-Type}&bridgeEndpoint=true&${header.CamelHttpQuery}")
-                    .endChoice()
-            ;
+                        .endChoice()
+                ;
+            }
         }
     }
 
