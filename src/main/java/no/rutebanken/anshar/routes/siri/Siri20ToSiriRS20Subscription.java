@@ -78,10 +78,8 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
 
         from("direct:" + subscriptionSetup.getStartSubscriptionRouteName())
                 .log("Starting subscription " + subscriptionSetup.toString())
-                .choice().when(p -> !oauthHeaders.isEmpty())
-                    .process(oauthHeadersProcess)
-                    .to("direct:oauth2.authorize")
-                .end()
+                .process(oauthHeadersProcess)
+                .to("direct:oauth2.authorize")
                 .bean(helper, "createSiriSubscriptionRequest")
                 .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
                 .setExchangePattern(ExchangePattern.InOut) // Make sure we wait for a response
@@ -120,11 +118,8 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
         if (urlMap.get(RequestType.CHECK_STATUS) != null) {
             //Check status-request checks the server status - NOT the subscription
             from("direct:" + subscriptionSetup.getCheckStatusRouteName())
-                    .choice()
-                        .when(p -> !oauthHeaders.isEmpty())
-                            .process(oauthHeadersProcess)
-                            .to("direct:oauth2.authorize")
-                    .end()
+                .process(oauthHeadersProcess)
+                .to("direct:oauth2.authorize")
                 .bean(helper, "createSiriCheckStatusRequest")
                 .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
                 .removeHeaders("CamelHttp*") // Remove any incoming HTTP headers as they interfere with the outgoing definition
@@ -170,10 +165,8 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
         //Cancel subscription
         from("direct:" + subscriptionSetup.getCancelSubscriptionRouteName())
                 .log("Cancelling subscription " + subscriptionSetup.toString())
-                .choice() .when(p -> !oauthHeaders.isEmpty())
-                    .process(oauthHeadersProcess)
-                    .to("direct:oauth2.authorize")
-                .end()
+                .process(oauthHeadersProcess)
+                .to("direct:oauth2.authorize")
                 .bean(helper, "createSiriTerminateSubscriptionRequest")
                 .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
                 .setExchangePattern(ExchangePattern.InOut) // Make sure we wait for a response
