@@ -68,12 +68,14 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
 
         //Start subscription
         Processor oauthHeadersProcess = exchange -> {
-            exchange.getMessage().setHeader("oauth-client-id", oauthHeaders.get(OAuthConfigElement.CLIENT_ID));
-            exchange.getMessage().setHeader("oauth-client-secret", oauthHeaders.get(OAuthConfigElement.CLIENT_SECRET));
-            exchange.getMessage().setHeader("oauth-grant-type", oauthHeaders.get(OAuthConfigElement.GRANT_TYPE));
-            exchange.getMessage().setHeader("oauth-server", oauthHeaders.get(OAuthConfigElement.SERVER));
-            exchange.getMessage().setHeader("oauth-audience", oauthHeaders.get(OAuthConfigElement.AUDIENCE));
-            logger.info("Configuring OAuth for subscription {}", subscriptionSetup);
+            if (!oauthHeaders.isEmpty()) {
+                logger.info("Configuring OAuth for subscription {}", subscriptionSetup);
+                exchange.getMessage().setHeader("oauth-client-id", oauthHeaders.get(OAuthConfigElement.CLIENT_ID));
+                exchange.getMessage().setHeader("oauth-client-secret", oauthHeaders.get(OAuthConfigElement.CLIENT_SECRET));
+                exchange.getMessage().setHeader("oauth-grant-type", oauthHeaders.get(OAuthConfigElement.GRANT_TYPE));
+                exchange.getMessage().setHeader("oauth-server", oauthHeaders.get(OAuthConfigElement.SERVER));
+                exchange.getMessage().setHeader("oauth-audience", oauthHeaders.get(OAuthConfigElement.AUDIENCE));
+            }
         };
 
         from("direct:" + subscriptionSetup.getStartSubscriptionRouteName())

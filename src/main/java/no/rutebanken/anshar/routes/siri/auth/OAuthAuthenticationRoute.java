@@ -26,7 +26,9 @@ public class OAuthAuthenticationRoute extends RouteBuilder {
                         .log("Authenticated!!!")
                     .otherwise()
                         .log("Not Authenticated!!!")
-                    .end()
+                    .endChoice()
+                .otherwise()
+                    .log("No OAuth configured - skipping")
                 .end()
                 .removeHeaders("oauth*") //Always clean up to avoid secrets being exposed
                 .routeId("anshar.oauth2.authorize")
