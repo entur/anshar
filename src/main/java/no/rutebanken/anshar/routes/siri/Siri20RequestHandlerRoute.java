@@ -36,7 +36,13 @@ import javax.ws.rs.core.MediaType;
 import java.io.InputStream;
 import java.util.List;
 
-import static no.rutebanken.anshar.routes.HttpParameter.*;
+import static no.rutebanken.anshar.routes.HttpParameter.INTERNAL_SIRI_DATA_TYPE;
+import static no.rutebanken.anshar.routes.HttpParameter.PARAM_DATASET_ID;
+import static no.rutebanken.anshar.routes.HttpParameter.PARAM_EXCLUDED_DATASET_ID;
+import static no.rutebanken.anshar.routes.HttpParameter.PARAM_MAX_SIZE;
+import static no.rutebanken.anshar.routes.HttpParameter.PARAM_SUBSCRIPTION_ID;
+import static no.rutebanken.anshar.routes.HttpParameter.PARAM_USE_ORIGINAL_ID;
+import static no.rutebanken.anshar.routes.HttpParameter.getParameterValuesAsList;
 
 @SuppressWarnings("unchecked")
 @Service
@@ -157,6 +163,11 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
                         .to("direct:process.sx.subscription.request")
                         .when().xpath("/siri:Siri/siri:SubscriptionRequest/siri:EstimatedTimetableSubscriptionRequest", ns)
                         .to("direct:process.et.subscription.request")
+                        .when().xpath("/siri:Siri/siri:TerminateSubscriptionRequest", ns)
+                            // Forwarding TerminateRequest to all data-instances
+                            .to("direct:process.et.subscription.request")
+                            .to("direct:process.vm.subscription.request")
+                            .to("direct:process.sx.subscription.request")
                     .endChoice()
                 .otherwise()
                     .to("direct:anshar.invalid.tracking.header.response")
