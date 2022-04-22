@@ -300,7 +300,9 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
 
             if (idSet.size() > timetableDeliveries.size()) {
                 //Remove outdated ids
+                long idRemove = System.currentTimeMillis();
                 idSet.removeIf(id -> !timetableDeliveries.containsKey(id));
+                logger.info("Outdated ids removed after {} ms", (System.currentTimeMillis()-idRemove));
             }
 
             //Update change-tracker
