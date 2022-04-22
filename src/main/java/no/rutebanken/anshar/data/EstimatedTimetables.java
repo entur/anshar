@@ -29,13 +29,29 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
-import uk.org.siri.siri20.*;
+import uk.org.siri.siri20.EstimatedCall;
+import uk.org.siri.siri20.EstimatedVehicleJourney;
+import uk.org.siri.siri20.MessageRefStructure;
+import uk.org.siri.siri20.QuayRefStructure;
+import uk.org.siri.siri20.RecordedCall;
+import uk.org.siri.siri20.Siri;
+import uk.org.siri.siri20.StopAssignmentStructure;
+import uk.org.siri.siri20.StopPointRef;
 
 import javax.annotation.PostConstruct;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
@@ -88,7 +104,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                 Boolean.TRUE.equals(value.isCancellation()) |
                 Boolean.TRUE.equals(value.isExtraJourney()))
         );
-        linkEntriesTtl(timetableDeliveries, checksumCache, idStartTimeMap);
+        linkEntriesTtl(timetableDeliveries, changesMap, checksumCache, idStartTimeMap);
     }
 
     /**
@@ -298,13 +314,6 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
             msgRef.setValue(requestorId);
             siri.getServiceDelivery().setRequestMessageRef(msgRef);
 
-            if (idSet.size() > timetableDeliveries.size()) {
-                //Remove outdated ids
-                long idRemove = System.currentTimeMillis();
-                idSet.removeIf(id -> !timetableDeliveries.containsKey(id));
-                logger.info("Outdated ids removed after {} ms", (System.currentTimeMillis()-idRemove));
-            }
-
             //Update change-tracker
             updateChangeTrackers(lastUpdateRequested, changesMap, requestorId, idSet, trackingPeriodMinutes, TimeUnit.MINUTES);
 
@@ -396,11 +405,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                 //Remove returned ids
                 existingSet.removeAll(idSet);
 
-                //Remove outdated ids
-                existingSet.removeIf(id -> !timetableDeliveries.containsKey(id));
-
                 updateChangeTrackers(lastUpdateRequested, changesMap, requestorId, existingSet, configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
-
 
                 logger.info("Returning {} changes to requestorRef {}", changes.size(), requestorId);
                 return changes;

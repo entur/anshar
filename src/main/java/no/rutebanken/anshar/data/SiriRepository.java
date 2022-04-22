@@ -16,8 +16,13 @@
 package no.rutebanken.anshar.data;
 
 import com.google.common.collect.Maps;
+import com.hazelcast.core.EntryEvent;
 import com.hazelcast.map.IMap;
-import com.hazelcast.map.listener.*;
+import com.hazelcast.map.listener.EntryAddedListener;
+import com.hazelcast.map.listener.EntryEvictedListener;
+import com.hazelcast.map.listener.EntryExpiredListener;
+import com.hazelcast.map.listener.EntryRemovedListener;
+import com.hazelcast.map.listener.EntryUpdatedListener;
 import com.hazelcast.query.Predicate;
 import no.rutebanken.anshar.data.collections.ExtendedHazelcastService;
 import no.rutebanken.anshar.metrics.PrometheusMetricsService;
@@ -36,7 +41,13 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -144,7 +155,7 @@ abstract class SiriRepository<T> {
      * @param map
      * @param linkedMaps
      */
-    void linkEntriesTtl(IMap<SiriObjectStorageKey, T> map, Map<SiriObjectStorageKey, ? extends Object>... linkedMaps) {
+    void linkEntriesTtl(IMap<SiriObjectStorageKey, T> map,  IMap<String, Set<SiriObjectStorageKey>> linkedChangeMap, Map<SiriObjectStorageKey, ? extends Object>... linkedMaps) {
         {
 
             // Entry added - new data
@@ -159,24 +170,27 @@ abstract class SiriRepository<T> {
 
             //Entry expired by TTL
             map.addEntryListener((EntryExpiredListener<SiriObjectStorageKey, T>) entryEvent -> {
-                for (Map<SiriObjectStorageKey, ?> linkedMap : linkedMaps) {
-                    linkedMap.remove(entryEvent.getKey());
-                }
+                removeFromLinked(linkedChangeMap, entryEvent, linkedMaps);
             }, false);
 
             // Entry evicted
             map.addEntryListener((EntryEvictedListener<SiriObjectStorageKey, T>) entryEvent -> {
-                for (Map<SiriObjectStorageKey, ?> linkedMap : linkedMaps) {
-                    linkedMap.remove(entryEvent.getKey());
-                }
+                removeFromLinked(linkedChangeMap, entryEvent, linkedMaps);
             }, false);
 
             // Entry removed - e.g. "delete all for codespace"
             map.addEntryListener((EntryRemovedListener<SiriObjectStorageKey, T>) entryEvent -> {
-                for (Map<SiriObjectStorageKey, ?> linkedMap : linkedMaps) {
-                    linkedMap.remove(entryEvent.getKey());
-                }
+                removeFromLinked(linkedChangeMap, entryEvent, linkedMaps);
             }, false);
+        }
+    }
+
+    private void removeFromLinked(IMap<String, Set<SiriObjectStorageKey>> linkedChangeMap, EntryEvent<SiriObjectStorageKey, T> entryEvent, Map<SiriObjectStorageKey, ?>[] linkedMaps) {
+        for (Map<SiriObjectStorageKey, ?> linkedMap : linkedMaps) {
+            linkedMap.remove(entryEvent.getKey());
+        }
+        for (Set<SiriObjectStorageKey> changes : linkedChangeMap.values()) {
+            changes.remove(entryEvent.getKey());
         }
     }
 

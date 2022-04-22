@@ -37,7 +37,14 @@ import javax.annotation.PostConstruct;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -76,7 +83,7 @@ public class Situations extends SiriRepository<PtSituationElement> {
 
         enableCache(situationElements);
 
-        linkEntriesTtl(situationElements, checksumCache);
+        linkEntriesTtl(situationElements, changesMap, checksumCache);
     }
 
     /**
@@ -204,12 +211,6 @@ public class Situations extends SiriRepository<PtSituationElement> {
             msgRef.setValue(requestorId);
             siri.getServiceDelivery().setRequestMessageRef(msgRef);
 
-
-            if (idSet.size() > situationElements.size()) {
-                //Remove outdated ids
-                idSet.removeIf(id -> !situationElements.containsKey(id));
-            }
-
             //Update change-tracker
             updateChangeTrackers(lastUpdateRequested, changesMap, requestorId, idSet, trackingPeriodMinutes, TimeUnit.MINUTES);
 
@@ -256,11 +257,7 @@ public class Situations extends SiriRepository<PtSituationElement> {
                 //Remove returned ids
                 existingSet.removeAll(idSet);
 
-                //Remove outdated ids
-                existingSet.removeIf(id -> !situationElements.containsKey(id));
-
                 updateChangeTrackers(lastUpdateRequested, changesMap, requestorId, existingSet, configuration.getTrackingPeriodMinutes(), TimeUnit.MINUTES);
-
 
                 logger.info("Returning {} changes to requestorRef {}", changes.size(), requestorId);
                 return changes;
