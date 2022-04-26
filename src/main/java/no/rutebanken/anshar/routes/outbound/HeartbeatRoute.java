@@ -73,7 +73,7 @@ public class HeartbeatRoute extends BaseRouteBuilder {
                                 final long heartbeatInterval = outboundSubscriptionSetup.getHeartbeatInterval();
 
                                 Siri heartbeatNotification = siriObjectFactory.createHeartbeatNotification(outboundSubscriptionSetup.getSubscriptionId());
-                                camelRouteManager.pushSiriData(heartbeatNotification, outboundSubscriptionSetup, serverSubscriptionManager, true);
+                                camelRouteManager.pushSiriData(heartbeatNotification, outboundSubscriptionSetup, true);
 
                                 heartbeatTimestampMap.put(subscriptionId, Instant.now(), heartbeatInterval, TimeUnit.MILLISECONDS);
                             }

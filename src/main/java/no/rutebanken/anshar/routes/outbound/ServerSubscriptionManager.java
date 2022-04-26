@@ -174,13 +174,25 @@ public class ServerSubscriptionManager {
 
             Siri subscriptionResponse = siriObjectFactory.createSubscriptionResponse(subscription.getSubscriptionId(), true, null);
 
-            //Send initial ServiceDelivery
-            Siri delivery = siriHelper.findInitialDeliveryData(subscription);
+            final String breadcrumbId = MDC.get("camel.breadcrumbId");
+            Executors.newSingleThreadScheduledExecutor().execute(() -> {
+                try {
+                    MDC.put("camel.breadcrumbId", breadcrumbId);
 
-            if (delivery != null) {
-                logger.info("Sending initial delivery to {}", subscription.getAddress());
-                camelRouteManager.pushSiriData(delivery, subscription, this, false);
-            }
+                    //Send initial ServiceDelivery
+                    logger.info("Find initial delivery for {}", subscription);
+                    Siri delivery = siriHelper.findInitialDeliveryData(subscription);
+
+                    if (delivery != null) {
+                        logger.info("Sending initial delivery to {}", subscription.getAddress());
+                        camelRouteManager.pushSiriData(delivery, subscription, false);
+                    } else {
+                        logger.info("No initial delivery found for {}", subscription);
+                    }
+                } finally {
+                    MDC.remove("camel.breadcrumbId");
+                }
+            });
             return subscriptionResponse;
         }
     }
@@ -310,7 +322,7 @@ public class ServerSubscriptionManager {
             Siri terminateSubscriptionResponse = siriObjectFactory.createTerminateSubscriptionResponse(subscriptionRef);
             logger.info("Sending TerminateSubscriptionResponse to {}", subscriptionRequest.getAddress());
 
-            camelRouteManager.pushSiriData(terminateSubscriptionResponse, subscriptionRequest, this, true);
+            camelRouteManager.pushSiriData(terminateSubscriptionResponse, subscriptionRequest, true);
         } else {
             logger.trace("Got TerminateSubscriptionRequest for non-existing subscription");
         }
@@ -375,7 +387,7 @@ public class ServerSubscriptionManager {
 
         boolean logFullContents = true;
         for (OutboundSubscriptionSetup recipient : recipients) {
-            camelRouteManager.pushSiriData(delivery, recipient, this, logFullContents);
+            camelRouteManager.pushSiriData(delivery, recipient, logFullContents);
             logFullContents = false;
         }
 
@@ -416,7 +428,7 @@ public class ServerSubscriptionManager {
 
         boolean logFullContents = true;
         for (OutboundSubscriptionSetup recipient : recipients) {
-            camelRouteManager.pushSiriData(delivery, recipient, this, logFullContents);
+            camelRouteManager.pushSiriData(delivery, recipient, logFullContents);
             logFullContents = false;
         }
 
@@ -458,7 +470,7 @@ public class ServerSubscriptionManager {
 
         boolean logFullContents = true;
         for (OutboundSubscriptionSetup recipient : recipients) {
-            camelRouteManager.pushSiriData(delivery, recipient, this, logFullContents);
+            camelRouteManager.pushSiriData(delivery, recipient, logFullContents);
             logFullContents = false;
         }
         MDC.remove("camel.breadcrumbId");

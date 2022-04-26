@@ -48,6 +48,9 @@ public class CamelRouteManager {
     @Autowired
     private SiriHelper siriHelper;
 
+    @Autowired
+    ServerSubscriptionManager subscriptionManager;
+
     @Value("${anshar.default.max.elements.per.delivery:1000}")
     private int maximumSizePerDelivery;
 
@@ -62,7 +65,7 @@ public class CamelRouteManager {
      * @param payload
      * @param subscriptionRequest
      */
-    void pushSiriData(Siri payload, OutboundSubscriptionSetup subscriptionRequest, ServerSubscriptionManager subscriptionManager, boolean logBody) {
+    void pushSiriData(Siri payload, OutboundSubscriptionSetup subscriptionRequest, boolean logBody) {
         String consumerAddress = subscriptionRequest.getAddress();
         if (consumerAddress == null) {
             logger.info("ConsumerAddress is null - ignoring data.");
