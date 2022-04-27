@@ -85,8 +85,6 @@ abstract class SiriRepository<T> {
 
     private ScheduledExecutorService singleThreadScheduledExecutor;
 
-    private ScheduledExecutorService cacheComparisonExecutor;
-
     @Autowired
     protected RequestorRefRepository requestorRefRepository;
 
@@ -146,18 +144,6 @@ abstract class SiriRepository<T> {
             cache.putAll(allAsMap);
         }
         logger.info("Cache initialized with {} elements in {} ms", cache.size(), (System.currentTimeMillis()-t1));
-
-        // Temporary debug-logging to verify cache consistency over time
-        cacheComparisonExecutor = Executors.newSingleThreadScheduledExecutor();
-        cacheComparisonExecutor.scheduleWithFixedDelay(() -> {
-            int mapSize = map.size();
-            int cacheSize = cache.size();
-            if (mapSize != cacheSize) {
-                logger.warn("Map size: {}, cache size: {}, cachetype: {}", mapSize, cacheSize, this.getClass().getSimpleName());
-            } else {
-                logger.info("Map size: {}, cache size: {}, cachetype: {}", mapSize, cacheSize, this.getClass().getSimpleName());
-            }
-        }, 0, 5, TimeUnit.SECONDS);
     }
 
     /**
