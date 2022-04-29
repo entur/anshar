@@ -201,7 +201,7 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
                     .when().xpath("/siri:Siri/siri:ServiceRequest/siri:SituationExchangeRequest", ns)
                         .to("direct:process.sx.service.request")
                     .when().xpath("/siri:Siri/siri:ServiceRequest/siri:EstimatedTimetableRequest", ns)
-                        .to("direct:process.et.service.request")
+                        .to("direct:process.et.service.request.cache")
                 .endChoice()
         ;
         from("direct:internal.process.service.request")
