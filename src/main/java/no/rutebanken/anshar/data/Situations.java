@@ -293,7 +293,7 @@ public class Situations extends SiriRepository<PtSituationElement> {
             }
         }
 
-        if (expiry != null) {
+        if (expiry != null && expiry.getYear() < 2100) {
             return ZonedDateTime.now().until(expiry.plus(configuration.getSxGraceperiodMinutes(), ChronoUnit.MINUTES), ChronoUnit.MILLIS);
         } else {
             // No expiration set - keep "forever"
