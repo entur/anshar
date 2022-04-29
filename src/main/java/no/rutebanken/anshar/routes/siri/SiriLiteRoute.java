@@ -42,7 +42,13 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.Collection;
 import java.util.List;
 
-import static no.rutebanken.anshar.routes.HttpParameter.*;
+import static no.rutebanken.anshar.routes.HttpParameter.PARAM_DATASET_ID;
+import static no.rutebanken.anshar.routes.HttpParameter.PARAM_EXCLUDED_DATASET_ID;
+import static no.rutebanken.anshar.routes.HttpParameter.PARAM_LINE_REF;
+import static no.rutebanken.anshar.routes.HttpParameter.PARAM_MAX_SIZE;
+import static no.rutebanken.anshar.routes.HttpParameter.PARAM_PREVIEW_INTERVAL;
+import static no.rutebanken.anshar.routes.HttpParameter.PARAM_USE_ORIGINAL_ID;
+import static no.rutebanken.anshar.routes.HttpParameter.getParameterValuesAsList;
 
 @Service
 public class SiriLiteRoute extends RestRouteBuilder {
@@ -83,7 +89,7 @@ public class SiriLiteRoute extends RestRouteBuilder {
                         .param().required(false).name(PARAM_USE_ORIGINAL_ID).type(RestParamType.query).description("Option to return original Ids").dataType("boolean").endParam()
                         .param().required(false).name(PARAM_MAX_SIZE).type(RestParamType.query).description("Specify max number of returned elements").dataType("integer").endParam()
 
-                .get("/et").to("direct:anshar.rest.et")
+                .get("/et").to("direct:anshar.rest.et.cached")
                         .param().required(false).name(PARAM_DATASET_ID).type(RestParamType.query).description("The id of the dataset to get").dataType("string").endParam()
                         .param().required(false).name(PARAM_EXCLUDED_DATASET_ID).type(RestParamType.query).description("Comma-separated list of dataset-IDs to be excluded from response").dataType("string").endParam()
                         .param().required(false).name(PARAM_USE_ORIGINAL_ID).type(RestParamType.query).description("Option to return original Ids").dataType("boolean").endParam()
@@ -372,6 +378,43 @@ public class SiriLiteRoute extends RestRouteBuilder {
                 .routeId("incoming.rest.vm.cached")
         ;
 
+        from("direct:internal.anshar.rest.et.cached")
+                .log("RequestTracer - Incoming request (ET)")
+                .to("log:restRequest:" + getClass().getSimpleName() + "?showAll=false&showHeaders=true")
+                .choice()
+                .when(e -> isTrackingHeaderAcceptable(e))
+                .process(p -> {
+                    String requestorId = resolveRequestorId(p.getIn().getBody(HttpServletRequest.class));
+                    String datasetId = p.getIn().getHeader(PARAM_DATASET_ID, String.class);
+                    String clientTrackingName = p.getIn().getHeader(configuration.getTrackingHeaderName(), String.class);
+
+                    logger.info("Fetching cached ET-data");
+                    Siri response = siriObjectFactory.createETServiceDelivery(estimatedTimetables.getAllCachedUpdates(requestorId,
+                            datasetId, clientTrackingName
+                    ));
+
+                    List<ValueAdapter> outboundAdapters = MappingAdapterPresets.getOutboundAdapters(
+                            SiriDataType.ESTIMATED_TIMETABLE,
+                            OutboundIdMappingPolicy.DEFAULT
+                    );
+
+                    logger.info("Transforming cached ET-data");
+                    response = SiriValueTransformer.transform(response, outboundAdapters, false, false);
+
+                    metrics.countOutgoingData(response, SubscriptionSetup.SubscriptionMode.LITE);
+
+                    HttpServletResponse out = p.getIn().getBody(HttpServletResponse.class);
+
+                    logger.info("Streaming cached ET-data");
+                    streamOutput(p, response, out);
+                    logger.info("Done processing cached ET-data");
+                })
+                .log("RequestTracer - Request done (ET)")
+                .otherwise()
+                .to("direct:anshar.invalid.tracking.header.response")
+                .routeId("incoming.rest.et.cached")
+        ;
+
 
         from("direct:internal.anshar.rest.et.monitored.cached")
             .log("RequestTracer - Incoming request (ET)")
@@ -405,7 +448,7 @@ public class SiriLiteRoute extends RestRouteBuilder {
             .log("RequestTracer - Request done (ET)")
             .otherwise()
             .to("direct:anshar.invalid.tracking.header.response")
-            .routeId("incoming.rest.et.cached")
+            .routeId("incoming.rest.et.monitored.cached")
         ;
     }
 
