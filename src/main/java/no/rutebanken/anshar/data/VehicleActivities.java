@@ -85,6 +85,10 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
     @Autowired
     ExtendedHazelcastService hazelcastService;
 
+    protected VehicleActivities() {
+        super(SiriDataType.VEHICLE_MONITORING);
+    }
+
     @PostConstruct
     private void initializeUpdateCommitter() {
         super.initBufferCommitter(hazelcastService, lastUpdateRequested, changesMap, configuration.getChangeBufferCommitFrequency());

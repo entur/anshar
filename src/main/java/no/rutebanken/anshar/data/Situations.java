@@ -77,6 +77,10 @@ public class Situations extends SiriRepository<PtSituationElement> {
     @Autowired
     ExtendedHazelcastService hazelcastService;
 
+    protected Situations() {
+        super(SiriDataType.SITUATION_EXCHANGE);
+    }
+
     @PostConstruct
     private void initializeUpdateCommitter() {
         super.initBufferCommitter(hazelcastService, lastUpdateRequested, changesMap, configuration.getChangeBufferCommitFrequency());

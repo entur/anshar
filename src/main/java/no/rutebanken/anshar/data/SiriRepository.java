@@ -61,6 +61,8 @@ abstract class SiriRepository<T> {
     private IMap<String, Instant> lastUpdateRequested;
     private IMap<String, Set<SiriObjectStorageKey>> changesMap;
 
+    private final SiriDataType SIRI_DATA_TYPE;
+
     abstract Collection<T> getAll();
 
     abstract Map<SiriObjectStorageKey, T> getAllAsMap();
@@ -89,6 +91,10 @@ abstract class SiriRepository<T> {
     protected RequestorRefRepository requestorRefRepository;
 
     Map<SiriObjectStorageKey, T> cache = Maps.newConcurrentMap();
+
+    protected SiriRepository (SiriDataType siriDataType) {
+        this.SIRI_DATA_TYPE = siriDataType;
+    }
 
     protected void enableCache(IMap<SiriObjectStorageKey, T> map) {
         enableCache(map, null);
@@ -203,7 +209,7 @@ abstract class SiriRepository<T> {
                 requestorRefRepository.touchRequestorRef(requestorId,
                     datasetId,
                     clientTrackingName,
-                    SiriDataType.SITUATION_EXCHANGE
+                    SIRI_DATA_TYPE
                 );
 
                 if (changesMap.containsKey(requestorId)) {

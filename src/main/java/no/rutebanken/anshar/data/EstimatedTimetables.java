@@ -95,6 +95,10 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
     @Autowired
     ExtendedHazelcastService hazelcastService;
 
+    protected EstimatedTimetables() {
+        super(SiriDataType.ESTIMATED_TIMETABLE);
+    }
+
     @PostConstruct
     private void initializeUpdateCommitter() {
         super.initBufferCommitter(hazelcastService, lastUpdateRequested, changesMap, configuration.getChangeBufferCommitFrequency());
