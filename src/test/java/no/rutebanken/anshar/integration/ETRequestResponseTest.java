@@ -157,6 +157,7 @@ public class ETRequestResponseTest extends BaseHttpTest {
         VehicleRef vehicleRef = new VehicleRef();
         vehicleRef.setValue(vehicleRefValue);
         element.setVehicleRef(vehicleRef);
+        element.setMonitored(Boolean.TRUE);
 
         element.setIsCompleteStopSequence(isComplete);
 
