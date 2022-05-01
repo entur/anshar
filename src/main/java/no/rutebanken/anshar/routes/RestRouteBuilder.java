@@ -161,7 +161,7 @@ public class RestRouteBuilder extends RouteBuilder {
                     .to("direct:redirect.request.et")
             ;
             from("direct:anshar.rest.et.monitored")
-                    .to("direct:internal.anshar.rest.et.monitored")
+                    .to("direct:redirect.request.et")
             ;
             from("direct:anshar.rest.et.monitored.cached")
                     .to("direct:redirect.request.et")
