@@ -36,7 +36,24 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import uk.org.siri.siri20.*;
+import uk.org.siri.siri20.ErrorCodeStructure;
+import uk.org.siri.siri20.ErrorDescriptionStructure;
+import uk.org.siri.siri20.EstimatedTimetableDeliveryStructure;
+import uk.org.siri.siri20.EstimatedVehicleJourney;
+import uk.org.siri.siri20.LineRef;
+import uk.org.siri.siri20.PtSituationElement;
+import uk.org.siri.siri20.RequestorRef;
+import uk.org.siri.siri20.ServiceDeliveryErrorConditionElement;
+import uk.org.siri.siri20.ServiceRequest;
+import uk.org.siri.siri20.Siri;
+import uk.org.siri.siri20.SituationExchangeDeliveryStructure;
+import uk.org.siri.siri20.SubscriptionResponseStructure;
+import uk.org.siri.siri20.TerminateSubscriptionRequestStructure;
+import uk.org.siri.siri20.TerminateSubscriptionResponseStructure;
+import uk.org.siri.siri20.VehicleActivityStructure;
+import uk.org.siri.siri20.VehicleMonitoringDeliveryStructure;
+import uk.org.siri.siri20.VehicleMonitoringRequestStructure;
+import uk.org.siri.siri20.VehicleRef;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.UnmarshalException;
@@ -44,7 +61,14 @@ import javax.xml.datatype.Duration;
 import javax.xml.stream.XMLStreamException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter.getOriginalId;
 
@@ -210,8 +234,10 @@ public class SiriHandler {
             if (terminateSubscriptionRequest.getSubscriptionReves() != null && !terminateSubscriptionRequest.getSubscriptionReves().isEmpty()) {
                 String subscriptionRef = terminateSubscriptionRequest.getSubscriptionReves().get(0).getValue();
 
-                serverSubscriptionManager.terminateSubscription(subscriptionRef);
-                return siriObjectFactory.createTerminateSubscriptionResponse(subscriptionRef);
+                serverSubscriptionManager.terminateSubscription(subscriptionRef, configuration.processAdmin());
+                if (configuration.processAdmin()) {
+                    return siriObjectFactory.createTerminateSubscriptionResponse(subscriptionRef);
+                }
             }
         } else if (incoming.getCheckStatusRequest() != null) {
             logger.info("Handling checkStatusRequest...");

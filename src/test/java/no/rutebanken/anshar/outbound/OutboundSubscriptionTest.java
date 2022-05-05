@@ -111,7 +111,7 @@ public class OutboundSubscriptionTest extends SpringBootBaseTest {
         assertTrue(siriET.getSubscriptionResponse().getResponseStatuses().get(0).isStatus() != null);
         assertFalse(siriET.getSubscriptionResponse().getResponseStatuses().get(0).isStatus());
 
-        serverSubscriptionManager.terminateSubscription(subscriptionId);
+        serverSubscriptionManager.terminateSubscription(subscriptionId, true);
     }
 
     SubscriptionRequest getSubscriptionRequest(long heartbeatIntervalMillis) throws DatatypeConfigurationException {

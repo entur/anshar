@@ -315,14 +315,18 @@ public class ServerSubscriptionManager {
         return null;
     }
 
-    public void terminateSubscription(String subscriptionRef) {
+    public void terminateSubscription(String subscriptionRef, boolean postResponse) {
         OutboundSubscriptionSetup subscriptionRequest = removeSubscription(subscriptionRef);
 
         if (subscriptionRequest != null) {
-            Siri terminateSubscriptionResponse = siriObjectFactory.createTerminateSubscriptionResponse(subscriptionRef);
-            logger.info("Sending TerminateSubscriptionResponse to {}", subscriptionRequest.getAddress());
+            if (postResponse) {
+                Siri terminateSubscriptionResponse = siriObjectFactory.createTerminateSubscriptionResponse(subscriptionRef);
+                logger.info("Sending TerminateSubscriptionResponse to {}", subscriptionRequest.getAddress());
 
-            camelRouteManager.pushSiriData(terminateSubscriptionResponse, subscriptionRequest, true);
+                camelRouteManager.pushSiriData(terminateSubscriptionResponse, subscriptionRequest, true);
+            } else {
+                logger.info("Subscription terminated, but no response was sent");
+            }
         } else {
             logger.trace("Got TerminateSubscriptionRequest for non-existing subscription");
         }

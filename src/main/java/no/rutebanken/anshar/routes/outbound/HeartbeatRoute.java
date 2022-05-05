@@ -68,7 +68,7 @@ public class HeartbeatRoute extends BaseRouteBuilder {
 
                         if (outboundSubscriptionSetup != null) {
                             if (LocalDateTime.now().isAfter(outboundSubscriptionSetup.getInitialTerminationTime().toLocalDateTime())) {
-                                serverSubscriptionManager.terminateSubscription(outboundSubscriptionSetup.getSubscriptionId());
+                                serverSubscriptionManager.terminateSubscription(outboundSubscriptionSetup.getSubscriptionId(), true);
                             } else if (!heartbeatTimestampMap.containsKey(subscriptionId)) {
                                 final long heartbeatInterval = outboundSubscriptionSetup.getHeartbeatInterval();
 
