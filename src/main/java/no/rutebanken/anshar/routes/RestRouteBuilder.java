@@ -29,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.access.AccessDeniedException;
 import uk.org.siri.siri20.Siri;
 
 import javax.servlet.http.HttpServletResponse;
@@ -85,6 +86,13 @@ public class RestRouteBuilder extends RouteBuilder {
                 .handled(true)
                 .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("400"))
                 .setBody(simple("Invalid XML"))
+        ;
+
+        onException(AccessDeniedException.class)
+                .handled(true)
+                .setHeader("WWW-Authenticate", simple("Basic")) // Request login
+                .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("401"))
+                .setBody(simple("Unauthorized"))
         ;
 
         errorHandler(defaultErrorHandler()
