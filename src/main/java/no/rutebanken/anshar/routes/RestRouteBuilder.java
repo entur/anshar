@@ -174,7 +174,8 @@ public class RestRouteBuilder extends RouteBuilder {
             from("direct:anshar.rest.et.monitored.cached")
                     .to("direct:redirect.request.et")
             ;
-            if (etHandlerBaseUrl.isBlank()) {
+            if (!configuration.processAdmin()) {
+                // Data-instances should never redirect requests
                 from("direct:redirect.request.et")
                         .log("Ignore redirect")
                         ;
@@ -231,7 +232,8 @@ public class RestRouteBuilder extends RouteBuilder {
                     .to("direct:redirect.request.vm")
             ;
 
-            if (vmHandlerBaseUrl.isBlank()) {
+            if (!configuration.processAdmin()) {
+                // Data-instances should never redirect requests
                 from("direct:redirect.request.vm")
                         .log("Ignore redirect")
                 ;
@@ -288,7 +290,8 @@ public class RestRouteBuilder extends RouteBuilder {
                     .to("direct:redirect.request.sx")
             ;
 
-            if (sxHandlerBaseUrl.isBlank()) {
+            if (!configuration.processAdmin()) {
+                // Data-instances should never redirect requests
                 from("direct:redirect.request.sx")
                         .log("Ignore redirect")
                 ;
