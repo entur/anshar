@@ -391,14 +391,21 @@ public class AdministrationRoute extends RestRouteBuilder {
         ;
 
 
-        //Return unmapped ids
-        from(SITUATIONS_ROUTE)
-                .filter(header("datasetId").isNotNull())
-                .bean(helper, "getSituationMetadataAsJson(${header.datasetId})")
-                .to("direct:removeHeaders")
-                .to("freemarker:templates/situations.ftl")
+        if (configuration.processSX()) {
+            //Return unmapped ids
+            from(SITUATIONS_ROUTE)
+                    .filter(header("datasetId").isNotNull())
+                    .bean(helper, "getSituationMetadataAsJson(${header.datasetId})")
+                    .to("direct:removeHeaders")
+                    .to("freemarker:templates/situations.ftl")
+                    .routeId("admin.situations")
+            ;
+        } else {
+            from(SITUATIONS_ROUTE)
+                .toD(sxHandlerBaseUrl + "${header.CamelHttpUri}?bridgeEndpoint=true")
                 .routeId("admin.situations")
-        ;
+            ;
+        }
 
         from (CLUSTERSTATS_ROUTE)
                 .bean(helper, "listClusterStats")
