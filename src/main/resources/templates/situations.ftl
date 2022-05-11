@@ -20,10 +20,9 @@
             <tr>
                 <th>#</th>
                 <th>SituationNumber</th>
-                <th>CreationTime</th>
                 <th>Progress</th>
                 <th>Text</th>
-                <th>Validity</th>
+                <th>Timestamps</th>
             </tr>
             </thead>
             <tbody>
@@ -31,7 +30,6 @@
                 <tr class="${item.healthy???then(item.healthy?then("success","danger"), "warning")}">
                     <th>${item?counter}</th>
                     <td>${item.situationNumber}</td>
-                    <td>${item.creationTime}</td>
                     <td>${item.progress}</td>
                     <td>
                         <div>
@@ -54,6 +52,8 @@
                         </div>
                     </td>
                     <td>
+                        <label>StartTime:</label><br />
+                        <span>${item.creationTime}</span><br />
                         <#list item.validity as validity>
                             <label>StartTime:</label><br />
                             <span>${validity.startTime}</span><br />
