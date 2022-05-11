@@ -56,6 +56,7 @@ public class AdministrationRoute extends RestRouteBuilder {
     private static final String OPERATION_ROUTE = "direct:operation";
     private static final String CLUSTERSTATS_ROUTE = "direct:clusterstats";
     private static final String UNMAPPED_ROUTE = "direct:unmapped";
+    private static final String SITUATIONS_ROUTE = "direct:situations";
 
     @Autowired
     private ExtendedHazelcastService extendedHazelcastService;
@@ -101,6 +102,7 @@ public class AdministrationRoute extends RestRouteBuilder {
                 .put("/stats").to(OPERATION_ROUTE)
                 .get("/unmapped").produces(MediaType.TEXT_HTML).to(UNMAPPED_ROUTE)
                 .get("/unmapped/{datasetId}").produces(MediaType.TEXT_HTML).to(UNMAPPED_ROUTE)
+                .get("/situations/{datasetId}").produces(MediaType.TEXT_HTML).to(SITUATIONS_ROUTE)
         ;
 
         if (autoLockVerificationEnabled) {
@@ -386,6 +388,16 @@ public class AdministrationRoute extends RestRouteBuilder {
                 .to("direct:removeHeaders")
                 .to("freemarker:templates/unmapped.ftl")
                 .routeId("admin.unmapped")
+        ;
+
+
+        //Return unmapped ids
+        from(SITUATIONS_ROUTE)
+                .filter(header("datasetId").isNotNull())
+                .bean(helper, "getSituationMetadataAsJson(${header.datasetId})")
+                .to("direct:removeHeaders")
+                .to("freemarker:templates/situations.ftl")
+                .routeId("admin.situations")
         ;
 
         from (CLUSTERSTATS_ROUTE)

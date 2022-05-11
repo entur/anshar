@@ -30,8 +30,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import uk.org.siri.siri20.DefaultedTextStructure;
+import uk.org.siri.siri20.HalfOpenTimestampOutputRangeStructure;
+import uk.org.siri.siri20.PtSituationElement;
 
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -66,6 +71,83 @@ public class AdminRouteHelper {
         }
     }
 
+    public JSONObject getSituationMetadataAsJson(String codespaceId) {
+        Collection<PtSituationElement> allSituations = situations.getAll(codespaceId);
+        JSONArray situations = new JSONArray();
+        for (PtSituationElement ptSituationElement : allSituations) {
+            JSONObject situationObj = new JSONObject();
+            situationObj.put("situationNumber", getSituationNumber(ptSituationElement));//.getSituationNumber() != null ? ptSituationElement.getSituationNumber().getValue():"");
+            situationObj.put("validity", getValidities(ptSituationElement));
+            situationObj.put("progress", ptSituationElement.getProgress());
+            situationObj.put("summaries", getSummaries(ptSituationElement));
+            situationObj.put("descriptions", getDescriptions(ptSituationElement));
+            situationObj.put("advices", getAdvice(ptSituationElement));
+            situations.add(situationObj);
+        }
+        JSONObject all = new JSONObject();
+        all.put("situations", situations);
+        return all;
+    }
+
+    private Object getAdvice(PtSituationElement element) {
+        JSONArray jsonArray = new JSONArray();
+        List<DefaultedTextStructure> advices = element.getAdvices();
+        for (DefaultedTextStructure text : advices) {
+            JSONObject obj = getTextJson(text);
+            jsonArray.add(obj);
+        }
+        return jsonArray;
+    }
+
+    private Object getDescriptions(PtSituationElement element) {
+        JSONArray jsonArray = new JSONArray();
+        List<DefaultedTextStructure> descriptions = element.getDescriptions();
+        for (DefaultedTextStructure text : descriptions) {
+            JSONObject obj = getTextJson(text);
+            jsonArray.add(obj);
+        }
+        return jsonArray;
+    }
+
+    private JSONArray getSummaries(PtSituationElement element) {
+        JSONArray jsonArray = new JSONArray();
+        List<DefaultedTextStructure> summaries = element.getSummaries();
+        for (DefaultedTextStructure text : summaries) {
+            JSONObject obj = getTextJson(text);
+            jsonArray.add(obj);
+        }
+        return jsonArray;
+    }
+
+    private JSONObject getTextJson(DefaultedTextStructure summary) {
+        JSONObject obj = new JSONObject();
+        obj.put("value", summary.getValue());
+        obj.put("lang", summary.getLang());
+        return obj;
+    }
+
+    private JSONArray getValidities(PtSituationElement element) {
+        JSONArray jsonArray = new JSONArray();
+
+        List<HalfOpenTimestampOutputRangeStructure> validityPeriods = element.getValidityPeriods();
+        if (validityPeriods != null) {
+            for (HalfOpenTimestampOutputRangeStructure validity : validityPeriods) {
+                JSONObject json = new JSONObject();
+
+                json.put("startTime", validity.getStartTime());
+                json.put("endTime", validity.getEndTime());
+                jsonArray.add(json);
+            }
+        }
+        return jsonArray;
+    }
+
+    private String getSituationNumber(PtSituationElement element) {
+        if (element.getSituationNumber() != null) {
+            return element.getSituationNumber().getValue();
+        }
+        return null;
+    }
 
     public void deleteSubscription(String subscriptionId) {
         subscriptionManager.removeSubscription(subscriptionId, true);
