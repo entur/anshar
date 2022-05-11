@@ -52,7 +52,7 @@
                         </div>
                     </td>
                     <td>
-                        <label>StartTime:</label><br />
+                        <label>CreationTime:</label><br />
                         <span>${item.creationTime}</span><br />
                         <#list item.validity as validity>
                             <label>StartTime:</label><br />
