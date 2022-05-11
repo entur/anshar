@@ -122,8 +122,8 @@ public class AdminRouteHelper {
 
     private JSONObject getTextJson(DefaultedTextStructure summary) {
         JSONObject obj = new JSONObject();
-        obj.put("value", summary.getValue());
-        obj.put("lang", summary.getLang());
+        obj.put("value", summary.getValue() != null ? summary.getValue():"");
+        obj.put("lang", summary.getLang() != null ? summary.getLang():"");
         return obj;
     }
 
@@ -136,7 +136,7 @@ public class AdminRouteHelper {
                 JSONObject json = new JSONObject();
 
                 json.put("startTime", validity.getStartTime());
-                json.put("endTime", validity.getEndTime());
+                json.put("endTime", validity.getEndTime() != null ?  validity.getEndTime():"");
                 jsonArray.add(json);
             }
         }
