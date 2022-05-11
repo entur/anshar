@@ -20,6 +20,7 @@
             <tr>
                 <th>#</th>
                 <th>SituationNumber</th>
+                <th>CreationTime</th>
                 <th>Progress</th>
                 <th>Text</th>
                 <th>Validity</th>
@@ -30,6 +31,7 @@
                 <tr class="${item.healthy???then(item.healthy?then("success","danger"), "warning")}">
                     <th>${item?counter}</th>
                     <td>${item.situationNumber}</td>
+                    <td>${item.creationTime}</td>
                     <td>${item.progress}</td>
                     <td>
                         <div>

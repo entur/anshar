@@ -77,6 +77,7 @@ public class AdminRouteHelper {
         for (PtSituationElement ptSituationElement : allSituations) {
             JSONObject situationObj = new JSONObject();
             situationObj.put("situationNumber", getSituationNumber(ptSituationElement));//.getSituationNumber() != null ? ptSituationElement.getSituationNumber().getValue():"");
+            situationObj.put("creationTime", ptSituationElement.getCreationTime());
             situationObj.put("validity", getValidities(ptSituationElement));
             situationObj.put("progress", ptSituationElement.getProgress());
             situationObj.put("summaries", getSummaries(ptSituationElement));
