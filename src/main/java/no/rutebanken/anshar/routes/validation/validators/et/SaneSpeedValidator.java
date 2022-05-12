@@ -98,7 +98,8 @@ public class SaneSpeedValidator extends SiriObjectValidator {
                                                 .getValue());
 
                                             try {
-                                                validate(fromStop,
+                                                validate(estimatedVehicleJourney,
+                                                        fromStop,
                                                     toStop,
                                                     getTimes(thisCall, nextCall)
                                                 );
@@ -128,6 +129,7 @@ public class SaneSpeedValidator extends SiriObjectValidator {
 
                                             try {
                                                 validate(
+                                                    estimatedVehicleJourney,
                                                     getMappedId(thisStop.getValue()),
                                                     getMappedId(nextStop.getValue()),
                                                     getTimes(thisCall, nextCall)
@@ -152,6 +154,7 @@ public class SaneSpeedValidator extends SiriObjectValidator {
     }
 
     private void validate(
+        EstimatedVehicleJourney estimatedVehicleJourney,
         String fromStop, String toStop,
         Pair<ZonedDateTime, ZonedDateTime> times
     ) throws TooFastException {
@@ -161,18 +164,19 @@ public class SaneSpeedValidator extends SiriObjectValidator {
 
         if (fromTime != null && toTime != null &&
             toTime.isAfter(fromTime)) {
-            isSaneSpeed(fromStop, toStop, fromTime, toTime);
+            isSaneSpeed(estimatedVehicleJourney, fromStop, toStop, fromTime, toTime);
         }
     }
 
     private void isSaneSpeed(
+        EstimatedVehicleJourney estimatedVehicleJourney,
         String fromStop, String toStop, ZonedDateTime fromTime, ZonedDateTime toTime
     ) throws TooFastException {
         final double kph = StopsUtil.calculateSpeedKph(fromStop, toStop, fromTime, toTime);
 
 
         if (kph > SANE_SPEED_LIMIT) {
-            throw new TooFastException(fromStop, toStop, fromTime, toTime);
+            throw new TooFastException(estimatedVehicleJourney, fromStop, toStop, fromTime, toTime);
         } else {
             logger.debug("Calculated speed between {} and {}: {}", fromStop, toStop, kph);
         }

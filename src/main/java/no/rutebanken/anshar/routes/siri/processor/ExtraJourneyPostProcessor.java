@@ -212,7 +212,7 @@ public class ExtraJourneyPostProcessor extends ValueAdapter implements PostProce
                     "Calculated speed between {} and {}: {} kph", fromStop, toStop,
                     kph
                 );
-                throw new TooFastException(fromStop, toStop, fromTime, toTime);
+                throw new TooFastException(serviceJourneyId, fromStop, toStop, fromTime, toTime);
             }
             else {
                 logger.debug(
