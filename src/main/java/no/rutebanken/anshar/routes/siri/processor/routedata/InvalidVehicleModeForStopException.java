@@ -14,7 +14,7 @@ public class InvalidVehicleModeForStopException extends Throwable {
         public InvalidVehicleModeForStopException(
                 EstimatedVehicleJourney estimatedVehicleJourney, List<VehicleModesEnumeration> vehicleModes, String stop
         ) {
-            this.msg = "Trip with mode " + vehicleModes + " stops at stop (" + stop + ")  with other mode (" + resolveServiceJourneyId(estimatedVehicleJourney) + ").";
+            this.msg = "Trip with mode " + vehicleModes + " stops at stop (" + stop + ")  with other mode [" + resolveServiceJourneyId(estimatedVehicleJourney) + "].";
         }
 
         @Override

@@ -17,7 +17,7 @@ public class TooFastException extends Throwable {
         long seconds = StopsUtil.getSeconds(fromTime, toTime);
         int kph = StopsUtil.calculateSpeedKph(distance, fromTime, toTime);
 
-        this.msg = "Too fast (" + kph + " kph) between " + fromStop + " and " + toStop +" (" + Math.round(distance) + " meters in " + seconds + "s) SJ-id:" + resolveServiceJourneyId(serviceJourneyId) + ".";
+        this.msg = "Too fast (" + kph + " kph) between " + fromStop + " and " + toStop +" (" + Math.round(distance) + " meters in " + seconds + "s) [" + resolveServiceJourneyId(serviceJourneyId) + "].";
     }
 
 
