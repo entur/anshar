@@ -28,7 +28,6 @@ import org.apache.kafka.common.config.SaslConfigs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -37,34 +36,10 @@ import java.util.Map;
 import java.util.Properties;
 
 @Service
-public class KafkaPublisher {
+public class KafkaPublisher extends KafkaConfig {
     private final Logger log = LoggerFactory.getLogger(KafkaPublisher.class);
 
     public static final String CODESPACE_ID_KAFKA_HEADER_NAME = "codespaceId";
-
-    @Value("${anshar.kafka.enabled:false}")
-    private boolean kafkaEnabled;
-
-    @Value("${anshar.kafka.security.protocol}")
-    private String securityProtocol;
-
-    @Value("${anshar.kafka.security.sasl.mechanism}")
-    private String saslMechanism;
-
-    @Value("${anshar.kafka.sasl.username}")
-    private String saslUsername;
-
-    @Value("${anshar.kafka.sasl.password}")
-    private String saslPassword;
-
-    @Value("${anshar.kafka.brokers}")
-    private String brokers;
-
-    @Value("${anshar.kafka.clientId:}")
-    private String clientId;
-
-    @Value("${anshar.kafka.compressionType:gzip}")
-    private String compressionType;
 
     private KafkaProducer producer;
 
@@ -93,10 +68,9 @@ public class KafkaPublisher {
             properties.put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, securityProtocol);
 
             properties.put(SaslConfigs.SASL_MECHANISM, saslMechanism);
-            String jaasConfigContents = "org.apache.kafka.common.security.scram.ScramLoginModule required\nusername=\"%s\"\npassword=\"%s\";";
             properties.put(
                 SaslConfigs.SASL_JAAS_CONFIG,
-                String.format(jaasConfigContents, saslUsername.trim(), saslPassword.trim())
+                    getSaslJaasConfigString()
             );
         } else {
             log.info("Skip Kafka-authentication as no user/passowrd is set");
@@ -119,11 +93,6 @@ public class KafkaPublisher {
                     metadataHeaders.get(CODESPACE_ID_KAFKA_HEADER_NAME)
                         .getBytes(StandardCharsets.UTF_8)
                 );
-//                if ("TRO".equals(metadataHeaders.get(CODESPACE_ID_KAFKA_HEADER_NAME ))) {
-//                    if (siriData.contains("ProgressBetweenStops")) {
-//                        log.info("Sending VM-data with ProgressBetweenStops to kafka: {}", siriData);
-//                    }
-//                }
             }
 
             //Fire and forget

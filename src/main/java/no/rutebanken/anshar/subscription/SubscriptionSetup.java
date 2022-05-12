@@ -80,6 +80,8 @@ public class SubscriptionSetup implements Serializable {
 
     private boolean useProvidedCodespaceId = false;
 
+    private boolean enrichSiriData = false;
+
     public boolean isUseProvidedCodespaceId() {
         return useProvidedCodespaceId;
     }
@@ -411,6 +413,14 @@ public class SubscriptionSetup implements Serializable {
 
     public String getValidationFilter() {
         return validationFilter;
+    }
+
+    public boolean enrichSiriData() {
+        return enrichSiriData;
+    }
+
+    public void setEnrichSiriData(boolean enrichSiriData) {
+        this.enrichSiriData = enrichSiriData;
     }
 
     public enum ServiceType {SOAP, REST}
