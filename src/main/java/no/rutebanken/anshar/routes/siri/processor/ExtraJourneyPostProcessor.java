@@ -112,10 +112,11 @@ public class ExtraJourneyPostProcessor extends ValueAdapter implements PostProce
                                                 Pair<ZonedDateTime, ZonedDateTime> times = getTimes(thisCall,
                                                     nextCall
                                                 );
-                                                validateContents(vehicleModes,
-                                                    fromStop,
-                                                    toStop,
-                                                    times
+                                                validateContents( estimatedVehicleJourney,
+                                                        vehicleModes,
+                                                        fromStop,
+                                                        toStop,
+                                                        times
                                                 );
                                             }
                                         }
@@ -144,7 +145,7 @@ public class ExtraJourneyPostProcessor extends ValueAdapter implements PostProce
                                                     nextCall
                                                 );
 
-                                                validateContents(vehicleModes,
+                                                validateContents(estimatedVehicleJourney, vehicleModes,
                                                     fromStop,
                                                     toStop,
                                                     times
@@ -179,22 +180,22 @@ public class ExtraJourneyPostProcessor extends ValueAdapter implements PostProce
     }
 
     private void validateContents(
-        List<VehicleModesEnumeration> vehicleModes, String fromStop, String toStop,
-        Pair<ZonedDateTime, ZonedDateTime> times
+            EstimatedVehicleJourney estimatedVehicleJourney, List<VehicleModesEnumeration> vehicleModes, String fromStop, String toStop,
+            Pair<ZonedDateTime, ZonedDateTime> times
     ) throws TooFastException, InvalidVehicleModeForStopException {
         if (!StopsUtil.doesVehicleModeMatchStopMode(vehicleModes, fromStop)) {
             logger.warn( "Vehicle mode {} does not match Stop-mode for stop {}",
                 vehicleModes,
                 fromStop
             );
-            throw new InvalidVehicleModeForStopException(vehicleModes, fromStop);
+            throw new InvalidVehicleModeForStopException(estimatedVehicleJourney, vehicleModes, fromStop);
         }
         if (!StopsUtil.doesVehicleModeMatchStopMode(vehicleModes, toStop)) {
             logger.warn("Vehicle mode {} does not match Stop-mode for stop {}",
                 vehicleModes,
                 toStop
             );
-            throw new InvalidVehicleModeForStopException(vehicleModes, toStop);
+            throw new InvalidVehicleModeForStopException(estimatedVehicleJourney, vehicleModes, toStop);
         }
 
         final ZonedDateTime fromTime = times.getLeft();
@@ -212,7 +213,7 @@ public class ExtraJourneyPostProcessor extends ValueAdapter implements PostProce
                     "Calculated speed between {} and {}: {} kph", fromStop, toStop,
                     kph
                 );
-                throw new TooFastException(serviceJourneyId, fromStop, toStop, fromTime, toTime);
+                throw new TooFastException(estimatedVehicleJourney, fromStop, toStop, fromTime, toTime);
             }
             else {
                 logger.debug(

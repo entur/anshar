@@ -89,7 +89,7 @@ public class StopModeValidator extends SiriObjectValidator {
                                     final List<RecordedCall> calls = recordedCalls.getRecordedCalls();
                                     for (RecordedCall call : calls) {
                                         if (call.getStopPointRef() != null) {
-                                            validate(vehicleModes,
+                                            validate(estimatedVehicleJourney, vehicleModes,
                                                 getMappedId(call.getStopPointRef().getValue())
                                             );
                                         }
@@ -101,7 +101,7 @@ public class StopModeValidator extends SiriObjectValidator {
                                     final List<EstimatedCall> calls = estimatedCalls.getEstimatedCalls();
                                     for (EstimatedCall call : calls) {
                                         if (call.getStopPointRef() != null) {
-                                            validate(vehicleModes,
+                                            validate(estimatedVehicleJourney, vehicleModes,
                                                 getMappedId(call.getStopPointRef().getValue())
                                             );
                                         }
@@ -117,18 +117,18 @@ public class StopModeValidator extends SiriObjectValidator {
     }
 
     private void validate(
-        List<VehicleModesEnumeration> vehicleModes,
-        String stopRef
+            EstimatedVehicleJourney estimatedVehicleJourney, List<VehicleModesEnumeration> vehicleModes,
+            String stopRef
     ) throws InvalidVehicleModeForStopException {
 
-        verifyMode(vehicleModes, stopRef);
+        verifyMode(estimatedVehicleJourney, vehicleModes, stopRef);
     }
 
 
-    private void verifyMode(List<VehicleModesEnumeration> vehicleModes, String stopRef)
+    private void verifyMode(EstimatedVehicleJourney estimatedVehicleJourney, List<VehicleModesEnumeration> vehicleModes, String stopRef)
         throws InvalidVehicleModeForStopException {
         if (!StopsUtil.doesVehicleModeMatchStopMode(vehicleModes, stopRef)) {
-            throw new InvalidVehicleModeForStopException(vehicleModes, stopRef);
+            throw new InvalidVehicleModeForStopException(estimatedVehicleJourney, vehicleModes, stopRef);
         }
     }
 }
