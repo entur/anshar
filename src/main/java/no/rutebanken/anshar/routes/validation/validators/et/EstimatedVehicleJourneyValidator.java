@@ -66,7 +66,10 @@ public class EstimatedVehicleJourneyValidator extends CustomValidator {
             fieldNames.add("ExternalLineRef");
         } else {
 
-            if (getChildNodeValue(node,"FramedVehicleJourneyRef") == null) {
+            Node framedVehicleJourneyRefNode = getChildNodeByName(node, "FramedVehicleJourneyRef");
+
+            if (framedVehicleJourneyRefNode == null ||
+                    getChildNodeValue(framedVehicleJourneyRefNode, "DatedVehicleJourneyRef") == null) {
                 if (getChildNodeValue(node,"DatedVehicleJourneyRef") == null) {
                     fieldNames.add("FramedVehicleJourneyRef or DatedVehicleJourneyRef");
                 }
