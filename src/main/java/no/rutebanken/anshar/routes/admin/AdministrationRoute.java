@@ -25,6 +25,7 @@ import no.rutebanken.anshar.routes.outbound.ServerSubscriptionManager;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
+import org.apache.camel.Exchange;
 import org.apache.commons.lang3.StringUtils;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,6 +79,9 @@ public class AdministrationRoute extends RestRouteBuilder {
 
     @Value("${anshar.route.singleton.policy.automatic.verification:false}")
     private boolean autoLockVerificationEnabled;
+
+    @Value("${anshar.situations.debug.endpoint.enabled:false}")
+    private boolean situationsDebugEndpoint;
 
     @Autowired
     private BasicAuthService basicAuthProcessor;
@@ -390,20 +394,26 @@ public class AdministrationRoute extends RestRouteBuilder {
                 .routeId("admin.unmapped")
         ;
 
-
-        if (configuration.processSX()) {
-            //Return unmapped ids
-            from(SITUATIONS_ROUTE)
-                    .filter(header("datasetId").isNotNull())
-                    .bean(helper, "getSituationMetadataAsJson(${header.datasetId})")
-                    .to("direct:removeHeaders")
-                    .to("freemarker:templates/situations.ftl")
-                    .routeId("admin.situations")
-            ;
+        if (situationsDebugEndpoint) {
+            if (configuration.processSX()) {
+                //Return unmapped ids
+                from(SITUATIONS_ROUTE)
+                        .filter(header("datasetId").isNotNull())
+                        .bean(helper, "getSituationMetadataAsJson(${header.datasetId})")
+                        .to("direct:removeHeaders")
+                        .to("freemarker:templates/situations.ftl")
+                        .routeId("admin.situations")
+                ;
+            } else {
+                from(SITUATIONS_ROUTE)
+                        .toD(sxHandlerBaseUrl + "${header.CamelHttpUri}?bridgeEndpoint=true")
+                        .routeId("admin.situations")
+                ;
+            }
         } else {
             from(SITUATIONS_ROUTE)
-                .toD(sxHandlerBaseUrl + "${header.CamelHttpUri}?bridgeEndpoint=true")
-                .routeId("admin.situations")
+                    .setHeader(Exchange.HTTP_RESPONSE_CODE, simple("404"))
+                    .routeId("admin.situations")
             ;
         }
 
