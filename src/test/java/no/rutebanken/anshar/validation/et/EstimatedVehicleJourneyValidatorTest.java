@@ -18,8 +18,8 @@ package no.rutebanken.anshar.validation.et;
 import no.rutebanken.anshar.routes.validation.validators.ProfileValidationEventOrList;
 import no.rutebanken.anshar.routes.validation.validators.et.EstimatedVehicleJourneyValidator;
 import no.rutebanken.anshar.validation.CustomValidatorTest;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.w3c.dom.Node;
 
@@ -56,7 +56,7 @@ public class EstimatedVehicleJourneyValidatorTest extends CustomValidatorTest {
     public void initTestValues() {
         lineRef =                   createXml("LineRef", "1234");
         directionRef =              createXml("DirectionRef", "1234");
-        framedVehicleJourneyRef =   createXml("FramedVehicleJourneyRef", "1234");
+        framedVehicleJourneyRef =   "<FramedVehicleJourneyRef><DataFrameRef>2022-01-01</DataFrameRef><DatedVehicleJourneyRef>1234</DatedVehicleJourneyRef></FramedVehicleJourneyRef>";
         dataSource =                createXml("DataSource", "1234");
         isCompleteStopSequence =    createXml("IsCompleteStopSequence", "1234");
 

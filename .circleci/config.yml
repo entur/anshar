@@ -10,6 +10,12 @@ executors:
       DEBIAN_FRONTEND: "noninteractive"
       MAVEN_OPTS: -Xmx3G
 aliases:
+  - &jfrog-login
+    name: Rename jfrog environment variable for maven setting.xml
+    command: |
+      echo "export JFROG_USER=$ARTIFACTORY_USER"  >> $BASH_ENV
+      echo "export JFROG_PASS=$ARTIFACTORY_PASSWORD"  >> $BASH_ENV
+
   - &save-test-results
     name: Save test results
     command: |
@@ -33,6 +39,7 @@ jobs:
       - checkout
       - restore_cache:
           key: dep-cache-{{ checksum "pom.xml" }}
+      - run: *jfrog-login
       - run: mvn org.apache.maven.plugins:maven-dependency-plugin:3.1.0:go-offline -s /tools/m2/settings.xml
       - save_cache:
           paths:
@@ -50,6 +57,7 @@ jobs:
       - checkout
       - restore_cache:
           key: dep-cache-{{ checksum "pom.xml" }}
+      - run: *jfrog-login
       - run: mvn org.apache.maven.plugins:maven-dependency-plugin:3.1.0:go-offline -s /tools/m2/settings.xml
       - save_cache:
           paths:
@@ -65,10 +73,10 @@ workflows:
     jobs:
       - test:
           name: test-release
-          context: dev
+          context: global
       - build:
           name: build-release
-          context: dev
+          context: global
           filters:
             branches:
               only:
