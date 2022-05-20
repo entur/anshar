@@ -27,7 +27,11 @@
             </thead>
             <tbody>
                 <#list body.situations?sort_by("situationNumber") as item>
-                <tr class="${item.healthy???then(item.healthy?then("success","danger"), "warning")}">
+                    <#if item.progress == "OPEN">
+                        <tr class="success">
+                    <#else>
+                        <tr class="danger">
+                    </#if>
                     <th>${item?counter}</th>
                     <td>${item.situationNumber}</td>
                     <td>${item.progress}</td>
