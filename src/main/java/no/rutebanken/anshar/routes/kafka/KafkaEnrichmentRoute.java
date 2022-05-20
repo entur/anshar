@@ -45,6 +45,7 @@ public class KafkaEnrichmentRoute extends KafkaConfig {
                     .setHeader("topic", simple(kafkaEnrichEtTopic))
                     .removeHeader(INTERNAL_PUBLISH_TO_KAFKA_FOR_APC_ENRICHMENT)
                     .to("xslt-saxon:xsl/split.xsl")
+                    .split().tokenizeXML("Siri").streaming()
                     .to(kafkaProducerConfig)
                     .routeId("anshar.enrich.siri.et.kafka")
             ;
