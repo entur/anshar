@@ -76,11 +76,11 @@ public abstract class BaseRouteBuilder extends SpringRouteBuilder {
 
         if (subscriptionSetup != null) { // In case subscription has been deleted
             boolean isLeader = isLeader(fromRouteId);
-            log.info("isActive: {}, isActivated {}, isLeader {}, isRunning {}: {}", subscriptionSetup.isActive(), subscriptionManager.isActiveSubscription(subscriptionId), isLeader, isRunning, subscriptionSetup);
+            log.debug("isActive: {}, isActivated {}, isLeader {}, isRunning {}: {}", subscriptionSetup.isActive(), subscriptionManager.isActiveSubscription(subscriptionId), isLeader, isRunning, subscriptionSetup);
 
             if (isLeader && subscriptionSetup.isActive() && subscriptionManager.isActiveSubscription(subscriptionId)) {
                 if (isRunning) {
-                    log.info("Previous request still running - ignore polling-trigger for {}", subscriptionSetup);
+                    log.debug("Previous request still running - ignore polling-trigger for {}", subscriptionSetup);
                     return false;
                 } else {
                     return true;

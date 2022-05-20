@@ -1,20 +1,19 @@
 package no.rutebanken.anshar.routes.kafka;
 
-import org.apache.camel.builder.RouteBuilder;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.util.Map;
+
+import static no.rutebanken.anshar.routes.HttpParameter.INTERNAL_PUBLISH_TO_KAFKA_FOR_APC_ENRICHMENT;
+
 @Component
-public class KafkaEnrichmentRoute extends RouteBuilder {
+public class KafkaEnrichmentRoute extends KafkaConfig {
 
-    @Autowired
-    private KafkaPublisher kafkaPublisher;
+    @Value("${anshar.kafka.siri.enrich.et.processed.name:}")
+    private String kafkaEnrichEtProcessedTopic;
 
-    @Autowired
-    private KafkaEnrichmentConsumer kafkaConsumer;
-
-    @Value("${anshar.kafka.siri.enrich.et.enabled}")
+    @Value("${anshar.kafka.siri.enrich.et.enabled:false}")
     private boolean kafkaEnrichEtEnabled;
 
     @Value("${anshar.kafka.siri.enrich.et.name:}")
@@ -24,17 +23,53 @@ public class KafkaEnrichmentRoute extends RouteBuilder {
     public void configure() throws Exception {
 
         if (kafkaEnrichEtEnabled) {
+
+            String kafkaProducerConfig = "kafka:" + kafkaEnrichEtTopic;
+            kafkaProducerConfig += "?brokers=" + brokers;
+            kafkaProducerConfig += "&clientId=" + clientId;
+            kafkaProducerConfig += "&securityProtocol=" + securityProtocol;
+            kafkaProducerConfig += "&saslMechanism=" + saslMechanism;
+            kafkaProducerConfig += "&saslJaasConfig=" + getSaslJaasConfigString().replaceAll("\n", " ");
+
+
+            String kafkaConsumerConfig = "kafka:" + kafkaEnrichEtProcessedTopic;
+            kafkaConsumerConfig += "?brokers=" + brokers;
+            kafkaConsumerConfig += "&clientId=" + clientId;
+            kafkaConsumerConfig += "&groupId=" + clientId;
+            kafkaConsumerConfig += "&securityProtocol=" + securityProtocol;
+            kafkaConsumerConfig += "&saslMechanism=" + saslMechanism;
+            kafkaConsumerConfig += "&saslJaasConfig=" + getSaslJaasConfigString().replaceAll("\n", " ");
+
             from("direct:anshar.enrich.siri.et")
-                    .to("xslt-saxon:xsl/split.xsl")
-                    .log("Added to kafka-enrichment")
+                    .log("Adding to kafka-enrichment topic")
                     .setHeader("topic", simple(kafkaEnrichEtTopic))
-                    .bean(kafkaPublisher, "publishToKafka(${header.topic}, ${body}, ${headers})")
+                    .removeHeader(INTERNAL_PUBLISH_TO_KAFKA_FOR_APC_ENRICHMENT)
+                    .to("xslt-saxon:xsl/split.xsl")
+                    .to(kafkaProducerConfig)
                     .routeId("anshar.enrich.siri.et.kafka")
             ;
+
+            from(kafkaConsumerConfig)
+                    .log("Read from kafka-enrichment topic")
+                    .process(p -> {
+                        Map<String, Object> headers = p.getIn().getHeaders();
+                        for (String header : headers.keySet()) {
+                            Object value = headers.get(header);
+                            if (value instanceof byte[]) {
+                                p.getMessage().setHeader(header, new String((byte[]) value));
+                            } else {
+                                p.getMessage().setHeader(header, value);
+                            }
+                        }
+                    })
+                    .to("direct:send.to.queue")
+            ;
+
         } else {
             // Immediately redirect to continue internal processing
             from("direct:anshar.enrich.siri.et")
-                .to("direct:enqueue.message")
+                .removeHeader(INTERNAL_PUBLISH_TO_KAFKA_FOR_APC_ENRICHMENT)
+                .to("direct:send.to.queue")
                 .routeId("anshar.enrich.siri.et.kafka.redirect")
             ;
         }

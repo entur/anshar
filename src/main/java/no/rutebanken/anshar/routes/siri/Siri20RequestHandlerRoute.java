@@ -36,7 +36,6 @@ import javax.ws.rs.core.MediaType;
 import java.io.InputStream;
 import java.util.List;
 
-import static no.rutebanken.anshar.routes.HttpParameter.INTERNAL_PUBLISH_TO_KAFKA_FOR_APC_ENRICHMENT;
 import static no.rutebanken.anshar.routes.HttpParameter.INTERNAL_SIRI_DATA_TYPE;
 import static no.rutebanken.anshar.routes.HttpParameter.PARAM_DATASET_ID;
 import static no.rutebanken.anshar.routes.HttpParameter.PARAM_EXCLUDED_DATASET_ID;
@@ -145,15 +144,8 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
                 p.getMessage().setBody(p.getIn().getBody());
                 p.getMessage().setHeaders(p.getIn().getHeaders());
                 p.getMessage().setHeader(INTERNAL_SIRI_DATA_TYPE, getSubscriptionDataType(p));
-                p.getMessage().setHeader(INTERNAL_PUBLISH_TO_KAFKA_FOR_APC_ENRICHMENT, enrichSiriData(p));
             })
-            .choice()
-                .when(header(INTERNAL_PUBLISH_TO_KAFKA_FOR_APC_ENRICHMENT).isEqualTo(Boolean.TRUE))
-                    .removeHeader(INTERNAL_PUBLISH_TO_KAFKA_FOR_APC_ENRICHMENT)
-                    .to("direct:anshar.enrich.siri.et")
-                .otherwise()
-                    .to("direct:enqueue.message")
-            .endChoice()
+            .to("direct:enqueue.message")
             .routeId("async.process.incoming")
         ;
 
@@ -290,19 +282,6 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
             return null;
         }
         return subscriptionSetup.getSubscriptionType().name();
-    }
-
-    private Boolean enrichSiriData(Exchange e) {
-        String subscriptionId = e.getIn().getHeader(PARAM_SUBSCRIPTION_ID, String.class);
-        if (subscriptionId == null || subscriptionId.isEmpty()) {
-            return false;
-        }
-        SubscriptionSetup subscriptionSetup = subscriptionManager.get(subscriptionId);
-
-        if (subscriptionSetup == null) {
-            return false;
-        }
-        return subscriptionSetup.enrichSiriData();
     }
 
     private boolean subscriptionExistsAndIsActive(Exchange e) {

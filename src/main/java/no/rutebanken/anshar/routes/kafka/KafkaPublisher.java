@@ -48,7 +48,7 @@ public class KafkaPublisher extends KafkaConfig {
 
     @PostConstruct
     public void init() {
-        if (!kafkaEnabled) {
+        if (!kafkaEnabled & !kafkaEnrichEtEnabled) {
             return;
         }
 
@@ -80,26 +80,29 @@ public class KafkaPublisher extends KafkaConfig {
     }
 
     public void publishToKafka(String topicName, String siriData, Map<String, String> metadataHeaders) {
-        if (!kafkaEnabled) {
-            log.debug("Push to Kafka is disabled, should have pushed update ");
-            return;
-        }
 
         if (producer != null) {
 
             final ProducerRecord record = new ProducerRecord(topicName, siriData);
-            if (metadataHeaders.containsKey(CODESPACE_ID_KAFKA_HEADER_NAME)) {
-                record.headers().add(CODESPACE_ID_KAFKA_HEADER_NAME,
-                    metadataHeaders.get(CODESPACE_ID_KAFKA_HEADER_NAME)
-                        .getBytes(StandardCharsets.UTF_8)
-                );
-            }
+            addHeaderIfExists(metadataHeaders, record, CODESPACE_ID_KAFKA_HEADER_NAME);
+            addHeaderIfExists(metadataHeaders, record, "subscriptionId");
+            addHeaderIfExists(metadataHeaders, record, "target_topic");
+            addHeaderIfExists(metadataHeaders, record, "breadcrumbId");
 
             //Fire and forget
             producer.send(record, createCallback(topicName));
             metricsService.registerKafkaRecord(topicName, PrometheusMetricsService.KafkaStatus.SENT);
         }
 
+    }
+
+    private void addHeaderIfExists(Map<String, String> metadataHeaders, ProducerRecord record, String headerName) {
+        if (metadataHeaders.containsKey(headerName)) {
+            record.headers().add(headerName,
+                    metadataHeaders.get(headerName)
+                            .getBytes(StandardCharsets.UTF_8)
+            );
+        }
     }
 
     private Callback createCallback(final String topicName) {
@@ -110,9 +113,14 @@ public class KafkaPublisher extends KafkaConfig {
                 metricsService.registerKafkaRecord(topicName, PrometheusMetricsService.KafkaStatus.FAILED);
             } else {
                 // Success
+                log.info("Published to kafka topic {}", topicName);
                 metricsService.registerKafkaRecord(topicName, PrometheusMetricsService.KafkaStatus.ACKED);
             }
         };
     }
 
+    @Override
+    public void configure() throws Exception {
+        // @WIP: Ignore for now
+    }
 }

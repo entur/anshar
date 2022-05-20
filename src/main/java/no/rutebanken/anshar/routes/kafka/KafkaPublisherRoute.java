@@ -36,21 +36,21 @@ public class KafkaPublisherRoute extends RouteBuilder {
 
 
         from("direct:kafka.et.xml")
-            .choice().when(e -> !StringUtils.isEmpty(kafkaEtTopic))
+            .choice().when(e -> publisher.kafkaEnabled && !StringUtils.isEmpty(kafkaEtTopic))
                 .setHeader("topic", simple(kafkaEtTopic))
                 .bean(publisher, "publishToKafka(${header.topic}, ${body}, ${headers})")
             .endChoice()
             .routeId("anshar.kafka.et.producer");
 
         from("direct:kafka.vm.xml")
-            .choice().when(e -> !StringUtils.isEmpty(kafkaVmTopic))
+            .choice().when(e -> publisher.kafkaEnabled && !StringUtils.isEmpty(kafkaVmTopic))
                 .setHeader("topic", simple(kafkaVmTopic))
                 .bean(publisher, "publishToKafka(${header.topic}, ${body}, ${headers})")
             .endChoice()
             .routeId("anshar.kafka.vm.producer");
 
         from("direct:kafka.sx.xml")
-            .choice().when(e -> !StringUtils.isEmpty(kafkaSxTopic))
+            .choice().when(e -> publisher.kafkaEnabled && !StringUtils.isEmpty(kafkaSxTopic))
                 .setHeader("topic", simple(kafkaSxTopic))
                 .bean(publisher, "publishToKafka(${header.topic}, ${body}, ${headers})")
             .endChoice()

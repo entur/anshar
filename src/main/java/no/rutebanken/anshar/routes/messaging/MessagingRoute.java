@@ -11,6 +11,7 @@ import no.rutebanken.anshar.routes.validation.SiriXmlValidator;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
+import org.apache.camel.Exchange;
 import org.apache.camel.Predicate;
 import org.apache.camel.component.google.pubsub.GooglePubsubConstants;
 import org.rutebanken.siri20.util.SiriXml;
@@ -20,7 +21,9 @@ import uk.org.siri.siri20.Siri;
 
 import java.io.InputStream;
 
+import static no.rutebanken.anshar.routes.HttpParameter.INTERNAL_PUBLISH_TO_KAFKA_FOR_APC_ENRICHMENT;
 import static no.rutebanken.anshar.routes.HttpParameter.INTERNAL_SIRI_DATA_TYPE;
+import static no.rutebanken.anshar.routes.HttpParameter.PARAM_SUBSCRIPTION_ID;
 import static no.rutebanken.anshar.routes.HttpParameter.PARAM_USE_ORIGINAL_ID;
 import static no.rutebanken.anshar.routes.siri.Siri20RequestHandlerRoute.TRANSFORM_SOAP;
 import static no.rutebanken.anshar.routes.siri.Siri20RequestHandlerRoute.TRANSFORM_VERSION;
@@ -92,15 +95,31 @@ public class MessagingRoute extends RestRouteBuilder {
                         .end()
                     .end()
                 .end()
-                .removeHeaders("*", "subscriptionId", "breadcrumbId", "target_topic")
-                .to("direct:compress.jaxb")
-                .log("Sending data to topic ${header.target_topic}")
+                .removeHeaders("*", "subscriptionId", "breadcrumbId", "target_topic", "correlationId")
+                .process(p -> {
+                    p.getMessage().setHeader(INTERNAL_PUBLISH_TO_KAFKA_FOR_APC_ENRICHMENT, enrichSiriData(p));
+                })
                 .setHeader(GooglePubsubConstants.ORDERING_KEY, () -> System.currentTimeMillis())
-                .toD("${header.target_topic}")
                 .bean(subscriptionManager, "dataReceived(${header.subscriptionId})")
+                .to("direct:send.to.queue")
                 .end()
                 .routeId("add.to.queue")
         ;
+
+        from("direct:send.to.queue")
+                .autoStartup(true)
+                .choice()
+                .when(header(INTERNAL_PUBLISH_TO_KAFKA_FOR_APC_ENRICHMENT).isEqualTo(Boolean.TRUE))
+                    .removeHeader(INTERNAL_PUBLISH_TO_KAFKA_FOR_APC_ENRICHMENT)
+                    .log("Sending data to enrichment topic")
+                    .to("direct:anshar.enrich.siri.et")
+                .otherwise()
+                    .log("Sending data to topic ${header.target_topic}")
+                    .to("direct:compress.jaxb")
+                    .toD("${header.target_topic}")
+                .end()
+                ;
+
 
         from("direct:transform.siri")
                 .choice()
@@ -229,5 +248,19 @@ public class MessagingRoute extends RestRouteBuilder {
                 .endChoice()
                 .routeId("incoming.processor.fetched_delivery")
         ;
+    }
+
+
+    private Boolean enrichSiriData(Exchange e) {
+        String subscriptionId = e.getIn().getHeader(PARAM_SUBSCRIPTION_ID, String.class);
+        if (subscriptionId == null || subscriptionId.isEmpty()) {
+            return false;
+        }
+        SubscriptionSetup subscriptionSetup = subscriptionManager.get(subscriptionId);
+
+        if (subscriptionSetup == null) {
+            return false;
+        }
+        return subscriptionSetup.enrichSiriData();
     }
 }
