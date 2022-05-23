@@ -43,7 +43,7 @@ public class KafkaPublisherRoute extends KafkaConfig {
             log.info("Publishing ET to kafka-topic: {}", kafkaEtTopic);
             from("direct:kafka.et.xml")
                 .to("kafka:" + createProducerConfig(kafkaEtTopic))
-                .bean(metricsService, "registerKafkaRecord(" + kafkaEtTopic + ", PrometheusMetricsService.KafkaStatus.ACKED)")
+                .bean(metricsService, "registerAckedKafkaRecord(" + kafkaEtTopic + ")")
                 .routeId("anshar.kafka.et.producer");
         } else {
             log.info("Publish ET to kafka disabled");
@@ -59,7 +59,7 @@ public class KafkaPublisherRoute extends KafkaConfig {
             log.info("Publishing VM to kafka-topic: {}", kafkaVmTopic);
             from("direct:kafka.vm.xml")
                 .to("kafka:" + createProducerConfig(kafkaVmTopic))
-                .bean(metricsService, "registerKafkaRecord(" + kafkaVmTopic + ", PrometheusMetricsService.KafkaStatus.ACKED)")
+                .bean(metricsService, "registerAckedKafkaRecord(" + kafkaVmTopic + ")")
                 .routeId("anshar.kafka.vm.producer");
         } else {
             log.info("Publish VM to kafka disabled");
@@ -75,7 +75,7 @@ public class KafkaPublisherRoute extends KafkaConfig {
             log.info("Publishing SX to kafka-topic: {}", kafkaSxTopic);
             from("direct:kafka.sx.xml")
                 .to("kafka:" + createProducerConfig(kafkaSxTopic))
-                .bean(metricsService, "registerKafkaRecord(" + kafkaSxTopic + ", PrometheusMetricsService.KafkaStatus.ACKED)")
+                .bean(metricsService, "registerAckedKafkaRecord(" + kafkaSxTopic + ")")
                 .routeId("anshar.kafka.sx.producer");
         } else {
             log.info("Publish SX to kafka disabled");

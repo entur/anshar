@@ -112,6 +112,9 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
     }
 
     public enum KafkaStatus {SENT, ACKED, FAILED}
+    public void registerAckedKafkaRecord(String topic) {
+        registerKafkaRecord(topic, KafkaStatus.ACKED);
+    }
     public void registerKafkaRecord(String topic, KafkaStatus status) {
         List<Tag> counterTags = new ArrayList<>();
         counterTags.add(new ImmutableTag(KAFKA_TOPIC_NAME, topic));
