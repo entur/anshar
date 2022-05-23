@@ -7,9 +7,16 @@ import org.springframework.beans.factory.annotation.Value;
 public abstract class KafkaConfig extends RouteBuilder {
 
 
-    private final static String jaasConfigContents = "org.apache.kafka.common.security.scram.ScramLoginModule required\nusername=\"%s\"\npassword=\"%s\";";
-    @Value("${anshar.kafka.enabled:false}")
-    protected boolean kafkaEnabled;
+    public static final String CODESPACE_ID_KAFKA_HEADER_NAME = "codespaceId";
+
+    private final static String jaasConfigContents = "org.apache.kafka.common.security.scram.ScramLoginModule required username=\"%s\" password=\"%s\";";
+
+    @Value("${anshar.kafka.et.enabled:false}")
+    protected boolean publishEtToKafkaEnabled;
+    @Value("${anshar.kafka.vm.enabled:false}")
+    protected boolean publishVmToKafkaEnabled;
+    @Value("${anshar.kafka.sx.enabled:false}")
+    protected boolean publishSxToKafkaEnabled;
 
     @Value("${anshar.kafka.siri.enrich.et.enabled:false}")
     protected boolean kafkaEnrichEtEnabled;
@@ -29,7 +36,29 @@ public abstract class KafkaConfig extends RouteBuilder {
     @Value("${anshar.kafka.compressionType:gzip}")
     private String compressionType;
 
-    protected String getSaslJaasConfigString() {
+    protected String createConsumerConfig(String topicName) {
+        String config = topicName;
+        config += "?brokers=" + brokers;
+        config += "&clientId=" + clientId;
+        config += "&groupId=" + clientId;
+        config += "&securityProtocol=" + securityProtocol;
+        config += "&saslMechanism=" + saslMechanism;
+        config += "&saslJaasConfig=" + getSaslJaasConfigString();
+        return config;
+    }
+
+    protected String createProducerConfig(String topicName) {
+        String config = topicName;
+        config += "?brokers=" + brokers;
+        config += "&compressionCodec=" + compressionType;
+        config += "&clientId=" + clientId;
+        config += "&securityProtocol=" + securityProtocol;
+        config += "&saslMechanism=" + saslMechanism;
+        config += "&saslJaasConfig=" + getSaslJaasConfigString();
+        return config;
+    }
+
+    private String getSaslJaasConfigString() {
         if (StringUtils.isEmpty(saslUsername) || StringUtils.isEmpty(saslPassword)) {
             return null;
         }

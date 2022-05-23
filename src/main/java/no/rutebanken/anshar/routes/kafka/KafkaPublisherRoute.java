@@ -1,13 +1,12 @@
 package no.rutebanken.anshar.routes.kafka;
 
-import org.apache.camel.builder.RouteBuilder;
-import org.apache.commons.lang3.StringUtils;
+import no.rutebanken.anshar.metrics.PrometheusMetricsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
-public class KafkaPublisherRoute extends RouteBuilder {
+public class KafkaPublisherRoute extends KafkaConfig {
 
     @Value("${anshar.kafka.topic.et.name:}")
     private String kafkaEtTopic;
@@ -19,7 +18,7 @@ public class KafkaPublisherRoute extends RouteBuilder {
     private String kafkaSxTopic;
 
     @Autowired
-    private KafkaPublisher publisher;
+    PrometheusMetricsService metricsService;
 
     @Override
     public void configure() throws Exception {
@@ -35,26 +34,43 @@ public class KafkaPublisherRoute extends RouteBuilder {
          */
 
 
-        from("direct:kafka.et.xml")
-            .choice().when(e -> publisher.kafkaEnabled && !StringUtils.isEmpty(kafkaEtTopic))
-                .setHeader("topic", simple(kafkaEtTopic))
-                .bean(publisher, "publishToKafka(${header.topic}, ${body}, ${headers})")
-            .endChoice()
-            .routeId("anshar.kafka.et.producer");
+        if (publishEtToKafkaEnabled) {
+            log.info("Publishing ET to kafka-topic: {}", kafkaEtTopic);
+            from("direct:kafka.et.xml")
+                .to("kafka:" + createProducerConfig(kafkaEtTopic))
+                .bean(metricsService, "registerKafkaRecord(" + kafkaEtTopic + ", PrometheusMetricsService.KafkaStatus.ACKED)")
+                .routeId("anshar.kafka.et.producer");
+        } else {
+            log.info("Publish ET to kafka disabled");
+            from("direct:kafka.et.xml")
+                .log("Ignore publish to Kafka")
+                .routeId("anshar.kafka.et.producer");
+        }
 
-        from("direct:kafka.vm.xml")
-            .choice().when(e -> publisher.kafkaEnabled && !StringUtils.isEmpty(kafkaVmTopic))
-                .setHeader("topic", simple(kafkaVmTopic))
-                .bean(publisher, "publishToKafka(${header.topic}, ${body}, ${headers})")
-            .endChoice()
-            .routeId("anshar.kafka.vm.producer");
+        if (publishVmToKafkaEnabled) {
+            log.info("Publishing VM to kafka-topic: {}", kafkaVmTopic);
+            from("direct:kafka.vm.xml")
+                .to("kafka:" + createProducerConfig(kafkaVmTopic))
+                .bean(metricsService, "registerKafkaRecord(" + kafkaVmTopic + ", PrometheusMetricsService.KafkaStatus.ACKED)")
+                .routeId("anshar.kafka.vm.producer");
+        } else {
+            log.info("Publish VM to kafka disabled");
+            from("direct:kafka.vm.xml")
+                .log("Ignore publish to Kafka")
+                .routeId("anshar.kafka.vm.producer");
+        }
 
-        from("direct:kafka.sx.xml")
-            .choice().when(e -> publisher.kafkaEnabled && !StringUtils.isEmpty(kafkaSxTopic))
-                .setHeader("topic", simple(kafkaSxTopic))
-                .bean(publisher, "publishToKafka(${header.topic}, ${body}, ${headers})")
-            .endChoice()
-            .routeId("anshar.kafka.sx.producer");
-
+        if (publishSxToKafkaEnabled) {
+            log.info("Publishing SX to kafka-topic: {}", kafkaSxTopic);
+            from("direct:kafka.sx.xml")
+                .to("kafka:" + createProducerConfig(kafkaSxTopic))
+                .bean(metricsService, "registerKafkaRecord(" + kafkaSxTopic + ", PrometheusMetricsService.KafkaStatus.ACKED)")
+                .routeId("anshar.kafka.sx.producer");
+        } else {
+            log.info("Publish SX to kafka disabled");
+            from("direct:kafka.sx.xml")
+                .log("Ignore publish to Kafka")
+                .routeId("anshar.kafka.sx.producer");
+        }
     }
 }

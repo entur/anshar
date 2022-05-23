@@ -24,21 +24,9 @@ public class KafkaEnrichmentRoute extends KafkaConfig {
 
         if (kafkaEnrichEtEnabled) {
 
-            String kafkaProducerConfig = "kafka:" + kafkaEnrichEtTopic;
-            kafkaProducerConfig += "?brokers=" + brokers;
-            kafkaProducerConfig += "&clientId=" + clientId;
-            kafkaProducerConfig += "&securityProtocol=" + securityProtocol;
-            kafkaProducerConfig += "&saslMechanism=" + saslMechanism;
-            kafkaProducerConfig += "&saslJaasConfig=" + getSaslJaasConfigString().replaceAll("\n", " ");
+            String kafkaProducerConfig = "kafka:" + createProducerConfig(kafkaEnrichEtProcessedTopic);
 
-
-            String kafkaConsumerConfig = "kafka:" + kafkaEnrichEtProcessedTopic;
-            kafkaConsumerConfig += "?brokers=" + brokers;
-            kafkaConsumerConfig += "&clientId=" + clientId;
-            kafkaConsumerConfig += "&groupId=" + clientId;
-            kafkaConsumerConfig += "&securityProtocol=" + securityProtocol;
-            kafkaConsumerConfig += "&saslMechanism=" + saslMechanism;
-            kafkaConsumerConfig += "&saslJaasConfig=" + getSaslJaasConfigString().replaceAll("\n", " ");
+            String kafkaConsumerConfig = "kafka:" + createConsumerConfig(kafkaEnrichEtProcessedTopic);
 
             from("direct:anshar.enrich.siri.et")
                     .log("Adding to kafka-enrichment topic")

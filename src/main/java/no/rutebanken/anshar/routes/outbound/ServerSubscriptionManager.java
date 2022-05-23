@@ -57,7 +57,7 @@ import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 import static java.time.temporal.ChronoUnit.MILLIS;
-import static no.rutebanken.anshar.routes.kafka.KafkaPublisher.CODESPACE_ID_KAFKA_HEADER_NAME;
+import static no.rutebanken.anshar.routes.kafka.KafkaConfig.CODESPACE_ID_KAFKA_HEADER_NAME;
 
 @SuppressWarnings("unchecked")
 @Service
