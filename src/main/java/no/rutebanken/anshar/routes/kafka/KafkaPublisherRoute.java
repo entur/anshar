@@ -5,9 +5,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 @Component
 public class KafkaPublisherRoute extends KafkaConfig {
 
+    private static final int LOG_INTERVAL_ET = 1000;
+    private static final int LOG_INTERVAL_VM = 1000;
+    private static final int LOG_INTERVAL_SX = 100;
     @Value("${anshar.kafka.topic.et.name:}")
     private String kafkaEtTopic;
 
@@ -42,8 +47,11 @@ public class KafkaPublisherRoute extends KafkaConfig {
                 .routeId("anshar.kafka.et.producer");
         } else {
             log.info("Publish ET to kafka disabled");
+            AtomicInteger etIgnoredCounter = new AtomicInteger();
             from("direct:kafka.et.xml")
-                .log("Ignore publish to Kafka")
+                    .choice().when(p -> etIgnoredCounter.incrementAndGet() % LOG_INTERVAL_ET == 0)
+                        .log("Ignore publish to Kafka")
+                    .endChoice()
                 .routeId("anshar.kafka.et.producer");
         }
 
@@ -55,8 +63,11 @@ public class KafkaPublisherRoute extends KafkaConfig {
                 .routeId("anshar.kafka.vm.producer");
         } else {
             log.info("Publish VM to kafka disabled");
+            AtomicInteger vmIgnoredCounter = new AtomicInteger();
             from("direct:kafka.vm.xml")
-                .log("Ignore publish to Kafka")
+                    .choice().when(p -> vmIgnoredCounter.incrementAndGet() % LOG_INTERVAL_VM == 0)
+                        .log("Ignore publish to Kafka")
+                    .endChoice()
                 .routeId("anshar.kafka.vm.producer");
         }
 
@@ -68,8 +79,11 @@ public class KafkaPublisherRoute extends KafkaConfig {
                 .routeId("anshar.kafka.sx.producer");
         } else {
             log.info("Publish SX to kafka disabled");
+            AtomicInteger sxIgnoredCounter = new AtomicInteger();
             from("direct:kafka.sx.xml")
-                .log("Ignore publish to Kafka")
+                    .choice().when(p -> sxIgnoredCounter.incrementAndGet() % LOG_INTERVAL_SX == 0)
+                        .log("Ignore publish to Kafka")
+                    .endChoice()
                 .routeId("anshar.kafka.sx.producer");
         }
     }
