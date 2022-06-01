@@ -203,6 +203,14 @@ abstract class SiriRepository<T> {
     public Collection<T> getAllCachedUpdates(
             String requestorId, String datasetId, String clientTrackingName
     ) {
+        return getAllCachedUpdates(requestorId, datasetId, clientTrackingName, null);
+    }
+    public Collection<T> getAllCachedUpdates(
+            String requestorId, String datasetId, String clientTrackingName, Integer maxSize
+    ) {
+        if (maxSize == null) {
+            maxSize = Integer.MAX_VALUE;
+        }
 
         if (requestorId != null) {
             try {
@@ -217,6 +225,7 @@ abstract class SiriRepository<T> {
 
                     changes = changes.stream()
                         .filter((k) -> datasetId == null || k.getCodespaceId().equals(datasetId))
+                        .limit(maxSize)
                         .collect(Collectors.toSet());
 
                     List<T> updates = new ArrayList<>();
@@ -244,6 +253,7 @@ abstract class SiriRepository<T> {
             .stream()
             .filter((entry) -> entry.getValue() != null)
             .filter((entry) -> datasetId == null || entry.getKey().getCodespaceId().equals(datasetId))
+            .limit(maxSize)
             .map(Map.Entry::getValue)
             .collect(Collectors.toList());
     }
