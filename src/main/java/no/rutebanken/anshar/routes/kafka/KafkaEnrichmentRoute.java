@@ -24,7 +24,7 @@ public class KafkaEnrichmentRoute extends KafkaConfig {
 
         if (kafkaEnrichEtEnabled) {
 
-            String kafkaProducerConfig = "kafka:" + createProducerConfig(kafkaEnrichEtProcessedTopic);
+            String kafkaProducerConfig = "kafka:" + createProducerConfig(kafkaEnrichEtTopic);
 
             String kafkaConsumerConfig = "kafka:" + createConsumerConfig(kafkaEnrichEtProcessedTopic);
 
