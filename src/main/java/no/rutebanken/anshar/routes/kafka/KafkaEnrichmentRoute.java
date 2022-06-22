@@ -1,5 +1,7 @@
 package no.rutebanken.anshar.routes.kafka;
 
+import no.rutebanken.anshar.config.AnsharConfiguration;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -9,6 +11,9 @@ import static no.rutebanken.anshar.routes.HttpParameter.INTERNAL_PUBLISH_TO_KAFK
 
 @Component
 public class KafkaEnrichmentRoute extends KafkaConfig {
+
+    @Autowired
+    private AnsharConfiguration config;
 
     @Value("${anshar.kafka.siri.enrich.et.processed.name:}")
     private String kafkaEnrichEtProcessedTopic;
@@ -22,15 +27,17 @@ public class KafkaEnrichmentRoute extends KafkaConfig {
     @Override
     public void configure() throws Exception {
 
-        if (kafkaEnrichEtEnabled) {
+        if (kafkaEnrichEtEnabled && config.processAdmin()) {
 
             String kafkaProducerConfig = "kafka:" + createProducerConfig(kafkaEnrichEtTopic);
 
             String kafkaConsumerConfig = "kafka:" + createConsumerConfig(kafkaEnrichEtProcessedTopic);
 
+            log.info("Kafka enrichment: producer: {}, consumer: {}", kafkaEnrichEtTopic, kafkaEnrichEtProcessedTopic);
+
             from("direct:anshar.enrich.siri.et")
                     .log("Adding to kafka-enrichment topic")
-                    .to("log:push:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
+                    .to("log:kafka-producer:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                     .setHeader("topic", simple(kafkaEnrichEtTopic))
                     .removeHeader(INTERNAL_PUBLISH_TO_KAFKA_FOR_APC_ENRICHMENT)
                     .to("xslt-saxon:xsl/split.xsl")
