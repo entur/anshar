@@ -117,7 +117,7 @@ public abstract class BaseRouteBuilder extends SpringRouteBuilder {
     }
 
 
-    protected String getRequestUrl(SubscriptionSetup subscriptionSetup) throws ServiceNotSupportedException {
+    protected String getRequestUrl(SubscriptionSetup subscriptionSetup, String parameters) throws ServiceNotSupportedException {
         Map<RequestType, String> urlMap = subscriptionSetup.getUrlMap();
         String url;
         if (subscriptionSetup.getSubscriptionType() == SiriDataType.ESTIMATED_TIMETABLE) {
@@ -129,7 +129,8 @@ public abstract class BaseRouteBuilder extends SpringRouteBuilder {
         } else {
             throw new ServiceNotSupportedException();
         }
-        return getCamelUrl(url);
+
+        return getCamelUrl(url, parameters);
     }
 
     protected String getSoapAction(SubscriptionSetup subscriptionSetup) throws ServiceNotSupportedException {

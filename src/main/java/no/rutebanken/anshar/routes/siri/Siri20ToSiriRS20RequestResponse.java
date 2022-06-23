@@ -76,7 +76,7 @@ public class Siri20ToSiriRS20RequestResponse extends SiriSubscriptionRouteBuilde
             .process(addCustomHeaders())
             .to("log:request:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
             .doTry()
-                .to(getRequestUrl(subscriptionSetup) + httpOptions)
+                .to(getRequestUrl(subscriptionSetup, httpOptions))
                 .setHeader("CamelHttpPath", constant("/appContext" + subscriptionSetup.buildUrl(false)))
                 .log("Got response " + subscriptionSetup.toString())
                 .to("log:response:" + getClass().getSimpleName() + "?showAll=true&multiline=true")

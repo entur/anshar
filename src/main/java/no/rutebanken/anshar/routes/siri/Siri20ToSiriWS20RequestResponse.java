@@ -64,7 +64,7 @@ public class Siri20ToSiriWS20RequestResponse extends SiriSubscriptionRouteBuilde
             releaseLeadershipOnError = false;
         }
 
-        String endpointUrl = getRequestUrl(subscriptionSetup);
+        String endpointUrl = getRequestUrl(subscriptionSetup, null);
 
         String routeId = "request.ws.20." + subscriptionSetup.getSubscriptionType() + "." + subscriptionSetup.getVendor();
         from("direct:" + subscriptionSetup.getServiceRequestRouteName())
@@ -85,7 +85,7 @@ public class Siri20ToSiriWS20RequestResponse extends SiriSubscriptionRouteBuilde
                 .process(addCustomHeaders())
                 .to("log:request:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .doTry()
-                    .to(getRequestUrl(subscriptionSetup) + httpOptions)
+                    .to(getRequestUrl(subscriptionSetup, httpOptions))
                     .to("log:response:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                     .setHeader("CamelHttpPath", constant("/appContext" + subscriptionSetup.buildUrl(false)))
                     .log("Got response " + subscriptionSetup.toString())
