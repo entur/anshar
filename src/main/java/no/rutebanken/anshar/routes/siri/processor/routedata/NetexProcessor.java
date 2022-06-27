@@ -105,6 +105,13 @@ public class NetexProcessor {
         return trainNumberTrips;
     }
 
+    public Map<String, List<DatedServiceJourney>> getDatedServiceJourneyForServiceJourneyId() {
+        return datedServiceJourneyForServiceJourneyId;
+    }
+    public Map<String, OperatingDay> getOperatingDayRefs() {
+        return operatingDaysById;
+    }
+
     public Map<String, List<ServiceDate>> getTripDates() {
         return tripDates;
     }
