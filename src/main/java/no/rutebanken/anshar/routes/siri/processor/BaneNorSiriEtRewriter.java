@@ -23,13 +23,33 @@ import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.org.siri.siri20.*;
+import uk.org.siri.siri20.EstimatedCall;
+import uk.org.siri.siri20.EstimatedTimetableDeliveryStructure;
+import uk.org.siri.siri20.EstimatedVehicleJourney;
+import uk.org.siri.siri20.EstimatedVersionFrameStructure;
+import uk.org.siri.siri20.NaturalLanguageStringStructure;
+import uk.org.siri.siri20.RecordedCall;
+import uk.org.siri.siri20.Siri;
+import uk.org.siri.siri20.StopPointRef;
 
 import java.math.BigInteger;
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import static no.rutebanken.anshar.routes.siri.processor.routedata.NetexUpdaterService.*;
+import static no.rutebanken.anshar.routes.siri.processor.routedata.NetexUpdaterService.getPublicCode;
+import static no.rutebanken.anshar.routes.siri.processor.routedata.NetexUpdaterService.getServiceDates;
+import static no.rutebanken.anshar.routes.siri.processor.routedata.NetexUpdaterService.getServiceJourney;
+import static no.rutebanken.anshar.routes.siri.processor.routedata.NetexUpdaterService.getStopTimes;
+import static no.rutebanken.anshar.routes.siri.processor.routedata.NetexUpdaterService.isKnownTrainNr;
+import static no.rutebanken.anshar.routes.siri.processor.routedata.NetexUpdaterService.isStopIdOrParentMatch;
 import static no.rutebanken.anshar.routes.siri.transformer.MappingNames.REMOVE_UNKNOWN_DEPARTURE;
 import static no.rutebanken.anshar.routes.siri.transformer.MappingNames.RESTRUCTURE_DEPARTURE;
 import static no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer.SEPARATOR;
@@ -102,8 +122,7 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
                                 if (isKnownTrainNr(etTrainNumber )) {
 
                                     boolean foundMatch = false;
-                                    ZonedDateTime firstDepartureTime = getFirstDepartureTime(estimatedVehicleJourney);
-                                    ServiceDate serviceDate = new ServiceDate(firstDepartureTime);
+                                    ServiceDate serviceDate = getServiceDate(estimatedVehicleJourney);
 
                                     if (estimatedVehicleJourney.isExtraJourney() != null && estimatedVehicleJourney.isExtraJourney()) {
                                         //Extra journey - ignore comparison to planned data
@@ -202,12 +221,11 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
 
     private List<EstimatedVehicleJourney> reStructureEstimatedJourney(EstimatedVehicleJourney estimatedVehicleJourney, String etTrainNumber) {
         List<EstimatedVehicleJourney> restructuredJourneyList = new ArrayList<>();
-        ZonedDateTime departureTime = getFirstDepartureTime(estimatedVehicleJourney);
+        ServiceDate serviceDate = getServiceDate(estimatedVehicleJourney);
 
         Map<String, List<EstimatedCall>> remappedEstimatedCalls = new HashMap<>();
         Map<String, List<RecordedCall>> remappedRecordedCalls = new HashMap<>();
-        if (departureTime != null) {
-            ServiceDate serviceDate = new ServiceDate(departureTime);
+        if (serviceDate != null) {
             remappedRecordedCalls.putAll(remapRecordedCalls(serviceDate, etTrainNumber, estimatedVehicleJourney.getRecordedCalls()));
             remappedEstimatedCalls.putAll(remapEstimatedCalls(serviceDate, etTrainNumber, estimatedVehicleJourney.getEstimatedCalls()));
         }
@@ -277,12 +295,23 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
         return SiriObjectFactory.deepCopy(estimatedVehicleJourney);
     }
 
-    private ZonedDateTime getFirstDepartureTime(EstimatedVehicleJourney estimatedVehicleJourney) {
+    protected static ServiceDate getServiceDate(EstimatedVehicleJourney estimatedVehicleJourney) {
+        ZonedDateTime departureTime = getFirstDepartureTime(estimatedVehicleJourney);
+        return new ServiceDate(departureTime.getYear(), departureTime.getMonthValue(), departureTime.getDayOfMonth());
+    }
+
+    protected static ZonedDateTime getFirstDepartureTime(EstimatedVehicleJourney estimatedVehicleJourney) {
         ZonedDateTime departureTime;
         if (estimatedVehicleJourney.getRecordedCalls() != null && !estimatedVehicleJourney.getRecordedCalls().getRecordedCalls().isEmpty()) {
             departureTime = estimatedVehicleJourney.getRecordedCalls().getRecordedCalls().get(0).getAimedDepartureTime();
+            if (departureTime == null) {
+                departureTime = estimatedVehicleJourney.getRecordedCalls().getRecordedCalls().get(0).getAimedArrivalTime();
+            }
         } else {
             departureTime = estimatedVehicleJourney.getEstimatedCalls().getEstimatedCalls().get(0).getAimedDepartureTime();
+            if (departureTime == null) {
+                departureTime = estimatedVehicleJourney.getEstimatedCalls().getEstimatedCalls().get(0).getAimedArrivalTime();
+            }
         }
         return departureTime;
     }

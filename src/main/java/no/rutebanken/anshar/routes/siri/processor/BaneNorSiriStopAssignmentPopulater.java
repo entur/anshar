@@ -37,6 +37,8 @@ import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Set;
 
+import static no.rutebanken.anshar.routes.siri.processor.BaneNorSiriEtRewriter.getFirstDepartureTime;
+import static no.rutebanken.anshar.routes.siri.processor.BaneNorSiriEtRewriter.getServiceDate;
 import static no.rutebanken.anshar.routes.siri.processor.routedata.NetexUpdaterService.getServiceDates;
 import static no.rutebanken.anshar.routes.siri.processor.routedata.NetexUpdaterService.getServiceJourney;
 import static no.rutebanken.anshar.routes.siri.processor.routedata.NetexUpdaterService.getStopTimes;
@@ -200,24 +202,9 @@ public class BaneNorSiriStopAssignmentPopulater extends ValueAdapter implements 
         return id;
     }
 
-    private ServiceDate getServiceDate(EstimatedVehicleJourney estimatedVehicleJourney) {
-        ZonedDateTime departureTime = getFirstDepartureTime(estimatedVehicleJourney);
-        return new ServiceDate(departureTime.getYear(), departureTime.getMonthValue(), departureTime.getDayOfMonth());
-    }
-
     private int getDepartureTimeAsSecondsOfDay(EstimatedVehicleJourney estimatedVehicleJourney) {
         ZonedDateTime departureTime = getFirstDepartureTime(estimatedVehicleJourney);
         return LocalTime.from(departureTime).toSecondOfDay();
-    }
-
-    private ZonedDateTime getFirstDepartureTime(EstimatedVehicleJourney estimatedVehicleJourney) {
-        ZonedDateTime departureTime;
-        if (estimatedVehicleJourney.getRecordedCalls() != null && !estimatedVehicleJourney.getRecordedCalls().getRecordedCalls().isEmpty()) {
-            departureTime = estimatedVehicleJourney.getRecordedCalls().getRecordedCalls().get(0).getAimedDepartureTime();
-        } else {
-            departureTime = estimatedVehicleJourney.getEstimatedCalls().getEstimatedCalls().get(0).getAimedDepartureTime();
-        }
-        return departureTime;
     }
 
     private QuayRefStructure createQuayRef(String value) {
