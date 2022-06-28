@@ -17,6 +17,7 @@
 package no.rutebanken.anshar.routes.siri.processor;
 
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
+import uk.org.siri.siri20.DataFrameRefStructure;
 import uk.org.siri.siri20.EstimatedCall;
 import uk.org.siri.siri20.EstimatedTimetableDeliveryStructure;
 import uk.org.siri.siri20.EstimatedVehicleJourney;
@@ -26,7 +27,11 @@ import uk.org.siri.siri20.LineRef;
 import uk.org.siri.siri20.RecordedCall;
 import uk.org.siri.siri20.Siri;
 import uk.org.siri.siri20.StopPointRef;
+import uk.org.siri.siri20.VehicleActivityStructure;
+import uk.org.siri.siri20.VehicleMonitoringDeliveryStructure;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 public class StringPrefixReplacerPostProcessor extends ValueAdapter implements PostProcessor {
@@ -48,6 +53,30 @@ public class StringPrefixReplacerPostProcessor extends ValueAdapter implements P
     public void process(Siri siri) {
         if (siri != null && siri.getServiceDelivery() != null) {
 
+            List<VehicleMonitoringDeliveryStructure> vmDeliveries = siri.getServiceDelivery().getVehicleMonitoringDeliveries();
+            if (vmDeliveries != null) {
+                for (VehicleMonitoringDeliveryStructure vmDelivery : vmDeliveries) {
+                    List<VehicleActivityStructure> vehicleActivities = vmDelivery.getVehicleActivities();
+                    for (VehicleActivityStructure vehicleActivity : vehicleActivities) {
+
+                        if (vehicleActivity.getValidUntilTime() == null && vehicleActivity.getRecordedAtTime() != null) {
+                            // Setting 10 minute validity by default
+                            vehicleActivity.setValidUntilTime(vehicleActivity.getRecordedAtTime().plusMinutes(10));
+                        }
+
+                        VehicleActivityStructure.MonitoredVehicleJourney monitoredVehicleJourney = vehicleActivity.getMonitoredVehicleJourney();
+                        FramedVehicleJourneyRefStructure journeyRef = monitoredVehicleJourney.getFramedVehicleJourneyRef();
+                        FramedVehicleJourneyRefStructure framedVehicleJourneyRefStructure = replacePrefix(journeyRef);
+                        if (framedVehicleJourneyRefStructure.getDataFrameRef() == null) {
+                            DataFrameRefStructure dataFrameRef = new DataFrameRefStructure();
+                            // Guessing that OperatingDay is "today" for now
+                            dataFrameRef.setValue(LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE));
+                            framedVehicleJourneyRefStructure.setDataFrameRef(dataFrameRef);
+                        }
+                        monitoredVehicleJourney.setFramedVehicleJourneyRef(framedVehicleJourneyRefStructure);
+                    }
+                }
+            }
             List<EstimatedTimetableDeliveryStructure> etDeliveries = siri.getServiceDelivery().getEstimatedTimetableDeliveries();
             if (etDeliveries != null) {
                 for (EstimatedTimetableDeliveryStructure etDelivery : etDeliveries) {
