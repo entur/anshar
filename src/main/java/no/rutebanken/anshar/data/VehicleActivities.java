@@ -373,8 +373,10 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
 
                         if (!isLocationValid(activity)) {invalidLocationCounter.increment();}
                         timingTracer.mark("isLocationValid");
-                        if (!isActivityMeaningful(activity)) {notMeaningfulCounter.increment();}
-                        timingTracer.mark("isActivityMeaningful");
+
+                        // Skip this check for now
+//                        if (!isActivityMeaningful(activity)) {notMeaningfulCounter.increment();}
+//                        timingTracer.mark("isActivityMeaningful");
 
                     } else {
                         notUpdatedCounter.increment();
