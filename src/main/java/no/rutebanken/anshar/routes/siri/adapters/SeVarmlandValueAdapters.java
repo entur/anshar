@@ -15,7 +15,7 @@
 
 package no.rutebanken.anshar.routes.siri.adapters;
 
-import no.rutebanken.anshar.routes.siri.processor.StringPrefixReplacerPostProcessor;
+import no.rutebanken.anshar.routes.siri.processor.VarmlandPostProcessor;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 
@@ -30,7 +30,7 @@ public class SeVarmlandValueAdapters extends MappingAdapter {
 
         List<ValueAdapter> valueAdapters = new ArrayList<>();
 
-        valueAdapters.add(new StringPrefixReplacerPostProcessor("SE:017:", "SE:050:"));
+        valueAdapters.add(new VarmlandPostProcessor("SE:017:", "SE:050:"));
 
         return valueAdapters;
     }

@@ -34,13 +34,13 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-public class StringPrefixReplacerPostProcessor extends ValueAdapter implements PostProcessor {
+public class VarmlandPostProcessor extends ValueAdapter implements PostProcessor {
 
-    private final String pattern;
+    private final String prefixPattern;
     private final String replacement;
 
-    public StringPrefixReplacerPostProcessor(String pattern, String replacement) {
-        this.pattern = pattern;
+    public VarmlandPostProcessor(String prefixPattern, String replacement) {
+        this.prefixPattern = prefixPattern;
         this.replacement = replacement;
     }
 
@@ -51,6 +51,20 @@ public class StringPrefixReplacerPostProcessor extends ValueAdapter implements P
 
     @Override
     public void process(Siri siri) {
+        /*
+
+
+            Intended for mapping Swedish SIRI-data (Värmland)
+            Current mappings:
+            ET and VM:
+                - Replaces prefix "SE:017" (Värmland region?) with "SE:050" (National?) for all ids
+
+            VM:
+                - Adds required "ValidUntil"-timestamp
+                - Adds today's date as "DataFrameRef" to FramedVehicleJourneyRef (defines operating day for SJ)
+
+
+         */
         if (siri != null && siri.getServiceDelivery() != null) {
 
             List<VehicleMonitoringDeliveryStructure> vmDeliveries = siri.getServiceDelivery().getVehicleMonitoringDeliveries();
@@ -111,7 +125,7 @@ public class StringPrefixReplacerPostProcessor extends ValueAdapter implements P
     private StopPointRef replacePrefix(StopPointRef stopPointRef) {
 
         if (stopPointRef != null) {
-            stopPointRef.setValue(stopPointRef.getValue().replaceFirst(pattern, replacement));
+            stopPointRef.setValue(stopPointRef.getValue().replaceFirst(prefixPattern, replacement));
             return stopPointRef;
         }
         return null;
@@ -120,7 +134,7 @@ public class StringPrefixReplacerPostProcessor extends ValueAdapter implements P
     private FramedVehicleJourneyRefStructure replacePrefix(FramedVehicleJourneyRefStructure framedVehicleJourneyRef) {
         if (framedVehicleJourneyRef != null) {
             framedVehicleJourneyRef.setDatedVehicleJourneyRef(
-                    framedVehicleJourneyRef.getDatedVehicleJourneyRef().replaceFirst(pattern, replacement)
+                    framedVehicleJourneyRef.getDatedVehicleJourneyRef().replaceFirst(prefixPattern, replacement)
             );
             return framedVehicleJourneyRef;
         }
@@ -129,7 +143,7 @@ public class StringPrefixReplacerPostProcessor extends ValueAdapter implements P
 
     private LineRef replacePrefix(LineRef lineRef) {
         if (lineRef != null) {
-            lineRef.setValue(lineRef.getValue().replaceFirst(pattern, replacement));
+            lineRef.setValue(lineRef.getValue().replaceFirst(prefixPattern, replacement));
             return lineRef;
         }
         return null;
