@@ -34,6 +34,18 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+/**
+
+    Intended for mapping Swedish SIRI-data (Värmland)
+    Current mappings:
+    ET and VM:
+        - Replaces prefix "SE:017" (Värmland region?) with "SE:050" (National?) for all ids
+
+    VM:
+        - Adds required "ValidUntil"-timestamp
+        - Adds today's date as "DataFrameRef" to FramedVehicleJourneyRef (defines operating day for SJ)
+
+ */
 public class VarmlandPostProcessor extends ValueAdapter implements PostProcessor {
 
     private final String prefixPattern;
@@ -51,20 +63,7 @@ public class VarmlandPostProcessor extends ValueAdapter implements PostProcessor
 
     @Override
     public void process(Siri siri) {
-        /*
 
-
-            Intended for mapping Swedish SIRI-data (Värmland)
-            Current mappings:
-            ET and VM:
-                - Replaces prefix "SE:017" (Värmland region?) with "SE:050" (National?) for all ids
-
-            VM:
-                - Adds required "ValidUntil"-timestamp
-                - Adds today's date as "DataFrameRef" to FramedVehicleJourneyRef (defines operating day for SJ)
-
-
-         */
         if (siri != null && siri.getServiceDelivery() != null) {
 
             List<VehicleMonitoringDeliveryStructure> vmDeliveries = siri.getServiceDelivery().getVehicleMonitoringDeliveries();
