@@ -22,6 +22,7 @@ import no.rutebanken.anshar.routes.RestRouteBuilder;
 import no.rutebanken.anshar.routes.admin.auth.BasicAuthService;
 import no.rutebanken.anshar.routes.health.HealthManager;
 import no.rutebanken.anshar.routes.outbound.ServerSubscriptionManager;
+import no.rutebanken.anshar.routes.validation.SiriXmlValidator;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
@@ -77,6 +78,9 @@ public class AdministrationRoute extends RestRouteBuilder {
 
     @Autowired
     private AnsharConfiguration configuration;
+
+    @Autowired
+    private SiriXmlValidator siriXmlValidator;
 
     @Value("${anshar.route.singleton.policy.automatic.verification:false}")
     private boolean autoLockVerificationEnabled;
@@ -332,6 +336,7 @@ public class AdministrationRoute extends RestRouteBuilder {
                         SubscriptionSetup subscriptionSetup = subscriptionManager.get(subscriptionId);
                         if (subscriptionSetup != null) {
                             subscriptionSetup.setValidation(true);
+                            siriXmlValidator.clearValidationResults(subscriptionId);
                             subscriptionManager.updateSubscription(subscriptionSetup);
                             log.info("Enabling validation for {}", subscriptionSetup);
                         }
