@@ -36,9 +36,9 @@ import org.springframework.stereotype.Service;
 import javax.ws.rs.core.MediaType;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -326,14 +326,18 @@ public class AdministrationRoute extends RestRouteBuilder {
         from("direct:validate.all.subscriptions")
                 .process(basicAuthProcessor)
                 .process(p -> {
-
-                    Collection<SubscriptionSetup> values = subscriptionManager.subscriptions.values();
-                    for (SubscriptionSetup subscriptionSetup : values) {
-                        subscriptionSetup.setValidation(true);
-                        subscriptionManager.updateSubscription(subscriptionSetup);
+                    Set<String> ids = subscriptionManager.subscriptions.keySet();
+                    log.info("Enabling validation for {} subscriptions", ids.size());
+                    for (String subscriptionId : ids) {
+                        SubscriptionSetup subscriptionSetup = subscriptionManager.get(subscriptionId);
+                        if (subscriptionSetup != null) {
+                            subscriptionSetup.setValidation(true);
+                            subscriptionManager.updateSubscription(subscriptionSetup);
+                            log.info("Enabling validation for {}", subscriptionSetup);
+                        }
                     }
-
                 })
+                .routeId("anshar.validate.all.subscriptions")
         ;
 
         from("direct:internal.flush.data.from.subscription")
