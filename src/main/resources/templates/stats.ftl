@@ -274,6 +274,18 @@ Request count: ${item.requestCount}">${item.id}</span></td>
                     <tr><th colspan="2"><h4>Admin tools:</h4></th></tr>
                 </thead>
                 <tbody>
+                    <tr data-toggle="collapse" data-target="#accordion_admin_validate" style="cursor: pointer" class="clickable success">
+                        <td colspan="2">Validate ALL subscriptions</td>
+                    </tr>
+                    <tr id="accordion_admin_validate" class="collapse ">
+                        <td>
+                            CAUTION - validates ALL subscriptions!!! <br />
+                            Any previous validation reports will be deleted
+                        </td>
+                        <td>
+                            <p><button type="button" class="btn btn-danger"  onclick="administerSubscription('validateAll', '')"><span style="cursor: pointer"  class="glyphicon glyphicon-ok"></span> ALL</button> </p>
+                        </td>
+                    </tr>
                     <tr data-toggle="collapse" data-target="#accordion_admin_terminate" style="cursor: pointer" class="clickable danger">
                         <td colspan="2">Terminate ALL subscriptions</td>
                     </tr>

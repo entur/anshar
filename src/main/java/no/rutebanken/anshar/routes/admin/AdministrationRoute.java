@@ -36,6 +36,7 @@ import org.springframework.stereotype.Service;
 import javax.ws.rs.core.MediaType;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -255,6 +256,9 @@ public class AdministrationRoute extends RestRouteBuilder {
                 .when(header(operationHeaderName).isEqualTo("delete"))
                     .to("direct:delete.subscription")
                 .endChoice()
+                .when(header(operationHeaderName).isEqualTo("validateAll"))
+                    .to("direct:validate.all.subscriptions")
+                .endChoice()
             .end()
         ;
 
@@ -316,6 +320,20 @@ public class AdministrationRoute extends RestRouteBuilder {
                     p.getMessage().setHeader("SiriDataType", dataType);
                 })
                 .to("direct:internal.flush.data.from.subscription")
+        ;
+
+        //Return subscription status
+        from("direct:validate.all.subscriptions")
+                .process(basicAuthProcessor)
+                .process(p -> {
+
+                    Collection<SubscriptionSetup> values = subscriptionManager.subscriptions.values();
+                    for (SubscriptionSetup subscriptionSetup : values) {
+                        subscriptionSetup.setValidation(true);
+                        subscriptionManager.updateSubscription(subscriptionSetup);
+                    }
+
+                })
         ;
 
         from("direct:internal.flush.data.from.subscription")
