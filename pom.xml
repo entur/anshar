@@ -39,11 +39,11 @@
         <spring-boot-plugin.version>2.6.6</spring-boot-plugin.version>
         <spring-boot.version>2.6.6</spring-boot.version>
 
-        <camel-version>3.16.0</camel-version>
+        <camel-version>3.18.0</camel-version>
 
         <metrics.version>3.2.3</metrics.version>
         <entur.helpers.version>1.0.62</entur.helpers.version>
-        <geotools.version>21.2</geotools.version>
+        <geotools.version>27.0</geotools.version>
 
         <!-- https://spring.io/blog/2021/12/10/log4j2-vulnerability-and-spring-boot -->
         <log4j2.version>2.17.1</log4j2.version>
@@ -178,6 +178,12 @@
         </dependency>
 
         <dependency>
+            <groupId>com.google.cloud</groupId>
+            <artifactId>google-cloud-pubsub</artifactId>
+            <version>1.119.1</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.apache.camel</groupId>
             <artifactId>camel-jaxb</artifactId>
         </dependency>
@@ -239,12 +245,12 @@
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-core</artifactId>
-            <version>1.7.2</version>
+            <version>1.9.0</version>
         </dependency>
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-registry-prometheus</artifactId>
-            <version>1.7.2</version>
+            <version>1.9.0</version>
         </dependency>
 
         <dependency>
