@@ -1,7 +1,7 @@
 package no.rutebanken.anshar.routes.kafka;
 
-import net.logstash.logback.encoder.org.apache.commons.lang3.StringUtils;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 
 public abstract class KafkaConfig extends RouteBuilder {

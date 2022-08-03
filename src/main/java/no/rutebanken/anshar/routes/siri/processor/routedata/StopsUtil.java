@@ -12,10 +12,10 @@ import org.rutebanken.netex.model.LocationStructure;
 import org.rutebanken.netex.model.VehicleModeEnumeration;
 import uk.org.siri.siri20.VehicleModesEnumeration;
 
-import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 import static no.rutebanken.anshar.routes.siri.processor.routedata.NetexUpdaterService.locations;
 import static no.rutebanken.anshar.routes.siri.processor.routedata.NetexUpdaterService.modes;
@@ -23,7 +23,7 @@ import static no.rutebanken.anshar.routes.siri.processor.routedata.NetexUpdaterS
 public class StopsUtil {
 
     private static final LoadingCache<Pair<String, String>, Double> distanceCache = CacheBuilder.newBuilder()
-        .expireAfterWrite(Duration.ofMinutes(120))
+        .expireAfterWrite(120, TimeUnit.MINUTES)
         .build(
             new CacheLoader<Pair<String, String>, Double>() {
                 public Double load(Pair<String, String> fromAndTo) {
