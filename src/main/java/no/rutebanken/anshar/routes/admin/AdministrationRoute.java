@@ -291,7 +291,7 @@ public class AdministrationRoute extends RestRouteBuilder {
         } else {
             //Return subscription status
             from("direct:terminate.outbound.subscription")
-                    .bean(serverSubscriptionManager, "terminateSubscription(${header.subscriptionId})")
+                    .bean(serverSubscriptionManager, "terminateSubscription(${header.subscriptionId}, false)")
                     .routeId("admin.terminate.subscription")
             ;
         }
