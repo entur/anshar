@@ -32,6 +32,7 @@ import uk.org.siri.siri20.HalfOpenTimestampOutputRangeStructure;
 import uk.org.siri.siri20.MessageRefStructure;
 import uk.org.siri.siri20.PtSituationElement;
 import uk.org.siri.siri20.Siri;
+import uk.org.siri.siri20.SituationVersion;
 
 import javax.annotation.PostConstruct;
 import java.time.Instant;
@@ -326,6 +327,26 @@ public class Situations extends SiriRepository<PtSituationElement> {
             if (existingChecksum != null && situationElements.containsKey(key)) { // Checksum not compared if actual situation does not exist
                 //Exists - compare values
                 updated =  !(currentChecksum.equals(existingChecksum));
+
+                if (updated) { // Ignore if data is unchanged
+                    // Compare "Version" - if it exists
+                    // If received version is equal or higher - keep updated-flag
+                    if (situation.getVersion() != null) {
+                        SituationVersion newVersion = situation.getVersion();
+                        if (situationElements.containsKey(key)) {
+                            PtSituationElement existing = situationElements.get(key);
+                            if (existing != null && existing.getVersion() != null) {
+                                int currentVersion = existing.getVersion().getValue().intValue();
+                                int updatedVersion = newVersion.getValue().intValue();
+
+                                if (updatedVersion < currentVersion) {
+                                    // We already have a newer version - ignore this update
+                                    updated = false;
+                                }
+                            }
+                        }
+                    }
+                }
             } else {
                 //Does not exist
                 updated = true;

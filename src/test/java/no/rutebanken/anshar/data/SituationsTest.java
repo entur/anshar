@@ -23,12 +23,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import uk.org.siri.siri20.HalfOpenTimestampOutputRangeStructure;
 import uk.org.siri.siri20.PtSituationElement;
 import uk.org.siri.siri20.SituationNumber;
+import uk.org.siri.siri20.SituationVersion;
 import uk.org.siri.siri20.WorkflowStatusEnumeration;
 
+import java.math.BigInteger;
 import java.time.ZonedDateTime;
 
 import static no.rutebanken.anshar.helpers.SleepUtil.sleep;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class SituationsTest extends SpringBootBaseTest {
@@ -109,6 +112,91 @@ public class SituationsTest extends SpringBootBaseTest {
         assertTrue(situations.getAll("test").size() == expectedSize-1);
     }
 
+
+    @Test
+    public void testUpdatedSituationWithVersionHandling() {
+        int previousSize = situations.getAll().size();
+
+        String participantRef = "VTST";
+        String situationNumber = "VTST:SituationNumber:1234";
+
+        PtSituationElement element = createPtSituationElement(
+                participantRef,
+                situationNumber,
+                ZonedDateTime.now().minusDays(1),
+                ZonedDateTime.now().plusHours(1));
+
+        setVersion(element, 1);
+
+        PtSituationElement added = situations.add(participantRef, element);
+        // Assert that message has been added
+        assertEquals(1, added.getVersion().getValue().intValue());
+
+
+        PtSituationElement element2 = createPtSituationElement(
+                participantRef,
+                situationNumber,
+                ZonedDateTime.now().minusDays(1),
+                ZonedDateTime.now().plusHours(1)
+        );
+        element2.setPlanned(true);
+        setVersion(element2, 2);
+        added = situations.add(participantRef, element2);
+
+        // Assert that version 2 has replaced version 1
+        assertEquals(2, added.getVersion().getValue().intValue());
+
+
+        PtSituationElement element3 = createPtSituationElement(
+                participantRef,
+                situationNumber,
+                ZonedDateTime.now().minusDays(1),
+                ZonedDateTime.now().plusHours(1)
+        );
+        setVersion(element3, 2);
+        added = situations.add(participantRef, element3);
+
+        // Assert that version 2 has replaced version 2
+        assertEquals(2, added.getVersion().getValue().intValue());
+
+        // Assert that added message is actually updated
+        assertNotEquals(element2.getCreationTime(), element3.getCreationTime());
+        assertEquals(element3.getCreationTime(), added.getCreationTime());
+
+
+        PtSituationElement element4 = createPtSituationElement(
+                participantRef,
+                situationNumber,
+                ZonedDateTime.now().minusDays(1),
+                ZonedDateTime.now().plusHours(1)
+        );
+        setVersion(element4, 1);
+        added = situations.add(participantRef, element4);
+
+        // Assert that version 1 DOES NOT replace version 2
+        assertEquals(2, added.getVersion().getValue().intValue(), "Version 1 replaced version 2");
+
+
+        PtSituationElement element5 = createPtSituationElement(
+                participantRef,
+                situationNumber,
+                ZonedDateTime.now().minusDays(1),
+                ZonedDateTime.now().plusHours(1)
+        );
+        setVersion(element5, 3);
+        added = situations.add(participantRef, element5);
+
+        // Finally, assert that version 3 has replaced version 2
+        assertEquals(3, added.getVersion().getValue().intValue(), "Version 3 did not replace version 2");
+
+    }
+
+    private static void setVersion(PtSituationElement element, long v) {
+        SituationVersion version = new SituationVersion();
+        version.setValue(BigInteger.valueOf(v));
+        element.setVersion(version);
+    }
+
     @Test
     public void testGetUpdatesOnly() {
 
@@ -172,7 +260,12 @@ public class SituationsTest extends SpringBootBaseTest {
         assertEquals(previousSize+4, situations.getAll().size());
     }
 
-    private PtSituationElement createPtSituationElement(String participantRef, String situationNumber, ZonedDateTime startTime, ZonedDateTime endTime) {
+    private PtSituationElement createPtSituationElement(
+            String participantRef,
+            String situationNumber,
+            ZonedDateTime startTime,
+            ZonedDateTime endTime
+    ) {
         PtSituationElement element = new PtSituationElement();
         element.setCreationTime(ZonedDateTime.now());
         HalfOpenTimestampOutputRangeStructure period = new HalfOpenTimestampOutputRangeStructure();
