@@ -82,6 +82,9 @@ public class SubscriptionSetup implements Serializable {
 
     private boolean enrichSiriData = false;
 
+    // transient to refresh config on each redeploy
+    private transient boolean reduceLogging;
+
     public boolean isUseProvidedCodespaceId() {
         return useProvidedCodespaceId;
     }
@@ -421,6 +424,14 @@ public class SubscriptionSetup implements Serializable {
 
     public void setEnrichSiriData(boolean enrichSiriData) {
         this.enrichSiriData = enrichSiriData;
+    }
+
+    public boolean isReduceLogging() {
+        return reduceLogging;
+    }
+
+    public void setReduceLogging(boolean reduceLogging) {
+        this.reduceLogging = reduceLogging;
     }
 
     public enum ServiceType {SOAP, REST}

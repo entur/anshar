@@ -64,7 +64,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -204,6 +210,7 @@ public class SiriXmlValidator extends ApplicationContextHolder {
 
             if (siri.getServiceDelivery() != null && validate) {
                 validationExecutorService.execute(() -> {
+                    MDC.put("subscriptionId", subscriptionSetup.getSubscriptionId());
                     MDC.put("camel.breadcrumbId", breadcrumbId);
                     performProfileValidation(subscriptionSetup, xml, siri, schemaValidationHandler);
                     MDC.remove("camel.breadcrumbId");

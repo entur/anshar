@@ -15,6 +15,7 @@
   -->
 
 <configuration>
+    <turboFilter class="no.rutebanken.anshar.config.CustomMDCTurboFilter" />
     <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
         <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
             <providers>

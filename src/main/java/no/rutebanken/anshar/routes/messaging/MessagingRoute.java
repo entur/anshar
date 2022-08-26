@@ -122,6 +122,7 @@ public class MessagingRoute extends RestRouteBuilder {
 
 
         from("direct:transform.siri")
+                .to("direct:set.mdc.subscriptionId")
                 .choice()
                     .when(header(TRANSFORM_SOAP).isEqualTo(simple(TRANSFORM_SOAP)))
                     .log("Transforming SOAP")
@@ -140,6 +141,7 @@ public class MessagingRoute extends RestRouteBuilder {
 
 
         from("direct:process.mapping")
+                .to("direct:set.mdc.subscriptionId")
                 .process(p -> {
                     SubscriptionSetup subscriptionSetup = subscriptionManager.get(p.getIn().getHeader("subscriptionId", String.class));
                     Siri originalInput = siriXmlValidator.parseXml(subscriptionSetup, p.getIn().getBody(String.class));
@@ -171,6 +173,7 @@ public class MessagingRoute extends RestRouteBuilder {
 //        }
         if (configuration.processSX()) {
             from(pubsubQueueSX + queueConsumerParameters)
+                    .to("direct:set.mdc.subscriptionId")
                     .choice().when(readFromPubsub)
                     .log("Processing data from " + pubsubQueueSX + ", size ${header.Content-Length}")
                     .to("direct:decompress.jaxb")
@@ -183,6 +186,7 @@ public class MessagingRoute extends RestRouteBuilder {
 
         if (configuration.processVM()) {
             from(pubsubQueueVM + queueConsumerParameters)
+                    .to("direct:set.mdc.subscriptionId")
                     .choice().when(readFromPubsub)
                     .log("Processing data from " + pubsubQueueVM + ", size ${header.Content-Length}")
                     .to("direct:decompress.jaxb")
@@ -195,6 +199,7 @@ public class MessagingRoute extends RestRouteBuilder {
 
         if (configuration.processET()) {
             from(pubsubQueueET + queueConsumerParameters)
+                    .to("direct:set.mdc.subscriptionId")
                     .choice().when(readFromPubsub)
                     .log("Processing data from " + pubsubQueueET + ", size ${header.Content-Length}")
                     .to("direct:decompress.jaxb")
@@ -212,6 +217,7 @@ public class MessagingRoute extends RestRouteBuilder {
 
 
         from("direct:" + CamelRouteNames.PROCESSOR_QUEUE_DEFAULT)
+                .to("direct:set.mdc.subscriptionId")
                 .process(p -> {
 
                     String subscriptionId = p.getIn().getHeader("subscriptionId", String.class);
@@ -228,6 +234,7 @@ public class MessagingRoute extends RestRouteBuilder {
         ;
 
         from("direct:" + CamelRouteNames.FETCHED_DELIVERY_QUEUE)
+                .to("direct:set.mdc.subscriptionId")
                 .log("Processing fetched delivery")
                 .process(p -> {
                     String routeName = null;

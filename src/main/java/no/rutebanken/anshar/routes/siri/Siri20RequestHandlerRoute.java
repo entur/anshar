@@ -26,6 +26,7 @@ import org.apache.camel.Message;
 import org.apache.camel.model.rest.RestParamType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
@@ -118,7 +119,12 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
                         .param().required(false).name("operation").endParam()
         ;
 
+        from("direct:set.mdc.subscriptionId")
+                .process(p -> MDC.put("subscriptionId", p.getIn().getHeader("subscriptionId", String.class)))
+        ;
+
         from("direct:process.incoming.request")
+                .to("direct:set.mdc.subscriptionId")
                 .removeHeaders("<Siri*") //Since Camel 3, entire body is also included as header
                 .to("log:incoming:" + getClass().getSimpleName() + "?showAll=true&multiline=true&showStreams=true")
                 .choice()
@@ -139,6 +145,7 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
                 ;
 
         from("seda:async.process.request?concurrentConsumers=20")
+            .to("direct:set.mdc.subscriptionId")
             .convertBodyTo(String.class)
             .process(p -> {
                 p.getMessage().setBody(p.getIn().getBody());
