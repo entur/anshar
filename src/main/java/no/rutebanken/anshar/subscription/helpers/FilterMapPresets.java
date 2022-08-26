@@ -15,10 +15,10 @@
 
 package no.rutebanken.anshar.subscription.helpers;
 
-import uk.org.siri.siri20.DirectionRefStructure;
-import uk.org.siri.siri20.LineDirectionStructure;
-import uk.org.siri.siri20.LineRef;
-import uk.org.siri.siri20.OperatorRefStructure;
+import uk.org.siri.siri21.DirectionRefStructure;
+import uk.org.siri.siri21.LineDirectionStructure;
+import uk.org.siri.siri21.LineRef;
+import uk.org.siri.siri21.OperatorRefStructure;
 
 import java.util.HashMap;
 import java.util.HashSet;

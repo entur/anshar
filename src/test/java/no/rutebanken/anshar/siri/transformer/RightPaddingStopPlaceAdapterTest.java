@@ -18,7 +18,7 @@ package no.rutebanken.anshar.siri.transformer;
 import no.rutebanken.anshar.routes.siri.transformer.impl.RightPaddingStopPlaceAdapter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import uk.org.siri.siri20.JourneyPlaceRefStructure;
+import uk.org.siri.siri21.JourneyPlaceRefStructure;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;

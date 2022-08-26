@@ -18,7 +18,7 @@ package no.rutebanken.anshar.siri.transformer;
 import no.rutebanken.anshar.routes.siri.transformer.impl.RuterSubstringAdapter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import uk.org.siri.siri20.LineRef;
+import uk.org.siri.siri21.LineRef;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

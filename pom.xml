@@ -279,7 +279,8 @@
         <dependency>
             <groupId>org.entur</groupId>
             <artifactId>siri-java-model</artifactId>
-            <version>0.14</version>
+<!--            <version>0.14</version>-->
+            <version>0.15-SNAPSHOT</version>
         </dependency>
 
         <dependency>

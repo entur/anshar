@@ -42,15 +42,19 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
-import uk.org.siri.siri20.EstimatedVehicleJourney;
-import uk.org.siri.siri20.PtSituationElement;
-import uk.org.siri.siri20.VehicleActivityStructure;
+import uk.org.siri.siri21.EstimatedVehicleJourney;
+import uk.org.siri.siri21.PtSituationElement;
+import uk.org.siri.siri21.VehicleActivityStructure;
 
 import javax.annotation.PreDestroy;
 import java.math.BigInteger;
 import java.time.Instant;
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @Service
 @Configuration

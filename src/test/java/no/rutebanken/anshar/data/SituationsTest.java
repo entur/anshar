@@ -20,11 +20,11 @@ import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import uk.org.siri.siri20.HalfOpenTimestampOutputRangeStructure;
-import uk.org.siri.siri20.PtSituationElement;
-import uk.org.siri.siri20.SituationNumber;
-import uk.org.siri.siri20.SituationVersion;
-import uk.org.siri.siri20.WorkflowStatusEnumeration;
+import uk.org.siri.siri21.HalfOpenTimestampOutputRangeStructure;
+import uk.org.siri.siri21.PtSituationElement;
+import uk.org.siri.siri21.SituationNumber;
+import uk.org.siri.siri21.SituationVersion;
+import uk.org.siri.siri21.WorkflowStatusEnumeration;
 
 import java.math.BigInteger;
 import java.time.ZonedDateTime;

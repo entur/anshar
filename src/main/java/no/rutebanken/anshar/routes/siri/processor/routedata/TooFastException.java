@@ -1,6 +1,6 @@
 package no.rutebanken.anshar.routes.siri.processor.routedata;
 
-import uk.org.siri.siri20.EstimatedVehicleJourney;
+import uk.org.siri.siri21.EstimatedVehicleJourney;
 
 import java.time.ZonedDateTime;
 

@@ -18,9 +18,10 @@ package no.rutebanken.anshar.routes.siri.processor;
 import com.google.common.collect.Sets;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.subscription.SiriDataType;
-import uk.org.siri.siri20.PtSituationElement;
-import uk.org.siri.siri20.Siri;
-import uk.org.siri.siri20.SituationExchangeDeliveryStructure;
+import uk.org.siri.siri21.PtSituationElement;
+import uk.org.siri.siri21.ReportTypeEnumeration;
+import uk.org.siri.siri21.Siri;
+import uk.org.siri.siri21.SituationExchangeDeliveryStructure;
 
 import java.util.List;
 import java.util.Set;
@@ -29,8 +30,10 @@ import static no.rutebanken.anshar.routes.siri.transformer.MappingNames.SET_MISS
 
 public class ReportTypeProcessor extends ValueAdapter implements PostProcessor {
 
-    private static final String DEFAULT_REPORT_TYPE = "incident";
-    private static final Set<String> allowedReportTypes = Sets.newHashSet(DEFAULT_REPORT_TYPE, "general");
+    private static final ReportTypeEnumeration DEFAULT_REPORT_TYPE = ReportTypeEnumeration.INCIDENT;
+    private static final Set<ReportTypeEnumeration> allowedReportTypes = Sets.newHashSet(
+            DEFAULT_REPORT_TYPE,
+            ReportTypeEnumeration.GENERAL);
     private final String datasetId;
 
     public ReportTypeProcessor(String datasetId) {
@@ -52,11 +55,15 @@ public class ReportTypeProcessor extends ValueAdapter implements PostProcessor {
                     SituationExchangeDeliveryStructure.Situations situations = situationExchangeDelivery.getSituations();
                     if (situations != null && situations.getPtSituationElements() != null) {
                         for (PtSituationElement ptSituationElement : situations.getPtSituationElements()) {
-                            String reportType = ptSituationElement.getReportType();
-                            if (reportType == null || reportType.isEmpty() ||
-                                    !allowedReportTypes.contains(reportType)) {
+                            ReportTypeEnumeration reportType = ptSituationElement.getReportType();
+                            if (reportType == null || !allowedReportTypes.contains(reportType)) {
                                 ptSituationElement.setReportType(DEFAULT_REPORT_TYPE);
-                                getMetricsService().registerDataMapping(SiriDataType.SITUATION_EXCHANGE, datasetId, SET_MISSING_REPORT_TYPE, 1);
+                                getMetricsService().registerDataMapping(
+                                        SiriDataType.SITUATION_EXCHANGE,
+                                        datasetId,
+                                        SET_MISSING_REPORT_TYPE,
+                                        1
+                                );
                             }
                         }
                     }

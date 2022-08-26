@@ -22,18 +22,18 @@ import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.org.siri.siri20.EstimatedCall;
-import uk.org.siri.siri20.EstimatedTimetableDeliveryStructure;
-import uk.org.siri.siri20.EstimatedVehicleJourney;
-import uk.org.siri.siri20.EstimatedVersionFrameStructure;
-import uk.org.siri.siri20.MonitoredCallStructure;
-import uk.org.siri.siri20.OnwardCallStructure;
-import uk.org.siri.siri20.OnwardCallsStructure;
-import uk.org.siri.siri20.RecordedCall;
-import uk.org.siri.siri20.Siri;
-import uk.org.siri.siri20.StopPointRef;
-import uk.org.siri.siri20.VehicleActivityStructure;
-import uk.org.siri.siri20.VehicleMonitoringDeliveryStructure;
+import uk.org.siri.siri21.EstimatedCall;
+import uk.org.siri.siri21.EstimatedTimetableDeliveryStructure;
+import uk.org.siri.siri21.EstimatedVehicleJourney;
+import uk.org.siri.siri21.EstimatedVersionFrameStructure;
+import uk.org.siri.siri21.MonitoredCallStructure;
+import uk.org.siri.siri21.OnwardCallStructure;
+import uk.org.siri.siri21.OnwardCallsStructure;
+import uk.org.siri.siri21.RecordedCall;
+import uk.org.siri.siri21.Siri;
+import uk.org.siri.siri21.StopPointRefStructure;
+import uk.org.siri.siri21.VehicleActivityStructure;
+import uk.org.siri.siri21.VehicleMonitoringDeliveryStructure;
 
 import java.util.HashSet;
 import java.util.List;
@@ -55,7 +55,7 @@ public class OstfoldIdPlatformPostProcessor extends ValueAdapter implements Post
     public OstfoldIdPlatformPostProcessor(SubscriptionSetup subscriptionSetup) {
         datasetId = subscriptionSetup.getDatasetId();
         stopPlaceRegisterMapper = new StopPlaceRegisterMapper(subscriptionSetup.getSubscriptionType(),
-                datasetId, StopPointRef.class, subscriptionSetup.getIdMappingPrefixes());
+                datasetId, StopPointRefStructure.class, subscriptionSetup.getIdMappingPrefixes());
 
         //Disable counting metrics to avoid counting twice
         stopPlaceRegisterMapper.disableMetrics();

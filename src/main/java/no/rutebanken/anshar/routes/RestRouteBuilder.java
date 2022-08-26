@@ -23,19 +23,24 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.support.builder.Namespaces;
 import org.apache.http.HttpHeaders;
 import org.entur.protobuf.mapper.SiriMapper;
-import org.rutebanken.siri20.util.SiriJson;
-import org.rutebanken.siri20.util.SiriXml;
+import org.entur.siri21.util.SiriJson;
+import org.entur.siri21.util.SiriXml;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.AccessDeniedException;
-import uk.org.siri.siri20.Siri;
+import uk.org.siri.siri20.EstimatedTimetableDeliveryStructure;
+import uk.org.siri.siri20.ServiceDelivery;
+import uk.org.siri.siri20.SituationExchangeDeliveryStructure;
+import uk.org.siri.siri20.VehicleMonitoringDeliveryStructure;
+import uk.org.siri.siri21.Siri;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.MediaType;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.UnmarshalException;
+import javax.xml.stream.XMLStreamException;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -392,16 +397,29 @@ public class RestRouteBuilder extends RouteBuilder {
 
         return values;
     }
-    protected void streamOutput(Exchange p, Siri response, HttpServletResponse out) throws IOException, JAXBException {
+    protected void streamOutput(Exchange p, Siri response, HttpServletResponse out) throws IOException, JAXBException, XMLStreamException {
+
+        boolean siri21Version = false;
+        uk.org.siri.siri20.Siri siri20Response = null;
+        if ("2.1".equals(p.getIn().getHeader("SIRI_VERSION"))) {
+            siri21Version = true;
+        } else {
+            siri20Response = downgradeSiriVersion(response);
+        }
 
         if (MediaType.APPLICATION_JSON.equals(p.getIn().getHeader(HttpHeaders.CONTENT_TYPE)) |
             MediaType.APPLICATION_JSON.equals(p.getIn().getHeader(HttpHeaders.ACCEPT))) {
             p.getMessage().setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
-            SiriJson.toJson(response, out.getOutputStream());
-        } else if ("application/x-protobuf".equals(p.getIn().getHeader(HttpHeaders.CONTENT_TYPE)) |
+            if (siri21Version) {
+                SiriJson.toJson(response, out.getOutputStream());
+            } else {
+                org.rutebanken.siri20.util.SiriJson.toJson(siri20Response, out.getOutputStream());
+            }
+        }
+        else if ("application/x-protobuf".equals(p.getIn().getHeader(HttpHeaders.CONTENT_TYPE)) |
             "application/x-protobuf".equals(p.getIn().getHeader(HttpHeaders.ACCEPT))) {
             try {
-                final byte[] bytes = SiriMapper.mapToPbf(response).toByteArray();
+                final byte[] bytes = SiriMapper.mapToPbf(siri20Response).toByteArray();
                 p.getMessage().setHeader(HttpHeaders.CONTENT_TYPE, "application/x-protobuf");
                 p.getMessage().setHeader(HttpHeaders.CONTENT_LENGTH, "" + bytes.length);
                 out.getOutputStream().write(bytes);
@@ -410,27 +428,46 @@ public class RestRouteBuilder extends RouteBuilder {
                 log.error("Caught NullPointerException, data written to " + file.getAbsolutePath(), npe);
                 SiriXml.toXml(response, null, new FileOutputStream(file));
             }
-        } else {
+        }
+        else {
             p.getMessage().setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_XML);
-            SiriXml.toXml(response, null, out.getOutputStream());
+            if (siri21Version) {
+                SiriXml.toXml(response, null, out.getOutputStream());
+            } else {
+                org.rutebanken.siri20.util.SiriXml.toXml(
+                        siri20Response,
+                        null,
+                        out.getOutputStream()
+                );
+            }
         }
         p.getMessage().setBody(out.getOutputStream());
     }
 
-}
+    private static uk.org.siri.siri20.Siri downgradeSiriVersion(Siri response) throws JAXBException, XMLStreamException {
+        uk.org.siri.siri20.Siri siri20Response;
+        String siri2_0Xml = SiriXml.toXml(response);
+        siri20Response = org.rutebanken.siri20.util.SiriXml.parseXml(siri2_0Xml);
+        siri20Response.setVersion("2.0");
+        ServiceDelivery serviceDelivery = siri20Response.getServiceDelivery();
+        if (serviceDelivery != null) {
+            if (!serviceDelivery.getEstimatedTimetableDeliveries().isEmpty()) {
+                for (EstimatedTimetableDeliveryStructure delivery : serviceDelivery.getEstimatedTimetableDeliveries()) {
+                    delivery.setVersion("2.0");
+                }
+            }
+            if (!serviceDelivery.getVehicleMonitoringDeliveries().isEmpty()) {
+                for (VehicleMonitoringDeliveryStructure delivery : serviceDelivery.getVehicleMonitoringDeliveries()) {
+                    delivery.setVersion("2.0");
+                }
+            }
+            if (!serviceDelivery.getSituationExchangeDeliveries().isEmpty()) {
+                for (SituationExchangeDeliveryStructure delivery : serviceDelivery.getSituationExchangeDeliveries()) {
+                    delivery.setVersion("2.0");
+                }
+            }
+        }
+        return siri20Response;
+    }
 
-// To be removed according to task ROR-521
-//@Component
-//class ContentEncodingRequestFilter extends JettyRestHttpBinding {
-//
-//    private static final String headerToRemove = "Content-Encoding";
-//    private static final String headerValueToRemove = "iso-8859-15";
-//
-//    @Override
-//    public void readRequest(HttpServletRequest request, HttpMessage message) {
-//        if (((Request) request).getHttpFields().contains(headerToRemove, headerValueToRemove)) {
-//            ((Request) request).getHttpFields().remove(headerToRemove);
-//        }
-//        super.readRequest(request, message);
-//    }
-//}
+}

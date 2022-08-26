@@ -15,7 +15,7 @@
 
 package no.rutebanken.anshar.routes.siri.processor;
 
-import uk.org.siri.siri20.Siri;
+import uk.org.siri.siri21.Siri;
 
 public interface PostProcessor {
 

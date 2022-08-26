@@ -21,12 +21,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Node;
-import uk.org.ifopt.siri20.AccessibilityFeatureEnumeration;
-import uk.org.ifopt.siri20.StopPlaceComponentTypeEnumeration;
+import uk.org.ifopt.siri21.AccessibilityFeatureEnumeration;
+import uk.org.ifopt.siri21.StopPlaceComponentTypeEnumeration;
 
 import javax.xml.bind.ValidationEvent;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class AffectedComponentValidatorTest extends CustomValidatorTest {
 

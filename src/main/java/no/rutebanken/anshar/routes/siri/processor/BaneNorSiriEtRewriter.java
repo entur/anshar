@@ -23,15 +23,15 @@ import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.org.siri.siri20.DatedVehicleJourneyRef;
-import uk.org.siri.siri20.EstimatedCall;
-import uk.org.siri.siri20.EstimatedTimetableDeliveryStructure;
-import uk.org.siri.siri20.EstimatedVehicleJourney;
-import uk.org.siri.siri20.EstimatedVersionFrameStructure;
-import uk.org.siri.siri20.NaturalLanguageStringStructure;
-import uk.org.siri.siri20.RecordedCall;
-import uk.org.siri.siri20.Siri;
-import uk.org.siri.siri20.StopPointRef;
+import uk.org.siri.siri21.DatedVehicleJourneyRef;
+import uk.org.siri.siri21.EstimatedCall;
+import uk.org.siri.siri21.EstimatedTimetableDeliveryStructure;
+import uk.org.siri.siri21.EstimatedVehicleJourney;
+import uk.org.siri.siri21.EstimatedVersionFrameStructure;
+import uk.org.siri.siri21.NaturalLanguageStringStructure;
+import uk.org.siri.siri21.RecordedCall;
+import uk.org.siri.siri21.Siri;
+import uk.org.siri.siri21.StopPointRefStructure;
 
 import java.math.BigInteger;
 import java.time.ZonedDateTime;
@@ -364,7 +364,7 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
             if (estimatedCalls.size() == stopTimes.size()) {
                 for (int i = 0; i < estimatedCalls.size(); i++) {
                     EstimatedCall call = estimatedCalls.get(i);
-                    StopPointRef stopPointRef = call.getStopPointRef();
+                    StopPointRefStructure stopPointRef = call.getStopPointRef();
 
                     if (call.getArrivalPlatformName() == null &&
                             call.getDeparturePlatformName() == null &&
@@ -409,7 +409,7 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
                                         estimatedCall.setArrivalPlatformName(platform);
                                     }
                                 }
-                                StopPointRef stopPointRef = new StopPointRef();
+                                StopPointRefStructure stopPointRef = new StopPointRefStructure();
                                 stopPointRef.setValue(createCombinedId(originalId, stopId));
                                 estimatedCall.setStopPointRef(stopPointRef);
                             }
@@ -447,7 +447,7 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
             if (recordedCalls.size() == stopTimes.size()) {
                 for (int i = 0; i < recordedCalls.size(); i++) {
                     RecordedCall call = recordedCalls.get(i);
-                    StopPointRef stopPointRef = call.getStopPointRef();
+                    StopPointRefStructure stopPointRef = call.getStopPointRef();
 
                     if (call.getArrivalPlatformName() == null &&
                             call.getDeparturePlatformName() == null &&
@@ -494,7 +494,7 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
                                         recordedCall.setArrivalPlatformName(platform);
                                     }
                                 }
-                                StopPointRef stopPointRef = new StopPointRef();
+                                StopPointRefStructure stopPointRef = new StopPointRefStructure();
                                 stopPointRef.setValue(createCombinedId(originalId, stopId));
                                 recordedCall.setStopPointRef(stopPointRef);
                             }
@@ -549,7 +549,7 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
         return false;
     }
 
-    private String getMappedStopId(StopPointRef stopPointRef) {
+    private String getMappedStopId(StopPointRefStructure stopPointRef) {
         String stopIdRef = stopPointRef.getValue();
         if (stopIdRef.contains(SEPARATOR)) {
             return stopIdRef.substring(stopIdRef.lastIndexOf(SEPARATOR)+1);

@@ -12,13 +12,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Node;
-import uk.org.siri.siri20.EstimatedCall;
-import uk.org.siri.siri20.EstimatedTimetableDeliveryStructure;
-import uk.org.siri.siri20.EstimatedVehicleJourney;
-import uk.org.siri.siri20.EstimatedVersionFrameStructure;
-import uk.org.siri.siri20.RecordedCall;
-import uk.org.siri.siri20.Siri;
-import uk.org.siri.siri20.StopPointRef;
+import uk.org.siri.siri21.EstimatedCall;
+import uk.org.siri.siri21.EstimatedTimetableDeliveryStructure;
+import uk.org.siri.siri21.EstimatedVehicleJourney;
+import uk.org.siri.siri21.EstimatedVersionFrameStructure;
+import uk.org.siri.siri21.RecordedCall;
+import uk.org.siri.siri21.Siri;
+import uk.org.siri.siri21.StopPointRefStructure;
 
 import javax.xml.bind.ValidationEvent;
 import java.time.ZonedDateTime;
@@ -123,8 +123,8 @@ public class SaneSpeedValidator extends SiriObjectValidator {
                                         final EstimatedCall thisCall = calls.get(i);
                                         final EstimatedCall nextCall = calls.get(i + 1);
 
-                                        final StopPointRef thisStop = thisCall.getStopPointRef();
-                                        final StopPointRef nextStop = nextCall.getStopPointRef();
+                                        final StopPointRefStructure thisStop = thisCall.getStopPointRef();
+                                        final StopPointRefStructure nextStop = nextCall.getStopPointRef();
                                         if (thisStop != null && nextStop != null) {
 
                                             try {

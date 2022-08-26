@@ -19,10 +19,10 @@ import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.routes.siri.transformer.impl.LeftPaddingAdapter;
 import no.rutebanken.anshar.routes.siri.transformer.impl.RuterSubstringAdapter;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
-import uk.org.ifopt.siri20.StopPlaceRef;
-import uk.org.siri.siri20.DestinationRef;
-import uk.org.siri.siri20.JourneyPlaceRefStructure;
-import uk.org.siri.siri20.StopPointRef;
+import uk.org.ifopt.siri21.StopPlaceRef;
+import uk.org.siri.siri21.DestinationRef;
+import uk.org.siri.siri21.JourneyPlaceRefStructure;
+import uk.org.siri.siri21.StopPointRefStructure;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +36,7 @@ public class RuterValueAdapters extends MappingAdapter {
 
         List<ValueAdapter> valueAdapters = new ArrayList<>();
                 valueAdapters.add(new LeftPaddingAdapter(StopPlaceRef.class, 8, '0'));
-                valueAdapters.add(new RuterSubstringAdapter(StopPointRef.class, ':', '0', 2));
+                valueAdapters.add(new RuterSubstringAdapter(StopPointRefStructure.class, ':', '0', 2));
                 valueAdapters.add(new RuterSubstringAdapter(JourneyPlaceRefStructure.class, ':', '0', 2));
                 valueAdapters.add(new RuterSubstringAdapter(DestinationRef.class, ':', '0', 2));
 

@@ -20,12 +20,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import uk.org.siri.siri20.CourseOfJourneyRefStructure;
-import uk.org.siri.siri20.LocationStructure;
-import uk.org.siri.siri20.ProgressBetweenStopsStructure;
-import uk.org.siri.siri20.Siri;
-import uk.org.siri.siri20.VehicleActivityStructure;
-import uk.org.siri.siri20.VehicleRef;
+import uk.org.siri.siri21.CourseOfJourneyRefStructure;
+import uk.org.siri.siri21.LocationStructure;
+import uk.org.siri.siri21.ProgressBetweenStopsStructure;
+import uk.org.siri.siri21.Siri;
+import uk.org.siri.siri21.VehicleActivityStructure;
+import uk.org.siri.siri21.VehicleRef;
 
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;

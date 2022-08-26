@@ -52,7 +52,7 @@ public class SiriDataFormatHelper {
         }
         Map<String, String> prefixMap = new HashMap<>();
         prefixMap.put("http://www.siri.org.uk/siri", prefix);
-        JaxbDataFormat siriJaxb = new JaxbDataFormat("uk.org.siri.siri20");
+        JaxbDataFormat siriJaxb = new JaxbDataFormat("uk.org.siri.siri21");
         siriJaxb.setNamespacePrefix(prefixMap );
 
         dataformats.put(prefix, siriJaxb);

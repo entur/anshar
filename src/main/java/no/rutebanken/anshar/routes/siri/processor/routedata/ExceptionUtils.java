@@ -1,7 +1,7 @@
 package no.rutebanken.anshar.routes.siri.processor.routedata;
 
-import uk.org.siri.siri20.EstimatedVehicleJourney;
-import uk.org.siri.siri20.FramedVehicleJourneyRefStructure;
+import uk.org.siri.siri21.EstimatedVehicleJourney;
+import uk.org.siri.siri21.FramedVehicleJourneyRefStructure;
 
 import java.io.Serializable;
 

@@ -29,14 +29,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
-import uk.org.siri.siri20.EstimatedCall;
-import uk.org.siri.siri20.EstimatedVehicleJourney;
-import uk.org.siri.siri20.MessageRefStructure;
-import uk.org.siri.siri20.QuayRefStructure;
-import uk.org.siri.siri20.RecordedCall;
-import uk.org.siri.siri20.Siri;
-import uk.org.siri.siri20.StopAssignmentStructure;
-import uk.org.siri.siri20.StopPointRef;
+import uk.org.siri.siri21.EstimatedCall;
+import uk.org.siri.siri21.EstimatedVehicleJourney;
+import uk.org.siri.siri21.MessageRefStructure;
+import uk.org.siri.siri21.QuayRefStructure;
+import uk.org.siri.siri21.RecordedCall;
+import uk.org.siri.siri21.Siri;
+import uk.org.siri.siri21.StopAssignmentStructure;
+import uk.org.siri.siri21.StopPointRefStructure;
 
 import javax.annotation.PostConstruct;
 import java.time.Instant;
@@ -356,11 +356,15 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                     if (estimatedCall.isCancellation() != null && estimatedCall.isCancellation()) {
                         cancelledStops.add(estimatedCall.getStopPointRef().getValue());
                     }
-                    StopAssignmentStructure stopAssignment = estimatedCall.getDepartureStopAssignment();
-                    if (stopAssignment == null) {
-                        stopAssignment = estimatedCall.getArrivalStopAssignment();
+
+                    List<StopAssignmentStructure> stopAssignments = estimatedCall.getDepartureStopAssignments();
+                    if (estimatedCall.getDepartureStopAssignments().isEmpty()) {
+                        stopAssignments = estimatedCall.getArrivalStopAssignments();
                     }
-                    if (stopAssignment != null) {
+
+
+                    if (!stopAssignments.isEmpty()) {
+                        StopAssignmentStructure stopAssignment = stopAssignments.get(0);
                         QuayRefStructure aimedQuayRef = stopAssignment.getAimedQuayRef();
                         QuayRefStructure expectedQuayRef = stopAssignment.getExpectedQuayRef();
                         if (aimedQuayRef != null && expectedQuayRef != null) {
@@ -688,7 +692,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
             if (element.getEstimatedCalls() != null && element.getEstimatedCalls().getEstimatedCalls() != null && !element.getEstimatedCalls().getEstimatedCalls().isEmpty()) {
                 final List<EstimatedCall> estimatedCalls = element.getEstimatedCalls().getEstimatedCalls();
                 if (estimatedCalls.get(estimatedCalls.size()-1) != null) {
-                    final StopPointRef stopPointRef = estimatedCalls.get(estimatedCalls.size()-1).getStopPointRef();
+                    final StopPointRefStructure stopPointRef = estimatedCalls.get(estimatedCalls.size()-1).getStopPointRef();
                     if (stopPointRef != null) {
                         lastStopId = getOriginalId(stopPointRef.getValue());
                     }
@@ -698,7 +702,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                 if (element.getRecordedCalls() != null && element.getRecordedCalls().getRecordedCalls() != null && !element.getRecordedCalls().getRecordedCalls().isEmpty()) {
                     final List<RecordedCall> recordedCalls = element.getRecordedCalls().getRecordedCalls();
                     if (recordedCalls.get(recordedCalls.size()-1) != null) {
-                        final StopPointRef stopPointRef = recordedCalls.get(recordedCalls.size()-1).getStopPointRef();
+                        final StopPointRefStructure stopPointRef = recordedCalls.get(recordedCalls.size()-1).getStopPointRef();
                         if (stopPointRef != null) {
                             lastStopId = getOriginalId(stopPointRef.getValue());
                         }
