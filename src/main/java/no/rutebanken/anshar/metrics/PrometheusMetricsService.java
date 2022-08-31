@@ -51,6 +51,8 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
     private static final String AGENCY_TAG_NAME = "agency";
     private static final String MAPPING_ID_TAG = "mappingId";
     private static final String MAPPING_NAME_TAG = "mappingName";
+    private static final String SIRI_CONTENT_NAME_TAG = "siriContent";
+    private static final String SERVICE_JOURNEY_ID_TAG_NAME = "serviceJourney";
 
     private static final String KAFKA_STATUS_TAG = "kafkaStatus";
     private static final String KAFKA_TOPIC_NAME = "kafkaTopic";
@@ -73,6 +75,8 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
     private static final String DATA_OUTBOUND_COUNTER_NAME = METRICS_PREFIX + "data.outbound";
 
     private static final String DATA_MAPPING_COUNTER_NAME = METRICS_PREFIX + "data.mapping";
+
+    private static final String SIRI_CONTENT_COUNTER_NAME = METRICS_PREFIX + "siri.content";
 
     private static final String KAFKA_COUNTER_NAME = METRICS_PREFIX + "data.kafka";
 
@@ -109,6 +113,18 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
         counterTags.add(new ImmutableTag(MAPPING_ID_TAG, mappingName.name()));
 
         counter(DATA_MAPPING_COUNTER_NAME, counterTags).increment(mappedCount);
+    }
+
+    public void registerSiriContent(SiriDataType dataType, String agencyId, String serviceJourneyId, SiriContent content) {
+        List<Tag> counterTags = new ArrayList<>();
+        counterTags.add(new ImmutableTag(DATATYPE_TAG_NAME, dataType.name()));
+        counterTags.add(new ImmutableTag(AGENCY_TAG_NAME, agencyId));
+        if (serviceJourneyId != null) {
+            counterTags.add(new ImmutableTag(SERVICE_JOURNEY_ID_TAG_NAME, serviceJourneyId));
+        }
+        counterTags.add(new ImmutableTag(SIRI_CONTENT_NAME_TAG, content.name()));
+
+        counter(SIRI_CONTENT_COUNTER_NAME, counterTags).increment();
     }
 
     public enum KafkaStatus {SENT, ACKED, FAILED}

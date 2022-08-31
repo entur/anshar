@@ -81,7 +81,7 @@ abstract class SiriRepository<T> {
 
     private final Logger logger = LoggerFactory.getLogger(SiriRepository.class);
 
-    private PrometheusMetricsService metrics;
+    protected PrometheusMetricsService metrics;
 
     final Set<SiriObjectStorageKey> dirtyChanges = Collections.synchronizedSet(new HashSet<>());
 
@@ -323,10 +323,14 @@ abstract class SiriRepository<T> {
     }
 
     void markDataReceived(SiriDataType dataType, String datasetId, long totalSize, long updatedSize, long expiredSize, long ignoredSize) {
+        prepareMetrics();
+        metrics.registerIncomingData(dataType, datasetId, totalSize, updatedSize, expiredSize, ignoredSize);
+    }
+
+    void prepareMetrics() {
         if (metrics == null) {
             metrics = ApplicationContextHolder.getContext().getBean(PrometheusMetricsService.class);
         }
-        metrics.registerIncomingData(dataType, datasetId, totalSize, updatedSize, expiredSize, ignoredSize);
     }
 
     void updateChangeTrackers(IMap<String, Instant> lastUpdateRequested, IMap<String, Set<SiriObjectStorageKey>> changesMap,

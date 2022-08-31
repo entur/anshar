@@ -4,7 +4,7 @@ import uk.org.siri.siri20.EstimatedVehicleJourney;
 
 import java.time.ZonedDateTime;
 
-import static no.rutebanken.anshar.routes.siri.processor.routedata.ExceptionUtils.resolveServiceJourneyId;
+import static no.rutebanken.anshar.util.SiriUtils.resolveServiceJourneyId;
 
 public class TooFastException extends Throwable {
 
