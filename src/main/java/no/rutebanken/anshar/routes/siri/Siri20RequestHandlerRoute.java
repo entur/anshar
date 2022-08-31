@@ -123,6 +123,10 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
                 .process(p -> MDC.put("subscriptionId", p.getIn().getHeader("subscriptionId", String.class)))
         ;
 
+        from("direct:clear.mdc.subscriptionId")
+                .process(p -> MDC.remove("subscriptionId"))
+        ;
+
         from("direct:process.incoming.request")
                 .to("direct:set.mdc.subscriptionId")
                 .removeHeaders("<Siri*") //Since Camel 3, entire body is also included as header
@@ -141,6 +145,8 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
                         .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("403")) //403 Forbidden
                         .setBody(constant("Subscription is not valid"))
                     .endChoice()
+                .end()
+                .to("direct:clear.mdc.subscriptionId")
             .routeId("process.incoming")
                 ;
 
@@ -153,6 +159,7 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
                 p.getMessage().setHeader(INTERNAL_SIRI_DATA_TYPE, getSubscriptionDataType(p));
             })
             .to("direct:enqueue.message")
+            .to("direct:clear.mdc.subscriptionId")
             .routeId("async.process.incoming")
         ;
 

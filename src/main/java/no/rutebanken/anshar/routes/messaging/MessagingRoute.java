@@ -137,6 +137,7 @@ public class MessagingRoute extends RestRouteBuilder {
                 .end()
                 .to("direct:process.mapping")
                 .to("direct:format.xml")
+                .to("direct:clear.mdc.subscriptionId")
         ;
 
 
@@ -151,6 +152,7 @@ public class MessagingRoute extends RestRouteBuilder {
                     p.getMessage().setHeaders(p.getIn().getHeaders());
                     p.getMessage().setBody(SiriXml.toXml(incoming));
                 })
+                .to("direct:clear.mdc.subscriptionId")
         ;
 
         from("direct:format.xml")
@@ -174,11 +176,14 @@ public class MessagingRoute extends RestRouteBuilder {
         if (configuration.processSX()) {
             from(pubsubQueueSX + queueConsumerParameters)
                     .to("direct:set.mdc.subscriptionId")
-                    .choice().when(readFromPubsub)
-                    .log("Processing data from " + pubsubQueueSX + ", size ${header.Content-Length}")
-                    .to("direct:decompress.jaxb")
-                    .to("direct:process.queue.default.async")
-                    .endChoice()
+                    .choice()
+                        .when(readFromPubsub)
+                            .log("Processing data from " + pubsubQueueSX + ", size ${header.Content-Length}")
+                            .to("direct:decompress.jaxb")
+                            .to("direct:process.queue.default.async")
+                        .endChoice()
+                    .end()
+                    .to("direct:clear.mdc.subscriptionId")
                     .startupOrder(100003)
                     .routeId("incoming.transform.sx")
             ;
@@ -187,11 +192,14 @@ public class MessagingRoute extends RestRouteBuilder {
         if (configuration.processVM()) {
             from(pubsubQueueVM + queueConsumerParameters)
                     .to("direct:set.mdc.subscriptionId")
-                    .choice().when(readFromPubsub)
-                    .log("Processing data from " + pubsubQueueVM + ", size ${header.Content-Length}")
-                    .to("direct:decompress.jaxb")
-                    .to("direct:process.queue.default.async")
-                    .endChoice()
+                    .choice()
+                        .when(readFromPubsub)
+                            .log("Processing data from " + pubsubQueueVM + ", size ${header.Content-Length}")
+                            .to("direct:decompress.jaxb")
+                            .to("direct:process.queue.default.async")
+                        .endChoice()
+                    .end()
+                    .to("direct:clear.mdc.subscriptionId")
                     .startupOrder(100002)
                     .routeId("incoming.transform.vm")
             ;
@@ -200,11 +208,14 @@ public class MessagingRoute extends RestRouteBuilder {
         if (configuration.processET()) {
             from(pubsubQueueET + queueConsumerParameters)
                     .to("direct:set.mdc.subscriptionId")
-                    .choice().when(readFromPubsub)
-                    .log("Processing data from " + pubsubQueueET + ", size ${header.Content-Length}")
-                    .to("direct:decompress.jaxb")
-                    .to("direct:process.queue.default.async")
-                    .endChoice()
+                    .choice()
+                        .when(readFromPubsub)
+                            .log("Processing data from " + pubsubQueueET + ", size ${header.Content-Length}")
+                            .to("direct:decompress.jaxb")
+                            .to("direct:process.queue.default.async")
+                        .endChoice()
+                    .end()
+                    .to("direct:clear.mdc.subscriptionId")
                     .startupOrder(100001)
                     .routeId("incoming.transform.et")
             ;
@@ -230,6 +241,7 @@ public class MessagingRoute extends RestRouteBuilder {
                     handler.handleIncomingSiri(subscriptionId, xml, datasetId, SiriHandler.getIdMappingPolicy(useOriginalId), -1, clientTrackingName);
 
                 })
+                .to("direct:clear.mdc.subscriptionId")
                 .routeId("incoming.processor.default")
         ;
 
@@ -250,9 +262,11 @@ public class MessagingRoute extends RestRouteBuilder {
 
                 })
                 .choice()
-                .when(header("routename").isNotNull())
-                    .toD("direct:${header.routename}")
-                .endChoice()
+                    .when(header("routename").isNotNull())
+                        .toD("direct:${header.routename}")
+                    .endChoice()
+                .end()
+                .to("direct:clear.mdc.subscriptionId")
                 .routeId("incoming.processor.fetched_delivery")
         ;
     }
