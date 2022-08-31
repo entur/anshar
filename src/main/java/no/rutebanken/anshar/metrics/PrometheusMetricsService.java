@@ -118,7 +118,9 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
     public void registerSiriContent(SiriDataType dataType, String agencyId, String serviceJourneyId, SiriContent content) {
         List<Tag> counterTags = new ArrayList<>();
         counterTags.add(new ImmutableTag(DATATYPE_TAG_NAME, dataType.name()));
-        counterTags.add(new ImmutableTag(AGENCY_TAG_NAME, agencyId));
+        if (agencyId != null) {
+            counterTags.add(new ImmutableTag(AGENCY_TAG_NAME, agencyId));
+        }
         if (serviceJourneyId != null) {
             counterTags.add(new ImmutableTag(SERVICE_JOURNEY_ID_TAG_NAME, serviceJourneyId));
         }
