@@ -58,6 +58,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import static no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter.getMappedId;
 import static no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter.getOriginalId;
 
 @Repository
@@ -334,7 +335,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
         if (estimatedVehicleJourney != null) {
             // Not separating on SJ-id for now
             String serviceJourneyId = null;//resolveServiceJourneyId(estimatedVehicleJourney);
-            String dataSource = estimatedVehicleJourney.getDataSource();
+            String dataSource = getMappedId(estimatedVehicleJourney.getDataSource());
 
             if (estimatedVehicleJourney.isCancellation() != null && estimatedVehicleJourney.isCancellation()) {
                 metrics.registerSiriContent(SiriDataType.ESTIMATED_TIMETABLE, dataSource, serviceJourneyId, SiriContent.TRIP_CANCELLATION);
