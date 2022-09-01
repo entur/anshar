@@ -1,12 +1,22 @@
 package no.rutebanken.anshar.metrics;
 
 public enum SiriContent {
-    TRIP_CANCELLATION,
-    STOP_CANCELLATION,
-    QUAY_CHANGED,
-    EXTRA_JOURNEY,
-    OCCUPANCY_TRIP,
-    OCCUPANCY_STOP;
+    TRIP_CANCELLATION("Trip cancelled"),
+    STOP_CANCELLATION("Stop cancelled"),
+    QUAY_CHANGED("Quay changed"),
+    EXTRA_JOURNEY("Trip added"),
+    OCCUPANCY_TRIP("Trip-occupancy"),
+    OCCUPANCY_STOP("Stop-occupancy");
+
+    private final String label;
+
+    SiriContent(String label) {
+        this.label = label;
+    }
+
+    public String getLabel() {
+        return label;
+    }
 
     ContentGroup getGroup() {
         switch (this){

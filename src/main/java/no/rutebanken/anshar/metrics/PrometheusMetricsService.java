@@ -52,6 +52,7 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
     private static final String MAPPING_ID_TAG = "mappingId";
     private static final String MAPPING_NAME_TAG = "mappingName";
     private static final String SIRI_CONTENT_NAME_TAG = "siriContent";
+    private static final String SIRI_CONTENT_LABEL_TAG = "siriContentLabel";
     private static final String SIRI_CONTENT_GROUP_TAG = "group";
     private static final String SERVICE_JOURNEY_ID_TAG_NAME = "serviceJourney";
 
@@ -126,6 +127,7 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
             counterTags.add(new ImmutableTag(SERVICE_JOURNEY_ID_TAG_NAME, serviceJourneyId));
         }
         counterTags.add(new ImmutableTag(SIRI_CONTENT_NAME_TAG, content.name()));
+        counterTags.add(new ImmutableTag(SIRI_CONTENT_LABEL_TAG, content.getLabel()));
         counterTags.add(new ImmutableTag(SIRI_CONTENT_GROUP_TAG, content.getGroup().name()));
 
         counter(SIRI_CONTENT_COUNTER_NAME, counterTags).increment();
