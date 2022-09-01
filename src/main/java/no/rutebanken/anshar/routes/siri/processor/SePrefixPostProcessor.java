@@ -46,12 +46,12 @@ import java.util.List;
         - Adds today's date as "DataFrameRef" to FramedVehicleJourneyRef (defines operating day for SJ)
 
  */
-public class VarmlandPostProcessor extends ValueAdapter implements PostProcessor {
+public class SePrefixPostProcessor extends ValueAdapter implements PostProcessor {
 
     private final String prefixPattern;
     private final String replacement;
 
-    public VarmlandPostProcessor(String prefixPattern, String replacement) {
+    public SePrefixPostProcessor(String prefixPattern, String replacement) {
         this.prefixPattern = prefixPattern;
         this.replacement = replacement;
     }

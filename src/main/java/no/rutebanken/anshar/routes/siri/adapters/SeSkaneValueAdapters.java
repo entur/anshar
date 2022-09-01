@@ -22,15 +22,15 @@ import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import java.util.ArrayList;
 import java.util.List;
 
-@Mapping(id="varmland")
-public class SeVarmlandValueAdapters extends MappingAdapter {
+@Mapping(id="skane")
+public class SeSkaneValueAdapters extends MappingAdapter {
 
     @Override
     public List<ValueAdapter> getValueAdapters(SubscriptionSetup subscription) {
 
         List<ValueAdapter> valueAdapters = new ArrayList<>();
 
-        valueAdapters.add(new SePrefixPostProcessor("SE:017:", "SE:050:"));
+        valueAdapters.add(new SePrefixPostProcessor("SE:012:", "SE:050:"));
 
         return valueAdapters;
     }
