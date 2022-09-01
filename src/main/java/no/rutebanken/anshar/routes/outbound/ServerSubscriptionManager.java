@@ -389,7 +389,7 @@ public class ServerSubscriptionManager {
             )
             .collect(Collectors.toList());
 
-        boolean logFullContents = true;
+        boolean logFullContents = false;
         for (OutboundSubscriptionSetup recipient : recipients) {
             camelRouteManager.pushSiriData(delivery, recipient, logFullContents);
             logFullContents = false;

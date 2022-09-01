@@ -20,6 +20,7 @@ import com.hazelcast.query.Predicates;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.data.collections.ExtendedHazelcastService;
 import no.rutebanken.anshar.data.util.TimingTracer;
+import no.rutebanken.anshar.metrics.SiriContent;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import org.quartz.utils.counter.Counter;
@@ -57,6 +58,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import static no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter.getMappedId;
 import static no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter.getOriginalId;
 
 @Repository
@@ -325,6 +327,84 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
         }
 
         return siri;
+    }
+    private void resolveContentMetrics(EstimatedVehicleJourney estimatedVehicleJourney) {
+
+        prepareMetrics();
+
+        if (estimatedVehicleJourney != null) {
+            // Not separating on SJ-id for now
+            String serviceJourneyId = null;//resolveServiceJourneyId(estimatedVehicleJourney);
+            String dataSource = getMappedId(estimatedVehicleJourney.getDataSource());
+
+            if (estimatedVehicleJourney.isCancellation() != null && estimatedVehicleJourney.isCancellation()) {
+                metrics.registerSiriContent(SiriDataType.ESTIMATED_TIMETABLE, dataSource, serviceJourneyId, SiriContent.TRIP_CANCELLATION);
+            }
+            if (estimatedVehicleJourney.isExtraJourney() != null && estimatedVehicleJourney.isExtraJourney()) {
+                metrics.registerSiriContent(SiriDataType.ESTIMATED_TIMETABLE, dataSource, serviceJourneyId, SiriContent.EXTRA_JOURNEY);
+            }
+
+            if (estimatedVehicleJourney.getOccupancy() != null) {
+                metrics.registerSiriContent(SiriDataType.ESTIMATED_TIMETABLE, dataSource, serviceJourneyId, SiriContent.OCCUPANCY_TRIP);
+            }
+
+            if (estimatedVehicleJourney.getRecordedCalls() != null && estimatedVehicleJourney.getRecordedCalls().getRecordedCalls() != null) {
+                List<RecordedCall> recordedCalls = estimatedVehicleJourney.getRecordedCalls().getRecordedCalls();
+
+                for (RecordedCall recordedCall : recordedCalls) {
+                    if (recordedCall.isCancellation() != null && recordedCall.isCancellation()) {
+                        metrics.registerSiriContent(SiriDataType.ESTIMATED_TIMETABLE, dataSource, serviceJourneyId, SiriContent.STOP_CANCELLATION);
+                    }
+
+                    if (recordedCall.getOccupancy() != null) {
+                        metrics.registerSiriContent(SiriDataType.ESTIMATED_TIMETABLE, dataSource, serviceJourneyId, SiriContent.OCCUPANCY_STOP);
+                    }
+
+                    StopAssignmentStructure stopAssignment = null;
+                    if (!recordedCall.getDepartureStopAssignments().isEmpty()) {
+                        stopAssignment = recordedCall.getDepartureStopAssignments().get(0);
+                    } else if (!recordedCall.getArrivalStopAssignments().isEmpty()) {
+                        stopAssignment = recordedCall.getArrivalStopAssignments().get(0);
+                    }
+                    if (stopAssignment != null) {
+                        QuayRefStructure aimedQuayRef = stopAssignment.getAimedQuayRef();
+                        QuayRefStructure expectedQuayRef = stopAssignment.getExpectedQuayRef();
+                        if (aimedQuayRef != null && expectedQuayRef != null) {
+                            if (!aimedQuayRef.getValue().equals(expectedQuayRef.getValue())) {
+                                metrics.registerSiriContent(SiriDataType.ESTIMATED_TIMETABLE, estimatedVehicleJourney.getDataSource(), serviceJourneyId, SiriContent.QUAY_CHANGED);
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (estimatedVehicleJourney.getEstimatedCalls() != null && estimatedVehicleJourney.getEstimatedCalls().getEstimatedCalls() != null) {
+                List<EstimatedCall> estimatedCalls = estimatedVehicleJourney.getEstimatedCalls().getEstimatedCalls();
+
+                for (EstimatedCall estimatedCall : estimatedCalls) {
+                    if (estimatedCall.isCancellation() != null && estimatedCall.isCancellation()) {
+                        metrics.registerSiriContent(SiriDataType.ESTIMATED_TIMETABLE, dataSource, serviceJourneyId, SiriContent.STOP_CANCELLATION);
+                    }
+
+                    StopAssignmentStructure stopAssignment = null;
+                    if (!estimatedCall.getDepartureStopAssignments().isEmpty()) {
+                        stopAssignment = estimatedCall.getDepartureStopAssignments().get(0);
+                    } else if (!estimatedCall.getArrivalStopAssignments().isEmpty()) {
+                        stopAssignment = estimatedCall.getArrivalStopAssignments().get(0);
+                    }
+
+                    if (stopAssignment != null) {
+                        QuayRefStructure aimedQuayRef = stopAssignment.getAimedQuayRef();
+                        QuayRefStructure expectedQuayRef = stopAssignment.getExpectedQuayRef();
+                        if (aimedQuayRef != null && expectedQuayRef != null) {
+                            if (!aimedQuayRef.getValue().equals(expectedQuayRef.getValue())) {
+                                metrics.registerSiriContent(SiriDataType.ESTIMATED_TIMETABLE, dataSource, serviceJourneyId, SiriContent.QUAY_CHANGED);
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -602,6 +682,9 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                 timingTracer.mark("getExpiration");
 
                 if (expiration > 0) {
+
+                    resolveContentMetrics(et);
+                    timingTracer.mark("resolveContentMetrics");
 
                     boolean hasPatternChanges = hasPatternChanges(et);
                     timingTracer.mark("hasPatternChanges");

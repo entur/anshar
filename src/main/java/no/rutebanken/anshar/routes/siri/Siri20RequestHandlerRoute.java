@@ -26,6 +26,7 @@ import org.apache.camel.Message;
 import org.apache.camel.model.rest.RestParamType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
@@ -118,7 +119,16 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
                         .param().required(false).name("operation").endParam()
         ;
 
+        from("direct:set.mdc.subscriptionId")
+                .process(p -> MDC.put("subscriptionId", p.getIn().getHeader("subscriptionId", String.class)))
+        ;
+
+        from("direct:clear.mdc.subscriptionId")
+                .process(p -> MDC.remove("subscriptionId"))
+        ;
+
         from("direct:process.incoming.request")
+                .to("direct:set.mdc.subscriptionId")
                 .removeHeaders("<Siri*") //Since Camel 3, entire body is also included as header
                 .to("log:incoming:" + getClass().getSimpleName() + "?showAll=true&multiline=true&showStreams=true")
                 .choice()
@@ -135,10 +145,13 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
                         .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("403")) //403 Forbidden
                         .setBody(constant("Subscription is not valid"))
                     .endChoice()
+                .end()
+                .to("direct:clear.mdc.subscriptionId")
             .routeId("process.incoming")
                 ;
 
         from("seda:async.process.request?concurrentConsumers=20")
+            .to("direct:set.mdc.subscriptionId")
             .convertBodyTo(String.class)
             .process(p -> {
                 p.getMessage().setBody(p.getIn().getBody());
@@ -146,6 +159,7 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
                 p.getMessage().setHeader(INTERNAL_SIRI_DATA_TYPE, getSubscriptionDataType(p));
             })
             .to("direct:enqueue.message")
+            .to("direct:clear.mdc.subscriptionId")
             .routeId("async.process.incoming")
         ;
 

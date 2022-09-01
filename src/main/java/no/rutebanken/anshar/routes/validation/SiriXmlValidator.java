@@ -210,6 +210,7 @@ public class SiriXmlValidator extends ApplicationContextHolder {
 
             if (siri.getServiceDelivery() != null && validate) {
                 validationExecutorService.execute(() -> {
+                    MDC.put("subscriptionId", subscriptionSetup.getSubscriptionId());
                     MDC.put("camel.breadcrumbId", breadcrumbId);
                     performProfileValidation(subscriptionSetup, xml, siri, schemaValidationHandler);
                     MDC.remove("camel.breadcrumbId");

@@ -18,25 +18,32 @@ anshar:
         GET_VEHICLE_MONITORING: https://api.entur.io/realtime/v1/services
       customHeaders:
         ET-Client-Name: anshar-default-VM-client
-      oauth2Config:
-        SERVER: <oauth-server>
-        AUDIENCE: <audience>
-        GRANT_TYPE: client_credentials
-        CLIENT_ID: <client-id>
-        CLIENT_SECRET: <client-secret>
+#      oauth2Config:
+#        SERVER: <oauth-server>
+#        AUDIENCE: <audience>
+#        GRANT_TYPE: client_credentials
+#        CLIENT_ID: <client-id>
+#        CLIENT_SECRET: <client-secret>
       version: 2.0
       contentType: text/xml;charset=UTF-8
       subscriptionId: anshar-example-${random.uuid}
-      requestorRef: ${random.uuid}
+      requestorRef: anshar-example-${random.uuid}
       durationOfSubscriptionHours: 1680
       mappingAdapterId: entur
       filterPresets:
       idMappingPrefixes:
       active: false
+#
+#
+# For subscriptionMode: SUBSCRIBE, an open URL pointing to this anshar-instance is required.
+# The external server will post SIRI XML to this URL.
+# This is configured in property `anshar.inbound.url`
+#
+#
     -
       internalId: 200
       vendor: enturEt
-      name: Entur - ET
+      name: Entur - ET (requires property anshar.inbound.url to be set)
       datasetId: ENT
       serviceType: REST
       subscriptionType: ESTIMATED_TIMETABLE
@@ -56,7 +63,7 @@ anshar:
       version: 2.0
       contentType: text/xml;charset=UTF-8
       subscriptionId: anshar-example-${random.uuid}
-      requestorRef: ${random.uuid}
+      requestorRef: anshar-example-${random.uuid}
       durationOfSubscriptionHours: 1680
       mappingAdapterId: entur
       filterPresets:
@@ -65,7 +72,7 @@ anshar:
     -
       internalId: 300
       vendor: enturSx
-      name: Entur - SX
+      name: Entur - SX (requires property anshar.inbound.url to be set)
       datasetId: ENT
       serviceType: REST
       subscriptionType: SITUATION_EXCHANGE
@@ -85,7 +92,7 @@ anshar:
       version: 2.0
       contentType: text/xml;charset=UTF-8
       subscriptionId: anshar-example-${random.uuid}
-      requestorRef: ${random.uuid}
+      requestorRef: anshar-example-${random.uuid}
       durationOfSubscriptionHours: 1680
       mappingAdapterId: entur
       filterPresets:
