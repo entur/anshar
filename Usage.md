@@ -1,5 +1,16 @@
 # Usage
 
+# Build
+- mvn clean package -Dmaven.test.skip=true
+
+# Run
+- java -jar target/anshar-0.0.1-SNAPSHOT.jar
+
+The app will start with subscriptions defined in `resources/subscription-example.yml`. For subscriptions of type `SUBSCRIBE`, an inbound URL is required - this is defined in property `anshar.inbound.url`. 
+
+When the app has started, an admin-gui will be available at http://localhost:8012/anshar/stats 
+
+
 # SIRI Subscription
 - Supports SIRI 2.0 SubscriptionRequest
 - HTTP POST https://api.entur.io/realtime/v1/subscribe
