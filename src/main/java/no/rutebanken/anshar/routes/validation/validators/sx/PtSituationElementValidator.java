@@ -20,7 +20,7 @@ import no.rutebanken.anshar.routes.validation.validators.Validator;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Node;
-import uk.org.siri.siri20.WorkflowStatusEnumeration;
+import uk.org.siri.siri21.WorkflowStatusEnumeration;
 
 import javax.xml.bind.ValidationEvent;
 

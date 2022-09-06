@@ -2,13 +2,14 @@ package no.rutebanken.anshar.outbound;
 
 import no.rutebanken.anshar.integration.SpringBootBaseTest;
 import no.rutebanken.anshar.routes.outbound.ServerSubscriptionManager;
+import no.rutebanken.anshar.routes.siri.handlers.OutboundIdMappingPolicy;
+import org.entur.siri21.util.SiriXml;
 import org.junit.jupiter.api.Test;
-import org.rutebanken.siri20.util.SiriXml;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import uk.org.siri.siri20.Siri;
-import uk.org.siri.siri20.SubscriptionContextStructure;
-import uk.org.siri.siri20.SubscriptionRequest;
+import uk.org.siri.siri21.Siri;
+import uk.org.siri.siri21.SubscriptionContextStructure;
+import uk.org.siri.siri21.SubscriptionRequest;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.datatype.DatatypeConfigurationException;
@@ -95,8 +96,8 @@ public class OutboundSubscriptionTest extends SpringBootBaseTest {
                 "</Siri>";
 
 
-        final Siri siriSX = serverSubscriptionManager.handleSubscriptionRequest(SiriXml.parseXml(sxSubscription).getSubscriptionRequest(), null, null, null);
-        final Siri siriET = serverSubscriptionManager.handleSubscriptionRequest(SiriXml.parseXml(etSubscription).getSubscriptionRequest(), null, null, null);
+        final Siri siriSX = serverSubscriptionManager.handleSubscriptionRequest(SiriXml.parseXml(sxSubscription).getSubscriptionRequest(), null, OutboundIdMappingPolicy.DEFAULT, null);
+        final Siri siriET = serverSubscriptionManager.handleSubscriptionRequest(SiriXml.parseXml(etSubscription).getSubscriptionRequest(), null, OutboundIdMappingPolicy.DEFAULT, null);
 
         assertNotNull(siriSX);
         assertNotNull(siriET);

@@ -21,8 +21,8 @@ import no.rutebanken.anshar.routes.validation.validators.Validator;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Node;
-import uk.org.ifopt.siri20.AccessibilityFeatureEnumeration;
-import uk.org.ifopt.siri20.StopPlaceComponentTypeEnumeration;
+import uk.org.ifopt.siri21.AccessibilityFeatureEnumeration;
+import uk.org.ifopt.siri21.StopPlaceComponentTypeEnumeration;
 
 import javax.xml.bind.ValidationEvent;
 import java.util.Set;

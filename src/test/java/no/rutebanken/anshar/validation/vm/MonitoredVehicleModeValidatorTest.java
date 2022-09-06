@@ -19,7 +19,7 @@ import no.rutebanken.anshar.routes.validation.validators.vm.MonitoredVehicleMode
 import no.rutebanken.anshar.validation.CustomValidatorTest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import uk.org.siri.siri20.VehicleModesEnumeration;
+import uk.org.siri.siri21.VehicleModesEnumeration;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;

@@ -14,10 +14,10 @@ import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.camel.Exchange;
 import org.apache.camel.Predicate;
 import org.apache.camel.component.google.pubsub.GooglePubsubConstants;
-import org.rutebanken.siri20.util.SiriXml;
+import org.entur.siri21.util.SiriXml;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import uk.org.siri.siri20.Siri;
+import uk.org.siri.siri21.Siri;
 
 import java.io.InputStream;
 

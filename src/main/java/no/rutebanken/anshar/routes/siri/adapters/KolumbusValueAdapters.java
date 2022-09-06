@@ -18,7 +18,7 @@ package no.rutebanken.anshar.routes.siri.adapters;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.routes.siri.transformer.impl.LeftPaddingAdapter;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
-import uk.org.siri.siri20.LineRef;
+import uk.org.siri.siri21.LineRef;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -20,8 +20,9 @@ import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.routes.siri.processor.ReportTypeProcessor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import uk.org.siri.siri20.PtSituationElement;
-import uk.org.siri.siri20.Siri;
+import uk.org.siri.siri21.PtSituationElement;
+import uk.org.siri.siri21.ReportTypeEnumeration;
+import uk.org.siri.siri21.Siri;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -47,47 +48,47 @@ public class ReportTypeProcessorTest extends SpringBootBaseTest {
         Siri siri = createSiri(null);
         processor.process(siri);
 
-        String reportType = resolveReportType(siri);
-        assertEquals("incident", reportType);
+        ReportTypeEnumeration reportType = resolveReportType(siri);
+        assertEquals(ReportTypeEnumeration.INCIDENT, reportType);
     }
 
     @Test
     public void testEmptyReportType() {
-        Siri siri = createSiri("");
+        Siri siri = createSiri(null);
         processor.process(siri);
 
-        String reportType = resolveReportType(siri);
-        assertEquals("incident", reportType);
+        ReportTypeEnumeration reportType = resolveReportType(siri);
+        assertEquals(ReportTypeEnumeration.INCIDENT, reportType);
     }
 
     @Test
     public void testGeneralReportType() {
-        Siri siri = createSiri("general");
+        Siri siri = createSiri(ReportTypeEnumeration.GENERAL);
         processor.process(siri);
 
-        String reportType = resolveReportType(siri);
-        assertEquals("general", reportType);
+        ReportTypeEnumeration reportType = resolveReportType(siri);
+        assertEquals(ReportTypeEnumeration.GENERAL, reportType);
     }
 
     @Test
     public void testIncidentReportType() {
-        Siri siri = createSiri("incident");
+        Siri siri = createSiri(ReportTypeEnumeration.INCIDENT);
         processor.process(siri);
 
-        String reportType = resolveReportType(siri);
-        assertEquals("incident", reportType);
+        ReportTypeEnumeration reportType = resolveReportType(siri);
+        assertEquals(ReportTypeEnumeration.INCIDENT, reportType);
     }
 
     @Test
     public void testUnknownReportType() {
-        Siri siri = createSiri("unknown");
+        Siri siri = createSiri(ReportTypeEnumeration.UNKNOWN);
         processor.process(siri);
 
-        String reportType = resolveReportType(siri);
-        assertEquals("incident", reportType);
+        ReportTypeEnumeration reportType = resolveReportType(siri);
+        assertEquals(ReportTypeEnumeration.INCIDENT, reportType);
     }
 
-    private String resolveReportType(Siri siri) {
+    private ReportTypeEnumeration resolveReportType(Siri siri) {
         assertNotNull(siri);
         assertNotNull(siri.getServiceDelivery());
         assertNotNull(siri.getServiceDelivery().getSituationExchangeDeliveries());
@@ -98,7 +99,7 @@ public class ReportTypeProcessorTest extends SpringBootBaseTest {
         return siri.getServiceDelivery().getSituationExchangeDeliveries().get(0).getSituations().getPtSituationElements().get(0).getReportType();
     }
 
-    private Siri createSiri(String reportType) {
+    private Siri createSiri(ReportTypeEnumeration reportType) {
         Collection<PtSituationElement> sxElements = new ArrayList<>();
         PtSituationElement sx = new PtSituationElement();
         sx.setReportType(reportType);

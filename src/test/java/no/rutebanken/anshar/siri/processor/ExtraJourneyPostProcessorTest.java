@@ -6,11 +6,11 @@ import no.rutebanken.anshar.routes.siri.processor.ExtraJourneyPostProcessor;
 import no.rutebanken.anshar.routes.siri.processor.routedata.NetexUpdaterService;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import uk.org.siri.siri20.EstimatedCall;
-import uk.org.siri.siri20.EstimatedVehicleJourney;
-import uk.org.siri.siri20.Siri;
-import uk.org.siri.siri20.StopPointRef;
-import uk.org.siri.siri20.VehicleModesEnumeration;
+import uk.org.siri.siri21.EstimatedCall;
+import uk.org.siri.siri21.EstimatedVehicleJourney;
+import uk.org.siri.siri21.Siri;
+import uk.org.siri.siri21.StopPointRefStructure;
+import uk.org.siri.siri21.VehicleModesEnumeration;
 
 import java.time.Instant;
 import java.time.ZonedDateTime;
@@ -131,7 +131,7 @@ public class ExtraJourneyPostProcessorTest extends SpringBootBaseTest {
         EstimatedVehicleJourney.EstimatedCalls estimatedCalls = new EstimatedVehicleJourney.EstimatedCalls();
         for (int i = 0; i < stopRefs.size(); i++) {
             EstimatedCall call = new EstimatedCall();
-            StopPointRef stopPointRef = new StopPointRef();
+            StopPointRefStructure stopPointRef = new StopPointRefStructure();
             stopPointRef.setValue(stopRefs.get(i));
             call.setStopPointRef(stopPointRef);
             call.setAimedArrivalTime(arrivals.get(i));

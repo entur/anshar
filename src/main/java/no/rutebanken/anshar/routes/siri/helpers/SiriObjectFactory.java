@@ -31,7 +31,46 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import uk.org.siri.siri20.*;
+import uk.org.siri.siri21.CheckStatusRequestStructure;
+import uk.org.siri.siri21.CheckStatusResponseStructure;
+import uk.org.siri.siri21.DataReadyRequestStructure;
+import uk.org.siri.siri21.DataSupplyRequestStructure;
+import uk.org.siri.siri21.EstimatedTimetableDeliveryStructure;
+import uk.org.siri.siri21.EstimatedTimetableRequestStructure;
+import uk.org.siri.siri21.EstimatedTimetableSubscriptionStructure;
+import uk.org.siri.siri21.EstimatedVehicleJourney;
+import uk.org.siri.siri21.EstimatedVersionFrameStructure;
+import uk.org.siri.siri21.HeartbeatNotificationStructure;
+import uk.org.siri.siri21.LineDirectionStructure;
+import uk.org.siri.siri21.LineRef;
+import uk.org.siri.siri21.MessageQualifierStructure;
+import uk.org.siri.siri21.MessageRefStructure;
+import uk.org.siri.siri21.OperatorRefStructure;
+import uk.org.siri.siri21.OtherErrorStructure;
+import uk.org.siri.siri21.PtSituationElement;
+import uk.org.siri.siri21.RequestorRef;
+import uk.org.siri.siri21.ResponseStatus;
+import uk.org.siri.siri21.ServiceDelivery;
+import uk.org.siri.siri21.ServiceDeliveryErrorConditionElement;
+import uk.org.siri.siri21.ServiceRequest;
+import uk.org.siri.siri21.Siri;
+import uk.org.siri.siri21.SituationExchangeDeliveryStructure;
+import uk.org.siri.siri21.SituationExchangeRequestStructure;
+import uk.org.siri.siri21.SituationExchangeSubscriptionStructure;
+import uk.org.siri.siri21.SubscriptionContextStructure;
+import uk.org.siri.siri21.SubscriptionQualifierStructure;
+import uk.org.siri.siri21.SubscriptionRefStructure;
+import uk.org.siri.siri21.SubscriptionRequest;
+import uk.org.siri.siri21.SubscriptionResponseStructure;
+import uk.org.siri.siri21.TerminateSubscriptionRequestStructure;
+import uk.org.siri.siri21.TerminateSubscriptionResponseStructure;
+import uk.org.siri.siri21.TerminationResponseStatusStructure;
+import uk.org.siri.siri21.VehicleActivityStructure;
+import uk.org.siri.siri21.VehicleMonitoringDeliveryStructure;
+import uk.org.siri.siri21.VehicleMonitoringRefStructure;
+import uk.org.siri.siri21.VehicleMonitoringRequestStructure;
+import uk.org.siri.siri21.VehicleMonitoringSubscriptionStructure;
+import uk.org.siri.siri21.VehicleRef;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.datatype.DatatypeConfigurationException;
@@ -48,7 +87,7 @@ import java.util.UUID;
 @Service
 public class SiriObjectFactory {
 
-    private static final String SIRI_VERSION = "2.0";
+    private static final String SIRI_VERSION = "2.1";
     private static final Logger logger = LoggerFactory.getLogger(SiriObjectFactory.class);
 
     private static final KryoPool kryoPool;
@@ -416,6 +455,13 @@ public class SiriObjectFactory {
         return subscriptionRef;
     }
 
+
+    private static SubscriptionRefStructure createSubscriptionRef(String subscriptionId) {
+        SubscriptionRefStructure subscriptionRef = new SubscriptionRefStructure();
+        subscriptionRef.setValue(subscriptionId);
+        return subscriptionRef;
+    }
+
     private static MessageQualifierStructure createMessageIdentifier(String value) {
         MessageQualifierStructure msgId = new MessageQualifierStructure();
         msgId.setValue(value);
@@ -424,6 +470,16 @@ public class SiriObjectFactory {
 
     private static MessageQualifierStructure createMessageIdentifier() {
         return createMessageIdentifier(UUID.randomUUID().toString());
+    }
+
+    private static MessageRefStructure createMessageRef(String value) {
+        MessageRefStructure msgId = new MessageRefStructure();
+        msgId.setValue(value);
+        return msgId;
+    }
+
+    private static MessageRefStructure createMessageRef() {
+        return createMessageRef(UUID.randomUUID().toString());
     }
 
     public Siri createSXServiceDelivery(Collection<PtSituationElement> elements) {
@@ -515,15 +571,15 @@ public class SiriObjectFactory {
         Siri siri = createSiriObject();
         SubscriptionResponseStructure response = new SubscriptionResponseStructure();
         response.setServiceStartedTime(serverStartTime.atZone(ZoneId.systemDefault()));
-        response.setRequestMessageRef(createMessageIdentifier());
+        response.setRequestMessageRef(createMessageRef());
         response.setResponderRef(createRequestorRef(subscriptionRef));
         response.setResponseTimestamp(ZonedDateTime.now());
 
 
         ResponseStatus responseStatus = new ResponseStatus();
         responseStatus.setResponseTimestamp(ZonedDateTime.now());
-        responseStatus.setRequestMessageRef(createMessageIdentifier());
-        responseStatus.setSubscriptionRef(createSubscriptionIdentifier(subscriptionRef));
+        responseStatus.setRequestMessageRef(createMessageRef());
+        responseStatus.setSubscriptionRef(createSubscriptionRef(subscriptionRef));
         responseStatus.setStatus(status);
 
         if (errorText != null) {
@@ -544,7 +600,7 @@ public class SiriObjectFactory {
         Siri siri = createSiriObject();
         TerminateSubscriptionResponseStructure response = new TerminateSubscriptionResponseStructure();
         TerminationResponseStatusStructure status = new TerminationResponseStatusStructure();
-        status.setSubscriptionRef(createSubscriptionIdentifier(subscriptionRef));
+        status.setSubscriptionRef(createSubscriptionRef(subscriptionRef));
         status.setResponseTimestamp(ZonedDateTime.now());
         status.setStatus(true);
 

@@ -18,6 +18,7 @@ package no.rutebanken.anshar.routes.dataformat;
 import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
 import org.apache.camel.converter.jaxb.JaxbDataFormat;
 import org.apache.camel.spi.DataFormat;
+import org.entur.siri.validator.SiriValidator;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -27,33 +28,49 @@ public class SiriDataFormatHelper {
     private static final HashMap<String, DataFormat> dataformats = new HashMap<>();
 
     static {
-        dataformats.put("", createDataformat(""));
+        dataformats.put("internal-siri20", createDataformat("siri20", SiriValidator.Version.VERSION_2_0));
+        dataformats.put("internal-siri21", createDataformat("siri21", SiriValidator.Version.VERSION_2_1));
     }
 
     public static DataFormat getSiriJaxbDataformat() {
-    	return createDataformat("");
+    	return getSiriJaxbDataformat(SiriValidator.Version.VERSION_2_0);
+    }
+    public static DataFormat getSiriJaxbDataformat(SiriValidator.Version version) {
+    	return createDataformat("", version);
     }
 
     public static DataFormat getSiriJaxbDataformat(NamespacePrefixMapper namespacePrefixMapper) {
+        return getSiriJaxbDataformat(namespacePrefixMapper, SiriValidator.Version.VERSION_2_0);
+    }
+    public static DataFormat getSiriJaxbDataformat(NamespacePrefixMapper namespacePrefixMapper, SiriValidator.Version version) {
 
         if (namespacePrefixMapper != null) {
             String preferredPrefix = namespacePrefixMapper.getPreferredPrefix("", "", true);
             if (preferredPrefix != null) {
-                return createDataformat(preferredPrefix);
+                return createDataformat(preferredPrefix, version);
             }
         }
 
-    	return getSiriJaxbDataformat();
+    	return getSiriJaxbDataformat(version);
     }
 
-    private static DataFormat createDataformat(String prefix) {
+    private static DataFormat createDataformat(String prefix, SiriValidator.Version version) {
         if (dataformats.containsKey(prefix)) {
             return dataformats.get(prefix);
         }
         Map<String, String> prefixMap = new HashMap<>();
-        prefixMap.put("http://www.siri.org.uk/siri", prefix);
-        JaxbDataFormat siriJaxb = new JaxbDataFormat("uk.org.siri.siri20");
-        siriJaxb.setNamespacePrefix(prefixMap );
+        if (prefix.startsWith("internal")) {
+            prefixMap.put("http://www.siri.org.uk/siri", "");
+        } else {
+            prefixMap.put("http://www.siri.org.uk/siri", prefix);
+        }
+        String contextPath = "uk.org.siri.siri20";
+        if (version.equals(SiriValidator.Version.VERSION_2_1)) {
+            contextPath = "uk.org.siri.siri21";
+        }
+
+        JaxbDataFormat siriJaxb = new JaxbDataFormat(contextPath);
+        siriJaxb.setNamespacePrefix(prefixMap);
 
         dataformats.put(prefix, siriJaxb);
         return  siriJaxb;

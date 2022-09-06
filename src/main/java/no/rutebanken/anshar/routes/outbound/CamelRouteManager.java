@@ -24,11 +24,11 @@ import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import uk.org.siri.siri20.EstimatedTimetableDeliveryStructure;
-import uk.org.siri.siri20.ServiceDelivery;
-import uk.org.siri.siri20.Siri;
-import uk.org.siri.siri20.SituationExchangeDeliveryStructure;
-import uk.org.siri.siri20.VehicleMonitoringDeliveryStructure;
+import uk.org.siri.siri21.EstimatedTimetableDeliveryStructure;
+import uk.org.siri.siri21.ServiceDelivery;
+import uk.org.siri.siri21.Siri;
+import uk.org.siri.siri21.SituationExchangeDeliveryStructure;
+import uk.org.siri.siri21.VehicleMonitoringDeliveryStructure;
 
 import java.net.SocketException;
 import java.util.ArrayList;
@@ -39,6 +39,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
+import static no.rutebanken.anshar.routes.HttpParameter.SIRI_VERSION_HEADER_NAME;
 import static no.rutebanken.anshar.routes.siri.transformer.SiriOutputTransformerRoute.OUTPUT_ADAPTERS_HEADER_NAME;
 
 @Service
@@ -164,6 +165,7 @@ public class CamelRouteManager {
             headers.put("endpoint", remoteEndPoint);
             headers.put("SubscriptionId", subscription.getSubscriptionId());
             headers.put("showBody", showBody);
+            headers.put(SIRI_VERSION_HEADER_NAME, subscription.getSiriVersion());
             headers.put(OUTPUT_ADAPTERS_HEADER_NAME, subscription.getValueAdapters());
 
             siriSubscriptionProcessor.sendBodyAndHeaders(payload, headers);

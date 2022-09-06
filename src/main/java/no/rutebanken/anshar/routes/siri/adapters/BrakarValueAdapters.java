@@ -18,8 +18,8 @@ package no.rutebanken.anshar.routes.siri.adapters;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.routes.siri.transformer.impl.LeftPaddingAdapter;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
-import uk.org.ifopt.siri20.StopPlaceRef;
-import uk.org.siri.siri20.StopPointRef;
+import uk.org.ifopt.siri21.StopPlaceRef;
+import uk.org.siri.siri21.StopPointRefStructure;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,7 +33,7 @@ public class BrakarValueAdapters extends MappingAdapter {
 
         List<ValueAdapter> valueAdapters = new ArrayList<>();
                 valueAdapters.add(new LeftPaddingAdapter(StopPlaceRef.class, 10, '0'));
-                valueAdapters.add(new LeftPaddingAdapter(StopPointRef.class, 10, '0'));
+                valueAdapters.add(new LeftPaddingAdapter(StopPointRefStructure.class, 10, '0'));
 
         valueAdapters.addAll(createNsrIdMappingAdapters(subscriptionSetup.getSubscriptionType(), subscriptionSetup.getDatasetId(), subscriptionSetup.getIdMappingPrefixes()));
 
