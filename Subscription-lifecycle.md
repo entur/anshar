@@ -14,7 +14,7 @@ For ET-updates: All departures that are still running (started and not yet arriv
 Note: Each SIRI-datatype (ET/SX/VM) will have its own subscription with a separate SubscriptionId and posibly also a separate Address.
 
 SubscriptionRequest:
-```
+```xml
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Siri version="2.0" xmlns="http://www.siri.org.uk/siri" xmlns:ns2="http://www.ifopt.org.uk/acsb" xmlns:ns3="http://www.ifopt.org.uk/ifopt" xmlns:ns4="http://datex2.eu/schema/2_0RC1/2_0">
     <SubscriptionRequest>
@@ -42,7 +42,7 @@ SubscriptionRequest:
 ```
 
 SubscriptionResponse:
-```
+```xml
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Siri version="2.0" xmlns="http://www.siri.org.uk/siri" xmlns:ns2="http://www.ifopt.org.uk/acsb" xmlns:ns3="http://www.ifopt.org.uk/ifopt" xmlns:ns4="http://datex2.eu/schema/2_0RC1/2_0">
 	<SubscriptionResponse>
@@ -72,7 +72,7 @@ All updates should be sent as a ServiceDelivery
 Examples of ServiceDelivery skeleton-XML below, full examples can be found at https://github.com/entur/profile-norway-examples/tree/master/siri.
 
 SIRI VM:
-```
+```xml
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Siri version="2.0" xmlns="http://www.siri.org.uk/siri" xmlns:ns2="http://www.ifopt.org.uk/acsb" xmlns:ns4="http://datex2.eu/schema/2_0RC1/2_0" xmlns:ns3="http://www.ifopt.org.uk/ifopt">
     <ServiceDelivery>
@@ -90,7 +90,7 @@ SIRI VM:
 ```
 
 SIRI ET:
-```
+```xml
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Siri version="2.0" xmlns="http://www.siri.org.uk/siri" xmlns:ns2="http://www.ifopt.org.uk/acsb" xmlns:ns4="http://datex2.eu/schema/2_0RC1/2_0" xmlns:ns3="http://www.ifopt.org.uk/ifopt">
     <ServiceDelivery>
@@ -108,7 +108,7 @@ SIRI ET:
 ```
 
 SIRI SX:
-```
+```xml
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Siri version="2.0" xmlns="http://www.siri.org.uk/siri" xmlns:ns2="http://www.ifopt.org.uk/acsb" xmlns:ns4="http://datex2.eu/schema/2_0RC1/2_0" xmlns:ns3="http://www.ifopt.org.uk/ifopt">
     <ServiceDelivery>
@@ -131,7 +131,7 @@ To let the client know that a subscription is still active, a HeartbeatNotificat
 It is the client's responsibility to keep the subscription alive. This means that if the server stops sending updates/heartbeats, the client will terminate and reestablish the subscription. When the server receives a TerminateSubscriptionRequest, the server can forget all information/progress for that subscription. For the following SubscriptionRequest, all initial data should be resent as if the subscription is completely new. This is to ensure that the client is fully updated at all times.
 
 HeartbeatNotification:
-```
+```xml
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Siri version="2.0" xmlns="http://www.siri.org.uk/siri" xmlns:ns2="http://www.ifopt.org.uk/acsb" xmlns:ns3="http://www.ifopt.org.uk/ifopt" xmlns:ns4="http://datex2.eu/schema/2_0RC1/2_0">
     <HeartbeatNotification>
@@ -147,7 +147,7 @@ HeartbeatNotification:
 When terminating a subscription, the client will send a TerminateSubscriptionRequest. The server should then respond with a TerminateSubscriptionResponse, and can delete the subscription completely.
 
 TerminateSubscriptionRequest:
-```
+```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <Siri version="1.4" xmlns="http://www.siri.org.uk/siri" xmlns:ns2="http://www.ifopt.org.uk/acsb" xmlns:ns3="http://www.ifopt.org.uk/ifopt" xmlns:ns4="http://datex2.eu/schema/2_0RC1/2_0">
     <TerminateSubscriptionRequest>
@@ -160,7 +160,7 @@ TerminateSubscriptionRequest:
 ```
 
 TerminateSubscriptionResponse:
-```
+```xml
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <Siri version="2.0" xmlns="http://www.siri.org.uk/siri" xmlns:ns2="http://www.ifopt.org.uk/acsb" xmlns:ns3="http://www.ifopt.org.uk/ifopt" xmlns:ns4="http://datex2.eu/schema/2_0RC1/2_0">
 	<TerminateSubscriptionResponse>

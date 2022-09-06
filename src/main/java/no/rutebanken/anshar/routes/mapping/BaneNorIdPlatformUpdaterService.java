@@ -40,7 +40,7 @@ public class BaneNorIdPlatformUpdaterService {
 
     private final ConcurrentMap<String, String> jbvCodeStopPlaceMappings = new ConcurrentHashMap<>();
 
-    @Value("${anshar.mapping.jbvCode.gcs.path}")
+    @Value("${anshar.mapping.jbvCode.gcs.path:}")
     private String jbvCodeStopPlaceMappingPath;
 
     @Value("${anshar.mapping.update.frequency.min:60}")

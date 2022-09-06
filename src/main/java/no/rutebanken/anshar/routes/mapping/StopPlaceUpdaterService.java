@@ -48,13 +48,13 @@ public class StopPlaceUpdaterService {
     @Autowired
     private StopPlaceRegisterMappingFetcher stopPlaceRegisterMappingFetcher;
 
-    @Value("${anshar.mapping.quays.gcs.path}")
+    @Value("${anshar.mapping.quays.gcs.path:}")
     private String quayMappingPath;
 
-    @Value("${anshar.mapping.stopplaces.gcs.path}")
+    @Value("${anshar.mapping.stopplaces.gcs.path:}")
     private String stopPlaceMappingPath;
 
-    @Value("${anshar.mapping.stopquayjson.gcs.path}")
+    @Value("${anshar.mapping.stopquayjson.gcs.path:}")
     private String stopPlaceQuayJsonPath;
 
     @Value("${anshar.mapping.stopplaces.update.frequency.min:60}")

@@ -4,7 +4,13 @@
 - mvn clean package -Dmaven.test.skip=true
 
 # Run
-- java -jar target/anshar-0.0.1-SNAPSHOT.jar
+The Google SDK requires the path to a credentials-file as an environment variable to allow startup. 
+This is not used by the application by default, but it still needs to exist.
+
+A dummy-credentials file is provided, and can be set by 
+`export GOOGLE_APPLICATION_CREDENTIALS=src/main/resources/dummy_credentials.json` (Mac/Linux) before starting the application.
+To start the application, run 
+`java -jar target/anshar-0.0.1-SNAPSHOT.jar`
 
 The app will start with subscriptions defined in `resources/subscription-example.yml`. For subscriptions of type `SUBSCRIBE`, an inbound URL is required - this is defined in property `anshar.inbound.url`. 
 
