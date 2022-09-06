@@ -10,7 +10,7 @@ import org.locationtech.jts.geom.Coordinate;
 import org.opengis.referencing.operation.TransformException;
 import org.rutebanken.netex.model.LocationStructure;
 import org.rutebanken.netex.model.VehicleModeEnumeration;
-import uk.org.siri.siri20.VehicleModesEnumeration;
+import uk.org.siri.siri21.VehicleModesEnumeration;
 
 import java.time.ZonedDateTime;
 import java.util.List;

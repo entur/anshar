@@ -26,7 +26,7 @@ import javax.xml.bind.ValidationEvent;
 import static no.rutebanken.anshar.routes.validation.validators.Constants.AFFECTED_STOP_POINT;
 
 /**
- * Verifies that the value for field StopPointRef is built up correctly
+ * Verifies that the value for field StopPointRefStructure is built up correctly
  *
  */
 @Validator(profileName = "norway", targetType = SiriDataType.SITUATION_EXCHANGE)

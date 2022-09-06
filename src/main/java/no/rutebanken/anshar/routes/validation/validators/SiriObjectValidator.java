@@ -15,7 +15,7 @@
 
 package no.rutebanken.anshar.routes.validation.validators;
 
-import uk.org.siri.siri20.Siri;
+import uk.org.siri.siri21.Siri;
 
 import javax.xml.bind.ValidationEvent;
 

@@ -19,8 +19,8 @@ import no.rutebanken.anshar.routes.siri.processor.OstfoldIdPlatformPostProcessor
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.routes.siri.transformer.impl.StopPlaceRegisterMapper;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
-import uk.org.siri.siri20.DestinationRef;
-import uk.org.siri.siri20.JourneyPlaceRefStructure;
+import uk.org.siri.siri21.DestinationRef;
+import uk.org.siri.siri21.JourneyPlaceRefStructure;
 
 import java.util.ArrayList;
 import java.util.List;

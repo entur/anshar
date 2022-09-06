@@ -23,7 +23,7 @@ import no.rutebanken.anshar.routes.siri.transformer.impl.StopPlaceRegisterMapper
 import no.rutebanken.anshar.subscription.SiriDataType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import uk.org.siri.siri20.JourneyPlaceRefStructure;
+import uk.org.siri.siri21.JourneyPlaceRefStructure;
 
 import java.util.ArrayList;
 import java.util.HashMap;

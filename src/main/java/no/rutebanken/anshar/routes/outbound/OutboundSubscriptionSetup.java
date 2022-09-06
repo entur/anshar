@@ -17,6 +17,7 @@ package no.rutebanken.anshar.routes.outbound;
 
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.subscription.SiriDataType;
+import org.entur.siri.validator.SiriValidator;
 
 import java.io.Serializable;
 import java.text.MessageFormat;
@@ -27,6 +28,7 @@ import java.util.Set;
 
 public class OutboundSubscriptionSetup implements Serializable {
 
+    private SiriValidator.Version siriVersion = SiriValidator.Version.VERSION_2_0;
     private ZonedDateTime requestTimestamp;
     private final SiriDataType subscriptionType;
     private final String address;
@@ -43,7 +45,8 @@ public class OutboundSubscriptionSetup implements Serializable {
 
     public OutboundSubscriptionSetup(ZonedDateTime requestTimestamp, SiriDataType subscriptionType, String address, long heartbeatInterval,
                                      long changeBeforeUpdates, Map<Class, Set<String>> filterMap, List<ValueAdapter> valueAdapters,
-                                     String subscriptionId, String requestorRef, ZonedDateTime initialTerminationTime, String datasetId, String clientTrackingName) {
+                                     String subscriptionId, String requestorRef, ZonedDateTime initialTerminationTime, String datasetId, String clientTrackingName,
+                                     SiriValidator.Version siriVersion) {
         this.requestTimestamp = requestTimestamp;
         this.subscriptionType = subscriptionType;
         this.address = address;
@@ -56,6 +59,7 @@ public class OutboundSubscriptionSetup implements Serializable {
         this.initialTerminationTime = initialTerminationTime;
         this.datasetId = datasetId;
         this.clientTrackingName = clientTrackingName;
+        this.siriVersion = siriVersion;
     }
 
     OutboundSubscriptionSetup(SiriDataType subscriptionType, String address, int timeToLive, List<ValueAdapter> outboundAdapters, String subscriptionId) {
@@ -120,6 +124,10 @@ public class OutboundSubscriptionSetup implements Serializable {
 
     public String getClientTrackingName() {
         return clientTrackingName;
+    }
+
+    public SiriValidator.Version getSiriVersion() {
+        return siriVersion;
     }
 
     public String toString() {

@@ -22,7 +22,7 @@ import no.rutebanken.anshar.routes.validation.validators.Validator;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Node;
-import uk.org.acbs.siri20.AccessibilityEnumeration;
+import uk.org.acbs.siri21.AccessibilityEnumeration;
 
 import javax.xml.bind.ValidationEvent;
 import java.util.Set;

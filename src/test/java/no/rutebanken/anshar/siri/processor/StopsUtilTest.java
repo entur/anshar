@@ -13,10 +13,10 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static uk.org.siri.siri20.VehicleModesEnumeration.BUS;
-import static uk.org.siri.siri20.VehicleModesEnumeration.COACH;
-import static uk.org.siri.siri20.VehicleModesEnumeration.RAIL;
-import static uk.org.siri.siri20.VehicleModesEnumeration.TRAM;
+import static uk.org.siri.siri21.VehicleModesEnumeration.BUS;
+import static uk.org.siri.siri21.VehicleModesEnumeration.COACH;
+import static uk.org.siri.siri21.VehicleModesEnumeration.RAIL;
+import static uk.org.siri.siri21.VehicleModesEnumeration.TRAM;
 
 public class StopsUtilTest {
 

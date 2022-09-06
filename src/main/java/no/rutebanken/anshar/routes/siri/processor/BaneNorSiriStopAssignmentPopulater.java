@@ -22,15 +22,15 @@ import no.rutebanken.anshar.subscription.SiriDataType;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.org.siri.siri20.EstimatedCall;
-import uk.org.siri.siri20.EstimatedTimetableDeliveryStructure;
-import uk.org.siri.siri20.EstimatedVehicleJourney;
-import uk.org.siri.siri20.EstimatedVersionFrameStructure;
-import uk.org.siri.siri20.FramedVehicleJourneyRefStructure;
-import uk.org.siri.siri20.QuayRefStructure;
-import uk.org.siri.siri20.RecordedCall;
-import uk.org.siri.siri20.Siri;
-import uk.org.siri.siri20.StopAssignmentStructure;
+import uk.org.siri.siri21.EstimatedCall;
+import uk.org.siri.siri21.EstimatedTimetableDeliveryStructure;
+import uk.org.siri.siri21.EstimatedVehicleJourney;
+import uk.org.siri.siri21.EstimatedVersionFrameStructure;
+import uk.org.siri.siri21.FramedVehicleJourneyRefStructure;
+import uk.org.siri.siri21.QuayRefStructure;
+import uk.org.siri.siri21.RecordedCall;
+import uk.org.siri.siri21.Siri;
+import uk.org.siri.siri21.StopAssignmentStructure;
 
 import java.time.LocalTime;
 import java.time.ZonedDateTime;
@@ -146,15 +146,15 @@ public class BaneNorSiriStopAssignmentPopulater extends ValueAdapter implements 
             int order = estimatedCall.getOrder().intValue();
             StopAssignmentStructure stopAssignment;
             if (order == 1) { //only one of departure- or arrivalStopAssignments should be populated according to the norwegian SIRI profile
-                if (estimatedCall.getDepartureStopAssignment() == null) {
-                    estimatedCall.setDepartureStopAssignment(new StopAssignmentStructure());
+                if (estimatedCall.getDepartureStopAssignments().isEmpty()) {
+                    estimatedCall.getDepartureStopAssignments().add(new StopAssignmentStructure());
                 }
-                stopAssignment = estimatedCall.getDepartureStopAssignment();
+                stopAssignment = estimatedCall.getDepartureStopAssignments().get(0);
             } else {
-                if (estimatedCall.getArrivalStopAssignment() == null) {
-                    estimatedCall.setArrivalStopAssignment(new StopAssignmentStructure());
+                if (estimatedCall.getArrivalStopAssignments().isEmpty()) {
+                    estimatedCall.getArrivalStopAssignments().add(new StopAssignmentStructure());
                 }
-                stopAssignment = estimatedCall.getArrivalStopAssignment();
+                stopAssignment = estimatedCall.getArrivalStopAssignments().get(0);
             }
             if (stopAssignment.getAimedQuayRef() == null || StringUtils.isEmpty(stopAssignment.getAimedQuayRef().getValue()) ) {
                 int sequence = order - 1 - extraCalls; //Stops in GTFS starts with 0, while it starts with 1 in the EstimatedCall-structure

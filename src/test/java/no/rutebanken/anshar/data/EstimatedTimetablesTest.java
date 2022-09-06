@@ -19,15 +19,15 @@ import no.rutebanken.anshar.integration.SpringBootBaseTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import uk.org.siri.siri20.EstimatedCall;
-import uk.org.siri.siri20.EstimatedVehicleJourney;
-import uk.org.siri.siri20.Extensions;
-import uk.org.siri.siri20.LineRef;
-import uk.org.siri.siri20.NaturalLanguageStringStructure;
-import uk.org.siri.siri20.RecordedCall;
-import uk.org.siri.siri20.Siri;
-import uk.org.siri.siri20.StopPointRef;
-import uk.org.siri.siri20.VehicleRef;
+import uk.org.siri.siri21.EstimatedCall;
+import uk.org.siri.siri21.EstimatedVehicleJourney;
+import uk.org.siri.siri21.Extensions;
+import uk.org.siri.siri21.LineRef;
+import uk.org.siri.siri21.NaturalLanguageStringStructure;
+import uk.org.siri.siri21.RecordedCall;
+import uk.org.siri.siri21.Siri;
+import uk.org.siri.siri21.StopPointRefStructure;
+import uk.org.siri.siri21.VehicleRef;
 
 import java.math.BigInteger;
 import java.time.ZonedDateTime;
@@ -37,10 +37,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static no.rutebanken.anshar.helpers.SleepUtil.sleep;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
@@ -254,7 +254,7 @@ public class EstimatedTimetablesTest extends SpringBootBaseTest {
     @Test
     public void testMapEstimatedToRecordedCall() {
 
-        StopPointRef stopPoint = new StopPointRef();
+        StopPointRefStructure stopPoint = new StopPointRefStructure();
         stopPoint.setValue("NSR:Stop:1234");
 
         NaturalLanguageStringStructure name = new NaturalLanguageStringStructure();
@@ -583,7 +583,7 @@ public class EstimatedTimetablesTest extends SpringBootBaseTest {
         EstimatedVehicleJourney.EstimatedCalls estimatedCalls = new EstimatedVehicleJourney.EstimatedCalls();
         for (int i = startOrder; i < callCount; i++) {
 
-            StopPointRef stopPointRef = new StopPointRef();
+            StopPointRefStructure stopPointRef = new StopPointRefStructure();
             stopPointRef.setValue("NSR:TEST:" + i);
             EstimatedCall call = new EstimatedCall();
                 call.setStopPointRef(stopPointRef);
@@ -615,7 +615,7 @@ public class EstimatedTimetablesTest extends SpringBootBaseTest {
         EstimatedVehicleJourney.RecordedCalls recordedCallsCalls = new EstimatedVehicleJourney.RecordedCalls();
         for (int i = startOrder; i < callCount; i++) {
 
-            StopPointRef stopPointRef = new StopPointRef();
+            StopPointRefStructure stopPointRef = new StopPointRefStructure();
             stopPointRef.setValue("NSR:TEST:"+i);
 
             RecordedCall call = new RecordedCall();

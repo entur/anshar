@@ -19,11 +19,13 @@ import no.rutebanken.anshar.routes.validation.validators.vm.VehicleStatusValidat
 import no.rutebanken.anshar.validation.CustomValidatorTest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import uk.org.siri.siri20.VehicleStatusEnumeration;
+import uk.org.siri.siri21.VehicleStatusEnumeration;
 
 import javax.xml.bind.ValidationEvent;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class VehicleStatusValidatorTest extends CustomValidatorTest {
 

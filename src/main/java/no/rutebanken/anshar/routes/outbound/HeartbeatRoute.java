@@ -23,7 +23,7 @@ import no.rutebanken.anshar.subscription.SubscriptionManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import uk.org.siri.siri20.Siri;
+import uk.org.siri.siri21.Siri;
 
 import java.time.Instant;
 import java.time.LocalDateTime;

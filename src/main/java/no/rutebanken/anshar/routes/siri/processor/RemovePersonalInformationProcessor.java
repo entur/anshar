@@ -16,10 +16,10 @@
 package no.rutebanken.anshar.routes.siri.processor;
 
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
-import uk.org.siri.siri20.PtSituationElement;
-import uk.org.siri.siri20.Siri;
-import uk.org.siri.siri20.SituationExchangeDeliveryStructure;
-import uk.org.siri.siri20.SituationSourceStructure;
+import uk.org.siri.siri21.PtSituationElement;
+import uk.org.siri.siri21.Siri;
+import uk.org.siri.siri21.SituationExchangeDeliveryStructure;
+import uk.org.siri.siri21.SituationSourceStructure;
 
 import java.util.List;
 

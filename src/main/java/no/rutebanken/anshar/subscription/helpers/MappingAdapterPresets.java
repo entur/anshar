@@ -22,8 +22,13 @@ import no.rutebanken.anshar.routes.siri.processor.RuterOutboundDatedVehicleRefAd
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter;
 import no.rutebanken.anshar.subscription.SiriDataType;
-import uk.org.ifopt.siri20.StopPlaceRef;
-import uk.org.siri.siri20.*;
+import uk.org.ifopt.siri21.StopPlaceRef;
+import uk.org.siri.siri21.CourseOfJourneyRefStructure;
+import uk.org.siri.siri21.DestinationRef;
+import uk.org.siri.siri21.JourneyPlaceRefStructure;
+import uk.org.siri.siri21.LineRef;
+import uk.org.siri.siri21.RequestorRef;
+import uk.org.siri.siri21.StopPointRefStructure;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +37,7 @@ public class MappingAdapterPresets {
 
     public static List<ValueAdapter> getOutboundAdapters(SiriDataType dataType, OutboundIdMappingPolicy outboundIdMappingPolicy) {
         List<ValueAdapter> adapters = new ArrayList<>();
-        adapters.add(new OutboundIdAdapter(StopPointRef.class, outboundIdMappingPolicy));
+        adapters.add(new OutboundIdAdapter(StopPointRefStructure.class, outboundIdMappingPolicy));
         adapters.add(new OutboundIdAdapter(LineRef.class, outboundIdMappingPolicy));
         adapters.add(new CodespaceOutboundProcessor(outboundIdMappingPolicy));
 
@@ -61,7 +66,7 @@ public class MappingAdapterPresets {
     public static List<ValueAdapter> getOutboundAdapters(OutboundIdMappingPolicy outboundIdMappingPolicy) {
         List<ValueAdapter> adapters = new ArrayList<>();
         adapters.add(new OutboundIdAdapter(LineRef.class, outboundIdMappingPolicy));
-        adapters.add(new OutboundIdAdapter(StopPointRef.class, outboundIdMappingPolicy));
+        adapters.add(new OutboundIdAdapter(StopPointRefStructure.class, outboundIdMappingPolicy));
         adapters.add(new OutboundIdAdapter(StopPlaceRef.class, outboundIdMappingPolicy));
         adapters.add(new OutboundIdAdapter(JourneyPlaceRefStructure.class, outboundIdMappingPolicy));
         adapters.add(new OutboundIdAdapter(DestinationRef.class, outboundIdMappingPolicy));

@@ -20,16 +20,16 @@ import no.rutebanken.anshar.validation.CustomValidatorTest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.w3c.dom.Node;
-import uk.org.acbs.siri20.AccessibilityEnumeration;
+import uk.org.acbs.siri21.AccessibilityEnumeration;
 
 import javax.xml.bind.ValidationEvent;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static uk.org.acbs.siri20.AccessibilityEnumeration.FALSE;
-import static uk.org.acbs.siri20.AccessibilityEnumeration.TRUE;
-import static uk.org.acbs.siri20.AccessibilityEnumeration.UNKNOWN;
+import static uk.org.acbs.siri21.AccessibilityEnumeration.FALSE;
+import static uk.org.acbs.siri21.AccessibilityEnumeration.TRUE;
+import static uk.org.acbs.siri21.AccessibilityEnumeration.UNKNOWN;
 
 public class AccessibilityAssessmentValidatorTest extends CustomValidatorTest {
 

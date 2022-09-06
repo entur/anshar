@@ -19,10 +19,10 @@ import no.rutebanken.anshar.routes.siri.handlers.OutboundIdMappingPolicy;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.org.siri.siri20.DefaultedTextStructure;
-import uk.org.siri.siri20.PtSituationElement;
-import uk.org.siri.siri20.Siri;
-import uk.org.siri.siri20.SituationExchangeDeliveryStructure;
+import uk.org.siri.siri21.DefaultedTextStructure;
+import uk.org.siri.siri21.PtSituationElement;
+import uk.org.siri.siri21.Siri;
+import uk.org.siri.siri21.SituationExchangeDeliveryStructure;
 
 import java.util.Arrays;
 import java.util.List;

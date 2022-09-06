@@ -40,7 +40,7 @@ import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
-import uk.org.siri.siri20.Siri;
+import uk.org.siri.siri21.Siri;
 
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
@@ -149,7 +149,7 @@ public class SiriXmlValidator extends ApplicationContextHolder {
 
                 SchemaFactory sf = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
 
-                schema = sf.newSchema(Siri.class.getClassLoader().getResource("siri-2.0/xsd/siri.xsd"));
+                schema = sf.newSchema(Siri.class.getClassLoader().getResource("siri-2.1/xsd/siri.xsd"));
 
             } catch (JAXBException | SAXException e) {
                 logger.warn("Caught exception when initializing validator", e);
@@ -214,6 +214,7 @@ public class SiriXmlValidator extends ApplicationContextHolder {
                     MDC.put("camel.breadcrumbId", breadcrumbId);
                     performProfileValidation(subscriptionSetup, xml, siri, schemaValidationHandler);
                     MDC.remove("camel.breadcrumbId");
+                    MDC.remove("subscriptionId");
                 });
             }
 

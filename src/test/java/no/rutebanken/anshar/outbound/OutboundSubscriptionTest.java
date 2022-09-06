@@ -2,13 +2,13 @@ package no.rutebanken.anshar.outbound;
 
 import no.rutebanken.anshar.integration.SpringBootBaseTest;
 import no.rutebanken.anshar.routes.outbound.ServerSubscriptionManager;
+import org.entur.siri21.util.SiriXml;
 import org.junit.jupiter.api.Test;
-import org.rutebanken.siri20.util.SiriXml;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import uk.org.siri.siri20.Siri;
-import uk.org.siri.siri20.SubscriptionContextStructure;
-import uk.org.siri.siri20.SubscriptionRequest;
+import uk.org.siri.siri21.Siri;
+import uk.org.siri.siri21.SubscriptionContextStructure;
+import uk.org.siri.siri21.SubscriptionRequest;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.datatype.DatatypeConfigurationException;
