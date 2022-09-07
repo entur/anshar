@@ -2,6 +2,7 @@ package no.rutebanken.anshar.outbound;
 
 import no.rutebanken.anshar.integration.SpringBootBaseTest;
 import no.rutebanken.anshar.routes.outbound.ServerSubscriptionManager;
+import no.rutebanken.anshar.routes.siri.handlers.OutboundIdMappingPolicy;
 import org.entur.siri21.util.SiriXml;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -95,8 +96,8 @@ public class OutboundSubscriptionTest extends SpringBootBaseTest {
                 "</Siri>";
 
 
-        final Siri siriSX = serverSubscriptionManager.handleSubscriptionRequest(SiriXml.parseXml(sxSubscription).getSubscriptionRequest(), null, null, null);
-        final Siri siriET = serverSubscriptionManager.handleSubscriptionRequest(SiriXml.parseXml(etSubscription).getSubscriptionRequest(), null, null, null);
+        final Siri siriSX = serverSubscriptionManager.handleSubscriptionRequest(SiriXml.parseXml(sxSubscription).getSubscriptionRequest(), null, OutboundIdMappingPolicy.DEFAULT, null);
+        final Siri siriET = serverSubscriptionManager.handleSubscriptionRequest(SiriXml.parseXml(etSubscription).getSubscriptionRequest(), null, OutboundIdMappingPolicy.DEFAULT, null);
 
         assertNotNull(siriSX);
         assertNotNull(siriET);

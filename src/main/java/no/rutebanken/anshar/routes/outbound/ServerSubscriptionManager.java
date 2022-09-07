@@ -215,11 +215,9 @@ public class ServerSubscriptionManager {
                 findInitialTerminationTime(subscriptionRequest),
                 datasetId,
                 clientTrackingName,
-                (outboundIdMappingPolicy.equals(
-                        OutboundIdMappingPolicy.SIRI_2_1) ?
-                        SiriValidator.Version.VERSION_2_1:
-                        SiriValidator.Version.VERSION_2_0
-                )
+                outboundIdMappingPolicy.equals(OutboundIdMappingPolicy.SIRI_2_1) ?
+                        SiriValidator.Version.VERSION_2_1 : SiriValidator.Version.VERSION_2_0
+
                 );
     }
 
