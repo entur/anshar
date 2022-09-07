@@ -48,6 +48,8 @@ import java.net.ConnectException;
 import java.util.HashMap;
 import java.util.Map;
 
+import static no.rutebanken.anshar.routes.HttpParameter.SIRI_VERSION_HEADER_NAME;
+
 public class RestRouteBuilder extends RouteBuilder {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -401,7 +403,7 @@ public class RestRouteBuilder extends RouteBuilder {
 
         boolean siri21Version = false;
         uk.org.siri.siri20.Siri siri20Response = null;
-        if ("2.1".equals(p.getIn().getHeader("SIRI_VERSION"))) {
+        if ("2.1".equals(p.getIn().getHeader(SIRI_VERSION_HEADER_NAME))) {
             siri21Version = true;
         } else {
             siri20Response = downgradeSiriVersion(response);
@@ -444,7 +446,7 @@ public class RestRouteBuilder extends RouteBuilder {
         p.getMessage().setBody(out.getOutputStream());
     }
 
-    private static uk.org.siri.siri20.Siri downgradeSiriVersion(Siri response) throws JAXBException, XMLStreamException {
+    public static uk.org.siri.siri20.Siri downgradeSiriVersion(Siri response) throws JAXBException, XMLStreamException {
         uk.org.siri.siri20.Siri siri20Response;
         String siri2_0Xml = SiriXml.toXml(response);
         siri20Response = org.rutebanken.siri20.util.SiriXml.parseXml(siri2_0Xml);

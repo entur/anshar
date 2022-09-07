@@ -18,6 +18,7 @@ package no.rutebanken.anshar.routes.siri;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.routes.RestRouteBuilder;
 import no.rutebanken.anshar.routes.dataformat.SiriDataFormatHelper;
+import no.rutebanken.anshar.routes.siri.handlers.OutboundIdMappingPolicy;
 import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
@@ -43,6 +44,7 @@ import static no.rutebanken.anshar.routes.HttpParameter.PARAM_EXCLUDED_DATASET_I
 import static no.rutebanken.anshar.routes.HttpParameter.PARAM_MAX_SIZE;
 import static no.rutebanken.anshar.routes.HttpParameter.PARAM_SUBSCRIPTION_ID;
 import static no.rutebanken.anshar.routes.HttpParameter.PARAM_USE_ORIGINAL_ID;
+import static no.rutebanken.anshar.routes.HttpParameter.SIRI_VERSION_HEADER_NAME;
 import static no.rutebanken.anshar.routes.HttpParameter.getParameterValuesAsList;
 
 @SuppressWarnings("unchecked")
@@ -196,7 +198,13 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
 
                     InputStream xml = p.getIn().getBody(InputStream.class);
 
-                    Siri response = handler.handleIncomingSiri(null, xml, datasetId, SiriHandler.getIdMappingPolicy((String) p.getIn().getHeader(PARAM_USE_ORIGINAL_ID)), -1, clientTrackingName);
+                    OutboundIdMappingPolicy idMappingPolicy = SiriHandler.getIdMappingPolicy((String) p.getIn().getHeader(PARAM_USE_ORIGINAL_ID));
+
+                    if ("2.1".equals(p.getIn().getHeader(SIRI_VERSION_HEADER_NAME, String.class))) {
+                        idMappingPolicy = OutboundIdMappingPolicy.SIRI_2_1;
+                    }
+
+                    Siri response = handler.handleIncomingSiri(null, xml, datasetId, idMappingPolicy, -1, clientTrackingName);
                     if (response != null) {
                         logger.info("Returning SubscriptionResponse");
 

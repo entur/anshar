@@ -26,6 +26,7 @@ public class HttpParameter {
     public static final String PARAM_CODESPACE       = "codespace";
     public static final String PARAM_VALIDATION_REF  = "validationRef";
     public static final String PARAM_DATASET_ID      = "datasetId";
+    public static final String SIRI_VERSION_HEADER_NAME = "SIRI_VERSION";
     public static final String PARAM_EXCLUDED_DATASET_ID      = "excludedDatasetIds";
     public static final String PARAM_MAX_SIZE        = "maxSize";
     public static final String PARAM_USE_ORIGINAL_ID = "useOriginalId";

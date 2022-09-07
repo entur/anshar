@@ -39,6 +39,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
+import static no.rutebanken.anshar.routes.HttpParameter.SIRI_VERSION_HEADER_NAME;
 import static no.rutebanken.anshar.routes.siri.transformer.SiriOutputTransformerRoute.OUTPUT_ADAPTERS_HEADER_NAME;
 
 @Service
@@ -164,6 +165,7 @@ public class CamelRouteManager {
             headers.put("endpoint", remoteEndPoint);
             headers.put("SubscriptionId", subscription.getSubscriptionId());
             headers.put("showBody", showBody);
+            headers.put(SIRI_VERSION_HEADER_NAME, subscription.getSiriVersion());
             headers.put(OUTPUT_ADAPTERS_HEADER_NAME, subscription.getValueAdapters());
 
             siriSubscriptionProcessor.sendBodyAndHeaders(payload, headers);

@@ -22,6 +22,7 @@ import no.rutebanken.anshar.subscription.SiriDataType;
 import no.rutebanken.anshar.subscription.helpers.MappingAdapterPresets;
 import org.apache.camel.Produce;
 import org.apache.camel.ProducerTemplate;
+import org.entur.siri.validator.SiriValidator;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -213,7 +214,12 @@ public class ServerSubscriptionManager {
                 subscriptionRequest.getRequestorRef().getValue(),
                 findInitialTerminationTime(subscriptionRequest),
                 datasetId,
-                clientTrackingName
+                clientTrackingName,
+                (outboundIdMappingPolicy.equals(
+                        OutboundIdMappingPolicy.SIRI_2_1) ?
+                        SiriValidator.Version.VERSION_2_1:
+                        SiriValidator.Version.VERSION_2_0
+                )
                 );
     }
 

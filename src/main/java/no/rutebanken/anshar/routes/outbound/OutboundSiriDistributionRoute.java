@@ -5,10 +5,15 @@ import no.rutebanken.anshar.routes.dataformat.SiriDataFormatHelper;
 import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
+import org.entur.siri.validator.SiriValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import uk.org.siri.siri21.Siri;
 
 import javax.ws.rs.core.MediaType;
+
+import static no.rutebanken.anshar.routes.HttpParameter.SIRI_VERSION_HEADER_NAME;
+import static no.rutebanken.anshar.routes.RestRouteBuilder.downgradeSiriVersion;
 
 @Service
 public class OutboundSiriDistributionRoute extends RouteBuilder {
@@ -38,7 +43,16 @@ public class OutboundSiriDistributionRoute extends RouteBuilder {
                 .setHeader(Exchange.CONTENT_TYPE, constant(MediaType.APPLICATION_XML))
                 .bean(metrics, "countOutgoingData(${body}, SUBSCRIBE)")
                 .to("direct:siri.transform.data")
-                .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
+                .choice()
+                    .when(header(SIRI_VERSION_HEADER_NAME).isEqualTo(SiriValidator.Version.VERSION_2_1))
+                        .marshal(SiriDataFormatHelper.getSiriJaxbDataformat(SiriValidator.Version.VERSION_2_1))
+                    .endChoice()
+                    .otherwise()
+                        .process(p -> {
+                            p.getMessage().setBody(downgradeSiriVersion(p.getIn().getBody(Siri.class)));
+                        })
+                        .marshal(SiriDataFormatHelper.getSiriJaxbDataformat(SiriValidator.Version.VERSION_2_0))
+                .end()
                 .setHeader("httpClient.socketTimeout", constant(timeout))
                 .setHeader("httpClient.connectTimeout", constant(timeout))
                 .choice()
