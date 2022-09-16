@@ -336,11 +336,13 @@ public class SiriLiteRoute extends RestRouteBuilder {
                     .process(p -> {
                         String requestorId = resolveRequestorId(p.getIn().getBody(HttpServletRequest.class));
                         String datasetId = p.getIn().getHeader(PARAM_DATASET_ID, String.class);
+                        Integer maxSize = p.getIn().getHeader(PARAM_MAX_SIZE, Integer.class);
+                        String lineRef = p.getIn().getHeader(PARAM_LINE_REF, String.class);
                         String clientTrackingName = p.getIn().getHeader(configuration.getTrackingHeaderName(), String.class);
 
                         logger.info("Fetching cached VM-data");
                         final Collection<VehicleActivityStructure> cachedUpdates = vehicleActivities
-                            .getAllCachedUpdates(requestorId, datasetId, clientTrackingName);
+                            .getAllCachedUpdates(requestorId, datasetId, lineRef, clientTrackingName, maxSize);
                         List<String> excludedIdList = getParameterValuesAsList(p.getIn(), PARAM_EXCLUDED_DATASET_ID);
 
                         if (excludedIdList != null && !excludedIdList.isEmpty()) {
