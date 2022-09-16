@@ -127,6 +127,9 @@ public class ExtraJourneyPostProcessorTest extends SpringBootBaseTest {
         EstimatedVehicleJourney et = new EstimatedVehicleJourney();
         et.getVehicleModes().add(vehicleMode);
         et.setExtraJourney(isExtraJourney);
+        if (isExtraJourney) {
+            et.setEstimatedVehicleJourneyCode("TST:ServiceJourney:" + System.currentTimeMillis());
+        }
 
         EstimatedVehicleJourney.EstimatedCalls estimatedCalls = new EstimatedVehicleJourney.EstimatedCalls();
         for (int i = 0; i < stopRefs.size(); i++) {
