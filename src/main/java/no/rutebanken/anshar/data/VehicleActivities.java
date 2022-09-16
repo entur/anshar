@@ -148,7 +148,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
     @Override
     public void clearAllByDatasetId(String datasetId) {
 
-        Set<SiriObjectStorageKey> idsToRemove = monitoredVehicles.keySet(createCodespacePredicate(datasetId));
+        Set<SiriObjectStorageKey> idsToRemove = monitoredVehicles.keySet(createHzCodespacePredicate(datasetId));
 
         logger.warn("Removing all data ({} ids) for {}", idsToRemove.size(), datasetId);
 
@@ -221,7 +221,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
     public Siri createServiceDelivery(final String lineRef) {
         SortedSet<VehicleActivityStructure> vehicleActivityStructures = new TreeSet<>(Comparator.comparing(AbstractItemStructure::getRecordedAtTime));
 
-        final Set<SiriObjectStorageKey> lineRefKeys = monitoredVehicles.keySet(createLineRefPredicate(lineRef));
+        final Set<SiriObjectStorageKey> lineRefKeys = monitoredVehicles.keySet(createHzLineRefPredicate(lineRef));
 
         vehicleActivityStructures.addAll(monitoredVehicles.getAll(lineRefKeys).values());
 

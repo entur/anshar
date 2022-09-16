@@ -180,7 +180,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
     @Override
     public void clearAllByDatasetId(String datasetId) {
 
-        Set<SiriObjectStorageKey> idsToRemove = timetableDeliveries.keySet(createCodespacePredicate(datasetId));
+        Set<SiriObjectStorageKey> idsToRemove = timetableDeliveries.keySet(createHzCodespacePredicate(datasetId));
 
         logger.warn("Removing all data ({} ids) for {}", idsToRemove.size(), datasetId);
 
@@ -213,7 +213,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
             return o1_firstTimestamp.compareTo(o2_firstTimestamp);
         });
 
-        final Set<SiriObjectStorageKey> lineRefKeys = timetableDeliveries.keySet(createLineRefPredicate(lineRef));
+        final Set<SiriObjectStorageKey> lineRefKeys = timetableDeliveries.keySet(createHzLineRefPredicate(lineRef));
 
         matchingEstimatedVehicleJourneys.addAll(timetableDeliveries.getAll(lineRefKeys).values());
 

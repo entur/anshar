@@ -144,7 +144,7 @@ public class Situations extends SiriRepository<PtSituationElement> {
     @Override
     public void clearAllByDatasetId(String datasetId) {
 
-        Set<SiriObjectStorageKey> idsToRemove = situationElements.keySet(createCodespacePredicate(datasetId));
+        Set<SiriObjectStorageKey> idsToRemove = situationElements.keySet(createHzCodespacePredicate(datasetId));
 
         logger.warn("Removing all data ({} ids) for {}", idsToRemove.size(), datasetId);
 

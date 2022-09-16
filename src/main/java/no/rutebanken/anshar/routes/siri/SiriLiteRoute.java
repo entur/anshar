@@ -387,11 +387,12 @@ public class SiriLiteRoute extends RestRouteBuilder {
                     String requestorId = resolveRequestorId(p.getIn().getBody(HttpServletRequest.class));
                     String datasetId = p.getIn().getHeader(PARAM_DATASET_ID, String.class);
                     Integer maxSize = p.getIn().getHeader(PARAM_MAX_SIZE, Integer.class);
+                    String lineRef = p.getIn().getHeader(PARAM_LINE_REF, String.class);
                     String clientTrackingName = p.getIn().getHeader(configuration.getTrackingHeaderName(), String.class);
 
                     logger.info("Fetching cached ET-data");
                     Siri response = siriObjectFactory.createETServiceDelivery(estimatedTimetables.getAllCachedUpdates(requestorId,
-                            datasetId, clientTrackingName, maxSize
+                            datasetId, lineRef, clientTrackingName, maxSize
                     ));
 
                     List<ValueAdapter> outboundAdapters = MappingAdapterPresets.getOutboundAdapters(
