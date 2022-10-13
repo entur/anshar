@@ -288,10 +288,20 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
 
         ZonedDateTime validUntil = a.getValidUntilTime();
         if (validUntil != null) {
-            return ZonedDateTime.now().until(validUntil.plus(configuration.getVmGraceperiodMinutes(), ChronoUnit.MINUTES), ChronoUnit.MILLIS);
+
+            if (validUntil.getYear() > ZonedDateTime.now().getYear()) {
+                // Handle cornercase when validity is set too far ahead - e.g. year 9999
+                validUntil = validUntil.withYear(ZonedDateTime.now().getYear()+1);
+            }
+
+            return ZonedDateTime.now().until(
+                    validUntil.plus(configuration.getVmGraceperiodMinutes(), ChronoUnit.MINUTES),
+                    ChronoUnit.MILLIS
+            );
         }
 
-        return -1;
+        // No to-validity set - keep until graceperiod expires
+        return configuration.getVmGraceperiodMinutes()*60*1000;
     }
 
     public Collection<VehicleActivityStructure> addAll(String datasetId, List<VehicleActivityStructure> vmList) {
