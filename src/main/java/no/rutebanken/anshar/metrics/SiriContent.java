@@ -6,7 +6,9 @@ public enum SiriContent {
     QUAY_CHANGED("Quay changed"),
     EXTRA_JOURNEY("Trip added"),
     OCCUPANCY_TRIP("Trip-occupancy"),
-    OCCUPANCY_STOP("Stop-occupancy");
+    OCCUPANCY_STOP("Stop-occupancy"),
+    DESTINATION_DISPLAY("DestinationDisplay defined")
+    ;
 
     private final String label;
 
