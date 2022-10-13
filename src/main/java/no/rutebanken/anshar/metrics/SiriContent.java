@@ -32,12 +32,14 @@ public enum SiriContent {
                 return ContentGroup.CHANGE;
             case EXTRA_JOURNEY:
                 return ContentGroup.ADDED;
+            case DESTINATION_DISPLAY:
+                return ContentGroup.MISC;
             default:
                 return ContentGroup.UNKNOWN;
         }
     }
 
     enum ContentGroup {
-        CANCELLATION, OCCUPANCY, CHANGE, ADDED, UNKNOWN
+        CANCELLATION, OCCUPANCY, CHANGE, ADDED, MISC, UNKNOWN
     }
 }
