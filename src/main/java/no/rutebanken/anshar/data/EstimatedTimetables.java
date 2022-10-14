@@ -375,7 +375,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                         QuayRefStructure expectedQuayRef = stopAssignment.getExpectedQuayRef();
                         if (aimedQuayRef != null && expectedQuayRef != null) {
                             if (!aimedQuayRef.getValue().equals(expectedQuayRef.getValue())) {
-                                metrics.registerSiriContent(SiriDataType.ESTIMATED_TIMETABLE, estimatedVehicleJourney.getDataSource(), serviceJourneyId, SiriContent.QUAY_CHANGED);
+                                metrics.registerSiriContent(SiriDataType.ESTIMATED_TIMETABLE, getMappedId(estimatedVehicleJourney.getDataSource()), serviceJourneyId, SiriContent.QUAY_CHANGED);
                             }
                         }
                     }
@@ -426,9 +426,10 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
             if (estimatedVehicleJourney.getVehicleRef() != null && estimatedVehicleJourney.getVehicleRef().getValue() != null) {
                 vehicleRef = estimatedVehicleJourney.getVehicleRef().getValue();
             }
+            String dataSource = getMappedId(estimatedVehicleJourney.getDataSource());
             if (estimatedVehicleJourney.isCancellation() != null && estimatedVehicleJourney.isCancellation()) {
                 if (vehicleRef != null) {
-                    logger.info("Cancellation:  Operator {}, vehicleRef {}, Cancelled journey", estimatedVehicleJourney.getDataSource(), vehicleRef);
+                    logger.info("Cancellation:  Operator {}, vehicleRef {}, Cancelled journey", dataSource, vehicleRef);
                 }
                 return true;
             }
@@ -464,12 +465,12 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                 }
                 boolean hasCancelledStops = !cancelledStops.isEmpty();
                 if (hasCancelledStops && vehicleRef != null) {
-                    logger.info("Cancellation:  Operator {}, vehicleRef {}, stopPointRefs {}", estimatedVehicleJourney.getDataSource(), vehicleRef, cancelledStops);
+                    logger.info("Cancellation:  Operator {}, vehicleRef {}, stopPointRefs {}", dataSource, vehicleRef, cancelledStops);
                 }
 
                 boolean hasQuayChanges = !quayChanges.isEmpty();
                 if (hasQuayChanges) {
-                    logger.info("Quay changed:  Operator {}, vehicleRef {}, stopPointRefs {}", estimatedVehicleJourney.getDataSource(), vehicleRef, quayChanges);
+                    logger.info("Quay changed:  Operator {}, vehicleRef {}, stopPointRefs {}", dataSource, vehicleRef, quayChanges);
                 }
                 return hasCancelledStops || hasQuayChanges;
             }
@@ -549,7 +550,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
             }
         }
 
-        final SiriObjectStorageKey key = createKey(vehicleJourney.getDataSource(), vehicleJourney);
+        final SiriObjectStorageKey key = createKey(getMappedId(vehicleJourney.getDataSource()), vehicleJourney);
         logger.warn("Unable to find aimed time for VehicleJourney with key {}, returning 'now'", key);
 
         return ZonedDateTime.now();
