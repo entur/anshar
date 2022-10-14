@@ -178,18 +178,7 @@ public class SiriXmlValidator extends ApplicationContextHolder {
     public Siri parseXml(SubscriptionSetup subscriptionSetup, String xml)
         throws XMLStreamException {
         ByteArrayInputStream stream = new ByteArrayInputStream(xml.getBytes());
-        Siri siri;
-        try {
-            siri = parseXml(subscriptionSetup, stream);
-        } catch (Throwable e) {
-
-            logger.warn("Failed parsing xml:\n{}", xml);
-            throw e;
-        }
-        if (siri == null) {
-            logger.warn("Failed parsing xml:\n{}", xml);
-        }
-        return siri;
+        return parseXml(subscriptionSetup, stream);
     }
 
     public Siri parseXml(SubscriptionSetup subscriptionSetup, InputStream xml)
