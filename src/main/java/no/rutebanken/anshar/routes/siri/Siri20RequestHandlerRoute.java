@@ -136,7 +136,7 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
                 .choice()
                     .when(e -> subscriptionExistsAndIsActive(e))
                         //Valid subscription
-                        .to("seda:async.process.request?waitForTaskToComplete=Never")
+                        .to("direct:async.process.request?exchangePattern=InOnly")
                         .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
                         .setBody(constant(null))
                     .endChoice()
@@ -152,7 +152,7 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
             .routeId("process.incoming")
                 ;
 
-        from("seda:async.process.request?concurrentConsumers=20")
+        from("direct:async.process.request?concurrentConsumers=20")
             .to("direct:set.mdc.subscriptionId")
             .convertBodyTo(String.class)
             .process(p -> {
