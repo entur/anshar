@@ -180,9 +180,9 @@ public class SiriXmlValidator extends ApplicationContextHolder {
         ByteArrayInputStream stream = new ByteArrayInputStream(xml.getBytes());
         try {
             return parseXml(subscriptionSetup, stream);
-        } catch (XMLStreamException e) {
+        } catch (Throwable e) {
 
-            logger.info("Failed parsing xml:\n{}", xml);
+            logger.warn("Failed parsing xml:\n{}", xml);
             throw e;
         }
     }
