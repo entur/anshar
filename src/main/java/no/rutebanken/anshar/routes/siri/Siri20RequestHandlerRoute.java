@@ -152,7 +152,7 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
             .routeId("process.incoming")
                 ;
 
-        from("direct:async.process.request?concurrentConsumers=20")
+        from("direct:async.process.request")
             .to("direct:set.mdc.subscriptionId")
             .convertBodyTo(String.class)
             .process(p -> {
