@@ -300,8 +300,8 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
             );
         }
 
-        // No to-validity set - keep until graceperiod expires
-        return configuration.getVmGraceperiodMinutes()*60*1000;
+        // No to-validity set - ignore as this is a required field
+        return -1;
     }
 
     public Collection<VehicleActivityStructure> addAll(String datasetId, List<VehicleActivityStructure> vmList) {
