@@ -30,9 +30,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 import uk.org.siri.siri21.AbstractItemStructure;
 import uk.org.siri.siri21.CoordinatesStructure;
-import uk.org.siri.siri21.CourseOfJourneyRefStructure;
-import uk.org.siri.siri21.DirectionRefStructure;
-import uk.org.siri.siri21.LineRef;
 import uk.org.siri.siri21.LocationStructure;
 import uk.org.siri.siri21.MessageRefStructure;
 import uk.org.siri.siri21.Siri;
@@ -385,8 +382,8 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
                         timingTracer.mark("isLocationValid");
 
                         // Skip this check for now
-//                        if (!isActivityMeaningful(activity)) {notMeaningfulCounter.increment();}
-//                        timingTracer.mark("isActivityMeaningful");
+                        if (!isActivityMeaningful(activity)) {notMeaningfulCounter.increment();}
+                        timingTracer.mark("isActivityMeaningful");
 
                     } else {
                         notUpdatedCounter.increment();
@@ -488,19 +485,10 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
     private boolean isActivityMeaningful(VehicleActivityStructure activity) {
         boolean keep = true;
 
-        VehicleActivityStructure.MonitoredVehicleJourney monitoredVehicleJourney = activity.getMonitoredVehicleJourney();
-        if (monitoredVehicleJourney != null) {
-            LineRef lineRef = monitoredVehicleJourney.getLineRef();
-            CourseOfJourneyRefStructure courseOfJourneyRef = monitoredVehicleJourney.getCourseOfJourneyRef();
-            DirectionRefStructure directionRef = monitoredVehicleJourney.getDirectionRef();
-            if (lineRef == null && courseOfJourneyRef == null && directionRef == null) {
-                keep = false;
-                logger.trace("Assumed meaningless VehicleActivity skipped - LineRef, CourseOfJourney and DirectionRef is null.");
-            }
-
-        } else {
-            keep = false;
+        if (activity.getValidUntilTime() == null) {
+            return false;
         }
+
         return keep;
     }
 
