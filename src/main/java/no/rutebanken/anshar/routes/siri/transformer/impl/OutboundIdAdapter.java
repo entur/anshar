@@ -43,11 +43,10 @@ public class OutboundIdAdapter extends ValueAdapter {
                 return text;
             }
             if (text.contains(SiriValueTransformer.SEPARATOR)) {
-                if (outboundIdMappingPolicy == OutboundIdMappingPolicy.DEFAULT) {
-                    text = getMappedId(text);
-                }
-                else if (outboundIdMappingPolicy == OutboundIdMappingPolicy.ORIGINAL_ID) {
+                if (outboundIdMappingPolicy == OutboundIdMappingPolicy.ORIGINAL_ID) {
                     text = getOriginalId(text);
+                } else {
+                    text = getMappedId(text);
                 }
             }
         } catch (NullPointerException npe) {
