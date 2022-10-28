@@ -27,6 +27,8 @@ import uk.org.siri.siri21.RecordedCall;
 import uk.org.siri.siri21.Siri;
 
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static no.rutebanken.anshar.routes.siri.transformer.MappingNames.ENSURE_INCREASING_INACCURATE_TIMES;
@@ -99,6 +101,10 @@ public class EnsureIncreasingTimesProcessor extends ValueAdapter implements Post
                                     } else {
                                         // No realtime data is set for arrival - override with "fake" timestamp for validity
                                         if (recordedCall.getAimedArrivalTime() != null && predictionInaccurate) {
+                                            latestTimestamp = getLatest(
+                                                    latestTimestamp,
+                                                    recordedCall.getAimedArrivalTime()
+                                            );
                                             recordedCall.setExpectedArrivalTime(latestTimestamp);
                                             predictionInaccurateTimeOverridden++;
                                         }
@@ -120,6 +126,10 @@ public class EnsureIncreasingTimesProcessor extends ValueAdapter implements Post
                                     } else {
                                         // No realtime data is set for departure - override with "fake" timestamp for validity
                                         if (recordedCall.getAimedDepartureTime() != null && predictionInaccurate) {
+                                            latestTimestamp = getLatest(
+                                                    latestTimestamp,
+                                                    recordedCall.getAimedDepartureTime()
+                                            );
                                             recordedCall.setExpectedDepartureTime(latestTimestamp);
                                             predictionInaccurateTimeOverridden++;
                                         }
@@ -141,6 +151,10 @@ public class EnsureIncreasingTimesProcessor extends ValueAdapter implements Post
                                     } else {
                                         // No realtime data is set for arrival - override with "fake" timestamp for validity
                                         if (estimatedCall.getAimedArrivalTime() != null && predictionInaccurate) {
+                                            latestTimestamp = getLatest(
+                                                    latestTimestamp,
+                                                    estimatedCall.getAimedArrivalTime()
+                                            );
                                             estimatedCall.setExpectedArrivalTime(latestTimestamp);
                                             predictionInaccurateTimeOverridden++;
                                         }
@@ -155,6 +169,10 @@ public class EnsureIncreasingTimesProcessor extends ValueAdapter implements Post
                                     } else {
                                         // No realtime data is set for departure - override with "fake" timestamp for validity
                                         if (estimatedCall.getAimedDepartureTime() != null && predictionInaccurate) {
+                                            latestTimestamp = getLatest(
+                                                    latestTimestamp,
+                                                    estimatedCall.getAimedDepartureTime()
+                                            );
                                             estimatedCall.setExpectedDepartureTime(latestTimestamp);
                                             predictionInaccurateTimeOverridden++;
                                         }
@@ -191,5 +209,22 @@ public class EnsureIncreasingTimesProcessor extends ValueAdapter implements Post
                 getMetricsService().registerDataMapping(SiriDataType.ESTIMATED_TIMETABLE, datasetId, ENSURE_INCREASING_INACCURATE_TIMES, negativeTimesHitCount);
             }
         }
+    }
+
+    private ZonedDateTime getLatest(ZonedDateTime... timestamps) {
+        List<ZonedDateTime> nonNullValues = new ArrayList<>();
+        for (ZonedDateTime timestamp : timestamps) {
+            if (timestamp != null) {
+                nonNullValues.add(timestamp);
+            }
+        }
+
+        if (nonNullValues.isEmpty()) {
+            return null;
+        }
+
+        Collections.sort(nonNullValues);
+
+        return nonNullValues.get(nonNullValues.size()-1);
     }
 }
