@@ -103,6 +103,7 @@ public class EnsureIncreasingTimesProcessor extends ValueAdapter implements Post
                                                     latestTimestamp,
                                                     recordedCall.getAimedArrivalTime()
                                             );
+                                            recordedCall.setPredictionInaccurate(true);
                                             recordedCall.setExpectedArrivalTime(latestTimestamp);
                                             predictionInaccurateTimeOverridden++;
                                         }
@@ -128,6 +129,7 @@ public class EnsureIncreasingTimesProcessor extends ValueAdapter implements Post
                                                     latestTimestamp,
                                                     recordedCall.getAimedDepartureTime()
                                             );
+                                            recordedCall.setPredictionInaccurate(true);
                                             recordedCall.setExpectedDepartureTime(latestTimestamp);
                                             predictionInaccurateTimeOverridden++;
                                         }
@@ -152,6 +154,7 @@ public class EnsureIncreasingTimesProcessor extends ValueAdapter implements Post
                                                     latestTimestamp,
                                                     estimatedCall.getAimedArrivalTime()
                                             );
+                                            estimatedCall.setPredictionInaccurate(true);
                                             estimatedCall.setExpectedArrivalTime(latestTimestamp);
                                             predictionInaccurateTimeOverridden++;
                                         }
@@ -170,6 +173,7 @@ public class EnsureIncreasingTimesProcessor extends ValueAdapter implements Post
                                                     latestTimestamp,
                                                     estimatedCall.getAimedDepartureTime()
                                             );
+                                            estimatedCall.setPredictionInaccurate(true);
                                             estimatedCall.setExpectedDepartureTime(latestTimestamp);
                                             predictionInaccurateTimeOverridden++;
                                         }
