@@ -82,8 +82,6 @@ public class EnsureIncreasingTimesProcessor extends ValueAdapter implements Post
                                 List<RecordedCall> recordedCalls = estimatedVehicleJourney.getRecordedCalls().getRecordedCalls();
                                 for (RecordedCall recordedCall : recordedCalls) {
 
-                                    boolean predictionInaccurate = Boolean.TRUE.equals(recordedCall.isPredictionInaccurate());
-
                                     if (recordedCall.getActualArrivalTime() != null) {
                                         if (latestTimestamp != null && recordedCall.getActualArrivalTime().isBefore(latestTimestamp)) {
                                             recordedCall.setActualArrivalTime(latestTimestamp);
@@ -100,7 +98,7 @@ public class EnsureIncreasingTimesProcessor extends ValueAdapter implements Post
                                         }
                                     } else {
                                         // No realtime data is set for arrival - override with "fake" timestamp for validity
-                                        if (recordedCall.getAimedArrivalTime() != null && predictionInaccurate) {
+                                        if (recordedCall.getAimedArrivalTime() != null) {
                                             latestTimestamp = getLatest(
                                                     latestTimestamp,
                                                     recordedCall.getAimedArrivalTime()
@@ -125,7 +123,7 @@ public class EnsureIncreasingTimesProcessor extends ValueAdapter implements Post
                                         }
                                     } else {
                                         // No realtime data is set for departure - override with "fake" timestamp for validity
-                                        if (recordedCall.getAimedDepartureTime() != null && predictionInaccurate) {
+                                        if (recordedCall.getAimedDepartureTime() != null) {
                                             latestTimestamp = getLatest(
                                                     latestTimestamp,
                                                     recordedCall.getAimedDepartureTime()
@@ -139,7 +137,6 @@ public class EnsureIncreasingTimesProcessor extends ValueAdapter implements Post
                             if (estimatedVehicleJourney.getEstimatedCalls() != null && estimatedVehicleJourney.getEstimatedCalls().getEstimatedCalls() != null) {
                                 List<EstimatedCall> estimatedCalls = estimatedVehicleJourney.getEstimatedCalls().getEstimatedCalls();
                                 for (EstimatedCall estimatedCall : estimatedCalls) {
-                                    boolean predictionInaccurate = Boolean.TRUE.equals(estimatedCall.isPredictionInaccurate());
 
                                     if (estimatedCall.getExpectedArrivalTime() != null) {
                                         if (latestTimestamp != null && estimatedCall.getExpectedArrivalTime().isBefore(latestTimestamp)) {
@@ -150,7 +147,7 @@ public class EnsureIncreasingTimesProcessor extends ValueAdapter implements Post
                                         }
                                     } else {
                                         // No realtime data is set for arrival - override with "fake" timestamp for validity
-                                        if (estimatedCall.getAimedArrivalTime() != null && predictionInaccurate) {
+                                        if (estimatedCall.getAimedArrivalTime() != null) {
                                             latestTimestamp = getLatest(
                                                     latestTimestamp,
                                                     estimatedCall.getAimedArrivalTime()
@@ -168,7 +165,7 @@ public class EnsureIncreasingTimesProcessor extends ValueAdapter implements Post
                                         }
                                     } else {
                                         // No realtime data is set for departure - override with "fake" timestamp for validity
-                                        if (estimatedCall.getAimedDepartureTime() != null && predictionInaccurate) {
+                                        if (estimatedCall.getAimedDepartureTime() != null) {
                                             latestTimestamp = getLatest(
                                                     latestTimestamp,
                                                     estimatedCall.getAimedDepartureTime()
