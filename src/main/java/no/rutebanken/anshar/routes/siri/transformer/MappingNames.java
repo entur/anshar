@@ -11,6 +11,7 @@ public enum MappingNames {
         REMOVE_UNKNOWN_DEPARTURE("Remove unknown departure"),
         RESTRUCTURE_DEPARTURE("Restructure departure"),
         ENSURE_INCREASING_TIMES("Ensure increasing times"),
+        ENSURE_INCREASING_INACCURATE_TIMES("Override missing realtime (predictionInaccurate)"),
         LINE_MAPPING("Create NeTEx-LineRef"),
         SET_MISSING_REPORT_TYPE("Set missing ReportType"),
         APPEND_PREFIX("Add prefix to create NeTEx-ID"),

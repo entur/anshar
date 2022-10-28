@@ -29,6 +29,7 @@ import uk.org.siri.siri21.Siri;
 import java.time.ZonedDateTime;
 import java.util.List;
 
+import static no.rutebanken.anshar.routes.siri.transformer.MappingNames.ENSURE_INCREASING_INACCURATE_TIMES;
 import static no.rutebanken.anshar.routes.siri.transformer.MappingNames.ENSURE_INCREASING_TIMES;
 import static no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter.getOriginalId;
 
@@ -55,7 +56,8 @@ public class EnsureIncreasingTimesProcessor extends ValueAdapter implements Post
     public void process(Siri siri) {
         long startTime = System.currentTimeMillis();
 
-        int hitCount = 0;
+        int negativeTimesHitCount = 0;
+        int predictionInaccurateFixedHitCount = 0;
         int journeyCount = 0;
 
         if (siri != null && siri.getServiceDelivery() != null) {
@@ -71,10 +73,14 @@ public class EnsureIncreasingTimesProcessor extends ValueAdapter implements Post
                         for (EstimatedVehicleJourney estimatedVehicleJourney : estimatedVehicleJourneies) {
                             int dwelltimeCount = 0;
                             int runtimeCount = 0;
+                            int predictionInaccurateTimeOverridden = 0;
+
                             ZonedDateTime latestTimestamp = null;
                             if (estimatedVehicleJourney.getRecordedCalls() != null && estimatedVehicleJourney.getRecordedCalls().getRecordedCalls() != null) {
                                 List<RecordedCall> recordedCalls = estimatedVehicleJourney.getRecordedCalls().getRecordedCalls();
                                 for (RecordedCall recordedCall : recordedCalls) {
+
+                                    boolean predictionInaccurate = Boolean.TRUE.equals(recordedCall.isPredictionInaccurate());
 
                                     if (recordedCall.getActualArrivalTime() != null) {
                                         if (latestTimestamp != null && recordedCall.getActualArrivalTime().isBefore(latestTimestamp)) {
@@ -89,6 +95,12 @@ public class EnsureIncreasingTimesProcessor extends ValueAdapter implements Post
                                             runtimeCount++;
                                         } else {
                                             latestTimestamp = recordedCall.getExpectedArrivalTime();
+                                        }
+                                    } else {
+                                        // No realtime data is set for arrival - override with "fake" timestamp for validity
+                                        if (recordedCall.getAimedArrivalTime() != null && predictionInaccurate) {
+                                            recordedCall.setExpectedArrivalTime(latestTimestamp);
+                                            predictionInaccurateTimeOverridden++;
                                         }
                                     }
                                     if (recordedCall.getActualDepartureTime() != null) {
@@ -105,18 +117,32 @@ public class EnsureIncreasingTimesProcessor extends ValueAdapter implements Post
                                         } else {
                                             latestTimestamp = recordedCall.getExpectedDepartureTime();
                                         }
+                                    } else {
+                                        // No realtime data is set for departure - override with "fake" timestamp for validity
+                                        if (recordedCall.getAimedDepartureTime() != null && predictionInaccurate) {
+                                            recordedCall.setExpectedDepartureTime(latestTimestamp);
+                                            predictionInaccurateTimeOverridden++;
+                                        }
                                     }
                                 }
                             }
                             if (estimatedVehicleJourney.getEstimatedCalls() != null && estimatedVehicleJourney.getEstimatedCalls().getEstimatedCalls() != null) {
                                 List<EstimatedCall> estimatedCalls = estimatedVehicleJourney.getEstimatedCalls().getEstimatedCalls();
                                 for (EstimatedCall estimatedCall : estimatedCalls) {
+                                    boolean predictionInaccurate = Boolean.TRUE.equals(estimatedCall.isPredictionInaccurate());
+
                                     if (estimatedCall.getExpectedArrivalTime() != null) {
                                         if (latestTimestamp != null && estimatedCall.getExpectedArrivalTime().isBefore(latestTimestamp)) {
                                             estimatedCall.setExpectedArrivalTime(latestTimestamp);
                                             runtimeCount++;
                                         } else {
                                             latestTimestamp = estimatedCall.getExpectedArrivalTime();
+                                        }
+                                    } else {
+                                        // No realtime data is set for arrival - override with "fake" timestamp for validity
+                                        if (estimatedCall.getAimedArrivalTime() != null && predictionInaccurate) {
+                                            estimatedCall.setExpectedArrivalTime(latestTimestamp);
+                                            predictionInaccurateTimeOverridden++;
                                         }
                                     }
                                     if (estimatedCall.getExpectedDepartureTime() != null) {
@@ -125,6 +151,12 @@ public class EnsureIncreasingTimesProcessor extends ValueAdapter implements Post
                                             dwelltimeCount++;
                                         } else {
                                             latestTimestamp = estimatedCall.getExpectedDepartureTime();
+                                        }
+                                    } else {
+                                        // No realtime data is set for departure - override with "fake" timestamp for validity
+                                        if (estimatedCall.getAimedDepartureTime() != null && predictionInaccurate) {
+                                            estimatedCall.setExpectedDepartureTime(latestTimestamp);
+                                            predictionInaccurateTimeOverridden++;
                                         }
                                     }
                                 }
@@ -135,16 +167,29 @@ public class EnsureIncreasingTimesProcessor extends ValueAdapter implements Post
                                 String vehicleRef = estimatedVehicleJourney.getVehicleRef() != null ? estimatedVehicleJourney.getVehicleRef().getValue():"";
 
                                 logger.warn("Fixed {} dwelltimes, {} runtimes for line {}, vehicle {}.", dwelltimeCount, runtimeCount, getOriginalId(lineRef), vehicleRef);
+
+                                negativeTimesHitCount += (runtimeCount + dwelltimeCount);
                             }
-                            hitCount += (runtimeCount + dwelltimeCount);
+                            if (predictionInaccurateTimeOverridden > 0) {
+                                String lineRef = estimatedVehicleJourney.getLineRef() != null ? estimatedVehicleJourney.getLineRef().getValue():"";
+                                String vehicleRef = estimatedVehicleJourney.getVehicleRef() != null ? estimatedVehicleJourney.getVehicleRef().getValue():"";
+
+                                logger.warn("Fixed {} inaccurate-times for line {}, vehicle {}.", predictionInaccurateTimeOverridden, getOriginalId(lineRef), vehicleRef);
+                                predictionInaccurateFixedHitCount += predictionInaccurateTimeOverridden;
+                            }
                         }
                     }
                 }
             }
         }
-        if (hitCount > 0) {
-            logger.warn("Fixed {} dwelltimes/runtimes for {} journeys in {} ms.", hitCount, journeyCount, (System.currentTimeMillis() - startTime));
-            getMetricsService().registerDataMapping(SiriDataType.ESTIMATED_TIMETABLE, datasetId, ENSURE_INCREASING_TIMES, hitCount);
+        if (predictionInaccurateFixedHitCount + negativeTimesHitCount > 0) {
+            logger.warn("Fixed {} dwelltimes/runtimes, {} inaccurate times, for {} journeys in {} ms.", negativeTimesHitCount, predictionInaccurateFixedHitCount, journeyCount, (System.currentTimeMillis() - startTime));
+            if (negativeTimesHitCount > 0) {
+                getMetricsService().registerDataMapping(SiriDataType.ESTIMATED_TIMETABLE, datasetId, ENSURE_INCREASING_TIMES, negativeTimesHitCount);
+            }
+            if (predictionInaccurateFixedHitCount > 0) {
+                getMetricsService().registerDataMapping(SiriDataType.ESTIMATED_TIMETABLE, datasetId, ENSURE_INCREASING_INACCURATE_TIMES, negativeTimesHitCount);
+            }
         }
     }
 }
