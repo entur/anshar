@@ -2,6 +2,9 @@
 
 (In this case Entur is client, and Operator is the server.)
 
+## Demo-app
+There is now a simple demo-app of a SIRI client/server available at https://github.com/entur/siri-service-example that demonstrate these concepts.
+
 ## Initiating Subscription
 The client sends a SubscriptionRequest to server to initiate a subscription. The SubscriptionRequest will include a unique SubscriptionId, the desired HeartbeatInterval and an Address defining the endpoint where all data for this specific subscription should be sent. 
 
