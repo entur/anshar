@@ -22,9 +22,9 @@ SubscriptionRequest:
 <Siri version="2.0" xmlns="http://www.siri.org.uk/siri" xmlns:ns2="http://www.ifopt.org.uk/acsb" xmlns:ns3="http://www.ifopt.org.uk/ifopt" xmlns:ns4="http://datex2.eu/schema/2_0RC1/2_0">
     <SubscriptionRequest>
         <RequestTimestamp>2019-12-03T13:25:00+01:00</RequestTimestamp>
+        <Address>https://SERVER:PORT/full/path/to/consumer/endpoint</Address>
         <RequestorRef>ENTUR_DEV</RequestorRef>
         <MessageIdentifier>ad2c0501-dd99-468a-a1bc-91ac8fbd7543</MessageIdentifier>
-        <Address>https://SERVER:PORT/full/path/to/consumer/endpoint</Address>
         <SubscriptionContext>
             <HeartbeatInterval>PT60S</HeartbeatInterval>
         </SubscriptionContext>
@@ -36,7 +36,6 @@ SubscriptionRequest:
                 <RequestTimestamp>2019-12-03T13:25:00+01:00</RequestTimestamp>
                 <PreviewInterval>PT10H</PreviewInterval>
             </EstimatedTimetableRequest>
-            <IncrementalUpdates>true</IncrementalUpdates>
             <ChangeBeforeUpdates>PT10S</ChangeBeforeUpdates>
         </EstimatedTimetableSubscriptionRequest>
     </SubscriptionRequest>
