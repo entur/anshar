@@ -28,6 +28,7 @@ import no.rutebanken.anshar.routes.validation.validators.Validator;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
+import org.apache.commons.io.FileUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -77,6 +78,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.GZIPInputStream;
 
+import static java.util.Collections.EMPTY_LIST;
 import static no.rutebanken.anshar.routes.validation.ValidationType.PROFILE_VALIDATION;
 import static no.rutebanken.anshar.routes.validation.ValidationType.SCHEMA_VALIDATION;
 import static no.rutebanken.anshar.util.CompressionUtil.compress;
@@ -441,6 +443,8 @@ public class SiriXmlValidator extends ApplicationContextHolder {
 
         validationResult.put("subscription", subscriptionSetup.toJSON());
 
+        validationResult.put("status", buildValidationStatus(subscriptionSetup));
+
         if (validationFilters.containsKey(subscriptionId)) {
             String filter = validationFilters.get(subscriptionId);
 
@@ -459,6 +463,23 @@ public class SiriXmlValidator extends ApplicationContextHolder {
         validationResult.put("validationRefs", resultList);
 
         return validationResult;
+    }
+
+    private JSONObject buildValidationStatus(SubscriptionSetup subscriptionSetup) {
+        int currentValidations = validationResultRefs.getOrDefault(subscriptionSetup.getSubscriptionId(), EMPTY_LIST).size();
+        int maxValidations = configuration.getMaxNumberOfValidations();
+
+        long currentSize = validationSize.getOrDefault(subscriptionSetup.getSubscriptionId(), 0L);
+        long maxSize = configuration.getMaxTotalXmlSizeOfValidation()*1024*1024;
+
+        JSONObject status = new JSONObject();
+        status.put("validationActive", subscriptionSetup.isValidation());
+        status.put("currentValidations", currentValidations);
+        status.put("maxValidations", maxValidations);
+        status.put("currentSize", FileUtils.byteCountToDisplaySize(currentSize));
+        status.put("maxSize", FileUtils.byteCountToDisplaySize(maxSize));
+
+        return status;
     }
 
     private JSONObject getJsonValidationResults(String validationRef) {

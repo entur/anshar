@@ -12,6 +12,15 @@
     <h2>Validation results</h2>
     <strong>${(body?? && body.subscription??)?then(body.subscription.name, "Subscription not found")}</strong>
     <h4>${(body?? && body.filter??)?then('Filter: ${body.filter}', "No filter")}</h4>
+
+    <#if body.status?? >
+        <span>Validation active: ${body.status.validationActive?c}</span>
+        <span>-</span>
+        <span>Size: ${body.status.currentSize} / ${body.status.maxSize}</span>
+        <span>-</span>
+        <span>Count: ${body.status.currentValidations} / ${body.status.maxValidations}</span>
+    </#if>
+
 </div>
 <#if body?? >
 <div class="container">
