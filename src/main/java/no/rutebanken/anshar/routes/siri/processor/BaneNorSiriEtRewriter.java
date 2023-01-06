@@ -129,12 +129,18 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
 
                             if (estimatedVehicleJourney.getVehicleRef() != null) {
                                 String etTrainNumber = estimatedVehicleJourney.getVehicleRef().getValue();
+                                boolean shouldBeReplaced = false;
 
+                                // "Temporary" hack to replace trainNumber when Swedish trainNumber is used in Norwegian plan-data
                                 if (trainIdMapping.containsKey(etTrainNumber)) {
+                                    // Set trainNumber that matches plan-data based on mapping-table
                                     logger.warn("Replacing trainNumber {} with {}", etTrainNumber, trainIdMapping.get(etTrainNumber));
                                     etTrainNumber = trainIdMapping.get(etTrainNumber);
                                     estimatedVehicleJourney.getVehicleRef().setValue(etTrainNumber);
                                     getMetricsService().registerDataMapping(SiriDataType.ESTIMATED_TIMETABLE, datasetId, REPLACE_TRAIN_NUMBER, 1);
+                                } else if (trainIdMapping.containsValue(etTrainNumber)) {
+                                    // Ignore data for trainNumber that is being replaced
+                                    shouldBeReplaced = true;
                                 }
 
                                 if (isKnownTrainNr(etTrainNumber )) {
@@ -145,7 +151,7 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
                                     if (estimatedVehicleJourney.isExtraJourney() != null && estimatedVehicleJourney.isExtraJourney()) {
                                         //Extra journey - ignore comparison to planned data
                                         foundMatch = true;
-                                    } else {
+                                    } else if (!shouldBeReplaced) {
                                         Set<String> serviceJourneys = getServiceJourney(etTrainNumber);
                                         for (String serviceJourney : serviceJourneys) {
                                             List<ServiceDate> serviceDates = getServiceDates(serviceJourney);
@@ -161,7 +167,7 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
                                     }
 
 
-                                    if (foundMatch) {
+                                    if (foundMatch && !shouldBeReplaced) {
                                         restructuredJourneyList.put(etTrainNumber, reStructureEstimatedJourney(estimatedVehicleJourney, etTrainNumber));
                                         getMetricsService().registerDataMapping(SiriDataType.ESTIMATED_TIMETABLE, datasetId, RESTRUCTURE_DEPARTURE, 1);
                                     } else {
