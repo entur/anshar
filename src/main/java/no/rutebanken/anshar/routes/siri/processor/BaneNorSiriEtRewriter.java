@@ -53,6 +53,7 @@ import static no.rutebanken.anshar.routes.siri.processor.routedata.NetexUpdaterS
 import static no.rutebanken.anshar.routes.siri.processor.routedata.NetexUpdaterService.isKnownTrainNr;
 import static no.rutebanken.anshar.routes.siri.processor.routedata.NetexUpdaterService.isStopIdOrParentMatch;
 import static no.rutebanken.anshar.routes.siri.transformer.MappingNames.REMOVE_UNKNOWN_DEPARTURE;
+import static no.rutebanken.anshar.routes.siri.transformer.MappingNames.REPLACE_TRAIN_NUMBER;
 import static no.rutebanken.anshar.routes.siri.transformer.MappingNames.RESTRUCTURE_DEPARTURE;
 import static no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer.SEPARATOR;
 import static no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter.createCombinedId;
@@ -77,6 +78,14 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
                                                                         "CG",   // Charlottenberg
                                                                         "STR",  // Storlien
                                                                         "ØXN"); // Øxnered
+    private static final Map<String, String> trainIdMapping = Map.of(
+                                                                    "110" , "390",
+                                                                    "114" , "392",
+                                                                    "118" , "394",
+                                                                    "126" , "396",
+                                                                    "134" , "398"
+                                                                );
+
     private String datasetId;
 
     private transient KryoSerializer kryoSerializer;
@@ -120,6 +129,13 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
 
                             if (estimatedVehicleJourney.getVehicleRef() != null) {
                                 String etTrainNumber = estimatedVehicleJourney.getVehicleRef().getValue();
+
+                                if (trainIdMapping.containsKey(etTrainNumber)) {
+                                    logger.warn("Replacing trainNumber {} with {}", etTrainNumber, trainIdMapping.get(etTrainNumber));
+                                    etTrainNumber = trainIdMapping.get(etTrainNumber);
+                                    estimatedVehicleJourney.getVehicleRef().setValue(etTrainNumber);
+                                    getMetricsService().registerDataMapping(SiriDataType.ESTIMATED_TIMETABLE, datasetId, REPLACE_TRAIN_NUMBER, 1);
+                                }
 
                                 if (isKnownTrainNr(etTrainNumber )) {
 
