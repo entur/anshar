@@ -270,6 +270,8 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
                                     }
                                 }
                             }
+                            // Set Monitored-flag to force distribution of rewritten data
+                            et.setMonitored(true);
                             restructuredDeliveryContent.add(et);
                         }
                         for (String originalTrainNumber : restructuredJourneyList.keySet()) {
