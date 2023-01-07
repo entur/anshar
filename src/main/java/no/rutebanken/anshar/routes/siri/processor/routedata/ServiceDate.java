@@ -4,9 +4,9 @@ import java.time.ZonedDateTime;
 import java.util.Objects;
 
 public class ServiceDate {
-    final int year;
-    final int month;
-    final int day;
+    public final int year;
+    public final int month;
+    public final int day;
 
     public ServiceDate(int year, int month, int day) {
         this.year = year;
