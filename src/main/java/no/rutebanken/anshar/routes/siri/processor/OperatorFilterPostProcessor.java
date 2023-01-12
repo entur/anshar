@@ -28,7 +28,6 @@ import java.util.List;
 import java.util.Map;
 
 import static no.rutebanken.anshar.routes.siri.transformer.MappingNames.LINE_MAPPING;
-import static no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter.createCombinedId;
 
 public class OperatorFilterPostProcessor extends ValueAdapter implements PostProcessor {
     private static transient final Logger logger = LoggerFactory.getLogger(OperatorFilterPostProcessor.class);
@@ -88,17 +87,11 @@ public class OperatorFilterPostProcessor extends ValueAdapter implements PostPro
                                                     String operatorRef = et.getOperatorRef().getValue();
 
                                                     String updatedLineRef;
-                                                    if (lineRef.contains(":Line:")) {
-                                                        updatedLineRef = lineRef;
-                                                    } else {
+                                                    if (!lineRef.contains(":Line:")) {
                                                         updatedLineRef = operatorOverrideMapping.getOrDefault(operatorRef, operatorRef) + ":Line:" + lineRef;
+                                                        et.getLineRef().setValue(updatedLineRef);
                                                         getMetricsService().registerDataMapping(SiriDataType.ESTIMATED_TIMETABLE, datasetId, LINE_MAPPING, 1);
                                                     }
-
-                                                    et.getLineRef().setValue(createCombinedId(lineRef, updatedLineRef));
-
-                                                    // TODO: Should we also update OperatorRef?
-//                                                    et.getOperatorRef().setValue(operatorOverrideMapping.getOrDefault(operatorRef, operatorRef));
                                                 }
                                             }
                                         });
