@@ -15,11 +15,21 @@
 
 package no.rutebanken.anshar.routes.siri.adapters;
 
-import no.rutebanken.anshar.routes.siri.processor.*;
+import no.rutebanken.anshar.routes.siri.processor.BaneNorIdPlatformPostProcessor;
+import no.rutebanken.anshar.routes.siri.processor.BaneNorRemoveExpiredJourneysPostProcessor;
+import no.rutebanken.anshar.routes.siri.processor.BaneNorRemoveFreightTrainPostProcessor;
+import no.rutebanken.anshar.routes.siri.processor.BaneNorSiriEtRewriter;
+import no.rutebanken.anshar.routes.siri.processor.BaneNorSiriStopAssignmentPopulater;
+import no.rutebanken.anshar.routes.siri.processor.EnsureIncreasingTimesProcessor;
+import no.rutebanken.anshar.routes.siri.processor.OperatorFilterPostProcessor;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Mapping(id="banenoret-flt")
 public class BaneNorEtFltValueAdapters extends MappingAdapter {
@@ -29,6 +39,9 @@ public class BaneNorEtFltValueAdapters extends MappingAdapter {
     public List<ValueAdapter> getValueAdapters(SubscriptionSetup subscriptionSetup) {
 
         List<ValueAdapter> valueAdapters = new ArrayList<>();
+
+        valueAdapters.add(new BaneNorRemoveFreightTrainPostProcessor(subscriptionSetup.getDatasetId()));
+
         valueAdapters.add(new BaneNorIdPlatformPostProcessor(subscriptionSetup.getSubscriptionType(), subscriptionSetup.getDatasetId()));
 
         Map<String, String> operatorOverrideMapping = new HashMap<>();
@@ -43,9 +56,8 @@ public class BaneNorEtFltValueAdapters extends MappingAdapter {
 
         List<String> operatorsToIgnore = Arrays.asList("FLY", "FLT");
 
-        valueAdapters.add(new OperatorFilterPostProcessor(subscriptionSetup.getDatasetId(), operatorsToIgnore, operatorOverrideMapping));
 
-        valueAdapters.add(new BaneNorRemoveFreightTrainPostProcessor(subscriptionSetup.getDatasetId()));
+        valueAdapters.add(new OperatorFilterPostProcessor(subscriptionSetup.getDatasetId(), operatorsToIgnore, operatorOverrideMapping));
 
         /*
          Need to remove already expired VehicleJourneys before matching with NeTEx routedata since vehicleRef-
