@@ -19,8 +19,6 @@ import no.rutebanken.anshar.data.EstimatedTimetables;
 import no.rutebanken.anshar.data.Situations;
 import no.rutebanken.anshar.data.VehicleActivities;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
-import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
-import no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -332,11 +330,7 @@ public class SiriHelper {
     }
 
     private static boolean isLineRefMatch(Set<String> linerefValues, String completeValue) {
-        if (completeValue.contains(SiriValueTransformer.SEPARATOR)) {
-            String mappedId = OutboundIdAdapter.getMappedId(completeValue);
-            String originalId = OutboundIdAdapter.getOriginalId(completeValue);
-            return linerefValues.contains(mappedId) || linerefValues.contains(originalId);
-        } else return linerefValues.contains(completeValue);
+        return linerefValues.contains(completeValue);
     }
 
     private static void filterVehicleRef(Siri siri, Set<String> vehiclerefValues) {

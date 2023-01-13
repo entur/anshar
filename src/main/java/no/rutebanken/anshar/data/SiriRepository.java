@@ -54,8 +54,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer.SEPARATOR;
-
 abstract class SiriRepository<T> {
 
     private IMap<String, Instant> lastUpdateRequested;
@@ -445,9 +443,7 @@ abstract class SiriRepository<T> {
         if (entry.getLineRef() != null) {
             final String ref = entry.getLineRef();
 
-            return ref.startsWith(decodedLine + SEPARATOR) ||
-                    ref.endsWith(SEPARATOR + decodedLine) ||
-                    ref.equalsIgnoreCase(decodedLine);
+            return ref.equalsIgnoreCase(decodedLine);
         }
         return false;
     }
