@@ -16,6 +16,22 @@ The app will start with subscriptions defined in `resources/subscription-example
 
 When the app has started, an admin-gui will be available at http://localhost:8012/anshar/stats 
 
+# Using docker
+
+Build the image :
+
+```shell
+docker build . -t anshar
+```
+
+Run the image :
+
+```shell
+# With default coniguration
+docker run -p 8012:8012 anshar
+# With custom properties. In this example, application.properties' anshar.subscriptions.config.path should be "/subscriptions.yml"
+docker run -p 8012:8012 --mount type=bind,source=/path/to/application.properties,target=/application.properties --mount type=bind,source=/path/to/subscriptions.yml,target=/subscriptions.yml anshar
+```
 
 # SIRI Subscription
 - Supports SIRI 2.0 SubscriptionRequest
