@@ -11,4 +11,4 @@ COPY --from=builder src/main/resources/dummy_credentials.json dummy_credentials.
 
 EXPOSE 8012
 ENV GOOGLE_APPLICATION_CREDENTIALS dummy_credentials.json
-CMD java $JAVA_OPTIONS -jar /anshar.jar -Dspring.config.location optional:file:/application.properties
+ENTRYPOINT ["java", "-jar", "/anshar.jar", "$JAVA_OPTIONS", "-Dspring.config.location optional:file:/application.properties"]
