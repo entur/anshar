@@ -14,6 +14,9 @@ public class KafkaAvroPublisherRoute extends RouteBuilder {
     private static final int LOG_INTERVAL_ET = 5000;
     private static final int LOG_INTERVAL_VM = 5000;
     private static final int LOG_INTERVAL_SX = 100;
+    private final AtomicInteger etIgnoredCounter = new AtomicInteger();
+    private final AtomicInteger vmIgnoredCounter = new AtomicInteger();
+    private final AtomicInteger sxIgnoredCounter = new AtomicInteger();
 
     @Value("${anshar.kafka.avro.et.enabled:false}")
     protected boolean publishEtAvroToKafkaEnabled;
@@ -50,11 +53,18 @@ public class KafkaAvroPublisherRoute extends RouteBuilder {
                     .routeId("anshar.kafka.et.producer.avro");
         } else {
             log.info("Publish Avro-ET to kafka disabled");
-            AtomicInteger etIgnoredCounter = new AtomicInteger();
             from("direct:publish.et.avro")
-                    .choice().when(p -> etIgnoredCounter.incrementAndGet() % LOG_INTERVAL_ET == 0)
-                        .log("Ignore publishing ET to Kafka - counter: " + etIgnoredCounter.get())
+                    .process(p -> {
+                        if (etIgnoredCounter.incrementAndGet() % 1000 == 0) {
+                            p.getMessage().setHeader("counter", etIgnoredCounter.get());
+                            p.getMessage().setBody(p.getIn().getBody());
+                        }
+                    })
+                    .choice()
+                    .when(header("counter").isNotNull())
+                        .log("Ignore publishing ET to Kafka - counter: ${header.counter}")
                     .endChoice()
+                    .end()
                 .routeId("anshar.kafka.et.producer.avro");
         }
 
@@ -67,11 +77,18 @@ public class KafkaAvroPublisherRoute extends RouteBuilder {
                     .routeId("anshar.kafka.vm.producer.avro");
         } else {
             log.info("Publish Avro-VM to kafka disabled");
-            AtomicInteger vmIgnoredCounter = new AtomicInteger();
             from("direct:publish.vm.avro")
-                    .choice().when(p -> vmIgnoredCounter.incrementAndGet() % LOG_INTERVAL_VM == 0)
-                        .log("Ignore publishing VM to Kafka - counter: " + vmIgnoredCounter.get())
+                    .process(p -> {
+                        if (vmIgnoredCounter.incrementAndGet() % 1000 == 0) {
+                            p.getMessage().setHeader("counter", vmIgnoredCounter.get());
+                            p.getMessage().setBody(p.getIn().getBody());
+                        }
+                    })
+                    .choice()
+                    .when(header("counter").isNotNull())
+                        .log("Ignore publishing VM to Kafka - counter: ${header.counter}")
                     .endChoice()
+                    .end()
                 .routeId("anshar.kafka.vm.producer.avro");
         }
 
@@ -84,11 +101,18 @@ public class KafkaAvroPublisherRoute extends RouteBuilder {
                     .routeId("anshar.kafka.sx.producer.avro");
         } else {
             log.info("Publish Avro-SX to kafka disabled");
-            AtomicInteger sxIgnoredCounter = new AtomicInteger();
             from("direct:publish.sx.avro")
-                    .choice().when(p -> sxIgnoredCounter.incrementAndGet() % LOG_INTERVAL_SX == 0)
-                        .log("Ignore publishing SX to Kafka - counter: " + sxIgnoredCounter.get())
+                    .process(p -> {
+                        if (sxIgnoredCounter.incrementAndGet() % 1000 == 0) {
+                            p.getMessage().setHeader("counter", sxIgnoredCounter.get());
+                            p.getMessage().setBody(p.getIn().getBody());
+                        }
+                    })
+                    .choice()
+                    .when(header("counter").isNotNull())
+                    .log("Ignore publishing SX to Kafka - counter: ${header.counter}")
                     .endChoice()
+                    .end()
                 .routeId("anshar.kafka.sx.producer.avro");
         }
     }
