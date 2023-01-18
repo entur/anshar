@@ -57,16 +57,6 @@
         </snapshotRepository>
     </distributionManagement>
 
-    <!-- Repository needs to be set up in nexus: repositories>
-        <repository>
-            <id>jclouds-snapshots</id>
-            <url>https://repository.apache.org/content/repositories/snapshots</url>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-    </repositories -->
-
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -224,11 +214,40 @@
             <artifactId>camel-spring-security</artifactId>
             <version>${camel-version}</version>
         </dependency>
+
+        <!-- camel-kafka-starter needed for automatic configuration-->
         <dependency>
-            <groupId>org.apache.camel</groupId>
-            <artifactId>camel-kafka</artifactId>
+            <groupId>org.apache.camel.springboot</groupId>
+            <artifactId>camel-kafka-starter</artifactId>
             <version>${camel-version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>io.confluent</groupId>
+            <artifactId>kafka-avro-serializer</artifactId>
+            <version>7.3.1</version>
+        </dependency>
+        <dependency>
+            <groupId>io.confluent</groupId>
+            <artifactId>kafka-schema-registry-client</artifactId>
+            <version>7.3.1</version>
+        </dependency>
+        <dependency>
+            <groupId>io.confluent</groupId>
+            <artifactId>kafka-streams-avro-serde</artifactId>
+            <version>3.3.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.entur</groupId>
+            <artifactId>siri-avro-mapper</artifactId>
+            <version>0.4</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.avro</groupId>
+            <artifactId>avro</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>org.apache.camel</groupId>
             <artifactId>camel-hazelcast</artifactId>
@@ -486,6 +505,13 @@
             <id>osgeo</id>
             <name>Open Source Geospatial Foundation Repository</name>
             <url>https://repo.osgeo.org/repository/release/</url>
+        </repository>
+
+        <!-- Kafka/SchemaRegistry-dependencies -->
+        <repository>
+            <id>confluent</id>
+            <name>Confluent Maven repo</name>
+            <url>https://packages.confluent.io/maven/</url>
         </repository>
     </repositories>
 </project>

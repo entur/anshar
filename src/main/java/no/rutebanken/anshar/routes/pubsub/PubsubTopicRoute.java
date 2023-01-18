@@ -37,12 +37,13 @@ public class PubsubTopicRoute extends RouteBuilder {
              */
             from("direct:send.to.pubsub.topic.estimated_timetable")
                     .to("direct:siri.transform.data")
-                    .to("xslt-saxon:xsl/splitAndFilterNotMonitored.xsl")
+                    .to("xslt-saxon:xsl/split.xsl")
                     .split().tokenizeXML("Siri").streaming()
-                    .wireTap("direct:kafka.et.xml")
+                    .wireTap("direct:kafka.et.xml")         // Send to Kafka as XML
+                    .wireTap("direct:publish.et.avro")        // Publish to kafka as Avro
                     .to("direct:map.jaxb.to.protobuf")
                     .wireTap("direct:log.pubsub.et.traffic")
-                    .to(etTopic)
+                    .to(etTopic)                                // Send to Pub/Sub as Protobuf
             ;
 
             /**
@@ -53,10 +54,11 @@ public class PubsubTopicRoute extends RouteBuilder {
                     .to("direct:siri.transform.data")
                     .to("xslt-saxon:xsl/split.xsl")
                     .split().tokenizeXML("Siri").streaming()
-                    .wireTap("direct:kafka.vm.xml")
+                    .wireTap("direct:kafka.vm.xml")// Send to Kafka as XML
+                    .wireTap("direct:publish.vm.avro")// Publish to kafka as Avro
                     .to("direct:map.jaxb.to.protobuf")
                     .wireTap("direct:log.pubsub.vm.traffic")
-                    .to(vmTopic)
+                    .to(vmTopic) // Send to Pub/Sub as Protobuf
             ;
 
             /**
@@ -67,10 +69,11 @@ public class PubsubTopicRoute extends RouteBuilder {
                     .to("direct:siri.transform.data")
                     .to("xslt-saxon:xsl/split.xsl")
                     .split().tokenizeXML("Siri").streaming()
-                    .wireTap("direct:kafka.sx.xml")
+                    .wireTap("direct:kafka.sx.xml")// Send to Kafka as XML
+                    .wireTap("direct:publish.sx.avro")// Publish to kafka as Avro
                     .to("direct:map.jaxb.to.protobuf")
                     .wireTap("direct:log.pubsub.sx.traffic")
-                    .to(sxTopic)
+                    .to(sxTopic) // Send to Pub/Sub as Protobuf
             ;
 
             /**
