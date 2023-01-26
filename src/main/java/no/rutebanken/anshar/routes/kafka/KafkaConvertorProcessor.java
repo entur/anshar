@@ -103,10 +103,10 @@ public class KafkaConvertorProcessor implements Processor {
             String dataFrameRef = (String) record.getFramedVehicleJourneyRef().getDataFrameRef();
             String serviceJourneyId = (String) record.getFramedVehicleJourneyRef().getDatedVehicleJourneyRef();
             tripId = serviceJourneyId + ":" + dataFrameRef;
-        } else if (record.getExtraJourney() != null && record.getExtraJourney()) { // ExtraJourney
-            tripId = (String) record.getEstimatedVehicleJourneyCode();
         } else if (record.getDatedVehicleJourneyRef() != null) { // DatedServiceJourney
             tripId = (String) record.getDatedVehicleJourneyRef();
+        } else if (record.getEstimatedVehicleJourneyCode() != null) { // ExtraJourney
+            tripId = (String) record.getEstimatedVehicleJourneyCode();
         }
         return tripId;
     }
