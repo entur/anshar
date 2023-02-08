@@ -241,7 +241,7 @@
         <dependency>
             <groupId>org.entur</groupId>
             <artifactId>siri-avro-mapper</artifactId>
-            <version>0.4</version>
+            <version>0.6</version>
         </dependency>
         <dependency>
             <groupId>org.apache.avro</groupId>
