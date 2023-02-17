@@ -270,6 +270,7 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
                                     }
                                 }
                             }
+                            ensureCorrectOrder(et);
                             // Set Monitored-flag to force distribution of rewritten data
                             et.setMonitored(true);
                             restructuredDeliveryContent.add(et);
@@ -316,6 +317,20 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
             }
         }
         logger.info("Restructured SIRI ET from {} to {} journeys in {} ms", previousSize, newSize, (System.currentTimeMillis()-startTime));
+    }
+
+    private void ensureCorrectOrder(EstimatedVehicleJourney et) {
+        int order = 1;
+        if (et.getRecordedCalls() != null && et.getRecordedCalls().getRecordedCalls() != null) {
+            for (RecordedCall call : et.getRecordedCalls().getRecordedCalls()) {
+                call.setOrder(BigInteger.valueOf(order++));
+            }
+        }
+        if (et.getEstimatedCalls() != null && et.getEstimatedCalls().getEstimatedCalls() != null) {
+            for (EstimatedCall call : et.getEstimatedCalls().getEstimatedCalls()) {
+                call.setOrder(BigInteger.valueOf(order++));
+            }
+        }
     }
 
     private static EstimatedCall createEstimatedCall(ServiceDate serviceDate, StopTime stopTime) {
