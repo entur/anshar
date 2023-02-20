@@ -235,7 +235,7 @@
         <dependency>
             <groupId>io.confluent</groupId>
             <artifactId>kafka-streams-avro-serde</artifactId>
-            <version>3.3.3</version>
+            <version>7.3.1</version>
         </dependency>
 
         <dependency>
