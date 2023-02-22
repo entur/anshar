@@ -210,6 +210,12 @@
             <version>${camel-version}</version>
         </dependency>
         <dependency>
+            <!-- Upgrading Saxon-HE version as included version (11.4 - camel-xslt-saxon) causes ArrayIndexOutOfBoundsException -->
+            <groupId>net.sf.saxon</groupId>
+            <artifactId>Saxon-HE</artifactId>
+            <version>11.5</version>
+        </dependency>
+        <dependency>
             <groupId>org.apache.camel</groupId>
             <artifactId>camel-spring-security</artifactId>
             <version>${camel-version}</version>
