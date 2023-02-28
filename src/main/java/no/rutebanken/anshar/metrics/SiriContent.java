@@ -7,7 +7,8 @@ public enum SiriContent {
     EXTRA_JOURNEY("Trip added"),
     OCCUPANCY_TRIP("Trip-occupancy"),
     OCCUPANCY_STOP("Stop-occupancy"),
-    DESTINATION_DISPLAY("DestinationDisplay defined")
+    DESTINATION_DISPLAY("DestinationDisplay defined"),
+    TOO_FAR_AHEAD("Update received more than 7 days ahead")
     ;
 
     private final String label;

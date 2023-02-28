@@ -66,6 +66,8 @@ import static no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapte
 public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney> {
     private final Logger logger = LoggerFactory.getLogger(EstimatedTimetables.class);
 
+    private static final long ONE_WEEK_IN_MILLIS = 60 * 60 * 24 * 7 * 1000;
+
     @Autowired
     private IMap<SiriObjectStorageKey, EstimatedVehicleJourney> timetableDeliveries;
 
@@ -329,7 +331,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
 
         return siri;
     }
-    private void resolveContentMetrics(EstimatedVehicleJourney estimatedVehicleJourney) {
+    private void resolveContentMetrics(EstimatedVehicleJourney estimatedVehicleJourney, long expiration) {
 
         prepareMetrics();
 
@@ -412,6 +414,10 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                         }
                     }
                 }
+            }
+
+            if (expiration > ONE_WEEK_IN_MILLIS) {
+                metrics.registerSiriContent(SiriDataType.ESTIMATED_TIMETABLE, dataSource, null, SiriContent.TOO_FAR_AHEAD);
             }
         }
     }
@@ -693,7 +699,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
 
                 if (expiration > 0) {
 
-                    resolveContentMetrics(et);
+                    resolveContentMetrics(et, expiration);
                     timingTracer.mark("resolveContentMetrics");
 
                     boolean hasPatternChanges = hasPatternChanges(et);
