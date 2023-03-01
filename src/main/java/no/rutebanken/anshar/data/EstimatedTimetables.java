@@ -393,6 +393,10 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                         metrics.registerSiriContent(SiriDataType.ESTIMATED_TIMETABLE, dataSource, serviceJourneyId, SiriContent.STOP_CANCELLATION);
                     }
 
+                    if (estimatedCall.getOccupancy() != null) {
+                        metrics.registerSiriContent(SiriDataType.ESTIMATED_TIMETABLE, dataSource, serviceJourneyId, SiriContent.OCCUPANCY_STOP);
+                    }
+
                     if (estimatedCall.getDestinationDisplaies() != null && !estimatedCall.getDestinationDisplaies().isEmpty()) {
                         metrics.registerSiriContent(SiriDataType.ESTIMATED_TIMETABLE, dataSource, serviceJourneyId, SiriContent.DESTINATION_DISPLAY);
                     }
