@@ -42,7 +42,7 @@
         <camel-version>3.20.2</camel-version>
 
         <metrics.version>3.2.3</metrics.version>
-        <entur.helpers.version>1.91</entur.helpers.version>
+        <entur.helpers.version>1.92</entur.helpers.version>
         <geotools.version>28.2</geotools.version>
 
         <log4j2.version>2.20.0</log4j2.version>
@@ -370,7 +370,7 @@
         <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
-            <version>20220924</version>
+            <version>20230227</version>
         </dependency>
 
         <dependency>
