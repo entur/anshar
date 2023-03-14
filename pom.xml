@@ -172,7 +172,7 @@
         <dependency>
             <groupId>com.google.cloud</groupId>
             <artifactId>google-cloud-pubsub</artifactId>
-            <version>1.123.4</version>
+            <version>1.123.5</version>
         </dependency>
 
         <dependency>
@@ -272,12 +272,12 @@
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-core</artifactId>
-            <version>1.10.4</version>
+            <version>1.10.5</version>
         </dependency>
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-registry-prometheus</artifactId>
-            <version>1.10.4</version>
+            <version>1.10.5</version>
         </dependency>
 
         <dependency>
