@@ -106,10 +106,30 @@ public class MessagingRoute extends RestRouteBuilder {
                 .routeId("add.to.queue")
         ;
 
-        from("direct:send.to.queue")
-                .autoStartup(true)
-                .choice()
-                .when(header(INTERNAL_PUBLISH_TO_KAFKA_FOR_APC_ENRICHMENT).isEqualTo(Boolean.TRUE))
+        if (configuration.splitDataForProcessing()) {
+            log.info("Application configured to split all SIRI-data before processing");
+            from("direct:send.to.queue")
+                    .autoStartup(true)
+                    .choice()
+                        .when(header(INTERNAL_PUBLISH_TO_KAFKA_FOR_APC_ENRICHMENT).isEqualTo(Boolean.TRUE))
+                        .removeHeader(INTERNAL_PUBLISH_TO_KAFKA_FOR_APC_ENRICHMENT)
+                        .log("Sending data to enrichment topic")
+                        .to("direct:anshar.enrich.siri.et")
+                    .endChoice()
+                    .otherwise()
+                        .log("Sending split data to topic ${header.target_topic}")
+                        .to("xslt-saxon:xsl/split.xsl")
+                        .split().tokenizeXML("Siri").streaming()
+                        .to("direct:compress.jaxb")
+                        .toD("${header.target_topic}")
+                    .end()
+            ;
+        } else {
+
+            from("direct:send.to.queue")
+                    .autoStartup(true)
+                    .choice()
+                    .when(header(INTERNAL_PUBLISH_TO_KAFKA_FOR_APC_ENRICHMENT).isEqualTo(Boolean.TRUE))
                     .removeHeader(INTERNAL_PUBLISH_TO_KAFKA_FOR_APC_ENRICHMENT)
                     .log("Sending data to enrichment topic")
                     .to("direct:anshar.enrich.siri.et")
@@ -117,9 +137,9 @@ public class MessagingRoute extends RestRouteBuilder {
                     .log("Sending data to topic ${header.target_topic}")
                     .to("direct:compress.jaxb")
                     .toD("${header.target_topic}")
-                .end()
-                ;
-
+                    .end()
+            ;
+        }
 
         from("direct:transform.siri")
                 .to("direct:set.mdc.subscriptionId")

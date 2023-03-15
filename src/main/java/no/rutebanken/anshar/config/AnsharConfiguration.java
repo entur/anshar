@@ -117,6 +117,9 @@ public class AnsharConfiguration {
     @Value("${anshar.application.mode:}")
     private List<AppMode> appModes;
 
+    @Value("${anshar.split.data.for.processing:false}")
+    private Boolean splitDataForProcessing;
+
     public String getHazelcastManagementUrl() {
         return hazelcastManagementUrl;
     }
@@ -250,5 +253,9 @@ public class AnsharConfiguration {
     }
     public boolean processData() {
         return (appModes.isEmpty() || ((appModes.contains(AppMode.DATA_ET) | appModes.contains(AppMode.DATA_VM) | appModes.contains(AppMode.DATA_SX))));
+    }
+
+    public Boolean splitDataForProcessing() {
+        return splitDataForProcessing;
     }
 }
