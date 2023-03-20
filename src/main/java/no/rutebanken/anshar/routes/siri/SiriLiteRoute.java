@@ -96,6 +96,7 @@ public class SiriLiteRoute extends RestRouteBuilder {
                         .param().required(false).name(PARAM_MAX_SIZE).type(RestParamType.query).description("Specify max number of returned elements").dataType("integer").endParam()
 
                 .get("/et-monitored").to("direct:anshar.rest.et.monitored")
+                .get("/et-all").to("direct:anshar.rest.et")
                 .get("/et-monitored-cache").to("direct:anshar.rest.et.monitored.cached")
                 .get("/sx-cache").to("direct:anshar.rest.sx.cached")
                 .get("/vm-cache").to("direct:anshar.rest.vm.cached")
