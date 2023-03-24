@@ -100,8 +100,17 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
     @Autowired
     ExtendedHazelcastService hazelcastService;
 
+    private long hardLimitFutureUpdates = Integer.MAX_VALUE;
+
     protected EstimatedTimetables() {
         super(SiriDataType.ESTIMATED_TIMETABLE);
+    }
+
+    @PostConstruct
+    private void initConfig() {
+        if (configuration.hardLimitForFutureEtUpdates() != null) {
+            hardLimitFutureUpdates = configuration.hardLimitForFutureEtUpdates().toMillis();
+        }
     }
 
     @PostConstruct
@@ -333,7 +342,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
     }
     private void resolveContentMetrics(EstimatedVehicleJourney estimatedVehicleJourney, long expiration) {
 
-        prepareMetrics();
+//        prepareMetrics();
 
         if (estimatedVehicleJourney != null) {
             // Not separating on SJ-id for now
@@ -626,7 +635,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
     }
 
     public Collection<EstimatedVehicleJourney> addAll(String datasetId, List<EstimatedVehicleJourney> etList) {
-
+        prepareMetrics();
         Map<SiriObjectStorageKey, EstimatedVehicleJourney> changes = new HashMap();
 
         Map<SiriObjectStorageKey, String> checksumCacheTmp = new HashMap<>();
@@ -634,6 +643,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
         Map<SiriObjectStorageKey, Long> expirationMap = new HashMap<>();
 
         Counter outdatedCounter = new CounterImpl(0);
+        Counter tooFarAheadCounter = new CounterImpl(0);
         Counter notUpdatedCounter = new CounterImpl(0);
         etList.forEach(et -> {
             TimingTracer timingTracer = new TimingTracer("single-et");
@@ -696,10 +706,17 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
             } else {
                 notUpdatedCounter.increment();
             }
-            if (keep) {
 
-                long expiration = getExpiration(et);
-                timingTracer.mark("getExpiration");
+            long expiration = getExpiration(et);
+            timingTracer.mark("getExpiration");
+
+            if (expiration > hardLimitFutureUpdates) {
+                metrics.registerSiriContent(SiriDataType.ESTIMATED_TIMETABLE, datasetId, null, SiriContent.TOO_FAR_AHEAD);
+                tooFarAheadCounter.increment();
+                keep = false;
+            }
+
+            if (keep) {
 
                 if (expiration > 0) {
 
@@ -746,9 +763,9 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
 
         });
 
-        logger.info("Updated {} (of {}), {} outdated, {} without changes", changes.size(), etList.size(), outdatedCounter.getValue(), notUpdatedCounter.getValue());
+        logger.info("Updated {} (of {}), {} outdated, {} without changes, {} too far ahead.", changes.size(), etList.size(), outdatedCounter.getValue(), notUpdatedCounter.getValue(), tooFarAheadCounter.getValue());
 
-        markDataReceived(SiriDataType.ESTIMATED_TIMETABLE, datasetId, etList.size(), changes.size(), outdatedCounter.getValue(), notUpdatedCounter.getValue());
+        markDataReceived(SiriDataType.ESTIMATED_TIMETABLE, datasetId, etList.size(), changes.size(), outdatedCounter.getValue(), notUpdatedCounter.getValue() + tooFarAheadCounter.getValue());
         TimingTracer timingTracer = new TimingTracer("all-et [" + changes.size() + " changes]");
 
         // TTL is set in EntryListener when objects are added to main map
@@ -787,6 +804,9 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
             key.append(dataFrameRef)
                     .append(":")
                     .append(element.getFramedVehicleJourneyRef().getDatedVehicleJourneyRef());
+        } else if (element.getDatedVehicleJourneyRef() != null) {
+
+            key.append(element.getDatedVehicleJourneyRef().getValue());
         } else if (element.isExtraJourney() != null && element.getEstimatedVehicleJourneyCode() != null) {
 
             key.append(datasetId).append(":ExtraJourney:")
