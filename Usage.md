@@ -16,7 +16,7 @@ The app will start with subscriptions defined in `resources/subscription-example
 
 When the app has started, an admin-gui will be available at http://localhost:8012/anshar/stats 
 
-# Using docker
+# Using the container image
 
 An image is build on every push to Entur's master branch.
 
@@ -26,7 +26,17 @@ To run the image:
 # With default configuration
 docker run -p 8012:8012 ghcr.io/entur/anshar:latest
 # With custom properties. In this example, application.properties' anshar.subscriptions.config.path should be "/subscriptions.yml"
-docker run -p 8012:8012 --mount type=bind,source=/path/to/application.properties,target=/application.properties --mount type=bind,source=/path/to/subscriptions.yml,target=/subscriptions.yml anshar
+docker run -p 8012:8012 --mount type=bind,source=/path/to/application.properties,target=/application.properties --mount type=bind,source=/path/to/subscriptions.yml,target=/subscriptions.yml ghcr.io/entur/anshar:latest
+
+# a more extensive example using podman
+podman run -p 8012:8012 --rm \
+  -v `pwd`/src/main/resources/application.properties:/application.properties:z \
+  -v `pwd`/src/main/resources/subscriptions-example.yml:/subscriptions.yml:z \
+  -v `pwd`/src/main/resources/dummy_credentials.json:/credentials.json:z \
+  -v `pwd`/src/main/resources/logback.xml:/logback.xml:z \
+  -e GOOGLE_APPLICATION_CREDENTIALS=/credentials.json \
+  -e JAVA_TOOL_OPTIONS="-Dlogging.config=/logback.xml" \
+  ghcr.io/entur/anshar:latest
 ```
 
 # SIRI Subscription

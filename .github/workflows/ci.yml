@@ -24,7 +24,7 @@ jobs:
 
       - name: Run tests
         run: |
-          # there is a test failure on CI after that is resolve, this can be re-enabled
+          # there is a test failure on CI, after that is resolved, this can be re-enabled
           # mvn --batch-mode test
 
       - name: Build container image with Jib, push to Github Container Repo
