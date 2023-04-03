@@ -9,7 +9,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      CONTAINER_REPO: ghcr.io/${{ github.repository_owner }}/${{ github.repository_name }}
+      CONTAINER_REPO: ghcr.io/${{ github.repository_owner }}/anshar
       CONTAINER_REGISTRY_USER: ${{ github.repository_owner }}
       CONTAINER_REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
     steps:
