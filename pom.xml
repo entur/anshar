@@ -39,11 +39,11 @@
         <spring-boot-plugin.version>2.7.10</spring-boot-plugin.version>
         <spring-boot.version>2.7.10</spring-boot.version>
 
-        <camel-version>3.20.2</camel-version>
+        <camel-version>3.20.3</camel-version>
 
         <metrics.version>3.2.3</metrics.version>
         <entur.helpers.version>1.93</entur.helpers.version>
-        <geotools.version>28.2</geotools.version>
+        <geotools.version>29.0</geotools.version>
 
         <log4j2.version>2.20.0</log4j2.version>
     </properties>
@@ -172,7 +172,7 @@
         <dependency>
             <groupId>com.google.cloud</groupId>
             <artifactId>google-cloud-pubsub</artifactId>
-            <version>1.123.5</version>
+            <version>1.123.7</version>
         </dependency>
 
         <dependency>
@@ -230,17 +230,17 @@
         <dependency>
             <groupId>io.confluent</groupId>
             <artifactId>kafka-avro-serializer</artifactId>
-            <version>7.3.2</version>
+            <version>7.3.3</version>
         </dependency>
         <dependency>
             <groupId>io.confluent</groupId>
             <artifactId>kafka-schema-registry-client</artifactId>
-            <version>7.3.2</version>
+            <version>7.3.3</version>
         </dependency>
         <dependency>
             <groupId>io.confluent</groupId>
             <artifactId>kafka-streams-avro-serde</artifactId>
-            <version>7.3.2</version>
+            <version>7.3.3</version>
         </dependency>
 
         <dependency>
