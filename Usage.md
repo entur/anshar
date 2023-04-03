@@ -18,17 +18,13 @@ When the app has started, an admin-gui will be available at http://localhost:801
 
 # Using docker
 
-Build the image :
+An image is build on every push to Entur's master branch.
+
+To run the image:
 
 ```shell
-docker build . -t anshar
-```
-
-Run the image :
-
-```shell
-# With default coniguration
-docker run -p 8012:8012 anshar
+# With default configuration
+docker run -p 8012:8012 ghcr.io/entur/anshar:latest
 # With custom properties. In this example, application.properties' anshar.subscriptions.config.path should be "/subscriptions.yml"
 docker run -p 8012:8012 --mount type=bind,source=/path/to/application.properties,target=/application.properties --mount type=bind,source=/path/to/subscriptions.yml,target=/subscriptions.yml anshar
 ```
