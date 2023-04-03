@@ -509,6 +509,12 @@
                             <password>${env.CONTAINER_REGISTRY_PASSWORD}</password>
                         </auth>
                     </to>
+                    <container>
+                        <!-- Same as EXPOSE, doesn't actually publish the ports but acts as documentation -->
+                        <ports>
+                            <port>8012</port>
+                        </ports>
+                    </container>
                 </configuration>
             </plugin>
 
