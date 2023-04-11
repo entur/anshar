@@ -32,7 +32,6 @@
 
 
     <properties>
-        <java.version>17</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- versions for use in mvn plugins as we cannot inherit them from a BOM -->
