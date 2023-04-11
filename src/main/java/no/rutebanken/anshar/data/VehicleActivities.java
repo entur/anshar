@@ -21,13 +21,11 @@ import no.rutebanken.anshar.data.collections.ExtendedHazelcastService;
 import no.rutebanken.anshar.data.util.TimingTracer;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.subscription.SiriDataType;
-import org.quartz.utils.counter.Counter;
-import org.quartz.utils.counter.CounterImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Component;
 import uk.org.siri.siri21.AbstractItemStructure;
 import uk.org.siri.siri21.CoordinatesStructure;
 import uk.org.siri.siri21.LocationStructure;
@@ -52,9 +50,10 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-@Repository
+@Component
 public class VehicleActivities extends SiriRepository<VehicleActivityStructure> {
     private final Logger logger = LoggerFactory.getLogger(VehicleActivities.class);
 
@@ -306,10 +305,10 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
         Map<SiriObjectStorageKey, VehicleActivityStructure> changes = new HashMap<>();
         Map<SiriObjectStorageKey, String> checksumCacheTmp = new HashMap<>();
 
-        Counter invalidLocationCounter = new CounterImpl(0);
-        Counter notMeaningfulCounter = new CounterImpl(0);
-        Counter outdatedCounter = new CounterImpl(0);
-        Counter notUpdatedCounter = new CounterImpl(0);
+        AtomicInteger invalidLocationCounter = new AtomicInteger(0);
+        AtomicInteger notMeaningfulCounter = new AtomicInteger(0);
+        AtomicInteger outdatedCounter = new AtomicInteger(0);
+        AtomicInteger notUpdatedCounter = new AtomicInteger(0);
 
         vmList.stream()
                 .filter(activity -> activity.getMonitoredVehicleJourney() != null)
@@ -370,7 +369,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
                             changes.put(key, activity);
                             checksumCacheTmp.put(key, currentChecksum);
                         } else {
-                            outdatedCounter.increment();
+                            outdatedCounter.incrementAndGet();
 
                             //Keeping all checksums for at least 5 minutes to avoid stale data
                             checksumCache.set(key, currentChecksum, 5, TimeUnit.MINUTES);
@@ -378,15 +377,15 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
 
                         }
 
-                        if (!isLocationValid(activity)) {invalidLocationCounter.increment();}
+                        if (!isLocationValid(activity)) {invalidLocationCounter.incrementAndGet();}
                         timingTracer.mark("isLocationValid");
 
                         // Skip this check for now
-                        if (!isActivityMeaningful(activity)) {notMeaningfulCounter.increment();}
+                        if (!isActivityMeaningful(activity)) {notMeaningfulCounter.incrementAndGet();}
                         timingTracer.mark("isActivityMeaningful");
 
                     } else {
-                        notUpdatedCounter.increment();
+                        notUpdatedCounter.incrementAndGet();
                     }
 
                     long elapsed = timingTracer.getTotalTime();
@@ -402,9 +401,9 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
         monitoredVehicles.setAll(changes);
         timingTracer.mark("monitoredVehicles.setAll");
 
-        logger.info("Updated {} (of {}) :: Ignored elements - Missing location:{}, Missing values: {}, Expired: {}, Not updated: {}", changes.size(), vmList.size(), invalidLocationCounter.getValue(), notMeaningfulCounter.getValue(), outdatedCounter.getValue(), notUpdatedCounter.getValue());
+        logger.info("Updated {} (of {}) :: Ignored elements - Missing location:{}, Missing values: {}, Expired: {}, Not updated: {}", changes.size(), vmList.size(), invalidLocationCounter.get(), notMeaningfulCounter.get(), outdatedCounter.get(), notUpdatedCounter.get());
 
-        markDataReceived(SiriDataType.VEHICLE_MONITORING, datasetId, vmList.size(), changes.size(), outdatedCounter.getValue(), (invalidLocationCounter.getValue() + notMeaningfulCounter.getValue() + notUpdatedCounter.getValue()));
+        markDataReceived(SiriDataType.VEHICLE_MONITORING, datasetId, vmList.size(), changes.size(), outdatedCounter.get(), (invalidLocationCounter.get() + notMeaningfulCounter.get() + notUpdatedCounter.get()));
 
         timingTracer.mark("markDataReceived");
         markIdsAsUpdated(changes.keySet());

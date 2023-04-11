@@ -23,13 +23,11 @@ import no.rutebanken.anshar.data.util.TimingTracer;
 import no.rutebanken.anshar.metrics.SiriContent;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.subscription.SiriDataType;
-import org.quartz.utils.counter.Counter;
-import org.quartz.utils.counter.CounterImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Component;
 import uk.org.siri.siri21.EstimatedCall;
 import uk.org.siri.siri21.EstimatedVehicleJourney;
 import uk.org.siri.siri21.MessageRefStructure;
@@ -62,7 +60,7 @@ import static no.rutebanken.anshar.routes.siri.transformer.MappingNames.OVERRIDE
 import static no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter.getMappedId;
 import static no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter.getOriginalId;
 
-@Repository
+@Component
 public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney> {
     private final Logger logger = LoggerFactory.getLogger(EstimatedTimetables.class);
 
@@ -642,9 +640,9 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
         Map<SiriObjectStorageKey, ZonedDateTime> idStartTimeMapTmp = new HashMap<>();
         Map<SiriObjectStorageKey, Long> expirationMap = new HashMap<>();
 
-        Counter outdatedCounter = new CounterImpl(0);
-        Counter tooFarAheadCounter = new CounterImpl(0);
-        Counter notUpdatedCounter = new CounterImpl(0);
+        AtomicInteger outdatedCounter = new AtomicInteger(0);
+        AtomicInteger tooFarAheadCounter = new AtomicInteger(0);
+        AtomicInteger notUpdatedCounter = new AtomicInteger(0);
         etList.forEach(et -> {
             TimingTracer timingTracer = new TimingTracer("single-et");
             SiriObjectStorageKey key = createKey(datasetId, et);
@@ -704,7 +702,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                 }
 
             } else {
-                notUpdatedCounter.increment();
+                notUpdatedCounter.incrementAndGet();
             }
 
             long expiration = getExpiration(et);
@@ -712,7 +710,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
 
             if (expiration > hardLimitFutureUpdates) {
                 metrics.registerSiriContent(SiriDataType.ESTIMATED_TIMETABLE, datasetId, null, SiriContent.TOO_FAR_AHEAD);
-                tooFarAheadCounter.increment();
+                tooFarAheadCounter.incrementAndGet();
                 keep = false;
             }
 
@@ -751,7 +749,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                     expirationMap.put(key, expiration);
 
                 } else {
-                    outdatedCounter.increment();
+                    outdatedCounter.incrementAndGet();
                     timingTracer.mark("outdatedCounter.increment");
                 }
 
@@ -763,9 +761,9 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
 
         });
 
-        logger.info("Updated {} (of {}), {} outdated, {} without changes, {} too far ahead.", changes.size(), etList.size(), outdatedCounter.getValue(), notUpdatedCounter.getValue(), tooFarAheadCounter.getValue());
+        logger.info("Updated {} (of {}), {} outdated, {} without changes, {} too far ahead.", changes.size(), etList.size(), outdatedCounter.get(), notUpdatedCounter.get(), tooFarAheadCounter.get());
 
-        markDataReceived(SiriDataType.ESTIMATED_TIMETABLE, datasetId, etList.size(), changes.size(), outdatedCounter.getValue(), notUpdatedCounter.getValue() + tooFarAheadCounter.getValue());
+        markDataReceived(SiriDataType.ESTIMATED_TIMETABLE, datasetId, etList.size(), changes.size(), outdatedCounter.get(), notUpdatedCounter.get() + tooFarAheadCounter.get());
         TimingTracer timingTracer = new TimingTracer("all-et [" + changes.size() + " changes]");
 
         // TTL is set in EntryListener when objects are added to main map

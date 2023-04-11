@@ -21,7 +21,6 @@ import org.apache.camel.InvalidPayloadException;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.support.builder.Namespaces;
-import org.apache.http.HttpHeaders;
 import org.entur.protobuf.mapper.SiriMapper;
 import org.entur.siri21.util.SiriJson;
 import org.entur.siri21.util.SiriXml;
@@ -37,6 +36,7 @@ import uk.org.siri.siri20.VehicleMonitoringDeliveryStructure;
 import uk.org.siri.siri21.Siri;
 
 import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.UnmarshalException;
