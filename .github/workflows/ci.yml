@@ -10,7 +10,7 @@ jobs:
     if: github.repository_owner == 'entur'
     runs-on: ubuntu-latest
     env:
-      CONTAINER_REPO: docker.io/enturas/anshar
+      CONTAINER_REPO: docker.io/entur/anshar
       CONTAINER_REGISTRY_USER: ${{ secrets.DOCKERHUB_LOGIN }}
       CONTAINER_REGISTRY_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
     steps:
