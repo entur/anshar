@@ -15,14 +15,7 @@
 
 package no.rutebanken.anshar.subscription;
 
-import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
-import no.rutebanken.anshar.subscription.helpers.DataNotReceivedAction;
-import no.rutebanken.anshar.subscription.helpers.FilterMapPresets;
-import no.rutebanken.anshar.subscription.helpers.RequestType;
-import no.rutebanken.anshar.subscription.helpers.SubscriptionPreset;
-import org.json.simple.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static no.rutebanken.anshar.routes.outbound.SiriHelper.FALLBACK_SIRI_VERSION;
 
 import java.io.Serializable;
 import java.text.MessageFormat;
@@ -32,7 +25,17 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import javax.annotation.Nonnull;
+import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
+import no.rutebanken.anshar.subscription.helpers.DataNotReceivedAction;
+import no.rutebanken.anshar.subscription.helpers.FilterMapPresets;
+import no.rutebanken.anshar.subscription.helpers.RequestType;
+import no.rutebanken.anshar.subscription.helpers.SubscriptionPreset;
+import org.json.simple.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SubscriptionSetup implements Serializable {
 
@@ -205,8 +208,9 @@ public class SubscriptionSetup implements Serializable {
         return subscriptionId;
     }
 
+    @Nonnull
     public String getVersion() {
-        return version;
+        return Optional.ofNullable(version).orElse(FALLBACK_SIRI_VERSION);
     }
 
     public String getVendor() {

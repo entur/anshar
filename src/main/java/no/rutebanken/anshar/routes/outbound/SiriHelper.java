@@ -56,6 +56,7 @@ import java.util.Set;
 @Component
 public class SiriHelper {
 
+    public static final String FALLBACK_SIRI_VERSION = "2.1";
     private static final Logger logger = LoggerFactory.getLogger(SiriHelper.class);
 
 
