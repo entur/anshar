@@ -7,11 +7,12 @@ on:
 
 jobs:
   build:
+    if: github.repository_owner == 'entur'
     runs-on: ubuntu-latest
     env:
-      CONTAINER_REPO: ghcr.io/${{ github.repository_owner }}/anshar
-      CONTAINER_REGISTRY_USER: ${{ github.repository_owner }}
-      CONTAINER_REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}
+      CONTAINER_REPO: docker.io/entur/anshar
+      CONTAINER_REGISTRY_USER: ${{ secrets.DOCKERHUB_LOGIN }}
+      CONTAINER_REGISTRY_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
     steps:
       - uses: actions/checkout@v3
 
