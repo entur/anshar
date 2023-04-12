@@ -11,6 +11,8 @@ on:
 jobs:
   tests:
     runs-on: ubuntu-latest
+    env:
+      TZ: Europe/Oslo
     steps:
       - uses: actions/checkout@v3
 
@@ -22,7 +24,9 @@ jobs:
           cache: maven
 
       - name: Run tests
-        run: mvn --batch-mode test
+        run: |
+          sudo timedatectl set-timezone "Europe/Oslo"
+          mvn --batch-mode test
 
   image:
     # only build and push the image when it's a commit to master in Entur's repository
