@@ -23,9 +23,10 @@ import org.springframework.stereotype.Component;
 import org.w3c.dom.Node;
 
 import javax.xml.bind.ValidationEvent;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.time.format.DateTimeParseException;
+import java.time.format.ResolverStyle;
 
 import static no.rutebanken.anshar.routes.validation.validators.Constants.ESTIMATED_VEHICLE_JOURNEY;
 
@@ -43,11 +44,11 @@ public class EtFramedVehicleJourneyRefValidator extends CustomValidator {
     private static final String DATA_FRAMEREF_FIELDNAME = "DataFrameRef";
     private String path = ESTIMATED_VEHICLE_JOURNEY + FIELD_DELIMITER + FIELDNAME;
     private static final String PATTERN = "yyyy-MM-dd";
-    private final DateFormat format;
+    private final DateTimeFormatter formatter;
 
     public EtFramedVehicleJourneyRefValidator() {
-        format = new SimpleDateFormat(PATTERN);
-        format.setLenient(false);
+        formatter = new DateTimeFormatterBuilder().appendPattern(PATTERN)
+                .toFormatter().withResolverStyle(ResolverStyle.STRICT);
     }
 
     @Override
@@ -88,20 +89,10 @@ public class EtFramedVehicleJourneyRefValidator extends CustomValidator {
 
     private boolean isValidDate(String date) {
         try {
-            format.parse(date);
-        } catch (ParseException e) {
-            return false;
-        } catch (NumberFormatException e) {
-            // Happens sometimes without actually being wrong...
-            // Return false to flag for manual follow-up
+            formatter.parse(date);
+            return true;
+        } catch (DateTimeParseException e) {
             return false;
         }
-
-        if (date.length() != PATTERN.length()) {
-            // If length does not match, date cannot match pattern
-            return false;
-        }
-
-        return true;
     }
 }
