@@ -2,11 +2,13 @@ package no.rutebanken.anshar.routes.outbound;
 
 import no.rutebanken.anshar.metrics.PrometheusMetricsService;
 import no.rutebanken.anshar.routes.dataformat.SiriDataFormatHelper;
+import org.apache.camel.Configuration;
 import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
 import org.entur.siri.validator.SiriValidator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uk.org.siri.siri21.Siri;
 
@@ -16,6 +18,7 @@ import static no.rutebanken.anshar.routes.HttpParameter.SIRI_VERSION_HEADER_NAME
 import static no.rutebanken.anshar.routes.RestRouteBuilder.downgradeSiriVersion;
 
 @Service
+@Configuration
 public class OutboundSiriDistributionRoute extends RouteBuilder {
 
     @Autowired
@@ -24,14 +27,25 @@ public class OutboundSiriDistributionRoute extends RouteBuilder {
     @Autowired
     private PrometheusMetricsService metrics;
 
+
+    @Value("${anshar.outbound.error.redelivery.delay.millis:1000}")
+    private int redeliveryDelay;
+
+    @Value("${anshar.outbound.error.redelivery.count:2}")
+    private int redeliveryCount;
+
+    @Value("${anshar.outbound.timeout.socket:15000}")
+    private int socketTimeout;
+
+    @Value("${anshar.outbound.timeout.connect:5000}")
+    private int connectTimeout;
+
     @Override
     public void configure() {
 
-        int timeout = 15000;
-
         onException(Exception.class)
-            .maximumRedeliveries(2)
-            .redeliveryDelay(3000) //milliseconds
+            .maximumRedeliveries(redeliveryCount)
+            .redeliveryDelay(redeliveryDelay)
             .logRetryAttempted(true)
             .log("Retry triggered")
         ;
@@ -53,8 +67,8 @@ public class OutboundSiriDistributionRoute extends RouteBuilder {
                         })
                         .marshal(SiriDataFormatHelper.getSiriJaxbDataformat(SiriValidator.Version.VERSION_2_0))
                 .end()
-                .setHeader("httpClient.socketTimeout", constant(timeout))
-                .setHeader("httpClient.connectTimeout", constant(timeout))
+                .setHeader("httpClient.socketTimeout", constant(socketTimeout))
+                .setHeader("httpClient.connectTimeout", constant(connectTimeout))
                 .choice()
                 .when(header("showBody").isEqualTo(true))
                         .to("log:push:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
