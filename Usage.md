@@ -36,7 +36,7 @@ podman run -p 8012:8012 --rm \
   -v `pwd`/src/main/resources/logback.xml:/logback.xml:z \
   -e GOOGLE_APPLICATION_CREDENTIALS=/credentials.json \
   -e JAVA_TOOL_OPTIONS="-Dlogging.config=/logback.xml" \
-  ghcr.io/entur/anshar:latest
+  docker.io/entur/anshar:latest
 ```
 
 # SIRI Subscription
