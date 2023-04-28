@@ -15,10 +15,13 @@
 
 package no.rutebanken.anshar.siri;
 
+import java.util.Map;
+import java.util.Set;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.junit.jupiter.api.Test;
+import uk.org.siri.siri21.OperatorRefStructure;
 import uk.org.siri.siri21.EstimatedTimetableRequestStructure;
 import uk.org.siri.siri21.EstimatedTimetableSubscriptionStructure;
 import uk.org.siri.siri21.Siri;
@@ -101,6 +104,13 @@ public class SiriObjectFactoryTest {
                 SubscriptionSetup.SubscriptionMode.REQUEST_RESPONSE,
                 UUID.randomUUID().toString());
 
+        final String operatorName = "AN_OPERATOR";
+        var operatorRef = new OperatorRefStructure();
+        operatorRef.setValue(operatorName);
+        subscriptionSetup.setFilterMap(
+                Map.of(OperatorRefStructure.class, Set.of(operatorRef))
+        );
+
         Siri sxSubscriptionRequest = SiriObjectFactory.createSubscriptionRequest(subscriptionSetup);
         assertNotNull(sxSubscriptionRequest.getSubscriptionRequest());
 
@@ -125,8 +135,8 @@ public class SiriObjectFactoryTest {
             "Initial terminationtime has not been calculated correctly"
         );
 
-
-
+        var ref = subscription.getSituationExchangeRequest().getOperatorRef().getValue();
+        assertEquals(ref, operatorName);
     }
 
     @Test
