@@ -105,10 +105,8 @@ public class SiriObjectFactoryTest {
                 UUID.randomUUID().toString());
 
         final String operatorName = "AN_OPERATOR";
-        var operatorRef = new OperatorRefStructure();
-        operatorRef.setValue(operatorName);
         subscriptionSetup.setFilterMap(
-                Map.of(OperatorRefStructure.class, Set.of(operatorRef))
+                Map.of(OperatorRefStructure.class, Set.of(operatorName))
         );
 
         Siri sxSubscriptionRequest = SiriObjectFactory.createSubscriptionRequest(subscriptionSetup);
