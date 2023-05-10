@@ -24,7 +24,6 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
-import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executors;
@@ -45,6 +44,10 @@ public class BaneNorIdPlatformUpdaterService {
 
     @Value("${anshar.mapping.update.frequency.min:60}")
     private int updateFrequency = 60;
+
+
+    @Value("${anshar.startup.wait.for.netex.initialization:false}")
+    private boolean delayStartupForInitialization;
 
     @Value("${anshar.startup.load.mapping.data:true}")
     private boolean loadMappingData;
@@ -72,10 +75,14 @@ public class BaneNorIdPlatformUpdaterService {
             logger.info("Loading Station-data disabled.");
             return;
         }
-        updateIdMapping();
+        int initialDelay = 0;
+        if (delayStartupForInitialization) {
+            initialDelay = updateFrequency;
+            updateIdMapping();
+        }
+
         ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 
-        int initialDelay = updateFrequency + new Random().nextInt(10);
         executor.scheduleAtFixedRate(this::updateIdMapping, initialDelay, updateFrequency, TimeUnit.MINUTES);
 
 
