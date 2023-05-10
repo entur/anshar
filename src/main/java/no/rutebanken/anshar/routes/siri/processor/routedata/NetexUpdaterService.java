@@ -58,8 +58,8 @@ public class NetexUpdaterService {
     private boolean delayStartupForInitialization;
 
     //NeTEX-loading is enabled by default
-    @Value("${anshar.startup.load.netex:true}")
-    private boolean loadNetex;
+    @Value("${anshar.startup.load.mapping.data:true}")
+    private boolean loadMappingData;
 
     private ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 
@@ -150,7 +150,7 @@ public class NetexUpdaterService {
 
     @PostConstruct
     synchronized void initializeUpdater() {
-        if (!loadNetex) {
+        if (!loadMappingData) {
             logger.info("Loading NeTEx disabled.");
             return;
         }
