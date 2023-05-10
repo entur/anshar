@@ -46,6 +46,9 @@ public class BaneNorIdPlatformUpdaterService {
     @Value("${anshar.mapping.update.frequency.min:60}")
     private int updateFrequency = 60;
 
+    @Value("${anshar.startup.load.mapping.data:true}")
+    private boolean loadMappingData;
+
     @Autowired
     private StopPlaceRegisterMappingFetcher stopPlaceRegisterMappingFetcher;
 
@@ -65,6 +68,10 @@ public class BaneNorIdPlatformUpdaterService {
 
     @PostConstruct
     private void initialize() {
+        if (!loadMappingData) {
+            logger.info("Loading Station-data disabled.");
+            return;
+        }
         updateIdMapping();
         ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 
@@ -76,13 +83,15 @@ public class BaneNorIdPlatformUpdaterService {
     }
 
     private void updateIdMapping() {
-        try {
-            // re-entrant
-            synchronized (LOCK) {
-                updateStopPlaceMapping();
+        if (loadMappingData) {
+            try {
+                // re-entrant
+                synchronized (LOCK) {
+                    updateStopPlaceMapping();
+                }
+            } catch (Exception e) {
+                logger.warn("Fetching data - caused exception", e);
             }
-        } catch (Exception e) {
-            logger.warn("Fetching data - caused exception", e);
         }
     }
 
