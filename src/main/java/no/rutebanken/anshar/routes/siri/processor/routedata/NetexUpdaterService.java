@@ -22,6 +22,8 @@ import org.rutebanken.netex.model.ServiceAlterationEnumeration;
 import org.rutebanken.netex.model.VehicleModeEnumeration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -43,12 +45,23 @@ import java.util.concurrent.TimeUnit;
 
 @SuppressWarnings({"unchecked", "Duplicates"})
 @Service
+@Configuration
 public class NetexUpdaterService {
 
     private static final Logger logger = LoggerFactory.getLogger(NetexUpdaterService.class);
 
     private static final int UPDATE_FREQUENCY = 6;
     private static final TimeUnit FREQUENCY_TIME_UNIT = TimeUnit.HOURS;
+
+    //Initial NeTEX-loading is async by default
+    @Value("${anshar.startup.wait.for.netex.initialization:false}")
+    private boolean delayStartupForInitialization;
+
+    //NeTEX-loading is enabled by default
+    @Value("${anshar.startup.load.netex:true}")
+    private boolean loadNetex;
+
+    private ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 
     // Kept non-configurable since this whole adapter is a temporary hack - ROR-326/ROR-329
     private static final String[] urls = {
@@ -136,34 +149,51 @@ public class NetexUpdaterService {
     }
 
     @PostConstruct
-    synchronized static void initializeUpdater() {
+    synchronized void initializeUpdater() {
+        if (!loadNetex) {
+            logger.info("Loading NeTEx disabled.");
+            return;
+        }
+
         logger.info("Starting the NeTEx updater service");
-        ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-        executor.scheduleWithFixedDelay(() -> {
-                    long t1 = System.currentTimeMillis();
-                    logger.info("Updating NeTEx-data - start");
+        int initialDelay = 0;
 
-                    String[] paths = new String[urls.length];
+        if (delayStartupForInitialization) {
+            //Initialize data synchronous
+            logger.info("Loading NeTEx before continuing.");
+            initializeNetexData();
+            initialDelay = UPDATE_FREQUENCY;
+        }
 
-                    try {
-                        for (int i = 0; i < urls.length; i++) {
-                            paths[i] = readUrl(urls[i]);
-                            if (paths[i] == null) {
-                                logger.error("Do not update NeTEx data as file could not be downloaded: {}", urls[i]);
-                                return;
-                            }
-                        }
-
-                        update(paths);
-
-                    } finally {
-                        cleanup(paths);
-                    }
-                    logger.info("Updating NeTEx-data - done: {} ms", (System.currentTimeMillis() - t1));
-                },
-                0,
+        executor.scheduleWithFixedDelay(() -> initializeNetexData(),
+                initialDelay,
                 UPDATE_FREQUENCY,
                 FREQUENCY_TIME_UNIT);
+
+    }
+
+    private static void initializeNetexData() {
+        long t1 = System.currentTimeMillis();
+        logger.info("Updating NeTEx-data - start");
+
+        String[] paths = new String[urls.length];
+
+        try {
+            for (int i = 0; i < urls.length; i++) {
+                logger.info("Downloading {}", urls[i]);
+                paths[i] = readUrl(urls[i]);
+                if (paths[i] == null) {
+                    logger.error("File could not be downloaded - retrying: {}", urls[i]);
+                    i--; // trigger retry
+                }
+            }
+
+             update(paths);
+
+        } finally {
+            cleanup(paths);
+        }
+        logger.info("Updating NeTEx-data - done: {} ms", (System.currentTimeMillis() - t1));
     }
 
     private static void cleanup(String... paths) {
@@ -182,6 +212,7 @@ public class NetexUpdaterService {
     }
 
     public static void update(String... paths) {
+        logger.info("Reading {} NeTEx files", paths.length);
         long start = System.currentTimeMillis();
         Map<String, List<StopTime>> tmpTripStops = new HashMap<>();
         Map<String, Set<String>> tmpTrainNumberTrips = new HashMap<>();
@@ -208,7 +239,7 @@ public class NetexUpdaterService {
         locations = tmpLocations;
         modes = tmpModes;
         operatingDayRefs = tmpOperatingDayRefs;
-        logger.info("Read and merged {} NeTEx files in {} ms", paths.length, (System.currentTimeMillis()-start));
+        logger.info("Read and merged {} NeTEx files in {} ms", paths.length, (System.currentTimeMillis()-start));
     }
 
     private static String readUrl(String url) {
@@ -261,7 +292,7 @@ public class NetexUpdaterService {
             Map<String, OperatingDay> operatingDayRefs) {
         try {
 
-            NetexProcessor netexProcessor = new NetexProcessor();
+            NetexParserProcessor netexProcessor = new NetexParserProcessor();
             netexProcessor.loadFiles(new File(path));
             tripStops.putAll(netexProcessor.getTripStops());
             trainNumberTrips.putAll(netexProcessor.getTrainNumberTrips());
