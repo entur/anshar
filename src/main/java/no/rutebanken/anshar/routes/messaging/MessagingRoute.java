@@ -243,7 +243,6 @@ public class MessagingRoute extends RestRouteBuilder {
                     .to("direct:set.mdc.subscriptionId")
                     .choice()
                         .when(readFromPubsub)
-                            .process(p -> System.out.print(""))
                             .log("Processing data from " + pubsubQueueET)
                             .to("direct:decompress.jaxb")
                             .to("direct:process.queue.default.async")
