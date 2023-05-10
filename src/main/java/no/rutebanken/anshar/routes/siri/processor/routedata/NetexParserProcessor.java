@@ -120,7 +120,6 @@ public class NetexParserProcessor {
         NetexEntitiesIndex entitiesIndex = new NetexParser().parse(file.getAbsolutePath());
 
         loadFile(entitiesIndex);
-        System.err.println("Populating trips");
         populateTrips();
     }
 
