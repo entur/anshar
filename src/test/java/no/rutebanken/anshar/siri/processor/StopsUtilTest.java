@@ -57,6 +57,35 @@ public class StopsUtilTest {
     }
 
     @Test
+    public void testInfiniteSpeed() {
+        String fromRef = "NSR:Quay:47719"; // Mento
+        String toRef = "NSR:Quay:44786";   // Risavika utenriksterminal
+
+        BigDecimal fromLon = new BigDecimal(5.584158);
+        BigDecimal fromLat = new BigDecimal(58.917911);
+
+        BigDecimal toLon = new BigDecimal(5.582071);
+        BigDecimal toLat = new BigDecimal(58.921065);
+
+        NetexUpdaterService.locations.put(fromRef,
+                new LocationStructure().withLatitude(fromLat).withLongitude(fromLon)
+        );
+        NetexUpdaterService.locations.put(toRef,
+                new LocationStructure().withLatitude(toLat).withLongitude(toLon)
+        );
+
+        final double distance = StopsUtil.getDistance(fromRef, toRef);
+        assertTrue(((int)distance) == 371); // Verifying approximate distance
+
+
+        // Verifying cornercase when arrival-/departure-times are equal
+        ZonedDateTime now = ZonedDateTime.now();
+        final int speedKph = StopsUtil.calculateSpeedKph(fromRef, toRef, now, now );
+
+        assertEquals(Integer.MAX_VALUE,  speedKph);
+    }
+
+    @Test
     public void testSimpleSpeedCalculation() {
 
         final int tenMetersPerSecond = StopsUtil.calculateSpeedKph(100,
