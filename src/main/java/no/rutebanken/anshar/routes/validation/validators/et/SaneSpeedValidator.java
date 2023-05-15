@@ -162,8 +162,7 @@ public class SaneSpeedValidator extends SiriObjectValidator {
         final ZonedDateTime fromTime = times.getLeft();
         final ZonedDateTime toTime = times.getRight();
 
-        if (fromTime != null && toTime != null &&
-            toTime.isAfter(fromTime)) {
+        if (fromTime != null && toTime != null) {
             isSaneSpeed(estimatedVehicleJourney, fromStop, toStop, fromTime, toTime);
         }
     }
