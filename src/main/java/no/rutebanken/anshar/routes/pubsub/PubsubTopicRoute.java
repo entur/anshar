@@ -1,6 +1,8 @@
 package no.rutebanken.anshar.routes.pubsub;
 
+import no.rutebanken.anshar.routes.avro.AvroConvertorProcessor;
 import org.apache.camel.builder.RouteBuilder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +23,9 @@ public class PubsubTopicRoute extends RouteBuilder {
     @Value("${anshar.outbound.pubsub.topic.enabled}")
     private boolean pushToTopicEnabled;
 
+    @Autowired
+    private AvroConvertorProcessor avroConvertorProcessor;
+
     private AtomicInteger etCounter = new AtomicInteger();
 
     private AtomicInteger vmCounter = new AtomicInteger();
@@ -40,7 +45,7 @@ public class PubsubTopicRoute extends RouteBuilder {
                     .to("xslt-saxon:xsl/split.xsl")
                     .split().tokenizeXML("Siri").streaming()
                     .wireTap("direct:kafka.et.xml")         // Send to Kafka as XML
-                    .wireTap("direct:publish.et.avro")        // Publish to kafka as Avro
+                    .wireTap("direct:publish.et.avro")        // Publish as Avro
                     .to("direct:map.jaxb.to.protobuf")
                     .wireTap("direct:log.pubsub.et.traffic")
                     .to(etTopic)                                // Send to Pub/Sub as Protobuf
@@ -55,7 +60,7 @@ public class PubsubTopicRoute extends RouteBuilder {
                     .to("xslt-saxon:xsl/split.xsl")
                     .split().tokenizeXML("Siri").streaming()
                     .wireTap("direct:kafka.vm.xml")// Send to Kafka as XML
-                    .wireTap("direct:publish.vm.avro")// Publish to kafka as Avro
+                    .wireTap("direct:publish.vm.avro")// Publish as Avro
                     .to("direct:map.jaxb.to.protobuf")
                     .wireTap("direct:log.pubsub.vm.traffic")
                     .to(vmTopic) // Send to Pub/Sub as Protobuf
@@ -70,10 +75,28 @@ public class PubsubTopicRoute extends RouteBuilder {
                     .to("xslt-saxon:xsl/split.xsl")
                     .split().tokenizeXML("Siri").streaming()
                     .wireTap("direct:kafka.sx.xml")// Send to Kafka as XML
-                    .wireTap("direct:publish.sx.avro")// Publish to kafka as Avro
+                    .wireTap("direct:publish.sx.avro")// Publish as Avro
                     .to("direct:map.jaxb.to.protobuf")
                     .wireTap("direct:log.pubsub.sx.traffic")
                     .to(sxTopic) // Send to Pub/Sub as Protobuf
+            ;
+
+            from("direct:publish.et.avro")
+                    .process(avroConvertorProcessor)
+                    .wireTap("direct:publish.et.avro.kafka")
+                    .wireTap("direct:publish.et.avro.pubsub")
+            ;
+
+            from("direct:publish.vm.avro")
+                    .process(avroConvertorProcessor)
+                    .wireTap("direct:publish.vm.avro.kafka")
+                    .wireTap("direct:publish.vm.avro.pubsub")
+            ;
+
+            from("direct:publish.sx.avro")
+                    .process(avroConvertorProcessor)
+                    .wireTap("direct:publish.sx.avro.kafka")
+                    .wireTap("direct:publish.sx.avro.pubsub")
             ;
 
             /**

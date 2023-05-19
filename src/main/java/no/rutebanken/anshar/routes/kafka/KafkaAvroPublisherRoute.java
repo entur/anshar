@@ -11,9 +11,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Component
 public class KafkaAvroPublisherRoute extends RouteBuilder {
 
-    private static final int LOG_INTERVAL_ET = 5000;
-    private static final int LOG_INTERVAL_VM = 5000;
-    private static final int LOG_INTERVAL_SX = 100;
     private final AtomicInteger etIgnoredCounter = new AtomicInteger();
     private final AtomicInteger vmIgnoredCounter = new AtomicInteger();
     private final AtomicInteger sxIgnoredCounter = new AtomicInteger();
@@ -38,22 +35,18 @@ public class KafkaAvroPublisherRoute extends RouteBuilder {
     @Autowired
     PrometheusMetricsService metricsService;
 
-    @Autowired
-    private KafkaConvertorProcessor kafkaConvertorProcessor;
-
     @Override
     public void configure() throws Exception {
 
         if (publishEtAvroToKafkaEnabled) {
             log.info("Publishing Avro-ET to kafka-topic: {}", kafkaEtAvroTopic);
-            from("direct:publish.et.avro")
-                    .process(kafkaConvertorProcessor)
+            from("direct:publish.et.avro.kafka")
                     .to("kafka:" + kafkaEtAvroTopic)
                     .bean(metricsService, "registerAckedKafkaRecord(" + kafkaEtAvroTopic + ")")
-                    .routeId("anshar.kafka.et.producer.avro");
+                    .routeId("anshar.kafka.et.producer.avro.kafka");
         } else {
             log.info("Publish Avro-ET to kafka disabled");
-            from("direct:publish.et.avro")
+            from("direct:publish.et.avro.kafka")
                     .process(p -> {
                         if (etIgnoredCounter.incrementAndGet() % 1000 == 0) {
                             p.getMessage().setHeader("counter", etIgnoredCounter.get());
@@ -65,19 +58,18 @@ public class KafkaAvroPublisherRoute extends RouteBuilder {
                         .log("Ignore publishing ET to Kafka - counter: ${header.counter}")
                     .endChoice()
                     .end()
-                .routeId("anshar.kafka.et.producer.avro");
+                .routeId("anshar.kafka.et.producer.avro.kafka");
         }
 
         if (publishVmAvroToKafkaEnabled) {
             log.info("Publishing Avro-VM to kafka-topic: {}", kafkaVmAvroTopic);
-            from("direct:publish.vm.avro")
-                    .process(kafkaConvertorProcessor)
+            from("direct:publish.vm.avro.kafka")
                     .to("kafka:" + kafkaVmAvroTopic)
                     .bean(metricsService, "registerAckedKafkaRecord(" + kafkaVmAvroTopic + ")")
-                    .routeId("anshar.kafka.vm.producer.avro");
+                    .routeId("anshar.kafka.vm.producer.avro.kafka");
         } else {
             log.info("Publish Avro-VM to kafka disabled");
-            from("direct:publish.vm.avro")
+            from("direct:publish.vm.avro.kafka")
                     .process(p -> {
                         if (vmIgnoredCounter.incrementAndGet() % 1000 == 0) {
                             p.getMessage().setHeader("counter", vmIgnoredCounter.get());
@@ -89,19 +81,18 @@ public class KafkaAvroPublisherRoute extends RouteBuilder {
                         .log("Ignore publishing VM to Kafka - counter: ${header.counter}")
                     .endChoice()
                     .end()
-                .routeId("anshar.kafka.vm.producer.avro");
+                .routeId("anshar.kafka.vm.producer.avro.kafka");
         }
 
         if (publishSxAvroToKafkaEnabled) {
             log.info("Publishing Avro-SX to kafka-topic: {}", kafkaSxAvroTopic);
-            from("direct:publish.sx.avro")
-                    .process(kafkaConvertorProcessor)
+            from("direct:publish.sx.avro.kafka")
                     .to("kafka:" + kafkaSxAvroTopic)
                     .bean(metricsService, "registerAckedKafkaRecord(" + kafkaSxAvroTopic + ")")
-                    .routeId("anshar.kafka.sx.producer.avro");
+                    .routeId("anshar.kafka.sx.producer.avro.kafka");
         } else {
             log.info("Publish Avro-SX to kafka disabled");
-            from("direct:publish.sx.avro")
+            from("direct:publish.sx.avro.kafka")
                     .process(p -> {
                         if (sxIgnoredCounter.incrementAndGet() % 1000 == 0) {
                             p.getMessage().setHeader("counter", sxIgnoredCounter.get());
@@ -113,7 +104,7 @@ public class KafkaAvroPublisherRoute extends RouteBuilder {
                     .log("Ignore publishing SX to Kafka - counter: ${header.counter}")
                     .endChoice()
                     .end()
-                .routeId("anshar.kafka.sx.producer.avro");
+                .routeId("anshar.kafka.sx.producer.avro.kafka");
         }
     }
 }

@@ -15,8 +15,16 @@
 
 package no.rutebanken.anshar.subscription;
 
-import static no.rutebanken.anshar.routes.outbound.SiriHelper.FALLBACK_SIRI_VERSION;
+import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
+import no.rutebanken.anshar.subscription.helpers.DataNotReceivedAction;
+import no.rutebanken.anshar.subscription.helpers.FilterMapPresets;
+import no.rutebanken.anshar.subscription.helpers.RequestType;
+import no.rutebanken.anshar.subscription.helpers.SubscriptionPreset;
+import org.json.simple.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import java.io.Serializable;
 import java.text.MessageFormat;
 import java.time.Duration;
@@ -27,15 +35,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import javax.annotation.Nonnull;
-import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
-import no.rutebanken.anshar.subscription.helpers.DataNotReceivedAction;
-import no.rutebanken.anshar.subscription.helpers.FilterMapPresets;
-import no.rutebanken.anshar.subscription.helpers.RequestType;
-import no.rutebanken.anshar.subscription.helpers.SubscriptionPreset;
-import org.json.simple.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import static no.rutebanken.anshar.routes.outbound.SiriHelper.FALLBACK_SIRI_VERSION;
 
 public class SubscriptionSetup implements Serializable {
 
@@ -440,7 +441,7 @@ public class SubscriptionSetup implements Serializable {
 
     public enum ServiceType {SOAP, REST}
 
-    public enum SubscriptionMode {SUBSCRIBE, REQUEST_RESPONSE, POLLING_FETCHED_DELIVERY, FETCHED_DELIVERY, LITE, WEBSOCKET, BIG_DATA_EXPORT, VM_POSITION_FORWARDING}
+    public enum SubscriptionMode {SUBSCRIBE, REQUEST_RESPONSE, POLLING_FETCHED_DELIVERY, FETCHED_DELIVERY, LITE, WEBSOCKET, BIG_DATA_EXPORT, VM_POSITION_FORWARDING, AVRO_PUBSUB, KAFKA_PUBSUB}
 
     public void setIdMappingPrefixes(List<String> idMappingPrefixes) {
         this.idMappingPrefixes = idMappingPrefixes;

@@ -1,4 +1,4 @@
-package no.rutebanken.anshar.routes.kafka;
+package no.rutebanken.anshar.routes.avro;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.Message;
@@ -23,7 +23,7 @@ import java.util.Map;
 import static no.rutebanken.anshar.routes.kafka.KafkaConfig.CODESPACE_ID_KAFKA_HEADER_NAME;
 
 @Component
-public class KafkaConvertorProcessor implements Processor {
+public class AvroConvertorProcessor implements Processor {
 
     private static final String HEADER_LINE_REF = "lineRef";
 

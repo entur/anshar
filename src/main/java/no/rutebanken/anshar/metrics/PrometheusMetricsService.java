@@ -44,6 +44,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static no.rutebanken.anshar.subscription.SubscriptionSetup.SubscriptionMode.AVRO_PUBSUB;
+
 @Component
 public class PrometheusMetricsService extends PrometheusMeterRegistry {
 
@@ -142,6 +144,10 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
         counterTags.add(new ImmutableTag(KAFKA_STATUS_TAG, status.name()));
 
         counter(KAFKA_COUNTER_NAME, counterTags).increment();
+    }
+
+    public void registerAvroPubsubRecord(SiriDataType dataType) {
+        countOutgoingData(dataType, AVRO_PUBSUB, 1);
     }
 
     public void countOutgoingData(Siri siri, SubscriptionSetup.SubscriptionMode mode) {
