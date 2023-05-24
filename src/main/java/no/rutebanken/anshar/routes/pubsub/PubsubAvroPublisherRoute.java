@@ -2,6 +2,9 @@ package no.rutebanken.anshar.routes.pubsub;
 
 import no.rutebanken.anshar.metrics.PrometheusMetricsService;
 import org.apache.camel.builder.RouteBuilder;
+import org.entur.avro.realtime.siri.model.EstimatedVehicleJourneyRecord;
+import org.entur.avro.realtime.siri.model.PtSituationElementRecord;
+import org.entur.avro.realtime.siri.model.VehicleActivityRecord;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -30,8 +33,6 @@ public class PubsubAvroPublisherRoute extends RouteBuilder {
     @Value("${anshar.pubsub.avro.sx.topicname:}")
     private String pubsubSxAvroTopic;
 
-
-
     @Autowired
     PrometheusMetricsService metricsService;
 
@@ -43,6 +44,10 @@ public class PubsubAvroPublisherRoute extends RouteBuilder {
             log.info("Publishing Avro-ET to pubsub-topic: {}", pubsubEtAvroTopic);
             from("direct:publish.et.avro.pubsub")
                     .removeHeaders("*")
+                    .process(p -> {
+                        EstimatedVehicleJourneyRecord body = p.getMessage().getBody(EstimatedVehicleJourneyRecord.class);
+                        p.getMessage().setBody(body.toByteBuffer().array());
+                    })
                     .to(pubsubEtAvroTopic)
                     .bean(metricsService, "registerAvroPubsubRecord(ESTIMATED_TIMETABLE)")
                     .routeId("anshar.pubsub.et.producer.avro");
@@ -67,6 +72,10 @@ public class PubsubAvroPublisherRoute extends RouteBuilder {
             log.info("Publishing Avro-VM to pubsub-topic: {}", pubsubVmAvroTopic);
             from("direct:publish.vm.avro.pubsub")
                     .removeHeaders("*")
+                    .process(p -> {
+                        VehicleActivityRecord body = p.getMessage().getBody(VehicleActivityRecord.class);
+                        p.getMessage().setBody(body.toByteBuffer().array() );
+                    })
                     .to(pubsubVmAvroTopic)
                     .bean(metricsService, "registerAvroPubsubRecord(VEHICLE_MONITORING)")
                     .routeId("anshar.pubsub.vm.producer.avro.pubsub");
@@ -91,6 +100,10 @@ public class PubsubAvroPublisherRoute extends RouteBuilder {
             log.info("Publishing Avro-SX to pubsub-topic: {}", pubsubSxAvroTopic);
             from("direct:publish.sx.avro.pubsub")
                     .removeHeaders("*")
+                    .process(p -> {
+                        PtSituationElementRecord body = p.getMessage().getBody(PtSituationElementRecord.class);
+                        p.getMessage().setBody(body.toByteBuffer().array());
+                    })
                     .to(pubsubSxAvroTopic)
                     .bean(metricsService, "registerAvroPubsubRecord(SITUATION_EXCHANGE)")
                     .routeId("anshar.pubsub.sx.producer.avro.pubsub");
