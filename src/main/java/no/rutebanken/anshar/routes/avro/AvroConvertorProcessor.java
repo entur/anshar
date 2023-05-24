@@ -98,7 +98,7 @@ public class AvroConvertorProcessor implements Processor {
 
 
     private String resolveTripId(EstimatedVehicleJourneyRecord record) {
-        String tripId = null;
+        String tripId = "";
         if (record.getFramedVehicleJourneyRef() != null) { // ServiceJourneyId + date
             String dataFrameRef = (String) record.getFramedVehicleJourneyRef().getDataFrameRef();
             String serviceJourneyId = (String) record.getFramedVehicleJourneyRef().getDatedVehicleJourneyRef();
@@ -112,7 +112,7 @@ public class AvroConvertorProcessor implements Processor {
     }
 
     private String resolveTripId(VehicleActivityRecord record) {
-        String tripId = null;
+        String tripId = "";
         MonitoredVehicleJourneyRecord monitoredVehicleJourney = record.getMonitoredVehicleJourney();
         if (monitoredVehicleJourney != null) {
             if (monitoredVehicleJourney.getFramedVehicleJourneyRef() != null) {
