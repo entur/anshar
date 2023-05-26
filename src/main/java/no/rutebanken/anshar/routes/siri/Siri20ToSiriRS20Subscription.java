@@ -64,6 +64,8 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
             oauthHeaders.put(OAuthConfigElement.GRANT_TYPE, subscriptionSetup.getOauth2Config().get(OAuthConfigElement.GRANT_TYPE));
             oauthHeaders.put(OAuthConfigElement.SERVER, subscriptionSetup.getOauth2Config().get(OAuthConfigElement.SERVER));
             oauthHeaders.put(OAuthConfigElement.AUDIENCE, subscriptionSetup.getOauth2Config().get(OAuthConfigElement.AUDIENCE));
+            oauthHeaders.put(OAuthConfigElement.SCOPE, subscriptionSetup.getOauth2Config().get(OAuthConfigElement.SCOPE));
+            oauthHeaders.put(OAuthConfigElement.CONTENT_TYPE, subscriptionSetup.getOauth2Config().get(OAuthConfigElement.CONTENT_TYPE));
         }
 
         //Start subscription
@@ -75,6 +77,8 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
                 exchange.getMessage().setHeader("oauth-grant-type", oauthHeaders.get(OAuthConfigElement.GRANT_TYPE));
                 exchange.getMessage().setHeader("oauth-server", oauthHeaders.get(OAuthConfigElement.SERVER));
                 exchange.getMessage().setHeader("oauth-audience", oauthHeaders.get(OAuthConfigElement.AUDIENCE));
+                exchange.getMessage().setHeader("oauth-scope", oauthHeaders.get(OAuthConfigElement.SCOPE));
+                exchange.getMessage().setHeader("oauth-contentType", oauthHeaders.get(OAuthConfigElement.CONTENT_TYPE));
             }
         };
 

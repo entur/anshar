@@ -13,11 +13,21 @@ public class OAuthAuthenticationRoute extends RouteBuilder {
     public void configure() throws Exception {
 
         from("direct:oauth2.authorize")
-                .choice() .when(header("oauth-server").isNotNull())
+                .choice()
+                .when(header("oauth-server").isNotNull())
                     .setHeader("CamelHttpMethod").simple("POST")
-                    .setHeader(Exchange.CONTENT_TYPE).simple(MediaType.APPLICATION_JSON)
-                    .setBody()
-                    .simple("{\"grant_type\": \"${header.oauth-grant-type}\", \"client_id\": \"${header.oauth-client-id}\", \"client_secret\": \"${header.oauth-client-secret}\", \"audience\": \"${header.oauth-audience}\"}")
+                    .choice()
+                    .when(header("oauth-contentType").isEqualTo(simple(MediaType.APPLICATION_FORM_URLENCODED)))
+                        .setHeader(Exchange.CONTENT_TYPE, constant(MediaType.APPLICATION_FORM_URLENCODED))
+                        .setBody(
+                                simple("grant_type=${header.oauth-grant-type}&client_id=${header.oauth-client-id}&client_secret=${header.oauth-client-secret}&scope=${header.oauth-scope}&audience=${header.oauth-audience}")
+                        )
+                    .otherwise()
+                        .setHeader(Exchange.CONTENT_TYPE).simple(MediaType.APPLICATION_JSON)
+                        .setBody(
+                            simple("{\"grant_type\": \"${header.oauth-grant-type}\", \"client_id\": \"${header.oauth-client-id}\", \"client_secret\": \"${header.oauth-client-secret}\", \"audience\": \"${header.oauth-audience}\"}")
+                        )
+                    .endChoice()
                     .toD("${header.oauth-server}")
                     .unmarshal().json(JsonLibrary.Jackson, ResponseToken.class)
                     .choice()
