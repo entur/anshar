@@ -78,7 +78,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <#list type.subscriptions?sort_by("vendor") as item>
+                    <#list type.subscriptions?sort_by("name") as item>
                         <tr data-toggle="collapse" data-target="#accordion${type?counter}-${item?counter}" style="cursor: pointer" class="clickable ${item.healthy???then(item.healthy?then("success","danger"), "warning")}">
                             <th style="vertical-align: middle">${item?counter}</th>
                             <td align="center" style="vertical-align: middle; font-size: larger">
