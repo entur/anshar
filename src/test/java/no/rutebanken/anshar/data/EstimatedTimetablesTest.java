@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static no.rutebanken.anshar.helpers.SleepUtil.sleep;
+import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -556,6 +557,53 @@ public class EstimatedTimetablesTest extends SpringBootBaseTest {
 
     }
 
+    @Test
+    public void testSetDefaultRecordedAtTime() {
+
+        String lineRefValue = "TST:Line:RecordedAtTime";
+        EstimatedVehicleJourney estimatedVehicleJourney = createEstimatedVehicleJourney(lineRefValue, "1234-RecordedAtTime", 1, 20, ZonedDateTime.now().plusMinutes(2), true);
+        estimatedVehicleJourney.setRecordedAtTime(null);
+        assertNull(estimatedVehicleJourney.getRecordedAtTime());
+        estimatedTimetables.add("RAT", estimatedVehicleJourney);
+
+        estimatedTimetables.commitChanges();
+
+        Collection<EstimatedVehicleJourney> estimatedVehicleJourneys = estimatedTimetables.getAll("RAT");
+        boolean verifiedValue = false;
+        for (EstimatedVehicleJourney vehicleJourney : estimatedVehicleJourneys) {
+            if (vehicleJourney.getLineRef().getValue().equals(lineRefValue)) {
+                assertNotNull(estimatedVehicleJourney.getRecordedAtTime());
+                verifiedValue = true;
+            }
+        }
+        assertTrue(verifiedValue);
+    }
+
+
+    @Test
+    public void testDoNotSetDefaultRecordedAtTimeIfAlreadySet() {
+
+        String lineRefValue = "TST:Line:RecordedAtTime";
+        ZonedDateTime recordedAtTime = ZonedDateTime.now().minusSeconds(10);
+
+        EstimatedVehicleJourney estimatedVehicleJourney = createEstimatedVehicleJourney(lineRefValue, "1234-RecordedAtTime", 1, 20, ZonedDateTime.now().plusMinutes(2), true);
+        estimatedVehicleJourney.setRecordedAtTime(recordedAtTime);
+        assertNotNull(estimatedVehicleJourney.getRecordedAtTime());
+        estimatedTimetables.add("RAT", estimatedVehicleJourney);
+
+        estimatedTimetables.commitChanges();
+
+        Collection<EstimatedVehicleJourney> estimatedVehicleJourneys = estimatedTimetables.getAll("RAT");
+        boolean verifiedValue = false;
+        for (EstimatedVehicleJourney vehicleJourney : estimatedVehicleJourneys) {
+            if (vehicleJourney.getLineRef().getValue().equals(lineRefValue)) {
+                assertNotNull(estimatedVehicleJourney.getRecordedAtTime());
+                assertEquals(recordedAtTime, estimatedVehicleJourney.getRecordedAtTime());
+                verifiedValue = true;
+            }
+        }
+        assertTrue(verifiedValue);
+    }
 
 
     private void assertExcludedId(String excludedDatasetId) {

@@ -650,7 +650,9 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
             timingTracer.mark("createKey");
 
             String currentChecksum = null;
-            ZonedDateTime recordedAtTime = et.getRecordedAtTime();
+
+            // Using "now" as default recordedAtTime
+            ZonedDateTime recordedAtTime = et.getRecordedAtTime() != null ? et.getRecordedAtTime(): ZonedDateTime.now();
             try {
                 // Calculate checksum without "RecordedTime" - thus ignoring "fake" updates
                 et.setRecordedAtTime(null);
