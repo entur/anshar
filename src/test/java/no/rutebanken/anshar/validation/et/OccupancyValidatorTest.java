@@ -39,7 +39,7 @@ public class OccupancyValidatorTest extends CustomValidatorTest {
         assertNull(validator.isValid(createXmlNode(xml)), "Valid " + fieldName + " flagged as invalid");
     }
     @Test
-    public void testOccupancySeatsvaiable() throws Exception{
+    public void testOccupancySeatsAvailable() throws Exception{
         String xml = createXml(fieldName, "seatsAvailable");
 
         assertNull(validator.isValid(createXmlNode(xml)), "Valid " + fieldName + " flagged as invalid");
@@ -47,6 +47,25 @@ public class OccupancyValidatorTest extends CustomValidatorTest {
     @Test
     public void testOccupancyStandingAvailable() throws Exception{
         String xml = createXml(fieldName, "standingAvailable");
+
+        assertNull(validator.isValid(createXmlNode(xml)), "Valid " + fieldName + " flagged as invalid");
+    }
+    @Test
+    public void testOccupancyManySeatsAvailable() throws Exception{
+        String xml = createXml(fieldName, "manySeatsAvailable");
+
+        assertNull(validator.isValid(createXmlNode(xml)), "Valid " + fieldName + " flagged as invalid");
+    }
+    @Test
+    public void testOccupancyNotAcceptingPassengers() throws Exception{
+        String xml = createXml(fieldName, "notAcceptingPassengers");
+
+        assertNull(validator.isValid(createXmlNode(xml)), "Valid " + fieldName + " flagged as invalid");
+    }
+
+    @Test
+    public void testOccupancyUnknown() throws Exception{
+        String xml = createXml(fieldName, "unknown");
 
         assertNull(validator.isValid(createXmlNode(xml)), "Valid " + fieldName + " flagged as invalid");
     }
