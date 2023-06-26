@@ -740,8 +740,12 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                         }
                     }
 
-                    if (et.isMonitored() != null && !et.isMonitored() &&
-                            existing.isMonitored() != null && existing.isMonitored()) {
+                    if (existing != null &&
+                            (
+                                et.isMonitored() != null && !et.isMonitored() &&
+                                    existing.isMonitored() != null && existing.isMonitored()
+                            )
+                    ) {
                         //Previously had monitored=true - keep monitored state to keep
                         metrics.registerDataMapping(SiriDataType.ESTIMATED_TIMETABLE, datasetId, OVERRIDE_MONITORED_NO_LONGER_TRUE, 1);
                         et.setMonitored(true);
