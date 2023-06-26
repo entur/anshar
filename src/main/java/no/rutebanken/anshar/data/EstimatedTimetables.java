@@ -57,6 +57,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static no.rutebanken.anshar.routes.siri.transformer.MappingNames.OVERRIDE_MONITORED_FALSE;
+import static no.rutebanken.anshar.routes.siri.transformer.MappingNames.OVERRIDE_MONITORED_NO_LONGER_TRUE;
 import static no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter.getMappedId;
 import static no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter.getOriginalId;
 
@@ -737,6 +738,13 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                             }
                             et.setMonitored(true);
                         }
+                    }
+
+                    if (et.isMonitored() != null && !et.isMonitored() &&
+                            existing.isMonitored() != null && existing.isMonitored()) {
+                        //Previously had monitored=true - keep monitored state to keep
+                        metrics.registerDataMapping(SiriDataType.ESTIMATED_TIMETABLE, datasetId, OVERRIDE_MONITORED_NO_LONGER_TRUE, 1);
+                        et.setMonitored(true);
                     }
 
                     changes.put(key, et);
