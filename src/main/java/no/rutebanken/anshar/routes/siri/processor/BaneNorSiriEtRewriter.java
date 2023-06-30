@@ -61,7 +61,7 @@ import static no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapte
 import static no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter.getOriginalId;
 
 /**
- * Rewrites the SIRI ET-feed from BaneNOR to match the planned routes received from NSB
+ * Rewrites the SIRI ET-feed from BaneNOR to match the planned routes received from NSB/VY
  *
  */
 public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor {
@@ -72,7 +72,7 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
      * List of provided stops without actual realtime-data.
      * Reported platform for these stops will be overwritten by planned platform from NeTEx-data
      */
-    private static final transient List<String> foreignStops = Arrays.asList(
+    private static final List<String> foreignStops = Arrays.asList(
                                                                         "GTB",  // Gøteborg,
                                                                         "TRL",  // Trollhættan
                                                                         "ED",   // Ed
@@ -91,8 +91,6 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
 
     private transient KryoSerializer kryoSerializer;
 
-    private Set<String> linesToIgnore = Set.of("VYG:Line:F4");
-
     public BaneNorSiriEtRewriter(String datasetId) {
         this.datasetId = datasetId;
     }
@@ -104,6 +102,8 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
 
     @Override
     public void process(Siri siri) {
+        Set<String> linesToIgnore = Set.of("VYG:Line:F4");
+
         long startTime = System.currentTimeMillis();
         int previousSize = 0;
         int newSize = 0;
