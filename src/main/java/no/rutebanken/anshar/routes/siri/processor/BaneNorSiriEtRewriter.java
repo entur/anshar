@@ -91,6 +91,8 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
 
     private transient KryoSerializer kryoSerializer;
 
+    private Set<String> linesToIgnore = Set.of("VYG:Line:F4");
+
     public BaneNorSiriEtRewriter(String datasetId) {
         this.datasetId = datasetId;
     }
@@ -126,6 +128,13 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
                         Map<String, List<EstimatedVehicleJourney>> restructuredJourneyList = new HashMap<>();
                         Map<String, List<EstimatedVehicleJourney>> extraJourneyList = new HashMap<>();
                         Map<String, EstimatedVehicleJourney> populateMissingStopsJourneyList = new HashMap<>();
+
+                        if (!linesToIgnore.isEmpty()) {
+                            int sizeBefore = estimatedVehicleJourneies.size();
+                            if (estimatedVehicleJourneies.removeIf(et -> linesToIgnore.contains(et.getLineRef().getValue()))) {
+                                logger.warn("Ignored {} updates from lines: {}", (sizeBefore - estimatedVehicleJourneies.size()), linesToIgnore);
+                            }
+                        }
 
                         for (EstimatedVehicleJourney estimatedVehicleJourney : estimatedVehicleJourneies) {
 
