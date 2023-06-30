@@ -102,7 +102,7 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
 
     @Override
     public void process(Siri siri) {
-        Set<String> linesToIgnore = Set.of("VYG:Line:F4");
+        Set<String> linesToIgnore = Set.of("VYG:Line:F4", "VYG:Line:41");
 
         long startTime = System.currentTimeMillis();
         int previousSize = 0;
