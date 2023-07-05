@@ -72,20 +72,37 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
      * List of provided stops without actual realtime-data.
      * Reported platform for these stops will be overwritten by planned platform from NeTEx-data
      */
-    private static final List<String> foreignStops = Arrays.asList(
+    static final List<String> foreignStops = Arrays.asList(
                                                                         "GTB",  // Gøteborg,
                                                                         "TRL",  // Trollhættan
                                                                         "ED",   // Ed
                                                                         "CG",   // Charlottenberg
                                                                         "STR",  // Storlien
                                                                         "ØXN"); // Øxnered
-    private static final Map<String, String> trainIdMapping = Map.of(
-                                                                    "110" , "390",
-                                                                    "114" , "392",
-                                                                    "118" , "394",
-                                                                    "126" , "396",
-                                                                    "134" , "398"
-                                                                );
+    /*
+      KEY: trainNumber to ignore
+      VALUE: trainNumber to keep
+
+      Train defined by KEY will be added to the end of train defined by VALUE
+     */
+    private static final Map<String, String> trainIdMapping = Map.ofEntries(
+                                                                Map.entry("110" , "390"),
+                                                                Map.entry("114" , "392"),
+                                                                Map.entry("118" , "394"),
+                                                                Map.entry("126" , "396"),
+                                                                Map.entry("134" , "398"),
+                                                                    // Hack for reverse direction
+                                                                Map.entry("391", "103"),
+                                                                Map.entry("393", "107"),
+                                                                Map.entry("395", "111"),
+                                                                Map.entry("397", "119"),
+                                                                Map.entry("399", "127")
+
+                                                                    // Hack for specific split trains
+//                                                                Map.entry("803", "300"),
+//                                                                Map.entry("341", "838")
+
+            );
 
     private String datasetId;
 
