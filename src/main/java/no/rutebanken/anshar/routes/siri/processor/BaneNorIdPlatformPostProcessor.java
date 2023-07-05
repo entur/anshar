@@ -33,6 +33,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static no.rutebanken.anshar.routes.siri.processor.BaneNorSiriEtRewriter.foreignStops;
 import static no.rutebanken.anshar.routes.siri.transformer.MappingNames.STOP_AND_PLATFORM_TO_NSR;
 
 public class BaneNorIdPlatformPostProcessor extends ValueAdapter implements PostProcessor {
@@ -57,6 +58,8 @@ public class BaneNorIdPlatformPostProcessor extends ValueAdapter implements Post
             platform = arrivalPlatformName.getValue();
         } else if (departurePlatformName != null) {
             platform = departurePlatformName.getValue();
+        } else if (foreignStops.contains(stopPointRefValue)){
+            platform = "1";
         }
 
         if (stopPlaceService == null) {
