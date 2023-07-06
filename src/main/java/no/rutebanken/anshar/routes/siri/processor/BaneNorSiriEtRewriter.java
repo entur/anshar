@@ -83,25 +83,29 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
       KEY: trainNumber to ignore
       VALUE: trainNumber to keep
 
-      Train defined by KEY will be added to the end of train defined by VALUE
+      Train defined by KEY will be added to the END of train defined by VALUE
      */
-    private static final Map<String, String> trainIdMapping = Map.ofEntries(
+    private static final Map<String, String> trainIdMappingPostfixed = Map.ofEntries(
                                                                 Map.entry("110" , "390"),
                                                                 Map.entry("114" , "392"),
                                                                 Map.entry("118" , "394"),
                                                                 Map.entry("126" , "396"),
-                                                                Map.entry("134" , "398"),
+                                                                Map.entry("134" , "398")
+    );
+
+    /*
+     KEY: trainNumber to ignore
+     VALUE: trainNumber to keep
+
+     Train defined by KEY will be added to the START of train defined by VALUE
+    */
+    private static final Map<String, String> trainIdMappingPrefixed = Map.ofEntries(
                                                                     // Hack for reverse direction
                                                                 Map.entry("391", "103"),
                                                                 Map.entry("393", "107"),
                                                                 Map.entry("395", "111"),
                                                                 Map.entry("397", "119"),
                                                                 Map.entry("399", "127")
-
-                                                                    // Hack for specific split trains
-//                                                                Map.entry("803", "300"),
-//                                                                Map.entry("341", "838")
-
             );
 
     private String datasetId;
@@ -144,7 +148,8 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
 
                         Map<String, List<EstimatedVehicleJourney>> restructuredJourneyList = new HashMap<>();
                         Map<String, List<EstimatedVehicleJourney>> extraJourneyList = new HashMap<>();
-                        Map<String, EstimatedVehicleJourney> populateMissingStopsJourneyList = new HashMap<>();
+                        Map<String, EstimatedVehicleJourney> populateMissingStopsInStartOfJourneyList = new HashMap<>();
+                        Map<String, EstimatedVehicleJourney> populateMissingStopsInEndOfJourneyList = new HashMap<>();
 
                         if (!linesToIgnore.isEmpty()) {
                             int sizeBefore = estimatedVehicleJourneies.size();
@@ -160,16 +165,28 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
                                 boolean shouldBeIgnored = false;
 
                                 // "Temporary" hack to replace trainNumber when Swedish trainNumber is used in Norwegian plan-data
-                                if (trainIdMapping.containsKey(etTrainNumber)) {
-                                    etTrainNumber = trainIdMapping.get(etTrainNumber);
+                                if (trainIdMappingPostfixed.containsKey(etTrainNumber)) {
+                                    etTrainNumber = trainIdMappingPostfixed.get(etTrainNumber);
 
                                     estimatedVehicleJourney.getVehicleRef().setValue(etTrainNumber);
                                     shouldBeIgnored = true;
-                                    populateMissingStopsJourneyList.put(etTrainNumber, estimatedVehicleJourney);
+                                    populateMissingStopsInStartOfJourneyList.put(etTrainNumber, estimatedVehicleJourney);
 
-                                } else if (trainIdMapping.containsValue(etTrainNumber)) {
+                                } else if (trainIdMappingPostfixed.containsValue(etTrainNumber)) {
                                     // Ignore data for trainNumber that is being replaced
                                     shouldBeIgnored = true;
+                                }
+
+                                if (trainIdMappingPrefixed.containsKey(etTrainNumber)) {
+                                    etTrainNumber = trainIdMappingPrefixed.get(etTrainNumber);
+
+//                                    estimatedVehicleJourney.getVehicleRef().setValue(etTrainNumber);
+                                    shouldBeIgnored = true;
+
+                                } else if (trainIdMappingPrefixed.containsValue(etTrainNumber)) {
+                                    // Ignore data for trainNumber that is being replaced
+                                    shouldBeIgnored = true;
+                                    populateMissingStopsInEndOfJourneyList.put(etTrainNumber, estimatedVehicleJourney);
                                 }
 
 
@@ -224,7 +241,9 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
 
 
                         }
-                        for (Map.Entry<String, EstimatedVehicleJourney> entry : populateMissingStopsJourneyList.entrySet()) {
+
+                        // Add stops from plan-data to the start of the trip
+                        for (Map.Entry<String, EstimatedVehicleJourney> entry : populateMissingStopsInStartOfJourneyList.entrySet()) {
 
                             // Set trainNumber that matches plan-data based on mapping-table
                             String etTrainNumber = entry.getKey();
@@ -301,6 +320,60 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
                             et.setMonitored(true);
                             restructuredDeliveryContent.add(et);
                         }
+
+                        // Add stops from plan-data to the end of the trip
+                        for (Map.Entry<String, EstimatedVehicleJourney> entry : populateMissingStopsInEndOfJourneyList.entrySet()) {
+
+                            // Set trainNumber that matches plan-data based on mapping-table
+                            String etTrainNumber = entry.getKey();
+                            EstimatedVehicleJourney et = entry.getValue(); // Oslo S - Halden
+
+                            logger.warn("Adding stops from plandata for trainNumber {}", etTrainNumber);
+                            getMetricsService().registerDataMapping(SiriDataType.ESTIMATED_TIMETABLE, datasetId, REPLACE_TRAIN_NUMBER, 1);
+
+                            ServiceDate serviceDate = getServiceDate(et);
+                            Set<String> serviceJourneyIds = getServiceJourney(etTrainNumber);
+                            serviceJourneyIds.removeIf(sjId -> isDsjCancelled(sjId, serviceDate));
+
+                            for (String serviceJourney : serviceJourneyIds) {
+                                List<ServiceDate> serviceDates = getServiceDates(serviceJourney);
+                                if (serviceDates.contains(serviceDate)) {
+                                    if (!isDsjCancelled(serviceJourney, serviceDate)) {
+                                        // Populate end of trip
+
+                                        List<StopTime> stopTimes = getStopTimes(serviceJourney);
+
+                                        if (et.getEstimatedCalls() != null && !et.getEstimatedCalls().getEstimatedCalls().isEmpty()) {
+
+                                            List<EstimatedCall> estimatedCalls = et.getEstimatedCalls().getEstimatedCalls();
+
+                                            String lastStopRef = getMappedStopId(
+                                                    estimatedCalls.get(estimatedCalls.size()-1).getStopPointRef()
+                                            );
+                                            int stopCounter = 0;
+                                            for (StopTime stopTime : stopTimes) {
+                                                stopCounter++;
+                                                if (isStopIdOrParentMatch(stopTime.getStopId(), lastStopRef)) {
+                                                    // Mock end of trip as EstimatedCalls
+                                                    break;
+                                                }
+                                            }
+
+                                            for (int i = stopCounter; i < stopTimes.size(); i++) {
+                                                StopTime stopTime = stopTimes.get(i);
+                                                estimatedCalls.add(i, createEstimatedCall(serviceDate, stopTime));
+                                            }
+                                        }
+
+                                    }
+                                }
+                            }
+                            ensureCorrectOrder(et);
+                            // Set Monitored-flag to force distribution of rewritten data
+                            et.setMonitored(true);
+                            restructuredDeliveryContent.add(et);
+                        }
+
                         for (String originalTrainNumber : restructuredJourneyList.keySet()) {
                             if (extraJourneyList.containsKey(originalTrainNumber)) {
 
