@@ -357,17 +357,15 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
                                             for (StopTime stopTime : stopTimes) {
                                                 stopCounter++;
                                                 if (isStopIdOrParentMatch(stopTime.getStopId(), lastStopRef)) {
-                                                    // Mock end of trip as EstimatedCalls
                                                     break;
                                                 }
                                             }
 
                                             for (int i = stopCounter; i < stopTimes.size(); i++) {
                                                 StopTime stopTime = stopTimes.get(i);
-                                                estimatedCalls.add(i, createEstimatedCall(serviceDate, stopTime, delay));
+                                                estimatedCalls.add(createEstimatedCall(serviceDate, stopTime, delay));
                                             }
                                         }
-
                                     }
                                 }
                             }
