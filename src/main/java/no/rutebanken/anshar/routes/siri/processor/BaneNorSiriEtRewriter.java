@@ -349,6 +349,15 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
                                             List<EstimatedCall> estimatedCalls = et.getEstimatedCalls().getEstimatedCalls();
 
                                             EstimatedCall lastCall = estimatedCalls.get(estimatedCalls.size() - 1);
+
+                                            //Ensure departure-times are set on last stop
+                                            if (lastCall.getAimedDepartureTime() == null) {
+                                                lastCall.setAimedDepartureTime(lastCall.getAimedArrivalTime());
+                                            }
+                                            if (lastCall.getExpectedDepartureTime() == null) {
+                                                lastCall.setExpectedDepartureTime(lastCall.getExpectedArrivalTime());
+                                            }
+
                                             String lastStopRef = getMappedStopId(lastCall.getStopPointRef());
 
                                             Duration delay = calculateDelay(lastCall);
