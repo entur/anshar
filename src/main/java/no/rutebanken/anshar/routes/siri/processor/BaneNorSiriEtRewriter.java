@@ -34,6 +34,7 @@ import uk.org.siri.siri21.Siri;
 import uk.org.siri.siri21.StopPointRefStructure;
 
 import java.math.BigInteger;
+import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoField;
 import java.util.ArrayList;
@@ -347,9 +348,11 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
 
                                             List<EstimatedCall> estimatedCalls = et.getEstimatedCalls().getEstimatedCalls();
 
-                                            String lastStopRef = getMappedStopId(
-                                                    estimatedCalls.get(estimatedCalls.size()-1).getStopPointRef()
-                                            );
+                                            EstimatedCall lastCall = estimatedCalls.get(estimatedCalls.size() - 1);
+                                            String lastStopRef = getMappedStopId(lastCall.getStopPointRef());
+
+                                            Duration delay = calculateDelay(lastCall);
+
                                             int stopCounter = 0;
                                             for (StopTime stopTime : stopTimes) {
                                                 stopCounter++;
@@ -361,7 +364,7 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
 
                                             for (int i = stopCounter; i < stopTimes.size(); i++) {
                                                 StopTime stopTime = stopTimes.get(i);
-                                                estimatedCalls.add(i, createEstimatedCall(serviceDate, stopTime));
+                                                estimatedCalls.add(i, createEstimatedCall(serviceDate, stopTime, delay));
                                             }
                                         }
 
@@ -418,6 +421,15 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
         logger.info("Restructured SIRI ET from {} to {} journeys in {} ms", previousSize, newSize, (System.currentTimeMillis()-startTime));
     }
 
+    private static Duration calculateDelay(EstimatedCall lastCall) {
+        if (lastCall.getExpectedDepartureTime() != null) {
+            return Duration.between(lastCall.getAimedDepartureTime(), lastCall.getExpectedDepartureTime());
+        } else if (lastCall.getExpectedArrivalTime() != null) {
+            return Duration.between(lastCall.getAimedArrivalTime(), lastCall.getExpectedArrivalTime());
+        }
+        return Duration.ZERO;
+    }
+
     private void ensureCorrectOrder(EstimatedVehicleJourney et) {
         int order = 1;
         if (et.getRecordedCalls() != null && et.getRecordedCalls().getRecordedCalls() != null) {
@@ -442,6 +454,29 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
         );
         call.setAimedDepartureTime(
                 convertSecondsToDateTime(serviceDate, stopTime.getDepartureTime())
+        );
+        return call;
+    }
+
+    private static EstimatedCall createEstimatedCall(ServiceDate serviceDate, StopTime stopTime, Duration delaySeconds) {
+        EstimatedCall call = new EstimatedCall();
+        StopPointRefStructure stop = new StopPointRefStructure();
+        stop.setValue(stopTime.getStopId());
+        call.setStopPointRef(stop);
+        ZonedDateTime aimedArrivalTime = convertSecondsToDateTime(serviceDate, stopTime.getArrivalTime());
+        ZonedDateTime aimedDepartureTime = convertSecondsToDateTime(serviceDate, stopTime.getDepartureTime());
+
+        call.setAimedArrivalTime(
+                aimedArrivalTime
+        );
+        call.setExpectedArrivalTime(
+                aimedArrivalTime.plusSeconds(delaySeconds.toSeconds())
+        );
+        call.setAimedDepartureTime(
+                aimedDepartureTime
+        );
+        call.setExpectedDepartureTime(
+                aimedDepartureTime.plusSeconds(delaySeconds.toSeconds())
         );
         return call;
     }
