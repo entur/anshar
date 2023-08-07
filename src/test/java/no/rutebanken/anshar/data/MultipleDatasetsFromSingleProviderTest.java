@@ -1,5 +1,6 @@
 package no.rutebanken.anshar.data;
 
+import jakarta.xml.bind.JAXBException;
 import no.rutebanken.anshar.integration.SpringBootBaseTest;
 import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
@@ -25,7 +26,6 @@ import uk.org.siri.siri21.StopPointRefStructure;
 import uk.org.siri.siri21.VehicleActivityStructure;
 import uk.org.siri.siri21.VehicleRef;
 
-import javax.xml.bind.JAXBException;
 import java.io.ByteArrayInputStream;
 import java.math.BigDecimal;
 import java.math.BigInteger;

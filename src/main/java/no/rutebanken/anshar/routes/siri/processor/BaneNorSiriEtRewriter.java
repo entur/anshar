@@ -101,7 +101,6 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
      Train defined by KEY will be added to the START of train defined by VALUE
     */
     private static final Map<String, String> trainIdMappingPrefixed = Map.ofEntries(
-                                                                    // Hack for reverse direction
                                                                 Map.entry("391", "103"),
                                                                 Map.entry("393", "107"),
                                                                 Map.entry("395", "111"),
@@ -152,12 +151,9 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
                         Map<String, EstimatedVehicleJourney> populateMissingStopsInStartOfJourneyList = new HashMap<>();
                         Map<String, EstimatedVehicleJourney> populateMissingStopsInEndOfJourneyList = new HashMap<>();
 
-                        if (!linesToIgnore.isEmpty()) {
-                            int sizeBefore = estimatedVehicleJourneies.size();
-                            if (estimatedVehicleJourneies.removeIf(et -> linesToIgnore.contains(et.getLineRef().getValue()))) {
-                                logger.warn("Ignored {} updates from lines: {}", (sizeBefore - estimatedVehicleJourneies.size()), linesToIgnore);
-                            }
-                        }
+                        removeBlacklistedLines(linesToIgnore, estimatedVehicleJourneies);
+
+                        BaneNorSiriEtMerger merger = new BaneNorSiriEtMerger("300", "803");
 
                         for (EstimatedVehicleJourney estimatedVehicleJourney : estimatedVehicleJourneies) {
 
@@ -181,7 +177,6 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
                                 if (trainIdMappingPrefixed.containsKey(etTrainNumber)) {
                                     etTrainNumber = trainIdMappingPrefixed.get(etTrainNumber);
 
-//                                    estimatedVehicleJourney.getVehicleRef().setValue(etTrainNumber);
                                     shouldBeIgnored = true;
 
                                 } else if (trainIdMappingPrefixed.containsValue(etTrainNumber)) {
@@ -190,6 +185,7 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
                                     populateMissingStopsInEndOfJourneyList.put(etTrainNumber, estimatedVehicleJourney);
                                 }
 
+                                merger.add(etTrainNumber, estimatedVehicleJourney);
 
                                 if (isKnownTrainNr(etTrainNumber )) {
 
@@ -242,147 +238,13 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
 
 
                         }
+                        merger.merge(restructuredJourneyList);
 
-                        // Add stops from plan-data to the start of the trip
-                        for (Map.Entry<String, EstimatedVehicleJourney> entry : populateMissingStopsInStartOfJourneyList.entrySet()) {
+                        // Hack: Add stops from plan-data to the start of the trip
+                        populateMissingStopsAtStart(restructuredDeliveryContent, populateMissingStopsInStartOfJourneyList);
 
-                            // Set trainNumber that matches plan-data based on mapping-table
-                            String etTrainNumber = entry.getKey();
-                            EstimatedVehicleJourney et = entry.getValue(); // Halden - Oslo S
-
-                            logger.warn("Adding stops from plandata for trainNumber {}", etTrainNumber);
-                            getMetricsService().registerDataMapping(SiriDataType.ESTIMATED_TIMETABLE, datasetId, REPLACE_TRAIN_NUMBER, 1);
-
-                            ServiceDate serviceDate = getServiceDate(et);
-                            Set<String> serviceJourneyIds = getServiceJourney(etTrainNumber);
-                            serviceJourneyIds.removeIf(sjId -> isDsjCancelled(sjId, serviceDate));
-
-                            for (String serviceJourney : serviceJourneyIds) {
-                                List<ServiceDate> serviceDates = getServiceDates(serviceJourney);
-                                if (serviceDates.contains(serviceDate)) {
-                                    if (!isDsjCancelled(serviceJourney, serviceDate)) {
-                                        // Populate start of trip
-
-                                        List<StopTime> stopTimes = getStopTimes(serviceJourney);
-
-                                        if (et.getRecordedCalls() != null && !et.getRecordedCalls().getRecordedCalls().isEmpty()) {
-
-                                            List<RecordedCall> recordedCalls = et.getRecordedCalls().getRecordedCalls();
-
-                                            String firstStopRef = getMappedStopId(recordedCalls.get(0).getStopPointRef());
-                                            int stopCounter = 0;
-                                            for (StopTime stopTime : stopTimes) {
-                                                if (!isStopIdOrParentMatch(stopTime.getStopId(), firstStopRef)) {
-                                                    // Mock start of trip as RecordedCalls
-                                                    recordedCalls.add(stopCounter++, createRecordedCall(serviceDate, stopTime));
-                                                } else {
-                                                    // Mock arrivaltimes at first actual stop
-                                                    RecordedCall call = recordedCalls.get(stopCounter);
-                                                    if (call.getAimedArrivalTime() == null) {
-                                                        call.setAimedArrivalTime(call.getAimedDepartureTime());
-                                                    }
-                                                    if (call.getExpectedArrivalTime() == null && call.getActualDepartureTime() == null) {
-                                                        call.setExpectedArrivalTime(call.getExpectedDepartureTime());
-                                                    } else {
-                                                        call.setActualArrivalTime(call.getActualDepartureTime());
-                                                    }
-                                                    break;
-                                                }
-                                            }
-                                        } else if (et.getEstimatedCalls() != null && !et.getEstimatedCalls().getEstimatedCalls().isEmpty()) {
-
-                                            List<EstimatedCall> estimatedCalls = et.getEstimatedCalls().getEstimatedCalls();
-
-                                            String firstStopRef = getMappedStopId(et.getEstimatedCalls().getEstimatedCalls().get(0).getStopPointRef());
-                                            int stopCounter = 0;
-                                            for (StopTime stopTime : stopTimes) {
-                                                if (!isStopIdOrParentMatch(stopTime.getStopId(), firstStopRef)) {
-                                                    // Mock start of trip as EstimatedCalls
-                                                    estimatedCalls.add(stopCounter++, createEstimatedCall(serviceDate, stopTime));
-                                                } else {
-                                                    // Mock arrivaltimes at first actual stop
-                                                    EstimatedCall call = estimatedCalls.get(stopCounter);
-                                                    if (call.getAimedArrivalTime() == null) {
-                                                        call.setAimedArrivalTime(call.getAimedDepartureTime());
-                                                    }
-                                                    if (call.getExpectedArrivalTime() == null) {
-                                                        call.setExpectedArrivalTime(call.getExpectedDepartureTime());
-                                                    }
-                                                    break;
-                                                }
-                                            }
-                                        }
-
-                                    }
-                                }
-                            }
-                            ensureCorrectOrder(et);
-                            // Set Monitored-flag to force distribution of rewritten data
-                            et.setMonitored(true);
-                            restructuredDeliveryContent.add(et);
-                        }
-
-                        // Add stops from plan-data to the end of the trip
-                        for (Map.Entry<String, EstimatedVehicleJourney> entry : populateMissingStopsInEndOfJourneyList.entrySet()) {
-
-                            // Set trainNumber that matches plan-data based on mapping-table
-                            String etTrainNumber = entry.getKey();
-                            EstimatedVehicleJourney et = entry.getValue(); // Oslo S - Halden
-
-                            logger.warn("Adding stops from plandata for trainNumber {}", etTrainNumber);
-                            getMetricsService().registerDataMapping(SiriDataType.ESTIMATED_TIMETABLE, datasetId, REPLACE_TRAIN_NUMBER, 1);
-
-                            ServiceDate serviceDate = getServiceDate(et);
-                            Set<String> serviceJourneyIds = getServiceJourney(etTrainNumber);
-                            serviceJourneyIds.removeIf(sjId -> isDsjCancelled(sjId, serviceDate));
-
-                            for (String serviceJourney : serviceJourneyIds) {
-                                List<ServiceDate> serviceDates = getServiceDates(serviceJourney);
-                                if (serviceDates.contains(serviceDate)) {
-                                    if (!isDsjCancelled(serviceJourney, serviceDate)) {
-                                        // Populate end of trip
-
-                                        List<StopTime> stopTimes = getStopTimes(serviceJourney);
-
-                                        if (et.getEstimatedCalls() != null && !et.getEstimatedCalls().getEstimatedCalls().isEmpty()) {
-
-                                            List<EstimatedCall> estimatedCalls = et.getEstimatedCalls().getEstimatedCalls();
-
-                                            EstimatedCall lastCall = estimatedCalls.get(estimatedCalls.size() - 1);
-
-                                            //Ensure departure-times are set on last stop
-                                            if (lastCall.getAimedDepartureTime() == null) {
-                                                lastCall.setAimedDepartureTime(lastCall.getAimedArrivalTime());
-                                            }
-                                            if (lastCall.getExpectedDepartureTime() == null) {
-                                                lastCall.setExpectedDepartureTime(lastCall.getExpectedArrivalTime());
-                                            }
-
-                                            String lastStopRef = getMappedStopId(lastCall.getStopPointRef());
-
-                                            Duration delay = calculateDelay(lastCall);
-
-                                            int stopCounter = 0;
-                                            for (StopTime stopTime : stopTimes) {
-                                                stopCounter++;
-                                                if (isStopIdOrParentMatch(stopTime.getStopId(), lastStopRef)) {
-                                                    break;
-                                                }
-                                            }
-
-                                            for (int i = stopCounter; i < stopTimes.size(); i++) {
-                                                StopTime stopTime = stopTimes.get(i);
-                                                estimatedCalls.add(createEstimatedCall(serviceDate, stopTime, delay));
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            ensureCorrectOrder(et);
-                            // Set Monitored-flag to force distribution of rewritten data
-                            et.setMonitored(true);
-                            restructuredDeliveryContent.add(et);
-                        }
+                        // Hack: Add stops from plan-data to the end of the trip
+                        populateMissingStopsAtEnd(restructuredDeliveryContent, populateMissingStopsInEndOfJourneyList);
 
                         for (String originalTrainNumber : restructuredJourneyList.keySet()) {
                             if (extraJourneyList.containsKey(originalTrainNumber)) {
@@ -426,6 +288,158 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
             }
         }
         logger.info("Restructured SIRI ET from {} to {} journeys in {} ms", previousSize, newSize, (System.currentTimeMillis()-startTime));
+    }
+
+    private void populateMissingStopsAtStart(List<EstimatedVehicleJourney> restructuredDeliveryContent, Map<String, EstimatedVehicleJourney> populateMissingStopsInStartOfJourneyList) {
+        for (Map.Entry<String, EstimatedVehicleJourney> entry : populateMissingStopsInStartOfJourneyList.entrySet()) {
+
+            // Set trainNumber that matches plan-data based on mapping-table
+            String etTrainNumber = entry.getKey();
+            EstimatedVehicleJourney et = entry.getValue(); // Halden - Oslo S
+
+            logger.warn("Adding stops from plandata for trainNumber {}", etTrainNumber);
+            getMetricsService().registerDataMapping(SiriDataType.ESTIMATED_TIMETABLE, datasetId, REPLACE_TRAIN_NUMBER, 1);
+
+            ServiceDate serviceDate = getServiceDate(et);
+            Set<String> serviceJourneyIds = getServiceJourney(etTrainNumber);
+            serviceJourneyIds.removeIf(sjId -> isDsjCancelled(sjId, serviceDate));
+
+            for (String serviceJourney : serviceJourneyIds) {
+                List<ServiceDate> serviceDates = getServiceDates(serviceJourney);
+                if (serviceDates.contains(serviceDate)) {
+                    if (!isDsjCancelled(serviceJourney, serviceDate)) {
+                        // Populate start of trip
+
+                        List<StopTime> stopTimes = getStopTimes(serviceJourney);
+
+                        if (et.getRecordedCalls() != null && !et.getRecordedCalls().getRecordedCalls().isEmpty()) {
+
+                            List<RecordedCall> recordedCalls = et.getRecordedCalls().getRecordedCalls();
+
+                            String firstStopRef = getMappedStopId(recordedCalls.get(0).getStopPointRef());
+                            int stopCounter = 0;
+                            for (StopTime stopTime : stopTimes) {
+                                if (!isStopIdOrParentMatch(stopTime.getStopId(), firstStopRef)) {
+                                    // Mock start of trip as RecordedCalls
+                                    recordedCalls.add(stopCounter++, createRecordedCall(serviceDate, stopTime));
+                                } else {
+                                    // Mock arrivaltimes at first actual stop
+                                    RecordedCall call = recordedCalls.get(stopCounter);
+                                    if (call.getAimedArrivalTime() == null) {
+                                        call.setAimedArrivalTime(call.getAimedDepartureTime());
+                                    }
+                                    if (call.getExpectedArrivalTime() == null && call.getActualDepartureTime() == null) {
+                                        call.setExpectedArrivalTime(call.getExpectedDepartureTime());
+                                    } else {
+                                        call.setActualArrivalTime(call.getActualDepartureTime());
+                                    }
+                                    break;
+                                }
+                            }
+                        } else if (et.getEstimatedCalls() != null && !et.getEstimatedCalls().getEstimatedCalls().isEmpty()) {
+
+                            List<EstimatedCall> estimatedCalls = et.getEstimatedCalls().getEstimatedCalls();
+
+                            String firstStopRef = getMappedStopId(et.getEstimatedCalls().getEstimatedCalls().get(0).getStopPointRef());
+                            int stopCounter = 0;
+                            for (StopTime stopTime : stopTimes) {
+                                if (!isStopIdOrParentMatch(stopTime.getStopId(), firstStopRef)) {
+                                    // Mock start of trip as EstimatedCalls
+                                    estimatedCalls.add(stopCounter++, createEstimatedCall(serviceDate, stopTime));
+                                } else {
+                                    // Mock arrivaltimes at first actual stop
+                                    EstimatedCall call = estimatedCalls.get(stopCounter);
+                                    if (call.getAimedArrivalTime() == null) {
+                                        call.setAimedArrivalTime(call.getAimedDepartureTime());
+                                    }
+                                    if (call.getExpectedArrivalTime() == null) {
+                                        call.setExpectedArrivalTime(call.getExpectedDepartureTime());
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+
+                    }
+                }
+            }
+            ensureCorrectOrder(et);
+            // Set Monitored-flag to force distribution of rewritten data
+            et.setMonitored(true);
+            restructuredDeliveryContent.add(et);
+        }
+    }
+
+    private void populateMissingStopsAtEnd(List<EstimatedVehicleJourney> restructuredDeliveryContent, Map<String, EstimatedVehicleJourney> populateMissingStopsInEndOfJourneyList) {
+        for (Map.Entry<String, EstimatedVehicleJourney> entry : populateMissingStopsInEndOfJourneyList.entrySet()) {
+
+            // Set trainNumber that matches plan-data based on mapping-table
+            String etTrainNumber = entry.getKey();
+            EstimatedVehicleJourney et = entry.getValue(); // Oslo S - Halden
+
+            logger.warn("Adding stops from plandata for trainNumber {}", etTrainNumber);
+            getMetricsService().registerDataMapping(SiriDataType.ESTIMATED_TIMETABLE, datasetId, REPLACE_TRAIN_NUMBER, 1);
+
+            ServiceDate serviceDate = getServiceDate(et);
+            Set<String> serviceJourneyIds = getServiceJourney(etTrainNumber);
+            serviceJourneyIds.removeIf(sjId -> isDsjCancelled(sjId, serviceDate));
+
+            for (String serviceJourney : serviceJourneyIds) {
+                List<ServiceDate> serviceDates = getServiceDates(serviceJourney);
+                if (serviceDates.contains(serviceDate)) {
+                    if (!isDsjCancelled(serviceJourney, serviceDate)) {
+                        // Populate end of trip
+
+                        List<StopTime> stopTimes = getStopTimes(serviceJourney);
+
+                        if (et.getEstimatedCalls() != null && !et.getEstimatedCalls().getEstimatedCalls().isEmpty()) {
+
+                            List<EstimatedCall> estimatedCalls = et.getEstimatedCalls().getEstimatedCalls();
+
+                            EstimatedCall lastCall = estimatedCalls.get(estimatedCalls.size() - 1);
+
+                            //Ensure departure-times are set on last stop
+                            if (lastCall.getAimedDepartureTime() == null) {
+                                lastCall.setAimedDepartureTime(lastCall.getAimedArrivalTime());
+                            }
+                            if (lastCall.getExpectedDepartureTime() == null) {
+                                lastCall.setExpectedDepartureTime(lastCall.getExpectedArrivalTime());
+                            }
+
+                            String lastStopRef = getMappedStopId(lastCall.getStopPointRef());
+
+                            Duration delay = calculateDelay(lastCall);
+
+                            int stopCounter = 0;
+                            for (StopTime stopTime : stopTimes) {
+                                stopCounter++;
+                                if (isStopIdOrParentMatch(stopTime.getStopId(), lastStopRef)) {
+                                    break;
+                                }
+                            }
+
+                            for (int i = stopCounter; i < stopTimes.size(); i++) {
+                                StopTime stopTime = stopTimes.get(i);
+                                estimatedCalls.add(createEstimatedCall(serviceDate, stopTime, delay));
+                            }
+                        }
+                    }
+                }
+            }
+            ensureCorrectOrder(et);
+            // Set Monitored-flag to force distribution of rewritten data
+            et.setMonitored(true);
+            restructuredDeliveryContent.add(et);
+        }
+    }
+
+    private static void removeBlacklistedLines(Set<String> linesToIgnore, List<EstimatedVehicleJourney> estimatedVehicleJourneies) {
+        if (!linesToIgnore.isEmpty()) {
+            int sizeBefore = estimatedVehicleJourneies.size();
+            if (estimatedVehicleJourneies.removeIf(et -> linesToIgnore.contains(et.getLineRef().getValue()))) {
+                logger.warn("Ignored {} updates from lines: {}", (sizeBefore - estimatedVehicleJourneies.size()), linesToIgnore);
+            }
+        }
     }
 
     private static Duration calculateDelay(EstimatedCall lastCall) {

@@ -15,9 +15,9 @@
 
 package no.rutebanken.anshar.routes.validation.validators;
 
+import jakarta.xml.bind.ValidationEvent;
 import org.w3c.dom.Node;
 
-import javax.xml.bind.ValidationEvent;
 import java.time.ZonedDateTime;
 
 public abstract class TimeValidator extends CustomValidator {

@@ -15,6 +15,7 @@
 
 package no.rutebanken.anshar.routes.validation.validators.sx;
 
+import jakarta.xml.bind.ValidationEvent;
 import no.rutebanken.anshar.routes.validation.validators.NsrGenericIdValidator;
 import no.rutebanken.anshar.routes.validation.validators.ProfileValidationEventOrList;
 import no.rutebanken.anshar.routes.validation.validators.Validator;
@@ -23,7 +24,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Node;
 
-import javax.xml.bind.ValidationEvent;
 import java.util.List;
 
 import static no.rutebanken.anshar.routes.validation.validators.Constants.AFFECTED_ROUTE;

@@ -15,11 +15,10 @@
 
 package no.rutebanken.anshar.validation.et;
 
+import jakarta.xml.bind.ValidationEvent;
 import no.rutebanken.anshar.routes.validation.validators.et.IncreasingTimesValidator;
 import no.rutebanken.anshar.validation.CustomValidatorTest;
 import org.junit.jupiter.api.Test;
-
-import javax.xml.bind.ValidationEvent;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;

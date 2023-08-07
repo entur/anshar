@@ -21,18 +21,7 @@ import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import com.esotericsoftware.kryo.pool.KryoFactory;
 import com.esotericsoftware.kryo.pool.KryoPool;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import javax.annotation.Nonnull;
-import javax.xml.bind.JAXBException;
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeFactory;
+import jakarta.xml.bind.JAXBException;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.routes.outbound.SiriHelper;
 import no.rutebanken.anshar.subscription.SiriDataType;
@@ -84,6 +73,16 @@ import uk.org.siri.siri21.VehicleMonitoringRefStructure;
 import uk.org.siri.siri21.VehicleMonitoringRequestStructure;
 import uk.org.siri.siri21.VehicleMonitoringSubscriptionStructure;
 import uk.org.siri.siri21.VehicleRef;
+
+import javax.annotation.Nonnull;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 @Service
 public class SiriObjectFactory {
@@ -245,7 +244,7 @@ public class SiriObjectFactory {
         sxRequest.setVersion(version);
         sxRequest.setMessageIdentifier(createMessageIdentifier());
         if (previewInterval != null) {
-            sxRequest.setPreviewInterval(createDataTypeFactory().newDuration(previewInterval.toString()));
+            sxRequest.setPreviewInterval(previewInterval);
         }
         return sxRequest;
     }
@@ -266,7 +265,7 @@ public class SiriObjectFactory {
         etRequest.setVersion(version);
         etRequest.setMessageIdentifier(createMessageIdentifier());
         if (previewInterval != null) {
-            etRequest.setPreviewInterval(createDataTypeFactory().newDuration(previewInterval.toString()));
+            etRequest.setPreviewInterval(previewInterval);
         }
         return etRequest;
     }
@@ -277,7 +276,7 @@ public class SiriObjectFactory {
         SituationExchangeRequestStructure sxRequest = createSituationExchangeRequestStructure(null, version);
 
         if (previewInterval != null) {
-            sxRequest.setPreviewInterval(createDataTypeFactory().newDuration(previewInterval.toString()));
+            sxRequest.setPreviewInterval(previewInterval);
         }
 
         if (filterMap != null) {
@@ -303,7 +302,7 @@ public class SiriObjectFactory {
         return request;
     }
 
-private static SubscriptionRequest createVehicleMonitoringSubscriptionRequest(String requestorRef, String subscriptionId, Duration heartbeatInterval, String address, Duration subscriptionDuration, Map<Class, Set<Object>> filterMap, Duration updateInterval, Duration changeBeforeUpdates, String addressFieldName, Boolean incrementalUpdates, String vehicleMonitoringRefValue, @Nonnull String version) {
+    private static SubscriptionRequest createVehicleMonitoringSubscriptionRequest(String requestorRef, String subscriptionId, Duration heartbeatInterval, String address, Duration subscriptionDuration, Map<Class, Set<Object>> filterMap, Duration updateInterval, Duration changeBeforeUpdates, String addressFieldName, Boolean incrementalUpdates, String vehicleMonitoringRefValue, @Nonnull String version) {
         SubscriptionRequest request = createSubscriptionRequest(requestorRef,heartbeatInterval, address, addressFieldName);
 
         VehicleMonitoringRequestStructure vmRequest = new VehicleMonitoringRequestStructure();
@@ -341,11 +340,11 @@ private static SubscriptionRequest createVehicleMonitoringSubscriptionRequest(St
 
         if (updateInterval != null) {
             //Requesting updates every second
-            vmSubscriptionReq.setUpdateInterval(createDataTypeFactory().newDuration(updateInterval.toString()));
+            vmSubscriptionReq.setUpdateInterval(updateInterval);
         }
         vmSubscriptionReq.setIncrementalUpdates(incrementalUpdates);
         if (changeBeforeUpdates != null) {
-            vmSubscriptionReq.setChangeBeforeUpdates(createDataTypeFactory().newDuration(changeBeforeUpdates.toString()));
+            vmSubscriptionReq.setChangeBeforeUpdates(changeBeforeUpdates);
         }
 
         request.getVehicleMonitoringSubscriptionRequests().add(vmSubscriptionReq);
@@ -364,7 +363,7 @@ private static SubscriptionRequest createVehicleMonitoringSubscriptionRequest(St
         etRequest.setVersion(version);
 
         if (previewInterval != null) {
-            etRequest.setPreviewInterval(createDataTypeFactory().newDuration(previewInterval.toString()));
+            etRequest.setPreviewInterval(previewInterval);
         }
 
         if (filterMap != null) {
@@ -400,7 +399,7 @@ private static SubscriptionRequest createVehicleMonitoringSubscriptionRequest(St
         etSubscriptionReq.setInitialTerminationTime(ZonedDateTime.now().plusSeconds(subscriptionDuration.getSeconds()));
         etSubscriptionReq.setSubscriberRef(request.getRequestorRef());
         if (changeBeforeUpdates != null) {
-            etSubscriptionReq.setChangeBeforeUpdates(createDataTypeFactory().newDuration(changeBeforeUpdates.toString()));
+            etSubscriptionReq.setChangeBeforeUpdates(changeBeforeUpdates);
         }
 
         etSubscriptionReq.setIncrementalUpdates(incrementalUpdates);
@@ -425,7 +424,7 @@ private static SubscriptionRequest createVehicleMonitoringSubscriptionRequest(St
 
         if (heartbeatInterval != null) {
             SubscriptionContextStructure ctx = new SubscriptionContextStructure();
-            ctx.setHeartbeatInterval(createDataTypeFactory().newDuration(heartbeatInterval.toString()));
+            ctx.setHeartbeatInterval(heartbeatInterval);
 
             request.setSubscriptionContext(ctx);
         }
@@ -548,14 +547,6 @@ private static SubscriptionRequest createVehicleMonitoringSubscriptionRequest(St
         return delivery;
     }
 
-    private static DatatypeFactory createDataTypeFactory() {
-        try {
-            return DatatypeFactory.newInstance();
-        } catch (DatatypeConfigurationException e) {
-            throw new IllegalStateException(e);
-        }
-    }
-
     public Siri createHeartbeatNotification(String requestorRef) {
         Siri siri = createSiriObject(SiriHelper.FALLBACK_SIRI_VERSION);
         HeartbeatNotificationStructure heartbeat = new HeartbeatNotificationStructure();
@@ -572,7 +563,7 @@ private static SubscriptionRequest createVehicleMonitoringSubscriptionRequest(St
         CheckStatusResponseStructure response = new CheckStatusResponseStructure();
         response.setStatus(true);
         response.setServiceStartedTime(serverStartTime.atZone(ZoneId.systemDefault()));
-        response.setShortestPossibleCycle(createDataTypeFactory().newDuration(60000));
+        response.setShortestPossibleCycle(Duration.ofSeconds(60));
         siri.setCheckStatusResponse(response);
         return siri;
     }

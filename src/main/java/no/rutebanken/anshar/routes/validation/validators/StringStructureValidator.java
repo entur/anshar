@@ -15,13 +15,12 @@
 
 package no.rutebanken.anshar.routes.validation.validators;
 
+import jakarta.xml.bind.ValidationEvent;
 import org.w3c.dom.Node;
 
-import javax.xml.bind.ValidationEvent;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 public abstract class StringStructureValidator extends CustomValidator {
 

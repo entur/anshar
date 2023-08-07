@@ -1,5 +1,6 @@
 package no.rutebanken.anshar.routes.validation.validators.et;
 
+import jakarta.xml.bind.ValidationEvent;
 import no.rutebanken.anshar.routes.siri.processor.routedata.StopsUtil;
 import no.rutebanken.anshar.routes.siri.processor.routedata.TooFastException;
 import no.rutebanken.anshar.routes.validation.validators.ProfileValidationEventOrList;
@@ -20,7 +21,6 @@ import uk.org.siri.siri21.RecordedCall;
 import uk.org.siri.siri21.Siri;
 import uk.org.siri.siri21.StopPointRefStructure;
 
-import javax.xml.bind.ValidationEvent;
 import java.time.ZonedDateTime;
 import java.util.List;
 

@@ -1,5 +1,6 @@
 package no.rutebanken.anshar.siri.processor;
 
+import jakarta.xml.bind.JAXBException;
 import no.rutebanken.anshar.integration.SpringBootBaseTest;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.routes.siri.processor.EnsureIncreasingTimesProcessor;
@@ -10,7 +11,6 @@ import uk.org.siri.siri21.EstimatedVehicleJourney;
 import uk.org.siri.siri21.RecordedCall;
 import uk.org.siri.siri21.Siri;
 
-import javax.xml.bind.JAXBException;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;

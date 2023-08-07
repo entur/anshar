@@ -15,14 +15,13 @@
 
 package no.rutebanken.anshar.validation.sx;
 
+import jakarta.xml.bind.ValidationEvent;
 import no.rutebanken.anshar.routes.validation.validators.sx.AccessibilityAssessmentValidator;
 import no.rutebanken.anshar.validation.CustomValidatorTest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.w3c.dom.Node;
 import uk.org.acbs.siri21.AccessibilityEnumeration;
-
-import javax.xml.bind.ValidationEvent;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;

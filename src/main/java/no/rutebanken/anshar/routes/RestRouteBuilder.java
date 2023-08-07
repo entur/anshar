@@ -15,6 +15,11 @@
 
 package no.rutebanken.anshar.routes;
 
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.UnmarshalException;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import org.apache.camel.Exchange;
 import org.apache.camel.InvalidPayloadException;
@@ -35,11 +40,6 @@ import uk.org.siri.siri20.SituationExchangeDeliveryStructure;
 import uk.org.siri.siri20.VehicleMonitoringDeliveryStructure;
 import uk.org.siri.siri21.Siri;
 
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.UnmarshalException;
 import javax.xml.stream.XMLStreamException;
 import java.io.File;
 import java.io.FileOutputStream;

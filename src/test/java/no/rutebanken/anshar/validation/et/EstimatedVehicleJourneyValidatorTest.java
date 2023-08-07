@@ -15,6 +15,7 @@
 
 package no.rutebanken.anshar.validation.et;
 
+import jakarta.xml.bind.ValidationEvent;
 import no.rutebanken.anshar.routes.validation.validators.ProfileValidationEventOrList;
 import no.rutebanken.anshar.routes.validation.validators.et.EstimatedVehicleJourneyValidator;
 import no.rutebanken.anshar.validation.CustomValidatorTest;
@@ -23,7 +24,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.w3c.dom.Node;
 
-import javax.xml.bind.ValidationEvent;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

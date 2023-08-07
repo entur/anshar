@@ -44,14 +44,13 @@ import uk.org.siri.siri21.SubscriptionRequest;
 import uk.org.siri.siri21.VehicleActivityStructure;
 import uk.org.siri.siri21.VehicleMonitoringSubscriptionStructure;
 
-import javax.xml.datatype.Duration;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -96,13 +95,13 @@ public class ServerSubscriptionManager {
     @Value("${anshar.outbound.pubsub.topic.enabled}")
     private boolean pushToTopicEnabled;
 
-    @Produce(uri = "direct:send.to.pubsub.topic.estimated_timetable")
+    @Produce(value = "direct:send.to.pubsub.topic.estimated_timetable")
     protected ProducerTemplate siriEtTopicProducer;
 
-    @Produce(uri = "direct:send.to.pubsub.topic.vehicle_monitoring")
+    @Produce(value = "direct:send.to.pubsub.topic.vehicle_monitoring")
     protected ProducerTemplate siriVmTopicProducer;
 
-    @Produce(uri = "direct:send.to.pubsub.topic.situation_exchange")
+    @Produce(value = "direct:send.to.pubsub.topic.situation_exchange")
     protected ProducerTemplate siriSxTopicProducer;
 
     @Autowired
@@ -227,7 +226,7 @@ public class ServerSubscriptionManager {
         if (subscriptionRequest.getSubscriptionContext() != null &&
                 subscriptionRequest.getSubscriptionContext().getHeartbeatInterval() != null) {
             Duration interval = subscriptionRequest.getSubscriptionContext().getHeartbeatInterval();
-            heartbeatInterval = interval.getTimeInMillis(new Date(0));
+            heartbeatInterval = interval.toMillis();
         }
         heartbeatInterval = Math.max(heartbeatInterval, minimumHeartbeatInterval);
         heartbeatInterval = Math.min(heartbeatInterval, maximumHeartbeatInterval);
@@ -246,7 +245,7 @@ public class ServerSubscriptionManager {
         return null;
     }
 
-    private int getChangeBeforeUpdates(SubscriptionRequest subscriptionRequest) {
+    private long getChangeBeforeUpdates(SubscriptionRequest subscriptionRequest) {
         if (SiriHelper.containsValues(subscriptionRequest.getVehicleMonitoringSubscriptionRequests())) {
             return getMilliSeconds(subscriptionRequest.getVehicleMonitoringSubscriptionRequests().get(0).getChangeBeforeUpdates());
         } else if (SiriHelper.containsValues(subscriptionRequest.getEstimatedTimetableSubscriptionRequests())) {
@@ -255,9 +254,9 @@ public class ServerSubscriptionManager {
         return 0;
     }
 
-    private int getMilliSeconds(Duration changeBeforeUpdates) {
+    private long getMilliSeconds(Duration changeBeforeUpdates) {
         if (changeBeforeUpdates != null) {
-            return changeBeforeUpdates.getSeconds()*1000;
+            return changeBeforeUpdates.toMillis();
         }
         return 0;
     }

@@ -1,5 +1,9 @@
 package no.rutebanken.anshar.routes.siri.processor;
 
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
+import jakarta.xml.bind.Unmarshaller;
 import no.rutebanken.anshar.routes.health.HealthManager;
 import no.rutebanken.anshar.routes.mapping.BaneNorIdPlatformUpdaterService;
 import no.rutebanken.anshar.routes.mapping.StopPlaceRegisterMappingFetcher;
@@ -21,10 +25,6 @@ import uk.org.siri.siri21.EstimatedVersionFrameStructure;
 import uk.org.siri.siri21.Siri;
 import uk.org.siri.siri21.StopAssignmentStructure;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;

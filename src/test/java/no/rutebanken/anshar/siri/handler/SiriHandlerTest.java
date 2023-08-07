@@ -15,6 +15,7 @@
 
 package no.rutebanken.anshar.siri.handler;
 
+import jakarta.xml.bind.JAXBException;
 import no.rutebanken.anshar.integration.SpringBootBaseTest;
 import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
 import no.rutebanken.anshar.subscription.SiriDataType;
@@ -24,7 +25,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.org.siri.siri21.Siri;
 
-import javax.xml.bind.JAXBException;
 import java.io.ByteArrayInputStream;
 import java.time.Duration;
 import java.util.ArrayList;

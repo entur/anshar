@@ -15,6 +15,8 @@
 
 package no.rutebanken.anshar.routes.siri.handlers;
 
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.UnmarshalException;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.data.EstimatedTimetables;
 import no.rutebanken.anshar.data.Situations;
@@ -55,15 +57,12 @@ import uk.org.siri.siri21.VehicleMonitoringDeliveryStructure;
 import uk.org.siri.siri21.VehicleMonitoringRequestStructure;
 import uk.org.siri.siri21.VehicleRef;
 
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.UnmarshalException;
-import javax.xml.datatype.Duration;
 import javax.xml.stream.XMLStreamException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -287,7 +286,7 @@ public class SiriHandler {
                 long previewIntervalInMillis = -1;
 
                 if (previewInterval != null) {
-                    previewIntervalInMillis = previewInterval.getTimeInMillis(new Date());
+                    previewIntervalInMillis = previewInterval.toMillis();
                 }
 
                 serviceResponse = estimatedTimetables.createServiceDelivery(requestorRef, datasetId, clientTrackingName, excludedDatasetIdList, maxSize, previewIntervalInMillis);

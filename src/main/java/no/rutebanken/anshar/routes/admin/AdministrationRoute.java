@@ -16,6 +16,7 @@
 package no.rutebanken.anshar.routes.admin;
 
 import com.google.common.net.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.data.collections.ExtendedHazelcastService;
 import no.rutebanken.anshar.routes.RestRouteBuilder;
@@ -34,7 +35,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 
-import javax.ws.rs.core.MediaType;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.List;

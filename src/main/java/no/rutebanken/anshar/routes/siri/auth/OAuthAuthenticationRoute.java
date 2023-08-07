@@ -1,11 +1,10 @@
 package no.rutebanken.anshar.routes.siri.auth;
 
+import jakarta.ws.rs.core.MediaType;
 import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.dataformat.JsonLibrary;
 import org.springframework.stereotype.Component;
-
-import javax.ws.rs.core.MediaType;
 
 @Component
 public class OAuthAuthenticationRoute extends RouteBuilder {

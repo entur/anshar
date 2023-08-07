@@ -1,5 +1,6 @@
 package no.rutebanken.anshar.routes.outbound;
 
+import jakarta.ws.rs.core.MediaType;
 import no.rutebanken.anshar.metrics.PrometheusMetricsService;
 import no.rutebanken.anshar.routes.dataformat.SiriDataFormatHelper;
 import org.apache.camel.Configuration;
@@ -11,8 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uk.org.siri.siri21.Siri;
-
-import javax.ws.rs.core.MediaType;
 
 import static no.rutebanken.anshar.routes.HttpParameter.SIRI_VERSION_HEADER_NAME;
 import static no.rutebanken.anshar.routes.RestRouteBuilder.downgradeSiriVersion;
