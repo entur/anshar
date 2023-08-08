@@ -124,7 +124,6 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
 
     @Override
     public void process(Siri siri) {
-        Set<String> linesToIgnore = Set.of("VYG:Line:F4");
 
         long startTime = System.currentTimeMillis();
         int previousSize = 0;
@@ -151,13 +150,6 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
                         Map<String, List<EstimatedVehicleJourney>> extraJourneyList = new HashMap<>();
                         Map<String, EstimatedVehicleJourney> populateMissingStopsInStartOfJourneyList = new HashMap<>();
                         Map<String, EstimatedVehicleJourney> populateMissingStopsInEndOfJourneyList = new HashMap<>();
-
-                        if (!linesToIgnore.isEmpty()) {
-                            int sizeBefore = estimatedVehicleJourneies.size();
-                            if (estimatedVehicleJourneies.removeIf(et -> linesToIgnore.contains(et.getLineRef().getValue()))) {
-                                logger.warn("Ignored {} updates from lines: {}", (sizeBefore - estimatedVehicleJourneies.size()), linesToIgnore);
-                            }
-                        }
 
                         for (EstimatedVehicleJourney estimatedVehicleJourney : estimatedVehicleJourneies) {
 
