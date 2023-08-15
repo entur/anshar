@@ -179,7 +179,7 @@
         <dependency>
             <groupId>io.confluent</groupId>
             <artifactId>kafka-streams-avro-serde</artifactId>
-            <version>7.4.0</version>
+            <version>7.4.1</version>
         </dependency>
 
         <dependency>
