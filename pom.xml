@@ -39,13 +39,13 @@
         <spring-boot-plugin.version>3.1.2</spring-boot-plugin.version>
         <spring-boot.version>3.1.2</spring-boot.version>
 
-        <camel.version>4.0.0-RC2</camel.version>
+        <camel.version>4.0.0</camel.version>
 
         <metrics.version>3.2.3</metrics.version>
         <entur.helpers.version>2.1</entur.helpers.version>
         <geotools.version>29.0</geotools.version>
 
-        <log4j2.version>2.20.0</log4j2.version>
+        <confluent-kafka.version>7.4.1</confluent-kafka.version>
     </properties>
 
     <distributionManagement>
@@ -58,7 +58,13 @@
 
     <dependencyManagement>
         <dependencies>
-
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>${spring-boot.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
             <dependency>
                 <groupId>org.apache.camel.springboot</groupId>
                 <artifactId>camel-spring-boot-bom</artifactId>
@@ -140,8 +146,7 @@
 
         <dependency>
             <groupId>org.apache.camel.springboot</groupId>
-            <artifactId>camel-swagger-java-starter</artifactId>
-            <version>3.21.0</version>
+            <artifactId>camel-openapi-java-starter</artifactId>
         </dependency>
 
         <dependency>
@@ -170,24 +175,17 @@
         <dependency>
             <groupId>io.confluent</groupId>
             <artifactId>kafka-avro-serializer</artifactId>
-            <version>7.4.0</version>
+            <version>${confluent-kafka.version}</version>
         </dependency>
         <dependency>
             <groupId>io.confluent</groupId>
             <artifactId>kafka-schema-registry-client</artifactId>
-            <version>7.4.0</version>
+            <version>${confluent-kafka.version}</version>
         </dependency>
         <dependency>
             <groupId>io.confluent</groupId>
             <artifactId>kafka-streams-avro-serde</artifactId>
-            <version>7.4.0</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/jakarta.servlet/jakarta.servlet-api -->
-        <dependency>
-            <groupId>jakarta.servlet</groupId>
-            <artifactId>jakarta.servlet-api</artifactId>
-            <version>6.0.0</version>
-            <scope>provided</scope>
+            <version>${confluent-kafka.version}</version>
         </dependency>
         <dependency>
             <groupId>jakarta.annotation</groupId>
@@ -222,6 +220,12 @@
         </dependency>
 
         <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-xml</artifactId>
+            <version>2.15.2</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.entur</groupId>
             <artifactId>siri-avro-mapper</artifactId>
             <version>2.0</version>
@@ -229,7 +233,7 @@
         <dependency>
             <groupId>org.apache.avro</groupId>
             <artifactId>avro</artifactId>
-            <version>1.11.1</version>
+            <version>1.11.2</version>
         </dependency>
 
         <!-- Entur helpers -->
@@ -270,6 +274,8 @@
         <dependency>
             <groupId>org.entur</groupId>
             <artifactId>netex-parser-java</artifactId>
+<!--            <version>3.0.0</version>-->
+            <!-- TODO: Replace with actual released jakarta-version -->
             <version>3.0.0-SNAPSHOT</version>
         </dependency>
 
