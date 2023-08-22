@@ -220,7 +220,7 @@
         <dependency>
             <groupId>org.entur</groupId>
             <artifactId>siri-java-model</artifactId>
-            <version>0.15</version>
+            <version>1.22</version>
         </dependency>
 
         <dependency>
