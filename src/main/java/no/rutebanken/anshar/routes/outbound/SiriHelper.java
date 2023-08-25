@@ -19,6 +19,7 @@ import no.rutebanken.anshar.data.EstimatedTimetables;
 import no.rutebanken.anshar.data.Situations;
 import no.rutebanken.anshar.data.VehicleActivities;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
+import org.entur.siri.validator.SiriValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -421,6 +422,23 @@ public class SiriHelper {
         }
 
         return siri;
+    }
+
+    public static String resolveSiriVersionStr(SiriValidator.Version version) {
+        switch (version) {
+            case VERSION_1_0:
+                return "1.0";
+            case VERSION_1_3:
+                return "1.3";
+            case VERSION_1_4:
+                return "1.4";
+            case VERSION_2_0:
+                return "2.0";
+            case VERSION_2_1:
+                return "2.1";
+            default:
+                return FALLBACK_SIRI_VERSION;
+        }
     }
 
     public Siri getAllVM() {

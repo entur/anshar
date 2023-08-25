@@ -21,18 +21,6 @@ import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import com.esotericsoftware.kryo.pool.KryoFactory;
 import com.esotericsoftware.kryo.pool.KryoPool;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import javax.annotation.Nonnull;
-import javax.xml.bind.JAXBException;
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeFactory;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.routes.outbound.SiriHelper;
 import no.rutebanken.anshar.subscription.SiriDataType;
@@ -85,6 +73,19 @@ import uk.org.siri.siri21.VehicleMonitoringRequestStructure;
 import uk.org.siri.siri21.VehicleMonitoringSubscriptionStructure;
 import uk.org.siri.siri21.VehicleRef;
 
+import javax.annotation.Nonnull;
+import javax.xml.bind.JAXBException;
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+
 @Service
 public class SiriObjectFactory {
 
@@ -132,7 +133,7 @@ public class SiriObjectFactory {
     public SiriObjectFactory(@Autowired Instant serverStartTime) {
         this.serverStartTime = serverStartTime;
     }
-    
+
     public static Siri createSubscriptionRequest(SubscriptionSetup subscriptionSetup) {
         Siri siri = createSiriObject(subscriptionSetup.getVersion());
 
@@ -557,7 +558,10 @@ private static SubscriptionRequest createVehicleMonitoringSubscriptionRequest(St
     }
 
     public Siri createHeartbeatNotification(String requestorRef) {
-        Siri siri = createSiriObject(SiriHelper.FALLBACK_SIRI_VERSION);
+        return createHeartbeatNotification(requestorRef, SiriHelper.FALLBACK_SIRI_VERSION);
+    }
+    public Siri createHeartbeatNotification(String requestorRef, String version) {
+        Siri siri = createSiriObject(version);
         HeartbeatNotificationStructure heartbeat = new HeartbeatNotificationStructure();
         heartbeat.setStatus(true);
         heartbeat.setServiceStartedTime(serverStartTime.atZone(ZoneId.systemDefault()));
@@ -583,8 +587,8 @@ private static SubscriptionRequest createVehicleMonitoringSubscriptionRequest(St
         return siri;
     }
 
-    public Siri createSubscriptionResponse(String subscriptionRef, boolean status, String errorText) {
-        Siri siri = createSiriObject(SiriHelper.FALLBACK_SIRI_VERSION);
+    public Siri createSubscriptionResponse(String subscriptionRef, boolean status, String errorText, String version) {
+        Siri siri = createSiriObject(version);
         SubscriptionResponseStructure response = new SubscriptionResponseStructure();
         response.setServiceStartedTime(serverStartTime.atZone(ZoneId.systemDefault()));
         response.setRequestMessageRef(createMessageRef());

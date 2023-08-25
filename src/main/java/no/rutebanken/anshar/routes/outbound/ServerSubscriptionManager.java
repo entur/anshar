@@ -59,6 +59,7 @@ import java.util.stream.Collectors;
 
 import static java.time.temporal.ChronoUnit.MILLIS;
 import static no.rutebanken.anshar.routes.kafka.KafkaConfig.CODESPACE_ID_KAFKA_HEADER_NAME;
+import static no.rutebanken.anshar.routes.outbound.SiriHelper.resolveSiriVersionStr;
 
 @SuppressWarnings("unchecked")
 @Service
@@ -169,11 +170,21 @@ public class ServerSubscriptionManager {
         }
 
         if (hasError) {
-            return siriObjectFactory.createSubscriptionResponse(subscription.getSubscriptionId(), false, errorText);
+            return siriObjectFactory.createSubscriptionResponse(
+                    subscription.getSubscriptionId(),
+                    false,
+                    errorText,
+                    resolveSiriVersionStr(subscription.getSiriVersion())
+            );
         } else {
             addSubscription(subscription);
 
-            Siri subscriptionResponse = siriObjectFactory.createSubscriptionResponse(subscription.getSubscriptionId(), true, null);
+            Siri subscriptionResponse = siriObjectFactory.createSubscriptionResponse(
+                    subscription.getSubscriptionId(),
+                    true,
+                    null,
+                    resolveSiriVersionStr(subscription.getSiriVersion()))
+                    ;
 
             final String breadcrumbId = MDC.get("camel.breadcrumbId");
             Executors.newSingleThreadScheduledExecutor().execute(() -> {
@@ -215,10 +226,30 @@ public class ServerSubscriptionManager {
                 findInitialTerminationTime(subscriptionRequest),
                 datasetId,
                 clientTrackingName,
-                outboundIdMappingPolicy.equals(OutboundIdMappingPolicy.SIRI_2_1) ?
-                        SiriValidator.Version.VERSION_2_1 : SiriValidator.Version.VERSION_2_0
-
+                resolveSiriVersion(subscriptionRequest, outboundIdMappingPolicy)
                 );
+    }
+
+    private static SiriValidator.Version resolveSiriVersion(SubscriptionRequest subscriptionRequest, OutboundIdMappingPolicy outboundIdMappingPolicy) {
+        // Check
+        String version = null;
+        if (SiriHelper.containsValues(subscriptionRequest.getSituationExchangeSubscriptionRequests())) {
+            version = subscriptionRequest.getSituationExchangeSubscriptionRequests().get(0).getSituationExchangeRequest().getVersion();
+        } else if (SiriHelper.containsValues(subscriptionRequest.getVehicleMonitoringSubscriptionRequests())) {
+            version = subscriptionRequest.getVehicleMonitoringSubscriptionRequests().get(0).getVehicleMonitoringRequest().getVersion();
+        } else if (SiriHelper.containsValues(subscriptionRequest.getEstimatedTimetableSubscriptionRequests())) {
+            version = subscriptionRequest.getEstimatedTimetableSubscriptionRequests().get(0).getEstimatedTimetableRequest().getVersion();
+        }
+
+        // Subscriber requests SIRI 2.1 version in request
+        if ("2.1".equals(version)) {
+            return SiriValidator.Version.VERSION_2_1;
+        }
+
+        // Checking header-override
+        SiriValidator.Version siriVersion = outboundIdMappingPolicy.equals(OutboundIdMappingPolicy.SIRI_2_1) ?
+                SiriValidator.Version.VERSION_2_1 : SiriValidator.Version.VERSION_2_0;
+        return siriVersion;
     }
 
     // public for unittest
