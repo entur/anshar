@@ -178,7 +178,6 @@ public class LivenessReadinessRoute extends RestRouteBuilder {
                         }
                     })
                     .log("Server is back to normal")
-                    .to("direct:notify.hubot")
                 .endChoice()
                 .when(p -> getAllUnhealthySubscriptions() != null && !getAllUnhealthySubscriptions().isEmpty())
                     .process(p -> {
@@ -206,26 +205,12 @@ public class LivenessReadinessRoute extends RestRouteBuilder {
                         }
                     })
                     .log("Server is NOT receiving data")
-                    .to("direct:notify.hubot")
                 .endChoice()
                 .otherwise()
                     .setBody(simple("OK"))
                     .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
                 .endChoice()
                 .routeId("health.data.received")
-        ;
-        from("direct:notify.hubot")
-                .choice()
-                .when(header("notify-target").isEqualTo("log"))
-                    .to("log:health:" + getClass().getSimpleName() + "?showAll=false&multiline=false")
-                .endChoice()
-                .when(header("notify-target").isEqualTo("hubot"))
-                    .to("log:health:" + getClass().getSimpleName() + "?showAll=false&multiline=false")
-//                    .setHeader(Exchange.CONTENT_TYPE, constant(MediaType.JSON_UTF_8))
-//                    .setHeader(Exchange.HTTP_METHOD, constant(HttpMethods.POST))
-//                    .to(hubotUrl)
-                .endChoice()
-            .routeId("health.notify.hubot")
         ;
 
     }
