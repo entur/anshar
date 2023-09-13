@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class KafkaPublisherRoute extends KafkaConfig {
 
     private static final int LOG_INTERVAL_ET = 1000;
-    private static final int LOG_INTERVAL_VM = 1000;
+    private static final int LOG_INTERVAL_VM = 10000;
     private static final int LOG_INTERVAL_SX = 100;
     @Value("${anshar.kafka.topic.et.name:}")
     private String kafkaEtTopic;
