@@ -11,7 +11,7 @@ import java.util.List;
 public class PrometheusAvroConverter {
 
 
-    public static MetricRecord convertMetrics(String metrics, String prefixFilter, String hostname) {
+    public static String convertMetrics(String metrics, String prefixFilter, String hostname) {
         ZonedDateTime recordedAtTime = ZonedDateTime.now().withZoneSameInstant(ZoneId.of("UTC"));
             if (metrics != null) {
                 String[] lines = metrics.split("\n");
@@ -32,7 +32,7 @@ public class PrometheusAvroConverter {
      * @param hostname
      * @return
      */
-    private static MetricRecord createMetricRecord(ZonedDateTime recordedAtTime, String line, String hostname) {
+    private static String createMetricRecord(ZonedDateTime recordedAtTime, String line, String hostname) {
         MetricRecord metricRecord = new MetricRecord();
         metricRecord.setRecordedAtTime(recordedAtTime.toString());
         metricRecord.setHostname(hostname);
@@ -54,7 +54,7 @@ public class PrometheusAvroConverter {
         String valueString = line.substring(line.indexOf("}")+1).trim();
         metricRecord.setName(name);
         metricRecord.setValue(Double.parseDouble(valueString));
-        return metricRecord;
+        return metricRecord.toString();
     }
 
     private static String cleanup(String[] split, int x) {
