@@ -1,0 +1,16 @@
+@namespace("no.rutebanken.anshar.metrics.avro")
+protocol Metrics {
+
+	record MetricRecord {
+		string recordedAtTime;
+		string name;
+		string hostname;
+		array<LabelRecord> labels = [];
+		double value;
+	}
+
+	record LabelRecord {
+		string name;
+		string value;
+	}
+}

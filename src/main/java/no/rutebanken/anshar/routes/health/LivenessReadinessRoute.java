@@ -33,6 +33,8 @@ import java.text.MessageFormat;
 import java.time.LocalTime;
 import java.util.Set;
 
+import static no.rutebanken.anshar.metrics.avro.PrometheusAvroConverter.convertMetrics;
+
 @Service
 @Configuration
 public class LivenessReadinessRoute extends RestRouteBuilder {
@@ -70,6 +72,12 @@ public class LivenessReadinessRoute extends RestRouteBuilder {
     private String endMonitorTimeStr;
     private LocalTime endMonitorTime;
 
+    @Value("${anshar.metrics.pubsub.topic.name:}")
+    private String pubsubMetricsTopicName;
+
+    @Value("${anshar.metrics.pubsub.topic.enabled:false}")
+    private boolean pubsubMetricsTopicEnabled;
+
     @Autowired
     @Qualifier("getUnhealthySubscriptionsSet")
     private ISet<String> unhealthySubscriptionsAlreadyNotified;
@@ -84,6 +92,9 @@ public class LivenessReadinessRoute extends RestRouteBuilder {
     private PrometheusMetricsService prometheusRegistry;
 
     public static boolean triggerRestart;
+
+    @Value("${anshar.route.singleton.policy.lockValue:unknown}")
+    private String hostname;
 
     @PostConstruct
     private void init() {
@@ -114,13 +125,36 @@ public class LivenessReadinessRoute extends RestRouteBuilder {
         from("direct:scrape")
                 .process(p -> {
                     if (prometheusRegistry != null) {
-                        p.getOut().setBody(prometheusRegistry.scrape());
+                        String scrape = prometheusRegistry.scrape();
+                        p.getOut().setBody(scrape);
                     }
                 })
+                .choice().when(body().isNotNull()).wireTap("direct:publish.metrics").end()
                 .setHeader(Exchange.CONTENT_TYPE, constant("text/plain"))
                 .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
                 .routeId("health.scrape")
         ;
+
+
+        if (pubsubMetricsTopicEnabled && pubsubMetricsTopicName != null) {
+            // PoC: publishing app-metrics to pubsub for future analysis
+            from("direct:publish.metrics")
+                    .setBody(exchange -> removeNonAppMetrics(exchange.getIn().getBody(String.class)))
+                    .removeHeaders("*")
+                    .split().tokenize("\n")
+                    .setBody(exchange -> convertMetrics(exchange.getIn().getBody(String.class), "app_", hostname))
+                    .choice().when(body().isNotNull())
+                    .wireTap(pubsubMetricsTopicName)
+                    .endChoice()
+                    .end()
+                    .routeId("publish.prometheus.metrics")
+            ;
+        } else {
+            from("direct:publish.metrics")
+                    .log("Ignore publish metrics to pubsub")
+                    .routeId("publish.prometheus.metrics")
+                    ;
+        }
 
         // readiness
         from("direct:ready")
@@ -213,6 +247,21 @@ public class LivenessReadinessRoute extends RestRouteBuilder {
                 .routeId("health.data.received")
         ;
 
+    }
+
+    private static String removeNonAppMetrics(String scrape) {
+        StringBuilder appMetrics = new StringBuilder();
+        if (scrape != null) {
+            String[] lines = scrape.split("\n");
+            for (String line : lines) {
+                if (line.startsWith("app_")) {
+                    appMetrics
+                            .append(line)
+                            .append('\n');
+                }
+            }
+        }
+        return appMetrics.toString();
     }
 
     private Set<String> getAllUnhealthySubscriptions() {
