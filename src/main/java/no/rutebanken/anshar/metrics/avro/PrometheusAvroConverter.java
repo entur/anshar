@@ -11,14 +11,12 @@ import java.util.List;
 public class PrometheusAvroConverter {
 
 
-    public static String convertMetrics(String metrics, String prefixFilter, String hostname) {
+    public static String convertMetrics(String metrics, String hostname) {
         ZonedDateTime recordedAtTime = ZonedDateTime.now().withZoneSameInstant(ZoneId.of("UTC"));
             if (metrics != null) {
                 String[] lines = metrics.split("\n");
                 for (String line : lines) {
-                    if (line.startsWith(prefixFilter)) {
-                        return createMetricRecord(recordedAtTime, line, hostname);
-                    }
+                    return createMetricRecord(recordedAtTime, line, hostname);
                 }
             }
             return null;

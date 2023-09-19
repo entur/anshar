@@ -142,7 +142,7 @@ public class LivenessReadinessRoute extends RestRouteBuilder {
                     .setBody(exchange -> removeNonAppMetrics(exchange.getIn().getBody(String.class)))
                     .removeHeaders("*")
                     .split().tokenize("\n")
-                    .setBody(exchange -> convertMetrics(exchange.getIn().getBody(String.class), "app_", hostname))
+                    .setBody(exchange -> convertMetrics(exchange.getIn().getBody(String.class),  hostname))
                     .choice().when(body().isNotNull())
                     .wireTap(pubsubMetricsTopicName)
                     .endChoice()
