@@ -31,6 +31,7 @@ import no.rutebanken.anshar.subscription.SiriDataType;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import uk.org.siri.siri21.EstimatedTimetableDeliveryStructure;
 import uk.org.siri.siri21.EstimatedVersionFrameStructure;
@@ -86,6 +87,9 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
 
     private static final String DATA_VALIDATION_COUNTER = METRICS_PREFIX + "data.validation";
     private static final String DATA_VALIDATION_RESULT_COUNTER = METRICS_PREFIX + "data.validation.result";
+
+    @Value("${anshar.metrics.include.failing.subscriptions:false}")
+    private boolean includeSubscriptionFailingMetrics;
 
     public PrometheusMetricsService() {
         super(PrometheusConfig.DEFAULT);
@@ -266,38 +270,40 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
             gaugeDataset(SiriDataType.VEHICLE_MONITORING, entry.getKey(), entry.getValue());
         }
 
-        ReplicatedMap<String, SubscriptionSetup> subscriptions = manager.subscriptions;
-        for (SubscriptionSetup subscription : subscriptions.values()) {
+        if (includeSubscriptionFailingMetrics) {
+            ReplicatedMap<String, SubscriptionSetup> subscriptions = manager.subscriptions;
+            for (SubscriptionSetup subscription : subscriptions.values()) {
 
-            SiriDataType subscriptionType = subscription.getSubscriptionType();
+                SiriDataType subscriptionType = subscription.getSubscriptionType();
 
-            String gauge_baseName = METRICS_PREFIX + "subscription";
+                String gauge_baseName = METRICS_PREFIX + "subscription";
 
-            String gauge_failing = gauge_baseName + ".failing";
-            String gauge_data_failing = gauge_baseName + ".data_failing" ;
-
-
-            List<Tag> counterTags = new ArrayList<>();
-            counterTags.add(new ImmutableTag(DATATYPE_TAG_NAME, subscriptionType.name()));
-            counterTags.add(new ImmutableTag(AGENCY_TAG_NAME, subscription.getDatasetId()));
-            counterTags.add(new ImmutableTag("vendor", subscription.getVendor()));
+                String gauge_failing = gauge_baseName + ".failing";
+                String gauge_data_failing = gauge_baseName + ".data_failing";
 
 
-            //Flag as failing when ACTIVE, and NOT HEALTHY
-            gauge(gauge_failing, getTagsWithTimeLimit(counterTags, "now"), subscription.getSubscriptionId(), value ->
-                    (manager.isActiveSubscription(subscription.getSubscriptionId()) &&
-                            !manager.isSubscriptionHealthy(subscription.getSubscriptionId())) ? 1:0);
+                List<Tag> counterTags = new ArrayList<>();
+                counterTags.add(new ImmutableTag(DATATYPE_TAG_NAME, subscriptionType.name()));
+                counterTags.add(new ImmutableTag(AGENCY_TAG_NAME, subscription.getDatasetId()));
+                counterTags.add(new ImmutableTag("vendor", subscription.getVendor()));
 
-            //Set flag as data failing when ACTIVE, and NOT receiving data
 
-            gauge(gauge_data_failing, getTagsWithTimeLimit(counterTags, "5min"), subscription.getSubscriptionId(), value ->
-                    isSubscriptionFailing(manager, subscription, 5*60));
+                //Flag as failing when ACTIVE, and NOT HEALTHY
+                gauge(gauge_failing, getTagsWithTimeLimit(counterTags, "now"), subscription.getSubscriptionId(), value ->
+                        (manager.isActiveSubscription(subscription.getSubscriptionId()) &&
+                                !manager.isSubscriptionHealthy(subscription.getSubscriptionId())) ? 1 : 0);
 
-            gauge(gauge_data_failing, getTagsWithTimeLimit(counterTags, "15min"), subscription.getSubscriptionId(), value ->
-                    isSubscriptionFailing(manager, subscription, 15*60));
+                //Set flag as data failing when ACTIVE, and NOT receiving data
 
-            gauge(gauge_data_failing, getTagsWithTimeLimit(counterTags, "30min"), subscription.getSubscriptionId(), value ->
-                    isSubscriptionFailing(manager, subscription, 30*60));
+                gauge(gauge_data_failing, getTagsWithTimeLimit(counterTags, "5min"), subscription.getSubscriptionId(), value ->
+                        isSubscriptionFailing(manager, subscription, 5 * 60));
+
+                gauge(gauge_data_failing, getTagsWithTimeLimit(counterTags, "15min"), subscription.getSubscriptionId(), value ->
+                        isSubscriptionFailing(manager, subscription, 15 * 60));
+
+                gauge(gauge_data_failing, getTagsWithTimeLimit(counterTags, "30min"), subscription.getSubscriptionId(), value ->
+                        isSubscriptionFailing(manager, subscription, 30 * 60));
+            }
         }
     }
 
