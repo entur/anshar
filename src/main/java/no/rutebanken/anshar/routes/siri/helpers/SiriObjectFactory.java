@@ -548,7 +548,11 @@ public class SiriObjectFactory {
     }
 
     public Siri createHeartbeatNotification(String requestorRef) {
-        Siri siri = createSiriObject(SiriHelper.FALLBACK_SIRI_VERSION);
+        return createHeartbeatNotification(requestorRef, SiriHelper.FALLBACK_SIRI_VERSION);
+    }
+
+    public Siri createHeartbeatNotification(String requestorRef, String version) {
+        Siri siri = createSiriObject(version);
         HeartbeatNotificationStructure heartbeat = new HeartbeatNotificationStructure();
         heartbeat.setStatus(true);
         heartbeat.setServiceStartedTime(serverStartTime.atZone(ZoneId.systemDefault()));
@@ -574,8 +578,8 @@ public class SiriObjectFactory {
         return siri;
     }
 
-    public Siri createSubscriptionResponse(String subscriptionRef, boolean status, String errorText) {
-        Siri siri = createSiriObject(SiriHelper.FALLBACK_SIRI_VERSION);
+    public Siri createSubscriptionResponse(String subscriptionRef, boolean status, String errorText, String version) {
+        Siri siri = createSiriObject(version);
         SubscriptionResponseStructure response = new SubscriptionResponseStructure();
         response.setServiceStartedTime(serverStartTime.atZone(ZoneId.systemDefault()));
         response.setRequestMessageRef(createMessageRef());

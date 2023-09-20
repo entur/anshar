@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Node;
+import uk.org.siri.siri21.CallStatusEnumeration;
 import uk.org.siri.siri21.EstimatedCall;
 import uk.org.siri.siri21.EstimatedTimetableDeliveryStructure;
 import uk.org.siri.siri21.EstimatedVehicleJourney;
@@ -88,7 +89,12 @@ public class SaneSpeedValidator extends SiriObjectValidator {
                                         final RecordedCall thisCall = calls.get(i);
                                         final RecordedCall nextCall = calls.get(i + 1);
 
-                                        if (thisCall.getStopPointRef() != null &&
+                                        boolean cancellation =
+                                                isNotVisited(thisCall.isCancellation(), thisCall.getDepartureStatus()) |
+                                                isNotVisited(thisCall.isCancellation(), nextCall.getDepartureStatus());
+
+                                        if (!cancellation &&
+                                                thisCall.getStopPointRef() != null &&
                                             nextCall.getStopPointRef() != null) {
                                             final String fromStop = getMappedId(thisCall
                                                 .getStopPointRef()
@@ -122,10 +128,14 @@ public class SaneSpeedValidator extends SiriObjectValidator {
                                     ) {
                                         final EstimatedCall thisCall = calls.get(i);
                                         final EstimatedCall nextCall = calls.get(i + 1);
+                                        boolean cancellation =
+                                                isNotVisited(thisCall.isCancellation(), thisCall.getDepartureStatus()) |
+                                                        isNotVisited(thisCall.isCancellation(), nextCall.getDepartureStatus());
 
                                         final StopPointRefStructure thisStop = thisCall.getStopPointRef();
                                         final StopPointRefStructure nextStop = nextCall.getStopPointRef();
-                                        if (thisStop != null && nextStop != null) {
+                                        if (!cancellation &&
+                                                thisStop != null && nextStop != null) {
 
                                             try {
                                                 validate(
@@ -151,6 +161,16 @@ public class SaneSpeedValidator extends SiriObjectValidator {
             }
         }
         return events;
+    }
+
+    private static boolean isNotVisited(Boolean cancellation, CallStatusEnumeration status) {
+        boolean isDepartureCancelled = false;
+        if (status != null) {
+            isDepartureCancelled = (status == CallStatusEnumeration.CANCELLED | status == CallStatusEnumeration.MISSED);
+        }
+        boolean isCancelled = (cancellation != null && cancellation);
+
+        return isDepartureCancelled || isCancelled;
     }
 
     private void validate(
