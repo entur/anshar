@@ -1,10 +1,12 @@
 package no.rutebanken.anshar.routes.kafka;
 
 import no.rutebanken.anshar.metrics.PrometheusMetricsService;
+import org.apache.camel.component.kafka.KafkaConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
@@ -42,6 +44,7 @@ public class KafkaPublisherRoute extends KafkaConfig {
         if (publishEtToKafkaEnabled) {
             log.info("Publishing ET to kafka-topic: {}", kafkaEtTopic);
             from("direct:kafka.et.xml")
+                .setHeader(KafkaConstants.KEY, () -> UUID.randomUUID().toString())
                 .to("kafka:" + createProducerConfig(kafkaEtTopic))
                 .bean(metricsService, "registerAckedKafkaRecord(" + kafkaEtTopic + ")")
                 .routeId("anshar.kafka.et.producer");
@@ -58,6 +61,7 @@ public class KafkaPublisherRoute extends KafkaConfig {
         if (publishVmToKafkaEnabled) {
             log.info("Publishing VM to kafka-topic: {}", kafkaVmTopic);
             from("direct:kafka.vm.xml")
+                .setHeader(KafkaConstants.KEY, () -> UUID.randomUUID().toString())
                 .to("kafka:" + createProducerConfig(kafkaVmTopic))
                 .bean(metricsService, "registerAckedKafkaRecord(" + kafkaVmTopic + ")")
                 .routeId("anshar.kafka.vm.producer");
@@ -74,6 +78,7 @@ public class KafkaPublisherRoute extends KafkaConfig {
         if (publishSxToKafkaEnabled) {
             log.info("Publishing SX to kafka-topic: {}", kafkaSxTopic);
             from("direct:kafka.sx.xml")
+                .setHeader(KafkaConstants.KEY, () -> UUID.randomUUID().toString())
                 .to("kafka:" + createProducerConfig(kafkaSxTopic))
                 .bean(metricsService, "registerAckedKafkaRecord(" + kafkaSxTopic + ")")
                 .routeId("anshar.kafka.sx.producer");
