@@ -13,7 +13,7 @@ import java.util.Set;
 public class PrometheusAvroConverter {
 
 
-    private static final Set<String> labelsToIgnore = Set.of("mappingName");
+    private static final Set<String> labelsToIgnore = Set.of("mappingName", "siriContentLabel");
 
     public static String convertMetrics(String metrics, String hostname) {
         ZonedDateTime recordedAtTime = ZonedDateTime.now().withZoneSameInstant(ZoneId.of("UTC"));
