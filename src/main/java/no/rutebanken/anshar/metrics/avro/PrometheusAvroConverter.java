@@ -4,12 +4,16 @@ import org.springframework.stereotype.Component;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Component
 public class PrometheusAvroConverter {
 
+
+    private static final Set<String> labelsToIgnore = Set.of("mappingName");
 
     public static String convertMetrics(String metrics, String hostname) {
         ZonedDateTime recordedAtTime = ZonedDateTime.now().withZoneSameInstant(ZoneId.of("UTC"));
@@ -44,7 +48,10 @@ public class PrometheusAvroConverter {
             LabelRecord labelRecord = new LabelRecord();
             labelRecord.setName(cleanup(split, 0));
             labelRecord.setValue(cleanup(split, 1));
-            labels.add(labelRecord);
+            if (!labelsToIgnore.contains(labelRecord.getName())) {
+                //mappingName should be ignored
+                labels.add(labelRecord);
+            }
         }
 
         metricRecord.setLabels(labels);
