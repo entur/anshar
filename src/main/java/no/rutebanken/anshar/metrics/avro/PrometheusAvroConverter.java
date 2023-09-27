@@ -36,7 +36,7 @@ public class PrometheusAvroConverter {
      */
     private static String createMetricRecord(ZonedDateTime recordedAtTime, String line, String hostname) {
         MetricRecord metricRecord = new MetricRecord();
-        metricRecord.setRecordedAtTime(recordedAtTime.toString());
+        metricRecord.setRecordedAtTime(recordedAtTime.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
         metricRecord.setHostname(hostname);
         String name = line.substring(0, line.indexOf("{"));
         String labelString = line.substring(line.indexOf("{")+1, line.indexOf("}"));
