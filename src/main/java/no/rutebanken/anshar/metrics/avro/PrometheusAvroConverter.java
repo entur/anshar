@@ -14,6 +14,11 @@ public class PrometheusAvroConverter {
 
 
     private static final Set<String> labelsToIgnore = Set.of("mappingName", "siriContentLabel");
+    private static final Set<String> metricsToIgnore = Set.of(
+            "app_anshar_data_outbound_total",
+            "app_anshar_data_kafka_total",
+            "app_anshar_siri_content_total"
+    );
 
     public static String convertMetrics(String metrics, String hostname) {
         ZonedDateTime recordedAtTime = ZonedDateTime.now().withZoneSameInstant(ZoneId.of("UTC"));
@@ -35,10 +40,14 @@ public class PrometheusAvroConverter {
      * @return
      */
     private static String createMetricRecord(ZonedDateTime recordedAtTime, String line, String hostname) {
+        String name = line.substring(0, line.indexOf("{"));
+        if (metricsToIgnore.contains(name)) {
+            return null;
+        }
+
         MetricRecord metricRecord = new MetricRecord();
         metricRecord.setRecordedAtTime(recordedAtTime.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
         metricRecord.setHostname(hostname);
-        String name = line.substring(0, line.indexOf("{"));
         String labelString = line.substring(line.indexOf("{")+1, line.indexOf("}"));
 
         List<LabelRecord> labels = new ArrayList<>();
