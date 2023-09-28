@@ -17,7 +17,10 @@ public class PrometheusAvroConverter {
     private static final Set<String> metricsToIgnore = Set.of(
             "app_anshar_data_outbound_total",
             "app_anshar_data_kafka_total",
+            "app_anshar_data_counter",
+            "app_anshar_data_total",
             "app_anshar_siri_content_total",
+            "app_anshar_data_validation_total",
             "app_anshar_data_validation_result_total"
     );
 
