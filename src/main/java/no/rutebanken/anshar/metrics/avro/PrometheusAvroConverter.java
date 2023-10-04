@@ -1,5 +1,7 @@
 package no.rutebanken.anshar.metrics.avro;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.time.ZoneId;
@@ -12,6 +14,7 @@ import java.util.Set;
 @Component
 public class PrometheusAvroConverter {
 
+    private static final Logger logger = LoggerFactory.getLogger(PrometheusAvroConverter.class);
 
     private static final Set<String> labelsToIgnore = Set.of("mappingName", "siriContentLabel");
     private static final Set<String> metricsToIgnore = Set.of(
@@ -57,12 +60,16 @@ public class PrometheusAvroConverter {
         String[] keyValues = labelString.split(",");
         for (String keyValue : keyValues) {
             String[] split = keyValue.split("=");
-            LabelRecord labelRecord = new LabelRecord();
-            labelRecord.setName(cleanup(split, 0));
-            labelRecord.setValue(cleanup(split, 1));
-            if (!labelsToIgnore.contains(labelRecord.getName())) {
-                //mappingName should be ignored
-                labels.add(labelRecord);
+            if (split.length == 2) {
+                LabelRecord labelRecord = new LabelRecord();
+                labelRecord.setName(cleanup(split, 0));
+                labelRecord.setValue(cleanup(split, 1));
+                if (!labelsToIgnore.contains(labelRecord.getName())) {
+                    //mappingName should be ignored
+                    labels.add(labelRecord);
+                }
+            } else {
+                logger.info("Label ignored: {}", keyValue);
             }
         }
 
