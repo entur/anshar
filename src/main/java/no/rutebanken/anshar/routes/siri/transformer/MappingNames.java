@@ -23,8 +23,8 @@ public enum MappingNames {
         EXTRA_JOURNEY_TOO_FAST("ExtraJourney is reported to travel too fast between stops"),
         EXTRA_JOURNEY_INVALID_MODE("ExtraJourney mode does not match stops in use"),
         EXTRA_JOURNEY_ID_EXISTS("ExtraJourney has ID that already exists in plan-data"),
-        OVERRIDE_MONITORED_FALSE("Monitored is set to false, but a pattern-change has been detected"),
-        OVERRIDE_MONITORED_NO_LONGER_TRUE("Monitored is set to false, but was previously set to true")
+        OVERRIDE_MONITORED_FALSE("Monitored is set to false but a pattern-change has been detected"),
+        OVERRIDE_MONITORED_NO_LONGER_TRUE("Monitored is set to false but was previously set to true")
         ;
 
 
