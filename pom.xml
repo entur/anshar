@@ -276,9 +276,7 @@
         <dependency>
             <groupId>org.entur</groupId>
             <artifactId>netex-parser-java</artifactId>
-<!--            <version>3.0.0</version>-->
-            <!-- TODO: Replace with actual released jakarta-version -->
-            <version>3.0.0-SNAPSHOT</version>
+            <version>3.0.3</version>
         </dependency>
 
         <!-- Geotools needed for calculating speed between stops-->
