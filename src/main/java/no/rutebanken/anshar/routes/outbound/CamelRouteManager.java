@@ -58,7 +58,7 @@ public class CamelRouteManager {
     @Value("${anshar.default.max.threads.per.outbound.subscription:20}")
     private int maximumThreadsPerOutboundSubscription;
 
-    @Produce(uri = "direct:send.to.external.subscription")
+    @Produce(value = "direct:send.to.external.subscription")
     protected ProducerTemplate siriSubscriptionProcessor;
 
     /**

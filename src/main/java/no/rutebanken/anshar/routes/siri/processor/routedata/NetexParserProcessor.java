@@ -15,6 +15,7 @@
 
 package no.rutebanken.anshar.routes.siri.processor.routedata;
 
+import jakarta.xml.bind.JAXBElement;
 import org.entur.netex.NetexParser;
 import org.entur.netex.index.api.NetexEntitiesIndex;
 import org.rutebanken.netex.model.AllVehicleModesOfTransportEnumeration;
@@ -48,7 +49,6 @@ import org.rutebanken.netex.model.TimetableFrame;
 import org.rutebanken.netex.model.TimetabledPassingTime;
 import org.rutebanken.netex.model.VehicleModeEnumeration;
 
-import javax.xml.bind.JAXBElement;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;

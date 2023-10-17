@@ -18,6 +18,7 @@ package no.rutebanken.anshar.routes.siri.transformer;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import jakarta.xml.bind.JAXBException;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.routes.siri.processor.PostProcessor;
 import no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter;
@@ -27,7 +28,6 @@ import org.slf4j.LoggerFactory;
 import uk.org.siri.siri21.LineRef;
 import uk.org.siri.siri21.Siri;
 
-import javax.xml.bind.JAXBException;
 import javax.xml.stream.XMLStreamException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;

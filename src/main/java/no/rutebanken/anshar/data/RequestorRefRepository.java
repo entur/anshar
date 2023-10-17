@@ -16,12 +16,12 @@
 package no.rutebanken.anshar.data;
 
 import com.hazelcast.map.IMap;
+import jakarta.validation.constraints.NotNull;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.validation.constraints.NotNull;
 import java.time.Instant;
 import java.util.concurrent.TimeUnit;
 
