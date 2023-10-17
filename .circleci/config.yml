@@ -2,7 +2,7 @@ version: 2.1
 executors:
   cci-toolbox-java11:
     docker:
-      - image: eu.gcr.io/entur-system-1287/circleci-toolbox-image-java11
+      - image: cimg/openjdk:17.0.1
         auth:
           username: _json_key
           password: $DOCKER_PASSWORD
@@ -10,11 +10,11 @@ executors:
       DEBIAN_FRONTEND: "noninteractive"
       MAVEN_OPTS: -Xmx3G
 aliases:
-  - &jfrog-login
-    name: Rename jfrog environment variable for maven setting.xml
+
+  - &jfrog-settings
+    name: Write artifactory settings to file
     command: |
-      echo "export JFROG_USER=$ARTIFACTORY_USER"  >> $BASH_ENV
-      echo "export JFROG_PASS=$ARTIFACTORY_PASSWORD"  >> $BASH_ENV
+      echo "$ARTIFACTORY_SETTINGS" | base64 --decode > .circleci/settings.xml
 
   - &save-test-results
     name: Save test results
@@ -30,17 +30,20 @@ aliases:
     command: |
       echo 'export CIRCLE_SHA1="$CIRCLE_SHA1"' >> $BASH_ENV
       echo 'export CIRCLE_PROJECT_REPONAME="$CIRCLE_PROJECT_REPONAME"' >> $BASH_ENV
-      /tools/trigger_build_v2.sh "entur/anshar-deployment-config.git" "master" "$(git log -1 --pretty=%B)"
+      .circleci/trigger_build_v2.sh "entur/anshar-deployment-config.git" "master" "$(git log -1 --pretty=%B)"
 
 jobs:
   test:
-    executor: cci-toolbox-java11
+    docker:
+      - image: cimg/openjdk:17.0.1
+    environment:
+      MAVEN_OPTS: -Xmx5G
     steps:
       - checkout
       - restore_cache:
           key: dep-cache-{{ checksum "pom.xml" }}
-      - run: *jfrog-login
-      - run: mvn org.apache.maven.plugins:maven-dependency-plugin:3.1.0:go-offline -s /tools/m2/settings.xml
+      - run: *jfrog-settings
+      - run: mvn org.apache.maven.plugins:maven-dependency-plugin:3.1.0:go-offline -s .circleci/settings.xml
       - save_cache:
           paths:
             - ~/.m2
@@ -52,23 +55,26 @@ jobs:
       - store_artifacts:
           path: ~/reports
   build:
-    executor: cci-toolbox-java11
+    docker:
+      - image: cimg/openjdk:17.0.1
+    environment:
+      MAVEN_OPTS: -Xmx5G
     steps:
       - checkout
       - restore_cache:
           key: dep-cache-{{ checksum "pom.xml" }}
-      - run: *jfrog-login
-      - run: mvn org.apache.maven.plugins:maven-dependency-plugin:3.1.0:go-offline -s /tools/m2/settings.xml
+      - run: *jfrog-settings
+      - run: mvn org.apache.maven.plugins:maven-dependency-plugin:3.1.0:go-offline -s .circleci/settings.xml
       - save_cache:
           paths:
             - ~/.m2
           key: dep-cache-{{ checksum "pom.xml" }}
       # Cannot use -o because of snapshot dependencies.
-      - run: mvn deploy -s /tools/m2/settings.xml -DskipTests
+      - run: mvn deploy -s .circleci/settings.xml -DskipTests
       - run: *post_build
 
 workflows:
-  version: 2.1
+  version: 2
   release:
     jobs:
       - test:
@@ -81,6 +87,5 @@ workflows:
             branches:
               only:
                 - master
-                - harness-migration
           requires:
             - test-release
