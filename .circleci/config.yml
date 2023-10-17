@@ -48,7 +48,7 @@ jobs:
           paths:
             - ~/.m2
           key: dep-cache-{{ checksum "pom.xml" }}
-      - run: mvn test -s /tools/m2/settings.xml
+      - run: mvn test -s .circleci/settings.xml
       - run: *save-test-results
       - store_test_results:
           path: ~/reports
