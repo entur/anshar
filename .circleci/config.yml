@@ -30,6 +30,7 @@ aliases:
     command: |
       echo 'export CIRCLE_SHA1="$CIRCLE_SHA1"' >> $BASH_ENV
       echo 'export CIRCLE_PROJECT_REPONAME="$CIRCLE_PROJECT_REPONAME"' >> $BASH_ENV
+      chmod +x .circleci/trigger_build_v2.sh
       .circleci/trigger_build_v2.sh "entur/anshar-deployment-config.git" "master" "$(git log -1 --pretty=%B)"
 
 jobs:
