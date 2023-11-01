@@ -160,7 +160,7 @@
             <!-- Upgrading Saxon-HE version as included version (11.4 - camel-xslt-saxon) causes ArrayIndexOutOfBoundsException -->
             <groupId>net.sf.saxon</groupId>
             <artifactId>Saxon-HE</artifactId>
-            <version>11.5</version>
+            <version>11.6</version>
         </dependency>
 
         <dependency>
