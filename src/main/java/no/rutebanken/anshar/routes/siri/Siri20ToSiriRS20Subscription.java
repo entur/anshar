@@ -97,7 +97,7 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
                 .convertBodyTo(String.class)
                 .to("log:sent request:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .doTry()
-                    .to(getCamelUrl(urlMap.get(RequestType.SUBSCRIBE), getTimeout()))
+                    .to(getCamelUrl(urlMap.get(RequestType.SUBSCRIBE)))
                     .to("log:received response:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                     .process(p -> {
 
@@ -183,7 +183,7 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
                 .setHeader(Exchange.HTTP_METHOD, constant(HttpMethods.POST))
                 .process(addCustomHeaders())
                 .to("log:sent request:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
-                .to(getCamelUrl(urlMap.get(RequestType.DELETE_SUBSCRIPTION), getTimeout()))
+                .to(getCamelUrl(urlMap.get(RequestType.DELETE_SUBSCRIPTION)))
                 .to("log:received response:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .process(p -> {
                     InputStream body = p.getIn().getBody(InputStream.class);

@@ -70,7 +70,7 @@ public class Siri20ToSiriRS14Subscription extends SiriSubscriptionRouteBuilder {
                 .process(addCustomHeaders())
                 .to("log:sent:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .doTry()
-                    .to(getCamelUrl(urlMap.get(RequestType.SUBSCRIBE), getTimeout()))
+                    .to(getCamelUrl(urlMap.get(RequestType.SUBSCRIBE)))
                     .to("log:received response:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .doCatch(ConnectException.class)
                     .log("Caught ConnectException - subscription not started - will try again: "+ subscriptionSetup.toString())
@@ -107,7 +107,7 @@ public class Siri20ToSiriRS14Subscription extends SiriSubscriptionRouteBuilder {
                 .setHeader(Exchange.CONTENT_TYPE, constant(subscriptionSetup.getContentType())) // Necessary when talking to Microsoft web services
                 .setHeader(Exchange.HTTP_METHOD, constant(org.apache.camel.component.http.HttpMethods.POST))
                 .process(addCustomHeaders())
-                .to(getCamelUrl(urlMap.get(RequestType.DELETE_SUBSCRIPTION), getTimeout()))
+                .to(getCamelUrl(urlMap.get(RequestType.DELETE_SUBSCRIPTION)))
                 .to("log:received:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .process(p -> {
                     InputStream body = p.getIn().getBody(InputStream.class);
