@@ -36,10 +36,10 @@
 
         <!-- versions for use in mvn plugins as we cannot inherit them from a BOM -->
         <docker.maven.plugin.version>0.21.0</docker.maven.plugin.version>
-        <spring-boot-plugin.version>3.1.2</spring-boot-plugin.version>
-        <spring-boot.version>3.1.2</spring-boot.version>
+        <spring-boot-plugin.version>3.1.5</spring-boot-plugin.version>
+        <spring-boot.version>3.1.5</spring-boot.version>
 
-        <camel.version>4.0.0</camel.version>
+        <camel.version>4.1.0</camel.version>
 
         <metrics.version>3.2.3</metrics.version>
         <entur.helpers.version>2.1</entur.helpers.version>
@@ -224,7 +224,7 @@
         <dependency>
             <groupId>com.fasterxml.jackson.dataformat</groupId>
             <artifactId>jackson-dataformat-xml</artifactId>
-            <version>2.15.2</version>
+            <version>2.15.3</version>
         </dependency>
 
         <dependency>
@@ -295,7 +295,7 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-            <version>3.12.0</version>
+            <version>3.13.0</version>
         </dependency>
 
         <dependency>
@@ -331,7 +331,7 @@
         <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
-            <version>20230227</version>
+            <version>20231013</version>
         </dependency>
 
         <dependency>
@@ -367,7 +367,7 @@
         <dependency>
             <groupId>io.rest-assured</groupId>
             <artifactId>json-path</artifactId>
-            <version>5.3.1</version>
+            <version>5.3.2</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -446,7 +446,7 @@
             <plugin>
                 <groupId>com.google.cloud.tools</groupId>
                 <artifactId>jib-maven-plugin</artifactId>
-                <version>3.3.1</version>
+                <version>3.4.0</version>
                 <configuration>
                     <to>
                         <image>${env.CONTAINER_REPO}</image>
