@@ -136,7 +136,7 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
                 .choice()
                     .when(e -> subscriptionExistsAndIsActive(e))
                         //Valid subscription
-                        .to("direct:async.process.request?exchangePattern=InOnly")
+                        .wireTap("direct:async.process.request")
                         .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
                         .setBody(constant(null))
                     .endChoice()
