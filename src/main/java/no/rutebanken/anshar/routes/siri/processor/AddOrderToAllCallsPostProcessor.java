@@ -62,9 +62,12 @@ public class AddOrderToAllCallsPostProcessor extends ValueAdapter implements Pos
                                         counter++;
                                         if (call.getVisitNumber() != null) {
                                             call.setOrder(call.getVisitNumber());
+                                            counter = call.getVisitNumber().intValue();
                                         } else {
                                             call.setOrder(BigInteger.valueOf(counter));
                                         }
+                                    } else {
+                                        counter = call.getOrder().intValue();
                                     }
                                 }
                             }
@@ -77,9 +80,12 @@ public class AddOrderToAllCallsPostProcessor extends ValueAdapter implements Pos
                                         counter++;
                                         if (call.getVisitNumber() != null) {
                                             call.setOrder(call.getVisitNumber());
+                                            counter = call.getVisitNumber().intValue();
                                         } else {
                                             call.setOrder(BigInteger.valueOf(counter));
                                         }
+                                    } else {
+                                        counter = call.getOrder().intValue();
                                     }
                                 }
                             }
