@@ -21,7 +21,7 @@
   <parent>
       <groupId>org.entur.ror</groupId>
       <artifactId>superpom</artifactId>
-      <version>2.1</version>
+      <version>2.4</version>
   </parent>
 
 
@@ -42,8 +42,8 @@
         <camel.version>4.1.0</camel.version>
 
         <metrics.version>3.2.3</metrics.version>
-        <entur.helpers.version>2.1</entur.helpers.version>
-        <geotools.version>29.0</geotools.version>
+        <entur.helpers.version>2.4</entur.helpers.version>
+        <geotools.version>30.0</geotools.version>
         <avro.version>1.11.3</avro.version>
 
         <log4j2.version>2.20.0</log4j2.version>
@@ -254,7 +254,7 @@
         <dependency>
             <groupId>com.hazelcast</groupId>
             <artifactId>hazelcast</artifactId>
-            <version>5.1.4</version>
+            <version>5.1.7</version>
         </dependency>
 
         <dependency>
