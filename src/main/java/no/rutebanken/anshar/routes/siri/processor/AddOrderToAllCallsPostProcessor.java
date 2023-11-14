@@ -53,21 +53,24 @@ public class AddOrderToAllCallsPostProcessor extends ValueAdapter implements Pos
                         List<EstimatedVehicleJourney> estimatedVehicleJourneies = estimatedJourneyVersionFrame.getEstimatedVehicleJourneies();
                         for (EstimatedVehicleJourney estimatedVehicleJourney : estimatedVehicleJourneies) {
 
-                            int counter = 0;
+                            int updatedOrderIndex = 0;
+                            int ruleAppliedCounter = 0;
                             final EstimatedVehicleJourney.RecordedCalls recordedCallsObj = estimatedVehicleJourney.getRecordedCalls();
                             if (recordedCallsObj != null) {
                                 final List<RecordedCall> recordedCalls = recordedCallsObj.getRecordedCalls();
                                 for (RecordedCall call : recordedCalls) {
                                     if (call.getOrder() == null) {
-                                        counter++;
+                                        updatedOrderIndex++;
                                         if (call.getVisitNumber() != null) {
                                             call.setOrder(call.getVisitNumber());
-                                            counter = call.getVisitNumber().intValue();
+                                            updatedOrderIndex = call.getVisitNumber().intValue();
+                                            ruleAppliedCounter++;
                                         } else {
-                                            call.setOrder(BigInteger.valueOf(counter));
+                                            call.setOrder(BigInteger.valueOf(updatedOrderIndex));
+                                            ruleAppliedCounter++;
                                         }
                                     } else {
-                                        counter = call.getOrder().intValue();
+                                        updatedOrderIndex = call.getOrder().intValue();
                                     }
                                 }
                             }
@@ -77,24 +80,26 @@ public class AddOrderToAllCallsPostProcessor extends ValueAdapter implements Pos
                                 final List<EstimatedCall> estimatedCalls = estimatedCallsObj.getEstimatedCalls();
                                 for (EstimatedCall call : estimatedCalls) {
                                     if (call.getOrder() == null) {
-                                        counter++;
+                                        updatedOrderIndex++;
                                         if (call.getVisitNumber() != null) {
                                             call.setOrder(call.getVisitNumber());
-                                            counter = call.getVisitNumber().intValue();
+                                            updatedOrderIndex = call.getVisitNumber().intValue();
+                                            ruleAppliedCounter++;
                                         } else {
-                                            call.setOrder(BigInteger.valueOf(counter));
+                                            call.setOrder(BigInteger.valueOf(updatedOrderIndex));
+                                            ruleAppliedCounter++;
                                         }
                                     } else {
-                                        counter = call.getOrder().intValue();
+                                        updatedOrderIndex = call.getOrder().intValue();
                                     }
                                 }
                             }
-                            if (counter > 0) {
+                            if (ruleAppliedCounter > 0) {
                                 getMetricsService().registerDataMapping(
                                     SiriDataType.ESTIMATED_TIMETABLE,
                                     datasetId,
                                     ADD_ORDER_TO_CALLS,
-                                    counter
+                                    ruleAppliedCounter
                                 );
                             }
                         }
