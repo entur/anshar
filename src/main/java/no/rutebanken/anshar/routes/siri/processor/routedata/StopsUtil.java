@@ -8,8 +8,8 @@ import org.geotools.api.referencing.operation.TransformException;
 import org.geotools.geometry.jts.JTS;
 import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.locationtech.jts.geom.Coordinate;
+import org.rutebanken.netex.model.AllVehicleModesOfTransportEnumeration;
 import org.rutebanken.netex.model.LocationStructure;
-import org.rutebanken.netex.model.VehicleModeEnumeration;
 import uk.org.siri.siri21.VehicleModesEnumeration;
 
 import java.time.ZonedDateTime;
@@ -53,24 +53,24 @@ public class StopsUtil {
         ;
 
     public static boolean doesVehicleModeMatchStopMode(List<VehicleModesEnumeration> reportedModes, String stopRef) {
-        final VehicleModeEnumeration stopMode = modes.get(stopRef);
+        final AllVehicleModesOfTransportEnumeration stopMode = modes.get(stopRef);
         if (stopMode != null && reportedModes != null && reportedModes.size() == 1) {
             final VehicleModesEnumeration mode = reportedModes.get(0);
             switch (mode) {
                 case AIR:
-                    return stopMode == VehicleModeEnumeration.AIR;
+                    return stopMode == AllVehicleModesOfTransportEnumeration.AIR;
                 case BUS:
-                    return (stopMode == VehicleModeEnumeration.BUS | stopMode == VehicleModeEnumeration.COACH | stopMode == VehicleModeEnumeration.TROLLEY_BUS);
+                    return (stopMode == AllVehicleModesOfTransportEnumeration.BUS | stopMode == AllVehicleModesOfTransportEnumeration.COACH | stopMode == AllVehicleModesOfTransportEnumeration.TROLLEY_BUS);
                 case RAIL:
-                    return stopMode == VehicleModeEnumeration.RAIL;
+                    return stopMode == AllVehicleModesOfTransportEnumeration.RAIL;
                 case TRAM:
-                    return (stopMode == VehicleModeEnumeration.TRAM | stopMode == VehicleModeEnumeration.METRO);
+                    return (stopMode == AllVehicleModesOfTransportEnumeration.TRAM | stopMode == AllVehicleModesOfTransportEnumeration.METRO);
                 case METRO:
-                    return (stopMode == VehicleModeEnumeration.TRAM | stopMode == VehicleModeEnumeration.METRO);
+                    return (stopMode == AllVehicleModesOfTransportEnumeration.TRAM | stopMode == AllVehicleModesOfTransportEnumeration.METRO);
                 case COACH:
-                    return (stopMode == VehicleModeEnumeration.BUS | stopMode == VehicleModeEnumeration.COACH | stopMode == VehicleModeEnumeration.TROLLEY_BUS);
+                    return (stopMode == AllVehicleModesOfTransportEnumeration.BUS | stopMode == AllVehicleModesOfTransportEnumeration.COACH | stopMode == AllVehicleModesOfTransportEnumeration.TROLLEY_BUS);
                 case FERRY:
-                    return stopMode == VehicleModeEnumeration.FERRY;
+                    return stopMode == AllVehicleModesOfTransportEnumeration.FERRY;
             }
         }
         // No mode set - accept by default
