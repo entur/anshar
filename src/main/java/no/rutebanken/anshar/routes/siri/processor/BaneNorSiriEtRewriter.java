@@ -87,11 +87,15 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
       Train defined by KEY will be added to the END of train defined by VALUE
      */
     private static final Map<String, String> trainIdMappingPostfixed = Map.ofEntries(
-                                                                Map.entry("110" , "390"),
-                                                                Map.entry("114" , "392"),
-                                                                Map.entry("118" , "394"),
-                                                                Map.entry("126" , "396"),
-                                                                Map.entry("134" , "398")
+            Map.entry( "110", "382"),
+            Map.entry( "114", "384"),
+            Map.entry( "118", "386"),
+            Map.entry( "122", "388"),
+            Map.entry( "126", "390"),
+            Map.entry( "130", "392"),
+            Map.entry( "132", "394"),
+            Map.entry( "134", "396"),
+            Map.entry( "138", "398")
     );
 
     /*
@@ -102,12 +106,15 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
     */
     private static final Map<String, String> trainIdMappingPrefixed = Map.ofEntries(
                                                                     // Hack for reverse direction
-                                                                Map.entry("391", "103"),
-                                                                Map.entry("393", "107"),
-                                                                Map.entry("395", "111"),
-                                                                Map.entry("397", "119"),
-                                                                Map.entry("399", "127")
-            );
+            Map.entry( "383", "103"),
+            Map.entry( "385", "107"),
+            Map.entry( "387", "111"),
+            Map.entry( "389", "115"),
+            Map.entry( "391", "119"),
+            Map.entry( "395", "123"),
+            Map.entry( "397", "127"),
+            Map.entry( "393", "141")
+    );
 
     private String datasetId;
 
@@ -247,6 +254,9 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
 
                             ServiceDate serviceDate = getServiceDate(et);
                             Set<String> serviceJourneyIds = getServiceJourney(etTrainNumber);
+                            if (serviceJourneyIds == null) {
+                                serviceJourneyIds = new HashSet<>();
+                            }
                             serviceJourneyIds.removeIf(sjId -> isDsjCancelled(sjId, serviceDate));
 
                             for (String serviceJourney : serviceJourneyIds) {
@@ -326,6 +336,9 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
 
                             ServiceDate serviceDate = getServiceDate(et);
                             Set<String> serviceJourneyIds = getServiceJourney(etTrainNumber);
+                            if (serviceJourneyIds == null) {
+                                serviceJourneyIds = new HashSet<>();
+                            }
                             serviceJourneyIds.removeIf(sjId -> isDsjCancelled(sjId, serviceDate));
 
                             for (String serviceJourney : serviceJourneyIds) {
