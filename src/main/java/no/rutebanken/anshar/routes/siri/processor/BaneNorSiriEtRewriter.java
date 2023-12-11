@@ -92,11 +92,14 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
             Map.entry( "118", "386"),
             Map.entry( "122", "388"),
             Map.entry( "126", "390"),
-            Map.entry( "130", "392"),
-            Map.entry( "132", "394"),
             Map.entry( "134", "396"),
             Map.entry( "138", "398")
     );
+
+    private static final Map<String, Set<String>> trainIdMappingPostfixedMultipleMappings = Map.ofEntries(
+            Map.entry( "130", Set.of("392", "394"))
+    );
+
 
     /*
      KEY: trainNumber to ignore
@@ -161,18 +164,21 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
                         for (EstimatedVehicleJourney estimatedVehicleJourney : estimatedVehicleJourneies) {
 
                             if (estimatedVehicleJourney.getVehicleRef() != null) {
+
+                                ServiceDate serviceDate = getServiceDate(estimatedVehicleJourney);
+
                                 String etTrainNumber = estimatedVehicleJourney.getVehicleRef().getValue();
                                 boolean shouldBeIgnored = false;
 
                                 // "Temporary" hack to replace trainNumber when Swedish trainNumber is used in Norwegian plan-data
-                                if (trainIdMappingPostfixed.containsKey(etTrainNumber)) {
-                                    etTrainNumber = trainIdMappingPostfixed.get(etTrainNumber);
+                                if (isKnownPostFixTrainNumberKey(etTrainNumber)) {
+                                    etTrainNumber = getTrainNumber(etTrainNumber, serviceDate);
 
                                     estimatedVehicleJourney.getVehicleRef().setValue(etTrainNumber);
                                     shouldBeIgnored = true;
                                     populateMissingStopsInStartOfJourneyList.put(etTrainNumber, estimatedVehicleJourney);
 
-                                } else if (trainIdMappingPostfixed.containsValue(etTrainNumber)) {
+                                } else if (isKnownPostFixTrainNumberValue(etTrainNumber)) {
                                     // Ignore data for trainNumber that is being replaced
                                     shouldBeIgnored = true;
                                 }
@@ -193,7 +199,6 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
                                 if (isKnownTrainNr(etTrainNumber )) {
 
                                     boolean foundMatch = false;
-                                    ServiceDate serviceDate = getServiceDate(estimatedVehicleJourney);
 
                                     if (estimatedVehicleJourney.isExtraJourney() != null && estimatedVehicleJourney.isExtraJourney()) {
                                         //Extra journey - ignore comparison to planned data
@@ -431,6 +436,42 @@ public class BaneNorSiriEtRewriter extends ValueAdapter implements PostProcessor
             }
         }
         logger.info("Restructured SIRI ET from {} to {} journeys in {} ms", previousSize, newSize, (System.currentTimeMillis()-startTime));
+    }
+
+    private static boolean isKnownPostFixTrainNumberValue(String etTrainNumber) {
+        if (trainIdMappingPostfixed.containsValue(etTrainNumber)) {
+            return true;
+        }
+
+        return trainIdMappingPostfixedMultipleMappings.values()
+                .stream()
+                .anyMatch(set -> set.contains(etTrainNumber));
+    }
+
+    private static boolean isKnownPostFixTrainNumberKey(String etTrainNumber) {
+        return trainIdMappingPostfixed.containsKey(etTrainNumber) || trainIdMappingPostfixedMultipleMappings.containsKey(etTrainNumber);
+    }
+
+    private static String getTrainNumber(String etTrainNumber, ServiceDate serviceDate) {
+        if (trainIdMappingPostfixed.containsKey(etTrainNumber)) {
+            return trainIdMappingPostfixed.get(etTrainNumber);
+        }
+
+        if (trainIdMappingPostfixedMultipleMappings.containsKey(etTrainNumber)) {
+            Set<String> possibleTrainNumbers = trainIdMappingPostfixedMultipleMappings.get(etTrainNumber);
+            for (String trainNumber : possibleTrainNumbers) {
+                Set<String> serviceJourneys = getServiceJourney(trainNumber);
+                for (String serviceJourney : serviceJourneys) {
+                    List<ServiceDate> serviceDates = getServiceDates(serviceJourney);
+                    if (serviceDates.contains(serviceDate)) {
+                        if (!isDsjCancelled(serviceJourney, serviceDate)) {
+                            return trainNumber;
+                        }
+                    }
+                }
+            }
+        }
+        return etTrainNumber;
     }
 
     private static Duration calculateDelay(EstimatedCall lastCall) {
