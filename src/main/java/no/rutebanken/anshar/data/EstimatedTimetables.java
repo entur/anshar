@@ -681,7 +681,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                 updated = true;
             }
             if (!updated && datasetId.equals("BNR")) {
-                logger.info("Found duplicate update: " + et.getVehicleRef());
+                logger.info("Found duplicate update: " + et.getVehicleRef().getValue());
             }
             timingTracer.mark("compareChecksum");
 
