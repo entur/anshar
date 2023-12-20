@@ -59,8 +59,8 @@ public class PubsubTopicRoute extends RouteBuilder {
                     .to("direct:siri.transform.data")
                     .to("xslt-saxon:xsl/split.xsl")
                     .split().tokenizeXML("Siri").streaming()
-                    .to("direct:kafka.vm.xml")// Send to Kafka as XML
-                    .to("direct:publish.vm.avro")// Publish as Avro
+                    .wireTap("direct:kafka.vm.xml")// Send to Kafka as XML
+                    .wireTap("direct:publish.vm.avro")// Publish as Avro
                     .to("direct:map.jaxb.to.protobuf")
                     .wireTap("direct:log.pubsub.vm.traffic")
                     .to(vmTopic) // Send to Pub/Sub as Protobuf
@@ -74,8 +74,8 @@ public class PubsubTopicRoute extends RouteBuilder {
                     .to("direct:siri.transform.data")
                     .to("xslt-saxon:xsl/split.xsl")
                     .split().tokenizeXML("Siri").streaming()
-                    .to("direct:kafka.sx.xml")// Send to Kafka as XML
-                    .to("direct:publish.sx.avro")// Publish as Avro
+                    .wireTap("direct:kafka.sx.xml")// Send to Kafka as XML
+                    .wireTap("direct:publish.sx.avro")// Publish as Avro
                     .to("direct:map.jaxb.to.protobuf")
                     .wireTap("direct:log.pubsub.sx.traffic")
                     .to(sxTopic) // Send to Pub/Sub as Protobuf
@@ -83,20 +83,20 @@ public class PubsubTopicRoute extends RouteBuilder {
 
             from("direct:publish.et.avro")
                     .process(avroConvertorProcessor)
-                    .to("direct:publish.et.avro.kafka")
-                    .to("direct:publish.et.avro.pubsub")
+                    .wireTap("direct:publish.et.avro.kafka")
+                    .wireTap("direct:publish.et.avro.pubsub")
             ;
 
             from("direct:publish.vm.avro")
                     .process(avroConvertorProcessor)
-                    .to("direct:publish.vm.avro.kafka")
-                    .to("direct:publish.vm.avro.pubsub")
+                    .wireTap("direct:publish.vm.avro.kafka")
+                    .wireTap("direct:publish.vm.avro.pubsub")
             ;
 
             from("direct:publish.sx.avro")
                     .process(avroConvertorProcessor)
-                    .to("direct:publish.sx.avro.kafka")
-                    .to("direct:publish.sx.avro.pubsub")
+                    .wireTap("direct:publish.sx.avro.kafka")
+                    .wireTap("direct:publish.sx.avro.pubsub")
             ;
 
             /**
