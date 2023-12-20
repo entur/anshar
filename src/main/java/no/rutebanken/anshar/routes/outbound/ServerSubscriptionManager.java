@@ -93,8 +93,12 @@ public class ServerSubscriptionManager {
     @Value("${anshar.outbound.error.initialtermination}")
     private String initialTerminationTimePassed = "Error";
 
-    @Value("${anshar.outbound.pubsub.topic.enabled}")
-    private boolean pushToTopicEnabled;
+    @Value("${anshar.outbound.pubsub.vm.topic.enabled}")
+    private boolean pushToVmTopicEnabled;
+    @Value("${anshar.outbound.pubsub.et.topic.enabled}")
+    private boolean pushToEtTopicEnabled;
+    @Value("${anshar.outbound.pubsub.sx.topic.enabled}")
+    private boolean pushToSxTopicEnabled;
 
     @Produce(value = "direct:send.to.pubsub.topic.estimated_timetable")
     protected ProducerTemplate siriEtTopicProducer;
@@ -402,7 +406,7 @@ public class ServerSubscriptionManager {
         }
         Siri delivery = siriObjectFactory.createVMServiceDelivery(addedOrUpdated);
 
-        if (pushToTopicEnabled) {
+        if (pushToVmTopicEnabled) {
             siriVmTopicProducer.asyncRequestBodyAndHeader(siriVmTopicProducer.getDefaultEndpoint(), delivery, CODESPACE_ID_KAFKA_HEADER_NAME, datasetId);
         }
 
@@ -443,7 +447,7 @@ public class ServerSubscriptionManager {
         }
         Siri delivery = siriObjectFactory.createSXServiceDelivery(addedOrUpdated);
 
-        if (pushToTopicEnabled) {
+        if (pushToSxTopicEnabled) {
             siriSxTopicProducer.asyncRequestBodyAndHeader(siriSxTopicProducer.getDefaultEndpoint(), delivery, CODESPACE_ID_KAFKA_HEADER_NAME, datasetId);
         }
 
@@ -483,7 +487,7 @@ public class ServerSubscriptionManager {
 
         Siri delivery = siriObjectFactory.createETServiceDelivery(addedOrUpdated);
 
-        if (pushToTopicEnabled) {
+        if (pushToEtTopicEnabled) {
             siriEtTopicProducer.asyncRequestBodyAndHeader(siriEtTopicProducer.getDefaultEndpoint(), delivery, CODESPACE_ID_KAFKA_HEADER_NAME, datasetId);
         }
 
