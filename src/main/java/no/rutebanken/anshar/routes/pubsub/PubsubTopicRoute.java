@@ -44,7 +44,6 @@ public class PubsubTopicRoute extends RouteBuilder {
                     .to("direct:siri.transform.data")
                     .to("xslt-saxon:xsl/split.xsl")
                     .split().tokenizeXML("Siri").streaming()
-                    .wireTap("direct:kafka.et.xml")         // Send to Kafka as XML
                     .wireTap("direct:publish.et.avro")        // Publish as Avro
                     .to("direct:map.jaxb.to.protobuf")
                     .wireTap("direct:log.pubsub.et.traffic")
@@ -59,7 +58,6 @@ public class PubsubTopicRoute extends RouteBuilder {
                     .to("direct:siri.transform.data")
                     .to("xslt-saxon:xsl/split.xsl")
                     .split().tokenizeXML("Siri").streaming()
-                    .wireTap("direct:kafka.vm.xml")// Send to Kafka as XML
                     .wireTap("direct:publish.vm.avro")// Publish as Avro
                     .to("direct:map.jaxb.to.protobuf")
                     .wireTap("direct:log.pubsub.vm.traffic")
@@ -74,7 +72,6 @@ public class PubsubTopicRoute extends RouteBuilder {
                     .to("direct:siri.transform.data")
                     .to("xslt-saxon:xsl/split.xsl")
                     .split().tokenizeXML("Siri").streaming()
-                    .wireTap("direct:kafka.sx.xml")// Send to Kafka as XML
                     .wireTap("direct:publish.sx.avro")// Publish as Avro
                     .to("direct:map.jaxb.to.protobuf")
                     .wireTap("direct:log.pubsub.sx.traffic")
