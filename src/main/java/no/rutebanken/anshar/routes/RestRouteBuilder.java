@@ -26,6 +26,8 @@ import org.apache.camel.InvalidPayloadException;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.support.builder.Namespaces;
+import org.entur.avro.realtime.siri.converter.jaxb2avro.Jaxb2AvroConverter;
+import org.entur.avro.realtime.siri.model.SiriRecord;
 import org.entur.protobuf.mapper.SiriMapper;
 import org.entur.siri21.util.SiriJson;
 import org.entur.siri21.util.SiriXml;
@@ -402,11 +404,8 @@ public class RestRouteBuilder extends RouteBuilder {
     protected void streamOutput(Exchange p, Siri response, HttpServletResponse out) throws IOException, JAXBException, XMLStreamException {
 
         boolean siri21Version = false;
-        uk.org.siri.siri20.Siri siri20Response = null;
         if ("2.1".equals(p.getIn().getHeader(SIRI_VERSION_HEADER_NAME))) {
             siri21Version = true;
-        } else {
-            siri20Response = downgradeSiriVersion(response);
         }
 
         if (MediaType.APPLICATION_JSON.equals(p.getIn().getHeader(HttpHeaders.CONTENT_TYPE)) |
@@ -415,16 +414,48 @@ public class RestRouteBuilder extends RouteBuilder {
             if (siri21Version) {
                 SiriJson.toJson(response, out.getOutputStream());
             } else {
-                org.rutebanken.siri20.util.SiriJson.toJson(siri20Response, out.getOutputStream());
+                org.rutebanken.siri20.util.SiriJson.toJson(
+                        downgradeSiriVersion(response),
+                        out.getOutputStream()
+                );
             }
         }
         else if ("application/x-protobuf".equals(p.getIn().getHeader(HttpHeaders.CONTENT_TYPE)) |
-            "application/x-protobuf".equals(p.getIn().getHeader(HttpHeaders.ACCEPT))) {
+                "application/x-protobuf".equals(p.getIn().getHeader(HttpHeaders.ACCEPT))) {
             try {
-                final byte[] bytes = SiriMapper.mapToPbf(siri20Response).toByteArray();
+                final byte[] bytes = SiriMapper.mapToPbf(downgradeSiriVersion(response)).toByteArray();
                 p.getMessage().setHeader(HttpHeaders.CONTENT_TYPE, "application/x-protobuf");
                 p.getMessage().setHeader(HttpHeaders.CONTENT_LENGTH, "" + bytes.length);
                 out.getOutputStream().write(bytes);
+            } catch (NullPointerException npe) {
+                File file = new File("ET-" + System.currentTimeMillis() + ".xml");
+                log.error("Caught NullPointerException, data written to " + file.getAbsolutePath(), npe);
+                SiriXml.toXml(response, null, new FileOutputStream(file));
+            }
+        }
+        else if ("application/avro".equals(p.getIn().getHeader(HttpHeaders.CONTENT_TYPE)) |
+                "application/avro".equals(p.getIn().getHeader(HttpHeaders.ACCEPT))) {
+            try {
+                final SiriRecord siriRecord = Jaxb2AvroConverter.convert(response);
+
+                p.getMessage().setHeader(HttpHeaders.CONTENT_TYPE, "application/avro");
+                SiriRecord.getEncoder().encode(siriRecord, out.getOutputStream());
+
+            } catch (NullPointerException npe) {
+                File file = new File("ET-" + System.currentTimeMillis() + ".xml");
+                log.error("Caught NullPointerException, data written to " + file.getAbsolutePath(), npe);
+                SiriXml.toXml(response, null, new FileOutputStream(file));
+            }
+        }
+        else if ("application/avro+json".equals(p.getIn().getHeader(HttpHeaders.CONTENT_TYPE)) |
+                "application/avro+json".equals(p.getIn().getHeader(HttpHeaders.ACCEPT))) {
+            try {
+                final SiriRecord siriRecord = Jaxb2AvroConverter.convert(response);
+
+                p.getMessage().setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON);
+
+                out.getOutputStream().write(siriRecord.toString().getBytes());
+
             } catch (NullPointerException npe) {
                 File file = new File("ET-" + System.currentTimeMillis() + ".xml");
                 log.error("Caught NullPointerException, data written to " + file.getAbsolutePath(), npe);
@@ -437,7 +468,7 @@ public class RestRouteBuilder extends RouteBuilder {
                 SiriXml.toXml(response, null, out.getOutputStream());
             } else {
                 org.rutebanken.siri20.util.SiriXml.toXml(
-                        siri20Response,
+                        downgradeSiriVersion(response),
                         null,
                         out.getOutputStream()
                 );
