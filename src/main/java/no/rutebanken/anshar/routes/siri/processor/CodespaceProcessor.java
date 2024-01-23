@@ -15,7 +15,10 @@
 
 package no.rutebanken.anshar.routes.siri.processor;
 
+import no.rutebanken.anshar.metrics.PrometheusMetricsService;
+import no.rutebanken.anshar.routes.siri.transformer.ApplicationContextHolder;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
+import no.rutebanken.anshar.subscription.SiriDataType;
 import uk.org.siri.siri21.EstimatedTimetableDeliveryStructure;
 import uk.org.siri.siri21.EstimatedVehicleJourney;
 import uk.org.siri.siri21.EstimatedVersionFrameStructure;
@@ -28,11 +31,14 @@ import uk.org.siri.siri21.VehicleMonitoringDeliveryStructure;
 
 import java.util.List;
 
+import static no.rutebanken.anshar.routes.siri.transformer.MappingNames.UPDATED_CODESPACE;
 import static no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter.createCombinedId;
 
 public class CodespaceProcessor extends ValueAdapter implements PostProcessor {
 
     private final String codespace;
+
+    private PrometheusMetricsService metrics;
 
     public CodespaceProcessor(String codespace) {
         this.codespace = codespace;
@@ -54,7 +60,19 @@ public class CodespaceProcessor extends ValueAdapter implements PostProcessor {
                         List<EstimatedVehicleJourney> estimatedVehicleJourneies = estimatedJourneyVersionFrame.getEstimatedVehicleJourneies();
                         for (EstimatedVehicleJourney estimatedVehicleJourney : estimatedVehicleJourneies) {
                             String original = estimatedVehicleJourney.getDataSource();
-                            estimatedVehicleJourney.setDataSource(getMappedCodespace(original));
+                            String mappedCodespace = getMappedCodespace(original);
+
+                            if (original != null && !original.equals(mappedCodespace)) {
+                                estimatedVehicleJourney.setDataSource(mappedCodespace);
+
+                                getMetricsService()
+                                        .registerDataMapping(
+                                                SiriDataType.ESTIMATED_TIMETABLE,
+                                                codespace,
+                                                UPDATED_CODESPACE,
+                                                1
+                                        );
+                            }
                         }
                     }
                 }
@@ -72,9 +90,21 @@ public class CodespaceProcessor extends ValueAdapter implements PostProcessor {
                                 original = ptSituationElement.getParticipantRef().getValue();
                             }
 
-                            RequestorRef participantRef = new RequestorRef();
-                            participantRef.setValue(getMappedCodespace(original));
-                            ptSituationElement.setParticipantRef(participantRef);
+                            String mappedCodespace = getMappedCodespace(original);
+
+                            if (original != null && !original.equals(mappedCodespace)) {
+                                RequestorRef participantRef = new RequestorRef();
+                                participantRef.setValue(mappedCodespace);
+                                ptSituationElement.setParticipantRef(participantRef);
+
+                                getMetricsService()
+                                        .registerDataMapping(
+                                                SiriDataType.SITUATION_EXCHANGE,
+                                                codespace,
+                                                UPDATED_CODESPACE,
+                                                1
+                                        );
+                            }
                         }
                     }
                 }
@@ -89,7 +119,19 @@ public class CodespaceProcessor extends ValueAdapter implements PostProcessor {
 
                             if (vehicleActivity.getMonitoredVehicleJourney() != null) {
                                 String original = vehicleActivity.getMonitoredVehicleJourney().getDataSource();
-                                vehicleActivity.getMonitoredVehicleJourney().setDataSource(getMappedCodespace(original));
+                                String mappedCodespace = getMappedCodespace(original);
+
+                                if (original != null && !original.equals(mappedCodespace)) {
+                                    vehicleActivity.getMonitoredVehicleJourney().setDataSource(mappedCodespace);
+
+                                    getMetricsService()
+                                            .registerDataMapping(
+                                                    SiriDataType.VEHICLE_MONITORING,
+                                                    codespace,
+                                                    UPDATED_CODESPACE,
+                                                    1
+                                            );
+                                }
                             }
                         }
                     }
@@ -103,5 +145,11 @@ public class CodespaceProcessor extends ValueAdapter implements PostProcessor {
             return codespace;
         }
         return createCombinedId(original, codespace);
+    }
+
+    void prepareMetrics() {
+        if (metrics == null) {
+            metrics = ApplicationContextHolder.getContext().getBean(PrometheusMetricsService.class);
+        }
     }
 }
