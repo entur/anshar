@@ -182,7 +182,7 @@ public class SubscriptionInitializer implements CamelContextAware {
                 valueAdapters.add(new ExtraJourneyPostProcessor(subscriptionSetup.getDatasetId()));
 
                 if (!subscriptionSetup.getCodespaceWhiteList().isEmpty()) {
-                    valueAdapters.add(new CodespaceWhiteListProcessor(subscriptionSetup.getSubscriptionId(), subscriptionSetup.getCodespaceWhiteList()));
+                    valueAdapters.add(new CodespaceWhiteListProcessor(subscriptionSetup.getDatasetId(), subscriptionSetup.getCodespaceWhiteList()));
                 }
                 subscriptionSetup.getMappingAdapters().addAll(valueAdapters);
 
