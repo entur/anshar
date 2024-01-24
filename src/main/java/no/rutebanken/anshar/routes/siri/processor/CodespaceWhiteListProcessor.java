@@ -19,6 +19,8 @@ import no.rutebanken.anshar.metrics.PrometheusMetricsService;
 import no.rutebanken.anshar.routes.siri.transformer.ApplicationContextHolder;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.subscription.SiriDataType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.org.siri.siri21.DatedVehicleJourneyRef;
 import uk.org.siri.siri21.EstimatedTimetableDeliveryStructure;
 import uk.org.siri.siri21.EstimatedVersionFrameStructure;
@@ -32,6 +34,7 @@ import static no.rutebanken.anshar.routes.siri.transformer.MappingNames.REMOVE_I
 
 public class CodespaceWhiteListProcessor extends ValueAdapter implements PostProcessor {
 
+    private static final Logger logger = LoggerFactory.getLogger(CodespaceWhiteListProcessor.class);
     private final String subscriptionIdentifier;
     private final List<String> whitelist;
 
@@ -79,6 +82,7 @@ public class CodespaceWhiteListProcessor extends ValueAdapter implements PostPro
 
                         if (estimatedJourneyVersionFrame.getEstimatedVehicleJourneies().size() != size) {
                             final int removedDataCount = size - estimatedJourneyVersionFrame.getEstimatedVehicleJourneies().size();
+                            logger.info("Removed {} ET-messages NOT on whitelisted codespaces.", removedDataCount);
                             getMetricsService()
                                     .registerDataMapping(
                                             SiriDataType.ESTIMATED_TIMETABLE,
