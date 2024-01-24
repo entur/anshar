@@ -287,7 +287,7 @@ public class SubscriptionSetup implements Serializable {
         obj.put("contentType", getContentType());
         obj.put("restartTime", getRestartTime());
         obj.put("forwardPositionData", forwardPositionData());
-        obj.put("codespaceWhiteList", getCodespaceWhiteList());
+        obj.put("codespaceWhiteList", !getCodespaceWhiteList().isEmpty() ? getCodespaceWhiteList().toString():"");
 
         return obj;
     }

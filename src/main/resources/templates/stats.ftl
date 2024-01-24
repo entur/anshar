@@ -108,6 +108,7 @@
                         <td colspan="9">
                             <table class="table table-striped">
                                 <tr><th>Dataset ID</th><td><a href="${item.validationUrl}" target="_blank">${item.datasetId}</a></td></tr>
+                                <tr><th>Whitelisted</th><td>${item.codespaceWhiteList}</td></tr>
                                 <tr><th>Vendor ID</th><td>${item.vendor}</td></tr>
                                 <tr><th>Servicetype</th><td>${item.serviceType}</td></tr>
                                 <tr><th>Inbound URL</th><td>${item.inboundUrl}</td></tr>
