@@ -88,7 +88,7 @@ public class SubscriptionSetup implements Serializable {
 
     // transient to refresh config on each redeploy
     private transient boolean reduceLogging;
-    private transient List<String> codespaceWhiteList = new ArrayList<>();
+    private List<String> codespaceWhiteList = new ArrayList<>();
 
     public boolean isUseProvidedCodespaceId() {
         return useProvidedCodespaceId;
