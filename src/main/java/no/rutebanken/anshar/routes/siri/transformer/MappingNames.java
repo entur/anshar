@@ -26,7 +26,7 @@ public enum MappingNames {
         OVERRIDE_MONITORED_FALSE("Monitored is set to false but a pattern-change has been detected"),
         OVERRIDE_MONITORED_NO_LONGER_TRUE("Monitored is set to false but was previously set to true"),
         UPDATED_CODESPACE("Updated the defined codespace"),
-        REMOVE_INVALID_CODESPACE("Received data on subscription that is not on its whitelist")
+        REMOVE_INVALID_CODESPACE("Received data on codespace that is not on subscription whitelist")
         ;
 
 
