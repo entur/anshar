@@ -32,17 +32,17 @@ import java.util.List;
 
 import static no.rutebanken.anshar.routes.siri.transformer.MappingNames.REMOVE_INVALID_CODESPACE;
 
-public class CodespaceWhiteListProcessor extends ValueAdapter implements PostProcessor {
+public class CodespaceBlackListProcessor extends ValueAdapter implements PostProcessor {
 
-    private static final Logger logger = LoggerFactory.getLogger(CodespaceWhiteListProcessor.class);
+    private static final Logger logger = LoggerFactory.getLogger(CodespaceBlackListProcessor.class);
     private final String codespace;
-    private final List<String> whitelist;
+    private final List<String> blacklist;
 
     private PrometheusMetricsService metrics;
 
-    public CodespaceWhiteListProcessor(String codespace, List<String> whitelist) {
+    public CodespaceBlackListProcessor(String codespace, List<String> blacklist) {
         this.codespace = codespace;
-        this.whitelist = whitelist;
+        this.blacklist = blacklist;
     }
 
     @Override
@@ -52,7 +52,7 @@ public class CodespaceWhiteListProcessor extends ValueAdapter implements PostPro
 
     @Override
     public void process(Siri siri) {
-        if (this.whitelist == null || this.whitelist.isEmpty()) {
+        if (this.blacklist == null || this.blacklist.isEmpty()) {
             //Nothing to do - return immediately
             return;
         }
@@ -82,7 +82,7 @@ public class CodespaceWhiteListProcessor extends ValueAdapter implements PostPro
 
                         if (estimatedJourneyVersionFrame.getEstimatedVehicleJourneies().size() != size) {
                             final int removedDataCount = size - estimatedJourneyVersionFrame.getEstimatedVehicleJourneies().size();
-                            logger.info("Removed {} ET-messages NOT on whitelisted codespaces.", removedDataCount);
+                            logger.info("Removed {} ET-messages on blacklisted codespaces.", removedDataCount);
                             getMetricsService()
                                     .registerDataMapping(
                                             SiriDataType.ESTIMATED_TIMETABLE,
@@ -127,7 +127,7 @@ public class CodespaceWhiteListProcessor extends ValueAdapter implements PostPro
 
     private boolean toBeRemoved(String reference) {
         if (reference != null && reference.length() > 4) {
-            return !whitelist.contains(
+            return blacklist.contains(
                     reference.substring(0,3)
             );
         }

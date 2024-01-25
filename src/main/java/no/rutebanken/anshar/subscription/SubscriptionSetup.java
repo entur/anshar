@@ -89,6 +89,7 @@ public class SubscriptionSetup implements Serializable {
     // transient to refresh config on each redeploy
     private transient boolean reduceLogging;
     private List<String> codespaceWhiteList = new ArrayList<>();
+    private List<String> codespaceBlackList = new ArrayList<>();
 
     public boolean isUseProvidedCodespaceId() {
         return useProvidedCodespaceId;
@@ -288,6 +289,7 @@ public class SubscriptionSetup implements Serializable {
         obj.put("restartTime", getRestartTime());
         obj.put("forwardPositionData", forwardPositionData());
         obj.put("codespaceWhiteList", !getCodespaceWhiteList().isEmpty() ? getCodespaceWhiteList().toString():"");
+        obj.put("codespaceBlackList", !getCodespaceBlackList().isEmpty() ? getCodespaceBlackList().toString():"");
 
         return obj;
     }
@@ -447,6 +449,14 @@ public class SubscriptionSetup implements Serializable {
 
     public void setCodespaceWhiteList(List<String> codespaceWhiteList) {
         this.codespaceWhiteList = codespaceWhiteList;
+    }
+
+    public List<String> getCodespaceBlackList() {
+        return codespaceBlackList;
+    }
+
+    public void setCodespaceBlackList(List<String> codespaceBlackList) {
+        this.codespaceBlackList = codespaceBlackList;
     }
 
     public enum ServiceType {SOAP, REST}

@@ -27,6 +27,7 @@ import no.rutebanken.anshar.routes.siri.Siri20ToSiriWS20Subscription;
 import no.rutebanken.anshar.routes.siri.adapters.Mapping;
 import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
 import no.rutebanken.anshar.routes.siri.processor.AddOrderToAllCallsPostProcessor;
+import no.rutebanken.anshar.routes.siri.processor.CodespaceBlackListProcessor;
 import no.rutebanken.anshar.routes.siri.processor.CodespaceProcessor;
 import no.rutebanken.anshar.routes.siri.processor.CodespaceWhiteListProcessor;
 import no.rutebanken.anshar.routes.siri.processor.EnsureIncreasingTimesForCancelledStopsProcessor;
@@ -184,6 +185,10 @@ public class SubscriptionInitializer implements CamelContextAware {
                 if (!subscriptionSetup.getCodespaceWhiteList().isEmpty()) {
                     valueAdapters.add(new CodespaceWhiteListProcessor(subscriptionSetup.getDatasetId(), subscriptionSetup.getCodespaceWhiteList()));
                 }
+                if (!subscriptionSetup.getCodespaceBlackList().isEmpty()) {
+                    valueAdapters.add(new CodespaceBlackListProcessor(subscriptionSetup.getDatasetId(), subscriptionSetup.getCodespaceBlackList()));
+                }
+
                 subscriptionSetup.getMappingAdapters().addAll(valueAdapters);
 
                 if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.FETCHED_DELIVERY |

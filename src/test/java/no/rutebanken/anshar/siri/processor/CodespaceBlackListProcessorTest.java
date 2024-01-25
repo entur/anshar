@@ -2,7 +2,7 @@ package no.rutebanken.anshar.siri.processor;
 
 import no.rutebanken.anshar.integration.SpringBootBaseTest;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
-import no.rutebanken.anshar.routes.siri.processor.CodespaceWhiteListProcessor;
+import no.rutebanken.anshar.routes.siri.processor.CodespaceBlackListProcessor;
 import org.junit.jupiter.api.Test;
 import uk.org.siri.siri21.EstimatedVehicleJourney;
 import uk.org.siri.siri21.FramedVehicleJourneyRefStructure;
@@ -16,12 +16,12 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class CodespaceWhiteListProcessorTest extends SpringBootBaseTest {
+public class CodespaceBlackListProcessorTest extends SpringBootBaseTest {
 
-    CodespaceWhiteListProcessor processor = new CodespaceWhiteListProcessor("testing-testing", List.of("RUT", "ATB"));
+    CodespaceBlackListProcessor processor = new CodespaceBlackListProcessor("testing-testing", List.of("TST", "ABC"));
 
     @Test
-    public void testValidCodespaceIsNotRemoved() {
+    public void testCodespaceNotOnBlacklistIsNotRemoved() {
         Siri siri = createEt("RUT");
         assertEquals(1, getEstimatedVehicleJourneies(siri).size());
         processor.process(siri);
@@ -29,7 +29,7 @@ public class CodespaceWhiteListProcessorTest extends SpringBootBaseTest {
     }
 
     @Test
-    public void testInvalidCodespaceIsRemoved() {
+    public void testCodespaceOnBlacklistIsRemoved() {
 
         Siri siri = createEt("TST");
         assertEquals(1, getEstimatedVehicleJourneies(siri).size());
