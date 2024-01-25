@@ -82,7 +82,7 @@ public class CodespaceBlackListProcessor extends ValueAdapter implements PostPro
 
                         if (estimatedJourneyVersionFrame.getEstimatedVehicleJourneies().size() != size) {
                             final int removedDataCount = size - estimatedJourneyVersionFrame.getEstimatedVehicleJourneies().size();
-                            logger.info("Removed {} ET-messages on blacklisted codespaces.", removedDataCount);
+                            logger.info("Removed {} ET-messages on blacklisted codespaces from {}.", removedDataCount, codespace);
                             getMetricsService()
                                     .registerDataMapping(
                                             SiriDataType.ESTIMATED_TIMETABLE,

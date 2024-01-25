@@ -82,7 +82,7 @@ public class CodespaceWhiteListProcessor extends ValueAdapter implements PostPro
 
                         if (estimatedJourneyVersionFrame.getEstimatedVehicleJourneies().size() != size) {
                             final int removedDataCount = size - estimatedJourneyVersionFrame.getEstimatedVehicleJourneies().size();
-                            logger.info("Removed {} ET-messages NOT on whitelisted codespaces.", removedDataCount);
+                            logger.info("Removed {} ET-messages NOT on whitelisted codespaces from {}.", removedDataCount, codespace);
                             getMetricsService()
                                     .registerDataMapping(
                                             SiriDataType.ESTIMATED_TIMETABLE,
