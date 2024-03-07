@@ -151,7 +151,7 @@ When terminating a subscription, the client will send a TerminateSubscriptionReq
 TerminateSubscriptionRequest:
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
-<Siri version="1.4" xmlns="http://www.siri.org.uk/siri" xmlns:ns2="http://www.ifopt.org.uk/acsb" xmlns:ns3="http://www.ifopt.org.uk/ifopt" xmlns:ns4="http://datex2.eu/schema/2_0RC1/2_0">
+<Siri version="2.0" xmlns="http://www.siri.org.uk/siri" xmlns:ns2="http://www.ifopt.org.uk/acsb" xmlns:ns3="http://www.ifopt.org.uk/ifopt" xmlns:ns4="http://datex2.eu/schema/2_0RC1/2_0">
     <TerminateSubscriptionRequest>
         <RequestTimestamp>2019-12-03T13:25:00+01:00</RequestTimestamp>
         <RequestorRef>ENTUR_DEV</RequestorRef>
