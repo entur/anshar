@@ -100,15 +100,6 @@ abstract class SiriRepository<T> {
 
     protected void enableCache(IMap<SiriObjectStorageKey, T> map, java.util.function.Predicate<T> includeInCachePredicate) {
 
-        // Looping through all keys to sync metadata before startup
-        int sizeBefore = map.localKeySet().size();
-        int counter = 0;
-        for (SiriObjectStorageKey key : map.keySet()) {
-            counter++;
-        }
-        int sizeAfter = map.localKeySet().size();
-        logger.info("Instance started with {} keys (localKeySet.size: before {}, after {})", counter, sizeBefore, sizeAfter);
-
         // Entry added - new data
         map.addEntryListener((EntryAddedListener<SiriObjectStorageKey, T>) entryEvent -> {
 
