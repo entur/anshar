@@ -34,6 +34,7 @@ import no.rutebanken.anshar.routes.siri.processor.EnsureIncreasingTimesForCancel
 import no.rutebanken.anshar.routes.siri.processor.EnsureNonNullVehicleModePostProcessor;
 import no.rutebanken.anshar.routes.siri.processor.ExtraJourneyDestinationDisplayPostProcessor;
 import no.rutebanken.anshar.routes.siri.processor.ExtraJourneyPostProcessor;
+import no.rutebanken.anshar.routes.siri.processor.LimitClosedProgressValidityPostProcessor;
 import no.rutebanken.anshar.routes.siri.processor.RemovePersonalInformationProcessor;
 import no.rutebanken.anshar.routes.siri.processor.ReportTypeProcessor;
 import no.rutebanken.anshar.routes.siri.transformer.ApplicationContextHolder;
@@ -173,14 +174,22 @@ public class SubscriptionInitializer implements CamelContextAware {
                 }
                 //Is added to ALL subscriptions AFTER subscription-specific adapters
                 valueAdapters.add(new CodespaceProcessor(subscriptionSetup.getDatasetId()));
-                valueAdapters.add(new ReportTypeProcessor(subscriptionSetup.getDatasetId()));
-                valueAdapters.add(new EnsureIncreasingTimesForCancelledStopsProcessor(subscriptionSetup.getDatasetId()));
-                valueAdapters.add(new RemovePersonalInformationProcessor());
-                valueAdapters.add(new ExtraJourneyDestinationDisplayPostProcessor(subscriptionSetup.getDatasetId()));
-                valueAdapters.add(new AddOrderToAllCallsPostProcessor(subscriptionSetup.getDatasetId()));
 
-                valueAdapters.add(new EnsureNonNullVehicleModePostProcessor());
-                valueAdapters.add(new ExtraJourneyPostProcessor(subscriptionSetup.getDatasetId()));
+                // SX
+                if (subscriptionSetup.getSubscriptionType() == SiriDataType.SITUATION_EXCHANGE) {
+                    valueAdapters.add(new ReportTypeProcessor(subscriptionSetup.getDatasetId()));
+                    valueAdapters.add(new RemovePersonalInformationProcessor());
+                    valueAdapters.add(new LimitClosedProgressValidityPostProcessor(subscriptionSetup.getDatasetId()));
+                }
+
+                // ET
+                if (subscriptionSetup.getSubscriptionType() == SiriDataType.ESTIMATED_TIMETABLE) {
+                    valueAdapters.add(new EnsureIncreasingTimesForCancelledStopsProcessor(subscriptionSetup.getDatasetId()));
+                    valueAdapters.add(new ExtraJourneyDestinationDisplayPostProcessor(subscriptionSetup.getDatasetId()));
+                    valueAdapters.add(new AddOrderToAllCallsPostProcessor(subscriptionSetup.getDatasetId()));
+                    valueAdapters.add(new EnsureNonNullVehicleModePostProcessor());
+                    valueAdapters.add(new ExtraJourneyPostProcessor(subscriptionSetup.getDatasetId()));
+                }
 
                 if (!subscriptionSetup.getCodespaceWhiteList().isEmpty()) {
                     valueAdapters.add(new CodespaceWhiteListProcessor(subscriptionSetup.getDatasetId(), subscriptionSetup.getCodespaceWhiteList()));

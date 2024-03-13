@@ -26,7 +26,8 @@ public enum MappingNames {
         OVERRIDE_MONITORED_FALSE("Monitored is set to false but a pattern-change has been detected"),
         OVERRIDE_MONITORED_NO_LONGER_TRUE("Monitored is set to false but was previously set to true"),
         UPDATED_CODESPACE("Updated the defined codespace"),
-        REMOVE_INVALID_CODESPACE("Received data on codespace that is not valid for subscription")
+        REMOVE_INVALID_CODESPACE("Received data on codespace that is not valid for subscription"),
+        LIMIT_CLOSED_SX_MESSAGE_END_TIME("Limit validity-period for closed SX-messages")
         ;
 
 
