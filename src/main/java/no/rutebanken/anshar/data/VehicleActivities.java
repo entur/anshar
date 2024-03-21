@@ -21,6 +21,8 @@ import no.rutebanken.anshar.data.collections.ExtendedHazelcastService;
 import no.rutebanken.anshar.data.util.TimingTracer;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.subscription.SiriDataType;
+import org.apache.camel.Produce;
+import org.apache.camel.ProducerTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,6 +82,11 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
 
     @Autowired
     ExtendedHazelcastService hazelcastService;
+
+    @Produce(value = "direct:prepare-shutdown")
+    protected ProducerTemplate prepareShutdownTrigger;
+
+    private boolean shutdownTriggered = false;
 
     protected VehicleActivities() {
         super(SiriDataType.VEHICLE_MONITORING);
@@ -390,6 +397,11 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
                     long elapsed = timingTracer.getTotalTime();
                     if (elapsed > 500) {
                         logger.info("Adding VM-object with key {} took {} ms: {}", key, elapsed, timingTracer);
+                        if (!shutdownTriggered) {
+                            logger.warn("Triggering shutdown because hazelcast appears to be unhealthy");
+                            prepareShutdownTrigger.sendBody("");
+                            shutdownTriggered = true;
+                        }
                     }
 
                 });
