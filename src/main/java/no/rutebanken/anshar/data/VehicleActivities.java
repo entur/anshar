@@ -335,7 +335,11 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
                         activity.setValidUntilTime(validUntilTime);
                     }
 
-                    String existingChecksum = checksumCache.get(key);
+                    String existingChecksum = null;
+                    if (checksumCache.containsKey(key)) {
+                        existingChecksum = checksumCache.get(key);
+                    }
+
                     timingTracer.mark("checksumCache.get");
 
                     boolean updated;
@@ -370,11 +374,6 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
                             checksumCacheTmp.put(key, currentChecksum);
                         } else {
                             outdatedCounter.incrementAndGet();
-
-                            //Keeping all checksums for at least 5 minutes to avoid stale data
-                            checksumCache.set(key, currentChecksum, 5, TimeUnit.MINUTES);
-                            timingTracer.mark("checksumCache.set");
-
                         }
 
                         if (!isLocationValid(activity)) {invalidLocationCounter.incrementAndGet();}
