@@ -405,8 +405,7 @@ public class AdministrationRoute extends RestRouteBuilder {
 
                     final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
 
-                    executorService.schedule(() -> getContext().shutdown(), 5, TimeUnit.SECONDS);
-                    executorService.schedule(() -> extendedHazelcastService.shutdown(), 10, TimeUnit.SECONDS);
+                    executorService.schedule(() -> getContext().shutdown(), 500, TimeUnit.MILLISECONDS);
 
                 })
                 .routeId("admin.prepare.shutdown")
