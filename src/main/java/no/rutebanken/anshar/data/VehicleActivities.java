@@ -16,6 +16,7 @@
 package no.rutebanken.anshar.data;
 
 import com.hazelcast.map.IMap;
+import com.hazelcast.replicatedmap.ReplicatedMap;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.data.collections.ExtendedHazelcastService;
 import no.rutebanken.anshar.data.util.TimingTracer;
@@ -69,6 +70,10 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
     private IMap<SiriObjectStorageKey,String> checksumCache;
 
     @Autowired
+    @Qualifier("getReplicatedVmChecksumMap")
+    private ReplicatedMap<SiriObjectStorageKey,String> replicatedChecksumCache;
+
+    @Autowired
     @Qualifier("getLastVmUpdateRequest")
     private IMap<String, Instant> lastUpdateRequested;
 
@@ -87,10 +92,15 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
 
     @PostConstruct
     private void initializeUpdateCommitter() {
+        if (!checksumCache.isEmpty() && replicatedChecksumCache.isEmpty()) {
+            replicatedChecksumCache.putAll(checksumCache);
+            logger.info("ChecksumCache initialized with {} items", replicatedChecksumCache.size());
+        }
+
         super.initBufferCommitter(hazelcastService, lastUpdateRequested, changesMap, configuration.getChangeBufferCommitFrequency());
 
         enableCache(monitoredVehicles);
-        linkEntriesTtl(monitoredVehicles, changesMap, checksumCache);
+        linkEntriesTtl(monitoredVehicles, changesMap, replicatedChecksumCache);
     }
 
     /**
@@ -150,7 +160,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
 
         for (SiriObjectStorageKey id : idsToRemove) {
             monitoredVehicles.delete(id);
-            checksumCache.remove(id);
+            replicatedChecksumCache.remove(id);
         }
     }
 
@@ -336,8 +346,8 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
                     }
 
                     String existingChecksum = null;
-                    if (checksumCache.containsKey(key)) {
-                        existingChecksum = checksumCache.get(key);
+                    if (replicatedChecksumCache.containsKey(key)) {
+                        existingChecksum = replicatedChecksumCache.get(key);
                     }
 
                     timingTracer.mark("checksumCache.get");
@@ -374,6 +384,11 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
                             checksumCacheTmp.put(key, currentChecksum);
                         } else {
                             outdatedCounter.incrementAndGet();
+
+                            //Keeping all checksums for at least 5 minutes to avoid stale data
+                            replicatedChecksumCache.put(key, currentChecksum, 5, TimeUnit.MINUTES);
+                            timingTracer.mark("checksumCache.set");
+
                         }
 
                         if (!isLocationValid(activity)) {invalidLocationCounter.incrementAndGet();}
@@ -395,8 +410,8 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
                 });
         TimingTracer timingTracer = new TimingTracer("all-vm [" + changes.size() + " changes]");
 
-        checksumCache.setAll(checksumCacheTmp);
-        timingTracer.mark("checksumCache.setAll");
+        replicatedChecksumCache.putAll(checksumCacheTmp);
+        timingTracer.mark("checksumCache.putAll");
         monitoredVehicles.setAll(changes);
         timingTracer.mark("monitoredVehicles.setAll");
 

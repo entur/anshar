@@ -159,7 +159,7 @@ abstract class SiriRepository<T> {
      * @param map
      * @param linkedMaps
      */
-    void linkEntriesTtl(IMap<SiriObjectStorageKey, T> map,  IMap<String, Set<SiriObjectStorageKey>> linkedChangeMap, IMap<SiriObjectStorageKey, ? extends Object>... linkedMaps) {
+    void linkEntriesTtl(IMap<SiriObjectStorageKey, T> map,  IMap<String, Set<SiriObjectStorageKey>> linkedChangeMap, Map<SiriObjectStorageKey, ? extends Object>... linkedMaps) {
         {
 
             // Entry added - new data
@@ -189,9 +189,9 @@ abstract class SiriRepository<T> {
         }
     }
 
-    private void removeFromLinked(IMap<String, Set<SiriObjectStorageKey>> linkedChangeMap, EntryEvent<SiriObjectStorageKey, T> entryEvent, IMap<SiriObjectStorageKey, ?>[] linkedMaps) {
-        for (IMap<SiriObjectStorageKey, ?> linkedMap : linkedMaps) {
-            linkedMap.removeAsync(entryEvent.getKey());
+    private void removeFromLinked(IMap<String, Set<SiriObjectStorageKey>> linkedChangeMap, EntryEvent<SiriObjectStorageKey, T> entryEvent, Map<SiriObjectStorageKey, ?>[] linkedMaps) {
+        for (Map<SiriObjectStorageKey, ?> linkedMap : linkedMaps) {
+            linkedMap.remove(entryEvent.getKey());
         }
         for (Set<SiriObjectStorageKey> changes : linkedChangeMap.values()) {
             changes.remove(entryEvent.getKey());
