@@ -92,15 +92,15 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
 
     @PostConstruct
     private void initializeUpdateCommitter() {
-        if (!checksumCache.isEmpty() && replicatedChecksumCache.isEmpty()) {
-            replicatedChecksumCache.putAll(checksumCache);
-            logger.info("ChecksumCache initialized with {} items", replicatedChecksumCache.size());
+        if (!replicatedChecksumCache.isEmpty() && checksumCache.isEmpty()) {
+            checksumCache.putAll(replicatedChecksumCache);
+            logger.info("ChecksumCache initialized with {} items", checksumCache.size());
         }
 
         super.initBufferCommitter(hazelcastService, lastUpdateRequested, changesMap, configuration.getChangeBufferCommitFrequency());
 
         enableCache(monitoredVehicles);
-        linkEntriesTtl(monitoredVehicles, changesMap, replicatedChecksumCache);
+        linkEntriesTtl(monitoredVehicles, changesMap, checksumCache);
     }
 
     /**
@@ -160,7 +160,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
 
         for (SiriObjectStorageKey id : idsToRemove) {
             monitoredVehicles.delete(id);
-            replicatedChecksumCache.remove(id);
+            checksumCache.remove(id);
         }
     }
 
@@ -346,8 +346,8 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
                     }
 
                     String existingChecksum = null;
-                    if (replicatedChecksumCache.containsKey(key)) {
-                        existingChecksum = replicatedChecksumCache.get(key);
+                    if (checksumCache.containsKey(key)) {
+                        existingChecksum = checksumCache.get(key);
                     }
 
                     timingTracer.mark("checksumCache.get");
@@ -386,7 +386,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
                             outdatedCounter.incrementAndGet();
 
                             //Keeping all checksums for at least 5 minutes to avoid stale data
-                            replicatedChecksumCache.put(key, currentChecksum, 5, TimeUnit.MINUTES);
+                            checksumCache.put(key, currentChecksum, 5, TimeUnit.MINUTES);
                             timingTracer.mark("checksumCache.set");
 
                         }
@@ -410,7 +410,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
                 });
         TimingTracer timingTracer = new TimingTracer("all-vm [" + changes.size() + " changes]");
 
-        replicatedChecksumCache.putAll(checksumCacheTmp);
+        checksumCache.putAll(checksumCacheTmp);
         timingTracer.mark("checksumCache.putAll");
         monitoredVehicles.setAll(changes);
         timingTracer.mark("monitoredVehicles.setAll");
