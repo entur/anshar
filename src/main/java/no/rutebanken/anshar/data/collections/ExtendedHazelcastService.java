@@ -20,6 +20,12 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.hazelcast.cluster.Cluster;
 import com.hazelcast.cluster.Member;
 import com.hazelcast.collection.ISet;
+import com.hazelcast.config.EvictionConfig;
+import com.hazelcast.config.EvictionPolicy;
+import com.hazelcast.config.InMemoryFormat;
+import com.hazelcast.config.MapConfig;
+import com.hazelcast.config.MaxSizePolicy;
+import com.hazelcast.config.NearCacheConfig;
 import com.hazelcast.config.SerializerConfig;
 import com.hazelcast.core.DistributedObject;
 import com.hazelcast.core.HazelcastInstance;
@@ -111,6 +117,21 @@ public class ExtendedHazelcastService extends HazelCastService {
                     .setImplementation(new KryoSerializer())
 
         );
+    }
+
+    @Override
+    public void updateDefaultMapConfig(MapConfig mapConfig) {
+        NearCacheConfig nearCacheConfig = new NearCacheConfig("default");
+        EvictionConfig evictionConfig = new EvictionConfig()
+                .setEvictionPolicy(EvictionPolicy.NONE)
+                .setMaxSizePolicy(MaxSizePolicy.ENTRY_COUNT)
+                .setSize(5000);
+
+        nearCacheConfig
+                .setInMemoryFormat(InMemoryFormat.OBJECT)
+                .setEvictionConfig(evictionConfig);
+
+        mapConfig.setNearCacheConfig(nearCacheConfig);
     }
 
     @Bean
