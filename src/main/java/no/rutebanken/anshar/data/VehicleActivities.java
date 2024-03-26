@@ -16,7 +16,6 @@
 package no.rutebanken.anshar.data;
 
 import com.hazelcast.map.IMap;
-import com.hazelcast.replicatedmap.ReplicatedMap;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.data.collections.ExtendedHazelcastService;
 import no.rutebanken.anshar.data.util.TimingTracer;
@@ -70,10 +69,6 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
     private IMap<SiriObjectStorageKey,String> checksumCache;
 
     @Autowired
-    @Qualifier("getReplicatedVmChecksumMap")
-    private ReplicatedMap<SiriObjectStorageKey,String> replicatedChecksumCache;
-
-    @Autowired
     @Qualifier("getLastVmUpdateRequest")
     private IMap<String, Instant> lastUpdateRequested;
 
@@ -92,11 +87,6 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
 
     @PostConstruct
     private void initializeUpdateCommitter() {
-        if (!replicatedChecksumCache.isEmpty() && checksumCache.isEmpty()) {
-            checksumCache.putAll(replicatedChecksumCache);
-            logger.info("ChecksumCache initialized with {} items", checksumCache.size());
-        }
-
         super.initBufferCommitter(hazelcastService, lastUpdateRequested, changesMap, configuration.getChangeBufferCommitFrequency());
 
         enableCache(monitoredVehicles);

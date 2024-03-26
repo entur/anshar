@@ -175,11 +175,6 @@ public class ExtendedHazelcastService extends HazelCastService {
     }
 
     @Bean
-    public ReplicatedMap<SiriObjectStorageKey, String> getReplicatedVmChecksumMap() {
-        return hazelcast.getReplicatedMap("anshar.vm.checksum.cache.repl");
-    }
-
-    @Bean
     public IMap<SiriObjectStorageKey, ZonedDateTime> getIdStartTimeMap() {
         return hazelcast.getMap("anshar.et.index.startTime");
     }
