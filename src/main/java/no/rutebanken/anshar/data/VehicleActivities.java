@@ -90,7 +90,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
         super.initBufferCommitter(hazelcastService, lastUpdateRequested, changesMap, configuration.getChangeBufferCommitFrequency());
 
         enableCache(monitoredVehicles);
-        linkEntriesTtl(monitoredVehicles, changesMap, checksumCache);
+        linkEntriesTtl(monitoredVehicles, changesMap);
     }
 
     /**
@@ -150,7 +150,6 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
 
         for (SiriObjectStorageKey id : idsToRemove) {
             monitoredVehicles.delete(id);
-            checksumCache.remove(id);
         }
     }
 
@@ -303,7 +302,6 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
     public Collection<VehicleActivityStructure> addAll(String datasetId, List<VehicleActivityStructure> vmList) {
 
         Map<SiriObjectStorageKey, VehicleActivityStructure> changes = new HashMap<>();
-        Map<SiriObjectStorageKey, String> checksumCacheTmp = new HashMap<>();
 
         AtomicInteger invalidLocationCounter = new AtomicInteger(0);
         AtomicInteger notMeaningfulCounter = new AtomicInteger(0);
@@ -321,42 +319,18 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
                     TimingTracer timingTracer = new TimingTracer("single-vm");
                     SiriObjectStorageKey key = createKey(datasetId, activity.getMonitoredVehicleJourney());
                     timingTracer.mark("createKey");
-                    String currentChecksum = null;
-                    ZonedDateTime validUntilTime = activity.getValidUntilTime();
-                    try {
-                        // Calculate checksum without "ValidUntilTime" - thus ignoring "fake" updates where only validity is updated
-                        activity.setValidUntilTime(null);
-                        currentChecksum = getChecksum(activity);
-                        timingTracer.mark("getChecksum");
-                    } catch (Exception e) {
-                        //Ignore - data will be updated
-                    } finally {
-                        //Set original ValidUntilTime back
-                        activity.setValidUntilTime(validUntilTime);
-                    }
 
-                    String existingChecksum = null;
-                    if (checksumCache.containsKey(key)) {
-                        existingChecksum = checksumCache.get(key);
-                    }
+                    String currentChecksum = calculateChecksum(activity);
+                    timingTracer.mark("calculateChecksum.updated");
 
-                    timingTracer.mark("checksumCache.get");
+                    VehicleActivityStructure existing = monitoredVehicles.get(key);
+                    timingTracer.mark("getExisting");
 
-                    boolean updated;
-//                    if (existingChecksum != null && monitoredVehicles.containsKey(key)) {
-                    if (existingChecksum != null) {
-                        //Exists - compare values
-                        updated =  !(currentChecksum.equals(existingChecksum));
-                    } else {
-                        //Does not exist
-                        updated = true;
-                    }
-                    timingTracer.mark("compareChecksum");
+                    String existingChecksum = calculateChecksum(existing);
 
-                    if (updated) {
+                    timingTracer.mark("calculateChecksum.current");
 
-                        VehicleActivityStructure existing = monitoredVehicles.get(key);
-                        timingTracer.mark("getExisting");
+                    if (isUpdated(existingChecksum, currentChecksum)) {
 
                         boolean keep = (existing == null); //No existing data i.e. keep
 
@@ -371,14 +345,8 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
 
                         if (expiration > 0 && keep) {
                             changes.put(key, activity);
-                            checksumCacheTmp.put(key, currentChecksum);
                         } else {
                             outdatedCounter.incrementAndGet();
-
-                            //Keeping all checksums for at least 5 minutes to avoid stale data
-                            checksumCache.put(key, currentChecksum, 5, TimeUnit.MINUTES);
-                            timingTracer.mark("checksumCache.set");
-
                         }
 
                         if (!isLocationValid(activity)) {invalidLocationCounter.incrementAndGet();}
@@ -400,7 +368,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
                 });
         TimingTracer timingTracer = new TimingTracer("all-vm [" + changes.size() + " changes]");
 
-        checksumCache.putAll(checksumCacheTmp);
+//        checksumCache.putAll(checksumCacheTmp);
         timingTracer.mark("checksumCache.putAll");
         monitoredVehicles.setAll(changes);
         timingTracer.mark("monitoredVehicles.setAll");
@@ -418,6 +386,28 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
         }
 
         return changes.values();
+    }
+
+    private static boolean isUpdated(String currentChecksum, String existingChecksum) {
+        return currentChecksum == null || !currentChecksum.equals(existingChecksum);
+    }
+
+    private static String calculateChecksum(VehicleActivityStructure vehicleActivityStructure) {
+        String existingChecksum = null;
+        if (vehicleActivityStructure != null) {
+            ZonedDateTime validUntilTime = vehicleActivityStructure.getValidUntilTime();
+            try {
+                // Calculate checksum without "ValidUntilTime" - thus ignoring "fake" updates where only validity is updated
+                vehicleActivityStructure.setValidUntilTime(null);
+                existingChecksum = getChecksum(vehicleActivityStructure);
+            } catch (Exception e) {
+                //Ignore - data will be updated
+            } finally {
+                //Set original ValidUntilTime back
+                vehicleActivityStructure.setValidUntilTime(validUntilTime);
+            }
+        }
+        return existingChecksum;
     }
 
     public VehicleActivityStructure add(String datasetId, VehicleActivityStructure activity) {
