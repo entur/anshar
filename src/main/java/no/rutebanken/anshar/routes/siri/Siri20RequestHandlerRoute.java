@@ -132,7 +132,7 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
         from("direct:process.incoming.request")
                 .to("direct:set.mdc.subscriptionId")
                 .removeHeaders("<Siri*") //Since Camel 3, entire body is also included as header
-                .to("log:incoming:" + getClass().getSimpleName() + "?showAll=true&multiline=true&showStreams=true")
+//                .to("log:incoming:" + getClass().getSimpleName() + "?showAll=true&multiline=true&showStreams=true")
                 .choice()
                     .when(e -> subscriptionExistsAndIsActive(e))
                         //Valid subscription

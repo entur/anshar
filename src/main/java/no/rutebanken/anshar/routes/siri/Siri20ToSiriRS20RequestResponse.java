@@ -79,13 +79,11 @@ public class Siri20ToSiriRS20RequestResponse extends SiriSubscriptionRouteBuilde
                 .to(getRequestUrl(subscriptionSetup, httpOptions))
                 .setHeader("CamelHttpPath", constant("/appContext" + subscriptionSetup.buildUrl(false)))
                 .log("Got response " + subscriptionSetup.toString())
-                .to("log:response:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .setHeader(PARAM_SUBSCRIPTION_ID, simple(subscriptionSetup.getSubscriptionId()))
                 .setHeader(INTERNAL_SIRI_DATA_TYPE, simple(subscriptionSetup.getSubscriptionType().name()))
                 .to("direct:enqueue.message")
             .doCatch(Exception.class)
                 .log("Caught exception -" + (releaseLeadershipOnError ? "":" NOT") + " releasing leadership: " + subscriptionSetup.toString())
-                .to("log:response:" + getClass().getSimpleName() + "?showCaughtException=true&showAll=true&multiline=true")
                 .process(p -> {
                     if (releaseLeadershipOnError) {
                         releaseLeadership(monitoringRouteId);
