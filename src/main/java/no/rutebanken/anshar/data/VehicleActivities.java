@@ -323,7 +323,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
                     String currentChecksum = calculateChecksum(activity);
                     timingTracer.mark("calculateChecksum.updated");
 
-                    VehicleActivityStructure existing = monitoredVehicles.get(key);
+                    VehicleActivityStructure existing = cache.get(key);
                     timingTracer.mark("getExisting");
 
                     String existingChecksum = calculateChecksum(existing);
@@ -369,7 +369,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
         TimingTracer timingTracer = new TimingTracer("all-vm [" + changes.size() + " changes]");
 
 //        checksumCache.putAll(checksumCacheTmp);
-        timingTracer.mark("checksumCache.putAll");
+//        timingTracer.mark("checksumCache.putAll");
         monitoredVehicles.setAll(changes);
         timingTracer.mark("monitoredVehicles.setAll");
 
