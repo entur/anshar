@@ -41,9 +41,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static no.rutebanken.anshar.routes.admin.AdminRouteHelper.mergeJsonStats;
@@ -403,9 +400,9 @@ public class AdministrationRoute extends RestRouteBuilder {
                 .process(p -> {
                     helper.shutdownTriggered = true;
 
-                    final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
-
-                    executorService.schedule(() -> getContext().shutdown(), 500, TimeUnit.MILLISECONDS);
+//                    final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
+//
+//                    executorService.schedule(() -> getContext().shutdown(), 500, TimeUnit.MILLISECONDS);
 
                 })
                 .routeId("admin.prepare.shutdown")
