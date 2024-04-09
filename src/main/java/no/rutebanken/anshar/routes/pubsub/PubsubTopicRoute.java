@@ -42,12 +42,14 @@ public class PubsubTopicRoute extends RouteBuilder {
              */
             from("direct:send.to.pubsub.topic.estimated_timetable")
                     .to("direct:siri.transform.data")
-                    .to("xslt-saxon:xsl/split.xsl")
-                    .split().tokenizeXML("Siri").streaming()
-                    .wireTap("direct:publish.et.avro")        // Publish as Avro
-                    .to("direct:map.jaxb.to.protobuf")
-                    .wireTap("direct:log.pubsub.et.traffic")
-                    .to(etTopic)                                // Send to Pub/Sub as Protobuf
+                    .choice().when(body().isNotNull())
+                        .to("xslt-saxon:xsl/split.xsl")
+                        .split().tokenizeXML("Siri").streaming()
+                        .wireTap("direct:publish.et.avro")        // Publish as Avro
+                        .to("direct:map.jaxb.to.protobuf")
+                        .wireTap("direct:log.pubsub.et.traffic")
+                        .to(etTopic)                                // Send to Pub/Sub as Protobuf
+                    .end()
             ;
 
             /**
@@ -56,12 +58,14 @@ public class PubsubTopicRoute extends RouteBuilder {
              */
             from("direct:send.to.pubsub.topic.vehicle_monitoring")
                     .to("direct:siri.transform.data")
-                    .to("xslt-saxon:xsl/split.xsl")
-                    .split().tokenizeXML("Siri").streaming()
-                    .wireTap("direct:publish.vm.avro")// Publish as Avro
-                    .to("direct:map.jaxb.to.protobuf")
-                    .wireTap("direct:log.pubsub.vm.traffic")
-                    .to(vmTopic) // Send to Pub/Sub as Protobuf
+                    .choice().when(body().isNotNull())
+                        .to("xslt-saxon:xsl/split.xsl")
+                        .split().tokenizeXML("Siri").streaming()
+                        .wireTap("direct:publish.vm.avro")// Publish as Avro
+                        .to("direct:map.jaxb.to.protobuf")
+                        .wireTap("direct:log.pubsub.vm.traffic")
+                        .to(vmTopic) // Send to Pub/Sub as Protobuf
+                    .end()
             ;
 
             /**
@@ -70,12 +74,14 @@ public class PubsubTopicRoute extends RouteBuilder {
              */
             from("direct:send.to.pubsub.topic.situation_exchange")
                     .to("direct:siri.transform.data")
-                    .to("xslt-saxon:xsl/split.xsl")
-                    .split().tokenizeXML("Siri").streaming()
-                    .wireTap("direct:publish.sx.avro")// Publish as Avro
-                    .to("direct:map.jaxb.to.protobuf")
-                    .wireTap("direct:log.pubsub.sx.traffic")
-                    .to(sxTopic) // Send to Pub/Sub as Protobuf
+                    .choice().when(body().isNotNull())
+                        .to("xslt-saxon:xsl/split.xsl")
+                        .split().tokenizeXML("Siri").streaming()
+                        .wireTap("direct:publish.sx.avro")// Publish as Avro
+                        .to("direct:map.jaxb.to.protobuf")
+                        .wireTap("direct:log.pubsub.sx.traffic")
+                        .to(sxTopic) // Send to Pub/Sub as Protobuf
+                    .end()
             ;
 
             from("direct:publish.et.avro")
