@@ -211,7 +211,7 @@ public class MessagingRoute extends RestRouteBuilder {
                         .when(readFromPubsub)
                             .log("Processing data from " + pubsubQueueSX)
                             .to("direct:decompress.jaxb")
-                            .to("direct:process.queue.default.async")
+                            .to("direct:" + CamelRouteNames.PROCESSOR_QUEUE_DEFAULT)
                         .endChoice()
                     .end()
                     .to("direct:clear.mdc.subscriptionId")
@@ -228,7 +228,7 @@ public class MessagingRoute extends RestRouteBuilder {
                         .when(readFromPubsub)
                             .log("Processing data from " + pubsubQueueVM)
                             .to("direct:decompress.jaxb")
-                            .to("direct:process.queue.default.async")
+                            .to("direct:" + CamelRouteNames.PROCESSOR_QUEUE_DEFAULT)
                         .endChoice()
                     .end()
                     .to("direct:clear.mdc.subscriptionId")
@@ -245,7 +245,7 @@ public class MessagingRoute extends RestRouteBuilder {
                         .when(readFromPubsub)
                             .log("Processing data from " + pubsubQueueET)
                             .to("direct:decompress.jaxb")
-                            .to("direct:process.queue.default.async")
+                            .to("direct:" + CamelRouteNames.PROCESSOR_QUEUE_DEFAULT)
                         .endChoice()
                     .end()
                     .to("direct:clear.mdc.subscriptionId")
@@ -253,12 +253,6 @@ public class MessagingRoute extends RestRouteBuilder {
                     .routeId("incoming.transform.et")
             ;
         }
-
-        from("direct:process.queue.default.async")
-            .wireTap("direct:" + CamelRouteNames.PROCESSOR_QUEUE_DEFAULT)
-            .routeId("process.queue.default.async")
-        ;
-
 
         from("direct:" + CamelRouteNames.PROCESSOR_QUEUE_DEFAULT)
                 .to("direct:set.mdc.subscriptionId")
