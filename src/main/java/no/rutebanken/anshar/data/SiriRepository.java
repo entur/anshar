@@ -272,8 +272,10 @@ abstract class SiriRepository<T> {
 
         hazelcastService.addBeforeShuttingDownHook(() -> {
             while (!dirtyChanges.isEmpty()) {
+                logger.info("Shutdown triggered - committing {} changes", dirtyChanges.size());
                 commitChanges();
             }
+            logger.info("ShutDownHook finished");
         });
     }
 
