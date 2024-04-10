@@ -215,7 +215,6 @@ public class MessagingRoute extends RestRouteBuilder {
                         .endChoice()
                     .end()
                     .to("direct:clear.mdc.subscriptionId")
-                    .startupOrder(100003)
                     .routeId("incoming.transform.sx")
             ;
         }
@@ -232,7 +231,6 @@ public class MessagingRoute extends RestRouteBuilder {
                         .endChoice()
                     .end()
                     .to("direct:clear.mdc.subscriptionId")
-                    .startupOrder(100002)
                     .routeId("incoming.transform.vm")
             ;
         }
@@ -249,7 +247,6 @@ public class MessagingRoute extends RestRouteBuilder {
                         .endChoice()
                     .end()
                     .to("direct:clear.mdc.subscriptionId")
-                    .startupOrder(100001)
                     .routeId("incoming.transform.et")
             ;
         }
