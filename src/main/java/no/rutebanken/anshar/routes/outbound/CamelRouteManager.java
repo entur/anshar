@@ -55,7 +55,7 @@ public class CamelRouteManager {
     @Value("${anshar.default.max.elements.per.delivery:1000}")
     private int maximumSizePerDelivery;
 
-    @Value("${anshar.default.max.threads.per.outbound.subscription:20}")
+    @Value("${anshar.default.max.threads.per.outbound.subscription:5}")
     private int maximumThreadsPerOutboundSubscription;
 
     @Produce(value = "direct:send.to.external.subscription")
@@ -126,7 +126,7 @@ public class CamelRouteManager {
         if (!threadFactoryMap.containsKey(subscriptionId)) {
             ThreadFactory factory = new ThreadFactoryBuilder().setNameFormat("outbound"+subscriptionId).build();
 
-            threadFactoryMap.put(subscriptionId, Executors.newSingleThreadExecutor(factory));
+            threadFactoryMap.put(subscriptionId, Executors.newFixedThreadPool(maximumThreadsPerOutboundSubscription, factory));
         }
 
         return threadFactoryMap.get(subscriptionId);
