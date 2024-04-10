@@ -51,6 +51,7 @@ public class OutboundSiriDistributionRoute extends RouteBuilder {
 
         from("direct:send.to.external.subscription")
                 .routeId("send.to.external.subscription")
+                .startupOrder(1)
                 .log(LoggingLevel.INFO, "POST data to ${header.SubscriptionId}")
                 .setHeader("CamelHttpMethod", constant("POST"))
                 .setHeader(Exchange.CONTENT_TYPE, constant(MediaType.APPLICATION_XML))
