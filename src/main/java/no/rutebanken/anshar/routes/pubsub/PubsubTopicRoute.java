@@ -61,7 +61,7 @@ public class PubsubTopicRoute extends RouteBuilder {
                     .choice().when(body().isNotNull())
                         .to("xslt-saxon:xsl/split.xsl")
                         .split().tokenizeXML("Siri").streaming()
-                        .wireTap("direct:publish.vm.avro")// Publish as Avro
+                        .to("direct:publish.vm.avro")// Publish as Avro
                         .wireTap("direct:log.pubsub.vm.traffic")
                     .end()
             ;
