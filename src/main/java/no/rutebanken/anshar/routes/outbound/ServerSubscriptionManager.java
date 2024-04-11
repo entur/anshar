@@ -427,10 +427,8 @@ public class ServerSubscriptionManager {
             )
             .collect(Collectors.toList());
 
-        boolean logFullContents = false;
         for (OutboundSubscriptionSetup recipient : recipients) {
-            camelRouteManager.pushSiriData(delivery, recipient, logFullContents);
-            logFullContents = false;
+            camelRouteManager.pushSiriData(delivery, recipient, false);
         }
 
         MDC.remove("camel.breadcrumbId");
@@ -468,10 +466,8 @@ public class ServerSubscriptionManager {
             )
             .collect(Collectors.toList());
 
-        boolean logFullContents = true;
         for (OutboundSubscriptionSetup recipient : recipients) {
-            camelRouteManager.pushSiriData(delivery, recipient, logFullContents);
-            logFullContents = false;
+            camelRouteManager.pushSiriData(delivery, recipient, false);
         }
 
         MDC.remove("camel.breadcrumbId");
@@ -511,10 +507,8 @@ public class ServerSubscriptionManager {
         if (!recipients.isEmpty()) {
             logger.info("Pushing {} ET updates to {} outbound subscriptions", addedOrUpdated.size(), recipients.size());
 
-            boolean logFullContents = true;
             for (OutboundSubscriptionSetup recipient : recipients) {
-                camelRouteManager.pushSiriData(delivery, recipient, logFullContents);
-                logFullContents = false;
+                camelRouteManager.pushSiriData(delivery, recipient, false);
             }
         }
         MDC.remove("camel.breadcrumbId");

@@ -69,6 +69,12 @@ public class OutboundSiriDistributionRoute extends RouteBuilder {
                 .end()
                 .setHeader("httpClient.socketTimeout", constant(socketTimeout))
                 .setHeader("httpClient.connectTimeout", constant(connectTimeout))
+                .choice()
+                .when(header("showBody").isEqualTo(true))
+                        .to("log:push:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
+                .endChoice()
+                .end()
+                .removeHeader("showBody")
                 .toD("${header.endpoint}")
                 .bean(subscriptionManager, "clearFailTracker(${header.SubscriptionId})")
                 .log(LoggingLevel.DEBUG, "POST complete ${header.SubscriptionId} - Response: [${header.CamelHttpResponseCode} ${header.CamelHttpResponseText}]");
