@@ -46,6 +46,7 @@ import java.util.List;
 import java.util.Map;
 
 import static no.rutebanken.anshar.subscription.SubscriptionSetup.SubscriptionMode.AVRO_PUBSUB;
+import static no.rutebanken.anshar.subscription.SubscriptionSetup.SubscriptionMode.SUBSCRIBE;
 
 @Component
 public class PrometheusMetricsService extends PrometheusMeterRegistry {
@@ -151,10 +152,18 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
     }
 
     public void registerAvroPubsubRecord(SiriDataType dataType) {
-        countOutgoingData(dataType, AVRO_PUBSUB, 1);
+        countOutgoingData(dataType, AVRO_PUBSUB, 1, null, -1);
     }
 
     public void countOutgoingData(Siri siri, SubscriptionSetup.SubscriptionMode mode) {
+        countOutgoingData(siri, mode, null, -1);
+    }
+
+    public void countOutgoingSubscriptionData(Siri siri, String subscriptionId, int statusCode) {
+        countOutgoingData(siri, SUBSCRIBE, subscriptionId, statusCode);
+    }
+    private void countOutgoingData(Siri siri, SubscriptionSetup.SubscriptionMode mode, String subscriptionId, int statusCode) {
+
         SiriDataType dataType = null;
         int count = 0;
         if (siri != null && siri.getServiceDelivery() != null) {
@@ -185,7 +194,7 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
                     count = deliveryStructure.getSituations().getPtSituationElements().size();
                 }
             }
-            countOutgoingData(dataType, mode, count);
+            countOutgoingData(dataType, mode, count, subscriptionId, statusCode);
         }
 
     }
@@ -214,11 +223,17 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
         counter(DATA_VALIDATION_RESULT_COUNTER, counterTags).increment();
     }
 
-    private void countOutgoingData(SiriDataType dataType, SubscriptionSetup.SubscriptionMode mode, long objectCount) {
-        if (dataType != null && objectCount > 0) {
+    public void countOutgoingData(SiriDataType dataType, SubscriptionSetup.SubscriptionMode mode, long objectCount, String subscriptionId, int statusCode) {
+        if (dataType != null) {
             List<Tag> counterTags = new ArrayList<>();
             counterTags.add(new ImmutableTag(DATATYPE_TAG_NAME, dataType.name()));
             counterTags.add(new ImmutableTag("mode", mode.name()));
+            if (statusCode > 0) {
+                counterTags.add(new ImmutableTag("statusCode", "" + statusCode));
+            }
+            if (subscriptionId != null) {
+                counterTags.add(new ImmutableTag("subscriptionId", mode.name()));
+            }
 
             counter(DATA_OUTBOUND_COUNTER_NAME, counterTags).increment(objectCount);
         }
