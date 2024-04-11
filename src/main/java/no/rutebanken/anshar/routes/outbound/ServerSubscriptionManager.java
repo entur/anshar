@@ -189,25 +189,17 @@ public class ServerSubscriptionManager {
                     resolveSiriVersionStr(subscription.getSiriVersion()))
                     ;
 
-            final String breadcrumbId = MDC.get("camel.breadcrumbId");
-            Executors.newSingleThreadScheduledExecutor().execute(() -> {
-                try {
-                    MDC.put("camel.breadcrumbId", breadcrumbId);
+            //Send initial ServiceDelivery
+            logger.debug("Find initial delivery for {}", subscription);
+            Siri delivery = siriHelper.findInitialDeliveryData(subscription);
 
-                    //Send initial ServiceDelivery
-                    logger.info("Find initial delivery for {}", subscription);
-                    Siri delivery = siriHelper.findInitialDeliveryData(subscription);
+            if (delivery != null) {
+                logger.info("Sending initial delivery to {}", subscription.getAddress());
+                camelRouteManager.pushSiriData(delivery, subscription, false);
+            } else {
+                logger.info("No initial delivery found for {}", subscription);
+            }
 
-                    if (delivery != null) {
-                        logger.info("Sending initial delivery to {}", subscription.getAddress());
-                        camelRouteManager.pushSiriData(delivery, subscription, false);
-                    } else {
-                        logger.info("No initial delivery found for {}", subscription);
-                    }
-                } finally {
-                    MDC.remove("camel.breadcrumbId");
-                }
-            });
             return subscriptionResponse;
         }
     }
