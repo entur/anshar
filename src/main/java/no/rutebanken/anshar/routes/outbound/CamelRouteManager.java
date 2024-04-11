@@ -16,8 +16,11 @@
 package no.rutebanken.anshar.routes.outbound;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import no.rutebanken.anshar.metrics.PrometheusMetricsService;
+import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.camel.Produce;
 import org.apache.camel.ProducerTemplate;
+import org.apache.camel.http.base.HttpOperationFailedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -51,6 +54,9 @@ public class CamelRouteManager {
 
     @Autowired
     ServerSubscriptionManager subscriptionManager;
+
+    @Autowired
+    PrometheusMetricsService metricsService;
 
     @Value("${anshar.default.max.elements.per.delivery:1000}")
     private int maximumSizePerDelivery;
@@ -97,20 +103,33 @@ public class CamelRouteManager {
 
                 for (Siri siri : splitSiri) {
                     postDataToSubscription(siri, subscriptionRequest, logBody);
+                    metricsService.markPostToSubscription(subscriptionRequest.getSubscriptionType(),
+                            SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
+                            subscriptionRequest.getSubscriptionId(),
+                            200);
                 }
             } catch (Exception e) {
                 logger.info("Failed to push data for subscription {}: {}", subscriptionRequest, e);
 
+                int statusCode = -1;
                 if (e.getCause() instanceof SocketException) {
                     logger.info("Recipient is unreachable - ignoring");
                 } else {
                     String msg = e.getMessage();
                     if (e.getCause() != null) {
                         msg = e.getCause().getMessage();
+                        if (e.getCause() instanceof HttpOperationFailedException) {
+                            statusCode = ((HttpOperationFailedException) e.getCause()).getStatusCode();
+                        }
                     }
                     logger.info("Exception caught when pushing SIRI-data: {}", msg);
                 }
                 subscriptionManager.pushFailedForSubscription(subscriptionRequest.getSubscriptionId());
+
+                metricsService.markPostToSubscription(subscriptionRequest.getSubscriptionType(),
+                        SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
+                        subscriptionRequest.getSubscriptionId(),
+                        statusCode);
 
                 removeDeadSubscriptionExecutors(subscriptionManager);
             } finally {

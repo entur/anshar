@@ -78,6 +78,7 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
     private static final String DATA_EXPIRED_COUNTER_NAME = METRICS_PREFIX + "data.expired";
     private static final String DATA_IGNORED_COUNTER_NAME = METRICS_PREFIX + "data.ignored";
     private static final String DATA_OUTBOUND_COUNTER_NAME = METRICS_PREFIX + "data.outbound";
+    private static final String SUBSCRIPTION_OUTBOUND_COUNTER_NAME = METRICS_PREFIX + "subscription.outbound";
 
     private static final String DATA_MAPPING_COUNTER_NAME = METRICS_PREFIX + "data.mapping";
 
@@ -222,6 +223,17 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
 
             counter(DATA_OUTBOUND_COUNTER_NAME, counterTags).increment(objectCount);
         }
+    }
+
+
+    public void markPostToSubscription(SiriDataType dataType, SubscriptionSetup.SubscriptionMode mode, String subscriptionId, int statusCode) {
+        List<Tag> counterTags = new ArrayList<>();
+        counterTags.add(new ImmutableTag(DATATYPE_TAG_NAME, dataType.name()));
+        counterTags.add(new ImmutableTag("mode", mode.name()));
+        counterTags.add(new ImmutableTag("subscriptionId", subscriptionId));
+        counterTags.add(new ImmutableTag("statusCode", ""+statusCode));
+
+        counter(SUBSCRIPTION_OUTBOUND_COUNTER_NAME, counterTags).increment(1);
     }
 
     final Map<String, Integer> gaugeValues = new HashMap<>();
