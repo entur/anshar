@@ -52,7 +52,7 @@ public class OutboundSiriDistributionRoute extends RouteBuilder {
         from("direct:send.to.external.subscription")
                 .routeId("send.to.external.subscription")
                 .startupOrder(1)
-                .log(LoggingLevel.INFO, "POST data to ${header.SubscriptionId}")
+                .log(LoggingLevel.DEBUG, "POST data to ${header.SubscriptionId}")
                 .setHeader("CamelHttpMethod", constant("POST"))
                 .setHeader(Exchange.CONTENT_TYPE, constant(MediaType.APPLICATION_XML))
                 .bean(metrics, "countOutgoingData(${body}, SUBSCRIBE)")
@@ -71,7 +71,7 @@ public class OutboundSiriDistributionRoute extends RouteBuilder {
                 .setHeader("httpClient.connectTimeout", constant(connectTimeout))
                 .toD("${header.endpoint}")
                 .bean(subscriptionManager, "clearFailTracker(${header.SubscriptionId})")
-                .log(LoggingLevel.INFO, "POST complete ${header.SubscriptionId} - Response: [${header.CamelHttpResponseCode} ${header.CamelHttpResponseText}]");
+                .log(LoggingLevel.DEBUG, "POST complete ${header.SubscriptionId} - Response: [${header.CamelHttpResponseCode} ${header.CamelHttpResponseText}]");
 
     }
 }
