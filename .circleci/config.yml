@@ -2,7 +2,7 @@ version: 2.1
 executors:
   cci-toolbox-java11:
     docker:
-      - image: cimg/openjdk:17.0.1
+      - image: cimg/openjdk:17.0.11
         auth:
           username: _json_key
           password: $DOCKER_PASSWORD
@@ -36,7 +36,7 @@ aliases:
 jobs:
   test:
     docker:
-      - image: cimg/openjdk:17.0.1
+      - image: cimg/openjdk:17.0.11
     environment:
       MAVEN_OPTS: -Xmx5G
     steps:
@@ -57,7 +57,7 @@ jobs:
           path: ~/reports
   build:
     docker:
-      - image: cimg/openjdk:17.0.1
+      - image: cimg/openjdk:17.0.11
     environment:
       MAVEN_OPTS: -Xmx5G
     steps:
