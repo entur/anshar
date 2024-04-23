@@ -33,6 +33,7 @@ import uk.org.siri.siri21.Siri;
 import uk.org.siri.siri21.SituationExchangeDeliveryStructure;
 import uk.org.siri.siri21.VehicleMonitoringDeliveryStructure;
 
+import javax.annotation.PostConstruct;
 import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -66,6 +67,11 @@ public class CamelRouteManager {
 
     @Produce(value = "direct:send.to.external.subscription")
     protected ProducerTemplate siriSubscriptionProcessor;
+
+    @PostConstruct
+    private void initThreadMetrics() {
+        metricsService.registerOutboundThreadFactoryMap(threadFactoryMap);
+    }
 
     /**
      * Splits SIRI-data if applicable, and pushes data to external subscription

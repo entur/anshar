@@ -44,6 +44,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import static no.rutebanken.anshar.subscription.SubscriptionSetup.SubscriptionMode.AVRO_PUBSUB;
 
@@ -79,6 +81,7 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
     private static final String DATA_IGNORED_COUNTER_NAME = METRICS_PREFIX + "data.ignored";
     private static final String DATA_OUTBOUND_COUNTER_NAME = METRICS_PREFIX + "data.outbound";
     private static final String SUBSCRIPTION_OUTBOUND_COUNTER_NAME = METRICS_PREFIX + "subscription.outbound";
+    private static final String SUBSCRIPTION_OUTBOUND_CONCURRENT_REQUESTS = METRICS_PREFIX + "concurrent.outbound.requests";
 
     private static final String DATA_MAPPING_COUNTER_NAME = METRICS_PREFIX + "data.mapping";
 
@@ -91,6 +94,7 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
 
     @Value("${anshar.metrics.include.failing.subscriptions:false}")
     private boolean includeSubscriptionFailingMetrics;
+    private Map<String, ExecutorService> outboundThreadFactoryMap;
 
     public PrometheusMetricsService() {
         super(PrometheusConfig.DEFAULT);
@@ -262,6 +266,9 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
             if (DATA_COUNTER_NAME.equals(meter.getId().getName())) {
                 this.remove(meter);
             }
+            if (SUBSCRIPTION_OUTBOUND_CONCURRENT_REQUESTS.equals(meter.getId().getName())) {
+                this.remove(meter);
+            }
         }
 
         EstimatedTimetables estimatedTimetables = ApplicationContextHolder.getContext().getBean(EstimatedTimetables.class);
@@ -280,6 +287,12 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
         datasetSize = vehicleActivities.getLocalDatasetSize();
         for (Map.Entry<String, Integer> entry : datasetSize.entrySet()) {
             gaugeDataset(SiriDataType.VEHICLE_MONITORING, entry.getKey(), entry.getValue());
+        }
+
+        for (Map.Entry<String, ExecutorService> entry : outboundThreadFactoryMap.entrySet()) {
+            List<Tag> counterTags = new ArrayList<>();
+            counterTags.add(new ImmutableTag("subscriptionId", entry.getKey()));
+            gauge(SUBSCRIPTION_OUTBOUND_CONCURRENT_REQUESTS, counterTags, ((ThreadPoolExecutor)entry.getValue()).getActiveCount());
         }
 
         if (includeSubscriptionFailingMetrics) {
@@ -331,5 +344,9 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
             return 1;
         }
         return 0;
+    }
+
+    public void registerOutboundThreadFactoryMap(Map<String, ExecutorService> threadFactoryMap) {
+        this.outboundThreadFactoryMap = threadFactoryMap;
     }
 }
