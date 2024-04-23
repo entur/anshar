@@ -82,6 +82,7 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
     private static final String DATA_OUTBOUND_COUNTER_NAME = METRICS_PREFIX + "data.outbound";
     private static final String SUBSCRIPTION_OUTBOUND_COUNTER_NAME = METRICS_PREFIX + "subscription.outbound";
     private static final String SUBSCRIPTION_OUTBOUND_CONCURRENT_REQUESTS = METRICS_PREFIX + "concurrent.outbound.requests";
+    private static final String SUBSCRIPTION_OUTBOUND_QUEUE = METRICS_PREFIX + "concurrent.outbound.queue";
 
     private static final String DATA_MAPPING_COUNTER_NAME = METRICS_PREFIX + "data.mapping";
 
@@ -269,6 +270,9 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
             if (SUBSCRIPTION_OUTBOUND_CONCURRENT_REQUESTS.equals(meter.getId().getName())) {
                 this.remove(meter);
             }
+            if (SUBSCRIPTION_OUTBOUND_QUEUE.equals(meter.getId().getName())) {
+                this.remove(meter);
+            }
         }
 
         EstimatedTimetables estimatedTimetables = ApplicationContextHolder.getContext().getBean(EstimatedTimetables.class);
@@ -292,7 +296,9 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
         for (Map.Entry<String, ExecutorService> entry : outboundThreadFactoryMap.entrySet()) {
             List<Tag> counterTags = new ArrayList<>();
             counterTags.add(new ImmutableTag("subscriptionId", entry.getKey()));
-            gauge(SUBSCRIPTION_OUTBOUND_CONCURRENT_REQUESTS, counterTags, ((ThreadPoolExecutor)entry.getValue()).getActiveCount());
+            ThreadPoolExecutor executor = (ThreadPoolExecutor) entry.getValue();
+            gauge(SUBSCRIPTION_OUTBOUND_CONCURRENT_REQUESTS, counterTags, executor.getActiveCount());
+            gauge(SUBSCRIPTION_OUTBOUND_QUEUE, counterTags, executor.getQueue().size());
         }
 
         if (includeSubscriptionFailingMetrics) {
