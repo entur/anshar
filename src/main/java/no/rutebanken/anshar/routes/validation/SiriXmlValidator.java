@@ -61,10 +61,13 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashSet;
@@ -190,8 +193,6 @@ public class SiriXmlValidator extends ApplicationContextHolder {
 
             Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
 
-            XMLStreamReader reader = xmlInputFactory.createXMLStreamReader(xml);
-
             final SiriValidationEventHandler schemaValidationHandler = new SiriValidationEventHandler();
 
             boolean validate = false;
@@ -204,7 +205,22 @@ public class SiriXmlValidator extends ApplicationContextHolder {
 
                 // Add event-handler to collect validation-issues
                 unmarshaller.setEventHandler(schemaValidationHandler);
+
+                // Write full stream-contents to disk for easier debugging
+                File targetFile = File.createTempFile(subscriptionSetup.getVendor(), ".xml");
+
+                Files.copy(
+                        xml,
+                        targetFile.toPath(),
+                        StandardCopyOption.REPLACE_EXISTING
+                );
+                logger.info("Full contents written to {}", targetFile.getAbsolutePath());
+
+                // Reset stream to continue processing pipeline
+                xml.reset();
             }
+
+            XMLStreamReader reader = xmlInputFactory.createXMLStreamReader(xml);
 
             Siri siri = unmarshaller.unmarshal(reader, Siri.class).getValue();
 
