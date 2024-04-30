@@ -207,7 +207,7 @@ public class SiriXmlValidator extends ApplicationContextHolder {
                 unmarshaller.setEventHandler(schemaValidationHandler);
 
                 // Write full stream-contents to disk for easier debugging
-                File targetFile = File.createTempFile(subscriptionSetup.getVendor(), ".xml");
+                File targetFile = File.createTempFile(subscriptionSetup.getVendor() + "-", ".xml");
 
                 Files.copy(
                         xml,
