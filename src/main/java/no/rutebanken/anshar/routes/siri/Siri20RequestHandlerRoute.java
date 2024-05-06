@@ -186,6 +186,7 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
                             .wireTap("direct:process.sx.subscription.request")
                             .to("direct:internal.handle.subscription") //Build response
                     .endChoice()
+                .endChoice()
                 .otherwise()
                     .to("direct:anshar.invalid.tracking.header.response")
                 .routeId("process.subscription")
