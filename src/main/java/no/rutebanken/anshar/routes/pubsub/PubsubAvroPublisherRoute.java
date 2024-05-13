@@ -22,19 +22,28 @@ public class PubsubAvroPublisherRoute extends RouteBuilder {
     protected boolean publishEtAvroToPubsubEnabled;
     @Value("${anshar.pubsub.avro.et.topicname:}")
     private String pubsubEtAvroTopic;
+    @Value("${anshar.pubsub.avro.et.topicname.json:}")
+    private String pubsubEtAvroJsonTopic;
 
     @Value("${anshar.pubsub.avro.vm.enabled:false}")
     protected boolean publishVmAvroToPubsubEnabled;
     @Value("${anshar.pubsub.avro.vm.topicname:}")
     private String pubsubVmAvroTopic;
+    @Value("${anshar.pubsub.avro.vm.topicname.json:}")
+    private String pubsubVmAvroJsonTopic;
 
     @Value("${anshar.pubsub.avro.sx.enabled:false}")
     protected boolean publishSxAvroToPubsubEnabled;
     @Value("${anshar.pubsub.avro.sx.topicname:}")
     private String pubsubSxAvroTopic;
+    @Value("${anshar.pubsub.avro.sx.topicname.json:}")
+    private String pubsubSxAvroJsonTopic;
 
     @Autowired
     PrometheusMetricsService metricsService;
+
+    @Autowired
+    private SiriAvroJsonSerializer siriAvroJsonSerializer;
 
 
     @Override
@@ -44,13 +53,23 @@ public class PubsubAvroPublisherRoute extends RouteBuilder {
             log.info("Publishing Avro-ET to pubsub-topic: {}", pubsubEtAvroTopic);
             from("direct:publish.et.avro.pubsub")
                     .removeHeaders("*")
+                    .wireTap("direct:publish.et.avro.pubsub.bin")
+                    .wireTap("direct:publish.et.avro.pubsub.json")
+                    .bean(metricsService, "registerAvroPubsubRecord(ESTIMATED_TIMETABLE)")
+            ;
+
+            from("direct:publish.et.avro.pubsub.bin")
                     .process(p -> {
                         EstimatedVehicleJourneyRecord body = p.getMessage().getBody(EstimatedVehicleJourneyRecord.class);
                         p.getMessage().setBody(body.toByteBuffer().array());
                     })
                     .to(pubsubEtAvroTopic)
-                    .bean(metricsService, "registerAvroPubsubRecord(ESTIMATED_TIMETABLE)")
-                    .routeId("anshar.pubsub.et.producer.avro");
+                    .routeId("anshar.pubsub.et.producer.avro.bin");
+
+            from("direct:publish.et.avro.pubsub.json")
+                    .process(siriAvroJsonSerializer)
+                    .to(pubsubEtAvroJsonTopic)
+                    .routeId("anshar.pubsub.et.producer.avro.json");
         } else {
             log.info("Publish Avro-ET to pubsub disabled");
             from("direct:publish.et.avro.pubsub")
@@ -72,13 +91,23 @@ public class PubsubAvroPublisherRoute extends RouteBuilder {
             log.info("Publishing Avro-VM to pubsub-topic: {}", pubsubVmAvroTopic);
             from("direct:publish.vm.avro.pubsub")
                     .removeHeaders("*")
+                    .wireTap("direct:publish.vm.avro.pubsub.bin")
+                    .wireTap("direct:publish.vm.avro.pubsub.json")
+                    .bean(metricsService, "registerAvroPubsubRecord(VEHICLE_MONITORING)")
+                    .routeId("anshar.pubsub.vm.producer.avro.pubsub");
+
+            from("direct:publish.vm.avro.pubsub.bin")
                     .process(p -> {
                         VehicleActivityRecord body = p.getMessage().getBody(VehicleActivityRecord.class);
                         p.getMessage().setBody(body.toByteBuffer().array() );
                     })
                     .to(pubsubVmAvroTopic)
-                    .bean(metricsService, "registerAvroPubsubRecord(VEHICLE_MONITORING)")
-                    .routeId("anshar.pubsub.vm.producer.avro.pubsub");
+                    .routeId("anshar.pubsub.vm.producer.avro.bin");
+
+            from("direct:publish.vm.avro.pubsub.json")
+                    .process(siriAvroJsonSerializer)
+                    .to(pubsubVmAvroJsonTopic)
+                    .routeId("anshar.pubsub.vm.producer.avro.json");
         } else {
             log.info("Publish Avro-VM to pubsub disabled");
             from("direct:publish.vm.avro.pubsub")
@@ -98,15 +127,26 @@ public class PubsubAvroPublisherRoute extends RouteBuilder {
 
         if (publishSxAvroToPubsubEnabled) {
             log.info("Publishing Avro-SX to pubsub-topic: {}", pubsubSxAvroTopic);
+
             from("direct:publish.sx.avro.pubsub")
                     .removeHeaders("*")
+                    .wireTap("direct:publish.sx.avro.pubsub.bin")
+                    .wireTap("direct:publish.sx.avro.pubsub.json")
+                    .bean(metricsService, "registerAvroPubsubRecord(SITUATION_EXCHANGE)")
+                    .routeId("anshar.pubsub.sx.producer.avro.pubsub");
+
+            from("direct:publish.sx.avro.pubsub.bin")
                     .process(p -> {
                         PtSituationElementRecord body = p.getMessage().getBody(PtSituationElementRecord.class);
                         p.getMessage().setBody(body.toByteBuffer().array());
                     })
                     .to(pubsubSxAvroTopic)
-                    .bean(metricsService, "registerAvroPubsubRecord(SITUATION_EXCHANGE)")
-                    .routeId("anshar.pubsub.sx.producer.avro.pubsub");
+                    .routeId("anshar.pubsub.sx.producer.avro.bin");
+
+            from("direct:publish.sx.avro.pubsub.json")
+                    .process(siriAvroJsonSerializer)
+                    .to(pubsubSxAvroJsonTopic)
+                    .routeId("anshar.pubsub.sx.producer.avro.json");
         } else {
             log.info("Publish Avro-SX to pubsub disabled");
             from("direct:publish.sx.avro.pubsub")
