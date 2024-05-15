@@ -67,8 +67,10 @@ public class PubsubAvroPublisherRoute extends RouteBuilder {
                     .routeId("anshar.pubsub.et.producer.avro.bin");
 
             from("direct:publish.et.avro.pubsub.json")
-                    .process(siriAvroJsonSerializer)
-                    .to(pubsubEtAvroJsonTopic)
+                    .choice().when().constant(!pubsubEtAvroJsonTopic.isEmpty())
+                        .process(siriAvroJsonSerializer)
+                        .to(pubsubEtAvroJsonTopic)
+                    .endChoice()
                     .routeId("anshar.pubsub.et.producer.avro.json");
         } else {
             log.info("Publish Avro-ET to pubsub disabled");
@@ -105,8 +107,10 @@ public class PubsubAvroPublisherRoute extends RouteBuilder {
                     .routeId("anshar.pubsub.vm.producer.avro.bin");
 
             from("direct:publish.vm.avro.pubsub.json")
-                    .process(siriAvroJsonSerializer)
-                    .to(pubsubVmAvroJsonTopic)
+                    .choice().when().constant(!pubsubVmAvroJsonTopic.isEmpty())
+                        .process(siriAvroJsonSerializer)
+                        .to(pubsubVmAvroJsonTopic)
+                    .endChoice()
                     .routeId("anshar.pubsub.vm.producer.avro.json");
         } else {
             log.info("Publish Avro-VM to pubsub disabled");
@@ -144,8 +148,10 @@ public class PubsubAvroPublisherRoute extends RouteBuilder {
                     .routeId("anshar.pubsub.sx.producer.avro.bin");
 
             from("direct:publish.sx.avro.pubsub.json")
-                    .process(siriAvroJsonSerializer)
-                    .to(pubsubSxAvroJsonTopic)
+                    .choice().when().constant(!pubsubSxAvroJsonTopic.isEmpty())
+                        .process(siriAvroJsonSerializer)
+                        .to(pubsubSxAvroJsonTopic)
+                    .endChoice()
                     .routeId("anshar.pubsub.sx.producer.avro.json");
         } else {
             log.info("Publish Avro-SX to pubsub disabled");
