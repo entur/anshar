@@ -67,7 +67,7 @@ public class PubsubAvroPublisherRoute extends RouteBuilder {
                     .routeId("anshar.pubsub.et.producer.avro.bin");
 
             from("direct:publish.et.avro.pubsub.json")
-                    .choice().when().constant(!pubsubEtAvroJsonTopic.isEmpty())
+                    .choice().when().constant(!pubsubEtAvroJsonTopic.equals("mock:ignore"))
                         .process(siriAvroJsonSerializer)
                         .to(pubsubEtAvroJsonTopic)
                     .endChoice()
@@ -107,7 +107,7 @@ public class PubsubAvroPublisherRoute extends RouteBuilder {
                     .routeId("anshar.pubsub.vm.producer.avro.bin");
 
             from("direct:publish.vm.avro.pubsub.json")
-                    .choice().when().constant(!pubsubVmAvroJsonTopic.isEmpty())
+                    .choice().when().constant(!pubsubVmAvroJsonTopic.equals("mock:ignore"))
                         .process(siriAvroJsonSerializer)
                         .to(pubsubVmAvroJsonTopic)
                     .endChoice()
@@ -148,7 +148,7 @@ public class PubsubAvroPublisherRoute extends RouteBuilder {
                     .routeId("anshar.pubsub.sx.producer.avro.bin");
 
             from("direct:publish.sx.avro.pubsub.json")
-                    .choice().when().constant(!pubsubSxAvroJsonTopic.isEmpty())
+                    .choice().when().constant(!pubsubSxAvroJsonTopic.equals("mock:ignore"))
                         .process(siriAvroJsonSerializer)
                         .to(pubsubSxAvroJsonTopic)
                     .endChoice()
