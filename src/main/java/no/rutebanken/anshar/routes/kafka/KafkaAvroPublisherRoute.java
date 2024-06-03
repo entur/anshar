@@ -48,7 +48,7 @@ public class KafkaAvroPublisherRoute extends RouteBuilder {
             log.info("Publish Avro-ET to kafka disabled");
             from("direct:publish.et.avro.kafka")
                     .process(p -> {
-                        if (etIgnoredCounter.incrementAndGet() % 1000 == 0) {
+                        if (etIgnoredCounter.incrementAndGet() % 10000 == 0) {
                             p.getMessage().setHeader("counter", etIgnoredCounter.get());
                             p.getMessage().setBody(p.getIn().getBody());
                         }
@@ -71,7 +71,7 @@ public class KafkaAvroPublisherRoute extends RouteBuilder {
             log.info("Publish Avro-VM to kafka disabled");
             from("direct:publish.vm.avro.kafka")
                     .process(p -> {
-                        if (vmIgnoredCounter.incrementAndGet() % 1000 == 0) {
+                        if (vmIgnoredCounter.incrementAndGet() % 100000 == 0) {
                             p.getMessage().setHeader("counter", vmIgnoredCounter.get());
                             p.getMessage().setBody(p.getIn().getBody());
                         }
