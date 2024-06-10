@@ -7,6 +7,7 @@ import org.apache.camel.Configuration;
 import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.http.base.HttpOperationFailedException;
 import org.entur.siri.validator.SiriValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -47,6 +48,20 @@ public class OutboundSiriDistributionRoute extends RouteBuilder {
             .redeliveryDelay(redeliveryDelay)
             .logRetryAttempted(true)
             .log("Retry triggered")
+        ;
+
+        onException(NullPointerException.class)
+            .handled(true)
+            .log("NullPointerException caught while sending data - retry NOT triggered")
+        ;
+
+        onException(HttpOperationFailedException.class)
+            .handled(true)
+                .process(p -> {
+                    HttpOperationFailedException e = p.getProperty("CamelExceptionCaught", HttpOperationFailedException.class);
+                    p.getMessage().setBody(e.getStatusCode());
+                })
+            .log("HttpOperationFailed - retry NOT triggered: Response code ${body}")
         ;
 
         from("direct:send.to.external.subscription")
