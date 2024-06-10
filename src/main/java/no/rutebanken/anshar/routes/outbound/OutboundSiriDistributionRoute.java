@@ -51,12 +51,12 @@ public class OutboundSiriDistributionRoute extends RouteBuilder {
         ;
 
         onException(NullPointerException.class)
-            .handled(true)
+            .handled(false)
             .log("NullPointerException caught while sending data - retry NOT triggered")
         ;
 
         onException(HttpOperationFailedException.class)
-            .handled(true)
+            .handled(false)
                 .process(p -> {
                     HttpOperationFailedException e = p.getProperty("CamelExceptionCaught", HttpOperationFailedException.class);
                     p.getMessage().setBody(e.getStatusCode());
