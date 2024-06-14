@@ -367,6 +367,10 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                         metrics.registerSiriContent(SiriDataType.ESTIMATED_TIMETABLE, dataSource, serviceJourneyId, SiriContent.STOP_CANCELLATION);
                     }
 
+                    if (recordedCall.isExtraCall() != null && recordedCall.isExtraCall()) {
+                        metrics.registerSiriContent(SiriDataType.ESTIMATED_TIMETABLE, dataSource, serviceJourneyId, SiriContent.EXTRA_CALL);
+                    }
+
                     if (recordedCall.getOccupancy() != null) {
                         metrics.registerSiriContent(SiriDataType.ESTIMATED_TIMETABLE, dataSource, serviceJourneyId, SiriContent.OCCUPANCY_STOP);
                     }
@@ -399,6 +403,10 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                 for (EstimatedCall estimatedCall : estimatedCalls) {
                     if (estimatedCall.isCancellation() != null && estimatedCall.isCancellation()) {
                         metrics.registerSiriContent(SiriDataType.ESTIMATED_TIMETABLE, dataSource, serviceJourneyId, SiriContent.STOP_CANCELLATION);
+                    }
+
+                    if (estimatedCall.isExtraCall() != null && estimatedCall.isExtraCall()) {
+                        metrics.registerSiriContent(SiriDataType.ESTIMATED_TIMETABLE, dataSource, serviceJourneyId, SiriContent.EXTRA_CALL);
                     }
 
                     if (estimatedCall.getOccupancy() != null) {
