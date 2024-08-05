@@ -52,8 +52,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 import static java.time.temporal.ChronoUnit.MILLIS;
@@ -366,33 +364,32 @@ public class ServerSubscriptionManager {
         return siriObjectFactory.createCheckStatusResponse();
     }
 
-
     public void pushUpdatesAsync(SiriDataType datatype, List updates, String datasetId) {
 
         final String breadcrumbId = MDC.get("camel.breadcrumbId");
 
-        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        MDC.put("camel.breadcrumbId", breadcrumbId);
+
         switch (datatype) {
             case ESTIMATED_TIMETABLE:
-                executorService.submit(() -> pushUpdatedEstimatedTimetables(updates, datasetId, breadcrumbId));
+                pushUpdatedEstimatedTimetables(updates, datasetId, breadcrumbId);
                 break;
             case SITUATION_EXCHANGE:
-                executorService.submit(() -> pushUpdatedSituations(updates, datasetId, breadcrumbId));
+                pushUpdatedSituations(updates, datasetId, breadcrumbId);
                 break;
             case VEHICLE_MONITORING:
-                executorService.submit(() -> pushUpdatedVehicleActivities(updates, datasetId, breadcrumbId));
+                pushUpdatedVehicleActivities(updates, datasetId, breadcrumbId);
                 break;
             default:
                 // Ignore
                 break;
         }
+        MDC.remove("camel.breadcrumbId");
     }
 
     private void pushUpdatedVehicleActivities(
         List<VehicleActivityStructure> addedOrUpdated, String datasetId, String breadcrumbId
     ) {
-        MDC.put("camel.breadcrumbId", breadcrumbId);
-
         if (addedOrUpdated == null || addedOrUpdated.isEmpty()) {
             return;
         }
@@ -422,15 +419,12 @@ public class ServerSubscriptionManager {
         for (OutboundSubscriptionSetup recipient : recipients) {
             camelRouteManager.pushSiriData(delivery, recipient, false);
         }
-
-        MDC.remove("camel.breadcrumbId");
     }
 
 
     private void pushUpdatedSituations(
         List<PtSituationElement> addedOrUpdated, String datasetId, String breadcrumbId
     ) {
-        MDC.put("camel.breadcrumbId", breadcrumbId);
 
         if (addedOrUpdated == null || addedOrUpdated.isEmpty()) {
             return;
@@ -461,8 +455,6 @@ public class ServerSubscriptionManager {
         for (OutboundSubscriptionSetup recipient : recipients) {
             camelRouteManager.pushSiriData(delivery, recipient, false);
         }
-
-        MDC.remove("camel.breadcrumbId");
     }
 
     private void pushUpdatedEstimatedTimetables(List<EstimatedVehicleJourney> addedOrUpdated, String datasetId, String breadcrumbId) {
@@ -470,8 +462,6 @@ public class ServerSubscriptionManager {
         if (addedOrUpdated == null || addedOrUpdated.isEmpty()) {
             return;
         }
-
-        MDC.put("camel.breadcrumbId", breadcrumbId);
 
         Siri delivery = siriObjectFactory.createETServiceDelivery(addedOrUpdated);
 
@@ -503,7 +493,6 @@ public class ServerSubscriptionManager {
                 camelRouteManager.pushSiriData(delivery, recipient, false);
             }
         }
-        MDC.remove("camel.breadcrumbId");
     }
 
     public void pushFailedForSubscription(String subscriptionId) {
