@@ -416,8 +416,12 @@ public class ServerSubscriptionManager {
             )
             .collect(Collectors.toList());
 
-        for (OutboundSubscriptionSetup recipient : recipients) {
-            camelRouteManager.pushSiriData(delivery, recipient, false);
+        if (!recipients.isEmpty()) {
+            logger.info("Pushing {} VM updates to {} outbound subscriptions", addedOrUpdated.size(), recipients.size());
+
+            for (OutboundSubscriptionSetup recipient : recipients) {
+                camelRouteManager.pushSiriData(delivery, recipient, false);
+            }
         }
     }
 
@@ -452,8 +456,12 @@ public class ServerSubscriptionManager {
             )
             .collect(Collectors.toList());
 
-        for (OutboundSubscriptionSetup recipient : recipients) {
-            camelRouteManager.pushSiriData(delivery, recipient, false);
+        if (!recipients.isEmpty()) {
+            logger.info("Pushing {} SX updates to {} outbound subscriptions", addedOrUpdated.size(), recipients.size());
+
+            for (OutboundSubscriptionSetup recipient : recipients) {
+                camelRouteManager.pushSiriData(delivery, recipient, false);
+            }
         }
     }
 
