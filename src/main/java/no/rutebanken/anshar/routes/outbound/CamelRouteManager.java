@@ -86,7 +86,7 @@ public class CamelRouteManager {
         }
         final String breadcrumbId = MDC.get("camel.breadcrumbId");
         ExecutorService executorService = getOrCreateExecutorService(subscriptionRequest);
-        executorService.submit(() -> {
+        executorService.execute(() -> {
             try {
                 MDC.put("camel.breadcrumbId", breadcrumbId);
                 if (!subscriptionManager.subscriptions.containsKey(subscriptionRequest.getSubscriptionId())) {
