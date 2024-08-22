@@ -51,7 +51,7 @@ public class PubsubAvroPublisherRoute extends RouteBuilder {
                         .when().constant(!pubsubEtAvroJsonTopic.equals("mock:ignore"))
                             .process(siriAvroJsonSerializer)
                             .to(pubsubEtAvroJsonTopic)
-                    .endChoice()
+                    .end()
                     .bean(metricsService, "registerAvroPubsubRecord(ESTIMATED_TIMETABLE)")
                     .routeId("anshar.pubsub.et.producer.avro")
             ;
