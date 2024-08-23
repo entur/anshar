@@ -48,7 +48,6 @@ public class MonitoredVehicleJourneyInvalidFieldsValidator extends NsrQuayValida
     public ValidationEvent isValid(Node node) {
         return verifyNonExistingFields(node, FIELDNAME,
                 "JourneyPatternRef",
-                "DirectionRef",
                 "Via",
                 "JourneyNote",
                 "MonitoringError",

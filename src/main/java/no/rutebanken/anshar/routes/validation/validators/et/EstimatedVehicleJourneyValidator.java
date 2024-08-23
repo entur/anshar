@@ -55,7 +55,6 @@ public class EstimatedVehicleJourneyValidator extends CustomValidator {
         List<String> fieldNames = new ArrayList<>();
 
         fieldNames.add("LineRef");
-        fieldNames.add("DirectionRef");
         fieldNames.add("DataSource");
         fieldNames.add("IsCompleteStopSequence");
 
