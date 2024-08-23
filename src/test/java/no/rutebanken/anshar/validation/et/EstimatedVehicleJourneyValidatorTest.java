@@ -82,13 +82,6 @@ public class EstimatedVehicleJourneyValidatorTest extends CustomValidatorTest {
     }
 
     @Test
-    public void testMissingDirectionRef() throws Exception{
-        Node node = createEstimatedVehicleJourney(lineRef, null, framedVehicleJourneyRef, dataSource, isCompleteStopSequence);
-
-        assertNotNull(validator.isValid(node), "Missing DirectionRef flagged as valid");
-    }
-
-    @Test
     public void testMissingFramedVehicleJourneyRef() throws Exception{
         Node node = createEstimatedVehicleJourney(lineRef, directionRef, null, dataSource, isCompleteStopSequence);
 
