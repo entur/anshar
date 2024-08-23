@@ -40,7 +40,17 @@ public class SiriAvroJsonSerializer implements Processor {
         etWriter.write(body, jsonEncoder);
         jsonEncoder.flush();
 
-        exchange.getMessage().setBody(stream.toByteArray());
+        exchange.getMessage().setBody(replaceAvroEnums(stream.toByteArray()));
+    }
+
+
+    /*
+       Temporary legacy-hack to rewrite avro-data containing Enums to new schema-version where
+       enums are replaced with string for future compatibility.
+     */
+    private static String replaceAvroEnums(byte[] byteArray) {
+        String json = new String(byteArray);
+        return json.replaceAll("\"org.entur.avro.realtime.siri.model.[a-zA-Z]*Enum\"", "\"string\"");
     }
 
     private void serializeVm(Exchange exchange) throws IOException {
@@ -50,8 +60,7 @@ public class SiriAvroJsonSerializer implements Processor {
                 VehicleActivityRecord.SCHEMA$, stream);
         vmWriter.write(body, jsonEncoder);
         jsonEncoder.flush();
-
-        exchange.getMessage().setBody(stream.toByteArray());
+        exchange.getMessage().setBody(replaceAvroEnums(stream.toByteArray()));
     }
     private void serializeSx(Exchange exchange) throws IOException {
         PtSituationElementRecord body = exchange.getMessage().getBody(PtSituationElementRecord.class);
@@ -60,7 +69,6 @@ public class SiriAvroJsonSerializer implements Processor {
                 PtSituationElementRecord.SCHEMA$, stream);
         sxWriter.write(body, jsonEncoder);
         jsonEncoder.flush();
-
-        exchange.getMessage().setBody(stream.toByteArray());
+        exchange.getMessage().setBody(replaceAvroEnums(stream.toByteArray()));
     }
 }
