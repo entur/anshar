@@ -40,7 +40,7 @@
                 <#list body.validationRefs as validation>
                 <tr style="cursor: pointer" class="${(validation.schema?? && validation.profile?? && (validation.schema.errorCount + validation.profile.errorCount) != 0)?then("danger","success")}">
                     <th data-toggle="collapse" data-target="#accordion${validation?counter}" >${validation?counter}</th>
-                    <td data-toggle="collapse" data-target="#accordion${validation?counter}" >${validation.schema.timestamp?number_to_datetime}</td>
+                    <td data-toggle="collapse" data-target="#accordion${validation?counter}" >${validation.schema.timestamp?number_to_datetime?datetime?string("MMM d, yyyy, HH:mm:ss ")}</td>
                     <td data-toggle="collapse" data-target="#accordion${validation?counter}" >${validation.schema.errorCount?c}</td>
                     <td data-toggle="collapse" data-target="#accordion${validation?counter}" >${validation.profile.errorCount?c}</td>
                     <td><a href="siri?validationRef=${validation.validationRef}">XML <span class="glyphicon glyphicon-download"></span></a></td>
