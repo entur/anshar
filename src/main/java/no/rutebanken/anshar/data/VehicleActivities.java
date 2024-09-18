@@ -325,7 +325,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
                     SiriObjectStorageKey key = createKey(datasetId, activity.getMonitoredVehicleJourney());
                     timingTracer.mark("createKey");
 
-                    if (REMOVE_EXTENSIONS) {
+                    if (REMOVE_EXTENSIONS && activity.getExtensions() != null) {
                         activity.setExtensions(null);
                         metrics.registerSiriContent(SiriDataType.VEHICLE_MONITORING, datasetId, null, SiriContent.EMPTY_EXTENSION_REMOVED);
                     }
