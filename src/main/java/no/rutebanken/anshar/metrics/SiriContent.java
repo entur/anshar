@@ -10,7 +10,7 @@ public enum SiriContent {
     OCCUPANCY_STOP("Stop-occupancy"),
     DESTINATION_DISPLAY("DestinationDisplay defined"),
     TOO_FAR_AHEAD("Update received more than 7 days ahead"),
-    EMPTY_EXTENSION_REMOVED("Empty extension removed"),
+    EXTENSION_REMOVED("Extension removed"),
     ;
 
     private final String label;

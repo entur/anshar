@@ -328,7 +328,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
 
                     if (REMOVE_EXTENSIONS && activity.getExtensions() != null) {
                         activity.setExtensions(null);
-                        metrics.registerSiriContent(SiriDataType.VEHICLE_MONITORING, datasetId, null, SiriContent.EMPTY_EXTENSION_REMOVED);
+                        metrics.registerSiriContent(SiriDataType.VEHICLE_MONITORING, datasetId, null, SiriContent.EXTENSION_REMOVED);
                     }
                     timingTracer.mark("remove.extensions");
 
