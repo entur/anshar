@@ -30,7 +30,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import uk.org.siri.siri21.AbstractItemStructure;
 import uk.org.siri.siri21.CoordinatesStructure;
-import uk.org.siri.siri21.Extensions;
 import uk.org.siri.siri21.LocationStructure;
 import uk.org.siri.siri21.MessageRefStructure;
 import uk.org.siri.siri21.Siri;
@@ -53,7 +52,6 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -85,8 +83,8 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
     @Autowired
     ExtendedHazelcastService hazelcastService;
 
-    @Value("${anshar.vehicle-activities.remove-empty-extensions:false}")
-    private boolean REMOVE_EMPTY_EXTENSIONS;
+    @Value("${anshar.vehicle-activities.remove-extensions:false}")
+    private boolean REMOVE_EXTENSIONS;
 
     protected VehicleActivities() {
         super(SiriDataType.VEHICLE_MONITORING);
@@ -327,7 +325,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
                     SiriObjectStorageKey key = createKey(datasetId, activity.getMonitoredVehicleJourney());
                     timingTracer.mark("createKey");
 
-                    if (REMOVE_EMPTY_EXTENSIONS && isEmptyExtensions(activity.getExtensions())) {
+                    if (REMOVE_EXTENSIONS) {
                         activity.setExtensions(null);
                         metrics.registerSiriContent(SiriDataType.VEHICLE_MONITORING, datasetId, null, SiriContent.EMPTY_EXTENSION_REMOVED);
                     }
@@ -399,27 +397,6 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
         }
 
         return changes.values();
-    }
-
-    private static boolean isEmptyExtensions(Extensions extensions) {
-        if (extensions != null) {
-            if (extensions.getAnies() != null) {
-                if (extensions.getAnies().size() > 0) {
-                    AtomicBoolean isEmpty = new AtomicBoolean(true);
-                    extensions.getAnies().forEach(
-                        element -> {
-                            if (!element.getTextContent().isBlank()) {
-                                isEmpty.set(false);
-                            }
-                        }
-                    );
-                    return isEmpty.get();
-                } else if (extensions.getAnies().size() == 0) {
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 
     private static boolean isUpdated(String currentChecksum, String existingChecksum) {
