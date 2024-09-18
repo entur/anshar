@@ -96,6 +96,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
 
         enableCache(monitoredVehicles);
         linkEntriesTtl(monitoredVehicles, changesMap);
+        prepareMetrics();
     }
 
     /**
