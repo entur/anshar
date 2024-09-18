@@ -96,7 +96,6 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
 
         enableCache(monitoredVehicles);
         linkEntriesTtl(monitoredVehicles, changesMap);
-        prepareMetrics();
     }
 
     /**
@@ -328,9 +327,10 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
 
                     if (REMOVE_EXTENSIONS && activity.getExtensions() != null) {
                         activity.setExtensions(null);
+                        prepareMetrics();
                         metrics.registerSiriContent(SiriDataType.VEHICLE_MONITORING, datasetId, null, SiriContent.EXTENSION_REMOVED);
+                        timingTracer.mark("remove.extensions");
                     }
-                    timingTracer.mark("remove.extensions");
 
                     String currentChecksum = calculateChecksum(activity);
                     timingTracer.mark("calculateChecksum.updated");
