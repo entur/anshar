@@ -2,9 +2,11 @@ package no.rutebanken.anshar.routes.pubsub;
 
 import no.rutebanken.anshar.routes.avro.AvroConvertorProcessor;
 import org.apache.camel.builder.RouteBuilder;
+import org.entur.siri21.util.SiriXml;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import uk.org.siri.siri21.Siri;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -59,7 +61,7 @@ public class PubsubTopicRoute extends RouteBuilder {
             from("direct:send.to.pubsub.topic.vehicle_monitoring")
                     .to("direct:siri.transform.data")
                     .choice().when(body().isNotNull())
-                        .convertBodyTo(String.class)
+                        .process(p -> p.getMessage().setBody(SiriXml.toXml(p.getIn().getBody(Siri.class))))
                         .to("xslt-saxon:xsl/split.xsl")
                         .split().tokenizeXML("Siri").streaming()
                         .to("direct:publish.vm.avro")// Publish as Avro
