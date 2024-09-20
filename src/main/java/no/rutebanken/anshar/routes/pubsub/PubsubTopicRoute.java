@@ -59,6 +59,7 @@ public class PubsubTopicRoute extends RouteBuilder {
             from("direct:send.to.pubsub.topic.vehicle_monitoring")
                     .to("direct:siri.transform.data")
                     .choice().when(body().isNotNull())
+                        .convertBodyTo(String.class)
                         .to("xslt-saxon:xsl/split.xsl")
                         .split().tokenizeXML("Siri").streaming()
                         .to("direct:publish.vm.avro")// Publish as Avro
