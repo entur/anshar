@@ -69,14 +69,12 @@ public class PubsubTopicRoute extends RouteBuilder {
                             try {
                                 p.getMessage().setBody(SiriXml.toXml(p.getIn().getBody(Siri.class)));
                             } catch (NullPointerException e) {
-                                log.info("Caught NPE - retrying.", e);
                                 try {
                                     SiriRecord siriRecord = jaxb2Avro(p.getIn().getBody(Siri.class));
                                     Siri siri = avro2Jaxb(siriRecord);
                                     p.getMessage().setBody(SiriXml.toXml(siri));
-                                    log.info("NullPointerException avoided");
                                 } catch (NullPointerException e2) {
-                                    log.error("Caught exception again - giving up.", e2);
+                                    log.error("Caught NullPointerException twice - giving up.", e2);
                                 }
                             }
                         })
