@@ -425,7 +425,8 @@ long t2 = System.currentTimeMillis();
                 }
                 if (subscriptionSetup.getSubscriptionType().equals(SiriDataType.VEHICLE_MONITORING)) {
                     //Special handling for Skyss-VM-data
-                    if (subscriptionSetup.getVendor().equals("skyvm")) {
+                    if (subscriptionSetup.getVendor() != null &&
+                            subscriptionSetup.getVendor().equals("skyvm")) {
                         SiriRecord siriRecord = jaxb2Avro(incoming);
                         incoming = avro2Jaxb(siriRecord);
                     }
