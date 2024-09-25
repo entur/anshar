@@ -119,7 +119,7 @@ public class MessagingRoute extends RestRouteBuilder {
                 .process(p -> {
                     p.getMessage().setHeader(INTERNAL_PUBLISH_TO_KAFKA_FOR_APC_ENRICHMENT, enrichSiriData(p));
                 })
-                .bean(subscriptionManager, "dataReceived(${header.subscriptionId})")
+                .bean(subscriptionManager, "markSubscriptionActive(${header.subscriptionId})")
                 .process(convertHeadersToAttributes)
                 .to("direct:send.to.queue")
                 .end()
