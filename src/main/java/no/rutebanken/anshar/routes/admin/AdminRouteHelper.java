@@ -333,6 +333,7 @@ public class AdminRouteHelper {
     private static void updateSubscriptionDetails(JSONObject subscription, JSONObject subscriptionDetail) {
         if (subscriptionDetail != null) {
             subscription.put("lastActivity", subscriptionDetail.get("lastActivity"));
+            subscription.put("lastDataReceived", subscriptionDetail.get("lastDataReceived"));
             subscription.put("bytecountLabel", subscriptionDetail.get("bytecountLabel"));
             subscription.put("bytecount", subscriptionDetail.get("bytecount"));
             subscription.put("objectcount", subscriptionDetail.get("objectcount"));
