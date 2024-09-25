@@ -334,6 +334,7 @@ public class AdminRouteHelper {
         if (subscriptionDetail != null) {
             subscription.put("lastActivity", subscriptionDetail.get("lastActivity"));
             subscription.put("lastDataReceived", subscriptionDetail.get("lastDataReceived"));
+            subscription.put("flagAsNotReceivingData", subscriptionDetail.get("flagAsNotReceivingData"));
             subscription.put("bytecountLabel", subscriptionDetail.get("bytecountLabel"));
             subscription.put("bytecount", subscriptionDetail.get("bytecount"));
             subscription.put("objectcount", subscriptionDetail.get("objectcount"));
