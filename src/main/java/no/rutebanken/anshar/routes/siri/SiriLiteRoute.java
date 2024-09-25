@@ -100,6 +100,7 @@ public class SiriLiteRoute extends RestRouteBuilder {
                 .get("/et-monitored-cache").to("direct:anshar.rest.et.monitored.cached")
                 .get("/sx-cache").to("direct:anshar.rest.sx.cached")
                 .get("/vm-cache").to("direct:anshar.rest.vm.cached")
+                .get("/status/{subscriptionId}").to("direct:anshar.rest.subscription.status")
         ;
 
         // Dataproviders
