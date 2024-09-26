@@ -87,6 +87,7 @@ public class DeliveryStatusRoute extends BaseRouteBuilder {
                         }
                         HttpResponse<String> response = httpClient.send(request.build(), HttpResponse.BodyHandlers.ofString());
                         p.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, response.statusCode());
+                        p.getMessage().setHeader(Exchange.CONTENT_TYPE, MediaType.APPLICATION_JSON);
                         p.getMessage().setBody(response.body());
                     })
                     .routeId("admin.get.subscription.status")
