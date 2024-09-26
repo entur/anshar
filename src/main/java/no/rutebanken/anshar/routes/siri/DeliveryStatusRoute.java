@@ -80,7 +80,7 @@ public class DeliveryStatusRoute extends BaseRouteBuilder {
                                     break;
                             }
                         }
-                        URI uri = URI.create(baseUrl + "anshar/rest/status/" + p.getMessage().getHeader("subscriptionId"));
+                        URI uri = URI.create(baseUrl + "/anshar/rest/status/" + p.getMessage().getHeader("subscriptionId"));
                         HttpRequest.Builder request = HttpRequest.newBuilder().uri(uri);
                         if (p.getMessage().getHeader("limit") != null) {
                             request.setHeader("limit", p.getMessage().getHeader("limit").toString());
