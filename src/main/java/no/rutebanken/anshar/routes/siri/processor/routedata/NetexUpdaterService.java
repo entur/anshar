@@ -295,7 +295,15 @@ public class NetexUpdaterService {
             NetexParserProcessor netexProcessor = new NetexParserProcessor();
             netexProcessor.loadFiles(new File(path));
             tripStops.putAll(netexProcessor.getTripStops());
-            trainNumberTrips.putAll(netexProcessor.getTrainNumberTrips());
+
+            for (String trainNumber : netexProcessor.getTrainNumberTrips().keySet()) {
+                if (!trainNumberTrips.containsKey(trainNumber)) {
+                    trainNumberTrips.put(trainNumber, netexProcessor.getTrainNumberTrips().get(trainNumber));
+                } else {
+                    trainNumberTrips.get(trainNumber).addAll(netexProcessor.getTrainNumberTrips().get(trainNumber));
+                }
+            }
+
             datedServiceJourneysForTrip.putAll(netexProcessor.getDatedServiceJourneyForServiceJourneyId());
             operatingDayRefs.putAll(netexProcessor.getOperatingDayRefs());
             tripDates.putAll(netexProcessor.getTripDates());
