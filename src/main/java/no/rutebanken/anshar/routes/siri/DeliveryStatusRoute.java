@@ -19,7 +19,6 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.routes.BaseRouteBuilder;
-import no.rutebanken.anshar.subscription.SiriDataType;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.camel.Exchange;
@@ -29,6 +28,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZonedDateTime;
@@ -56,28 +59,36 @@ public class DeliveryStatusRoute extends BaseRouteBuilder {
     @Override
     public void configure() throws Exception {
         if (config.processAdmin() && !config.processData()) {
+            HttpClient httpClient = HttpClient.newBuilder().build();
             from("direct:anshar.rest.subscription.status")
                     .process(p -> {
                         p.getOut().setHeaders(p.getIn().getHeaders());
 
                         String subscriptionId = p.getIn().getHeader("subscriptionId", String.class);
                         SubscriptionSetup subscriptionSetup = subscriptionManager.get(subscriptionId);
+                        String baseUrl = null;
                         if (subscriptionSetup != null) {
-                            p.getOut().setHeader("type", subscriptionSetup.getSubscriptionType().name());
+                            switch (subscriptionSetup.getSubscriptionType()) {
+                                case ESTIMATED_TIMETABLE:
+                                    baseUrl = etHandlerBaseUrl;
+                                    break;
+                                case VEHICLE_MONITORING:
+                                    baseUrl = vmHandlerBaseUrl;
+                                    break;
+                                case SITUATION_EXCHANGE:
+                                    baseUrl = sxHandlerBaseUrl;
+                                    break;
+                            }
                         }
+                        URI uri = URI.create(baseUrl + "anshar/rest/status/" + p.getMessage().getHeader("subscriptionId"));
+                        HttpRequest.Builder request = HttpRequest.newBuilder().uri(uri);
+                        if (p.getMessage().getHeader("limit") != null) {
+                            request.setHeader("limit", p.getMessage().getHeader("limit").toString());
+                        }
+                        HttpResponse<String> response = httpClient.send(request.build(), HttpResponse.BodyHandlers.ofString());
+                        p.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, response.statusCode());
+                        p.getMessage().setBody(response.body());
                     })
-                    .choice()
-                    .when(header("type").isEqualTo(SiriDataType.ESTIMATED_TIMETABLE.name()))
-                        .toD(etHandlerBaseUrl + "/anshar/rest/status/${header.subscriptionId}?bridgeEndpoint=true&httpMethod=GET")
-                    .end()
-                    .choice()
-                    .when(header("type").isEqualTo(SiriDataType.VEHICLE_MONITORING.name()))
-                    .toD(vmHandlerBaseUrl +  "/anshar/rest/status/${header.subscriptionId}?bridgeEndpoint=true&httpMethod=GET")
-                    .end()
-                    .choice()
-                    .when(header("type").isEqualTo(SiriDataType.SITUATION_EXCHANGE.name()))
-                    .toD(sxHandlerBaseUrl +  "/anshar/rest/status/${header.subscriptionId}?bridgeEndpoint=true&httpMethod=GET")
-                    .end()
                     .routeId("admin.get.subscription.status")
             ;
         } else {
