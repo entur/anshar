@@ -66,6 +66,9 @@ public class DeliveryStatusRoute extends BaseRouteBuilder {
 
                         String subscriptionId = p.getIn().getHeader("subscriptionId", String.class);
                         SubscriptionSetup subscriptionSetup = subscriptionManager.get(subscriptionId);
+                        if (subscriptionSetup == null) {
+                            subscriptionSetup = subscriptionManager.getSubscriptionById(Long.parseLong(subscriptionId));
+                        }
                         String baseUrl = null;
                         if (subscriptionSetup != null) {
                             switch (subscriptionSetup.getSubscriptionType()) {
@@ -79,16 +82,19 @@ public class DeliveryStatusRoute extends BaseRouteBuilder {
                                     baseUrl = sxHandlerBaseUrl;
                                     break;
                             }
+
+                            URI uri = URI.create(baseUrl + "/anshar/rest/status/" + subscriptionSetup.getSubscriptionId());
+                            HttpRequest.Builder request = HttpRequest.newBuilder().uri(uri);
+                            if (p.getMessage().getHeader("limit") != null) {
+                                request.setHeader("limit", p.getMessage().getHeader("limit").toString());
+                            }
+                            HttpResponse<String> response = httpClient.send(request.build(), HttpResponse.BodyHandlers.ofString());
+                            p.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, response.statusCode());
+                            p.getMessage().setHeader(Exchange.CONTENT_TYPE, MediaType.APPLICATION_JSON);
+                            p.getMessage().setBody(response.body());
+                        } else {
+                            p.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, "404");
                         }
-                        URI uri = URI.create(baseUrl + "/anshar/rest/status/" + p.getMessage().getHeader("subscriptionId"));
-                        HttpRequest.Builder request = HttpRequest.newBuilder().uri(uri);
-                        if (p.getMessage().getHeader("limit") != null) {
-                            request.setHeader("limit", p.getMessage().getHeader("limit").toString());
-                        }
-                        HttpResponse<String> response = httpClient.send(request.build(), HttpResponse.BodyHandlers.ofString());
-                        p.getMessage().setHeader(Exchange.HTTP_RESPONSE_CODE, response.statusCode());
-                        p.getMessage().setHeader(Exchange.CONTENT_TYPE, MediaType.APPLICATION_JSON);
-                        p.getMessage().setBody(response.body());
                     })
                     .routeId("admin.get.subscription.status")
             ;
@@ -101,31 +107,38 @@ public class DeliveryStatusRoute extends BaseRouteBuilder {
                             alertLimit = alertLimit.abs();
                         }
 
-                        if (alertLimit.toMinutes() < 10) {
-                            alertLimit =Duration.of(10, ChronoUnit.MINUTES);
+//                        if (alertLimit.toMinutes() < 10) {
+//                            alertLimit =Duration.of(10, ChronoUnit.MINUTES);
+//                        }
+                        SubscriptionSetup subscriptionSetup = subscriptionManager.get(subscriptionId);
+                        if (subscriptionSetup == null) {
+                            subscriptionSetup = subscriptionManager.getSubscriptionById(Long.parseLong(subscriptionId));
                         }
+                        if (subscriptionSetup != null) {
+                            Instant lastDataReceived = subscriptionManager.getLastDataReceived(subscriptionSetup.getSubscriptionId());
 
-                        Instant lastDataReceived = subscriptionManager.getLastDataReceived(subscriptionId);
-
-                        Response.Status responseCode;
-                        if (lastDataReceived == null) {
-                            responseCode = Response.Status.NOT_FOUND;
-                        } else {
-                            ZonedDateTime zonedDateTime = ZonedDateTime.ofInstant(lastDataReceived, ZonedDateTime.now().getZone());
-
-                            JSONObject json = new JSONObject();
-                            json.put("lastDataReceived", zonedDateTime.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
-                            p.getOut().setBody(json.toString());
-
-                            if (alertLimit != null && lastDataReceived.plus(alertLimit).isBefore(Instant.now())) {
-                                responseCode = Response.Status.GONE;
+                            Response.Status responseCode;
+                            if (lastDataReceived == null) {
+                                responseCode = Response.Status.NOT_FOUND;
                             } else {
-                                responseCode = Response.Status.OK;
-                            }
-                            p.getOut().setHeader(Exchange.CONTENT_TYPE, MediaType.APPLICATION_JSON);
-                        }
+                                ZonedDateTime zonedDateTime = ZonedDateTime.ofInstant(lastDataReceived, ZonedDateTime.now().getZone());
 
-                        p.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, responseCode.getStatusCode());
+                                JSONObject json = new JSONObject();
+                                json.put("lastDataReceived", zonedDateTime.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
+                                p.getOut().setBody(json.toString());
+
+                                if (alertLimit != null && lastDataReceived.plus(alertLimit).isBefore(Instant.now())) {
+                                    responseCode = Response.Status.GONE;
+                                } else {
+                                    responseCode = Response.Status.OK;
+                                }
+                                p.getOut().setHeader(Exchange.CONTENT_TYPE, MediaType.APPLICATION_JSON);
+                            }
+
+                            p.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, responseCode.getStatusCode());
+                        } else {
+                            p.getOut().setHeader(Exchange.HTTP_RESPONSE_CODE, "404");
+                        }
                     });
         }
 
