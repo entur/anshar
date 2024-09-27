@@ -325,7 +325,7 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
             e.getOut().setHeaders(e.getIn().getHeaders());
             e.getOut().setBody(e.getIn().getBody());
 
-            if (!"2.0".equals(subscriptionSetup.getVersion())) {
+            if ("1.4".equals(subscriptionSetup.getVersion())) {
                 e.getOut().setHeader(TRANSFORM_VERSION, TRANSFORM_VERSION);
             }
 
