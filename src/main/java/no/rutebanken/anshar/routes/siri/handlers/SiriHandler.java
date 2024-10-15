@@ -409,7 +409,6 @@ long t2 = System.currentTimeMillis();
                                                         subscriptionSetup.getDatasetId(),
                                                         sx.getSituations().getPtSituationElements()
                                                     ));
-                                                    serverSubscriptionManager.pushUpdatesAsync(subscriptionSetup.getSubscriptionType(), addedOrUpdated, subscriptionSetup.getDatasetId());
                                                 }
                                             }
                                         }
@@ -418,6 +417,10 @@ long t2 = System.currentTimeMillis();
                         );
                     }
                     deliveryContainsData = addedOrUpdated.size() > 0;
+
+                    if (!subscriptionSetup.isUseProvidedCodespaceId()) {
+                        serverSubscriptionManager.pushUpdatesAsync(subscriptionSetup.getSubscriptionType(), addedOrUpdated, subscriptionSetup.getDatasetId());
+                    }
 
                     subscriptionManager.incrementObjectCounter(subscriptionSetup, addedOrUpdated.size());
 
@@ -476,7 +479,9 @@ long t2 = System.currentTimeMillis();
 
                     deliveryContainsData = deliveryContainsData || (addedOrUpdated.size() > 0);
 
-                    serverSubscriptionManager.pushUpdatesAsync(subscriptionSetup.getSubscriptionType(), addedOrUpdated, subscriptionSetup.getDatasetId());
+                    if (!subscriptionSetup.isUseProvidedCodespaceId()) {
+                        serverSubscriptionManager.pushUpdatesAsync(subscriptionSetup.getSubscriptionType(), addedOrUpdated, subscriptionSetup.getDatasetId());
+                    }
 
                     subscriptionManager.incrementObjectCounter(subscriptionSetup, addedOrUpdated.size());
 
@@ -532,7 +537,9 @@ long t2 = System.currentTimeMillis();
 
                     deliveryContainsData = deliveryContainsData || (addedOrUpdated.size() > 0);
 
-                    serverSubscriptionManager.pushUpdatesAsync(subscriptionSetup.getSubscriptionType(), addedOrUpdated, subscriptionSetup.getDatasetId());
+                    if (!subscriptionSetup.isUseProvidedCodespaceId()) {
+                        serverSubscriptionManager.pushUpdatesAsync(subscriptionSetup.getSubscriptionType(), addedOrUpdated, subscriptionSetup.getDatasetId());
+                    }
 
                     subscriptionManager.incrementObjectCounter(subscriptionSetup, addedOrUpdated.size());
 
