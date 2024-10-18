@@ -307,7 +307,9 @@ public class Situations extends SiriRepository<PtSituationElement> {
 
         AtomicInteger alreadyExpiredCounter = new AtomicInteger(0);
         AtomicInteger ignoredCounter = new AtomicInteger(0);
-        sxList.forEach(situation -> {
+        sxList.stream()
+                .filter(situation -> situation.getSituationNumber() != null)
+                .forEach(situation -> {
             TimingTracer timingTracer = new TimingTracer("single-sx");
 
             SiriObjectStorageKey key = createKey(datasetId, situation);
