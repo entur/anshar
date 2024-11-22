@@ -22,6 +22,8 @@ import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Objects;
+
 public class OutboundIdAdapter extends ValueAdapter {
 
     private final Logger logger = LoggerFactory.getLogger(OutboundIdAdapter.class);
@@ -80,6 +82,10 @@ public class OutboundIdAdapter extends ValueAdapter {
 
         if (!super.getClassToApply().equals(that.getClassToApply())) return false;
         return outboundIdMappingPolicy == that.outboundIdMappingPolicy;
+    }
 
+    @Override
+    public int hashCode() {
+        return  Objects.hash(super.getClassToApply(), outboundIdMappingPolicy);
     }
 }
