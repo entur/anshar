@@ -21,7 +21,6 @@ import no.rutebanken.anshar.routes.siri.handlers.OutboundIdMappingPolicy;
 import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.routes.siri.transformer.impl.LeftPaddingAdapter;
-import no.rutebanken.anshar.routes.siri.transformer.impl.RuterSubstringAdapter;
 import no.rutebanken.anshar.subscription.helpers.MappingAdapterPresets;
 import org.junit.jupiter.api.Test;
 import uk.org.siri.siri21.BlockRefStructure;
@@ -95,28 +94,6 @@ public class SiriValueTransformerTest extends SpringBootBaseTest {
     }
 
     @Test
-    public void testMultipleLineRefAdapters() throws JAXBException {
-        String lineRefValue = "123:4";
-        String blockRefValue = "";
-
-        Siri siri = createSiriObject(lineRefValue, blockRefValue);
-
-        assertEquals(lineRefValue, getLineRefFromSiriObj(siri));
-        assertEquals(blockRefValue, getBlockRefFromSiriObj(siri));
-        String paddedLineRef = "012304";
-
-        List<ValueAdapter> mappingAdapters = new ArrayList<>();
-        mappingAdapters.add(new RuterSubstringAdapter(LineRef.class, ':', '0', 2));
-        mappingAdapters.add(new LeftPaddingAdapter(LineRef.class, 6, '0'));
-
-        siri = SiriValueTransformer.transform(siri, mappingAdapters);
-
-        assertEquals(paddedLineRef, getLineRefFromSiriObj(siri), "LineRef has not been padded as expected");
-        assertEquals(blockRefValue, getBlockRefFromSiriObj(siri), "BlockRef should not be padded");
-
-    }
-
-    @Test
     public void testOutboundMappingAdapters() throws JAXBException {
         String lineRefValue = "1234";
         String mappedLineRefValue ="TEST:Line:"+lineRefValue;
@@ -131,42 +108,6 @@ public class SiriValueTransformerTest extends SpringBootBaseTest {
 
         Siri originalIdSiri = SiriValueTransformer.transform(siri, MappingAdapterPresets.getOutboundAdapters(OutboundIdMappingPolicy.ORIGINAL_ID));
         assertEquals(lineRefValue, getLineRefFromSiriObj(originalIdSiri), "Outbound adapters did not return original id");
-
-    }
-
-    @Test
-    public void testLongLineRefRuterSubstring() throws JAXBException {
-        String lineRefValue = "9999:123";
-
-        Siri siri = createSiriObject(lineRefValue, null);
-
-        assertEquals(lineRefValue, getLineRefFromSiriObj(siri));
-        String trimmedLineRef = "9999123";
-
-        List<ValueAdapter> mappingAdapters = new ArrayList<>();
-        mappingAdapters.add(new RuterSubstringAdapter(LineRef.class, ':', '0', 2));
-
-        siri = SiriValueTransformer.transform(siri, mappingAdapters);
-
-        assertEquals(trimmedLineRef, getLineRefFromSiriObj(siri), "LineRef has not been trimmed as expected");
-
-    }
-
-    @Test
-    public void testShortLineRefRuterSubstring() throws JAXBException {
-        String lineRefValue = "9999:3";
-
-        Siri siri = createSiriObject(lineRefValue, null);
-
-        assertEquals(lineRefValue, getLineRefFromSiriObj(siri));
-        String trimmedLineRef = "999903";
-
-        List<ValueAdapter> mappingAdapters = new ArrayList<>();
-        mappingAdapters.add(new RuterSubstringAdapter(LineRef.class, ':', '0', 2));
-
-        siri = SiriValueTransformer.transform(siri, mappingAdapters);
-
-        assertEquals(trimmedLineRef, getLineRefFromSiriObj(siri), "LineRef has not been trimmed as expected");
 
     }
 

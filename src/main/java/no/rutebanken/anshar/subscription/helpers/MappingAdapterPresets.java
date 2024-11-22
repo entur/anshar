@@ -18,7 +18,6 @@ package no.rutebanken.anshar.subscription.helpers;
 import no.rutebanken.anshar.routes.siri.handlers.OutboundIdMappingPolicy;
 import no.rutebanken.anshar.routes.siri.processor.CodespaceOutboundProcessor;
 import no.rutebanken.anshar.routes.siri.processor.RemoveEmojiPostProcessor;
-import no.rutebanken.anshar.routes.siri.processor.RuterOutboundDatedVehicleRefAdapter;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter;
 import no.rutebanken.anshar.subscription.SiriDataType;
@@ -43,14 +42,9 @@ public class MappingAdapterPresets {
 
         switch (dataType) {
             case ESTIMATED_TIMETABLE:
-                adapters.add(new OutboundIdAdapter(JourneyPlaceRefStructure.class, outboundIdMappingPolicy));
-                adapters.add(new OutboundIdAdapter(DestinationRef.class, outboundIdMappingPolicy));
-                break;
             case VEHICLE_MONITORING:
                 adapters.add(new OutboundIdAdapter(JourneyPlaceRefStructure.class, outboundIdMappingPolicy));
                 adapters.add(new OutboundIdAdapter(DestinationRef.class, outboundIdMappingPolicy));
-                adapters.add(new OutboundIdAdapter(CourseOfJourneyRefStructure.class, outboundIdMappingPolicy));
-                adapters.add(new RuterOutboundDatedVehicleRefAdapter(MappingAdapterPresets.class, outboundIdMappingPolicy));
                 break;
             case SITUATION_EXCHANGE:
                 adapters.add(new OutboundIdAdapter(RequestorRef.class, outboundIdMappingPolicy));
@@ -74,9 +68,6 @@ public class MappingAdapterPresets {
 
         //Adapter for SIRI-SX ParticipantRef
         adapters.add(new OutboundIdAdapter(RequestorRef.class, outboundIdMappingPolicy));
-
-        //Adding postprocessor for Ruter DatedVehicleRef
-        adapters.add(new RuterOutboundDatedVehicleRefAdapter(MappingAdapterPresets.class, outboundIdMappingPolicy));
 
         // Adding postprocessor for removing emojis etc. from SX-messages
         adapters.add(new RemoveEmojiPostProcessor(outboundIdMappingPolicy));
