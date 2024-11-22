@@ -100,6 +100,8 @@ public class SiriValueTransformer {
         if (siri == null) {
             return null;
         }
+        int cacheSize = cachedGettersForAdapter.size();
+
         if (detailedLogging) {
             logger.debug("SIRI Transform: starting");
         }
@@ -181,7 +183,9 @@ public class SiriValueTransformer {
                 logger.debug("SIRI Transform: postProcessors processed");
             }
         }
-
+        if (cachedGettersForAdapter.size() > cacheSize) {
+            logger.info("Getter-cache size increased from {} to {}. Could indicate a memory leak.", cacheSize, cachedGettersForAdapter.size());
+        }
         return transformed;
     }
 
