@@ -72,6 +72,9 @@ public class SiriLiteRoute extends RestRouteBuilder {
     @Autowired
     private SiriObjectFactory siriObjectFactory;
 
+    @Autowired
+    private MappingAdapterPresets mappingAdapterPresets;
+
     @Override
     public void configure() throws Exception {
         super.configure();
@@ -126,7 +129,7 @@ public class SiriLiteRoute extends RestRouteBuilder {
 
                         Siri response = situations.createServiceDelivery(requestorId, datasetId, etClientName, maxSize);
 
-                        List<ValueAdapter> outboundAdapters = MappingAdapterPresets.getOutboundAdapters(
+                        List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(
                             SiriDataType.SITUATION_EXCHANGE,
                             SiriHandler.getIdMappingPolicy(originalId)
                         );
@@ -179,7 +182,7 @@ public class SiriLiteRoute extends RestRouteBuilder {
                             response = vehicleActivities.createServiceDelivery(requestorId, datasetId, etClientName, excludedIdList, maxSize);
                         }
 
-                        List<ValueAdapter> outboundAdapters = MappingAdapterPresets.getOutboundAdapters(
+                        List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(
                             SiriDataType.VEHICLE_MONITORING,
                             SiriHandler.getIdMappingPolicy(originalId)
                         );
@@ -240,7 +243,7 @@ public class SiriLiteRoute extends RestRouteBuilder {
                             response = estimatedTimetables.createServiceDelivery(requestorId, datasetId, etClientName, excludedIdList, maxSize, previewIntervalMillis);
                         }
 
-                        List<ValueAdapter> outboundAdapters = MappingAdapterPresets.getOutboundAdapters(
+                        List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(
                             SiriDataType.ESTIMATED_TIMETABLE,
                             SiriHandler.getIdMappingPolicy(originalId)
                         );
@@ -272,7 +275,7 @@ public class SiriLiteRoute extends RestRouteBuilder {
                     logger.info("Fetching monitored ET-data");
                     Siri response = siriObjectFactory.createETServiceDelivery(estimatedTimetables.getAllMonitored());
 
-                    List<ValueAdapter> outboundAdapters = MappingAdapterPresets.getOutboundAdapters(
+                    List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(
                                                                                     SiriDataType.ESTIMATED_TIMETABLE,
                                                                                     OutboundIdMappingPolicy.DEFAULT
                                                                                 );
@@ -308,7 +311,7 @@ public class SiriLiteRoute extends RestRouteBuilder {
                             datasetId, clientTrackingName
                         ));
 
-                        List<ValueAdapter> outboundAdapters = MappingAdapterPresets.getOutboundAdapters(
+                        List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(
                                                                                         SiriDataType.SITUATION_EXCHANGE,
                                                                                         OutboundIdMappingPolicy.DEFAULT
                                                                                     );
@@ -360,7 +363,7 @@ public class SiriLiteRoute extends RestRouteBuilder {
 
                         Siri response = siriObjectFactory.createVMServiceDelivery(cachedUpdates);
 
-                        List<ValueAdapter> outboundAdapters = MappingAdapterPresets.getOutboundAdapters(
+                        List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(
                                                                                         SiriDataType.VEHICLE_MONITORING,
                                                                                         OutboundIdMappingPolicy.DEFAULT
                                                                                     );
@@ -399,7 +402,7 @@ public class SiriLiteRoute extends RestRouteBuilder {
                             datasetId, lineRef, clientTrackingName, maxSize
                     ));
 
-                    List<ValueAdapter> outboundAdapters = MappingAdapterPresets.getOutboundAdapters(
+                    List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(
                             SiriDataType.ESTIMATED_TIMETABLE,
                             OutboundIdMappingPolicy.DEFAULT
                     );
@@ -435,7 +438,7 @@ public class SiriLiteRoute extends RestRouteBuilder {
 
                 Siri response = siriObjectFactory.createETServiceDelivery(estimatedTimetables.getAllCachedUpdates(null, null, clientTrackingName));
 
-                List<ValueAdapter> outboundAdapters = MappingAdapterPresets.getOutboundAdapters(
+                List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(
                     SiriDataType.ESTIMATED_TIMETABLE,
                     OutboundIdMappingPolicy.DEFAULT
                 );

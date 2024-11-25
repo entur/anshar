@@ -16,12 +16,15 @@
 package no.rutebanken.anshar.subscription.helpers;
 
 import com.google.common.base.Objects;
+import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.routes.siri.handlers.OutboundIdMappingPolicy;
 import no.rutebanken.anshar.routes.siri.processor.CodespaceOutboundProcessor;
 import no.rutebanken.anshar.routes.siri.processor.RemoveEmojiPostProcessor;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter;
 import no.rutebanken.anshar.subscription.SiriDataType;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import uk.org.ifopt.siri21.StopPlaceRef;
 import uk.org.siri.siri21.CourseOfJourneyRefStructure;
 import uk.org.siri.siri21.DestinationRef;
@@ -31,15 +34,32 @@ import uk.org.siri.siri21.RequestorRef;
 import uk.org.siri.siri21.StopPointRefStructure;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+
+@Component
 public class MappingAdapterPresets {
 
-    private static Map<CacheKey, List<ValueAdapter>> adapterCache = new HashMap<>();
+    private Map<CacheKey, List<ValueAdapter>> adapterCache = new HashMap<>();
 
-    public static List<ValueAdapter> getOutboundAdapters(SiriDataType dataType, OutboundIdMappingPolicy outboundIdMappingPolicy) {
+    private final boolean disableAllMappingAdapters;
+
+    public MappingAdapterPresets(@Autowired AnsharConfiguration configuration) {
+        if (configuration == null) {
+            disableAllMappingAdapters = false;
+        } else {
+            disableAllMappingAdapters = configuration.isDisableAllMappingAdapters();
+        }
+    }
+
+    public List<ValueAdapter> getOutboundAdapters(SiriDataType dataType, OutboundIdMappingPolicy outboundIdMappingPolicy) {
+        if (disableAllMappingAdapters) {
+            return Collections.emptyList();
+        }
+
         CacheKey key = new CacheKey(dataType, outboundIdMappingPolicy);
         if (!adapterCache.containsKey(key)) {
             List<ValueAdapter> adapters = new ArrayList<>();
@@ -66,7 +86,10 @@ public class MappingAdapterPresets {
         return adapterCache.get(key);
     }
 
-    public static List<ValueAdapter> getOutboundAdapters(OutboundIdMappingPolicy outboundIdMappingPolicy) {
+    public List<ValueAdapter> getOutboundAdapters(OutboundIdMappingPolicy outboundIdMappingPolicy) {
+        if (disableAllMappingAdapters) {
+            return Collections.emptyList();
+        }
         CacheKey key = new CacheKey(null, outboundIdMappingPolicy);
         if (!adapterCache.containsKey(key)) {
             List<ValueAdapter> adapters = new ArrayList<>();

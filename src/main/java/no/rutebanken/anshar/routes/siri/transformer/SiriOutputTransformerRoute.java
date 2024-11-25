@@ -19,6 +19,7 @@ import no.rutebanken.anshar.routes.siri.handlers.OutboundIdMappingPolicy;
 import no.rutebanken.anshar.subscription.helpers.MappingAdapterPresets;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uk.org.siri.siri21.Siri;
 
@@ -29,9 +30,12 @@ public class SiriOutputTransformerRoute extends RouteBuilder {
 
     public static final String OUTPUT_ADAPTERS_HEADER_NAME = "adapters";
 
+    @Autowired
+    private MappingAdapterPresets mappingAdapterPresets;
+
     @Override
     public void configure() {
-        final List<ValueAdapter> outboundAdapters = MappingAdapterPresets.getOutboundAdapters(OutboundIdMappingPolicy.DEFAULT);
+        final List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(OutboundIdMappingPolicy.DEFAULT);
 
         from("direct:siri.transform.data")
                 .process(p -> {

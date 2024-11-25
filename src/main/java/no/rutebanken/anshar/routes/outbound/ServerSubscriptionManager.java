@@ -100,6 +100,9 @@ public class ServerSubscriptionManager {
     @Value("${anshar.outbound.pubsub.sx.topic.enabled}")
     private boolean pushToSxTopicEnabled;
 
+    @Autowired
+    private MappingAdapterPresets mappingAdapterPresets;
+
     ExecutorService outboundSenderExecutorService = Executors.newFixedThreadPool(100);
 
     @Produce(value = "direct:send.to.pubsub.topic.estimated_timetable")
@@ -217,7 +220,7 @@ public class ServerSubscriptionManager {
                 getHeartbeatInterval(subscriptionRequest),
                 getChangeBeforeUpdates(subscriptionRequest),
                 siriHelper.getFilter(subscriptionRequest),
-                MappingAdapterPresets.getOutboundAdapters(outboundIdMappingPolicy),
+                mappingAdapterPresets.getOutboundAdapters(outboundIdMappingPolicy),
                 findSubscriptionIdentifier(subscriptionRequest),
                 subscriptionRequest.getRequestorRef().getValue(),
                 findInitialTerminationTime(subscriptionRequest),

@@ -112,12 +112,16 @@ public class SubscriptionInitializer implements CamelContextAware {
             logger.info("App started with mode(s): {}", configuration.getAppModes());
         }
 
-        final Map<String, Object> mappingBeans = ApplicationContextHolder.getContext().getBeansWithAnnotation(Mapping.class);
         final Map<String, Class> mappingAdaptersById = new HashMap<>();
-        for (final Object myFoo : mappingBeans.values()) {
-            final Class<?> mappingAdapterClass = myFoo.getClass();
-            final Mapping annotation = mappingAdapterClass.getAnnotation(Mapping.class);
-            mappingAdaptersById.put(annotation.id(), mappingAdapterClass);
+        if (configuration.isDisableAllMappingAdapters()) {
+            logger.info("All mapping adapters are disabled");
+        } else {
+            final Map<String, Object> mappingBeans = ApplicationContextHolder.getContext().getBeansWithAnnotation(Mapping.class);
+            for (final Object myFoo : mappingBeans.values()) {
+                final Class<?> mappingAdapterClass = myFoo.getClass();
+                final Mapping annotation = mappingAdapterClass.getAnnotation(Mapping.class);
+                mappingAdaptersById.put(annotation.id(), mappingAdapterClass);
+            }
         }
 
         logger.info("Initializing subscriptions for environment: {}", configuration.getEnvironment());
@@ -161,44 +165,47 @@ public class SubscriptionInitializer implements CamelContextAware {
                     reduceLogging(subscriptionSetup.getSubscriptionId());
                 }
 
-                List<ValueAdapter> valueAdapters = new ArrayList<>();
+                if (!configuration.isDisableAllMappingAdapters()) {
 
-                if (mappingAdaptersById.containsKey(subscriptionSetup.getMappingAdapterId())) {
-                    Class adapterClass = mappingAdaptersById.get(subscriptionSetup.getMappingAdapterId());
-                    try {
-                        valueAdapters.addAll((List<ValueAdapter>) adapterClass.getMethod("getValueAdapters", SubscriptionSetup.class).invoke(adapterClass.newInstance(), subscriptionSetup));
+                    List<ValueAdapter> valueAdapters = new ArrayList<>();
 
-                    } catch (Exception e) {
-                        throw new ServiceConfigurationError("Invalid mappingAdapterId for subscription " + subscriptionSetup, e);
+                    if (mappingAdaptersById.containsKey(subscriptionSetup.getMappingAdapterId())) {
+                        Class adapterClass = mappingAdaptersById.get(subscriptionSetup.getMappingAdapterId());
+                        try {
+                            valueAdapters.addAll((List<ValueAdapter>) adapterClass.getMethod("getValueAdapters", SubscriptionSetup.class).invoke(adapterClass.newInstance(), subscriptionSetup));
+
+                        } catch (Exception e) {
+                            throw new ServiceConfigurationError("Invalid mappingAdapterId for subscription " + subscriptionSetup, e);
+                        }
                     }
-                }
-                //Is added to ALL subscriptions AFTER subscription-specific adapters
-                valueAdapters.add(new CodespaceProcessor(subscriptionSetup.getDatasetId()));
+                    //Is added to ALL subscriptions AFTER subscription-specific adapters
+                    valueAdapters.add(new CodespaceProcessor(subscriptionSetup.getDatasetId()));
 
-                // SX
-                if (subscriptionSetup.getSubscriptionType() == SiriDataType.SITUATION_EXCHANGE) {
-                    valueAdapters.add(new ReportTypeProcessor(subscriptionSetup.getDatasetId()));
-                    valueAdapters.add(new RemovePersonalInformationProcessor());
-                    valueAdapters.add(new LimitClosedProgressValidityPostProcessor(subscriptionSetup.getDatasetId()));
-                }
+                    // SX
+                    if (subscriptionSetup.getSubscriptionType() == SiriDataType.SITUATION_EXCHANGE) {
+                        valueAdapters.add(new ReportTypeProcessor(subscriptionSetup.getDatasetId()));
+                        valueAdapters.add(new RemovePersonalInformationProcessor());
+                        valueAdapters.add(new LimitClosedProgressValidityPostProcessor(subscriptionSetup.getDatasetId()));
+                    }
 
-                // ET
-                if (subscriptionSetup.getSubscriptionType() == SiriDataType.ESTIMATED_TIMETABLE) {
-                    valueAdapters.add(new EnsureIncreasingTimesForCancelledStopsProcessor(subscriptionSetup.getDatasetId()));
-                    valueAdapters.add(new ExtraJourneyDestinationDisplayPostProcessor(subscriptionSetup.getDatasetId()));
-                    valueAdapters.add(new AddOrderToAllCallsPostProcessor(subscriptionSetup.getDatasetId()));
-                    valueAdapters.add(new EnsureNonNullVehicleModePostProcessor());
-                    valueAdapters.add(new ExtraJourneyPostProcessor(subscriptionSetup.getDatasetId()));
-                }
+                    // ET
+                    if (subscriptionSetup.getSubscriptionType() == SiriDataType.ESTIMATED_TIMETABLE) {
+                        valueAdapters.add(new EnsureIncreasingTimesForCancelledStopsProcessor(subscriptionSetup.getDatasetId()));
+                        valueAdapters.add(new ExtraJourneyDestinationDisplayPostProcessor(subscriptionSetup.getDatasetId()));
+                        valueAdapters.add(new AddOrderToAllCallsPostProcessor(subscriptionSetup.getDatasetId()));
+                        valueAdapters.add(new EnsureNonNullVehicleModePostProcessor());
+                        valueAdapters.add(new ExtraJourneyPostProcessor(subscriptionSetup.getDatasetId()));
+                    }
 
-                if (!subscriptionSetup.getCodespaceWhiteList().isEmpty()) {
-                    valueAdapters.add(new CodespaceWhiteListProcessor(subscriptionSetup.getDatasetId(), subscriptionSetup.getCodespaceWhiteList()));
-                }
-                if (!subscriptionSetup.getCodespaceBlackList().isEmpty()) {
-                    valueAdapters.add(new CodespaceBlackListProcessor(subscriptionSetup.getDatasetId(), subscriptionSetup.getCodespaceBlackList()));
-                }
+                    if (!subscriptionSetup.getCodespaceWhiteList().isEmpty()) {
+                        valueAdapters.add(new CodespaceWhiteListProcessor(subscriptionSetup.getDatasetId(), subscriptionSetup.getCodespaceWhiteList()));
+                    }
+                    if (!subscriptionSetup.getCodespaceBlackList().isEmpty()) {
+                        valueAdapters.add(new CodespaceBlackListProcessor(subscriptionSetup.getDatasetId(), subscriptionSetup.getCodespaceBlackList()));
+                    }
 
-                subscriptionSetup.getMappingAdapters().addAll(valueAdapters);
+                    subscriptionSetup.getMappingAdapters().addAll(valueAdapters);
+                }
 
                 if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.FETCHED_DELIVERY |
                         subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.POLLING_FETCHED_DELIVERY) {

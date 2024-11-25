@@ -109,6 +109,9 @@ public class SiriHandler {
     @Autowired
     private PrometheusMetricsService metrics;
 
+    @Autowired
+    private MappingAdapterPresets mappingAdapterPresets;
+
     public Siri handleIncomingSiri(String subscriptionId, InputStream xml) throws UnmarshalException {
         return handleIncomingSiri(subscriptionId, xml, null, -1);
     }
@@ -199,7 +202,7 @@ public class SiriHandler {
                 metrics.countOutgoingData(serviceResponse, SubscriptionSetup.SubscriptionMode.REQUEST_RESPONSE);
                 return SiriValueTransformer.transform(
                     serviceResponse,
-                    MappingAdapterPresets.getOutboundAdapters(dataType, OutboundIdMappingPolicy.DEFAULT),
+                    mappingAdapterPresets.getOutboundAdapters(dataType, OutboundIdMappingPolicy.DEFAULT),
                     false,
                     false
                 );
@@ -300,7 +303,7 @@ public class SiriHandler {
                 metrics.countOutgoingData(serviceResponse, SubscriptionSetup.SubscriptionMode.REQUEST_RESPONSE);
                 return SiriValueTransformer.transform(
                     serviceResponse,
-                    MappingAdapterPresets.getOutboundAdapters(dataType, outboundIdMappingPolicy),
+                    mappingAdapterPresets.getOutboundAdapters(dataType, outboundIdMappingPolicy),
                     false,
                     false
                 );

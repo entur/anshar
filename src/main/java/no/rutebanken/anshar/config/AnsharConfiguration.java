@@ -54,6 +54,9 @@ public class AnsharConfiguration {
     @Value("${anshar.healthcheck.interval.seconds}")
     private int healthCheckInterval = 30;
 
+    @Value("${anshar.mapping.adapters.disabled:false}")
+    private boolean disableAllMappingAdapters = false;
+
     @Value("${anshar.environment}")
     private String environment;
 
@@ -264,5 +267,13 @@ public class AnsharConfiguration {
 
     public Duration hardLimitForFutureEtUpdates() {
         return hardLimitForFutureUpdates;
+    }
+
+    public boolean isDisableAllMappingAdapters() {
+        return disableAllMappingAdapters;
+    }
+
+    public void setDisableAllMappingAdapters(boolean disableAllMappingAdapters) {
+        this.disableAllMappingAdapters = disableAllMappingAdapters;
     }
 }

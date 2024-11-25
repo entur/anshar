@@ -16,6 +16,7 @@
 package no.rutebanken.anshar.siri;
 
 import jakarta.xml.bind.JAXBException;
+import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.integration.SpringBootBaseTest;
 import no.rutebanken.anshar.routes.siri.handlers.OutboundIdMappingPolicy;
 import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
@@ -103,10 +104,12 @@ public class SiriValueTransformerTest extends SpringBootBaseTest {
 
         assertEquals(paddedLineRefValue, getLineRefFromSiriObj(siri), "LineRef not set correctly");
 
-        Siri mappedIdSiri = SiriValueTransformer.transform(siri, MappingAdapterPresets.getOutboundAdapters(OutboundIdMappingPolicy.DEFAULT));
+        MappingAdapterPresets mappingAdapterPresets = new MappingAdapterPresets(new AnsharConfiguration());
+
+        Siri mappedIdSiri = SiriValueTransformer.transform(siri, mappingAdapterPresets.getOutboundAdapters(OutboundIdMappingPolicy.DEFAULT));
         assertEquals(mappedLineRefValue, getLineRefFromSiriObj(mappedIdSiri), "Outbound adapters did not return mapped id");
 
-        Siri originalIdSiri = SiriValueTransformer.transform(siri, MappingAdapterPresets.getOutboundAdapters(OutboundIdMappingPolicy.ORIGINAL_ID));
+        Siri originalIdSiri = SiriValueTransformer.transform(siri, mappingAdapterPresets.getOutboundAdapters(OutboundIdMappingPolicy.ORIGINAL_ID));
         assertEquals(lineRefValue, getLineRefFromSiriObj(originalIdSiri), "Outbound adapters did not return original id");
 
     }
