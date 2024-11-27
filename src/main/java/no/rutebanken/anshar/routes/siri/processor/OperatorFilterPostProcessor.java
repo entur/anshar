@@ -47,6 +47,11 @@ public class OperatorFilterPostProcessor extends ValueAdapter implements PostPro
     }
 
     private Map<String, String> operatorOverrideMapping = new HashMap<>();
+    private static final Map<String, String> lineIdOverrideMapping = Map.of(
+            "F4", "41",
+            "L4", "43",
+            "R40", "45"
+    );
 
     @Override
     protected String apply(String value) {
@@ -88,6 +93,7 @@ public class OperatorFilterPostProcessor extends ValueAdapter implements PostPro
 
                                                     String updatedLineRef;
                                                     if (!lineRef.contains(":Line:")) {
+                                                        lineRef = lineIdOverrideMapping.getOrDefault(lineRef, lineRef);
                                                         updatedLineRef = operatorOverrideMapping.getOrDefault(operatorRef, operatorRef) + ":Line:" + lineRef;
                                                         et.getLineRef().setValue(updatedLineRef);
                                                         getMetricsService().registerDataMapping(SiriDataType.ESTIMATED_TIMETABLE, datasetId, LINE_MAPPING, 1);
