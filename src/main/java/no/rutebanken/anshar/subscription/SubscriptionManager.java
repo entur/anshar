@@ -237,16 +237,16 @@ public class SubscriptionManager {
     }
 
     private void hit(String subscriptionId) {
-        int counter = (hitcount.get(subscriptionId) != null ? hitcount.get(subscriptionId):0);
-        hitcount.put(subscriptionId, counter+1);
+        int counter = (hitcount.getOrDefault(subscriptionId, 0));
+        hitcount.set(subscriptionId, counter+1);
     }
 
     public void incrementObjectCounter(SubscriptionSetup subscriptionSetup, int size) {
 
         String subscriptionId = subscriptionSetup.getSubscriptionId();
         if (subscriptionId != null) {
-            BigInteger counter = (objectCounter.get(subscriptionId) != null ? objectCounter.get(subscriptionId) : BigInteger.valueOf(0));
-            objectCounter.put(subscriptionId, counter.add(BigInteger.valueOf(size)));
+            BigInteger counter = objectCounter.getOrDefault(subscriptionId, BigInteger.valueOf(0));
+            objectCounter.set(subscriptionId, counter.add(BigInteger.valueOf(size)));
         }
     }
 
@@ -265,7 +265,7 @@ public class SubscriptionManager {
             // Subscriptions are inserted as immutable - need to replace previous value
             subscriptions.put(subscriptionId, subscriptionSetup);
             lastActivity.put(subscriptionId, Instant.now());
-            activatedTimestamp.put(subscriptionId, Instant.now());
+            activatedTimestamp.set(subscriptionId, Instant.now());
             logger.info("Pending subscription {} activated", subscriptions.get(subscriptionId));
             if (!dataReceived.containsKey(subscriptionId)) {
                 dataReceived(subscriptionId);
