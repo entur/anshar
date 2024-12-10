@@ -86,8 +86,18 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
     @Value("${anshar.vehicle-activities.remove-extensions:false}")
     private boolean REMOVE_EXTENSIONS;
 
+    @Value("${anshar.feature.setUsingAsync:false}")
+    private boolean FEATURE_TOGGLE_USE_ASYNC_SET;
+
     protected VehicleActivities() {
         super(SiriDataType.VEHICLE_MONITORING);
+    }
+
+    @PostConstruct
+    private void init() {
+        if (FEATURE_TOGGLE_USE_ASYNC_SET) {
+            logger.info("Using async set for monitored vehicles");
+        }
     }
 
     @PostConstruct
@@ -382,8 +392,13 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
 
 //        checksumCache.putAll(checksumCacheTmp);
 //        timingTracer.mark("checksumCache.putAll");
-        monitoredVehicles.setAll(changes);
-        timingTracer.mark("monitoredVehicles.setAll");
+        if (FEATURE_TOGGLE_USE_ASYNC_SET) {
+            monitoredVehicles.setAllAsync(changes);
+            timingTracer.mark("monitoredVehicles.setAllAsync");
+        } else {
+            monitoredVehicles.setAll(changes);
+            timingTracer.mark("monitoredVehicles.setAll");
+        }
 
         logger.info("Updated {} (of {}) :: Ignored elements - Missing location:{}, Missing values: {}, Expired: {}, Not updated: {}", changes.size(), vmList.size(), invalidLocationCounter.get(), notMeaningfulCounter.get(), outdatedCounter.get(), notUpdatedCounter.get());
 
