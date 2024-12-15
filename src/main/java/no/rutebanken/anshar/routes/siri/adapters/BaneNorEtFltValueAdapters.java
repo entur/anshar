@@ -50,7 +50,7 @@ public class BaneNorEtFltValueAdapters extends MappingAdapter {
         operatorOverrideMapping.put("FLY", "FLT");
         operatorOverrideMapping.put("SJ", "SJV");
         operatorOverrideMapping.put("GAG", "GOA");
-        operatorOverrideMapping.put("VY", "NSB");
+        operatorOverrideMapping.put("VY", "VYG");
         operatorOverrideMapping.put("VYG", "GJB");
         operatorOverrideMapping.put("VYT", "VYG");
 
