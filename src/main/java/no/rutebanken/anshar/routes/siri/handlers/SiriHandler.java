@@ -32,7 +32,6 @@ import no.rutebanken.anshar.subscription.SiriDataType;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import no.rutebanken.anshar.subscription.helpers.MappingAdapterPresets;
-import org.entur.avro.realtime.siri.model.SiriRecord;
 import org.entur.siri21.util.SiriXml;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -71,8 +70,6 @@ import java.util.Map;
 import java.util.Set;
 
 import static no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter.getOriginalId;
-import static org.entur.avro.realtime.siri.converter.Converter.avro2Jaxb;
-import static org.entur.avro.realtime.siri.converter.Converter.jaxb2Avro;
 
 @Service
 public class SiriHandler {
@@ -430,12 +427,6 @@ long t2 = System.currentTimeMillis();
                     logger.info("Active SX-elements: {}, current delivery: {}, {}", situations.getSize(), addedOrUpdated.size(), subscriptionSetup);
                 }
                 if (subscriptionSetup.getSubscriptionType().equals(SiriDataType.VEHICLE_MONITORING)) {
-                    //Special handling for Skyss-VM-data
-                    if (subscriptionSetup.getVendor() != null &&
-                            subscriptionSetup.getVendor().equals("skyvm")) {
-                        SiriRecord siriRecord = jaxb2Avro(incoming);
-                        incoming = avro2Jaxb(siriRecord);
-                    }
 
                     List<VehicleMonitoringDeliveryStructure> vehicleMonitoringDeliveries = incoming.getServiceDelivery().getVehicleMonitoringDeliveries();
                     logger.info("Got VM-delivery: Subscription [{}] {}", subscriptionSetup, subscriptionSetup.forwardPositionData() ? "- Position only":"");
