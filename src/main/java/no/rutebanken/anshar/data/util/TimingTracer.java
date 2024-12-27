@@ -34,20 +34,16 @@ public class TimingTracer {
                 .add("timingPoints=" + timingPoints)
                 .toString();
     }
-}
-class TimingPoint {
-    private final String label;
-    private final long elapsed;
-    TimingPoint(String label, long elapsed) {
-        this.label = label;
-        this.elapsed = elapsed;
-    }
 
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", TimingPoint.class.getSimpleName() + "[", "]")
-                .add("label='" + label + "'")
-                .add("elapsed=" + elapsed)
-                .toString();
-    }
+    private record TimingPoint(String label, long elapsed) {
+
+        @Override
+            public String toString() {
+                return new StringJoiner(", ", TimingPoint.class.getSimpleName() + "[", "]")
+                        .add("label='" + label + "'")
+                        .add("elapsed=" + elapsed)
+                        .toString();
+            }
+        }
 }
+
