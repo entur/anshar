@@ -65,10 +65,7 @@ public class NetexUpdaterService {
 
     // Kept non-configurable since this whole adapter is a temporary hack - ROR-326/ROR-329
     private static final String[] urls = {
-        "https://storage.googleapis.com/marduk-production/outbound/netex/rb_nsb-aggregated-netex.zip", // NSB
-        "https://storage.googleapis.com/marduk-production/outbound/netex/rb_gjb-aggregated-netex.zip", // Gjøvikbanen
         "https://storage.googleapis.com/marduk-production/outbound/netex/rb_flt-aggregated-netex.zip", // Flytoget
-        "https://storage.googleapis.com/marduk-production/outbound/netex/rb_flb-aggregated-netex.zip", // Flåmsbana
         "https://storage.googleapis.com/marduk-production/outbound/netex/rb_goa-aggregated-netex.zip", // Go-Ahead
         "https://storage.googleapis.com/marduk-production/outbound/netex/rb_sjn-aggregated-netex.zip", // SJ
         "https://storage.googleapis.com/marduk-production/outbound/netex/rb_vyg-aggregated-netex.zip", // VYG
