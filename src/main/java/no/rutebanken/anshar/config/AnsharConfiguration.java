@@ -18,6 +18,7 @@ package no.rutebanken.anshar.config;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
+import java.time.Duration;
 import java.util.List;
 
 @Configuration
@@ -52,6 +53,9 @@ public class AnsharConfiguration {
 
     @Value("${anshar.healthcheck.interval.seconds}")
     private int healthCheckInterval = 30;
+
+    @Value("${anshar.mapping.adapters.disabled:false}")
+    private boolean disableAllMappingAdapters = false;
 
     @Value("${anshar.environment}")
     private String environment;
@@ -116,6 +120,11 @@ public class AnsharConfiguration {
 
     @Value("${anshar.application.mode:}")
     private List<AppMode> appModes;
+
+    @Value("${anshar.split.data.for.processing:false}")
+    private Boolean splitDataForProcessing;
+    @Value("${anshar.siri.et.future.update.hard.limit.duration:}")
+    private Duration hardLimitForFutureUpdates;
 
     public String getHazelcastManagementUrl() {
         return hazelcastManagementUrl;
@@ -250,5 +259,21 @@ public class AnsharConfiguration {
     }
     public boolean processData() {
         return (appModes.isEmpty() || ((appModes.contains(AppMode.DATA_ET) | appModes.contains(AppMode.DATA_VM) | appModes.contains(AppMode.DATA_SX))));
+    }
+
+    public Boolean splitDataForProcessing() {
+        return splitDataForProcessing;
+    }
+
+    public Duration hardLimitForFutureEtUpdates() {
+        return hardLimitForFutureUpdates;
+    }
+
+    public boolean isDisableAllMappingAdapters() {
+        return disableAllMappingAdapters;
+    }
+
+    public void setDisableAllMappingAdapters(boolean disableAllMappingAdapters) {
+        this.disableAllMappingAdapters = disableAllMappingAdapters;
     }
 }

@@ -60,6 +60,13 @@ public class StopPlaceUpdaterService {
     @Value("${anshar.mapping.stopplaces.update.frequency.min:60}")
     private int updateFrequency = 60;
 
+
+    @Value("${anshar.startup.wait.for.netex.initialization:false}")
+    private boolean delayStartupForInitialization;
+
+    @Value("${anshar.startup.load.mapping.data:true}")
+    private boolean loadMappingData;
+
     public String get(String id) {
         if (stopPlaceMappings.isEmpty()) {
             // Avoid multiple calls at the same time.
@@ -85,20 +92,30 @@ public class StopPlaceUpdaterService {
 
     @PostConstruct
     private void initialize() {
-
+        if (!loadMappingData) {
+            logger.info("Loading StopPlace-data disabled.");
+            return;
+        }
+        int initialDelay = 0;
+        if (delayStartupForInitialization) {
+            initialDelay = updateFrequency;
+            updateIdMapping();
+        }
         ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
 
-        executor.scheduleAtFixedRate(this::updateIdMapping, 0, updateFrequency, TimeUnit.MINUTES);
+        executor.scheduleAtFixedRate(this::updateIdMapping, initialDelay, updateFrequency, TimeUnit.MINUTES);
 
         logger.info("Initialized id_mapping-updater with urls:{}, updateFrequency:{} min", new String[]{quayMappingPath, stopPlaceMappingPath}, updateFrequency);
     }
 
     private void updateIdMapping() {
-        // re-entrant
-        synchronized (LOCK) {
-            updateStopPlaceMapping(quayMappingPath);
-            updateStopPlaceMapping(stopPlaceMappingPath);
-            updateStopPlacesAndQuays(stopPlaceQuayJsonPath);
+        if (loadMappingData) {
+            // re-entrant
+            synchronized (LOCK) {
+                updateStopPlaceMapping(quayMappingPath);
+                updateStopPlaceMapping(stopPlaceMappingPath);
+                updateStopPlacesAndQuays(stopPlaceQuayJsonPath);
+            }
         }
     }
 

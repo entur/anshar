@@ -42,7 +42,6 @@ import static no.rutebanken.anshar.routes.siri.transformer.MappingNames.EXTRA_JO
 import static no.rutebanken.anshar.routes.siri.transformer.MappingNames.EXTRA_JOURNEY_TOO_FAST;
 import static no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter.getMappedId;
 import static no.rutebanken.anshar.routes.validation.validators.et.SaneSpeedValidator.SANE_SPEED_LIMIT;
-import static org.apache.commons.lang3.BooleanUtils.isTrue;
 
 /**
  * Verifies that ExtraJourneys in ET stop at stops having the correct mode, and that
@@ -76,8 +75,13 @@ public class ExtraJourneyPostProcessor extends ValueAdapter implements PostProce
                         List<EstimatedVehicleJourney> extraJourneysToRemove = new ArrayList<>();
 
                         for (EstimatedVehicleJourney estimatedVehicleJourney : estimatedVehicleJourneies) {
-                            if (isTrue(estimatedVehicleJourney.isExtraJourney())) {
-                                String estimatedVehicleJourneyCode = estimatedVehicleJourney.getEstimatedVehicleJourneyCode();
+                            String estimatedVehicleJourneyCode = estimatedVehicleJourney.getEstimatedVehicleJourneyCode();
+
+                            /*
+                                Only verify that EstimatedVehicleJourneyCode exists - as it should only be
+                                used together when also "ExtraJourney=true" is set
+                             */
+                            if (estimatedVehicleJourneyCode != null) {
                                 try {
 
                                     if (serviceJourneyIdExists(estimatedVehicleJourneyCode)) {
@@ -201,8 +205,7 @@ public class ExtraJourneyPostProcessor extends ValueAdapter implements PostProce
         final ZonedDateTime fromTime = times.getLeft();
         final ZonedDateTime toTime = times.getRight();
 
-        if (fromTime != null && toTime != null &&
-            toTime.isAfter(fromTime)) {
+        if (fromTime != null && toTime != null) {
             final int kph = StopsUtil.calculateSpeedKph(fromStop, toStop,
                 fromTime,
                 toTime

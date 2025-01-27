@@ -78,7 +78,7 @@ public class Siri20ToSiriWS14Subscription extends SiriSubscriptionRouteBuilder {
                 .process(addCustomHeaders())
                 .to("log:sent:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .doTry()
-                    .to(getCamelUrl(urlMap.get(RequestType.SUBSCRIBE), getTimeout()))
+                    .to(getCamelUrl(urlMap.get(RequestType.SUBSCRIBE)))
                     .to("log:received response:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
                 .doCatch(ConnectException.class)
                     .log("Caught ConnectException - subscription not started - will try again: "+ subscriptionSetup.toString())
@@ -136,7 +136,7 @@ public class Siri20ToSiriWS14Subscription extends SiriSubscriptionRouteBuilder {
                 .setHeader(Exchange.HTTP_METHOD, constant(org.apache.camel.component.http.HttpMethods.POST))
                 .process(addCustomHeaders())
                 .to("log:sent:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
-                .to(getCamelUrl(urlMap.get(RequestType.DELETE_SUBSCRIPTION), getTimeout()))
+                .to(getCamelUrl(urlMap.get(RequestType.DELETE_SUBSCRIPTION)))
                 .choice().when(simple("${in.body} != null"))
                     .to("xslt-saxon:xsl/siri_soap_raw.xsl?allowStAX=false") // Extract SOAP version and convert to raw SIRI
                     .to("xslt-saxon:xsl/siri_14_20.xsl?allowStAX=false") // Convert from v1.4 to 2.0

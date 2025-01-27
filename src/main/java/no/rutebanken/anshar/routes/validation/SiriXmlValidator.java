@@ -18,6 +18,10 @@ package no.rutebanken.anshar.routes.validation;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.hazelcast.map.IMap;
 import com.hazelcast.replicatedmap.ReplicatedMap;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Unmarshaller;
+import jakarta.xml.bind.ValidationEvent;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.metrics.PrometheusMetricsService;
 import no.rutebanken.anshar.routes.siri.transformer.ApplicationContextHolder;
@@ -28,6 +32,7 @@ import no.rutebanken.anshar.routes.validation.validators.Validator;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
+import org.apache.commons.io.FileUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -43,10 +48,6 @@ import org.xml.sax.SAXException;
 import uk.org.siri.siri21.Siri;
 
 import javax.xml.XMLConstants;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
-import javax.xml.bind.ValidationEvent;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -60,10 +61,13 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashSet;
@@ -77,6 +81,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.GZIPInputStream;
 
+import static java.util.Collections.EMPTY_LIST;
 import static no.rutebanken.anshar.routes.validation.ValidationType.PROFILE_VALIDATION;
 import static no.rutebanken.anshar.routes.validation.ValidationType.SCHEMA_VALIDATION;
 import static no.rutebanken.anshar.util.CompressionUtil.compress;
@@ -188,8 +193,6 @@ public class SiriXmlValidator extends ApplicationContextHolder {
 
             Unmarshaller unmarshaller = jaxbContext.createUnmarshaller();
 
-            XMLStreamReader reader = xmlInputFactory.createXMLStreamReader(xml);
-
             final SiriValidationEventHandler schemaValidationHandler = new SiriValidationEventHandler();
 
             boolean validate = false;
@@ -202,7 +205,22 @@ public class SiriXmlValidator extends ApplicationContextHolder {
 
                 // Add event-handler to collect validation-issues
                 unmarshaller.setEventHandler(schemaValidationHandler);
+
+                // Write full stream-contents to disk for easier debugging
+                File targetFile = File.createTempFile(subscriptionSetup.getVendor() + "-", ".xml");
+
+                Files.copy(
+                        xml,
+                        targetFile.toPath(),
+                        StandardCopyOption.REPLACE_EXISTING
+                );
+                logger.info("Full contents written to {}", targetFile.getAbsolutePath());
+
+                // Reset stream to continue processing pipeline
+                xml.reset();
             }
+
+            XMLStreamReader reader = xmlInputFactory.createXMLStreamReader(xml);
 
             Siri siri = unmarshaller.unmarshal(reader, Siri.class).getValue();
 
@@ -441,6 +459,8 @@ public class SiriXmlValidator extends ApplicationContextHolder {
 
         validationResult.put("subscription", subscriptionSetup.toJSON());
 
+        validationResult.put("status", buildValidationStatus(subscriptionSetup));
+
         if (validationFilters.containsKey(subscriptionId)) {
             String filter = validationFilters.get(subscriptionId);
 
@@ -459,6 +479,23 @@ public class SiriXmlValidator extends ApplicationContextHolder {
         validationResult.put("validationRefs", resultList);
 
         return validationResult;
+    }
+
+    private JSONObject buildValidationStatus(SubscriptionSetup subscriptionSetup) {
+        int currentValidations = validationResultRefs.getOrDefault(subscriptionSetup.getSubscriptionId(), EMPTY_LIST).size();
+        int maxValidations = configuration.getMaxNumberOfValidations();
+
+        long currentSize = validationSize.getOrDefault(subscriptionSetup.getSubscriptionId(), 0L);
+        long maxSize = configuration.getMaxTotalXmlSizeOfValidation()*1024*1024;
+
+        JSONObject status = new JSONObject();
+        status.put("validationActive", subscriptionSetup.isValidation());
+        status.put("currentValidations", currentValidations);
+        status.put("maxValidations", maxValidations);
+        status.put("currentSize", FileUtils.byteCountToDisplaySize(currentSize));
+        status.put("maxSize", FileUtils.byteCountToDisplaySize(maxSize));
+
+        return status;
     }
 
     private JSONObject getJsonValidationResults(String validationRef) {

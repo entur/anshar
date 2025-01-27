@@ -19,7 +19,12 @@ package no.rutebanken.anshar.subscription;
 import com.hazelcast.map.IMap;
 import com.hazelcast.replicatedmap.ReplicatedMap;
 import no.rutebanken.anshar.config.AnsharConfiguration;
-import no.rutebanken.anshar.data.*;
+import no.rutebanken.anshar.data.EstimatedTimetables;
+import no.rutebanken.anshar.data.RequestorRefRepository;
+import no.rutebanken.anshar.data.RequestorRefStats;
+import no.rutebanken.anshar.data.SiriObjectStorageKey;
+import no.rutebanken.anshar.data.Situations;
+import no.rutebanken.anshar.data.VehicleActivities;
 import no.rutebanken.anshar.routes.health.HealthManager;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.subscription.helpers.RequestType;
@@ -34,12 +39,24 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
-import java.time.*;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-import static no.rutebanken.anshar.subscription.SiriDataType.*;
+import static no.rutebanken.anshar.subscription.SiriDataType.ESTIMATED_TIMETABLE;
+import static no.rutebanken.anshar.subscription.SiriDataType.SITUATION_EXCHANGE;
+import static no.rutebanken.anshar.subscription.SiriDataType.VEHICLE_MONITORING;
 
 @Service
 public class SubscriptionManager {
@@ -150,6 +167,9 @@ public class SubscriptionManager {
         return found;
     }
 
+    public void markSubscriptionActive(String subscriptionId) {
+        touchSubscription(subscriptionId);
+    }
     public boolean touchSubscription(String subscriptionId) {
         SubscriptionSetup setup = subscriptions.get(subscriptionId);
         hit(subscriptionId);
@@ -217,16 +237,16 @@ public class SubscriptionManager {
     }
 
     private void hit(String subscriptionId) {
-        int counter = (hitcount.get(subscriptionId) != null ? hitcount.get(subscriptionId):0);
-        hitcount.put(subscriptionId, counter+1);
+        int counter = (hitcount.getOrDefault(subscriptionId, 0));
+        hitcount.set(subscriptionId, counter+1);
     }
 
     public void incrementObjectCounter(SubscriptionSetup subscriptionSetup, int size) {
 
         String subscriptionId = subscriptionSetup.getSubscriptionId();
         if (subscriptionId != null) {
-            BigInteger counter = (objectCounter.get(subscriptionId) != null ? objectCounter.get(subscriptionId) : BigInteger.valueOf(0));
-            objectCounter.put(subscriptionId, counter.add(BigInteger.valueOf(size)));
+            BigInteger counter = objectCounter.getOrDefault(subscriptionId, BigInteger.valueOf(0));
+            objectCounter.set(subscriptionId, counter.add(BigInteger.valueOf(size)));
         }
     }
 
@@ -245,7 +265,7 @@ public class SubscriptionManager {
             // Subscriptions are inserted as immutable - need to replace previous value
             subscriptions.put(subscriptionId, subscriptionSetup);
             lastActivity.put(subscriptionId, Instant.now());
-            activatedTimestamp.put(subscriptionId, Instant.now());
+            activatedTimestamp.set(subscriptionId, Instant.now());
             logger.info("Pending subscription {} activated", subscriptions.get(subscriptionId));
             if (!dataReceived.containsKey(subscriptionId)) {
                 dataReceived(subscriptionId);

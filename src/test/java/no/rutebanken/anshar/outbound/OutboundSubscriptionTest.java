@@ -1,5 +1,6 @@
 package no.rutebanken.anshar.outbound;
 
+import jakarta.xml.bind.JAXBException;
 import no.rutebanken.anshar.integration.SpringBootBaseTest;
 import no.rutebanken.anshar.routes.outbound.ServerSubscriptionManager;
 import no.rutebanken.anshar.routes.siri.handlers.OutboundIdMappingPolicy;
@@ -11,10 +12,10 @@ import uk.org.siri.siri21.Siri;
 import uk.org.siri.siri21.SubscriptionContextStructure;
 import uk.org.siri.siri21.SubscriptionRequest;
 
-import javax.xml.bind.JAXBException;
 import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeFactory;
 import javax.xml.stream.XMLStreamException;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -115,11 +116,11 @@ public class OutboundSubscriptionTest extends SpringBootBaseTest {
         serverSubscriptionManager.terminateSubscription(subscriptionId, true);
     }
 
-    SubscriptionRequest getSubscriptionRequest(long heartbeatIntervalMillis) throws DatatypeConfigurationException {
+    SubscriptionRequest getSubscriptionRequest(long heartbeatIntervalMillis) {
         SubscriptionRequest subscriptionRequest = new SubscriptionRequest();
         SubscriptionContextStructure context = new SubscriptionContextStructure();
 
-        context.setHeartbeatInterval(DatatypeFactory.newInstance().newDuration(heartbeatIntervalMillis));
+        context.setHeartbeatInterval(Duration.of(heartbeatIntervalMillis, ChronoUnit.MILLIS));
 
         subscriptionRequest.setSubscriptionContext(context);
         return subscriptionRequest;

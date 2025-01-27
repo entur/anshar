@@ -15,16 +15,14 @@
 
 package no.rutebanken.anshar.routes.validation.validators.sx;
 
+import jakarta.xml.bind.ValidationEvent;
 import no.rutebanken.anshar.routes.validation.validators.CustomValidator;
 import no.rutebanken.anshar.routes.validation.validators.Validator;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Node;
 
-import javax.xml.bind.ValidationEvent;
-import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 
 import static no.rutebanken.anshar.routes.validation.validators.Constants.PT_SITUATION_ELEMENT;

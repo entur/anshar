@@ -16,6 +16,7 @@
 package no.rutebanken.anshar.routes.siri;
 
 import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
+import jakarta.ws.rs.core.MediaType;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.data.EstimatedTimetables;
 import no.rutebanken.anshar.routes.BaseRouteBuilder;
@@ -32,7 +33,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.ws.rs.core.MediaType;
 import java.time.Duration;
 import java.time.Instant;
 
@@ -69,7 +69,7 @@ public abstract class SiriSubscriptionRouteBuilder extends BaseRouteBuilder {
             timeout = 30000;
         }
 
-        return "?httpClient.socketTimeout=" + timeout + "&httpClient.connectTimeout=" + timeout;
+        return "?socketTimeout=" + timeout + "&connectTimeout=" + timeout;
     }
 
     protected Processor addCustomHeaders() {

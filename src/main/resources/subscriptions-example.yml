@@ -32,6 +32,7 @@ anshar:
       mappingAdapterId: entur
       filterPresets:
       idMappingPrefixes:
+      codespaceWhiteList: TST
       active: false
 #
 #

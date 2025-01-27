@@ -15,6 +15,8 @@
 
 package no.rutebanken.anshar.validation.et;
 
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
 import no.rutebanken.anshar.routes.validation.validators.et.OrderValidator;
 import no.rutebanken.anshar.validation.CustomValidatorTest;
 import org.junit.jupiter.api.BeforeAll;
@@ -25,8 +27,6 @@ import uk.org.siri.siri21.EstimatedVehicleJourney;
 import uk.org.siri.siri21.RecordedCall;
 import uk.org.siri.siri21.Siri;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
 import java.io.StringWriter;
 import java.math.BigInteger;
 import java.util.List;

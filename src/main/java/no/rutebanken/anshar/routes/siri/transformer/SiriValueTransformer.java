@@ -18,15 +18,16 @@ package no.rutebanken.anshar.routes.siri.transformer;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import jakarta.xml.bind.JAXBException;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.routes.siri.processor.PostProcessor;
 import no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter;
 import org.entur.siri21.util.SiriXml;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.org.siri.siri21.LineRef;
 import uk.org.siri.siri21.Siri;
 
-import javax.xml.bind.JAXBException;
 import javax.xml.stream.XMLStreamException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
@@ -46,6 +47,8 @@ public class SiriValueTransformer {
     private static final Logger logger = LoggerFactory.getLogger(SiriValueTransformer.class);
 
     private static final Map<GetterKey, Set<Method>> cachedGettersForAdapter = new HashMap<>();
+
+    private static Set<Class> onewayMappingList = Set.of(LineRef.class);
 
     private static final LoadingCache<Class, List<Method>> getterMethodsCache = CacheBuilder.newBuilder()
             .build(
@@ -97,6 +100,8 @@ public class SiriValueTransformer {
         if (siri == null) {
             return null;
         }
+        int cacheSize = cachedGettersForAdapter.size();
+
         if (detailedLogging) {
             logger.debug("SIRI Transform: starting");
         }
@@ -178,7 +183,9 @@ public class SiriValueTransformer {
                 logger.debug("SIRI Transform: postProcessors processed");
             }
         }
-
+        if (cachedGettersForAdapter.size() > cacheSize) {
+            logger.info("Getter-cache size increased from {} to {}. Could indicate a memory leak.", cacheSize, cachedGettersForAdapter.size());
+        }
         return transformed;
     }
 
@@ -233,7 +240,8 @@ public class SiriValueTransformer {
                             } else {
                                 alteredValue = adapter.apply(value);
                             }
-                            if (!originalId.equals(alteredValue)) { //No need to map already correct ids
+                            if (!originalId.equals(alteredValue) &&                     // No need to map already correct ids
+                                    !isOnewayMapping(adapter.getClassToApply())) {      // Check for oneway-mapping
                                 alteredValue = originalId + SEPARATOR + alteredValue;
                             }
                         }
@@ -257,6 +265,10 @@ public class SiriValueTransformer {
                 }
             }
         }
+    }
+
+    private static boolean isOnewayMapping(Class classToApply) {
+        return onewayMappingList.contains(classToApply);
     }
 
     private static class GetterKey {

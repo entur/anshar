@@ -26,6 +26,7 @@ import uk.org.siri.siri21.FramedVehicleJourneyRefStructure;
 import uk.org.siri.siri21.LineRef;
 import uk.org.siri.siri21.RecordedCall;
 import uk.org.siri.siri21.Siri;
+import uk.org.siri.siri21.StopAssignmentStructure;
 import uk.org.siri.siri21.StopPointRefStructure;
 import uk.org.siri.siri21.VehicleActivityStructure;
 import uk.org.siri.siri21.VehicleMonitoringDeliveryStructure;
@@ -105,6 +106,9 @@ public class VarmlandPostProcessor extends ValueAdapter implements PostProcessor
                             if (recordedCalls != null) {
                                 for (RecordedCall call : recordedCalls.getRecordedCalls()) {
                                     call.setStopPointRef(replacePrefix(call.getStopPointRef()));
+
+                                    cleanupStopAssignments(call.getArrivalStopAssignments());
+                                    cleanupStopAssignments(call.getDepartureStopAssignments());
                                 }
                             }
 
@@ -112,10 +116,23 @@ public class VarmlandPostProcessor extends ValueAdapter implements PostProcessor
                             if (estimatedCalls != null) {
                                 for (EstimatedCall call : estimatedCalls.getEstimatedCalls()) {
                                     call.setStopPointRef(replacePrefix(call.getStopPointRef()));
+
+                                    cleanupStopAssignments(call.getArrivalStopAssignments());
+                                    cleanupStopAssignments(call.getDepartureStopAssignments());
                                 }
                             }
                         }
                     }
+                }
+            }
+        }
+    }
+
+    private static void cleanupStopAssignments(List<StopAssignmentStructure> stopAssignments) {
+        if (stopAssignments != null && !stopAssignments.isEmpty()) {
+            for (StopAssignmentStructure stopAssignment : stopAssignments) {
+                if (stopAssignment.getExpectedQuayRef() == null && stopAssignment.getActualQuayRef() != null) {
+                    stopAssignment.setExpectedQuayRef(stopAssignment.getActualQuayRef());
                 }
             }
         }

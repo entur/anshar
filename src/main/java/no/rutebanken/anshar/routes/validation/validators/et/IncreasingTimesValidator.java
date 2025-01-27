@@ -15,17 +15,15 @@
 
 package no.rutebanken.anshar.routes.validation.validators.et;
 
+import jakarta.xml.bind.ValidationEvent;
 import no.rutebanken.anshar.routes.validation.validators.CustomValidator;
 import no.rutebanken.anshar.routes.validation.validators.Validator;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Node;
+import uk.org.siri.siri21.CallStatusEnumeration;
 
-import javax.xml.bind.ValidationEvent;
 import java.text.MessageFormat;
-import java.time.LocalDateTime;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeParseException;
 import java.util.List;
 
 import static no.rutebanken.anshar.routes.validation.validators.Constants.ESTIMATED_VEHICLE_JOURNEY;
@@ -127,11 +125,12 @@ public class IncreasingTimesValidator extends CustomValidator {
 
         String cancellation = getChildNodeValue(call, "Cancellation");
 
-        boolean isArrivalCancelled = (arrivalStatus != null) && arrivalStatus.equalsIgnoreCase("cancelled");
+        boolean isArrivalCancelled = (arrivalStatus != null) && isNotVisitedStatus(arrivalStatus);
         boolean isCancelled = (cancellation != null) && cancellation.equalsIgnoreCase("true");
 
         return isArrivalCancelled || isCancelled;
     }
+
 
     private boolean isDepartureCancelled(Node call) {
 
@@ -139,10 +138,15 @@ public class IncreasingTimesValidator extends CustomValidator {
         String departureStatus = getChildNodeValue(call, "DepartureStatus");
         String cancellation = getChildNodeValue(call, "Cancellation");
 
-        boolean isDepartureCancelled = (departureStatus != null) && departureStatus.equalsIgnoreCase("cancelled");
+        boolean isDepartureCancelled = (departureStatus != null) && isNotVisitedStatus(departureStatus);
         boolean isCancelled = (cancellation != null) && cancellation.equalsIgnoreCase("true");
 
         return isDepartureCancelled || isCancelled;
+    }
+
+    private static boolean isNotVisitedStatus(String visitingStatus) {
+        return visitingStatus.equalsIgnoreCase(CallStatusEnumeration.CANCELLED.value()) ||
+                visitingStatus.equalsIgnoreCase(CallStatusEnumeration.MISSED.value());
     }
 
     private String getIdentifierString(String stopPointRef, String lineRef, String vehicleRef) {

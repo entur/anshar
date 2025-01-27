@@ -6,11 +6,11 @@ import java.util.StringJoiner;
 
 public class TimingTracer {
 
-    private String name;
+    private final String name;
+    private final long startTime;
     private long lastMark;
-    private long startTime;
 
-    List<TimingPoint> timingPoints = new ArrayList<>();
+    private final List<TimingPoint> timingPoints = new ArrayList<>();
     public TimingTracer(String name) {
         this.name = name;
         this.lastMark = System.currentTimeMillis();
@@ -34,20 +34,16 @@ public class TimingTracer {
                 .add("timingPoints=" + timingPoints)
                 .toString();
     }
-}
-class TimingPoint {
-    String label;
-    long elapsed;
-    TimingPoint(String label, long elapsed) {
-        this.label = label;
-        this.elapsed = elapsed;
-    }
 
-    @Override
-    public String toString() {
-        return new StringJoiner(", ", TimingPoint.class.getSimpleName() + "[", "]")
-                .add("label='" + label + "'")
-                .add("elapsed=" + elapsed)
-                .toString();
-    }
+    private record TimingPoint(String label, long elapsed) {
+
+        @Override
+            public String toString() {
+                return new StringJoiner(", ", TimingPoint.class.getSimpleName() + "[", "]")
+                        .add("label='" + label + "'")
+                        .add("elapsed=" + elapsed)
+                        .toString();
+            }
+        }
 }
+

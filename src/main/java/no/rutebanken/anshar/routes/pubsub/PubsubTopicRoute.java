@@ -1,10 +1,18 @@
 package no.rutebanken.anshar.routes.pubsub;
 
+import no.rutebanken.anshar.routes.avro.AvroConvertorProcessor;
 import org.apache.camel.builder.RouteBuilder;
+import org.entur.avro.realtime.siri.model.SiriRecord;
+import org.entur.siri21.util.SiriXml;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import uk.org.siri.siri21.Siri;
 
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static org.entur.avro.realtime.siri.converter.Converter.avro2Jaxb;
+import static org.entur.avro.realtime.siri.converter.Converter.jaxb2Avro;
 
 @Service
 public class PubsubTopicRoute extends RouteBuilder {
@@ -20,6 +28,9 @@ public class PubsubTopicRoute extends RouteBuilder {
 
     @Value("${anshar.outbound.pubsub.topic.enabled}")
     private boolean pushToTopicEnabled;
+
+    @Autowired
+    private AvroConvertorProcessor avroConvertorProcessor;
 
     private AtomicInteger etCounter = new AtomicInteger();
 
@@ -37,12 +48,14 @@ public class PubsubTopicRoute extends RouteBuilder {
              */
             from("direct:send.to.pubsub.topic.estimated_timetable")
                     .to("direct:siri.transform.data")
-                    .to("xslt-saxon:xsl/splitAndFilterNotMonitored.xsl")
-                    .split().tokenizeXML("Siri").streaming()
-                    .wireTap("direct:kafka.et.xml")
-                    .to("direct:map.jaxb.to.protobuf")
-                    .wireTap("direct:log.pubsub.et.traffic")
-                    .to(etTopic)
+                    .choice().when(body().isNotNull())
+                        .to("xslt-saxon:xsl/split.xsl")
+                        .split().tokenizeXML("Siri").streaming()
+                        .wireTap("direct:publish.et.avro")        // Publish as Avro
+                        .to("direct:map.jaxb.to.protobuf")
+                        .wireTap("direct:log.pubsub.et.traffic")
+                        .to(etTopic)                                // Send to Pub/Sub as Protobuf
+                    .end()
             ;
 
             /**
@@ -51,12 +64,25 @@ public class PubsubTopicRoute extends RouteBuilder {
              */
             from("direct:send.to.pubsub.topic.vehicle_monitoring")
                     .to("direct:siri.transform.data")
-                    .to("xslt-saxon:xsl/split.xsl")
-                    .split().tokenizeXML("Siri").streaming()
-                    .wireTap("direct:kafka.vm.xml")
-                    .to("direct:map.jaxb.to.protobuf")
-                    .wireTap("direct:log.pubsub.vm.traffic")
-                    .to(vmTopic)
+                    .choice().when(body().isNotNull())
+                        .process(p -> {
+                            try {
+                                p.getMessage().setBody(SiriXml.toXml(p.getIn().getBody(Siri.class)));
+                            } catch (NullPointerException e) {
+                                try {
+                                    SiriRecord siriRecord = jaxb2Avro(p.getIn().getBody(Siri.class));
+                                    Siri siri = avro2Jaxb(siriRecord);
+                                    p.getMessage().setBody(SiriXml.toXml(siri));
+                                } catch (NullPointerException e2) {
+                                    log.error("Caught NullPointerException twice - giving up.", e2);
+                                }
+                            }
+                        })
+                        .to("xslt-saxon:xsl/split.xsl")
+                        .split().tokenizeXML("Siri").streaming()
+                        .to("direct:publish.vm.avro")// Publish as Avro
+                        .wireTap("direct:log.pubsub.vm.traffic")
+                    .end()
             ;
 
             /**
@@ -65,12 +91,32 @@ public class PubsubTopicRoute extends RouteBuilder {
              */
             from("direct:send.to.pubsub.topic.situation_exchange")
                     .to("direct:siri.transform.data")
-                    .to("xslt-saxon:xsl/split.xsl")
-                    .split().tokenizeXML("Siri").streaming()
-                    .wireTap("direct:kafka.sx.xml")
-                    .to("direct:map.jaxb.to.protobuf")
-                    .wireTap("direct:log.pubsub.sx.traffic")
-                    .to(sxTopic)
+                    .choice().when(body().isNotNull())
+                        .to("xslt-saxon:xsl/split.xsl")
+                        .split().tokenizeXML("Siri").streaming()
+                        .wireTap("direct:publish.sx.avro")// Publish as Avro
+                        .to("direct:map.jaxb.to.protobuf")
+                        .wireTap("direct:log.pubsub.sx.traffic")
+                        .to(sxTopic) // Send to Pub/Sub as Protobuf
+                    .end()
+            ;
+
+            from("direct:publish.et.avro")
+                    .process(avroConvertorProcessor)
+                    .wireTap("direct:publish.et.avro.kafka")
+                    .wireTap("direct:publish.et.avro.pubsub")
+            ;
+
+            from("direct:publish.vm.avro")
+                    .process(avroConvertorProcessor)
+                    .wireTap("direct:publish.vm.avro.kafka")
+                    .wireTap("direct:publish.vm.avro.pubsub")
+            ;
+
+            from("direct:publish.sx.avro")
+                    .process(avroConvertorProcessor)
+                    .wireTap("direct:publish.sx.avro.kafka")
+                    .wireTap("direct:publish.sx.avro.pubsub")
             ;
 
             /**

@@ -15,6 +15,8 @@
 
 package no.rutebanken.anshar.routes.siri;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.data.EstimatedTimetables;
 import no.rutebanken.anshar.data.Situations;
@@ -37,8 +39,6 @@ import org.springframework.stereotype.Service;
 import uk.org.siri.siri21.Siri;
 import uk.org.siri.siri21.VehicleActivityStructure;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.util.Collection;
 import java.util.List;
 
@@ -72,6 +72,9 @@ public class SiriLiteRoute extends RestRouteBuilder {
     @Autowired
     private SiriObjectFactory siriObjectFactory;
 
+    @Autowired
+    private MappingAdapterPresets mappingAdapterPresets;
+
     @Override
     public void configure() throws Exception {
         super.configure();
@@ -96,9 +99,11 @@ public class SiriLiteRoute extends RestRouteBuilder {
                         .param().required(false).name(PARAM_MAX_SIZE).type(RestParamType.query).description("Specify max number of returned elements").dataType("integer").endParam()
 
                 .get("/et-monitored").to("direct:anshar.rest.et.monitored")
+                .get("/et-all").to("direct:anshar.rest.et")
                 .get("/et-monitored-cache").to("direct:anshar.rest.et.monitored.cached")
                 .get("/sx-cache").to("direct:anshar.rest.sx.cached")
                 .get("/vm-cache").to("direct:anshar.rest.vm.cached")
+                .get("/status/{subscriptionId}").to("direct:anshar.rest.subscription.status")
         ;
 
         // Dataproviders
@@ -124,7 +129,7 @@ public class SiriLiteRoute extends RestRouteBuilder {
 
                         Siri response = situations.createServiceDelivery(requestorId, datasetId, etClientName, maxSize);
 
-                        List<ValueAdapter> outboundAdapters = MappingAdapterPresets.getOutboundAdapters(
+                        List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(
                             SiriDataType.SITUATION_EXCHANGE,
                             SiriHandler.getIdMappingPolicy(originalId)
                         );
@@ -177,7 +182,7 @@ public class SiriLiteRoute extends RestRouteBuilder {
                             response = vehicleActivities.createServiceDelivery(requestorId, datasetId, etClientName, excludedIdList, maxSize);
                         }
 
-                        List<ValueAdapter> outboundAdapters = MappingAdapterPresets.getOutboundAdapters(
+                        List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(
                             SiriDataType.VEHICLE_MONITORING,
                             SiriHandler.getIdMappingPolicy(originalId)
                         );
@@ -238,7 +243,7 @@ public class SiriLiteRoute extends RestRouteBuilder {
                             response = estimatedTimetables.createServiceDelivery(requestorId, datasetId, etClientName, excludedIdList, maxSize, previewIntervalMillis);
                         }
 
-                        List<ValueAdapter> outboundAdapters = MappingAdapterPresets.getOutboundAdapters(
+                        List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(
                             SiriDataType.ESTIMATED_TIMETABLE,
                             SiriHandler.getIdMappingPolicy(originalId)
                         );
@@ -270,7 +275,7 @@ public class SiriLiteRoute extends RestRouteBuilder {
                     logger.info("Fetching monitored ET-data");
                     Siri response = siriObjectFactory.createETServiceDelivery(estimatedTimetables.getAllMonitored());
 
-                    List<ValueAdapter> outboundAdapters = MappingAdapterPresets.getOutboundAdapters(
+                    List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(
                                                                                     SiriDataType.ESTIMATED_TIMETABLE,
                                                                                     OutboundIdMappingPolicy.DEFAULT
                                                                                 );
@@ -306,7 +311,7 @@ public class SiriLiteRoute extends RestRouteBuilder {
                             datasetId, clientTrackingName
                         ));
 
-                        List<ValueAdapter> outboundAdapters = MappingAdapterPresets.getOutboundAdapters(
+                        List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(
                                                                                         SiriDataType.SITUATION_EXCHANGE,
                                                                                         OutboundIdMappingPolicy.DEFAULT
                                                                                     );
@@ -336,11 +341,13 @@ public class SiriLiteRoute extends RestRouteBuilder {
                     .process(p -> {
                         String requestorId = resolveRequestorId(p.getIn().getBody(HttpServletRequest.class));
                         String datasetId = p.getIn().getHeader(PARAM_DATASET_ID, String.class);
+                        Integer maxSize = p.getIn().getHeader(PARAM_MAX_SIZE, Integer.class);
+                        String lineRef = p.getIn().getHeader(PARAM_LINE_REF, String.class);
                         String clientTrackingName = p.getIn().getHeader(configuration.getTrackingHeaderName(), String.class);
 
                         logger.info("Fetching cached VM-data");
                         final Collection<VehicleActivityStructure> cachedUpdates = vehicleActivities
-                            .getAllCachedUpdates(requestorId, datasetId, clientTrackingName);
+                            .getAllCachedUpdates(requestorId, datasetId, lineRef, clientTrackingName, maxSize);
                         List<String> excludedIdList = getParameterValuesAsList(p.getIn(), PARAM_EXCLUDED_DATASET_ID);
 
                         if (excludedIdList != null && !excludedIdList.isEmpty()) {
@@ -356,7 +363,7 @@ public class SiriLiteRoute extends RestRouteBuilder {
 
                         Siri response = siriObjectFactory.createVMServiceDelivery(cachedUpdates);
 
-                        List<ValueAdapter> outboundAdapters = MappingAdapterPresets.getOutboundAdapters(
+                        List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(
                                                                                         SiriDataType.VEHICLE_MONITORING,
                                                                                         OutboundIdMappingPolicy.DEFAULT
                                                                                     );
@@ -387,14 +394,15 @@ public class SiriLiteRoute extends RestRouteBuilder {
                     String requestorId = resolveRequestorId(p.getIn().getBody(HttpServletRequest.class));
                     String datasetId = p.getIn().getHeader(PARAM_DATASET_ID, String.class);
                     Integer maxSize = p.getIn().getHeader(PARAM_MAX_SIZE, Integer.class);
+                    String lineRef = p.getIn().getHeader(PARAM_LINE_REF, String.class);
                     String clientTrackingName = p.getIn().getHeader(configuration.getTrackingHeaderName(), String.class);
 
                     logger.info("Fetching cached ET-data");
                     Siri response = siriObjectFactory.createETServiceDelivery(estimatedTimetables.getAllCachedUpdates(requestorId,
-                            datasetId, clientTrackingName, maxSize
+                            datasetId, lineRef, clientTrackingName, maxSize
                     ));
 
-                    List<ValueAdapter> outboundAdapters = MappingAdapterPresets.getOutboundAdapters(
+                    List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(
                             SiriDataType.ESTIMATED_TIMETABLE,
                             OutboundIdMappingPolicy.DEFAULT
                     );
@@ -430,7 +438,7 @@ public class SiriLiteRoute extends RestRouteBuilder {
 
                 Siri response = siriObjectFactory.createETServiceDelivery(estimatedTimetables.getAllCachedUpdates(null, null, clientTrackingName));
 
-                List<ValueAdapter> outboundAdapters = MappingAdapterPresets.getOutboundAdapters(
+                List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(
                     SiriDataType.ESTIMATED_TIMETABLE,
                     OutboundIdMappingPolicy.DEFAULT
                 );

@@ -15,9 +15,8 @@
 
 package no.rutebanken.anshar.routes.validation.validators;
 
+import jakarta.xml.bind.ValidationEvent;
 import uk.org.siri.siri21.Siri;
-
-import javax.xml.bind.ValidationEvent;
 
 public abstract class SiriObjectValidator extends CustomValidator{
 

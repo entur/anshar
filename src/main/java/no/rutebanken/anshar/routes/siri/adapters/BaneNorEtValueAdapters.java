@@ -39,6 +39,8 @@ public class BaneNorEtValueAdapters extends MappingAdapter {
     public List<ValueAdapter> getValueAdapters(SubscriptionSetup subscriptionSetup) {
 
         List<ValueAdapter> valueAdapters = new ArrayList<>();
+        valueAdapters.add(new BaneNorRemoveFreightTrainPostProcessor(subscriptionSetup.getDatasetId()));
+
         valueAdapters.add(new BaneNorIdPlatformPostProcessor(subscriptionSetup.getSubscriptionType(), subscriptionSetup.getDatasetId()));
 
         Map<String, String> operatorOverrideMapping = new HashMap<>();
@@ -55,8 +57,6 @@ public class BaneNorEtValueAdapters extends MappingAdapter {
         //List<String> operatorsToIgnore = Arrays.asList("FLY");
 
         valueAdapters.add(new OperatorFilterPostProcessor(subscriptionSetup.getDatasetId(), operatorsToIgnore, operatorOverrideMapping));
-
-        valueAdapters.add(new BaneNorRemoveFreightTrainPostProcessor(subscriptionSetup.getDatasetId()));
 
         /*
          Need to remove already expired VehicleJourneys before matching with NeTEx routedata since vehicleRef-

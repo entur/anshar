@@ -15,6 +15,7 @@
 
 package no.rutebanken.anshar.routes.validation;
 
+import jakarta.ws.rs.core.MediaType;
 import no.rutebanken.anshar.routes.RestRouteBuilder;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
@@ -22,9 +23,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 
-import javax.ws.rs.core.MediaType;
-
-import static no.rutebanken.anshar.routes.HttpParameter.*;
+import static no.rutebanken.anshar.routes.HttpParameter.PARAM_CODESPACE;
+import static no.rutebanken.anshar.routes.HttpParameter.PARAM_SUBSCRIPTION_ID;
+import static no.rutebanken.anshar.routes.HttpParameter.PARAM_VALIDATION_REF;
 
 @Service
 @Configuration

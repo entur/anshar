@@ -78,7 +78,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <#list type.subscriptions?sort_by("vendor") as item>
+                    <#list type.subscriptions?sort_by("name") as item>
                         <tr data-toggle="collapse" data-target="#accordion${type?counter}-${item?counter}" style="cursor: pointer" class="clickable ${item.healthy???then(item.healthy?then("success","danger"), "warning")}">
                             <th style="vertical-align: middle">${item?counter}</th>
                             <td align="center" style="vertical-align: middle; font-size: larger">
@@ -108,6 +108,7 @@
                         <td colspan="9">
                             <table class="table table-striped">
                                 <tr><th>Dataset ID</th><td><a href="${item.validationUrl}" target="_blank">${item.datasetId}</a></td></tr>
+                                <tr><th>Codespacefilter</th><td>Whitelisted: ${item.codespaceWhiteList}<br />Blacklisted: ${item.codespaceBlackList}</td></tr>
                                 <tr><th>Vendor ID</th><td>${item.vendor}</td></tr>
                                 <tr><th>Servicetype</th><td>${item.serviceType}</td></tr>
                                 <tr><th>Inbound URL</th><td>${item.inboundUrl}</td></tr>

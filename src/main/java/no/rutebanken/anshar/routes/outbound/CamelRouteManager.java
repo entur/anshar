@@ -16,8 +16,11 @@
 package no.rutebanken.anshar.routes.outbound;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import no.rutebanken.anshar.metrics.PrometheusMetricsService;
+import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.camel.Produce;
 import org.apache.camel.ProducerTemplate;
+import org.apache.camel.http.base.HttpOperationFailedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -30,6 +33,7 @@ import uk.org.siri.siri21.Siri;
 import uk.org.siri.siri21.SituationExchangeDeliveryStructure;
 import uk.org.siri.siri21.VehicleMonitoringDeliveryStructure;
 
+import javax.annotation.PostConstruct;
 import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -52,14 +56,22 @@ public class CamelRouteManager {
     @Autowired
     ServerSubscriptionManager subscriptionManager;
 
+    @Autowired
+    PrometheusMetricsService metricsService;
+
     @Value("${anshar.default.max.elements.per.delivery:1000}")
     private int maximumSizePerDelivery;
 
-    @Value("${anshar.default.max.threads.per.outbound.subscription:20}")
+    @Value("${anshar.default.max.threads.per.outbound.subscription:5}")
     private int maximumThreadsPerOutboundSubscription;
 
-    @Produce(uri = "direct:send.to.external.subscription")
+    @Produce(value = "direct:send.to.external.subscription")
     protected ProducerTemplate siriSubscriptionProcessor;
+
+    @PostConstruct
+    private void initThreadMetrics() {
+        metricsService.registerOutboundThreadFactoryMap(threadFactoryMap);
+    }
 
     /**
      * Splits SIRI-data if applicable, and pushes data to external subscription
@@ -74,7 +86,7 @@ public class CamelRouteManager {
         }
         final String breadcrumbId = MDC.get("camel.breadcrumbId");
         ExecutorService executorService = getOrCreateExecutorService(subscriptionRequest);
-        executorService.submit(() -> {
+        executorService.execute(() -> {
             try {
                 MDC.put("camel.breadcrumbId", breadcrumbId);
                 if (!subscriptionManager.subscriptions.containsKey(subscriptionRequest.getSubscriptionId())) {
@@ -97,20 +109,33 @@ public class CamelRouteManager {
 
                 for (Siri siri : splitSiri) {
                     postDataToSubscription(siri, subscriptionRequest, logBody);
+                    metricsService.markPostToSubscription(subscriptionRequest.getSubscriptionType(),
+                            SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
+                            subscriptionRequest.getSubscriptionId(),
+                            200);
                 }
             } catch (Exception e) {
                 logger.info("Failed to push data for subscription {}: {}", subscriptionRequest, e);
 
+                int statusCode = -1;
                 if (e.getCause() instanceof SocketException) {
                     logger.info("Recipient is unreachable - ignoring");
                 } else {
                     String msg = e.getMessage();
                     if (e.getCause() != null) {
                         msg = e.getCause().getMessage();
+                        if (e.getCause() instanceof HttpOperationFailedException) {
+                            statusCode = ((HttpOperationFailedException) e.getCause()).getStatusCode();
+                        }
                     }
                     logger.info("Exception caught when pushing SIRI-data: {}", msg);
                 }
                 subscriptionManager.pushFailedForSubscription(subscriptionRequest.getSubscriptionId());
+
+                metricsService.markPostToSubscription(subscriptionRequest.getSubscriptionType(),
+                        SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
+                        subscriptionRequest.getSubscriptionId(),
+                        statusCode);
 
                 removeDeadSubscriptionExecutors(subscriptionManager);
             } finally {
@@ -126,7 +151,7 @@ public class CamelRouteManager {
         if (!threadFactoryMap.containsKey(subscriptionId)) {
             ThreadFactory factory = new ThreadFactoryBuilder().setNameFormat("outbound"+subscriptionId).build();
 
-            threadFactoryMap.put(subscriptionId, Executors.newSingleThreadExecutor(factory));
+            threadFactoryMap.put(subscriptionId, Executors.newFixedThreadPool(maximumThreadsPerOutboundSubscription, factory));
         }
 
         return threadFactoryMap.get(subscriptionId);

@@ -15,37 +15,41 @@
 
 package no.rutebanken.anshar.routes.siri.adapters;
 
+import no.rutebanken.anshar.routes.siri.processor.ModeBlackListProcessor;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
-import no.rutebanken.anshar.routes.siri.transformer.impl.LeftPaddingAdapter;
-import no.rutebanken.anshar.routes.siri.transformer.impl.RuterSubstringAdapter;
+import no.rutebanken.anshar.routes.siri.transformer.impl.UnalteredAdapter;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import uk.org.ifopt.siri21.StopPlaceRef;
+import uk.org.siri.siri21.CourseOfJourneyRefStructure;
 import uk.org.siri.siri21.DestinationRef;
 import uk.org.siri.siri21.JourneyPlaceRefStructure;
+import uk.org.siri.siri21.LineRef;
 import uk.org.siri.siri21.StopPointRefStructure;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-@Mapping(id="ruter")
-public class RuterValueAdapters extends MappingAdapter {
-
+@Mapping(id="goa-et")
+public class GoaEtValueAdapters extends MappingAdapter {
 
     @Override
-    public List<ValueAdapter> getValueAdapters(SubscriptionSetup subscriptionSetup) {
+    public List<ValueAdapter> getValueAdapters(SubscriptionSetup subscription) {
 
         List<ValueAdapter> valueAdapters = new ArrayList<>();
-                valueAdapters.add(new LeftPaddingAdapter(StopPlaceRef.class, 8, '0'));
-                valueAdapters.add(new RuterSubstringAdapter(StopPointRefStructure.class, ':', '0', 2));
-                valueAdapters.add(new RuterSubstringAdapter(JourneyPlaceRefStructure.class, ':', '0', 2));
-                valueAdapters.add(new RuterSubstringAdapter(DestinationRef.class, ':', '0', 2));
 
-        valueAdapters.addAll(createNsrIdMappingAdapters(subscriptionSetup.getSubscriptionType(), subscriptionSetup.getDatasetId(), subscriptionSetup.getIdMappingPrefixes()));
+        valueAdapters.add(new UnalteredAdapter(StopPlaceRef.class));
+        valueAdapters.add(new UnalteredAdapter(StopPointRefStructure.class));
+        valueAdapters.add(new UnalteredAdapter(JourneyPlaceRefStructure.class));
+        valueAdapters.add(new UnalteredAdapter(DestinationRef.class));
+        valueAdapters.add(new UnalteredAdapter(LineRef.class));
+        valueAdapters.add(new UnalteredAdapter(CourseOfJourneyRefStructure.class));
 
-        List<ValueAdapter> datasetPrefix = createIdPrefixAdapters(subscriptionSetup);
-        if (!subscriptionSetup.getMappingAdapters().containsAll(datasetPrefix)) {
-            subscriptionSetup.getMappingAdapters().addAll(datasetPrefix);
-        }
+        List<String> modesToIgnore = Arrays.asList(
+                "rail"
+        );
+
+        valueAdapters.add(new ModeBlackListProcessor(subscription.getDatasetId(), modesToIgnore));
 
         return valueAdapters;
     }

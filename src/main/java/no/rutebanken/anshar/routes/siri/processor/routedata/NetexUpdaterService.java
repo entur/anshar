@@ -15,13 +15,15 @@
 
 package no.rutebanken.anshar.routes.siri.processor.routedata;
 
+import org.rutebanken.netex.model.AllVehicleModesOfTransportEnumeration;
 import org.rutebanken.netex.model.DatedServiceJourney;
 import org.rutebanken.netex.model.LocationStructure;
 import org.rutebanken.netex.model.OperatingDay;
 import org.rutebanken.netex.model.ServiceAlterationEnumeration;
-import org.rutebanken.netex.model.VehicleModeEnumeration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -43,6 +45,7 @@ import java.util.concurrent.TimeUnit;
 
 @SuppressWarnings({"unchecked", "Duplicates"})
 @Service
+@Configuration
 public class NetexUpdaterService {
 
     private static final Logger logger = LoggerFactory.getLogger(NetexUpdaterService.class);
@@ -50,12 +53,19 @@ public class NetexUpdaterService {
     private static final int UPDATE_FREQUENCY = 6;
     private static final TimeUnit FREQUENCY_TIME_UNIT = TimeUnit.HOURS;
 
+    //Initial NeTEX-loading is async by default
+    @Value("${anshar.startup.wait.for.netex.initialization:false}")
+    private boolean delayStartupForInitialization;
+
+    //NeTEX-loading is enabled by default
+    @Value("${anshar.startup.load.mapping.data:true}")
+    private boolean loadMappingData;
+
+    private ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+
     // Kept non-configurable since this whole adapter is a temporary hack - ROR-326/ROR-329
     private static final String[] urls = {
-        "https://storage.googleapis.com/marduk-production/outbound/netex/rb_nsb-aggregated-netex.zip", // NSB
-        "https://storage.googleapis.com/marduk-production/outbound/netex/rb_gjb-aggregated-netex.zip", // Gjøvikbanen
         "https://storage.googleapis.com/marduk-production/outbound/netex/rb_flt-aggregated-netex.zip", // Flytoget
-        "https://storage.googleapis.com/marduk-production/outbound/netex/rb_flb-aggregated-netex.zip", // Flåmsbana
         "https://storage.googleapis.com/marduk-production/outbound/netex/rb_goa-aggregated-netex.zip", // Go-Ahead
         "https://storage.googleapis.com/marduk-production/outbound/netex/rb_sjn-aggregated-netex.zip", // SJ
         "https://storage.googleapis.com/marduk-production/outbound/netex/rb_vyg-aggregated-netex.zip", // VYG
@@ -72,7 +82,7 @@ public class NetexUpdaterService {
 
     //public for testing-purposes
     public static Map<String, LocationStructure> locations = new HashMap<>();
-    public static Map<String, VehicleModeEnumeration> modes = new HashMap<>();
+    public static Map<String, AllVehicleModesOfTransportEnumeration> modes = new HashMap<>();
 
     public static boolean isStopIdOrParentMatch(String stop1, String stop2) {
         return stop1.equals(stop2) || parentStops.get(stop2).equals(parentStops.get(stop1));
@@ -136,34 +146,51 @@ public class NetexUpdaterService {
     }
 
     @PostConstruct
-    synchronized static void initializeUpdater() {
+    synchronized void initializeUpdater() {
+        if (!loadMappingData) {
+            logger.info("Loading NeTEx disabled.");
+            return;
+        }
+
         logger.info("Starting the NeTEx updater service");
-        ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-        executor.scheduleWithFixedDelay(() -> {
-                    long t1 = System.currentTimeMillis();
-                    logger.info("Updating NeTEx-data - start");
+        int initialDelay = 0;
 
-                    String[] paths = new String[urls.length];
+        if (delayStartupForInitialization) {
+            //Initialize data synchronous
+            logger.info("Loading NeTEx before continuing.");
+            initializeNetexData();
+            initialDelay = UPDATE_FREQUENCY;
+        }
 
-                    try {
-                        for (int i = 0; i < urls.length; i++) {
-                            paths[i] = readUrl(urls[i]);
-                            if (paths[i] == null) {
-                                logger.error("Do not update NeTEx data as file could not be downloaded: {}", urls[i]);
-                                return;
-                            }
-                        }
-
-                        update(paths);
-
-                    } finally {
-                        cleanup(paths);
-                    }
-                    logger.info("Updating NeTEx-data - done: {} ms", (System.currentTimeMillis() - t1));
-                },
-                0,
+        executor.scheduleWithFixedDelay(() -> initializeNetexData(),
+                initialDelay,
                 UPDATE_FREQUENCY,
                 FREQUENCY_TIME_UNIT);
+
+    }
+
+    private static void initializeNetexData() {
+        long t1 = System.currentTimeMillis();
+        logger.info("Updating NeTEx-data - start");
+
+        String[] paths = new String[urls.length];
+
+        try {
+            for (int i = 0; i < urls.length; i++) {
+                logger.info("Downloading {}", urls[i]);
+                paths[i] = readUrl(urls[i]);
+                if (paths[i] == null) {
+                    logger.error("File could not be downloaded - retrying: {}", urls[i]);
+                    i--; // trigger retry
+                }
+            }
+
+             update(paths);
+
+        } finally {
+            cleanup(paths);
+        }
+        logger.info("Updating NeTEx-data - done: {} ms", (System.currentTimeMillis() - t1));
     }
 
     private static void cleanup(String... paths) {
@@ -182,6 +209,7 @@ public class NetexUpdaterService {
     }
 
     public static void update(String... paths) {
+        logger.info("Reading {} NeTEx files", paths.length);
         long start = System.currentTimeMillis();
         Map<String, List<StopTime>> tmpTripStops = new HashMap<>();
         Map<String, Set<String>> tmpTrainNumberTrips = new HashMap<>();
@@ -190,7 +218,7 @@ public class NetexUpdaterService {
         Map<String, String> tmpParentStops = new HashMap<>();
         Map<String, String> tmpQuayPublicCodes = new HashMap<>();
         Map<String, LocationStructure> tmpLocations = new HashMap<>();
-        Map<String, VehicleModeEnumeration> tmpModes = new HashMap<>();
+        Map<String, AllVehicleModesOfTransportEnumeration> tmpModes = new HashMap<>();
         Map<String, OperatingDay> tmpOperatingDayRefs = new HashMap<>();
 
         for (String path : paths) {
@@ -208,7 +236,7 @@ public class NetexUpdaterService {
         locations = tmpLocations;
         modes = tmpModes;
         operatingDayRefs = tmpOperatingDayRefs;
-        logger.info("Read and merged {} NeTEx files in {} ms", paths.length, (System.currentTimeMillis()-start));
+        logger.info("Read and merged {} NeTEx files in {} ms", paths.length, (System.currentTimeMillis()-start));
     }
 
     private static String readUrl(String url) {
@@ -257,14 +285,22 @@ public class NetexUpdaterService {
             Map<String, List<DatedServiceJourney>> datedServiceJourneysForTrip,
             Map<String, List<ServiceDate>> tripDates,
             Map<String, String> parentStops, Map<String, String> quayPublicCodes,
-            Map<String, LocationStructure> locations, Map<String, VehicleModeEnumeration> tmpModes,
+            Map<String, LocationStructure> locations, Map<String, AllVehicleModesOfTransportEnumeration> tmpModes,
             Map<String, OperatingDay> operatingDayRefs) {
         try {
 
-            NetexProcessor netexProcessor = new NetexProcessor();
+            NetexParserProcessor netexProcessor = new NetexParserProcessor();
             netexProcessor.loadFiles(new File(path));
             tripStops.putAll(netexProcessor.getTripStops());
-            trainNumberTrips.putAll(netexProcessor.getTrainNumberTrips());
+
+            for (String trainNumber : netexProcessor.getTrainNumberTrips().keySet()) {
+                if (!trainNumberTrips.containsKey(trainNumber)) {
+                    trainNumberTrips.put(trainNumber, netexProcessor.getTrainNumberTrips().get(trainNumber));
+                } else {
+                    trainNumberTrips.get(trainNumber).addAll(netexProcessor.getTrainNumberTrips().get(trainNumber));
+                }
+            }
+
             datedServiceJourneysForTrip.putAll(netexProcessor.getDatedServiceJourneyForServiceJourneyId());
             operatingDayRefs.putAll(netexProcessor.getOperatingDayRefs());
             tripDates.putAll(netexProcessor.getTripDates());

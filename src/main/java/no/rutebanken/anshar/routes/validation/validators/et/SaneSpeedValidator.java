@@ -1,5 +1,6 @@
 package no.rutebanken.anshar.routes.validation.validators.et;
 
+import jakarta.xml.bind.ValidationEvent;
 import no.rutebanken.anshar.routes.siri.processor.routedata.StopsUtil;
 import no.rutebanken.anshar.routes.siri.processor.routedata.TooFastException;
 import no.rutebanken.anshar.routes.validation.validators.ProfileValidationEventOrList;
@@ -12,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Node;
+import uk.org.siri.siri21.CallStatusEnumeration;
 import uk.org.siri.siri21.EstimatedCall;
 import uk.org.siri.siri21.EstimatedTimetableDeliveryStructure;
 import uk.org.siri.siri21.EstimatedVehicleJourney;
@@ -20,7 +22,6 @@ import uk.org.siri.siri21.RecordedCall;
 import uk.org.siri.siri21.Siri;
 import uk.org.siri.siri21.StopPointRefStructure;
 
-import javax.xml.bind.ValidationEvent;
 import java.time.ZonedDateTime;
 import java.util.List;
 
@@ -88,7 +89,12 @@ public class SaneSpeedValidator extends SiriObjectValidator {
                                         final RecordedCall thisCall = calls.get(i);
                                         final RecordedCall nextCall = calls.get(i + 1);
 
-                                        if (thisCall.getStopPointRef() != null &&
+                                        boolean cancellation =
+                                                isNotVisited(thisCall.isCancellation(), thisCall.getDepartureStatus()) |
+                                                isNotVisited(thisCall.isCancellation(), nextCall.getDepartureStatus());
+
+                                        if (!cancellation &&
+                                                thisCall.getStopPointRef() != null &&
                                             nextCall.getStopPointRef() != null) {
                                             final String fromStop = getMappedId(thisCall
                                                 .getStopPointRef()
@@ -122,10 +128,14 @@ public class SaneSpeedValidator extends SiriObjectValidator {
                                     ) {
                                         final EstimatedCall thisCall = calls.get(i);
                                         final EstimatedCall nextCall = calls.get(i + 1);
+                                        boolean cancellation =
+                                                isNotVisited(thisCall.isCancellation(), thisCall.getDepartureStatus()) |
+                                                        isNotVisited(thisCall.isCancellation(), nextCall.getDepartureStatus());
 
                                         final StopPointRefStructure thisStop = thisCall.getStopPointRef();
                                         final StopPointRefStructure nextStop = nextCall.getStopPointRef();
-                                        if (thisStop != null && nextStop != null) {
+                                        if (!cancellation &&
+                                                thisStop != null && nextStop != null) {
 
                                             try {
                                                 validate(
@@ -153,6 +163,16 @@ public class SaneSpeedValidator extends SiriObjectValidator {
         return events;
     }
 
+    private static boolean isNotVisited(Boolean cancellation, CallStatusEnumeration status) {
+        boolean isDepartureCancelled = false;
+        if (status != null) {
+            isDepartureCancelled = (status == CallStatusEnumeration.CANCELLED | status == CallStatusEnumeration.MISSED);
+        }
+        boolean isCancelled = (cancellation != null && cancellation);
+
+        return isDepartureCancelled || isCancelled;
+    }
+
     private void validate(
         EstimatedVehicleJourney estimatedVehicleJourney,
         String fromStop, String toStop,
@@ -162,8 +182,7 @@ public class SaneSpeedValidator extends SiriObjectValidator {
         final ZonedDateTime fromTime = times.getLeft();
         final ZonedDateTime toTime = times.getRight();
 
-        if (fromTime != null && toTime != null &&
-            toTime.isAfter(fromTime)) {
+        if (fromTime != null && toTime != null) {
             isSaneSpeed(estimatedVehicleJourney, fromStop, toStop, fromTime, toTime);
         }
     }

@@ -13,13 +13,16 @@ import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.camel.Exchange;
 import org.apache.camel.Predicate;
+import org.apache.camel.Processor;
 import org.apache.camel.component.google.pubsub.GooglePubsubConstants;
+import org.apache.camel.util.CaseInsensitiveMap;
 import org.entur.siri21.util.SiriXml;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uk.org.siri.siri21.Siri;
 
 import java.io.InputStream;
+import java.util.Map;
 
 import static no.rutebanken.anshar.routes.HttpParameter.INTERNAL_PUBLISH_TO_KAFKA_FOR_APC_ENRICHMENT;
 import static no.rutebanken.anshar.routes.HttpParameter.INTERNAL_SIRI_DATA_TYPE;
@@ -66,6 +69,23 @@ public class MessagingRoute extends RestRouteBuilder {
             queueConsumerParameters = "";
         }
 
+        // Processors that handles conversion between Camel headers and Google Pubsub Attributes
+        Processor convertAttributesToHeaders = exchange ->  {
+            exchange.getMessage().setHeaders(
+                    exchange.getMessage().getHeader(GooglePubsubConstants.ATTRIBUTES, Map.class)
+            );
+        };
+
+        Processor convertHeadersToAttributes = exchange -> {
+            Map<String, Object> headers = exchange.getIn().getHeaders();
+            CaseInsensitiveMap pubsubAttributeMap = new CaseInsensitiveMap();
+            for (String s : headers.keySet()) {
+                pubsubAttributeMap.put(s, ""+headers.get(s));
+            }
+            exchange.getMessage().setHeader(GooglePubsubConstants.ATTRIBUTES, pubsubAttributeMap);
+        };
+
+
         from("direct:process.message.synchronous")
                 .convertBodyTo(String.class)
                 .to("direct:transform.siri")
@@ -99,27 +119,47 @@ public class MessagingRoute extends RestRouteBuilder {
                 .process(p -> {
                     p.getMessage().setHeader(INTERNAL_PUBLISH_TO_KAFKA_FOR_APC_ENRICHMENT, enrichSiriData(p));
                 })
-                .setHeader(GooglePubsubConstants.ORDERING_KEY, () -> System.currentTimeMillis())
-                .bean(subscriptionManager, "dataReceived(${header.subscriptionId})")
+                .bean(subscriptionManager, "markSubscriptionActive(${header.subscriptionId})")
+                .process(convertHeadersToAttributes)
                 .to("direct:send.to.queue")
                 .end()
                 .routeId("add.to.queue")
         ;
 
-        from("direct:send.to.queue")
-                .autoStartup(true)
-                .choice()
-                .when(header(INTERNAL_PUBLISH_TO_KAFKA_FOR_APC_ENRICHMENT).isEqualTo(Boolean.TRUE))
-                    .removeHeader(INTERNAL_PUBLISH_TO_KAFKA_FOR_APC_ENRICHMENT)
-                    .log("Sending data to enrichment topic")
-                    .to("direct:anshar.enrich.siri.et")
-                .otherwise()
-                    .log("Sending data to topic ${header.target_topic}")
-                    .to("direct:compress.jaxb")
-                    .toD("${header.target_topic}")
-                .end()
-                ;
+        if (configuration.splitDataForProcessing()) {
+            log.info("Application configured to split all SIRI-data before processing");
+            from("direct:send.to.queue")
+                    .autoStartup(true)
+                    .choice()
+                        .when(header(INTERNAL_PUBLISH_TO_KAFKA_FOR_APC_ENRICHMENT).isEqualTo(Boolean.TRUE))
+                        .removeHeader(INTERNAL_PUBLISH_TO_KAFKA_FOR_APC_ENRICHMENT)
+                        .log("Sending data to enrichment topic")
+                        .to("direct:anshar.enrich.siri.et")
+                    .endChoice()
+                    .otherwise()
+                        .log("Sending split data to topic ${header.target_topic}")
+                        .to("xslt-saxon:xsl/split.xsl")
+                        .split().tokenizeXML("Siri").streaming()
+                        .to("direct:compress.jaxb")
+                        .toD("${header.target_topic}")
+                    .end()
+            ;
+        } else {
 
+            from("direct:send.to.queue")
+                    .autoStartup(true)
+                    .choice()
+                    .when(header(INTERNAL_PUBLISH_TO_KAFKA_FOR_APC_ENRICHMENT).isEqualTo(Boolean.TRUE))
+                        .removeHeader(INTERNAL_PUBLISH_TO_KAFKA_FOR_APC_ENRICHMENT)
+                        .log("Sending data to enrichment topic")
+                        .to("direct:anshar.enrich.siri.et")
+                    .otherwise()
+                        .log("Sending data to topic ${header.target_topic}")
+                        .to("direct:compress.jaxb")
+                        .toD("${header.target_topic}")
+                        .end()
+            ;
+        }
 
         from("direct:transform.siri")
                 .to("direct:set.mdc.subscriptionId")
@@ -162,70 +202,54 @@ public class MessagingRoute extends RestRouteBuilder {
 
         // When shutdown has been triggered - stop processing data from pubsub
         Predicate readFromPubsub = exchange -> adminRouteHelper.isNotShuttingDown();
-//        if (configuration.processData()) {
-//            from(pubsubQueueDefault + queueConsumerParameters)
-//                    .choice().when(readFromPubsub)
-//                    .log("Processing data from " + pubsubQueueDefault + ", size ${header.Content-Length}")
-//                    .to("direct:decompress.jaxb")
-//                    .to("direct:process.queue.default.async")
-//                    .endChoice()
-//                    .startupOrder(100004)
-//                    .routeId("incoming.transform.default")
-//            ;
-//        }
+
         if (configuration.processSX()) {
             from(pubsubQueueSX + queueConsumerParameters)
+                    .process(convertAttributesToHeaders)
                     .to("direct:set.mdc.subscriptionId")
                     .choice()
                         .when(readFromPubsub)
-                            .log("Processing data from " + pubsubQueueSX + ", size ${header.Content-Length}")
+                            .log("Processing data from " + pubsubQueueSX)
                             .to("direct:decompress.jaxb")
-                            .to("direct:process.queue.default.async")
+                            .to("direct:" + CamelRouteNames.PROCESSOR_QUEUE_DEFAULT)
                         .endChoice()
                     .end()
                     .to("direct:clear.mdc.subscriptionId")
-                    .startupOrder(100003)
                     .routeId("incoming.transform.sx")
             ;
         }
 
         if (configuration.processVM()) {
             from(pubsubQueueVM + queueConsumerParameters)
+                    .process(convertAttributesToHeaders)
                     .to("direct:set.mdc.subscriptionId")
                     .choice()
                         .when(readFromPubsub)
-                            .log("Processing data from " + pubsubQueueVM + ", size ${header.Content-Length}")
+                            .log("Processing data from " + pubsubQueueVM)
                             .to("direct:decompress.jaxb")
-                            .to("direct:process.queue.default.async")
+                            .to("direct:" + CamelRouteNames.PROCESSOR_QUEUE_DEFAULT)
                         .endChoice()
                     .end()
                     .to("direct:clear.mdc.subscriptionId")
-                    .startupOrder(100002)
                     .routeId("incoming.transform.vm")
             ;
         }
 
         if (configuration.processET()) {
             from(pubsubQueueET + queueConsumerParameters)
+                    .process(convertAttributesToHeaders)
                     .to("direct:set.mdc.subscriptionId")
                     .choice()
                         .when(readFromPubsub)
-                            .log("Processing data from " + pubsubQueueET + ", size ${header.Content-Length}")
+                            .log("Processing data from " + pubsubQueueET)
                             .to("direct:decompress.jaxb")
-                            .to("direct:process.queue.default.async")
+                            .to("direct:" + CamelRouteNames.PROCESSOR_QUEUE_DEFAULT)
                         .endChoice()
                     .end()
                     .to("direct:clear.mdc.subscriptionId")
-                    .startupOrder(100001)
                     .routeId("incoming.transform.et")
             ;
         }
-
-        from("direct:process.queue.default.async")
-            .wireTap("direct:" + CamelRouteNames.PROCESSOR_QUEUE_DEFAULT)
-            .routeId("process.queue.default.async")
-        ;
-
 
         from("direct:" + CamelRouteNames.PROCESSOR_QUEUE_DEFAULT)
                 .to("direct:set.mdc.subscriptionId")

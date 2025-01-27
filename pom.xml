@@ -21,7 +21,7 @@
   <parent>
       <groupId>org.entur.ror</groupId>
       <artifactId>superpom</artifactId>
-      <version>1.0.43</version>
+      <version>2.8</version>
   </parent>
 
 
@@ -36,17 +36,18 @@
 
         <!-- versions for use in mvn plugins as we cannot inherit them from a BOM -->
         <docker.maven.plugin.version>0.21.0</docker.maven.plugin.version>
-        <spring-boot-plugin.version>2.6.6</spring-boot-plugin.version>
-        <spring-boot.version>2.6.6</spring-boot.version>
+        <spring-boot-plugin.version>3.1.5</spring-boot-plugin.version>
+        <spring-boot.version>3.1.5</spring-boot.version>
 
-        <camel-version>3.18.0</camel-version>
+        <camel.version>4.2.0</camel.version>
 
-        <metrics.version>3.2.3</metrics.version>
-        <entur.helpers.version>1.0.80</entur.helpers.version>
-        <geotools.version>27.0</geotools.version>
+<!--        <metrics.version>3.2.3</metrics.version>-->
+        <entur.helpers.version>2.27</entur.helpers.version>
+        <geotools.version>30.0</geotools.version>
+        <avro.version>1.11.3</avro.version>
 
-        <!-- https://spring.io/blog/2021/12/10/log4j2-vulnerability-and-spring-boot -->
-        <log4j2.version>2.17.1</log4j2.version>
+        <log4j2.version>2.20.0</log4j2.version>
+        <confluent-kafka.version>7.4.1</confluent-kafka.version>
     </properties>
 
     <distributionManagement>
@@ -57,34 +58,9 @@
         </snapshotRepository>
     </distributionManagement>
 
-    <!-- Repository needs to be set up in nexus: repositories>
-        <repository>
-            <id>jclouds-snapshots</id>
-            <url>https://repository.apache.org/content/repositories/snapshots</url>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
-    </repositories -->
-
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>org.apache.camel</groupId>
-                <artifactId>camel-bom</artifactId>
-                <version>${camel-version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.camel.springboot</groupId>
-                <artifactId>camel-spring-boot-dependencies</artifactId>
-                <version>${camel-version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-            <dependency>
-                <!-- Import dependency management from Spring Boot -->
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
                 <version>${spring-boot.version}</version>
@@ -92,34 +68,13 @@
                 <scope>import</scope>
             </dependency>
             <dependency>
-                <groupId>org.entur.ror.helpers</groupId>
-                <artifactId>camel3-entur-google-pubsub</artifactId>
-                <version>${entur.helpers.version}</version>
+                <groupId>org.apache.camel.springboot</groupId>
+                <artifactId>camel-spring-boot-bom</artifactId>
+                <version>${camel.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
-            <dependency>
-                <groupId>org.entur.ror.helpers</groupId>
-                <artifactId>hazelcast4-helper</artifactId>
-                <version>${entur.helpers.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.entur.ror.helpers</groupId>
-                <artifactId>gcp-storage</artifactId>
-                <version>${entur.helpers.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>javax.servlet</groupId>
-                        <artifactId>servlet-api</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>io.netty</groupId>
-                        <artifactId>netty-codec-http2</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>com.google.protobuf</groupId>
-                        <artifactId>protobuf-lite</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
+
         </dependencies>
     </dependencyManagement>
 
@@ -128,169 +83,200 @@
             <groupId>net.logstash.logback</groupId>
             <artifactId>logstash-logback-encoder</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.apache.camel.springboot</groupId>
-            <artifactId>camel-spring-boot-starter</artifactId>
-            <version>${camel-version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.entur.ror.helpers</groupId>
-            <artifactId>gcp-storage</artifactId>
-            <version>${entur.helpers.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.entur.ror.helpers</groupId>
-            <artifactId>camel3-entur-google-pubsub</artifactId>
-            <version>${entur.helpers.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.camel</groupId>
-            <artifactId>camel-core</artifactId>
-            <version>${camel-version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.camel</groupId>
-            <artifactId>camel-http-common</artifactId>
-            <version>${camel-version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.camel</groupId>
-            <artifactId>camel-http</artifactId>
-            <version>${camel-version}</version>
-        </dependency>
-
-
-        <dependency>
-            <groupId>org.apache.camel</groupId>
-            <artifactId>camel-jetty</artifactId>
-            <version>${camel-version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.camel</groupId>
-            <artifactId>camel-jetty-common</artifactId>
-            <version>${camel-version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.camel</groupId>
-            <artifactId>camel-google-pubsub</artifactId>
-            <version>${camel-version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.google.cloud</groupId>
-            <artifactId>google-cloud-pubsub</artifactId>
-            <version>1.119.1</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.camel</groupId>
-            <artifactId>camel-jaxb</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.camel</groupId>
-            <artifactId>camel-jms</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.camel</groupId>
-            <artifactId>camel-quartz</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.camel</groupId>
-            <artifactId>camel-spring</artifactId>
-            <version>${camel-version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.camel</groupId>
-            <artifactId>camel-freemarker</artifactId>
-            <version>${camel-version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.camel</groupId>
-            <artifactId>camel-swagger-java</artifactId>
-            <version>${camel-version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.camel</groupId>
-            <artifactId>camel-xslt-saxon</artifactId>
-            <version>${camel-version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.camel</groupId>
-            <artifactId>camel-spring-security</artifactId>
-            <version>${camel-version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.camel</groupId>
-            <artifactId>camel-kafka</artifactId>
-            <version>${camel-version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.camel</groupId>
-            <artifactId>camel-hazelcast</artifactId>
-            <version>${camel-version}</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.camel</groupId>
-            <artifactId>camel-jackson</artifactId>
-            <version>${camel-version}</version>
-        </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
-        <dependency>
-            <groupId>io.micrometer</groupId>
-            <artifactId>micrometer-core</artifactId>
-            <version>1.9.0</version>
-        </dependency>
+        <!--Used by Spring Actuator to expose metrics to Prometheus-->
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-registry-prometheus</artifactId>
-            <version>1.9.0</version>
         </dependency>
 
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter</artifactId>
+            <groupId>org.apache.camel.springboot</groupId>
+            <artifactId>camel-spring-boot-starter</artifactId>
         </dependency>
 
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-configuration-processor</artifactId>
+            <groupId>org.apache.camel.springboot</groupId>
+            <artifactId>camel-micrometer-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.camel.springboot</groupId>
+            <artifactId>camel-servlet-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.camel.springboot</groupId>
+            <artifactId>camel-http-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.camel.springboot</groupId>
+            <artifactId>camel-jetty-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.camel.springboot</groupId>
+            <artifactId>camel-google-pubsub-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.camel.springboot</groupId>
+            <artifactId>camel-quartz-starter</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.cloud</groupId>
+            <artifactId>google-cloud-pubsub</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.camel.springboot</groupId>
+            <artifactId>camel-jackson-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.camel.springboot</groupId>
+            <artifactId>camel-jaxb-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.camel.springboot</groupId>
+            <artifactId>camel-xslt-saxon-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.camel.springboot</groupId>
+            <artifactId>camel-freemarker-starter</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.camel.springboot</groupId>
+            <artifactId>camel-openapi-java-starter</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.camel.springboot</groupId>
+            <artifactId>camel-hazelcast-starter</artifactId>
+        </dependency>
+
+        <dependency>
+            <!-- Upgrading Saxon-HE version as included version (11.4 - camel-xslt-saxon) causes ArrayIndexOutOfBoundsException -->
+            <groupId>net.sf.saxon</groupId>
+            <artifactId>Saxon-HE</artifactId>
+            <version>11.6</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.camel.springboot</groupId>
+            <artifactId>camel-spring-security-starter</artifactId>
+        </dependency>
+
+        <!-- camel-kafka-starter needed for automatic configuration-->
+        <dependency>
+            <groupId>org.apache.camel.springboot</groupId>
+            <artifactId>camel-kafka-starter</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.confluent</groupId>
+            <artifactId>kafka-avro-serializer</artifactId>
+            <version>${confluent-kafka.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.confluent</groupId>
+            <artifactId>kafka-schema-registry-client</artifactId>
+            <version>${confluent-kafka.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.confluent</groupId>
+            <artifactId>kafka-streams-avro-serde</artifactId>
+            <version>${confluent-kafka.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.annotation</groupId>
+            <artifactId>jakarta.annotation-api</artifactId>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/jakarta.ws.rs/jakarta.ws.rs-api -->
+        <dependency>
+            <groupId>jakarta.ws.rs</groupId>
+            <artifactId>jakarta.ws.rs-api</artifactId>
+            <version>3.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.xml.bind</groupId>
+            <artifactId>jakarta.xml.bind-api</artifactId>
+            <version>4.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.xml.bind</groupId>
+            <artifactId>jaxb-core</artifactId>
+            <version>4.0.4</version>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.xml.bind</groupId>
+            <artifactId>jaxb-impl</artifactId>
+            <version>4.0.4</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.jaxb</groupId>
+            <artifactId>jaxb-runtime</artifactId>
+            <version>4.0.4</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-xml</artifactId>
+            <version>2.17.2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.entur</groupId>
+            <artifactId>siri-avro-mapper</artifactId>
+            <version>2.5.10</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.avro</groupId>
+            <artifactId>avro</artifactId>
+            <version>${avro.version}</version>
+        </dependency>
+
+        <!-- Entur helpers -->
+        <dependency>
+            <groupId>org.entur.ror.helpers</groupId>
+            <artifactId>gcp-storage</artifactId>
+            <version>${entur.helpers.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.entur.ror.helpers</groupId>
             <artifactId>hazelcast4-helper</artifactId>
+            <version>${entur.helpers.version}</version>
         </dependency>
+
         <dependency>
             <groupId>com.hazelcast</groupId>
             <artifactId>hazelcast</artifactId>
-            <version>5.1.1</version>
+            <version>5.1.7</version>
         </dependency>
 
         <dependency>
             <groupId>org.entur</groupId>
             <artifactId>siri-java-model</artifactId>
-            <version>0.15</version>
+            <version>1.27</version>
         </dependency>
 
         <dependency>
             <groupId>org.entur</groupId>
             <artifactId>siri-protobuf-mapper</artifactId>
-            <version>0.9</version>
+            <version>1.0.3</version>
         </dependency>
         <dependency>
             <groupId>org.entur</groupId>
             <artifactId>netex-java-model</artifactId>
-            <version>1.0.13</version>
+            <version>2.0.15</version>
+        </dependency>
+        <dependency>
+            <groupId>org.entur</groupId>
+            <artifactId>netex-parser-java</artifactId>
+            <version>3.1.4</version>
         </dependency>
 
         <!-- Geotools needed for calculating speed between stops-->
@@ -309,7 +295,7 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-            <version>3.12.0</version>
+            <version>3.13.0</version>
         </dependency>
 
         <dependency>
@@ -319,9 +305,8 @@
         </dependency>
 
         <dependency>
-            <groupId>org.apache.camel</groupId>
-            <artifactId>camel-bean-validator</artifactId>
-            <version>${camel-version}</version>
+            <groupId>org.apache.camel.springboot</groupId>
+            <artifactId>camel-bean-validator-starter</artifactId>
         </dependency>
 
         <dependency>
@@ -334,7 +319,7 @@
         <dependency>
             <groupId>com.esotericsoftware</groupId>
             <artifactId>kryo-shaded</artifactId>
-            <version>4.0.2</version>
+            <version>4.0.3</version>
         </dependency>
 
         <dependency>
@@ -346,58 +331,49 @@
         <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
-            <version>20211205</version>
+            <version>20231013</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>32.1.3-jre</version>
         </dependency>
 
         <!-- testing -->
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-engine</artifactId>
-            <scope>test</scope>
-            <version>5.8.2</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-test</artifactId>
-            <scope>test</scope>
-        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-security</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.apache.camel</groupId>
             <artifactId>camel-test-junit5</artifactId>
-            <version>${camel-version}</version>
+            <version>${camel.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.camel</groupId>
             <artifactId>camel-test-spring-junit5</artifactId>
-            <version>${camel-version}</version>
+            <version>${camel.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>io.rest-assured</groupId>
             <artifactId>rest-assured</artifactId>
-            <version>4.5.1</version>
+            <version>5.5.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>io.rest-assured</groupId>
             <artifactId>json-path</artifactId>
-            <version>4.5.1</version>
+            <version>5.5.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>io.rest-assured</groupId>
             <artifactId>xml-path</artifactId>
-            <version>4.5.1</version>
+            <version>5.5.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -413,12 +389,12 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.10.1</version>
+                <version>3.11.0</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.22.2</version>
+                <version>3.1.2</version>
                 <inherited>true</inherited>
                 <configuration>
                     <excludes>
@@ -466,6 +442,45 @@
                     </artifactItems>
                 </configuration>
             </plugin>
+
+            <plugin>
+                <groupId>com.google.cloud.tools</groupId>
+                <artifactId>jib-maven-plugin</artifactId>
+                <version>3.4.3</version>
+                <configuration>
+                    <to>
+                        <image>${env.CONTAINER_REPO}</image>
+                        <auth>
+                            <username>${env.CONTAINER_REGISTRY_USER}</username>
+                            <password>${env.CONTAINER_REGISTRY_PASSWORD}</password>
+                        </auth>
+                    </to>
+                    <container>
+                        <!-- Same as EXPOSE, doesn't actually publish the ports but acts as documentation -->
+                        <ports>
+                            <port>8012</port>
+                        </ports>
+                    </container>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.avro</groupId>
+                <artifactId>avro-maven-plugin</artifactId>
+                <version>${avro.version}</version>
+                <executions>
+                    <execution>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>idl-protocol</goal>
+                        </goals>
+                        <configuration>
+                            <sourceDirectory>${project.basedir}/src/main/avro/</sourceDirectory>
+                            <outputDirectory>${project.basedir}/src/main/java/</outputDirectory>
+                            <fieldVisibility>PRIVATE</fieldVisibility>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 
@@ -474,18 +489,19 @@
             <id>central</id>
             <name>Maven Repository Switchboard</name>
             <layout>default</layout>
-            <url>https://repo.maven.apache.org/maven2</url>
-        </repository>
-        <repository>
-            <id>conveyal</id>
-            <name>conveyal</name>
-            <layout>default</layout>
-            <url>https://maven.conveyal.com</url>
+            <url>https://repo1.maven.org/maven2</url>
         </repository>
         <repository>
             <id>osgeo</id>
             <name>Open Source Geospatial Foundation Repository</name>
             <url>https://repo.osgeo.org/repository/release/</url>
+        </repository>
+
+        <!-- Kafka/SchemaRegistry-dependencies -->
+        <repository>
+            <id>confluent</id>
+            <name>Confluent Maven repo</name>
+            <url>https://packages.confluent.io/maven/</url>
         </repository>
     </repositories>
 </project>

@@ -33,6 +33,7 @@
                         "severity": "%level",
                         "breadcrumb": "%X{camel.breadcrumbId}",
                         "correlationId": "%X{camel.correlationId}",
+                        "subscriptionId": "%X{subscriptionId}",
                         "threadId": "%t",
                         "reportLocation": {
                             "filePath": "%logger",

@@ -15,13 +15,16 @@
 
 package no.rutebanken.anshar.subscription.helpers;
 
+import com.google.common.base.Objects;
+import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.routes.siri.handlers.OutboundIdMappingPolicy;
 import no.rutebanken.anshar.routes.siri.processor.CodespaceOutboundProcessor;
 import no.rutebanken.anshar.routes.siri.processor.RemoveEmojiPostProcessor;
-import no.rutebanken.anshar.routes.siri.processor.RuterOutboundDatedVehicleRefAdapter;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter;
 import no.rutebanken.anshar.subscription.SiriDataType;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import uk.org.ifopt.siri21.StopPlaceRef;
 import uk.org.siri.siri21.CourseOfJourneyRefStructure;
 import uk.org.siri.siri21.DestinationRef;
@@ -31,58 +34,105 @@ import uk.org.siri.siri21.RequestorRef;
 import uk.org.siri.siri21.StopPointRefStructure;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+
+@Component
 public class MappingAdapterPresets {
 
-    public static List<ValueAdapter> getOutboundAdapters(SiriDataType dataType, OutboundIdMappingPolicy outboundIdMappingPolicy) {
-        List<ValueAdapter> adapters = new ArrayList<>();
-        adapters.add(new OutboundIdAdapter(StopPointRefStructure.class, outboundIdMappingPolicy));
-        adapters.add(new OutboundIdAdapter(LineRef.class, outboundIdMappingPolicy));
-        adapters.add(new CodespaceOutboundProcessor(outboundIdMappingPolicy));
+    private Map<CacheKey, List<ValueAdapter>> adapterCache = new HashMap<>();
 
-        switch (dataType) {
-            case ESTIMATED_TIMETABLE:
-                adapters.add(new OutboundIdAdapter(JourneyPlaceRefStructure.class, outboundIdMappingPolicy));
-                adapters.add(new OutboundIdAdapter(DestinationRef.class, outboundIdMappingPolicy));
-                break;
-            case VEHICLE_MONITORING:
-                adapters.add(new OutboundIdAdapter(JourneyPlaceRefStructure.class, outboundIdMappingPolicy));
-                adapters.add(new OutboundIdAdapter(DestinationRef.class, outboundIdMappingPolicy));
-                adapters.add(new OutboundIdAdapter(CourseOfJourneyRefStructure.class, outboundIdMappingPolicy));
-                adapters.add(new RuterOutboundDatedVehicleRefAdapter(MappingAdapterPresets.class, outboundIdMappingPolicy));
-                break;
-            case SITUATION_EXCHANGE:
-                adapters.add(new OutboundIdAdapter(RequestorRef.class, outboundIdMappingPolicy));
-                adapters.add(new OutboundIdAdapter(StopPlaceRef.class, outboundIdMappingPolicy));
-                adapters.add(new RemoveEmojiPostProcessor(outboundIdMappingPolicy));
-                break;
-            default:
-                return getOutboundAdapters(outboundIdMappingPolicy);
+    private final boolean disableAllMappingAdapters;
+
+    public MappingAdapterPresets(@Autowired AnsharConfiguration configuration) {
+        if (configuration == null) {
+            disableAllMappingAdapters = false;
+        } else {
+            disableAllMappingAdapters = configuration.isDisableAllMappingAdapters();
         }
-        return adapters;
     }
 
-    public static List<ValueAdapter> getOutboundAdapters(OutboundIdMappingPolicy outboundIdMappingPolicy) {
-        List<ValueAdapter> adapters = new ArrayList<>();
-        adapters.add(new OutboundIdAdapter(LineRef.class, outboundIdMappingPolicy));
-        adapters.add(new OutboundIdAdapter(StopPointRefStructure.class, outboundIdMappingPolicy));
-        adapters.add(new OutboundIdAdapter(StopPlaceRef.class, outboundIdMappingPolicy));
-        adapters.add(new OutboundIdAdapter(JourneyPlaceRefStructure.class, outboundIdMappingPolicy));
-        adapters.add(new OutboundIdAdapter(DestinationRef.class, outboundIdMappingPolicy));
-        adapters.add(new OutboundIdAdapter(CourseOfJourneyRefStructure.class, outboundIdMappingPolicy));
+    public List<ValueAdapter> getOutboundAdapters(SiriDataType dataType, OutboundIdMappingPolicy outboundIdMappingPolicy) {
+        if (disableAllMappingAdapters) {
+            return Collections.emptyList();
+        }
 
-        //Adapter for SIRI-SX ParticipantRef
-        adapters.add(new OutboundIdAdapter(RequestorRef.class, outboundIdMappingPolicy));
+        CacheKey key = new CacheKey(dataType, outboundIdMappingPolicy);
+        if (!adapterCache.containsKey(key)) {
+            List<ValueAdapter> adapters = new ArrayList<>();
+            adapters.add(new OutboundIdAdapter(StopPointRefStructure.class, outboundIdMappingPolicy));
+            adapters.add(new OutboundIdAdapter(LineRef.class, outboundIdMappingPolicy));
+            adapters.add(new CodespaceOutboundProcessor(outboundIdMappingPolicy));
 
-        //Adding postprocessor for Ruter DatedVehicleRef
-        adapters.add(new RuterOutboundDatedVehicleRefAdapter(MappingAdapterPresets.class, outboundIdMappingPolicy));
+            switch (dataType) {
+                case ESTIMATED_TIMETABLE:
+                case VEHICLE_MONITORING:
+                    adapters.add(new OutboundIdAdapter(JourneyPlaceRefStructure.class, outboundIdMappingPolicy));
+                    adapters.add(new OutboundIdAdapter(DestinationRef.class, outboundIdMappingPolicy));
+                    break;
+                case SITUATION_EXCHANGE:
+                    adapters.add(new OutboundIdAdapter(RequestorRef.class, outboundIdMappingPolicy));
+                    adapters.add(new OutboundIdAdapter(StopPlaceRef.class, outboundIdMappingPolicy));
+                    adapters.add(new RemoveEmojiPostProcessor(outboundIdMappingPolicy));
+                    break;
+                default:
+                    adapters = getOutboundAdapters(outboundIdMappingPolicy);
+            }
+            adapterCache.put(key, adapters);
+        }
+        return adapterCache.get(key);
+    }
 
-        // Adding postprocessor for removing emojis etc. from SX-messages
-        adapters.add(new RemoveEmojiPostProcessor(outboundIdMappingPolicy));
+    public List<ValueAdapter> getOutboundAdapters(OutboundIdMappingPolicy outboundIdMappingPolicy) {
+        if (disableAllMappingAdapters) {
+            return Collections.emptyList();
+        }
+        CacheKey key = new CacheKey(null, outboundIdMappingPolicy);
+        if (!adapterCache.containsKey(key)) {
+            List<ValueAdapter> adapters = new ArrayList<>();
+            adapters.add(new OutboundIdAdapter(LineRef.class, outboundIdMappingPolicy));
+            adapters.add(new OutboundIdAdapter(StopPointRefStructure.class, outboundIdMappingPolicy));
+            adapters.add(new OutboundIdAdapter(StopPlaceRef.class, outboundIdMappingPolicy));
+            adapters.add(new OutboundIdAdapter(JourneyPlaceRefStructure.class, outboundIdMappingPolicy));
+            adapters.add(new OutboundIdAdapter(DestinationRef.class, outboundIdMappingPolicy));
+            adapters.add(new OutboundIdAdapter(CourseOfJourneyRefStructure.class, outboundIdMappingPolicy));
 
-        // Postprocessor to set "correct" datasource/codespaceId
-        adapters.add(new CodespaceOutboundProcessor(outboundIdMappingPolicy));
-        return adapters;
+            //Adapter for SIRI-SX ParticipantRef
+            adapters.add(new OutboundIdAdapter(RequestorRef.class, outboundIdMappingPolicy));
+
+            // Adding postprocessor for removing emojis etc. from SX-messages
+            adapters.add(new RemoveEmojiPostProcessor(outboundIdMappingPolicy));
+
+            // Postprocessor to set "correct" datasource/codespaceId
+            adapters.add(new CodespaceOutboundProcessor(outboundIdMappingPolicy));
+
+            adapterCache.put(key, adapters);
+        }
+        return adapterCache.get(key);
+    }
+}
+class CacheKey {
+    private final SiriDataType dataType;
+    private final OutboundIdMappingPolicy outboundIdMappingPolicy;
+
+    public CacheKey(SiriDataType dataType, OutboundIdMappingPolicy outboundIdMappingPolicy) {
+        this.dataType = dataType;
+        this.outboundIdMappingPolicy = outboundIdMappingPolicy;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        CacheKey cacheKey = (CacheKey) o;
+        return dataType == cacheKey.dataType && outboundIdMappingPolicy == cacheKey.outboundIdMappingPolicy;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(dataType, outboundIdMappingPolicy);
     }
 }

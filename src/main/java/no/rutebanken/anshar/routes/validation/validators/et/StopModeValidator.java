@@ -1,5 +1,6 @@
 package no.rutebanken.anshar.routes.validation.validators.et;
 
+import jakarta.xml.bind.ValidationEvent;
 import no.rutebanken.anshar.routes.siri.processor.routedata.InvalidVehicleModeForStopException;
 import no.rutebanken.anshar.routes.siri.processor.routedata.StopsUtil;
 import no.rutebanken.anshar.routes.validation.validators.SiriObjectValidator;
@@ -18,7 +19,6 @@ import uk.org.siri.siri21.RecordedCall;
 import uk.org.siri.siri21.Siri;
 import uk.org.siri.siri21.VehicleModesEnumeration;
 
-import javax.xml.bind.ValidationEvent;
 import java.util.List;
 
 import static no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter.getMappedId;

@@ -72,7 +72,10 @@ public class HeartbeatRoute extends BaseRouteBuilder {
                             } else if (!heartbeatTimestampMap.containsKey(subscriptionId)) {
                                 final long heartbeatInterval = outboundSubscriptionSetup.getHeartbeatInterval();
 
-                                Siri heartbeatNotification = siriObjectFactory.createHeartbeatNotification(outboundSubscriptionSetup.getSubscriptionId());
+                                Siri heartbeatNotification = siriObjectFactory.createHeartbeatNotification(
+                                        outboundSubscriptionSetup.getSubscriptionId(),
+                                        resolveVersion(outboundSubscriptionSetup)
+                                );
                                 camelRouteManager.pushSiriData(heartbeatNotification, outboundSubscriptionSetup, true);
 
                                 heartbeatTimestampMap.put(subscriptionId, Instant.now(), heartbeatInterval, TimeUnit.MILLISECONDS);
@@ -84,5 +87,14 @@ public class HeartbeatRoute extends BaseRouteBuilder {
                 })
             .endChoice()
         ;
+    }
+
+    private String resolveVersion(OutboundSubscriptionSetup outboundSubscriptionSetup) {
+        switch (outboundSubscriptionSetup.getSiriVersion()) {
+            case VERSION_2_1:
+                return "2.1";
+            default:
+                return "2.0";
+        }
     }
 }

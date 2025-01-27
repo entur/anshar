@@ -21,13 +21,11 @@ import no.rutebanken.anshar.data.collections.ExtendedHazelcastService;
 import no.rutebanken.anshar.data.util.TimingTracer;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.subscription.SiriDataType;
-import org.quartz.utils.counter.Counter;
-import org.quartz.utils.counter.CounterImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Repository;
+import org.springframework.stereotype.Component;
 import uk.org.siri.siri21.HalfOpenTimestampOutputRangeStructure;
 import uk.org.siri.siri21.MessageRefStructure;
 import uk.org.siri.siri21.PtSituationElement;
@@ -47,9 +45,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-@Repository
+@Component
 public class Situations extends SiriRepository<PtSituationElement> {
     private final Logger logger = LoggerFactory.getLogger(Situations.class);
 
@@ -144,7 +143,7 @@ public class Situations extends SiriRepository<PtSituationElement> {
     @Override
     public void clearAllByDatasetId(String datasetId) {
 
-        Set<SiriObjectStorageKey> idsToRemove = situationElements.keySet(createCodespacePredicate(datasetId));
+        Set<SiriObjectStorageKey> idsToRemove = situationElements.keySet(createHzCodespacePredicate(datasetId));
 
         logger.warn("Removing all data ({} ids) for {}", idsToRemove.size(), datasetId);
 
@@ -186,26 +185,20 @@ public class Situations extends SiriRepository<PtSituationElement> {
         Set<SiriObjectStorageKey> requestedIds = idSet.stream()
                 .filter(key -> datasetId == null || key.getCodespaceId().equals(datasetId))
                 .collect(Collectors.toSet());
-        long t1 = System.currentTimeMillis();
+        long start = System.currentTimeMillis();
 
         Set<SiriObjectStorageKey> sizeLimitedIds = requestedIds.stream().limit(maxSize).collect(Collectors.toSet());
-        logger.info("Limiting size: {} ms", (System.currentTimeMillis()-t1));
-        t1 = System.currentTimeMillis();
 
         Boolean isMoreData = sizeLimitedIds.size() < requestedIds.size();
 
         //Remove collected objects
         sizeLimitedIds.forEach(idSet::remove);
-        logger.info("Limiting size: {} ms", (System.currentTimeMillis()-t1));
-        t1 = System.currentTimeMillis();
 
         Collection<PtSituationElement> values = situationElements.getAll(sizeLimitedIds).values();
-        logger.info("Fetching data: {} ms", (System.currentTimeMillis()-t1));
-        t1 = System.currentTimeMillis();
 
         Siri siri = siriObjectFactory.createSXServiceDelivery(values);
         siri.getServiceDelivery().setMoreData(isMoreData);
-        logger.info("Creating SIRI-delivery: {} ms", (System.currentTimeMillis()-t1));
+        logger.info("Creating SIRI-delivery: {} ms", (System.currentTimeMillis()-start));
 
         if (isAdHocRequest) {
             logger.info("Returning {}, no requestorRef is set", sizeLimitedIds.size());
@@ -306,9 +299,32 @@ public class Situations extends SiriRepository<PtSituationElement> {
         Map<SiriObjectStorageKey, PtSituationElement> changes = new HashMap<>();
         Map<SiriObjectStorageKey, String> checksumTmp = new HashMap<>();
 
-        Counter alreadyExpiredCounter = new CounterImpl(0);
-        Counter ignoredCounter = new CounterImpl(0);
-        sxList.forEach(situation -> {
+        AtomicInteger alreadyExpiredCounter = new AtomicInteger(0);
+        AtomicInteger ignoredCounter = new AtomicInteger(0);
+        sxList.stream()
+                .forEach(situation -> {
+
+            if (situation.getSituationNumber() == null) {
+                logger.warn("SituationNumber is null, skipping");
+                return;
+            }
+
+            if (situation.getInfoLinks() != null) {
+                PtSituationElement.InfoLinks infoLinks = situation.getInfoLinks();
+
+                boolean removedInfoLinks = infoLinks.getInfoLinks().removeIf(infoLink ->
+                        infoLink.getUri() == null ||
+                        infoLink.getUri().isEmpty());
+
+                if (removedInfoLinks) {
+                    logger.warn("Removed infoLinks with null URI");
+                    if (infoLinks.getInfoLinks().isEmpty()) {
+                        // no infoLinks left
+                        situation.setInfoLinks(null);
+                    }
+                }
+            }
+
             TimingTracer timingTracer = new TimingTracer("single-sx");
 
             SiriObjectStorageKey key = createKey(datasetId, situation);
@@ -368,10 +384,10 @@ public class Situations extends SiriRepository<PtSituationElement> {
                     timingTracer.mark("checksumCache.remove");
                 }
                 if (expiration < 0) {
-                    alreadyExpiredCounter.increment();
+                    alreadyExpiredCounter.incrementAndGet();
                 }
             } else {
-                ignoredCounter.increment();
+                ignoredCounter.incrementAndGet();
             }
 
             long elapsed = timingTracer.getTotalTime();
@@ -381,14 +397,14 @@ public class Situations extends SiriRepository<PtSituationElement> {
         });
         TimingTracer timingTracer = new TimingTracer("all-sx [" + changes.size() + " changes]");
 
-        logger.info("Updated {} (of {}) :: Already expired: {}, Unchanged: {}", changes.size(), sxList.size(), alreadyExpiredCounter.getValue(), ignoredCounter.getValue());
+        logger.info("Updated {} (of {}) :: Already expired: {}, Unchanged: {}", changes.size(), sxList.size(), alreadyExpiredCounter.get(), ignoredCounter.get());
 
         checksumCache.setAll(checksumTmp);
         timingTracer.mark("checksumCache.setAll");
         situationElements.setAll(changes);
         timingTracer.mark("monitoredVehicles.setAll");
 
-        markDataReceived(SiriDataType.SITUATION_EXCHANGE, datasetId, sxList.size(), changes.size(), alreadyExpiredCounter.getValue(), ignoredCounter.getValue());
+        markDataReceived(SiriDataType.SITUATION_EXCHANGE, datasetId, sxList.size(), changes.size(), alreadyExpiredCounter.get(), ignoredCounter.get());
         timingTracer.mark("markDataReceived");
 
         markIdsAsUpdated(changes.keySet());

@@ -16,6 +16,7 @@
 package no.rutebanken.anshar.routes.admin;
 
 import com.google.common.net.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.data.collections.ExtendedHazelcastService;
 import no.rutebanken.anshar.routes.RestRouteBuilder;
@@ -34,16 +35,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 
-import javax.ws.rs.core.MediaType;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static no.rutebanken.anshar.routes.admin.AdminRouteHelper.mergeJsonStats;
@@ -403,10 +400,9 @@ public class AdministrationRoute extends RestRouteBuilder {
                 .process(p -> {
                     helper.shutdownTriggered = true;
 
-                    final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
-
-                    executorService.schedule(() -> getContext().shutdown(), 5, TimeUnit.SECONDS);
-                    executorService.schedule(() -> extendedHazelcastService.shutdown(), 10, TimeUnit.SECONDS);
+//                    final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
+//
+//                    executorService.schedule(() -> getContext().shutdown(), 500, TimeUnit.MILLISECONDS);
 
                 })
                 .routeId("admin.prepare.shutdown")

@@ -15,15 +15,13 @@
 
 package no.rutebanken.anshar.siri;
 
+import jakarta.xml.bind.JAXBException;
+import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.integration.SpringBootBaseTest;
-import no.rutebanken.anshar.routes.siri.adapters.NsrValueAdapters;
 import no.rutebanken.anshar.routes.siri.handlers.OutboundIdMappingPolicy;
 import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.routes.siri.transformer.impl.LeftPaddingAdapter;
-import no.rutebanken.anshar.routes.siri.transformer.impl.RuterSubstringAdapter;
-import no.rutebanken.anshar.subscription.SiriDataType;
-import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import no.rutebanken.anshar.subscription.helpers.MappingAdapterPresets;
 import org.junit.jupiter.api.Test;
 import uk.org.siri.siri21.BlockRefStructure;
@@ -36,12 +34,12 @@ import uk.org.siri.siri21.LineRef;
 import uk.org.siri.siri21.ServiceDelivery;
 import uk.org.siri.siri21.Siri;
 
-import javax.xml.bind.JAXBException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
 import java.util.List;
 
+import static no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer.SEPARATOR;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -84,7 +82,7 @@ public class SiriValueTransformerTest extends SpringBootBaseTest {
 
         assertEquals(lineRefValue, getLineRefFromSiriObj(siri));
         assertEquals(blockRefValue, getBlockRefFromSiriObj(siri));
-        String paddedLineRef = lineRefValue + SiriValueTransformer.SEPARATOR + "0099";
+        String paddedLineRef = "0099";
 
         List<ValueAdapter> mappingAdapters = new ArrayList<>();
         mappingAdapters.add(new LeftPaddingAdapter(LineRef.class, 4, '0'));
@@ -97,94 +95,22 @@ public class SiriValueTransformerTest extends SpringBootBaseTest {
     }
 
     @Test
-    public void testMultipleLineRefAdapters() throws JAXBException {
-        String lineRefValue = "123:4";
-        String blockRefValue = "";
-
-        Siri siri = createSiriObject(lineRefValue, blockRefValue);
-
-        assertEquals(lineRefValue, getLineRefFromSiriObj(siri));
-        assertEquals(blockRefValue, getBlockRefFromSiriObj(siri));
-        String paddedLineRef = lineRefValue + SiriValueTransformer.SEPARATOR + "012304";
-
-        List<ValueAdapter> mappingAdapters = new ArrayList<>();
-        mappingAdapters.add(new RuterSubstringAdapter(LineRef.class, ':', '0', 2));
-        mappingAdapters.add(new LeftPaddingAdapter(LineRef.class, 6, '0'));
-
-        siri = SiriValueTransformer.transform(siri, mappingAdapters);
-
-        assertEquals(paddedLineRef, getLineRefFromSiriObj(siri), "LineRef has not been padded as expected");
-        assertEquals(blockRefValue, getBlockRefFromSiriObj(siri), "BlockRef should not be padded");
-
-    }
-
-    @Test
     public void testOutboundMappingAdapters() throws JAXBException {
-        String lineRefValue = "123:4";
-        String blockRefValue = "";
-        String mappedLineRefValue = "TEST:Line:012304";
+        String lineRefValue = "1234";
+        String mappedLineRefValue ="TEST:Line:"+lineRefValue;
+        String paddedLineRefValue = lineRefValue + SEPARATOR + mappedLineRefValue;
 
-        Siri siri = createSiriObject(lineRefValue, blockRefValue);
+        Siri siri = createSiriObject(paddedLineRefValue, null);
 
-        assertEquals(lineRefValue, getLineRefFromSiriObj(siri));
-        assertEquals(blockRefValue, getBlockRefFromSiriObj(siri));
-        String paddedLineRef = lineRefValue + SiriValueTransformer.SEPARATOR + mappedLineRefValue;
+        assertEquals(paddedLineRefValue, getLineRefFromSiriObj(siri), "LineRef not set correctly");
 
-        List<ValueAdapter> mappingAdapters = new ArrayList<>();
-        mappingAdapters.add(new RuterSubstringAdapter(LineRef.class, ':', '0', 2));
-        mappingAdapters.add(new LeftPaddingAdapter(LineRef.class, 6, '0'));
-        SubscriptionSetup subscriptionSetup = new SubscriptionSetup();
-        subscriptionSetup.setDatasetId("TEST");
-        subscriptionSetup.setSubscriptionType(SiriDataType.ESTIMATED_TIMETABLE);
+        MappingAdapterPresets mappingAdapterPresets = new MappingAdapterPresets(new AnsharConfiguration());
 
-        mappingAdapters.addAll(new NsrValueAdapters().createIdPrefixAdapters(subscriptionSetup));
-
-        siri = SiriValueTransformer.transform(siri, mappingAdapters);
-
-        assertEquals(paddedLineRef, getLineRefFromSiriObj(siri), "LineRef has not been padded as expected");
-        assertEquals(blockRefValue, getBlockRefFromSiriObj(siri), "BlockRef should not be padded");
-
-        Siri mappedIdSiri = SiriValueTransformer.transform(siri, MappingAdapterPresets.getOutboundAdapters(OutboundIdMappingPolicy.DEFAULT));
+        Siri mappedIdSiri = SiriValueTransformer.transform(siri, mappingAdapterPresets.getOutboundAdapters(OutboundIdMappingPolicy.DEFAULT));
         assertEquals(mappedLineRefValue, getLineRefFromSiriObj(mappedIdSiri), "Outbound adapters did not return mapped id");
 
-        Siri originalIdSiri = SiriValueTransformer.transform(siri, MappingAdapterPresets.getOutboundAdapters(OutboundIdMappingPolicy.ORIGINAL_ID));
+        Siri originalIdSiri = SiriValueTransformer.transform(siri, mappingAdapterPresets.getOutboundAdapters(OutboundIdMappingPolicy.ORIGINAL_ID));
         assertEquals(lineRefValue, getLineRefFromSiriObj(originalIdSiri), "Outbound adapters did not return original id");
-
-    }
-
-    @Test
-    public void testLongLineRefRuterSubstring() throws JAXBException {
-        String lineRefValue = "9999:123";
-
-        Siri siri = createSiriObject(lineRefValue, null);
-
-        assertEquals(lineRefValue, getLineRefFromSiriObj(siri));
-        String trimmedLineRef = lineRefValue + SiriValueTransformer.SEPARATOR + "9999123";
-
-        List<ValueAdapter> mappingAdapters = new ArrayList<>();
-        mappingAdapters.add(new RuterSubstringAdapter(LineRef.class, ':', '0', 2));
-
-        siri = SiriValueTransformer.transform(siri, mappingAdapters);
-
-        assertEquals(trimmedLineRef, getLineRefFromSiriObj(siri), "LineRef has not been trimmed as expected");
-
-    }
-
-    @Test
-    public void testShortLineRefRuterSubstring() throws JAXBException {
-        String lineRefValue = "9999:3";
-
-        Siri siri = createSiriObject(lineRefValue, null);
-
-        assertEquals(lineRefValue, getLineRefFromSiriObj(siri));
-        String trimmedLineRef = lineRefValue + SiriValueTransformer.SEPARATOR + "999903";
-
-        List<ValueAdapter> mappingAdapters = new ArrayList<>();
-        mappingAdapters.add(new RuterSubstringAdapter(LineRef.class, ':', '0', 2));
-
-        siri = SiriValueTransformer.transform(siri, mappingAdapters);
-
-        assertEquals(trimmedLineRef, getLineRefFromSiriObj(siri), "LineRef has not been trimmed as expected");
 
     }
 
@@ -197,7 +123,7 @@ public class SiriValueTransformerTest extends SpringBootBaseTest {
 
         assertEquals(lineRefValue, getLineRefFromSiriObj(siri));
         assertEquals(blockRefValue, getBlockRefFromSiriObj(siri));
-        String paddedBlockRef = blockRefValue + SiriValueTransformer.SEPARATOR + "0034";
+        String paddedBlockRef = blockRefValue + SEPARATOR + "0034";
 
         List<ValueAdapter> mappingAdapters = new ArrayList<>();
         mappingAdapters.add(new LeftPaddingAdapter(BlockRefStructure.class, 4, '0'));
@@ -219,8 +145,8 @@ public class SiriValueTransformerTest extends SpringBootBaseTest {
         assertEquals(lineRefValue, getLineRefFromSiriObj(siri));
         assertEquals(blockRefValue, getBlockRefFromSiriObj(siri));
 
-        String paddedLineRef = lineRefValue + SiriValueTransformer.SEPARATOR + "0099";
-        String paddedBlockRef = blockRefValue + SiriValueTransformer.SEPARATOR + "0034";
+        String paddedLineRef = "0099";
+        String paddedBlockRef = blockRefValue + SEPARATOR + "0034";
 
         List<ValueAdapter> mappingAdapters = new ArrayList<>();
         mappingAdapters.add(new LeftPaddingAdapter(BlockRefStructure.class, 4, '0'));
@@ -245,8 +171,8 @@ public class SiriValueTransformerTest extends SpringBootBaseTest {
         assertEquals(lineRefValue, getLineRefFromSiriObj(siri));
         assertEquals(blockRefValue, getBlockRefFromSiriObj(siri));
 
-        String paddedLineRef = lineRefValue + SiriValueTransformer.SEPARATOR + "0099";
-        String paddedBlockRef = blockRefValue + SiriValueTransformer.SEPARATOR + "0034";
+        String paddedLineRef = "0099";
+        String paddedBlockRef = blockRefValue + SEPARATOR + "0034";
 
         List<ValueAdapter> mappingAdapters = new ArrayList<>();
         mappingAdapters.add(new LeftPaddingAdapter(BlockRefStructure.class, 4, '0'));

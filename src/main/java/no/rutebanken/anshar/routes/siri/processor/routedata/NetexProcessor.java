@@ -15,6 +15,10 @@
 
 package no.rutebanken.anshar.routes.siri.processor.routedata;
 
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Unmarshaller;
 import org.apache.commons.io.IOUtils;
 import org.rutebanken.netex.model.AllVehicleModesOfTransportEnumeration;
 import org.rutebanken.netex.model.Common_VersionFrameStructure;
@@ -40,18 +44,14 @@ import org.rutebanken.netex.model.ServiceCalendarFrame;
 import org.rutebanken.netex.model.ServiceFrame;
 import org.rutebanken.netex.model.ServiceJourney;
 import org.rutebanken.netex.model.SiteFrame;
+import org.rutebanken.netex.model.Site_VersionStructure;
 import org.rutebanken.netex.model.StopAssignment_VersionStructure;
 import org.rutebanken.netex.model.StopAssignmentsInFrame_RelStructure;
 import org.rutebanken.netex.model.StopPlace;
 import org.rutebanken.netex.model.StopPointInJourneyPattern;
 import org.rutebanken.netex.model.TimetableFrame;
 import org.rutebanken.netex.model.TimetabledPassingTime;
-import org.rutebanken.netex.model.VehicleModeEnumeration;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -87,7 +87,7 @@ public class NetexProcessor {
     private Map<String, List<ServiceDate>> tripDates = new HashMap<>();
     private static Map<String, String> parentStops = new HashMap<>();
     private Map<String, LocationStructure> locations = new HashMap<>();
-    private Map<String, VehicleModeEnumeration> modes = new HashMap<>();
+    private Map<String, AllVehicleModesOfTransportEnumeration> modes = new HashMap<>();
 
     static {
         try {
@@ -128,7 +128,7 @@ public class NetexProcessor {
         return locations;
     }
 
-    public Map<String, VehicleModeEnumeration> getModes() {
+    public Map<String, AllVehicleModesOfTransportEnumeration> getModes() {
         return modes;
     }
 
@@ -331,7 +331,7 @@ public class NetexProcessor {
                 for (JAXBElement assignment : assignments) {
                     if (assignment.getValue() instanceof PassengerStopAssignment) {
                         PassengerStopAssignment passengerStopAssignment =  (PassengerStopAssignment) assignment.getValue();
-                        String quayRef = passengerStopAssignment.getQuayRef().getRef();
+                        String quayRef = passengerStopAssignment.getQuayRef().getValue().getRef();
                         quayIdByStopPointRef.put(passengerStopAssignment.getScheduledStopPointRef().getValue().getRef(), quayRef);
                     }
                 }
@@ -359,21 +359,22 @@ public class NetexProcessor {
         if (commonFrame.getValue() instanceof SiteFrame) {
             SiteFrame sf = (SiteFrame) commonFrame.getValue();
             if (sf.getStopPlaces() != null) {
-                List<StopPlace> stopPlaces = sf.getStopPlaces().getStopPlace();
-                for (StopPlace stopPlace : stopPlaces) {
+                List<JAXBElement<? extends Site_VersionStructure>> stopPlaces = sf.getStopPlaces().getStopPlace_();
+                for (JAXBElement<? extends Site_VersionStructure> jaxbStopPlace : stopPlaces) {
+                    StopPlace stopPlace = (StopPlace) jaxbStopPlace.getValue();
                     String parentId = stopPlace.getId();
 
                     if (stopPlace.getCentroid() != null && stopPlace.getCentroid().getLocation() != null) {
                         locations.put(stopPlace.getId(), stopPlace.getCentroid().getLocation());
                     }
-                    VehicleModeEnumeration mode = null;
+                    AllVehicleModesOfTransportEnumeration mode = null;
                     if (stopPlace.getTransportMode() != null) {
                          mode = stopPlace.getTransportMode();
                          modes.put(stopPlace.getId(), mode);
                     }
 
                     if (stopPlace.getQuays() != null) {
-                        List<Object> quayRefOrQuay = stopPlace.getQuays().getQuayRefOrQuay();
+                        List<JAXBElement<?>> quayRefOrQuay = stopPlace.getQuays().getQuayRefOrQuay();
                         for (Object o : quayRefOrQuay) {
                             if (o instanceof Quay) {
                                 Quay quay = (Quay) o;

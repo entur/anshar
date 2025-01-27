@@ -24,6 +24,7 @@ import com.hazelcast.map.listener.EntryExpiredListener;
 import com.hazelcast.map.listener.EntryRemovedListener;
 import com.hazelcast.map.listener.EntryUpdatedListener;
 import com.hazelcast.query.Predicate;
+import jakarta.xml.bind.DatatypeConverter;
 import no.rutebanken.anshar.data.collections.ExtendedHazelcastService;
 import no.rutebanken.anshar.metrics.PrometheusMetricsService;
 import no.rutebanken.anshar.routes.siri.transformer.ApplicationContextHolder;
@@ -34,7 +35,6 @@ import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.SerializationUtils;
 
-import javax.xml.bind.DatatypeConverter;
 import java.io.Serializable;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
@@ -53,8 +53,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-
-import static no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer.SEPARATOR;
 
 abstract class SiriRepository<T> {
 
@@ -203,10 +201,10 @@ abstract class SiriRepository<T> {
     public Collection<T> getAllCachedUpdates(
             String requestorId, String datasetId, String clientTrackingName
     ) {
-        return getAllCachedUpdates(requestorId, datasetId, clientTrackingName, null);
+        return getAllCachedUpdates(requestorId, datasetId, null, clientTrackingName, null);
     }
     public Collection<T> getAllCachedUpdates(
-            String requestorId, String datasetId, String clientTrackingName, Integer maxSize
+            String requestorId, String datasetId, String lineRef, String clientTrackingName, Integer maxSize
     ) {
         if (maxSize == null) {
             maxSize = Integer.MAX_VALUE;
@@ -224,7 +222,8 @@ abstract class SiriRepository<T> {
                     Set<SiriObjectStorageKey> changes = changesMap.get(requestorId);
 
                     changes = changes.stream()
-                        .filter((k) -> datasetId == null || k.getCodespaceId().equals(datasetId))
+                        .filter((k) -> datasetId == null || codespaceMatches(datasetId, k))
+                        .filter((k) -> lineRef == null || lineRefMatches(lineRef, k))
                         .limit(maxSize)
                         .collect(Collectors.toSet());
 
@@ -252,7 +251,8 @@ abstract class SiriRepository<T> {
             .entrySet()
             .stream()
             .filter((entry) -> entry.getValue() != null)
-            .filter((entry) -> datasetId == null || entry.getKey().getCodespaceId().equals(datasetId))
+            .filter((entry) -> datasetId == null || codespaceMatches(datasetId, entry.getKey()))
+            .filter((entry) -> lineRef == null || lineRefMatches(lineRef, entry.getKey()))
             .limit(maxSize)
             .map(Map.Entry::getValue)
             .collect(Collectors.toList());
@@ -272,8 +272,10 @@ abstract class SiriRepository<T> {
 
         hazelcastService.addBeforeShuttingDownHook(() -> {
             while (!dirtyChanges.isEmpty()) {
+                logger.info("Shutdown triggered - committing {} changes", dirtyChanges.size());
                 commitChanges();
             }
+            logger.info("ShutDownHook finished");
         });
     }
 
@@ -383,7 +385,7 @@ abstract class SiriRepository<T> {
      */
     Collection<T> getValuesByDatasetId(IMap<SiriObjectStorageKey, T> collection, String datasetId) {
 
-        final Set<SiriObjectStorageKey> codespaceKeys = collection.keySet(createCodespacePredicate(datasetId));
+        final Set<SiriObjectStorageKey> codespaceKeys = collection.keySet(createHzCodespacePredicate(datasetId));
 
         return collection.getAll(codespaceKeys).values();
     }
@@ -418,28 +420,34 @@ abstract class SiriRepository<T> {
     abstract void clearAllByDatasetId(String datasetId);
 
 
-    Predicate<SiriObjectStorageKey, T> createCodespacePredicate(String datasetId) {
+    Predicate<SiriObjectStorageKey, T> createHzCodespacePredicate(String datasetId) {
         return entry -> {
-            if (entry.getKey().getCodespaceId() != null) {
-                final String codespaceId = entry.getKey().getCodespaceId();
-                return codespaceId.equals(datasetId);
-            }
-            return false;
+            return codespaceMatches(datasetId, entry.getKey());
         };
     }
 
-    Predicate<SiriObjectStorageKey, T> createLineRefPredicate(String lineRef) {
+    Predicate<SiriObjectStorageKey, T> createHzLineRefPredicate(String lineRef) {
         return entry -> {
-            String decodedLine = URLDecoder.decode(lineRef, StandardCharsets.UTF_8);
-            if (entry.getKey().getLineRef() != null) {
-                final String ref = entry.getKey().getLineRef();
-
-                return ref.startsWith(decodedLine + SEPARATOR) ||
-                        ref.endsWith(SEPARATOR + decodedLine) ||
-                        ref.equalsIgnoreCase(decodedLine);
-            }
-            return false;
+            return lineRefMatches(lineRef, entry.getKey());
         };
+    }
+
+    private static boolean codespaceMatches(String datasetId, SiriObjectStorageKey entry) {
+        if (entry.getCodespaceId() != null) {
+            final String codespaceId = entry.getCodespaceId();
+            return codespaceId.equals(datasetId);
+        }
+        return false;
+    }
+
+    private static boolean lineRefMatches(String lineRef, SiriObjectStorageKey entry) {
+        String decodedLine = URLDecoder.decode(lineRef, StandardCharsets.UTF_8);
+        if (entry.getLineRef() != null) {
+            final String ref = entry.getLineRef();
+
+            return ref.equalsIgnoreCase(decodedLine);
+        }
+        return false;
     }
 
     /**

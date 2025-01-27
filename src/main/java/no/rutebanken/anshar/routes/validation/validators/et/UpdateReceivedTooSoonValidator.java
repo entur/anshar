@@ -15,17 +15,15 @@
 
 package no.rutebanken.anshar.routes.validation.validators.et;
 
+import jakarta.xml.bind.ValidationEvent;
 import no.rutebanken.anshar.routes.validation.validators.TimeValidator;
 import no.rutebanken.anshar.routes.validation.validators.Validator;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Node;
 
-import javax.xml.bind.ValidationEvent;
-
-import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeParseException;
+import java.time.temporal.ChronoUnit;
 
 import static no.rutebanken.anshar.routes.validation.validators.Constants.ESTIMATED_CALLS;
 
@@ -40,7 +38,7 @@ public class UpdateReceivedTooSoonValidator extends TimeValidator {
 
     private static final String FIELDNAME = "EstimatedCall";
     private static final int DAYS = 7;
-    private static final long MAX_TIME_UNTIL_FIRST_DEPARTURE = 24*3600*DAYS;
+    private static final long MAX_HOURS_UNTIL_FIRST_DEPARTURE = 24*DAYS;
     private String path = ESTIMATED_CALLS;
     private String arrivalFieldName = "AimedArrivalTime";
     private String departureFieldName = "AimedDepartureTime";
@@ -64,13 +62,12 @@ public class UpdateReceivedTooSoonValidator extends TimeValidator {
         }
         if (firstAimedTime != null) {
             ZonedDateTime aimed = parseDate(firstAimedTime);
+            ZonedDateTime currentTime = ZonedDateTime.now();
 
-            final long departureTime = aimed.toEpochSecond();
-            final long now = ZonedDateTime.now().toEpochSecond();
-            final long timeUntilDeparture = departureTime - now;
+            long timeUntilDeparture = ChronoUnit.HOURS.between(currentTime, aimed);
 
-            if (timeUntilDeparture > MAX_TIME_UNTIL_FIRST_DEPARTURE) {
-                return createCustomFieldEvent(node, "Realtime data received more than " + DAYS + " days ahead - aimed start [" + aimed + "]" , ValidationEvent.WARNING);
+            if (timeUntilDeparture > MAX_HOURS_UNTIL_FIRST_DEPARTURE) {
+                return createCustomFieldEvent(node, "Realtime data received more than " + DAYS + " days ahead - aimed start [" + aimed + "], current time ["+ currentTime+"]" , ValidationEvent.WARNING);
             }
         }
         return null;

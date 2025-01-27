@@ -28,7 +28,6 @@ public class ProtobufConverterRoute extends RouteBuilder {
                     p.getOut().setHeader(CONTENT_LENGTH, body.getBytes().length);
                 })
                 .bean(kryoSerializer, "write")
-                .log("Compressing - done")
         ;
 
         from("direct:decompress.jaxb")
@@ -38,7 +37,6 @@ public class ProtobufConverterRoute extends RouteBuilder {
                     p.getOut().setBody(body);
                     p.getOut().setHeaders(p.getIn().getHeaders());
                 })
-                .log("Decompressing - done")
         ;
 
 

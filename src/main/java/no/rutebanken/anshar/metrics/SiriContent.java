@@ -5,8 +5,13 @@ public enum SiriContent {
     STOP_CANCELLATION("Stop cancelled"),
     QUAY_CHANGED("Quay changed"),
     EXTRA_JOURNEY("Trip added"),
+    EXTRA_CALL("Stop added"),
     OCCUPANCY_TRIP("Trip-occupancy"),
-    OCCUPANCY_STOP("Stop-occupancy");
+    OCCUPANCY_STOP("Stop-occupancy"),
+    DESTINATION_DISPLAY("DestinationDisplay defined"),
+    TOO_FAR_AHEAD("Update received more than 7 days ahead"),
+    EXTENSION_REMOVED("Extension removed"),
+    ;
 
     private final String label;
 
@@ -29,13 +34,16 @@ public enum SiriContent {
             case QUAY_CHANGED:
                 return ContentGroup.CHANGE;
             case EXTRA_JOURNEY:
+            case EXTRA_CALL:
                 return ContentGroup.ADDED;
+            case DESTINATION_DISPLAY:
+                return ContentGroup.MISC;
             default:
                 return ContentGroup.UNKNOWN;
         }
     }
 
     enum ContentGroup {
-        CANCELLATION, OCCUPANCY, CHANGE, ADDED, UNKNOWN
+        CANCELLATION, OCCUPANCY, CHANGE, ADDED, MISC, UNKNOWN
     }
 }

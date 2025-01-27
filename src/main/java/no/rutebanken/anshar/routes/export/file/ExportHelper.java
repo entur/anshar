@@ -33,24 +33,27 @@ public class ExportHelper {
     @Autowired
     private SiriHelper siriHelper;
 
+    @Autowired
+    private MappingAdapterPresets mappingAdapterPresets;
+
 
     public Siri exportET() {
         return transform(siriHelper.getAllET(),
-            MappingAdapterPresets.getOutboundAdapters(
+            mappingAdapterPresets.getOutboundAdapters(
                 SiriDataType.ESTIMATED_TIMETABLE,
                 OutboundIdMappingPolicy.DEFAULT)
         );
     }
     public Siri exportSX() {
         return transform(siriHelper.getAllSX(),
-            MappingAdapterPresets.getOutboundAdapters(
+            mappingAdapterPresets.getOutboundAdapters(
                 SiriDataType.SITUATION_EXCHANGE,
                 OutboundIdMappingPolicy.DEFAULT)
         );
     }
     public Siri exportVM() {
         return transform(siriHelper.getAllVM(),
-            MappingAdapterPresets.getOutboundAdapters(SiriDataType.VEHICLE_MONITORING,
+            mappingAdapterPresets.getOutboundAdapters(SiriDataType.VEHICLE_MONITORING,
                 OutboundIdMappingPolicy.DEFAULT)
         );
     }

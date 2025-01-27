@@ -15,6 +15,8 @@
 
 package no.rutebanken.anshar.routes.siri;
 
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.core.MediaType;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.routes.RestRouteBuilder;
 import no.rutebanken.anshar.routes.dataformat.SiriDataFormatHelper;
@@ -33,8 +35,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 import uk.org.siri.siri21.Siri;
 
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.core.MediaType;
 import java.io.InputStream;
 import java.util.List;
 
@@ -132,11 +132,11 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
         from("direct:process.incoming.request")
                 .to("direct:set.mdc.subscriptionId")
                 .removeHeaders("<Siri*") //Since Camel 3, entire body is also included as header
-                .to("log:incoming:" + getClass().getSimpleName() + "?showAll=true&multiline=true&showStreams=true")
+//                .to("log:incoming:" + getClass().getSimpleName() + "?showAll=true&multiline=true&showStreams=true")
                 .choice()
                     .when(e -> subscriptionExistsAndIsActive(e))
                         //Valid subscription
-                        .to("seda:async.process.request?waitForTaskToComplete=Never")
+                        .wireTap("direct:async.process.request")
                         .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
                         .setBody(constant(null))
                     .endChoice()
@@ -152,7 +152,7 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
             .routeId("process.incoming")
                 ;
 
-        from("seda:async.process.request?concurrentConsumers=20")
+        from("direct:async.process.request")
             .to("direct:set.mdc.subscriptionId")
             .convertBodyTo(String.class)
             .process(p -> {
@@ -186,6 +186,7 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
                             .wireTap("direct:process.sx.subscription.request")
                             .to("direct:internal.handle.subscription") //Build response
                     .endChoice()
+                .endChoice()
                 .otherwise()
                     .to("direct:anshar.invalid.tracking.header.response")
                 .routeId("process.subscription")
@@ -324,7 +325,7 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
             e.getOut().setHeaders(e.getIn().getHeaders());
             e.getOut().setBody(e.getIn().getBody());
 
-            if (!"2.0".equals(subscriptionSetup.getVersion())) {
+            if ("1.4".equals(subscriptionSetup.getVersion())) {
                 e.getOut().setHeader(TRANSFORM_VERSION, TRANSFORM_VERSION);
             }
 

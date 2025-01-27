@@ -19,8 +19,7 @@ import no.rutebanken.anshar.data.EstimatedTimetables;
 import no.rutebanken.anshar.data.Situations;
 import no.rutebanken.anshar.data.VehicleActivities;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
-import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
-import no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter;
+import org.entur.siri.validator.SiriValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,6 +57,7 @@ import java.util.Set;
 @Component
 public class SiriHelper {
 
+    public static final String FALLBACK_SIRI_VERSION = "2.1";
     private static final Logger logger = LoggerFactory.getLogger(SiriHelper.class);
 
 
@@ -332,11 +332,7 @@ public class SiriHelper {
     }
 
     private static boolean isLineRefMatch(Set<String> linerefValues, String completeValue) {
-        if (completeValue.contains(SiriValueTransformer.SEPARATOR)) {
-            String mappedId = OutboundIdAdapter.getMappedId(completeValue);
-            String originalId = OutboundIdAdapter.getOriginalId(completeValue);
-            return linerefValues.contains(mappedId) || linerefValues.contains(originalId);
-        } else return linerefValues.contains(completeValue);
+        return linerefValues.contains(completeValue);
     }
 
     private static void filterVehicleRef(Siri siri, Set<String> vehiclerefValues) {
@@ -426,6 +422,23 @@ public class SiriHelper {
         }
 
         return siri;
+    }
+
+    public static String resolveSiriVersionStr(SiriValidator.Version version) {
+        switch (version) {
+            case VERSION_1_0:
+                return "1.0";
+            case VERSION_1_3:
+                return "1.3";
+            case VERSION_1_4:
+                return "1.4";
+            case VERSION_2_0:
+                return "2.0";
+            case VERSION_2_1:
+                return "2.1";
+            default:
+                return FALLBACK_SIRI_VERSION;
+        }
     }
 
     public Siri getAllVM() {

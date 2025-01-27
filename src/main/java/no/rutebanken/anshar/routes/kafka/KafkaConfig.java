@@ -39,6 +39,7 @@ public abstract class KafkaConfig extends RouteBuilder {
     protected String createConsumerConfig(String topicName) {
         String config = topicName;
         config += "?brokers=" + brokers;
+        config += "&valueDeserializer=org.apache.kafka.common.serialization.StringDeserializer";
         config += "&clientId=" + clientId;
         config += "&groupId=" + clientId;
         config += "&securityProtocol=" + securityProtocol;
@@ -50,6 +51,7 @@ public abstract class KafkaConfig extends RouteBuilder {
     protected String createProducerConfig(String topicName) {
         String config = topicName;
         config += "?brokers=" + brokers;
+        config += "&valueSerializer=org.apache.kafka.common.serialization.StringSerializer";
         config += "&compressionCodec=" + compressionType;
         config += "&clientId=" + clientId;
         config += "&securityProtocol=" + securityProtocol;

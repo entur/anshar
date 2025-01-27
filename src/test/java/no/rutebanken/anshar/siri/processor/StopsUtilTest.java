@@ -3,8 +3,8 @@ package no.rutebanken.anshar.siri.processor;
 import no.rutebanken.anshar.routes.siri.processor.routedata.NetexUpdaterService;
 import no.rutebanken.anshar.routes.siri.processor.routedata.StopsUtil;
 import org.junit.jupiter.api.Test;
+import org.rutebanken.netex.model.AllVehicleModesOfTransportEnumeration;
 import org.rutebanken.netex.model.LocationStructure;
-import org.rutebanken.netex.model.VehicleModeEnumeration;
 
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
@@ -57,6 +57,35 @@ public class StopsUtilTest {
     }
 
     @Test
+    public void testInfiniteSpeed() {
+        String fromRef = "NSR:Quay:47719"; // Mento
+        String toRef = "NSR:Quay:44786";   // Risavika utenriksterminal
+
+        BigDecimal fromLon = new BigDecimal(5.584158);
+        BigDecimal fromLat = new BigDecimal(58.917911);
+
+        BigDecimal toLon = new BigDecimal(5.582071);
+        BigDecimal toLat = new BigDecimal(58.921065);
+
+        NetexUpdaterService.locations.put(fromRef,
+                new LocationStructure().withLatitude(fromLat).withLongitude(fromLon)
+        );
+        NetexUpdaterService.locations.put(toRef,
+                new LocationStructure().withLatitude(toLat).withLongitude(toLon)
+        );
+
+        final double distance = StopsUtil.getDistance(fromRef, toRef);
+        assertTrue(((int)distance) == 371); // Verifying approximate distance
+
+
+        // Verifying cornercase when arrival-/departure-times are equal
+        ZonedDateTime now = ZonedDateTime.now();
+        final int speedKph = StopsUtil.calculateSpeedKph(fromRef, toRef, now, now );
+
+        assertEquals(Integer.MAX_VALUE,  speedKph);
+    }
+
+    @Test
     public void testSimpleSpeedCalculation() {
 
         final int tenMetersPerSecond = StopsUtil.calculateSpeedKph(100,
@@ -77,7 +106,7 @@ public class StopsUtilTest {
     @Test
     public void testModeVerification() {
         final String osloS = "NSR:StopPlace:337";
-        NetexUpdaterService.modes.put(osloS, VehicleModeEnumeration.RAIL);
+        NetexUpdaterService.modes.put(osloS, AllVehicleModesOfTransportEnumeration.RAIL);
 
         assertFalse(StopsUtil.doesVehicleModeMatchStopMode(List.of(BUS), osloS));
         assertFalse(StopsUtil.doesVehicleModeMatchStopMode(List.of(COACH), osloS));

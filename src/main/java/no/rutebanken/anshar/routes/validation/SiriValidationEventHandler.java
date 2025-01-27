@@ -15,11 +15,11 @@
 
 package no.rutebanken.anshar.routes.validation;
 
+import jakarta.xml.bind.ValidationEvent;
+import jakarta.xml.bind.ValidationEventHandler;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
-import javax.xml.bind.ValidationEvent;
-import javax.xml.bind.ValidationEventHandler;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;

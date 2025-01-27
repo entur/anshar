@@ -15,6 +15,8 @@
 
 package no.rutebanken.anshar.routes.siri.handlers;
 
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.UnmarshalException;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.data.EstimatedTimetables;
 import no.rutebanken.anshar.data.Situations;
@@ -55,15 +57,12 @@ import uk.org.siri.siri21.VehicleMonitoringDeliveryStructure;
 import uk.org.siri.siri21.VehicleMonitoringRequestStructure;
 import uk.org.siri.siri21.VehicleRef;
 
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.UnmarshalException;
-import javax.xml.datatype.Duration;
 import javax.xml.stream.XMLStreamException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -106,6 +105,9 @@ public class SiriHandler {
 
     @Autowired
     private PrometheusMetricsService metrics;
+
+    @Autowired
+    private MappingAdapterPresets mappingAdapterPresets;
 
     public Siri handleIncomingSiri(String subscriptionId, InputStream xml) throws UnmarshalException {
         return handleIncomingSiri(subscriptionId, xml, null, -1);
@@ -197,7 +199,7 @@ public class SiriHandler {
                 metrics.countOutgoingData(serviceResponse, SubscriptionSetup.SubscriptionMode.REQUEST_RESPONSE);
                 return SiriValueTransformer.transform(
                     serviceResponse,
-                    MappingAdapterPresets.getOutboundAdapters(dataType, OutboundIdMappingPolicy.DEFAULT),
+                    mappingAdapterPresets.getOutboundAdapters(dataType, OutboundIdMappingPolicy.DEFAULT),
                     false,
                     false
                 );
@@ -287,7 +289,7 @@ public class SiriHandler {
                 long previewIntervalInMillis = -1;
 
                 if (previewInterval != null) {
-                    previewIntervalInMillis = previewInterval.getTimeInMillis(new Date());
+                    previewIntervalInMillis = previewInterval.toMillis();
                 }
 
                 serviceResponse = estimatedTimetables.createServiceDelivery(requestorRef, datasetId, clientTrackingName, excludedDatasetIdList, maxSize, previewIntervalInMillis);
@@ -298,7 +300,7 @@ public class SiriHandler {
                 metrics.countOutgoingData(serviceResponse, SubscriptionSetup.SubscriptionMode.REQUEST_RESPONSE);
                 return SiriValueTransformer.transform(
                     serviceResponse,
-                    MappingAdapterPresets.getOutboundAdapters(dataType, outboundIdMappingPolicy),
+                    mappingAdapterPresets.getOutboundAdapters(dataType, outboundIdMappingPolicy),
                     false,
                     false
                 );
@@ -332,10 +334,10 @@ public class SiriHandler {
             } catch (IOException e) {
                 receivedBytes = 0;
             }
-long t1 = System.currentTimeMillis();
+            long t1 = System.currentTimeMillis();
             Siri incoming = SiriXml.parseXml(xml);
-long t2 = System.currentTimeMillis();
-            logger.info("Parsing XML took {} ms, {} bytes", (t2-t1), receivedBytes);
+
+            logger.info("Parsing XML took {} ms, {} bytes", (System.currentTimeMillis() -t1), receivedBytes);
             if (incoming == null) {
                 return;
             }
@@ -349,11 +351,9 @@ long t2 = System.currentTimeMillis();
             } else if (incoming.getSubscriptionResponse() != null) {
                 SubscriptionResponseStructure subscriptionResponse = incoming.getSubscriptionResponse();
                 subscriptionResponse.getResponseStatuses().forEach(responseStatus -> {
-                    if (responseStatus.isStatus() == null ||
-                        (responseStatus.isStatus() != null && responseStatus.isStatus())) {
+                    if (responseStatus.isStatus() == null || responseStatus.isStatus()) {
 
                         // If no status is provided it is handled as "true"
-
                         subscriptionManager.activatePendingSubscription(subscriptionId);
                     }
                 });
@@ -368,167 +368,42 @@ long t2 = System.currentTimeMillis();
             } else if (incoming.getServiceDelivery() != null) {
                 boolean deliveryContainsData = false;
                 healthManager.dataReceived();
+                List addedOrUpdated = new ArrayList();
+                SiriDataType subscriptionType = subscriptionSetup.getSubscriptionType();
 
-                if (subscriptionSetup.getSubscriptionType().equals(SiriDataType.SITUATION_EXCHANGE)) {
+                if (subscriptionType.equals(SiriDataType.SITUATION_EXCHANGE)) {
                     List<SituationExchangeDeliveryStructure> situationExchangeDeliveries = incoming.getServiceDelivery().getSituationExchangeDeliveries();
                     logger.info("Got SX-delivery: Subscription [{}]", subscriptionSetup);
 
-                    List<PtSituationElement> addedOrUpdated = new ArrayList<>();
-                    if (situationExchangeDeliveries != null) {
-                        situationExchangeDeliveries.forEach(sx -> {
-                                    if (sx != null) {
-                                        if (sx.isStatus() != null && !sx.isStatus()) {
-                                            logger.info(getErrorContents(sx.getErrorCondition()));
-                                        } else {
-                                            if (sx.getSituations() != null && sx.getSituations().getPtSituationElements() != null) {
-                                                if (subscriptionSetup.isUseProvidedCodespaceId()) {
-                                                    Map<String, List<PtSituationElement>> situationsByCodespace = splitSituationsByCodespace(sx.getSituations().getPtSituationElements());
-                                                    for (String codespace : situationsByCodespace.keySet()) {
-
-                                                        // List containing added situations for current codespace
-                                                        List<PtSituationElement> addedSituations = new ArrayList();
-
-                                                        addedSituations.addAll(situations.addAll(
-                                                            codespace,
-                                                            situationsByCodespace.get(codespace)
-                                                        ));
-
-                                                        // Push updates to subscribers on this codespace
-                                                        serverSubscriptionManager.pushUpdatesAsync(subscriptionSetup.getSubscriptionType(), addedSituations, codespace);
-
-                                                        // Add to complete list of added situations
-                                                        addedOrUpdated.addAll(addedSituations);
-
-                                                    }
-
-                                                } else {
-
-                                                    addedOrUpdated.addAll(situations.addAll(
-                                                        subscriptionSetup.getDatasetId(),
-                                                        sx.getSituations().getPtSituationElements()
-                                                    ));
-                                                    serverSubscriptionManager.pushUpdatesAsync(subscriptionSetup.getSubscriptionType(), addedOrUpdated, subscriptionSetup.getDatasetId());
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                        );
-                    }
-                    deliveryContainsData = addedOrUpdated.size() > 0;
-
-                    subscriptionManager.incrementObjectCounter(subscriptionSetup, addedOrUpdated.size());
+                    addedOrUpdated = handlePtSituations(situationExchangeDeliveries, subscriptionSetup);
 
                     logger.info("Active SX-elements: {}, current delivery: {}, {}", situations.getSize(), addedOrUpdated.size(), subscriptionSetup);
-                }
-                if (subscriptionSetup.getSubscriptionType().equals(SiriDataType.VEHICLE_MONITORING)) {
+                } else if (subscriptionType.equals(SiriDataType.VEHICLE_MONITORING)) {
+
                     List<VehicleMonitoringDeliveryStructure> vehicleMonitoringDeliveries = incoming.getServiceDelivery().getVehicleMonitoringDeliveries();
                     logger.info("Got VM-delivery: Subscription [{}] {}", subscriptionSetup, subscriptionSetup.forwardPositionData() ? "- Position only":"");
 
-                    List<VehicleActivityStructure> addedOrUpdated = new ArrayList<>();
-                    if (vehicleMonitoringDeliveries != null) {
-                        vehicleMonitoringDeliveries.forEach(vm -> {
-                                    if (vm != null) {
-                                        if (vm.isStatus() != null && !vm.isStatus()) {
-                                            logger.info(getErrorContents(vm.getErrorCondition()));
-                                        } else {
-                                            if (vm.getVehicleActivities() != null) {
-                                                if (subscriptionSetup.isUseProvidedCodespaceId()) {
-                                                    Map<String, List<VehicleActivityStructure>> vehiclesByCodespace = splitVehicleMonitoringByCodespace(vm.getVehicleActivities());
-                                                    for (String codespace : vehiclesByCodespace.keySet()) {
+                    addedOrUpdated = handleVehicleActivities(vehicleMonitoringDeliveries, subscriptionSetup);
 
-                                                        // List containing added situations for current codespace
-                                                        List<VehicleActivityStructure> addedVehicles = new ArrayList();
-
-                                                        addedVehicles.addAll(vehicleActivities.addAll(
-                                                                codespace,
-                                                                vehiclesByCodespace.get(codespace)
-                                                        ));
-
-                                                        // Push updates to subscribers on this codespace
-                                                        serverSubscriptionManager.pushUpdatesAsync(subscriptionSetup.getSubscriptionType(), addedVehicles, codespace);
-
-                                                        // Add to complete list of added situations
-                                                        addedOrUpdated.addAll(addedVehicles);
-
-                                                    }
-
-                                                } else {
-                                                    addedOrUpdated.addAll(
-                                                            vehicleActivities.addAll(subscriptionSetup.getDatasetId(), vm.getVehicleActivities())
-                                                    );
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                        );
-                    }
-
-                    deliveryContainsData = deliveryContainsData || (addedOrUpdated.size() > 0);
-
-                    serverSubscriptionManager.pushUpdatesAsync(subscriptionSetup.getSubscriptionType(), addedOrUpdated, subscriptionSetup.getDatasetId());
-
-                    subscriptionManager.incrementObjectCounter(subscriptionSetup, addedOrUpdated.size());
 
                     logger.info("Active VM-elements: {}, current delivery: {}, {}", vehicleActivities.getSize(), addedOrUpdated.size(), subscriptionSetup);
-                }
-                if (subscriptionSetup.getSubscriptionType().equals(SiriDataType.ESTIMATED_TIMETABLE)) {
+                } else if (subscriptionType.equals(SiriDataType.ESTIMATED_TIMETABLE)) {
                     List<EstimatedTimetableDeliveryStructure> estimatedTimetableDeliveries = incoming.getServiceDelivery().getEstimatedTimetableDeliveries();
                     logger.info("Got ET-delivery: Subscription {}", subscriptionSetup);
 
-                    List<EstimatedVehicleJourney> addedOrUpdated = new ArrayList<>();
-                    if (estimatedTimetableDeliveries != null) {
-                        estimatedTimetableDeliveries.forEach(et -> {
-                                    if (et != null) {
-                                        if (et.isStatus() != null && !et.isStatus()) {
-                                            logger.info(getErrorContents(et.getErrorCondition()));
-                                        } else {
-                                            if (et.getEstimatedJourneyVersionFrames() != null) {
-                                                et.getEstimatedJourneyVersionFrames().forEach(versionFrame -> {
-                                                    if (versionFrame != null && versionFrame.getEstimatedVehicleJourneies() != null) {
-                                                        if (subscriptionSetup.isUseProvidedCodespaceId()) {
-                                                            Map<String, List<EstimatedVehicleJourney>> journeysByCodespace = splitEstimatedTimetablesByCodespace(versionFrame.getEstimatedVehicleJourneies());
-                                                            for (String codespace : journeysByCodespace.keySet()) {
-
-                                                                // List containing added situations for current codespace
-                                                                List<EstimatedVehicleJourney> addedJourneys = new ArrayList();
-
-                                                                addedJourneys.addAll(estimatedTimetables.addAll(
-                                                                        codespace,
-                                                                        journeysByCodespace.get(codespace)
-                                                                ));
-
-                                                                // Push updates to subscribers on this codespace
-                                                                serverSubscriptionManager.pushUpdatesAsync(subscriptionSetup.getSubscriptionType(), addedJourneys, codespace);
-
-                                                                // Add to complete list of added situations
-                                                                addedOrUpdated.addAll(addedJourneys);
-
-                                                            }
-
-                                                        } else {
-                                                            addedOrUpdated.addAll(
-                                                                    estimatedTimetables.addAll(subscriptionSetup.getDatasetId(), versionFrame.getEstimatedVehicleJourneies())
-                                                            );
-                                                        }
-                                                    }
-                                                });
-                                            }
-                                        }
-                                    }
-                                }
-                        );
-                    }
-
-                    deliveryContainsData = deliveryContainsData || (addedOrUpdated.size() > 0);
-
-                    serverSubscriptionManager.pushUpdatesAsync(subscriptionSetup.getSubscriptionType(), addedOrUpdated, subscriptionSetup.getDatasetId());
-
-                    subscriptionManager.incrementObjectCounter(subscriptionSetup, addedOrUpdated.size());
+                    addedOrUpdated = handleEstimatedTimetables(estimatedTimetableDeliveries, subscriptionSetup);
 
                     logger.info("Active ET-elements: {}, current delivery: {}, {}", estimatedTimetables.getSize(), addedOrUpdated.size(), subscriptionSetup);
                 }
+
+                deliveryContainsData = deliveryContainsData || (!addedOrUpdated.isEmpty());
+
+                if (!subscriptionSetup.isUseProvidedCodespaceId()) {
+                    // Subscription is not separated on provided codespaceId, push updates to all subscribers
+                    serverSubscriptionManager.pushUpdatesAsync(subscriptionType, addedOrUpdated, subscriptionSetup.getDatasetId());
+                }
+
+                subscriptionManager.incrementObjectCounter(subscriptionSetup, addedOrUpdated.size());
 
                 if (deliveryContainsData) {
                     subscriptionManager.dataReceived(subscriptionId, receivedBytes);
@@ -545,6 +420,142 @@ long t2 = System.currentTimeMillis();
         } else {
             logger.debug("ServiceDelivery for invalid subscriptionId [{}] ignored.", subscriptionId);
         }
+    }
+
+    private List<PtSituationElement> handlePtSituations(List<SituationExchangeDeliveryStructure> situationExchangeDeliveries, SubscriptionSetup subscriptionSetup) {
+        List<PtSituationElement> addedOrUpdated = new ArrayList<>();
+        if (situationExchangeDeliveries != null) {
+            situationExchangeDeliveries.forEach(sx -> {
+                        if (sx != null) {
+                            if (sx.isStatus() != null && !sx.isStatus()) {
+                                logger.info(getErrorContents(sx.getErrorCondition()));
+                            } else {
+                                if (sx.getSituations() != null && sx.getSituations().getPtSituationElements() != null) {
+                                    List<PtSituationElement> ptSituationElements = sx.getSituations().getPtSituationElements();
+                                    if (subscriptionSetup.isUseProvidedCodespaceId()) {
+                                        Map<String, List<PtSituationElement>> situationsByCodespace = splitSituationsByCodespace(ptSituationElements);
+                                        for (String codespace : situationsByCodespace.keySet()) {
+
+                                            // List containing added situations for current codespace
+                                            List<PtSituationElement> addedSituations = new ArrayList();
+
+                                            addedSituations.addAll(situations.addAll(
+                                                codespace,
+                                                situationsByCodespace.get(codespace)
+                                            ));
+
+                                            // Push updates to subscribers on this codespace
+                                            serverSubscriptionManager.pushUpdatesAsync(subscriptionSetup.getSubscriptionType(), addedSituations, codespace);
+
+                                            // Add to complete list of added situations
+                                            addedOrUpdated.addAll(addedSituations);
+
+                                        }
+
+                                    } else {
+
+                                        addedOrUpdated.addAll(situations.addAll(
+                                            subscriptionSetup.getDatasetId(),
+                                                ptSituationElements
+                                        ));
+                                    }
+                                }
+                            }
+                        }
+                    }
+            );
+        }
+        return addedOrUpdated;
+    }
+
+    private List<EstimatedVehicleJourney> handleEstimatedTimetables(List<EstimatedTimetableDeliveryStructure> estimatedTimetableDeliveries, SubscriptionSetup subscriptionSetup) {
+        List<EstimatedVehicleJourney> addedOrUpdated = new ArrayList<>();
+        if (estimatedTimetableDeliveries != null) {
+            estimatedTimetableDeliveries.forEach(et -> {
+                        if (et != null) {
+                            if (et.isStatus() != null && !et.isStatus()) {
+                                logger.info(getErrorContents(et.getErrorCondition()));
+                            } else {
+                                if (et.getEstimatedJourneyVersionFrames() != null) {
+                                    et.getEstimatedJourneyVersionFrames().forEach(versionFrame -> {
+                                        if (versionFrame != null && versionFrame.getEstimatedVehicleJourneies() != null) {
+                                            if (subscriptionSetup.isUseProvidedCodespaceId()) {
+                                                Map<String, List<EstimatedVehicleJourney>> journeysByCodespace = splitEstimatedTimetablesByCodespace(versionFrame.getEstimatedVehicleJourneies());
+                                                for (String codespace : journeysByCodespace.keySet()) {
+
+                                                    // List containing added situations for current codespace
+                                                    List<EstimatedVehicleJourney> addedJourneys = new ArrayList();
+
+                                                    addedJourneys.addAll(estimatedTimetables.addAll(
+                                                            codespace,
+                                                            journeysByCodespace.get(codespace)
+                                                    ));
+
+                                                    // Push updates to subscribers on this codespace
+                                                    serverSubscriptionManager.pushUpdatesAsync(subscriptionSetup.getSubscriptionType(), addedJourneys, codespace);
+
+                                                    // Add to complete list of added situations
+                                                    addedOrUpdated.addAll(addedJourneys);
+
+                                                }
+
+                                            } else {
+                                                addedOrUpdated.addAll(
+                                                        estimatedTimetables.addAll(subscriptionSetup.getDatasetId(), versionFrame.getEstimatedVehicleJourneies())
+                                                );
+                                            }
+                                        }
+                                    });
+                                }
+                            }
+                        }
+                    }
+            );
+        }
+        return addedOrUpdated;
+    }
+
+    private List<VehicleActivityStructure> handleVehicleActivities(List<VehicleMonitoringDeliveryStructure> vehicleMonitoringDeliveries, SubscriptionSetup subscriptionSetup) {
+        List<VehicleActivityStructure> addedOrUpdated = new ArrayList<>();
+        if (vehicleMonitoringDeliveries != null) {
+            vehicleMonitoringDeliveries.forEach(vm -> {
+                        if (vm != null) {
+                            if (vm.isStatus() != null && !vm.isStatus()) {
+                                logger.info(getErrorContents(vm.getErrorCondition()));
+                            } else {
+                                if (vm.getVehicleActivities() != null) {
+                                    if (subscriptionSetup.isUseProvidedCodespaceId()) {
+                                        Map<String, List<VehicleActivityStructure>> vehiclesByCodespace = splitVehicleMonitoringByCodespace(vm.getVehicleActivities());
+                                        for (String codespace : vehiclesByCodespace.keySet()) {
+
+                                            // List containing added situations for current codespace
+                                            List<VehicleActivityStructure> addedVehicles = new ArrayList();
+
+                                            addedVehicles.addAll(vehicleActivities.addAll(
+                                                    codespace,
+                                                    vehiclesByCodespace.get(codespace)
+                                            ));
+
+                                            // Push updates to subscribers on this codespace
+                                            serverSubscriptionManager.pushUpdatesAsync(subscriptionSetup.getSubscriptionType(), addedVehicles, codespace);
+
+                                            // Add to complete list of added situations
+                                            addedOrUpdated.addAll(addedVehicles);
+
+                                        }
+
+                                    } else {
+                                        addedOrUpdated.addAll(
+                                                vehicleActivities.addAll(subscriptionSetup.getDatasetId(), vm.getVehicleActivities())
+                                        );
+                                    }
+                                }
+                            }
+                        }
+                    }
+            );
+        }
+        return addedOrUpdated;
     }
 
     private Map<String, List<PtSituationElement>> splitSituationsByCodespace(

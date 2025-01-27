@@ -1,10 +1,10 @@
 package no.rutebanken.anshar.routes.validation.validators;
 
+import jakarta.xml.bind.ValidationEvent;
+import jakarta.xml.bind.ValidationEventLocator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.xml.bind.ValidationEvent;
-import javax.xml.bind.ValidationEventLocator;
 import java.util.ArrayList;
 import java.util.List;
 

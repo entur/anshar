@@ -15,13 +15,12 @@
 
 package no.rutebanken.anshar.routes.validation.validators.vm;
 
+import jakarta.xml.bind.ValidationEvent;
 import no.rutebanken.anshar.routes.validation.validators.NsrQuayValidator;
 import no.rutebanken.anshar.routes.validation.validators.Validator;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Node;
-
-import javax.xml.bind.ValidationEvent;
 
 import static no.rutebanken.anshar.routes.validation.validators.Constants.MONITORED_VEHICLE_JOURNEY;
 
@@ -49,7 +48,6 @@ public class MonitoredVehicleJourneyInvalidFieldsValidator extends NsrQuayValida
     public ValidationEvent isValid(Node node) {
         return verifyNonExistingFields(node, FIELDNAME,
                 "JourneyPatternRef",
-                "DirectionRef",
                 "Via",
                 "JourneyNote",
                 "MonitoringError",
