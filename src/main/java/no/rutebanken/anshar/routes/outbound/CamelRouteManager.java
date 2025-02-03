@@ -169,7 +169,9 @@ public class CamelRouteManager {
                 final ExecutorService service = threadFactoryMap.get(id);
                 idsToRemove.add(id);
                 // Force shutdown since outbound subscription has been stopped
-                service.shutdownNow();
+                if (service != null) {
+                    service.shutdownNow();
+                }
             }
         }
         if (!idsToRemove.isEmpty()) {
