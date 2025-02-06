@@ -71,6 +71,13 @@ public class AdminRouteHelper {
         }
     }
 
+    protected void flushDataFromCodespace(String codespaceId, String dataType) {
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        if (codespaceId != null && dataType != null) {
+            executor.execute(() -> flushData(codespaceId, dataType));
+        }
+    }
+
     public JSONObject getSituationMetadataAsJson(String codespaceId) {
         Collection<PtSituationElement> allSituations = situations.getAll(codespaceId);
         JSONArray situations = new JSONArray();

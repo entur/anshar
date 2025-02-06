@@ -98,6 +98,7 @@ public class AdministrationRoute extends RestRouteBuilder {
                 .put("").to(OPERATION_ROUTE)
                 .get("/locks").to("direct:locks")
                 .get("/prepare-shutdown").to("direct:prepare-shutdown")
+                .delete("/flush-dataset").to("direct:flush.data.from.codespace")
                 .delete("/unmapped/{datasetId}").to("direct:clear-unmapped")
         ;
 
@@ -321,6 +322,17 @@ public class AdministrationRoute extends RestRouteBuilder {
                     p.getMessage().setHeader("SiriDataType", dataType);
                 })
                 .to("direct:internal.flush.data.from.subscription")
+        ;
+
+
+        //Return subscription status
+        from("direct:flush.data.from.codespace")
+                .log("Triggered deletion of all data of type ${header.dataType} from codespace ${header.codespaceId}")
+                .process(p -> {
+                    String codespaceId = p.getIn().getHeader("codespaceId", String.class);
+                    String dataType = p.getIn().getHeader("dataType", String.class);
+                    helper.flushDataFromCodespace(codespaceId, dataType);
+                })
         ;
 
         //Return subscription status
