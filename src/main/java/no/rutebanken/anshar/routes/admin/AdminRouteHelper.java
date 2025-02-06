@@ -72,9 +72,10 @@ public class AdminRouteHelper {
     }
 
     protected void flushDataFromCodespace(String codespaceId, String dataType) {
-        ExecutorService executor = Executors.newSingleThreadExecutor();
         if (codespaceId != null && dataType != null) {
-            executor.execute(() -> flushData(codespaceId, dataType));
+            logger.info("Flushing all data of type {} for {}", dataType, codespaceId);
+            flushData(codespaceId, dataType);
+            logger.info("Flushed all data of type {} for {}", dataType, codespaceId);
         }
     }
 
