@@ -94,7 +94,7 @@ public class ExtraJourneyValidator extends CustomValidator {
             // RouteRef - required
             final String routeRef = getSiblingNodeValue(node, ROUTE_REF_NODE_NAME);
             if (routeRef == null) {
-                return  createEvent(node, ROUTE_REF_NODE_NAME, expectedValuesMessageText, routeRef, ValidationEvent.ERROR);
+                return  createEvent(node, ROUTE_REF_NODE_NAME, expectedValuesMessageText, routeRef, ValidationEvent.WARNING);
             } else if (!routeRef.contains(":Route:")) {
                 return  createEvent(node, ROUTE_REF_NODE_NAME, "valid RouteRef - CODESPACE:Route:ID", routeRef, ValidationEvent.ERROR);
             }
@@ -102,7 +102,7 @@ public class ExtraJourneyValidator extends CustomValidator {
             // GroupOfLinesRef - required
             final String groupOfLines = getSiblingNodeValue(node, GROUP_OF_LINES_REF_NODE_NAME);
             if (groupOfLines == null) {
-                return  createEvent(node, GROUP_OF_LINES_REF_NODE_NAME, expectedValuesMessageText, groupOfLines, ValidationEvent.ERROR);
+                return  createEvent(node, GROUP_OF_LINES_REF_NODE_NAME, expectedValuesMessageText, groupOfLines, ValidationEvent.WARNING);
             } else if (!groupOfLines.contains(":Network:")) {
                 return  createEvent(node, GROUP_OF_LINES_REF_NODE_NAME, "valid GroupOfLinesRef - CODESPACE:Network:ID", groupOfLines, ValidationEvent.ERROR);
             }
