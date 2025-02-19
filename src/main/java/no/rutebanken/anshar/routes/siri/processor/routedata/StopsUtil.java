@@ -60,17 +60,20 @@ public class StopsUtil {
                 case AIR:
                     return stopMode == AllVehicleModesOfTransportEnumeration.AIR;
                 case BUS:
-                    return (stopMode == AllVehicleModesOfTransportEnumeration.BUS | stopMode == AllVehicleModesOfTransportEnumeration.COACH | stopMode == AllVehicleModesOfTransportEnumeration.TROLLEY_BUS);
+                case COACH:
+                    return (stopMode == AllVehicleModesOfTransportEnumeration.BUS |
+                            stopMode == AllVehicleModesOfTransportEnumeration.COACH |
+                            stopMode == AllVehicleModesOfTransportEnumeration.TROLLEY_BUS
+                    );
                 case RAIL:
                     return stopMode == AllVehicleModesOfTransportEnumeration.RAIL;
                 case TRAM:
-                    return (stopMode == AllVehicleModesOfTransportEnumeration.TRAM | stopMode == AllVehicleModesOfTransportEnumeration.METRO);
                 case METRO:
-                    return (stopMode == AllVehicleModesOfTransportEnumeration.TRAM | stopMode == AllVehicleModesOfTransportEnumeration.METRO);
-                case COACH:
-                    return (stopMode == AllVehicleModesOfTransportEnumeration.BUS | stopMode == AllVehicleModesOfTransportEnumeration.COACH | stopMode == AllVehicleModesOfTransportEnumeration.TROLLEY_BUS);
+                    return (stopMode == AllVehicleModesOfTransportEnumeration.TRAM |
+                            stopMode == AllVehicleModesOfTransportEnumeration.METRO);
                 case FERRY:
-                    return stopMode == AllVehicleModesOfTransportEnumeration.FERRY;
+                    return (stopMode == AllVehicleModesOfTransportEnumeration.FERRY |
+                            stopMode == AllVehicleModesOfTransportEnumeration.WATER);
             }
         }
         // No mode set - accept by default
