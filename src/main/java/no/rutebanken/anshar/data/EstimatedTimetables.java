@@ -772,6 +772,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                     expirationMap.put(key, expiration);
 
                 } else {
+                    metrics.registerSiriContent(SiriDataType.ESTIMATED_TIMETABLE, datasetId, null, SiriContent.TOO_LATE);
                     outdatedCounter.incrementAndGet();
                     timingTracer.mark("outdatedCounter.increment");
                 }
