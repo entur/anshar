@@ -24,6 +24,9 @@ public class PubsubTopicRoute extends RouteBuilder {
     @Value("${anshar.outbound.camel.route.topic.et.name.xml}")
     private String etTopicXml;
 
+    @Value("${anshar.outbound.camel.route.topic.sx.name.xml}")
+    private String sxTopicXml;
+
     @Value("${anshar.outbound.camel.route.topic.vm.name}")
     private String vmTopic;
 
@@ -100,6 +103,7 @@ public class PubsubTopicRoute extends RouteBuilder {
                         .to("xslt-saxon:xsl/split.xsl")
                         .split().tokenizeXML("Siri").streaming()
                         .wireTap("direct:publish.sx.avro")// Publish as Avro
+                        .to("direct:publish.sx.xml")        // Publish as XML
                         .to("direct:map.jaxb.to.protobuf")
                         .wireTap("direct:log.pubsub.sx.traffic")
                         .to(sxTopic) // Send to Pub/Sub as Protobuf
@@ -117,6 +121,22 @@ public class PubsubTopicRoute extends RouteBuilder {
                             if (!etTopicXmlWarned.get()) {
                                 log.warn("No XML topic defined for ET. Skipping XML publish.");
                                 etTopicXmlWarned.set(true);
+                            }
+                        })
+                ;
+            }
+
+            if (sxTopicXml != null) {
+                from("direct:publish.sx.xml")
+                        .to(sxTopicXml)
+                ;
+            } else {
+                AtomicBoolean sxTopicXmlWarned = new AtomicBoolean(false);
+                from("direct:publish.sx.xml")
+                        .process(p -> {
+                            if (!sxTopicXmlWarned.get()) {
+                                log.warn("No XML topic defined for ET. Skipping XML publish.");
+                                sxTopicXmlWarned.set(true);
                             }
                         })
                 ;
