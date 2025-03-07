@@ -365,6 +365,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
                         long expiration = getExpiration(activity);
                         timingTracer.mark("getExpiration");
 
+                        resolveContentMetrics(activity, expiration);
                         if (expiration > 0 && keep) {
                             changes.put(key, activity);
                         } else {
@@ -413,6 +414,31 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
         }
 
         return changes.values();
+    }
+
+    private void resolveContentMetrics(VehicleActivityStructure activity, long expiration) {
+        if (activity != null) {
+            if (activity.getMonitoredVehicleJourney() != null) {
+                String dataSource = activity.getMonitoredVehicleJourney().getDataSource();
+                if (activity.getMonitoredVehicleJourney().getOccupancy() != null) {
+                    metrics.registerSiriContent(
+                            SiriDataType.VEHICLE_MONITORING,
+                            dataSource,
+                            null,
+                            SiriContent.OCCUPANCY_TRIP
+                    );
+                }
+
+                if (expiration < 0) {
+                    metrics.registerSiriContent(
+                            SiriDataType.VEHICLE_MONITORING,
+                            dataSource,
+                            null,
+                            SiriContent.TOO_LATE
+                    );
+                }
+            }
+        }
     }
 
     private static boolean isUpdated(String currentChecksum, String existingChecksum) {
