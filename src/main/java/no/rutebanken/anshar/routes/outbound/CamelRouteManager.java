@@ -40,8 +40,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import static no.rutebanken.anshar.routes.HttpParameter.SIRI_VERSION_HEADER_NAME;
 import static no.rutebanken.anshar.routes.siri.transformer.SiriOutputTransformerRoute.OUTPUT_ADAPTERS_HEADER_NAME;
@@ -151,7 +153,18 @@ public class CamelRouteManager {
         if (!threadFactoryMap.containsKey(subscriptionId)) {
             ThreadFactory factory = new ThreadFactoryBuilder().setNameFormat("outbound"+subscriptionId).build();
 
-            threadFactoryMap.put(subscriptionId, Executors.newFixedThreadPool(maximumThreadsPerOutboundSubscription, factory));
+            //Specifying RejectedExecutionHandler as DiscardOldestPolicy to avoid blocking the thread
+            ThreadPoolExecutor executor = new ThreadPoolExecutor(
+                    maximumThreadsPerOutboundSubscription,
+                    maximumThreadsPerOutboundSubscription,
+                    0L,
+                    TimeUnit.MILLISECONDS,
+                    new LinkedBlockingQueue<>(),
+                    factory,
+                    new ThreadPoolExecutor.DiscardOldestPolicy()
+            );
+
+            threadFactoryMap.put(subscriptionId, executor);
         }
 
         return threadFactoryMap.get(subscriptionId);
