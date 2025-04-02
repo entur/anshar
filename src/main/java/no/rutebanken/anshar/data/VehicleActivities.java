@@ -37,6 +37,7 @@ import uk.org.siri.siri21.VehicleActivityStructure;
 import uk.org.siri.siri21.VehicleRef;
 
 import javax.annotation.PostConstruct;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
@@ -89,6 +90,10 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
     @Value("${anshar.feature.setUsingAsync:false}")
     private boolean FEATURE_TOGGLE_USE_ASYNC_SET;
 
+    @Value("${anshar.vehicle-activities.max-validity.duration:}")
+    private Duration maxValidityDuration;
+    private long maxValidityMillis;
+
     protected VehicleActivities() {
         super(SiriDataType.VEHICLE_MONITORING);
     }
@@ -98,6 +103,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
         if (FEATURE_TOGGLE_USE_ASYNC_SET) {
             logger.info("Using async set for monitored vehicles");
         }
+        maxValidityMillis = maxValidityDuration != null ? maxValidityDuration.toMillis() : -1;
     }
 
     @PostConstruct
@@ -299,15 +305,24 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
         ZonedDateTime validUntil = a.getValidUntilTime();
         if (validUntil != null) {
 
-            if (validUntil.getYear() > ZonedDateTime.now().getYear()) {
+            ZonedDateTime now = ZonedDateTime.now();
+
+            if (validUntil.getYear() > now.getYear()) {
                 // Handle cornercase when validity is set too far ahead - e.g. year 9999
-                validUntil = validUntil.withYear(ZonedDateTime.now().getYear()+1);
+                validUntil = validUntil.withYear(now.getYear()+1);
             }
 
-            return ZonedDateTime.now().until(
+            long expirationMillis = now.until(
                     validUntil.plus(configuration.getVmGraceperiodMinutes(), ChronoUnit.MINUTES),
                     ChronoUnit.MILLIS
             );
+
+            if (maxValidityMillis > 0) {
+                // Return calculated expiration only if it is less than maxValidity
+                return Math.min(maxValidityMillis, expirationMillis);
+            } else {
+                return expirationMillis;
+            }
         }
 
         // No to-validity set - ignore as this is a required field
