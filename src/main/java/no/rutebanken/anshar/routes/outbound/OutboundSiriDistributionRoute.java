@@ -8,6 +8,7 @@ import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.http.base.HttpOperationFailedException;
+import org.apache.camel.spi.DataFormat;
 import org.entur.siri.validator.SiriValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,6 +41,12 @@ public class OutboundSiriDistributionRoute extends RouteBuilder {
     @Value("${anshar.outbound.timeout.connect:5000}")
     private int connectTimeout;
 
+    private static final DataFormat SIRI_2_0_DATAFORMAT = SiriDataFormatHelper
+            .getSiriJaxbDataformat(SiriValidator.Version.VERSION_2_0);
+
+    private static final DataFormat SIRI_2_1_DATAFORMAT = SiriDataFormatHelper
+            .getSiriJaxbDataformat(SiriValidator.Version.VERSION_2_1);
+
     @Override
     public void configure() {
 
@@ -53,6 +60,11 @@ public class OutboundSiriDistributionRoute extends RouteBuilder {
         onException(NullPointerException.class)
             .handled(false)
             .log("NullPointerException caught while sending data - retry NOT triggered")
+        ;
+
+        onException(StackOverflowError.class)
+            .handled(false)
+            .log("StackOverflowError caught while sending data - retry NOT triggered")
         ;
 
         onException(HttpOperationFailedException.class)
@@ -74,13 +86,13 @@ public class OutboundSiriDistributionRoute extends RouteBuilder {
                 .to("direct:siri.transform.data")
                 .choice()
                     .when(header(SIRI_VERSION_HEADER_NAME).isEqualTo(SiriValidator.Version.VERSION_2_1))
-                        .marshal(SiriDataFormatHelper.getSiriJaxbDataformat(SiriValidator.Version.VERSION_2_1))
+                        .marshal(SIRI_2_1_DATAFORMAT)
                     .endChoice()
                     .otherwise()
                         .process(p -> {
                             p.getMessage().setBody(downgradeSiriVersion(p.getIn().getBody(Siri.class)));
                         })
-                        .marshal(SiriDataFormatHelper.getSiriJaxbDataformat(SiriValidator.Version.VERSION_2_0))
+                        .marshal(SIRI_2_0_DATAFORMAT)
                 .end()
                 .setHeader("httpClient.socketTimeout", constant(socketTimeout))
                 .setHeader("httpClient.connectTimeout", constant(connectTimeout))
