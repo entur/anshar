@@ -17,10 +17,11 @@ package no.rutebanken.anshar.routes.outbound;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import no.rutebanken.anshar.metrics.PrometheusMetricsService;
+import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
-import org.apache.camel.Produce;
-import org.apache.camel.ProducerTemplate;
 import org.apache.camel.http.base.HttpOperationFailedException;
+import org.entur.siri.validator.SiriValidator;
+import org.entur.siri21.util.SiriXml;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -35,6 +36,11 @@ import uk.org.siri.siri21.VehicleMonitoringDeliveryStructure;
 
 import javax.annotation.PostConstruct;
 import java.net.SocketException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -45,8 +51,7 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import static no.rutebanken.anshar.routes.HttpParameter.SIRI_VERSION_HEADER_NAME;
-import static no.rutebanken.anshar.routes.siri.transformer.SiriOutputTransformerRoute.OUTPUT_ADAPTERS_HEADER_NAME;
+import static no.rutebanken.anshar.routes.RestRouteBuilder.downgradeSiriVersion;
 
 @Service
 public class CamelRouteManager {
@@ -67,8 +72,11 @@ public class CamelRouteManager {
     @Value("${anshar.default.max.threads.per.outbound.subscription:5}")
     private int maximumThreadsPerOutboundSubscription;
 
-    @Produce(value = "direct:send.to.external.subscription")
-    protected ProducerTemplate siriSubscriptionProcessor;
+    private static final HttpClient httpClient = HttpClient.newBuilder()
+            .version(HttpClient.Version.HTTP_1_1)
+            .connectTimeout(Duration.ofSeconds(2))
+            .build();
+
 
     @PostConstruct
     private void initThreadMetrics() {
@@ -98,6 +106,8 @@ public class CamelRouteManager {
 
                 Siri filteredPayload = SiriHelper.filterSiriPayload(payload, subscriptionRequest.getFilterMap());
 
+                metricsService.countOutgoingData(filteredPayload, SubscriptionSetup.SubscriptionMode.SUBSCRIBE);
+
                 int deliverySize = this.maximumSizePerDelivery;
                 if (subscriptionRequest.getDatasetId() != null) {
                     deliverySize = Integer.MAX_VALUE;
@@ -110,14 +120,14 @@ public class CamelRouteManager {
                 }
 
                 for (Siri siri : splitSiri) {
-                    postDataToSubscription(siri, subscriptionRequest, logBody);
+                    int responseCode = postDataToSubscription(siri, subscriptionRequest, logBody);
                     metricsService.markPostToSubscription(subscriptionRequest.getSubscriptionType(),
                             SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
                             subscriptionRequest.getSubscriptionId(),
-                            200);
+                            responseCode);
                 }
             } catch (Exception e) {
-                logger.info("Failed to push data for subscription {}: {}", subscriptionRequest, e);
+                logger.info("Failed to push data for subscription {}: {}", subscriptionRequest, e.getMessage());
 
                 int statusCode = -1;
                 if (e.getCause() instanceof SocketException) {
@@ -151,7 +161,7 @@ public class CamelRouteManager {
 
         final String subscriptionId = subscriptionRequest.getSubscriptionId();
         if (!threadFactoryMap.containsKey(subscriptionId)) {
-            ThreadFactory factory = new ThreadFactoryBuilder().setNameFormat("outbound"+subscriptionId).build();
+            ThreadFactory factory = new ThreadFactoryBuilder().setNameFormat("outbound-"+subscriptionId).build();
 
             //Specifying RejectedExecutionHandler as DiscardOldestPolicy to avoid blocking the thread
             ThreadPoolExecutor executor = new ThreadPoolExecutor(
@@ -195,21 +205,83 @@ public class CamelRouteManager {
         }
     }
 
-    private void postDataToSubscription(Siri payload, OutboundSubscriptionSetup subscription, boolean showBody) {
+    private int postDataToSubscription(Siri payload, OutboundSubscriptionSetup subscription, boolean logBody) {
 
         if (serviceDeliveryContainsData(payload)) {
-            String remoteEndPoint = subscription.getAddress();
+            long t1 = System.currentTimeMillis();
+            logger.info("Posting to subscription {}", subscription.getSubscriptionId());
 
-            Map<String, Object> headers = new HashMap<>();
-            headers.put("breadcrumbId", MDC.get("camel.breadcrumbId"));
-            headers.put("endpoint", remoteEndPoint);
-            headers.put("SubscriptionId", subscription.getSubscriptionId());
-            headers.put("showBody", showBody);
-            headers.put(SIRI_VERSION_HEADER_NAME, subscription.getSiriVersion());
-            headers.put(OUTPUT_ADAPTERS_HEADER_NAME, subscription.getValueAdapters());
+            Siri transformed = SiriValueTransformer.transform(
+                    payload,
+                    subscription.getValueAdapters(),
+                    false,
+                    false);
 
-            siriSubscriptionProcessor.sendBodyAndHeaders(payload, headers);
+            String siriContentType = "data";
+            if (transformed.getServiceDelivery() == null) {
+                siriContentType = "heartbeat";
+            }
+            String xml;
+            try {
+
+                if (subscription.getSiriVersion() == SiriValidator.Version.VERSION_2_1) {
+                    xml = SiriXml.toXml(transformed);
+                } else {
+                    xml = org.rutebanken.siri20.util.SiriXml.toXml(
+                            downgradeSiriVersion(transformed)
+                    );
+                }
+            } catch (Exception e) {
+                logger.info("Failed to serialize SIRI-xml - retrying once");
+                try {
+                    if (subscription.getSiriVersion() == SiriValidator.Version.VERSION_2_1) {
+                        xml = SiriXml.toXml(transformed);
+                    } else {
+                        xml = org.rutebanken.siri20.util.SiriXml.toXml(
+                                downgradeSiriVersion(transformed)
+                        );
+                    }
+                } catch (Exception ex) {
+                    logger.warn("Retry failed to serialize SIRI-xml");
+                    throw new RuntimeException(e);
+                }
+                logger.info("Retry succeeded to serialize SIRI-xml");
+            }
+
+            if (logBody) {
+                logger.info("Posting body: {}", xml);
+            }
+            HttpRequest post = HttpRequest.newBuilder()
+                    .uri(URI.create(subscription.getAddress()))
+                    .header("Content-Type", "application/xml")
+                    .POST(HttpRequest.BodyPublishers.ofString(xml))
+                    .build();
+            int responseCode;
+            try {
+                responseCode = httpClient.send(post, HttpResponse.BodyHandlers.discarding()).statusCode();
+            } catch (Exception e) {
+                logger.info("Failed to post {} to subscription {} - retrying.", siriContentType, subscription);
+                // Retry once
+                try {
+                    responseCode = httpClient.send(post, HttpResponse.BodyHandlers.discarding()).statusCode();
+                } catch (Exception ex) {
+                    logger.info("Retry failed to post {} to subscription {} ", siriContentType, subscription);
+                    throw new RuntimeException(e);
+                }
+            }
+
+            if (responseCode == 200) {
+                subscriptionManager.clearFailTracker(subscription.getSubscriptionId());
+            }
+            logger.info("Pushed {} to subscription {} took {} ms, got responseCode {}",
+                    siriContentType,
+                    subscription.getSubscriptionId(),
+                    System.currentTimeMillis()-t1,
+                    responseCode
+            );
+            return responseCode;
         }
+        return -1;
     }
 
     /**
