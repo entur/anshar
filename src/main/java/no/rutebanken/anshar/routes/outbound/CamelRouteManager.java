@@ -209,7 +209,7 @@ public class CamelRouteManager {
 
         if (serviceDeliveryContainsData(payload)) {
             long t1 = System.currentTimeMillis();
-            logger.info("Posting to subscription {}", subscription.getSubscriptionId());
+            logger.debug("Posting to subscription {}", subscription.getSubscriptionId());
 
             Siri transformed = SiriValueTransformer.transform(
                     payload,
@@ -273,12 +273,14 @@ public class CamelRouteManager {
             if (responseCode == 200) {
                 subscriptionManager.clearFailTracker(subscription.getSubscriptionId());
             }
-            logger.info("Pushed {} to subscription {} took {} ms, got responseCode {}",
-                    siriContentType,
-                    subscription.getSubscriptionId(),
-                    System.currentTimeMillis()-t1,
-                    responseCode
-            );
+            if (logger.isDebugEnabled()) {
+                logger.debug("Pushed {} to subscription {} took {} ms, got responseCode {}",
+                        siriContentType,
+                        subscription.getSubscriptionId(),
+                        System.currentTimeMillis() - t1,
+                        responseCode
+                );
+            }
             return responseCode;
         }
         return -1;
