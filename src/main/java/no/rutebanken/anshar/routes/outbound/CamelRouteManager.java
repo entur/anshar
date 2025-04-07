@@ -99,6 +99,7 @@ public class CamelRouteManager {
         executorService.execute(() -> {
             try {
                 MDC.put("camel.breadcrumbId", breadcrumbId);
+                MDC.put("subscriptionId", subscriptionRequest.getSubscriptionId());
                 if (!subscriptionManager.subscriptions.containsKey(subscriptionRequest.getSubscriptionId())) {
                     // Short circuit if subscription has been terminated while waiting
                     return;
@@ -152,6 +153,7 @@ public class CamelRouteManager {
                 removeDeadSubscriptionExecutors(subscriptionManager);
             } finally {
                 MDC.remove("camel.breadcrumbId");
+                MDC.remove("subscriptionId");
             }
         });
     }
