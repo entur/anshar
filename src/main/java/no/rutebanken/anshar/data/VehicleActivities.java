@@ -337,6 +337,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
         AtomicInteger notMeaningfulCounter = new AtomicInteger(0);
         AtomicInteger outdatedCounter = new AtomicInteger(0);
         AtomicInteger notUpdatedCounter = new AtomicInteger(0);
+        prepareMetrics();
 
         vmList.stream()
                 .filter(activity -> activity.getMonitoredVehicleJourney() != null)
@@ -352,7 +353,6 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
 
                     if (REMOVE_EXTENSIONS && activity.getExtensions() != null) {
                         activity.setExtensions(null);
-                        prepareMetrics();
                         metrics.registerSiriContent(SiriDataType.VEHICLE_MONITORING, datasetId, null, SiriContent.EXTENSION_REMOVED);
                         timingTracer.mark("remove.extensions");
                     }
