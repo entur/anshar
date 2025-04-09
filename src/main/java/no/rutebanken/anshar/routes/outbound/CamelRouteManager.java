@@ -16,6 +16,7 @@
 package no.rutebanken.anshar.routes.outbound;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import jakarta.xml.bind.JAXBException;
 import no.rutebanken.anshar.metrics.PrometheusMetricsService;
 import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
@@ -35,6 +36,10 @@ import uk.org.siri.siri21.SituationExchangeDeliveryStructure;
 import uk.org.siri.siri21.VehicleMonitoringDeliveryStructure;
 
 import javax.annotation.PostConstruct;
+import javax.xml.stream.XMLStreamException;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.net.SocketException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -223,51 +228,35 @@ public class CamelRouteManager {
             if (transformed.getServiceDelivery() == null) {
                 siriContentType = "heartbeat";
             }
-            String xml;
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
             try {
-
-                if (subscription.getSiriVersion() == SiriValidator.Version.VERSION_2_1) {
-                    xml = SiriXml.toXml(transformed);
-                } else {
-                    xml = org.rutebanken.siri20.util.SiriXml.toXml(
-                            downgradeSiriVersion(transformed)
-                    );
-                }
-            } catch (Exception e) {
-                logger.info("Failed to serialize SIRI-xml - retrying once");
+                serializeSiriObject(subscription.getSiriVersion(), transformed, out);
+            } catch (Throwable e) {
+                logger.info("Failed to serialize SIRI-xml - retrying once, {}", e.getMessage());
                 try {
-                    if (subscription.getSiriVersion() == SiriValidator.Version.VERSION_2_1) {
-                        xml = SiriXml.toXml(transformed);
-                    } else {
-                        xml = org.rutebanken.siri20.util.SiriXml.toXml(
-                                downgradeSiriVersion(transformed)
-                        );
-                    }
-                } catch (Exception ex) {
-                    logger.warn("Retry failed to serialize SIRI-xml");
+                    serializeSiriObject(subscription.getSiriVersion(), transformed, out);
+                } catch (Throwable ex) {
+                    logger.warn("Retry failed to serialize SIRI-xml, {}", ex.getMessage());
                     throw new RuntimeException(e);
                 }
                 logger.info("Retry succeeded to serialize SIRI-xml");
             }
 
-            if (logBody) {
-                logger.info("Posting body: {}", xml);
-            }
             HttpRequest post = HttpRequest.newBuilder()
                     .uri(URI.create(subscription.getAddress()))
                     .header("Content-Type", "application/xml")
-                    .POST(HttpRequest.BodyPublishers.ofString(xml))
+                    .POST(HttpRequest.BodyPublishers.ofInputStream(() -> new ByteArrayInputStream(out.toByteArray())))
                     .build();
             int responseCode;
             try {
                 responseCode = httpClient.send(post, HttpResponse.BodyHandlers.discarding()).statusCode();
             } catch (Exception e) {
-                logger.info("Failed to post {} to subscription {} - retrying.", siriContentType, subscription);
+                logger.info("Failed to post {} to subscription {} - retrying, {}", siriContentType, subscription, e.getMessage());
                 // Retry once
                 try {
                     responseCode = httpClient.send(post, HttpResponse.BodyHandlers.discarding()).statusCode();
                 } catch (Exception ex) {
-                    logger.info("Retry failed to post {} to subscription {} ", siriContentType, subscription);
+                    logger.info("Retry failed to post {} to subscription {}, {}", siriContentType, subscription, ex.getMessage());
                     throw new RuntimeException(e);
                 }
             }
@@ -286,6 +275,18 @@ public class CamelRouteManager {
             return responseCode;
         }
         return -1;
+    }
+
+    private static void serializeSiriObject(SiriValidator.Version version, Siri transformed, ByteArrayOutputStream out) throws JAXBException, IOException, XMLStreamException {
+        if (version == SiriValidator.Version.VERSION_2_1) {
+            SiriXml.toXml(transformed, null, out);
+        } else {
+            org.rutebanken.siri20.util.SiriXml.toXml(
+                    downgradeSiriVersion(transformed),
+                    null,
+                    out
+            );
+        }
     }
 
     /**
