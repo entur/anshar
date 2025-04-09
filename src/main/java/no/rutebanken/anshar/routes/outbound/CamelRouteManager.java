@@ -133,7 +133,7 @@ public class CamelRouteManager {
                             responseCode);
                 }
             } catch (Exception e) {
-                logger.info("Failed to push data for subscription {}: {}", subscriptionRequest, e.getMessage());
+                logger.info("Failed to push data for subscription {}: {}", subscriptionRequest, e.toString());
 
                 int statusCode = -1;
                 if (e.getCause() instanceof SocketException) {
@@ -232,11 +232,11 @@ public class CamelRouteManager {
             try {
                 serializeSiriObject(subscription.getSiriVersion(), transformed, out);
             } catch (Throwable e) {
-                logger.info("Failed to serialize SIRI-xml - retrying once, {}", e.getMessage());
+                logger.info("Failed to serialize SIRI-xml - retrying once, {}", e.toString());
                 try {
                     serializeSiriObject(subscription.getSiriVersion(), transformed, out);
                 } catch (Throwable ex) {
-                    logger.warn("Retry failed to serialize SIRI-xml, {}", ex.getMessage());
+                    logger.warn("Retry failed to serialize SIRI-xml, {}", ex.toString());
                     throw new RuntimeException(e);
                 }
                 logger.info("Retry succeeded to serialize SIRI-xml");
@@ -251,12 +251,12 @@ public class CamelRouteManager {
             try {
                 responseCode = httpClient.send(post, HttpResponse.BodyHandlers.discarding()).statusCode();
             } catch (Exception e) {
-                logger.info("Failed to post {} to subscription {} - retrying, {}", siriContentType, subscription, e.getMessage());
+                logger.info("Failed to post {} to subscription {} - retrying, {}", siriContentType, subscription, e.toString());
                 // Retry once
                 try {
                     responseCode = httpClient.send(post, HttpResponse.BodyHandlers.discarding()).statusCode();
                 } catch (Exception ex) {
-                    logger.info("Retry failed to post {} to subscription {}, {}", siriContentType, subscription, ex.getMessage());
+                    logger.info("Retry failed to post {} to subscription {}, {}", siriContentType, subscription, ex.toString());
                     throw new RuntimeException(e);
                 }
             }
