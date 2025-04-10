@@ -205,19 +205,22 @@ abstract class SiriRepository<T> {
                     .collect(Collectors.toSet());
 
             long t2 = System.currentTimeMillis();
-            for (Map.Entry<SiriObjectStorageKey, T> entry : expired) {
-                map.removeAsync(entry.getKey());
+            if (!expired.isEmpty()) {
+                for (Map.Entry<SiriObjectStorageKey, T> entry : expired) {
+                    map.removeAsync(entry.getKey());
+                }
             }
 
             long t3 = System.currentTimeMillis();
-            for (Map.Entry<String, Set<SiriObjectStorageKey>> requestorId : linkedChangeMap.entrySet()) {
-                Set<SiriObjectStorageKey> changes = requestorId.getValue();
-                changes.removeIf(id -> !map.containsKey(id));
-                if (changes.isEmpty()) {
-                    linkedChangeMap.remove(requestorId.getKey());
+            if (!expired.isEmpty()) {
+                for (String requestorId : linkedChangeMap.keySet()) {
+                    linkedChangeMap.get(requestorId).removeAll(expired);
+                    if (linkedChangeMap.get(requestorId).isEmpty()) {
+                        linkedChangeMap.remove(requestorId);
+                    }
                 }
             }
-            logger.info("Cleaning {} expired objects took {} ms, finding {} ms, removing {}, tracked changes {} ms, now have {} objects",
+            logger.info("Cleaning {} expired objects took {} ms, finding {} ms, removing {}, changes {} ms, now have {} objects",
                     expired.size(), (System.currentTimeMillis() - t1), (t2 - t1), (t3 - t2), (System.currentTimeMillis() - t3), map.size());
         } catch (Throwable t) {
             //Catch everything to avoid executor being killed
