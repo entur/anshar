@@ -112,7 +112,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
 
         enableCache(monitoredVehicles);
 
-        createCleanupJob(monitoredVehicles, changesMap, configuration.getCleanupIntervalSeconds());
+        createCleanupJob(monitoredVehicles, changesMap, configuration.getCleanupIntervalSeconds(), maxValidityMillis);
     }
 
     /**

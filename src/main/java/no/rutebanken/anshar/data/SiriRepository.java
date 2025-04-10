@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.SerializationUtils;
+import uk.org.siri.siri21.VehicleActivityStructure;
 
 import java.io.Serializable;
 import java.net.URLDecoder;
@@ -41,6 +42,8 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -189,26 +192,40 @@ abstract class SiriRepository<T> {
         }
     }
 
-    void createCleanupJob(IMap<SiriObjectStorageKey, T> map, IMap<String, Set<SiriObjectStorageKey>> linkedChangeMap, long cleanupInterval) {
+    void createCleanupJob(IMap<SiriObjectStorageKey, T> map, IMap<String, Set<SiriObjectStorageKey>> linkedChangeMap, long cleanupInterval, long maxValidityMillis) {
 
         logger.info("Initializing scheduled cleanup job with interval {} seconds", cleanupInterval);
         Executors.newSingleThreadScheduledExecutor()
-                .scheduleWithFixedDelay(() -> removeExpired(map, linkedChangeMap), cleanupInterval, cleanupInterval, TimeUnit.SECONDS);
+                .scheduleWithFixedDelay(() -> removeExpired(map, linkedChangeMap, maxValidityMillis), cleanupInterval, cleanupInterval, TimeUnit.SECONDS);
     }
 
-    private void removeExpired(IMap<SiriObjectStorageKey, T> map, IMap<String, Set<SiriObjectStorageKey>> linkedChangeMap) {
+    private void removeExpired(IMap<SiriObjectStorageKey, T> map, IMap<String, Set<SiriObjectStorageKey>> linkedChangeMap, long maxValidityMillis) {
         try {
             logger.debug("Cleaning up expired objects");
             long t1 = System.currentTimeMillis();
             Set<SiriObjectStorageKey> expired = map.entrySet().stream()
-                    .filter(entry -> getExpiration(entry.getValue()) < 0)
+                    .filter(entry -> {
+                        // Check if entry is expired
+                        if (getExpiration(entry.getValue()) < 0) {
+                            return true;
+                        }
+                        // Check if entry is older than maxValidityMillis
+                        if (maxValidityMillis > 0) {
+                            if (entry.getValue() instanceof VehicleActivityStructure) {
+                                ZonedDateTime recordedAtTime = ((VehicleActivityStructure) entry.getValue()).getRecordedAtTime();
+                                long timeSinceUpdate = Math.abs(ZonedDateTime.now().until(recordedAtTime, ChronoUnit.MILLIS));
+                                return timeSinceUpdate > maxValidityMillis;
+                            }
+                        }
+                        return false;
+                    })
                     .map(Map.Entry::getKey)
                     .collect(Collectors.toSet());
 
             long t2 = System.currentTimeMillis();
             if (!expired.isEmpty()) {
                 for (SiriObjectStorageKey key : expired) {
-                    map.removeAsync(key);
+                    map.delete(key);
                 }
             }
 
