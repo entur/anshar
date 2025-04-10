@@ -200,14 +200,15 @@ abstract class SiriRepository<T> {
         try {
             logger.debug("Cleaning up expired objects");
             long t1 = System.currentTimeMillis();
-            Set<Map.Entry<SiriObjectStorageKey, T>> expired = map.entrySet().stream()
+            Set<SiriObjectStorageKey> expired = map.entrySet().stream()
                     .filter(entry -> getExpiration(entry.getValue()) < 0)
+                    .map(Map.Entry::getKey)
                     .collect(Collectors.toSet());
 
             long t2 = System.currentTimeMillis();
             if (!expired.isEmpty()) {
-                for (Map.Entry<SiriObjectStorageKey, T> entry : expired) {
-                    map.removeAsync(entry.getKey());
+                for (SiriObjectStorageKey key : expired) {
+                    map.removeAsync(key);
                 }
             }
 
