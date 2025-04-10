@@ -81,6 +81,9 @@ public class AnsharConfiguration {
     @Value("${anshar.siri.vm.graceperiod.minutes:0}")
     private long vmGraceperiodMinutes;
 
+    @Value("${anshar.siri.cleanup.interval.seconds:60}")
+    private int cleanupIntervalSeconds;
+
     @Value("${anshar.validation.profile.enabled}")
     private boolean profileValidation;
 
@@ -192,6 +195,10 @@ public class AnsharConfiguration {
 
     public long getVmGraceperiodMinutes() {
         return vmGraceperiodMinutes;
+    }
+
+    public int getCleanupIntervalSeconds() {
+        return cleanupIntervalSeconds;
     }
 
     public boolean isProfileValidation() {

@@ -111,7 +111,8 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
         super.initBufferCommitter(hazelcastService, lastUpdateRequested, changesMap, configuration.getChangeBufferCommitFrequency());
 
         enableCache(monitoredVehicles);
-        linkEntriesTtl(monitoredVehicles, changesMap);
+
+        createCleanupJob(monitoredVehicles, changesMap, configuration.getCleanupIntervalSeconds());
     }
 
     /**

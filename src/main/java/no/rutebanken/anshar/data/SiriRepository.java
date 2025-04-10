@@ -189,6 +189,42 @@ abstract class SiriRepository<T> {
         }
     }
 
+    void createCleanupJob(IMap<SiriObjectStorageKey, T> map, IMap<String, Set<SiriObjectStorageKey>> linkedChangeMap, long cleanupInterval) {
+
+        logger.info("Initializing scheduled cleanup job with interval {} seconds", cleanupInterval);
+        Executors.newSingleThreadScheduledExecutor()
+                .scheduleWithFixedDelay(() -> removeExpired(map, linkedChangeMap), cleanupInterval, cleanupInterval, TimeUnit.SECONDS);
+    }
+
+    private void removeExpired(IMap<SiriObjectStorageKey, T> map, IMap<String, Set<SiriObjectStorageKey>> linkedChangeMap) {
+        try {
+            logger.debug("Cleaning up expired objects");
+            long t1 = System.currentTimeMillis();
+            Set<Map.Entry<SiriObjectStorageKey, T>> expired = map.entrySet().stream()
+                    .filter(entry -> getExpiration(entry.getValue()) < 0)
+                    .collect(Collectors.toSet());
+
+            long t2 = System.currentTimeMillis();
+            for (Map.Entry<SiriObjectStorageKey, T> entry : expired) {
+                map.removeAsync(entry.getKey());
+            }
+
+            long t3 = System.currentTimeMillis();
+            for (Map.Entry<String, Set<SiriObjectStorageKey>> requestorId : linkedChangeMap.entrySet()) {
+                Set<SiriObjectStorageKey> changes = requestorId.getValue();
+                changes.removeIf(id -> !map.containsKey(id));
+                if (changes.isEmpty()) {
+                    linkedChangeMap.remove(requestorId.getKey());
+                }
+            }
+            logger.info("Cleaning {} expired objects took {} ms, finding {} ms, removing {}, tracked changes {} ms, now have {} objects",
+                    expired.size(), (System.currentTimeMillis() - t1), (t2 - t1), (t3 - t2), (System.currentTimeMillis() - t3), map.size());
+        } catch (Throwable t) {
+            //Catch everything to avoid executor being killed
+            logger.info("Exception caught when cleaning up expired data", t);
+        }
+    }
+
     private void removeFromLinked(IMap<String, Set<SiriObjectStorageKey>> linkedChangeMap, EntryEvent<SiriObjectStorageKey, T> entryEvent, Map<SiriObjectStorageKey, ?>[] linkedMaps) {
         for (Map<SiriObjectStorageKey, ?> linkedMap : linkedMaps) {
             linkedMap.remove(entryEvent.getKey());
@@ -265,9 +301,9 @@ abstract class SiriRepository<T> {
         if (singleThreadScheduledExecutor == null) {
             singleThreadScheduledExecutor = Executors.newSingleThreadScheduledExecutor();
 
-            logger.info("Initializing scheduled change-buffer-updater with commit every {} seconds", commitFrequency);
+        logger.info("Initializing scheduled change-buffer-updater with commit every {} seconds", commitFrequency);
 
-            singleThreadScheduledExecutor.scheduleWithFixedDelay(this::commitChanges, 0, commitFrequency, TimeUnit.SECONDS);
+        singleThreadScheduledExecutor.scheduleWithFixedDelay(this::commitChanges, 0, commitFrequency, TimeUnit.SECONDS);
         }
 
         hazelcastService.addBeforeShuttingDownHook(() -> {
