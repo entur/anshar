@@ -214,9 +214,12 @@ abstract class SiriRepository<T> {
             long t3 = System.currentTimeMillis();
             if (!expired.isEmpty()) {
                 for (String requestorId : linkedChangeMap.keySet()) {
-                    linkedChangeMap.get(requestorId).removeAll(expired);
-                    if (linkedChangeMap.get(requestorId).isEmpty()) {
-                        linkedChangeMap.remove(requestorId);
+                    Set<SiriObjectStorageKey> keys = linkedChangeMap.get(requestorId);
+                    if (keys != null) {
+                        keys.removeAll(expired);
+                        if (keys.isEmpty()) {
+                            linkedChangeMap.remove(requestorId);
+                        }
                     }
                 }
             }
