@@ -21,10 +21,10 @@ public class PubsubTopicRoute extends RouteBuilder {
     @Value("${anshar.outbound.camel.route.topic.et.name}")
     private String etTopic;
 
-    @Value("${anshar.outbound.camel.route.topic.et.name.xml}")
+    @Value("${anshar.outbound.camel.route.topic.et.name.xml:}")
     private String etTopicXml;
 
-    @Value("${anshar.outbound.camel.route.topic.sx.name.xml}")
+    @Value("${anshar.outbound.camel.route.topic.sx.name.xml:}")
     private String sxTopicXml;
 
     @Value("${anshar.outbound.camel.route.topic.vm.name}")
