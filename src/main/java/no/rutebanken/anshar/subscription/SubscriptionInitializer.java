@@ -179,7 +179,9 @@ public class SubscriptionInitializer implements CamelContextAware {
                         }
                     }
                     //Is added to ALL subscriptions AFTER subscription-specific adapters
-                    valueAdapters.add(new CodespaceProcessor(subscriptionSetup.getDatasetId()));
+                    if (!subscriptionSetup.isUseProvidedCodespaceId()) {
+                        valueAdapters.add(new CodespaceProcessor(subscriptionSetup.getDatasetId()));
+                    }
 
                     // SX
                     if (subscriptionSetup.getSubscriptionType() == SiriDataType.SITUATION_EXCHANGE) {
