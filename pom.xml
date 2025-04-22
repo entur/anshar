@@ -44,7 +44,7 @@
 <!--        <metrics.version>3.2.3</metrics.version>-->
         <entur.helpers.version>2.27</entur.helpers.version>
         <geotools.version>30.0</geotools.version>
-        <avro.version>1.12.0</avro.version>
+        <avro.version>1.11.3</avro.version>
 
         <log4j2.version>2.20.0</log4j2.version>
         <confluent-kafka.version>7.4.1</confluent-kafka.version>
@@ -197,40 +197,40 @@
         <dependency>
             <groupId>jakarta.ws.rs</groupId>
             <artifactId>jakarta.ws.rs-api</artifactId>
-            <version>4.0.0</version>
+            <version>3.1.0</version>
         </dependency>
         <dependency>
             <groupId>jakarta.xml.bind</groupId>
             <artifactId>jakarta.xml.bind-api</artifactId>
-            <version>4.0.2</version>
+            <version>4.0.0</version>
         </dependency>
         <dependency>
             <groupId>com.sun.xml.bind</groupId>
             <artifactId>jaxb-core</artifactId>
-            <version>4.0.5</version>
+            <version>4.0.4</version>
         </dependency>
         <dependency>
             <groupId>com.sun.xml.bind</groupId>
             <artifactId>jaxb-impl</artifactId>
-            <version>4.0.5</version>
+            <version>4.0.4</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.glassfish.jaxb</groupId>
             <artifactId>jaxb-runtime</artifactId>
-            <version>4.0.5</version>
+            <version>4.0.4</version>
         </dependency>
 
         <dependency>
             <groupId>com.fasterxml.jackson.dataformat</groupId>
             <artifactId>jackson-dataformat-xml</artifactId>
-            <version>2.18.3</version>
+            <version>2.17.2</version>
         </dependency>
 
         <dependency>
             <groupId>org.entur</groupId>
             <artifactId>siri-avro-mapper</artifactId>
-            <version>4.0.0</version>
+            <version>2.5.10</version>
         </dependency>
         <dependency>
             <groupId>org.apache.avro</groupId>
@@ -260,9 +260,14 @@
         <dependency>
             <groupId>org.entur</groupId>
             <artifactId>siri-java-model</artifactId>
-            <version>2.0.0</version>
+            <version>1.27</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.entur</groupId>
+            <artifactId>siri-protobuf-mapper</artifactId>
+            <version>1.0.3</version>
+        </dependency>
         <dependency>
             <groupId>org.entur</groupId>
             <artifactId>netex-java-model</artifactId>

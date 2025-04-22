@@ -9,8 +9,6 @@ import org.apache.camel.Processor;
 import org.entur.avro.realtime.siri.model.EstimatedVehicleJourneyRecord;
 import org.entur.avro.realtime.siri.model.PtSituationElementRecord;
 import org.entur.avro.realtime.siri.model.VehicleActivityRecord;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayOutputStream;
@@ -18,7 +16,6 @@ import java.io.IOException;
 
 @Component
 public class SiriAvroJsonSerializer implements Processor {
-    private static final Logger logger = LoggerFactory.getLogger(SiriAvroJsonSerializer.class);
     private final DatumWriter<EstimatedVehicleJourneyRecord> etWriter = new SpecificDatumWriter<>(EstimatedVehicleJourneyRecord.class);
     private final DatumWriter<VehicleActivityRecord> vmWriter = new SpecificDatumWriter<>(VehicleActivityRecord.class);
     private final DatumWriter<PtSituationElementRecord> sxWriter = new SpecificDatumWriter<>(PtSituationElementRecord.class);
@@ -53,11 +50,7 @@ public class SiriAvroJsonSerializer implements Processor {
      */
     private static String replaceAvroEnums(byte[] byteArray) {
         String json = new String(byteArray);
-        if (json.contains("\"org.entur.avro.realtime.siri.model.[a-zA-Z]*Enum\"")) {
-            logger.warn("Avro data still contains legacy enums!!!");
-            return json.replaceAll("\"org.entur.avro.realtime.siri.model.[a-zA-Z]*Enum\"", "\"string\"");
-        }
-        return json;
+        return json.replaceAll("\"org.entur.avro.realtime.siri.model.[a-zA-Z]*Enum\"", "\"string\"");
     }
 
     private void serializeVm(Exchange exchange) throws IOException {
