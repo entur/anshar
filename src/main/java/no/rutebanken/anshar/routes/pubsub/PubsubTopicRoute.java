@@ -18,20 +18,12 @@ import static org.entur.avro.realtime.siri.converter.Converter.jaxb2Avro;
 @Service
 public class PubsubTopicRoute extends RouteBuilder {
 
-    @Value("${anshar.outbound.camel.route.topic.et.name}")
-    private String etTopic;
 
     @Value("${anshar.outbound.camel.route.topic.et.name.xml:}")
     private String etTopicXml;
 
     @Value("${anshar.outbound.camel.route.topic.sx.name.xml:}")
     private String sxTopicXml;
-
-    @Value("${anshar.outbound.camel.route.topic.vm.name}")
-    private String vmTopic;
-
-    @Value("${anshar.outbound.camel.route.topic.sx.name}")
-    private String sxTopic;
 
     @Value("${anshar.outbound.pubsub.topic.enabled}")
     private boolean pushToTopicEnabled;
@@ -60,9 +52,7 @@ public class PubsubTopicRoute extends RouteBuilder {
                         .split().tokenizeXML("Siri").streaming()
                         .wireTap("direct:publish.et.avro")        // Publish as Avro
                         .to("direct:publish.et.xml")        // Publish as XML
-                        .to("direct:map.jaxb.to.protobuf")
                         .wireTap("direct:log.pubsub.et.traffic")
-                        .to(etTopic)                                // Send to Pub/Sub as Protobuf
                     .end()
             ;
 
@@ -104,9 +94,7 @@ public class PubsubTopicRoute extends RouteBuilder {
                         .split().tokenizeXML("Siri").streaming()
                         .wireTap("direct:publish.sx.avro")// Publish as Avro
                         .to("direct:publish.sx.xml")        // Publish as XML
-                        .to("direct:map.jaxb.to.protobuf")
                         .wireTap("direct:log.pubsub.sx.traffic")
-                        .to(sxTopic) // Send to Pub/Sub as Protobuf
                     .end()
             ;
 
