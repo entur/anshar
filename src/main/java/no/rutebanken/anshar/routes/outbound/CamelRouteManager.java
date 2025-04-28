@@ -224,6 +224,14 @@ public class CamelRouteManager {
                     false,
                     false);
 
+            if (logBody) {
+                try {
+                    logger.info("SIRI Payload: {}", SiriXml.toXml(transformed));
+                } catch (JAXBException e) {
+                    //Ignore
+                }
+            }
+
             String siriContentType = "data";
             if (transformed.getServiceDelivery() == null) {
                 siriContentType = "heartbeat";
@@ -264,14 +272,14 @@ public class CamelRouteManager {
             if (responseCode == 200) {
                 subscriptionManager.clearFailTracker(subscription.getSubscriptionId());
             }
-            if (logger.isDebugEnabled()) {
-                logger.debug("Pushed {} to subscription {} took {} ms, got responseCode {}",
-                        siriContentType,
-                        subscription.getSubscriptionId(),
-                        System.currentTimeMillis() - t1,
-                        responseCode
-                );
-            }
+
+            logger.info("Pushed {} to subscription {} took {} ms, got responseCode {}",
+                    siriContentType,
+                    subscription.getSubscriptionId(),
+                    System.currentTimeMillis() - t1,
+                    responseCode
+            );
+
             return responseCode;
         }
         return -1;
