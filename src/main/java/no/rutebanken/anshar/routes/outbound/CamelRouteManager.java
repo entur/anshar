@@ -252,6 +252,7 @@ public class CamelRouteManager {
 
             HttpRequest post = HttpRequest.newBuilder()
                     .uri(URI.create(subscription.getAddress()))
+                    .header("subscriptionId", subscription.getSubscriptionId())
                     .header("Content-Type", "application/xml")
                     .POST(HttpRequest.BodyPublishers.ofInputStream(() -> new ByteArrayInputStream(out.toByteArray())))
                     .build();
