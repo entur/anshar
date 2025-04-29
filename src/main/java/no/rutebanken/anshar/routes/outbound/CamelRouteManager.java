@@ -127,10 +127,18 @@ public class CamelRouteManager {
 
                 for (Siri siri : splitSiri) {
                     int responseCode = postDataToSubscription(siri, subscriptionRequest, logBody);
+
                     metricsService.markPostToSubscription(subscriptionRequest.getSubscriptionType(),
                             SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
                             subscriptionRequest.getSubscriptionId(),
                             responseCode);
+
+                    if (responseCode != 200) {
+                        logger.info("Failed to push data for subscription {}: {}", subscriptionRequest, responseCode);
+                        subscriptionManager.pushFailedForSubscription(subscriptionRequest.getSubscriptionId());
+                    } else {
+                        subscriptionManager.clearFailTracker(subscriptionRequest.getSubscriptionId());
+                    }
                 }
             } catch (Exception e) {
                 logger.info("Failed to push data for subscription {}: {}", subscriptionRequest, e.toString());
