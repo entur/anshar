@@ -446,7 +446,7 @@
             <plugin>
                 <groupId>com.google.cloud.tools</groupId>
                 <artifactId>jib-maven-plugin</artifactId>
-                <version>3.4.3</version>
+                <version>3.4.5</version>
                 <configuration>
                     <to>
                         <image>${env.CONTAINER_REPO}</image>
