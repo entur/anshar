@@ -38,6 +38,22 @@ public abstract class CustomValidator {
 
     private StopPlaceUpdaterService stopPlaceService;
 
+    protected String resolveJourneyRef(Node node) {
+        Node framedVehicleJourneyRef = getChildNodeByName(node, "FramedVehicleJourneyRef");
+        if (framedVehicleJourneyRef != null) {
+            return getChildNodeValue(framedVehicleJourneyRef, "DatedVehicleJourneyRef");
+        }
+        String datedVehicleJourneyRef = getChildNodeValue(node, "DatedVehicleJourneyRef");
+        if (datedVehicleJourneyRef != null) {
+            return datedVehicleJourneyRef;
+        }
+        String estimatedVehicleJourneyCode = getChildNodeValue(node, "EstimatedVehicleJourneyCode");
+        if (estimatedVehicleJourneyCode != null) {
+            return estimatedVehicleJourneyCode;
+        }
+        return null;
+    }
+
     protected ZonedDateTime parseDate(String time) {
         try {
             return ZonedDateTime.parse(time);

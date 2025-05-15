@@ -55,6 +55,8 @@ public class UpdateReceivedTooLateValidator extends TimeValidator {
 
         final List<Node> estimatedCalls = getChildNodesByName(node, FIELDNAME);
 
+        String journeyRef = resolveJourneyRef(node.getParentNode());
+
         if (estimatedCalls.isEmpty()) {
             return null;
         }
@@ -79,7 +81,9 @@ public class UpdateReceivedTooLateValidator extends TimeValidator {
             long timeSinceArrival = ChronoUnit.MINUTES.between(currentTime, aimed);
 
             if (timeSinceArrival + MAX_MINUTES_AFTER_ARRIVAL < 0) {
-                return createCustomFieldEvent(node, "Realtime data received more than " + MAX_MINUTES_AFTER_ARRIVAL + " minutes after trip is complete - latest time in update [" + aimed + "], current time ["+ currentTime+"]" , ValidationEvent.WARNING);
+                return createCustomFieldEvent(node,
+                        "Realtime data received more than " + MAX_MINUTES_AFTER_ARRIVAL + " minutes after trip is complete - latest time in update [" + aimed + "], current time ["+ currentTime+"]. <br /> [" + journeyRef +"]" ,
+                        ValidationEvent.WARNING);
             }
         }
         return null;

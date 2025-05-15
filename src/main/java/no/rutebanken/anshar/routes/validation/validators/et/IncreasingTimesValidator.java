@@ -69,6 +69,8 @@ public class IncreasingTimesValidator extends CustomValidator {
         String lineRef = getChildNodeValue(node, "LineRef");
         String vehicleRef = getChildNodeValue(node, "VehicleRef");
 
+        String journeyRef = resolveJourneyRef(node);
+
         // Comparing aimed- and actual-times for RecordedCall
         Node recordedCallsNode = getChildNodeByName(node, RECORDED_CALLS_PARENT_NODE_NAME);
         if (recordedCallsNode != null) {
@@ -82,11 +84,11 @@ public class IncreasingTimesValidator extends CustomValidator {
                         previousDeparture = validateIncreasingTimes(previousDeparture, call);
                     } catch (NegativeDwelltimeException e) {
                         if (!isDepartureCancelled(call)) {
-                            return createCustomFieldEvent(node, "Departure before arrival - at " + getIdentifierString(stopPointRef, lineRef, vehicleRef), ValidationEvent.FATAL_ERROR);
+                            return createCustomFieldEvent(node, "Departure before arrival - at " + getIdentifierString(stopPointRef, lineRef, vehicleRef, journeyRef), ValidationEvent.FATAL_ERROR);
                         }
                     } catch (NegativeRuntimeException e) {
                         if (!isArrivalCancelled(call)) {
-                            return createCustomFieldEvent(node, "Arrival before departure from previous stop - at " + getIdentifierString(stopPointRef, lineRef, vehicleRef), ValidationEvent.FATAL_ERROR);
+                            return createCustomFieldEvent(node, "Arrival before departure from previous stop - at " + getIdentifierString(stopPointRef, lineRef, vehicleRef, journeyRef), ValidationEvent.FATAL_ERROR);
                         }
                     }
                 }
@@ -104,11 +106,11 @@ public class IncreasingTimesValidator extends CustomValidator {
                         previousDeparture = validateIncreasingTimes(previousDeparture, call);
                     } catch (NegativeDwelltimeException e) {
                         if (!isDepartureCancelled(call)) { // Do not flag negative dwell-time as an error when departure is cancelled.
-                            return createCustomFieldEvent(node, "Departure before arrival - at " + getIdentifierString(stopPointRef, lineRef, vehicleRef), ValidationEvent.FATAL_ERROR);
+                            return createCustomFieldEvent(node, "Departure before arrival - at " + getIdentifierString(stopPointRef, lineRef, vehicleRef, journeyRef), ValidationEvent.FATAL_ERROR);
                         }
                     } catch (NegativeRuntimeException e) {
                         if (!isArrivalCancelled(call)) { // Do not flag negative run-time as an error when arrival is cancelled.
-                            return createCustomFieldEvent(node, "Arrival before departure from previous stop - at " + getIdentifierString(stopPointRef, lineRef, vehicleRef), ValidationEvent.FATAL_ERROR);
+                            return createCustomFieldEvent(node, "Arrival before departure from previous stop - at " + getIdentifierString(stopPointRef, lineRef, vehicleRef, journeyRef), ValidationEvent.FATAL_ERROR);
                         }
                     }
                 }
@@ -149,8 +151,8 @@ public class IncreasingTimesValidator extends CustomValidator {
                 visitingStatus.equalsIgnoreCase(CallStatusEnumeration.MISSED.value());
     }
 
-    private String getIdentifierString(String stopPointRef, String lineRef, String vehicleRef) {
-        return MessageFormat.format("Stop [{0}], Line [{1}], VehicleRef [{2}]", stopPointRef, lineRef, vehicleRef);
+    private String getIdentifierString(String stopPointRef, String lineRef, String vehicleRef, String journeyRef) {
+        return MessageFormat.format("Stop [{0}], Line [{1}], VehicleRef [{2}], <br /> [{3}]", stopPointRef, lineRef, vehicleRef, journeyRef);
     }
 
     private long validateIncreasingTimes(long previousDeparture, Node call) throws NegativeDwelltimeException, NegativeRuntimeException{

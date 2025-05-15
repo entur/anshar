@@ -53,6 +53,8 @@ public class UpdateReceivedTooSoonValidator extends TimeValidator {
 
         final Node firstEstimatedCall = getChildNodeByName(node, FIELDNAME);
 
+        String journeyRef = resolveJourneyRef(node.getParentNode());
+
         String firstAimedTime;
 
         if (getChildNodeValue(firstEstimatedCall, arrivalFieldName) != null) {
@@ -67,7 +69,7 @@ public class UpdateReceivedTooSoonValidator extends TimeValidator {
             long timeUntilDeparture = ChronoUnit.HOURS.between(currentTime, aimed);
 
             if (timeUntilDeparture > MAX_HOURS_UNTIL_FIRST_DEPARTURE) {
-                return createCustomFieldEvent(node, "Realtime data received more than " + DAYS + " days ahead - aimed start [" + aimed + "], current time ["+ currentTime+"]" , ValidationEvent.WARNING);
+                return createCustomFieldEvent(node, "Realtime data received more than " + DAYS + " days ahead - aimed start [" + aimed + "], current time ["+ currentTime+"] <br /> [" + journeyRef +"]" , ValidationEvent.WARNING);
             }
         }
         return null;
