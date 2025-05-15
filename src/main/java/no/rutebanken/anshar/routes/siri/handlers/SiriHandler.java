@@ -227,11 +227,11 @@ public class SiriHandler {
         }
 
         if (incoming.getSubscriptionRequest() != null) {
-            logger.info("Handling subscriptionrequest with ID-policy {}.", outboundIdMappingPolicy);
+            logger.info("Handling SubscriptionRequest with ID-policy {}.", outboundIdMappingPolicy);
             return serverSubscriptionManager.handleSubscriptionRequest(incoming.getSubscriptionRequest(), datasetId, outboundIdMappingPolicy, clientTrackingName);
 
         } else if (incoming.getTerminateSubscriptionRequest() != null) {
-            logger.info("Handling terminateSubscriptionrequest...");
+            logger.info("Handling terminateSubscriptionRequest...");
             TerminateSubscriptionRequestStructure terminateSubscriptionRequest = incoming.getTerminateSubscriptionRequest();
             if (terminateSubscriptionRequest.getSubscriptionReves() != null && !terminateSubscriptionRequest.getSubscriptionReves().isEmpty()) {
                 String subscriptionRef = terminateSubscriptionRequest.getSubscriptionReves().get(0).getValue();
@@ -240,7 +240,14 @@ public class SiriHandler {
                 if (configuration.processAdmin()) {
                     return siriObjectFactory.createTerminateSubscriptionResponse(subscriptionRef);
                 }
+            } else if (terminateSubscriptionRequest.getSubscriberRef() != null && terminateSubscriptionRequest.getAll() != null) {
+                String subscriberRef = terminateSubscriptionRequest.getSubscriberRef().getValue();
+                serverSubscriptionManager.terminateSubscriptions(subscriberRef, configuration.processAdmin());
+                if (configuration.processAdmin()) {
+                    return siriObjectFactory.createTerminateSubscriptionResponse(null);
+                }
             }
+            return null;
         } else if (incoming.getCheckStatusRequest() != null) {
             logger.info("Handling checkStatusRequest...");
             return serverSubscriptionManager.handleCheckStatusRequest(incoming.getCheckStatusRequest());

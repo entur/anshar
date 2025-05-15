@@ -562,12 +562,15 @@ public class SiriObjectFactory {
         return siri;
     }
 
-    public Siri createCheckStatusResponse() {
+    public Siri createCheckStatusResponse(CheckStatusRequestStructure checkStatusRequest) {
         Siri siri = createSiriObject(SiriHelper.FALLBACK_SIRI_VERSION);
         CheckStatusResponseStructure response = new CheckStatusResponseStructure();
+        response.setResponseTimestamp(ZonedDateTime.now());
+        response.setProducerRef(createRequestorRef(configuration.getProducerRef()));
+        response.setRequestMessageRef(createMessageRef(checkStatusRequest.getMessageIdentifier().getValue()));
         response.setStatus(true);
         response.setServiceStartedTime(serverStartTime.atZone(ZoneId.systemDefault()));
-        response.setShortestPossibleCycle(Duration.ofSeconds(60));
+
         siri.setCheckStatusResponse(response);
         return siri;
     }
@@ -610,8 +613,13 @@ public class SiriObjectFactory {
     public Siri createTerminateSubscriptionResponse(String subscriptionRef) {
         Siri siri = createSiriObject(SiriHelper.FALLBACK_SIRI_VERSION);
         TerminateSubscriptionResponseStructure response = new TerminateSubscriptionResponseStructure();
+        response.setResponseTimestamp(ZonedDateTime.now());
+        response.setResponderRef(createRequestorRef(configuration.getProducerRef()));
+
         TerminationResponseStatusStructure status = new TerminationResponseStatusStructure();
-        status.setSubscriptionRef(createSubscriptionRef(subscriptionRef));
+        if (subscriptionRef != null) {
+            status.setSubscriptionRef(createSubscriptionRef(subscriptionRef));
+        }
         status.setResponseTimestamp(ZonedDateTime.now());
         status.setStatus(true);
 

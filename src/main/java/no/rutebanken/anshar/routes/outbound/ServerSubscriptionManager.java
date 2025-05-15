@@ -350,6 +350,24 @@ public class ServerSubscriptionManager {
         return null;
     }
 
+    /**
+     * Terminates all subscriptions for a given subscriberRef.
+     * @param subscriberRef
+     * @param postResponse
+     */
+    public void terminateSubscriptions(String subscriberRef, boolean postResponse) {
+        for (OutboundSubscriptionSetup subscription : subscriptions.values()) {
+            if (subscription.getRequestorRef().equals(subscriberRef)) {
+                terminateSubscription(subscription.getSubscriptionId(), postResponse);
+            }
+        }
+    }
+
+    /**
+     * Terminates a subscription based on the given subscriptionRef.
+     * @param subscriptionRef
+     * @param postResponse
+     */
     public void terminateSubscription(String subscriptionRef, boolean postResponse) {
         OutboundSubscriptionSetup subscriptionRequest = removeSubscription(subscriptionRef);
 
@@ -368,7 +386,7 @@ public class ServerSubscriptionManager {
     }
 
     public Siri handleCheckStatusRequest(CheckStatusRequestStructure checkStatusRequest) {
-        return siriObjectFactory.createCheckStatusResponse();
+        return siriObjectFactory.createCheckStatusResponse(checkStatusRequest);
     }
 
     public void pushUpdatesAsync(SiriDataType datatype, List updates, String datasetId) {
