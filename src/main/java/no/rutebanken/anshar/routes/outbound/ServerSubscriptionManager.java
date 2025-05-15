@@ -222,12 +222,33 @@ public class ServerSubscriptionManager {
                 siriHelper.getFilter(subscriptionRequest),
                 mappingAdapterPresets.getOutboundAdapters(outboundIdMappingPolicy),
                 findSubscriptionIdentifier(subscriptionRequest),
-                subscriptionRequest.getRequestorRef().getValue(),
+                findSubscriberIdentifier(subscriptionRequest),
                 findInitialTerminationTime(subscriptionRequest),
                 datasetId,
                 clientTrackingName,
                 resolveSiriVersion(subscriptionRequest, outboundIdMappingPolicy)
                 );
+    }
+
+    private String findSubscriberIdentifier(SubscriptionRequest subscriptionRequest) {
+
+        if (subscriptionRequest.getVehicleMonitoringSubscriptionRequests() != null &&
+        !subscriptionRequest.getVehicleMonitoringSubscriptionRequests().isEmpty()) {
+            if (subscriptionRequest.getVehicleMonitoringSubscriptionRequests().get(0).getSubscriberRef() != null) {
+                return subscriptionRequest.getVehicleMonitoringSubscriptionRequests().get(0).getSubscriberRef().getValue();
+            }
+        } else if (subscriptionRequest.getEstimatedTimetableSubscriptionRequests() != null &&
+                !subscriptionRequest.getEstimatedTimetableSubscriptionRequests().isEmpty()) {
+            if (subscriptionRequest.getEstimatedTimetableSubscriptionRequests().get(0).getSubscriberRef() != null) {
+                return subscriptionRequest.getEstimatedTimetableSubscriptionRequests().get(0).getSubscriberRef().getValue();
+            }
+        } else if (subscriptionRequest.getSituationExchangeSubscriptionRequests() != null &&
+                !subscriptionRequest.getSituationExchangeSubscriptionRequests().isEmpty()) {
+            if (subscriptionRequest.getSituationExchangeSubscriptionRequests().get(0).getSubscriberRef() != null) {
+                return subscriptionRequest.getSituationExchangeSubscriptionRequests().get(0).getSubscriberRef().getValue();
+            }
+        }
+        return subscriptionRequest.getRequestorRef().getValue();
     }
 
     private static SiriValidator.Version resolveSiriVersion(SubscriptionRequest subscriptionRequest, OutboundIdMappingPolicy outboundIdMappingPolicy) {
