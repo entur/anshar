@@ -22,7 +22,6 @@
                 <th>SituationNumber</th>
                 <th>Progress</th>
                 <th>Text</th>
-                <th>Timestamps</th>
             </tr>
             </thead>
             <tbody>
@@ -32,40 +31,50 @@
                     <#else>
                         <tr class="danger">
                     </#if>
-                    <th>${item?counter}</th>
-                    <td>${item.situationNumber}</td>
-                    <td>${item.progress}</td>
-                    <td>
-                        <div>
-                        <label>Summary:</label><br />
+                    <th data-toggle="collapse" data-target="#accordion${item?counter}">${item?counter}</th>
+                    <td data-toggle="collapse" data-target="#accordion${item?counter}">${item.situationNumber}</td>
+                    <td data-toggle="collapse" data-target="#accordion${item?counter}">${item.progress}</td>
+                    <td data-toggle="collapse" data-target="#accordion${item?counter}">
                         <#list item.summaries as summary>
-                            <span>${summary.lang}</span>:<span>${summary.value}</span><br />
-                        </#list>
-                        </div>
-                        <div>
-                            <label>Description:</label><br />
-                        <#list item.descriptions as description>
-                            <span>${description.lang}</span>:<span>${description.value}</span><br />
-                        </#list>
-                        </div>
-                        <div>
-                            <label>Advice:</label><br />
-                        <#list item.advices as advice>
-                            <span>${advice.lang}</span>:<span>${advice.value}</span><br />
-                        </#list>
-                        </div>
-                    </td>
-                    <td>
-                        <label>CreationTime:</label><br />
-                        <span>${item.creationTime}</span><br />
-                        <#list item.validity as validity>
-                            <label>StartTime:</label><br />
-                            <span>${validity.startTime}</span><br />
-                            <label>EndTime:</label><br />
-                            <span>${validity.endTime}</span><br />
-                        </#list>
-                    </td>
-                </tr>
+                            <span>${summary.value}</span><br />
+                        </#list></td>
+                    </tr>
+                    <tr id="accordion${item?counter}" class="collapse">
+                        <td colspan="4">
+                            <table width="90%" class="table table-sm">
+                                <tr>
+                                    <td>
+                                    <div>
+                                    <label>Summary:</label><br />
+                                    <#list item.summaries as summary>
+                                        <span>${summary.lang}</span> <span>${summary.value}</span><br />
+                                    </#list>
+                                    </div>
+                                    <div>
+                                        <label>Description:</label><br />
+                                    <#list item.descriptions as description>
+                                        <span>${description.lang}</span> <span>${description.value}</span><br />
+                                    </#list>
+                                    </div>
+                                    <div>
+                                        <label>Advice:</label><br />
+                                    <#list item.advices as advice>
+                                        <span>${advice.lang}</span> <span>${advice.value}</span><br />
+                                    </#list>
+                                    </div>
+                                </td>
+                                <td>
+                                    <label>CreationTime:</label><br />
+                                    <span>${item.creationTime}</span><br />
+                                    <#list item.validity as validity>
+                                        <label>StartTime:</label><br />
+                                        <span>${validity.startTime}</span><br />
+                                        <label>EndTime:</label><br />
+                                        <span>${validity.endTime}</span><br />
+                                    </#list>
+                                </td>
+                            </tr>
+                        </table>
                 </#list>
             </tbody>
         </table>
