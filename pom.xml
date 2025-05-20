@@ -446,8 +446,11 @@
             <plugin>
                 <groupId>com.google.cloud.tools</groupId>
                 <artifactId>jib-maven-plugin</artifactId>
-                <version>3.4.3</version>
+                <version>3.4.5</version>
                 <configuration>
+                    <from>
+                        <image>eclipse-temurin:21.0.1_12-jdk-alpine</image>
+                    </from>
                     <to>
                         <image>${env.CONTAINER_REPO}</image>
                         <auth>
