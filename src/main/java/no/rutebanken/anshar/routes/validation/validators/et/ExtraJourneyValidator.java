@@ -52,6 +52,7 @@ public class ExtraJourneyValidator extends CustomValidator {
             VehicleModesEnumeration.FERRY.value(),
             VehicleModesEnumeration.METRO.value(),
             VehicleModesEnumeration.RAIL.value(),
+            VehicleModesEnumeration.TAXI.value(),
             VehicleModesEnumeration.TRAM.value());
 
     private static final String VEHICLE_MODE_NODE_NAME = "VehicleMode";
