@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import uk.org.siri.siri21.Siri;
 
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.entur.avro.realtime.siri.converter.Converter.avro2Jaxb;
 import static org.entur.avro.realtime.siri.converter.Converter.jaxb2Avro;
@@ -18,8 +17,6 @@ import static org.entur.avro.realtime.siri.converter.Converter.jaxb2Avro;
 @Service
 public class PubsubTopicRoute extends RouteBuilder {
 
-    @Value("${anshar.outbound.camel.route.topic.et.name}")
-    private String etTopic;
 
     @Value("${anshar.outbound.camel.route.topic.et.name.xml:}")
     private String etTopicXml;
@@ -27,23 +24,11 @@ public class PubsubTopicRoute extends RouteBuilder {
     @Value("${anshar.outbound.camel.route.topic.sx.name.xml:}")
     private String sxTopicXml;
 
-    @Value("${anshar.outbound.camel.route.topic.vm.name}")
-    private String vmTopic;
-
-    @Value("${anshar.outbound.camel.route.topic.sx.name}")
-    private String sxTopic;
-
     @Value("${anshar.outbound.pubsub.topic.enabled}")
     private boolean pushToTopicEnabled;
 
     @Autowired
     private AvroConvertorProcessor avroConvertorProcessor;
-
-    private AtomicInteger etCounter = new AtomicInteger();
-
-    private AtomicInteger vmCounter = new AtomicInteger();
-
-    private AtomicInteger sxCounter = new AtomicInteger();
 
     @Override
     public void configure() {
@@ -60,9 +45,6 @@ public class PubsubTopicRoute extends RouteBuilder {
                         .split().tokenizeXML("Siri").streaming()
                         .wireTap("direct:publish.et.avro")        // Publish as Avro
                         .to("direct:publish.et.xml")        // Publish as XML
-                        .to("direct:map.jaxb.to.protobuf")
-                        .wireTap("direct:log.pubsub.et.traffic")
-                        .to(etTopic)                                // Send to Pub/Sub as Protobuf
                     .end()
             ;
 
@@ -89,7 +71,6 @@ public class PubsubTopicRoute extends RouteBuilder {
                         .to("xslt-saxon:xsl/split.xsl")
                         .split().tokenizeXML("Siri").streaming()
                         .to("direct:publish.vm.avro")// Publish as Avro
-                        .wireTap("direct:log.pubsub.vm.traffic")
                     .end()
             ;
 
@@ -104,9 +85,6 @@ public class PubsubTopicRoute extends RouteBuilder {
                         .split().tokenizeXML("Siri").streaming()
                         .wireTap("direct:publish.sx.avro")// Publish as Avro
                         .to("direct:publish.sx.xml")        // Publish as XML
-                        .to("direct:map.jaxb.to.protobuf")
-                        .wireTap("direct:log.pubsub.sx.traffic")
-                        .to(sxTopic) // Send to Pub/Sub as Protobuf
                     .end()
             ;
 
@@ -160,57 +138,6 @@ public class PubsubTopicRoute extends RouteBuilder {
                     .wireTap("direct:publish.sx.avro.kafka")
                     .wireTap("direct:publish.sx.avro.pubsub")
             ;
-
-            /**
-             * Logs et traffic periodically
-             */
-            from("direct:log.pubsub.et.traffic")
-                    .routeId("log.pubsub.et")
-                    .process(p -> {
-                        if (etCounter.incrementAndGet() % 1000 == 0) {
-                            p.getOut().setHeader("counter", etCounter.get());
-                            p.getOut().setBody(p.getIn().getBody());
-                        }
-                    })
-                    .choice()
-                    .when(header("counter").isNotNull())
-                    .log("Pubsub: Published ${header.counter} et updates")
-                    .endChoice()
-                    .end();
-
-            /**
-             * Logs vm traffic periodically
-             */
-            from("direct:log.pubsub.vm.traffic")
-                    .routeId("log.pubsub-vm")
-                    .process(p -> {
-                        if (vmCounter.incrementAndGet() % 1000 == 0) {
-                            p.getOut().setHeader("counter", vmCounter.get());
-                            p.getOut().setBody(p.getIn().getBody());
-                        }
-                    })
-                    .choice()
-                    .when(header("counter").isNotNull())
-                    .log("Pubsub: Published ${header.counter} vm updates")
-                    .endChoice()
-                    .end();
-
-            /**
-             * Logs sx traffic periodically
-             */
-            from("direct:log.pubsub.sx.traffic")
-                    .routeId("log.pubsub.sx")
-                    .process(p -> {
-                        if (sxCounter.incrementAndGet() % 50 == 0) {
-                            p.getOut().setHeader("counter", sxCounter.get());
-                            p.getOut().setBody(p.getIn().getBody());
-                        }
-                    })
-                    .choice()
-                    .when(header("counter").isNotNull())
-                    .log("Pubsub: Published ${header.counter} sx updates")
-                    .endChoice()
-                    .end();
         }
     }
 }

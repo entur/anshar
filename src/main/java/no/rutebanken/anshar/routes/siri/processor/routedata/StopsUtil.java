@@ -59,16 +59,14 @@ public class StopsUtil {
             switch (mode) {
                 case AIR:
                     return stopMode == AllVehicleModesOfTransportEnumeration.AIR;
-                case BUS:
-                case COACH:
+                case BUS, COACH, TAXI:
                     return (stopMode == AllVehicleModesOfTransportEnumeration.BUS |
                             stopMode == AllVehicleModesOfTransportEnumeration.COACH |
                             stopMode == AllVehicleModesOfTransportEnumeration.TROLLEY_BUS
                     );
                 case RAIL:
                     return stopMode == AllVehicleModesOfTransportEnumeration.RAIL;
-                case TRAM:
-                case METRO:
+                case TRAM, METRO:
                     return (stopMode == AllVehicleModesOfTransportEnumeration.TRAM |
                             stopMode == AllVehicleModesOfTransportEnumeration.METRO);
                 case FERRY:

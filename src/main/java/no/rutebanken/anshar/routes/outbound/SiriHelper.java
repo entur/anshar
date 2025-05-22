@@ -426,12 +426,6 @@ public class SiriHelper {
 
     public static String resolveSiriVersionStr(SiriValidator.Version version) {
         switch (version) {
-            case VERSION_1_0:
-                return "1.0";
-            case VERSION_1_3:
-                return "1.3";
-            case VERSION_1_4:
-                return "1.4";
             case VERSION_2_0:
                 return "2.0";
             case VERSION_2_1:

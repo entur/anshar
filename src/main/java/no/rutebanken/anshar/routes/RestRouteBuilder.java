@@ -28,7 +28,6 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.support.builder.Namespaces;
 import org.entur.avro.realtime.siri.converter.jaxb2avro.Jaxb2AvroConverter;
 import org.entur.avro.realtime.siri.model.SiriRecord;
-import org.entur.protobuf.mapper.SiriMapper;
 import org.entur.siri21.util.SiriJson;
 import org.entur.siri21.util.SiriXml;
 import org.slf4j.Logger;
@@ -54,7 +53,7 @@ import static no.rutebanken.anshar.routes.HttpParameter.SIRI_VERSION_HEADER_NAME
 
 public class RestRouteBuilder extends RouteBuilder {
 
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+    private static final Logger logger = LoggerFactory.getLogger(RestRouteBuilder.class);
 
     protected Namespaces ns = new Namespaces("siri", "http://www.siri.org.uk/siri")
             .add("xsd", "http://www.w3.org/2001/XMLSchema");
@@ -81,7 +80,6 @@ public class RestRouteBuilder extends RouteBuilder {
                 .component("jetty")
                 .port(configuration.getInboundPort())
                 .apiContextPath("anshar/swagger.json")
-//                .endpointProperty("httpBindingRef", "#contentEncodingRequestFilter")
                 .apiProperty("api.title", "Realtime").apiProperty("api.version", "1.0")
                 .apiProperty("cors", "true")
         ;
@@ -420,19 +418,6 @@ public class RestRouteBuilder extends RouteBuilder {
                 );
             }
         }
-        else if ("application/x-protobuf".equals(p.getIn().getHeader(HttpHeaders.CONTENT_TYPE)) |
-                "application/x-protobuf".equals(p.getIn().getHeader(HttpHeaders.ACCEPT))) {
-            try {
-                final byte[] bytes = SiriMapper.mapToPbf(downgradeSiriVersion(response)).toByteArray();
-                p.getMessage().setHeader(HttpHeaders.CONTENT_TYPE, "application/x-protobuf");
-                p.getMessage().setHeader(HttpHeaders.CONTENT_LENGTH, "" + bytes.length);
-                out.getOutputStream().write(bytes);
-            } catch (NullPointerException npe) {
-                File file = new File("ET-" + System.currentTimeMillis() + ".xml");
-                log.error("Caught NullPointerException, data written to " + file.getAbsolutePath(), npe);
-                SiriXml.toXml(response, null, new FileOutputStream(file));
-            }
-        }
         else if ("application/avro".equals(p.getIn().getHeader(HttpHeaders.CONTENT_TYPE)) |
                 "application/avro".equals(p.getIn().getHeader(HttpHeaders.ACCEPT))) {
             try {
@@ -479,8 +464,26 @@ public class RestRouteBuilder extends RouteBuilder {
 
     public static uk.org.siri.siri20.Siri downgradeSiriVersion(Siri response) throws JAXBException, XMLStreamException {
         uk.org.siri.siri20.Siri siri20Response;
-        String siri2_0Xml = SiriXml.toXml(response);
-        siri20Response = org.rutebanken.siri20.util.SiriXml.parseXml(siri2_0Xml);
+        try {
+            siri20Response = org.rutebanken.siri20.util.SiriXml.parseXml(SiriXml.toXml(response));
+        } catch (NullPointerException e) {
+            //Retry
+            try {
+                siri20Response = org.rutebanken.siri20.util.SiriXml.parseXml(SiriXml.toXml(response));
+                logger.info("Retry avoided NPE");
+            } catch (NullPointerException e2) {
+                // Write to file
+
+                File file = new File("ET-" + System.currentTimeMillis() + ".xml");
+                try (FileOutputStream fos = new FileOutputStream(file)) {
+                    SiriXml.toXml(response, null, fos);
+                    logger.warn("Caught NullPointerException, data written to " + file.getAbsolutePath());
+                } catch (IOException ex) {
+                    // ignore
+                }
+                siri20Response = new uk.org.siri.siri20.Siri();
+            }
+        }
         siri20Response.setVersion("2.0");
         ServiceDelivery serviceDelivery = siri20Response.getServiceDelivery();
         if (serviceDelivery != null) {
