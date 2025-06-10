@@ -113,8 +113,6 @@ public class SiriLiteRoute extends RestRouteBuilder {
                 .choice()
                 .when(e -> isTrackingHeaderAcceptable(e))
                     .process(p -> {
-                        p.getOut().setHeaders(p.getIn().getHeaders());
-
                         String requestorId = resolveRequestorId(p.getIn().getBody(HttpServletRequest.class));
 
                         String datasetId = p.getIn().getHeader(PARAM_DATASET_ID, String.class);
@@ -155,7 +153,6 @@ public class SiriLiteRoute extends RestRouteBuilder {
                 .choice()
                 .when(e -> isTrackingHeaderAcceptable(e))
                     .process(p -> {
-                        p.getOut().setHeaders(p.getIn().getHeaders());
 
                         String datasetId = p.getIn().getHeader(PARAM_DATASET_ID, String.class);
                         String originalId = p.getIn().getHeader(PARAM_USE_ORIGINAL_ID, String.class);
@@ -210,7 +207,6 @@ public class SiriLiteRoute extends RestRouteBuilder {
                 .choice()
                 .when(e -> isTrackingHeaderAcceptable(e))
                     .process(p -> {
-                        p.getOut().setHeaders(p.getIn().getHeaders());
 
                         String datasetId = p.getIn().getHeader(PARAM_DATASET_ID, String.class);
                         String originalId = p.getIn().getHeader(PARAM_USE_ORIGINAL_ID, String.class);
@@ -408,7 +404,7 @@ public class SiriLiteRoute extends RestRouteBuilder {
                     );
 
                     logger.info("Transforming cached ET-data");
-                    response = SiriValueTransformer.transform(response, outboundAdapters, false, false);
+                    response = SiriValueTransformer.transform(response, outboundAdapters, true, false);
 
                     metrics.countOutgoingData(response, SubscriptionSetup.SubscriptionMode.LITE);
 

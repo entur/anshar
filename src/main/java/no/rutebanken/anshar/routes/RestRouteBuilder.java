@@ -21,6 +21,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.UnmarshalException;
 import no.rutebanken.anshar.config.AnsharConfiguration;
+import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import org.apache.camel.Exchange;
 import org.apache.camel.InvalidPayloadException;
 import org.apache.camel.LoggingLevel;
@@ -39,7 +40,9 @@ import uk.org.siri.siri20.EstimatedTimetableDeliveryStructure;
 import uk.org.siri.siri20.ServiceDelivery;
 import uk.org.siri.siri20.SituationExchangeDeliveryStructure;
 import uk.org.siri.siri20.VehicleMonitoringDeliveryStructure;
+import uk.org.siri.siri21.EstimatedVersionFrameStructure;
 import uk.org.siri.siri21.Siri;
+import uk.org.siri.siri21.VehicleModesEnumeration;
 
 import javax.xml.stream.XMLStreamException;
 import java.io.File;
@@ -459,12 +462,30 @@ public class RestRouteBuilder extends RouteBuilder {
                 );
             }
         }
-        p.getMessage().setBody(out.getOutputStream());
     }
 
     public static uk.org.siri.siri20.Siri downgradeSiriVersion(Siri response) throws JAXBException, XMLStreamException {
         uk.org.siri.siri20.Siri siri20Response;
         try {
+
+            if (response.getServiceDelivery() != null &&
+                response.getServiceDelivery().getEstimatedTimetableDeliveries() != null) {
+                Siri siri = SiriObjectFactory.deepCopy(response);
+                for (uk.org.siri.siri21.EstimatedTimetableDeliveryStructure delivery : siri.getServiceDelivery().getEstimatedTimetableDeliveries()) {
+                    if (delivery.getEstimatedJourneyVersionFrames() != null && !delivery.getEstimatedJourneyVersionFrames().isEmpty()) {
+                        for (EstimatedVersionFrameStructure frameStructure : delivery.getEstimatedJourneyVersionFrames()) {
+                            // Remove updates with taxi-mode - as it is not supported in SIRI 2.0
+                            frameStructure.getEstimatedVehicleJourneies().removeIf(
+                                    estimatedVehicleJourney ->
+                                            estimatedVehicleJourney.getVehicleModes().contains(VehicleModesEnumeration.TAXI)
+                            );
+                        }
+                    }
+                }
+                response = siri;
+            }
+
+            // Try to parse the response as a Siri 2.0 object
             siri20Response = org.rutebanken.siri20.util.SiriXml.parseXml(SiriXml.toXml(response));
         } catch (NullPointerException e) {
             //Retry

@@ -119,9 +119,9 @@ public class SiriHandler {
 
     /**
      *
-     * @param subscriptionId SubscriptionId
-     * @param xml SIRI-request as XML
-     * @param datasetId Optional datasetId
+     * @param subscriptionId          SubscriptionId
+     * @param xml                     SIRI-request as XML
+     * @param datasetId               Optional datasetId
      * @param outboundIdMappingPolicy Defines outbound idmapping-policy
      * @return
      */
@@ -147,10 +147,8 @@ public class SiriHandler {
     }
 
     public Siri handleSiriCacheRequest(
-        InputStream body, String datasetId, String clientTrackingName
-    ) throws XMLStreamException, JAXBException {
-
-        Siri incoming = SiriValueTransformer.parseXml(body);
+            Siri incoming, String datasetId, String clientTrackingName
+    ) {
 
         if (incoming.getServiceRequest() != null) {
             ServiceRequest serviceRequest = incoming.getServiceRequest();
@@ -200,7 +198,7 @@ public class SiriHandler {
                 return SiriValueTransformer.transform(
                     serviceResponse,
                     mappingAdapterPresets.getOutboundAdapters(dataType, OutboundIdMappingPolicy.DEFAULT),
-                    false,
+                    true,
                     false
                 );
             }

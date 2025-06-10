@@ -27,6 +27,7 @@ import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
 import org.apache.camel.Processor;
 import org.apache.camel.http.common.HttpMethods;
+import org.entur.siri.validator.SiriValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -82,12 +83,18 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
             }
         };
 
+        SiriValidator.Version siriVersion;
+        if ("2.0".equals(subscriptionSetup.getVersion())) {
+            siriVersion = SiriValidator.Version.VERSION_2_0;
+        } else {
+            siriVersion = SiriValidator.Version.VERSION_2_1;
+        }
         from("direct:" + subscriptionSetup.getStartSubscriptionRouteName())
                 .log("Starting subscription " + subscriptionSetup.toString())
                 .process(oauthHeadersProcess)
                 .to("direct:oauth2.authorize")
                 .bean(helper, "createSiriSubscriptionRequest")
-                .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
+                .marshal(SiriDataFormatHelper.getSiriJaxbDataformat(siriVersion))
                 .setExchangePattern(ExchangePattern.InOut) // Make sure we wait for a response
                 .setHeader("operatorNamespace", constant(subscriptionSetup.getOperatorNamespace())) // Need to make SOAP request with endpoint specific element namespace
                 .removeHeaders("CamelHttp*") // Remove any incoming HTTP headers as they interfere with the outgoing definition
@@ -127,7 +134,7 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
                 .process(oauthHeadersProcess)
                 .to("direct:oauth2.authorize")
                 .bean(helper, "createSiriCheckStatusRequest")
-                .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
+                .marshal(SiriDataFormatHelper.getSiriJaxbDataformat(siriVersion))
                 .removeHeaders("CamelHttp*") // Remove any incoming HTTP headers as they interfere with the outgoing definition
                 .setHeader(Exchange.CONTENT_TYPE, constant(subscriptionSetup.getContentType())) // Necessary when talking to Microsoft web services
                 .setHeader(Exchange.HTTP_METHOD, constant(HttpMethods.POST))
@@ -174,7 +181,7 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
                 .process(oauthHeadersProcess)
                 .to("direct:oauth2.authorize")
                 .bean(helper, "createSiriTerminateSubscriptionRequest")
-                .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
+                .marshal(SiriDataFormatHelper.getSiriJaxbDataformat(siriVersion))
                 .setExchangePattern(ExchangePattern.InOut) // Make sure we wait for a response
                 .setProperty(Exchange.LOG_DEBUG_BODY_STREAMS, constant("true"))
                 .removeHeaders("CamelHttp*") // Remove any incoming HTTP headers as they interfere with the outgoing definition

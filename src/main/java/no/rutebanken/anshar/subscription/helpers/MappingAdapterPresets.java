@@ -19,6 +19,7 @@ import com.google.common.base.Objects;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.routes.siri.handlers.OutboundIdMappingPolicy;
 import no.rutebanken.anshar.routes.siri.processor.CodespaceOutboundProcessor;
+import no.rutebanken.anshar.routes.siri.processor.RemoveDetailedAPCDataPostProcessor;
 import no.rutebanken.anshar.routes.siri.processor.RemoveEmojiPostProcessor;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter;
@@ -69,6 +70,7 @@ public class MappingAdapterPresets {
 
             switch (dataType) {
                 case ESTIMATED_TIMETABLE:
+                    adapters.add(new RemoveDetailedAPCDataPostProcessor());
                 case VEHICLE_MONITORING:
                     adapters.add(new OutboundIdAdapter(JourneyPlaceRefStructure.class, outboundIdMappingPolicy));
                     adapters.add(new OutboundIdAdapter(DestinationRef.class, outboundIdMappingPolicy));

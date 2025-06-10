@@ -15,11 +15,10 @@
 
 package no.rutebanken.anshar.routes.siri;
 
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.xml.bind.JAXBException;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.routes.RestRouteBuilder;
-import no.rutebanken.anshar.routes.dataformat.SiriDataFormatHelper;
 import no.rutebanken.anshar.routes.siri.handlers.OutboundIdMappingPolicy;
 import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
@@ -27,6 +26,7 @@ import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.camel.Exchange;
 import org.apache.camel.Message;
 import org.apache.camel.model.rest.RestParamType;
+import org.entur.siri21.util.SiriXml;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -35,6 +35,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 import uk.org.siri.siri21.Siri;
 
+import javax.xml.stream.XMLStreamException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
@@ -44,7 +46,6 @@ import static no.rutebanken.anshar.routes.HttpParameter.PARAM_EXCLUDED_DATASET_I
 import static no.rutebanken.anshar.routes.HttpParameter.PARAM_MAX_SIZE;
 import static no.rutebanken.anshar.routes.HttpParameter.PARAM_SUBSCRIPTION_ID;
 import static no.rutebanken.anshar.routes.HttpParameter.PARAM_USE_ORIGINAL_ID;
-import static no.rutebanken.anshar.routes.HttpParameter.SIRI_VERSION_HEADER_NAME;
 import static no.rutebanken.anshar.routes.HttpParameter.getParameterValuesAsList;
 
 @SuppressWarnings("unchecked")
@@ -198,10 +199,11 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
                     String clientTrackingName = p.getIn().getHeader(configuration.getTrackingHeaderName(), String.class);
 
                     InputStream xml = p.getIn().getBody(InputStream.class);
+                    boolean siri21Version = isSiri21Version(xml);
 
                     OutboundIdMappingPolicy idMappingPolicy = SiriHandler.getIdMappingPolicy((String) p.getIn().getHeader(PARAM_USE_ORIGINAL_ID));
 
-                    if ("2.1".equals(p.getIn().getHeader(SIRI_VERSION_HEADER_NAME, String.class))) {
+                    if (siri21Version) {
                         idMappingPolicy = OutboundIdMappingPolicy.SIRI_2_1;
                     }
 
@@ -209,11 +211,17 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
                     if (response != null) {
                         logger.info("Returning SubscriptionResponse");
 
-                        p.getOut().setBody(response);
+                        if (siri21Version) {
+                            p.getMessage().setBody(SiriXml.toXml(response));
+                        } else {
+                            p.getMessage().setBody(org.rutebanken.siri20.util.SiriXml.toXml(
+                                    downgradeSiriVersion(response)
+                            ));
+                        }
                     }
 
                 })
-                .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
+                .setHeader(Exchange.CONTENT_TYPE, simple(MediaType.APPLICATION_XML))
                 .to("log:subResponse:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
         ;
 
@@ -237,8 +245,6 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
                     .process(p -> {
                         Message msg = p.getIn();
 
-                        p.getOut().setHeaders(msg.getHeaders());
-
                         List<String> excludedIdList = getParameterValuesAsList(msg, PARAM_EXCLUDED_DATASET_ID);
                         String clientTrackingName = p.getIn().getHeader(configuration.getTrackingHeaderName(), String.class);
 
@@ -248,16 +254,28 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
                         if (msg.getHeaders().containsKey(PARAM_MAX_SIZE)) {
                             maxSize = Integer.parseInt((String) msg.getHeader(PARAM_MAX_SIZE));
                         }
+                        OutboundIdMappingPolicy idMappingPolicy = SiriHandler.getIdMappingPolicy((String) p.getIn().getHeader(PARAM_USE_ORIGINAL_ID));
 
-                        String useOriginalId = msg.getHeader(PARAM_USE_ORIGINAL_ID, String.class);
+                        InputStream inputStream = msg.getBody(InputStream.class);
+                        boolean siri21Version = isSiri21Version(inputStream);
 
-                        Siri response = handler.handleIncomingSiri(null, msg.getBody(InputStream.class), datasetId, excludedIdList, SiriHandler.getIdMappingPolicy(useOriginalId), maxSize, clientTrackingName);
+                        if (siri21Version) {
+                            idMappingPolicy = OutboundIdMappingPolicy.SIRI_2_1;
+                        }
+
+                        Siri response = handler.handleIncomingSiri(null, inputStream, datasetId, excludedIdList, idMappingPolicy, maxSize, clientTrackingName);
                         if (response != null) {
                             logger.info("Found ServiceRequest-response, streaming response");
-                            p.getOut().setBody(response);
+                            if (siri21Version) {
+                                p.getMessage().setBody(SiriXml.toXml(response));
+                            } else {
+                                p.getMessage().setBody(org.rutebanken.siri20.util.SiriXml.toXml(
+                                        downgradeSiriVersion(response)
+                                ));
+                            }
                         }
                     })
-                    .marshal(SiriDataFormatHelper.getSiriJaxbDataformat())
+                    .setHeader(Exchange.CONTENT_TYPE, simple(MediaType.APPLICATION_XML))
                     .to("log:serResponse:" + getClass().getSimpleName() + "?showAll=true&multiline=true&showStreams=true")
                 .otherwise()
                     .to("direct:anshar.invalid.tracking.header.response")
@@ -283,18 +301,35 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
                 String datasetId = msg.getHeader(PARAM_DATASET_ID, String.class);
                 String clientTrackingName = p.getIn().getHeader(configuration.getTrackingHeaderName(), String.class);
 
-                Siri response = handler.handleSiriCacheRequest(msg.getBody(InputStream.class), datasetId, clientTrackingName);
+                Siri request = SiriXml.parseXml(msg.getBody(InputStream.class));
+
+                Siri response = handler.handleSiriCacheRequest(request, datasetId, clientTrackingName);
+
                 if (response != null) {
                     logger.info("Found ServiceRequest-response, streaming response");
-                }
-                HttpServletResponse out = p.getIn().getBody(HttpServletResponse.class);
 
-                streamOutput(p, response, out);
+                    if ("2.1".equals(request.getVersion())) {
+                        p.getMessage().setBody(SiriXml.toXml(response));
+                    } else {
+                        p.getMessage().setBody(org.rutebanken.siri20.util.SiriXml.toXml(
+                                downgradeSiriVersion(response)
+                        ));
+                    }
+                }
             })
             .to("log:serResponse:" + getClass().getSimpleName() + "?showAll=true&multiline=true&showStreams=true")
             .routeId("process.service.cache")
         ;
 
+    }
+
+    private static boolean isSiri21Version(InputStream inputStream) throws JAXBException, XMLStreamException, IOException {
+        Siri incomingRequest = SiriXml.parseXml(inputStream);
+
+        boolean siri21Version = "2.1".equals(incomingRequest.getVersion());
+        inputStream.reset();
+
+        return siri21Version;
     }
 
     private String getSubscriptionDataType(Exchange e) {
