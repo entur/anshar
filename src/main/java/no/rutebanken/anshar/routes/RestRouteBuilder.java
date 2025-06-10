@@ -82,8 +82,6 @@ public class RestRouteBuilder extends RouteBuilder {
         restConfiguration()
                 .component("jetty")
                 .port(configuration.getInboundPort())
-                .apiContextPath("anshar/swagger.json")
-                .apiProperty("api.title", "Realtime").apiProperty("api.version", "1.0")
                 .apiProperty("cors", "true")
         ;
 
