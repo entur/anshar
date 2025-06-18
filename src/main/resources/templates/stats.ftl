@@ -176,8 +176,7 @@
                         <th>Type</th>
                         <th>Version</th>
                         <th>Heartbeat</th>
-                        <th>Activated</th>
-                        <th>Terminationtime</th>
+                        <th>Start-/Endtime</th>
                         <th></th>
                     </tr>
                     </thead>
@@ -192,8 +191,10 @@
                         <td>${item.subscriptionType}</td>
                         <td>${item.version}</td>
                         <td>${item.heartbeatInterval}</td>
-                        <td>${item.requestReceived}</td>
-                        <td>${item.initialTerminationTime}</td>
+                        <td>
+                            ${item.requestReceived} - <br />
+                            ${item.initialTerminationTime}
+                        </td>
                         <td>
                             <span style="cursor: pointer"  class="glyphicon glyphicon-trash" onclick="administerSubscription('terminate', '${item.subscriptionRef}')"></span>
                         </td>
