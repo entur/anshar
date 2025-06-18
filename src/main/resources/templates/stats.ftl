@@ -170,7 +170,6 @@
                     <tr>
                         <th>#</th>
                         <th>SubscriptionRef</th>
-                        <th>Address</th>
                         <th>DatasetId</th>
                         <th>ClientName</th>
                         <th>Type</th>
@@ -184,8 +183,7 @@
                     <#list body.outbound?sort_by("subscriptionRef") as item>
                     <tr>
                         <th>${item?counter}</th>
-                        <td>${item.subscriptionRef}</td>
-                        <td><a href="${item.address}">URL</a></td>
+                        <td><a href="${item.address}">${item.subscriptionRef}</a></td>
                         <td>${item.datasetId}</td>
                         <td>${item.clientTrackingName}</td>
                         <td>${item.subscriptionType}</td>
