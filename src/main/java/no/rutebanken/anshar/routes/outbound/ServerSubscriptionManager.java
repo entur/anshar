@@ -136,10 +136,11 @@ public class ServerSubscriptionManager {
             OutboundSubscriptionSetup subscription = subscriptions.get(key);
 
             JSONObject obj = new JSONObject();
-            obj.put("subscriptionRef",""+key);
+            obj.put("subscriptionRef", key);
             obj.put("subscriptionType",""+subscription.getSubscriptionType());
-            obj.put("address",""+subscription.getAddress());
-            obj.put("heartbeatInterval",""+(subscription.getHeartbeatInterval()/1000) + " s");
+            obj.put("version", subscription.getSiriVersion().equals(SiriValidator.Version.VERSION_2_1) ? "2.1" : "2.0");
+            obj.put("address", subscription.getAddress());
+            obj.put("heartbeatInterval", (subscription.getHeartbeatInterval()/1000) + " s");
             obj.put("datasetId",subscription.getDatasetId()!=null ? subscription.getDatasetId():"");
             obj.put("requestReceived", formatter.format(subscription.getRequestTimestamp()));
             obj.put("initialTerminationTime",formatter.format(subscription.getInitialTerminationTime()));

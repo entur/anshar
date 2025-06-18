@@ -174,6 +174,7 @@
                         <th>DatasetId</th>
                         <th>ClientName</th>
                         <th>Type</th>
+                        <th>Version</th>
                         <th>Heartbeat</th>
                         <th>Activated</th>
                         <th>Terminationtime</th>
@@ -189,6 +190,7 @@
                         <td>${item.datasetId}</td>
                         <td>${item.clientTrackingName}</td>
                         <td>${item.subscriptionType}</td>
+                        <td>${item.version}</td>
                         <td>${item.heartbeatInterval}</td>
                         <td>${item.requestReceived}</td>
                         <td>${item.initialTerminationTime}</td>
