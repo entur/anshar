@@ -10,6 +10,8 @@ import org.geotools.referencing.crs.DefaultGeographicCRS;
 import org.locationtech.jts.geom.Coordinate;
 import org.rutebanken.netex.model.AllVehicleModesOfTransportEnumeration;
 import org.rutebanken.netex.model.LocationStructure;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.org.siri.siri21.VehicleModesEnumeration;
 
 import java.time.ZonedDateTime;
@@ -22,12 +24,24 @@ import static no.rutebanken.anshar.routes.siri.processor.routedata.NetexUpdaterS
 
 public class StopsUtil {
 
+    private static final Logger logger = LoggerFactory.getLogger(StopsUtil.class);
+
     private static final LoadingCache<Pair<String, String>, Double> distanceCache = CacheBuilder.newBuilder()
         .expireAfterWrite(120, TimeUnit.MINUTES)
         .build(
             new CacheLoader<Pair<String, String>, Double>() {
                 public Double load(Pair<String, String> fromAndTo) {
 
+                    double distance = calculateOrthodromicDistance(fromAndTo);
+                    if (distance < 0) {
+                        // If distance is not found, retry once
+                        distance = calculateOrthodromicDistance(fromAndTo);
+                    }
+                    return distance;
+
+                }
+
+                private static double calculateOrthodromicDistance(Pair<String, String> fromAndTo) {
                     double distance = -1;
 
                     final LocationStructure from = locations.get(fromAndTo.getLeft());
@@ -43,11 +57,10 @@ public class StopsUtil {
                                 DefaultGeographicCRS.WGS84);
                         }
                         catch (TransformException e) {
-                            //Ignore
+                            logger.warn("Could not calculate distance from {} to {}", fromCoord, toCoord, e);
                         }
                     }
                     return distance;
-
                 }
             })
         ;
@@ -94,6 +107,10 @@ public class StopsUtil {
 
     public static int calculateSpeedKph(double distanceInMeters, ZonedDateTime departureTime, ZonedDateTime arrivalTime) {
         final long seconds = getSeconds(departureTime, arrivalTime);
+        return calculateSpeedKph(distanceInMeters, seconds);
+    }
+
+    public static int calculateSpeedKph(double distanceInMeters,long seconds) {
         if (seconds <= 0) {
             return Integer.MAX_VALUE;
         }
