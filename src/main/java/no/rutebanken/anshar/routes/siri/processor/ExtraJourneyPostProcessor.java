@@ -37,6 +37,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static no.rutebanken.anshar.routes.siri.processor.routedata.NetexUpdaterService.serviceJourneyIdExists;
+import static no.rutebanken.anshar.routes.siri.processor.routedata.StopsUtil.getDistance;
+import static no.rutebanken.anshar.routes.siri.processor.routedata.StopsUtil.getSeconds;
 import static no.rutebanken.anshar.routes.siri.transformer.MappingNames.EXTRA_JOURNEY_ID_EXISTS;
 import static no.rutebanken.anshar.routes.siri.transformer.MappingNames.EXTRA_JOURNEY_INVALID_MODE;
 import static no.rutebanken.anshar.routes.siri.transformer.MappingNames.EXTRA_JOURNEY_TOO_FAST;
@@ -206,10 +208,21 @@ public class ExtraJourneyPostProcessor extends ValueAdapter implements PostProce
         final ZonedDateTime toTime = times.getRight();
 
         if (fromTime != null && toTime != null) {
-            final int kph = StopsUtil.calculateSpeedKph(fromStop, toStop,
-                fromTime,
-                toTime
-            );
+            double distance = getDistance(fromStop, toStop);
+
+            long seconds = getSeconds(fromTime, toTime);
+            if (seconds < 0) {
+                logger.warn(
+                    "Negative time difference between {} and {}: {} seconds",
+                    fromStop, toStop, seconds
+                );
+                throw new TooFastException(estimatedVehicleJourney, fromStop, toStop, fromTime, toTime);
+            }
+            if (seconds <= 60) {
+                seconds = 60;
+            }
+
+            final int kph = StopsUtil.calculateSpeedKph(distance, seconds);
 
             if (kph > SANE_SPEED_LIMIT) {
                 logger.warn(
