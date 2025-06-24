@@ -98,6 +98,10 @@ public class StopsUtil {
     //public for testing-purposes
     public static double getDistance(String fromRef, String toRef) {
         try {
+            if (locations.isEmpty()) {
+                logger.warn("No locations available for distance calculation. Returning 1000.");
+                return 1000D; // Default distance if no locations are available
+            }
             return distanceCache.get(Pair.of(fromRef, toRef));
         }
         catch (ExecutionException e) {
