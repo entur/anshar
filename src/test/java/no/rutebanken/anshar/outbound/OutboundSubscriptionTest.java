@@ -97,8 +97,8 @@ public class OutboundSubscriptionTest extends SpringBootBaseTest {
                 "</Siri>";
 
 
-        final Siri siriSX = serverSubscriptionManager.handleSubscriptionRequest(SiriXml.parseXml(sxSubscription).getSubscriptionRequest(), null, OutboundIdMappingPolicy.DEFAULT, null);
-        final Siri siriET = serverSubscriptionManager.handleSubscriptionRequest(SiriXml.parseXml(etSubscription).getSubscriptionRequest(), null, OutboundIdMappingPolicy.DEFAULT, null);
+        final Siri siriSX = serverSubscriptionManager.handleSubscriptionRequest(SiriXml.parseXml(sxSubscription), null, OutboundIdMappingPolicy.DEFAULT, null);
+        final Siri siriET = serverSubscriptionManager.handleSubscriptionRequest(SiriXml.parseXml(etSubscription), null, OutboundIdMappingPolicy.DEFAULT, null);
 
         assertNotNull(siriSX);
         assertNotNull(siriET);

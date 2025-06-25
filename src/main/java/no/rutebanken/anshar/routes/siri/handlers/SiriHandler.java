@@ -226,7 +226,7 @@ public class SiriHandler {
 
         if (incoming.getSubscriptionRequest() != null) {
             logger.info("Handling SubscriptionRequest with ID-policy {}.", outboundIdMappingPolicy);
-            return serverSubscriptionManager.handleSubscriptionRequest(incoming.getSubscriptionRequest(), datasetId, outboundIdMappingPolicy, clientTrackingName);
+            return serverSubscriptionManager.handleSubscriptionRequest(incoming, datasetId, outboundIdMappingPolicy, clientTrackingName);
 
         } else if (incoming.getTerminateSubscriptionRequest() != null) {
             logger.info("Handling terminateSubscriptionRequest...");

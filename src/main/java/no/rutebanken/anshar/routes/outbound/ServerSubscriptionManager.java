@@ -152,9 +152,9 @@ public class ServerSubscriptionManager {
         return stats;
     }
 
-    public Siri handleSubscriptionRequest(SubscriptionRequest subscriptionRequest, String datasetId, OutboundIdMappingPolicy outboundIdMappingPolicy, String clientTrackingName) {
+    public Siri handleSubscriptionRequest(Siri siri, String datasetId, OutboundIdMappingPolicy outboundIdMappingPolicy, String clientTrackingName) {
 
-        OutboundSubscriptionSetup subscription = createSubscription(subscriptionRequest, datasetId, outboundIdMappingPolicy, clientTrackingName);
+        OutboundSubscriptionSetup subscription = createSubscription(siri, datasetId, outboundIdMappingPolicy, clientTrackingName);
 
         boolean hasError = false;
         String errorText = null;
@@ -212,8 +212,9 @@ public class ServerSubscriptionManager {
 
 
 
-    private OutboundSubscriptionSetup createSubscription(SubscriptionRequest subscriptionRequest, String datasetId, OutboundIdMappingPolicy outboundIdMappingPolicy, String clientTrackingName) {
+    private OutboundSubscriptionSetup createSubscription(Siri siri, String datasetId, OutboundIdMappingPolicy outboundIdMappingPolicy, String clientTrackingName) {
 
+        SubscriptionRequest subscriptionRequest = siri.getSubscriptionRequest();
         return new OutboundSubscriptionSetup(
                 ZonedDateTime.now(),
                 getSubscriptionType(subscriptionRequest),
@@ -227,7 +228,7 @@ public class ServerSubscriptionManager {
                 findInitialTerminationTime(subscriptionRequest),
                 datasetId,
                 clientTrackingName,
-                resolveSiriVersion(subscriptionRequest, outboundIdMappingPolicy)
+                resolveSiriVersion(siri, outboundIdMappingPolicy)
                 );
     }
 
@@ -252,10 +253,13 @@ public class ServerSubscriptionManager {
         return subscriptionRequest.getRequestorRef().getValue();
     }
 
-    private static SiriValidator.Version resolveSiriVersion(SubscriptionRequest subscriptionRequest, OutboundIdMappingPolicy outboundIdMappingPolicy) {
-        // Check
+    private static SiriValidator.Version resolveSiriVersion(Siri siri, OutboundIdMappingPolicy outboundIdMappingPolicy) {
+
+        SubscriptionRequest subscriptionRequest = siri.getSubscriptionRequest();
         String version = null;
-        if (SiriHelper.containsValues(subscriptionRequest.getSituationExchangeSubscriptionRequests())) {
+        if (siri.getVersion() != null) {
+            version = siri.getVersion();
+        } else if (SiriHelper.containsValues(subscriptionRequest.getSituationExchangeSubscriptionRequests())) {
             version = subscriptionRequest.getSituationExchangeSubscriptionRequests().get(0).getSituationExchangeRequest().getVersion();
         } else if (SiriHelper.containsValues(subscriptionRequest.getVehicleMonitoringSubscriptionRequests())) {
             version = subscriptionRequest.getVehicleMonitoringSubscriptionRequests().get(0).getVehicleMonitoringRequest().getVersion();
