@@ -342,7 +342,13 @@ public class SiriHandler {
             long t1 = System.currentTimeMillis();
             Siri incoming = SiriXml.parseXml(xml);
 
-            logger.info("Parsing XML took {} ms, {} bytes", (System.currentTimeMillis() -t1), receivedBytes);
+            // log slow parsing
+            long duration = System.currentTimeMillis() - t1;
+            if(duration <= 50) {
+                if(logger.isDebugEnabled()) logger.debug("Parsing XML took {} ms, {} bytes", duration, receivedBytes);
+            } else {
+                logger.info("Parsing XML took {} ms, {} bytes", duration, receivedBytes);
+            }
             if (incoming == null) {
                 return;
             }
