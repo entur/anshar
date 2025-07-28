@@ -26,6 +26,7 @@ public class PrefixAdapter extends ValueAdapter {
     private final String prefix;
     private final String datasetId;
     private final SiriDataType dataType;
+    private final String pattern;
 
 
     public PrefixAdapter(SiriDataType dataType, String datasetId, Class clazz, String prefix) {
@@ -33,6 +34,7 @@ public class PrefixAdapter extends ValueAdapter {
         this.dataType = dataType;
         this.datasetId = datasetId;
         this.prefix = prefix;
+        this.pattern = prefix.replaceAll(datasetId, "");
     }
 
     public String apply(String text) {
@@ -41,6 +43,10 @@ public class PrefixAdapter extends ValueAdapter {
         }
         if (text.startsWith(prefix)) {
             //Already prefixed
+            return text;
+        }
+        if (text.contains(pattern)) {
+            //Do not prefix if the text already matches the intended pattern, could be from a different codespace
             return text;
         }
         getMetricsService().registerDataMapping(dataType, datasetId, APPEND_PREFIX, 1);
