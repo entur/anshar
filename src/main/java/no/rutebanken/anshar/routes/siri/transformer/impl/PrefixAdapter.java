@@ -26,7 +26,7 @@ public class PrefixAdapter extends ValueAdapter {
     private final String prefix;
     private final String datasetId;
     private final SiriDataType dataType;
-    private final String pattern;
+    private transient String pattern;
 
 
     public PrefixAdapter(SiriDataType dataType, String datasetId, Class clazz, String prefix) {
@@ -38,6 +38,11 @@ public class PrefixAdapter extends ValueAdapter {
     }
 
     public String apply(String text) {
+        if (this.pattern == null) {
+            //pattern is not initialized, initialize it now
+            this.pattern = prefix.replaceAll(datasetId, "");
+        }
+
         if (text == null || text.isEmpty()) {
             return text;
         }
