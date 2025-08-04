@@ -33,6 +33,7 @@ import uk.org.siri.siri21.EstimatedTimetableDeliveryStructure;
 import uk.org.siri.siri21.ServiceDelivery;
 import uk.org.siri.siri21.Siri;
 import uk.org.siri.siri21.SituationExchangeDeliveryStructure;
+import uk.org.siri.siri21.SubscriptionRefStructure;
 import uk.org.siri.siri21.VehicleMonitoringDeliveryStructure;
 
 import javax.annotation.PostConstruct;
@@ -100,12 +101,15 @@ public class CamelRouteManager {
             return;
         }
         final String breadcrumbId = MDC.get("camel.breadcrumbId");
+        final String subscriptionId = subscriptionRequest.getSubscriptionId();
+
         ExecutorService executorService = getOrCreateExecutorService(subscriptionRequest);
         executorService.execute(() -> {
+
             try {
                 MDC.put("camel.breadcrumbId", breadcrumbId);
-                MDC.put("subscriptionId", subscriptionRequest.getSubscriptionId());
-                if (!subscriptionManager.subscriptions.containsKey(subscriptionRequest.getSubscriptionId())) {
+                MDC.put("subscriptionId", subscriptionId);
+                if (!subscriptionManager.subscriptions.containsKey(subscriptionId)) {
                     // Short circuit if subscription has been terminated while waiting
                     return;
                 }
@@ -126,18 +130,19 @@ public class CamelRouteManager {
                 }
 
                 for (Siri siri : splitSiri) {
+                    addSubscriptionRefToServiceDelivery(siri, subscriptionId);
                     int responseCode = postDataToSubscription(siri, subscriptionRequest, logBody);
 
                     metricsService.markPostToSubscription(subscriptionRequest.getSubscriptionType(),
                             SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
-                            subscriptionRequest.getSubscriptionId(),
+                            subscriptionId,
                             responseCode);
 
                     if (responseCode != 200) {
                         logger.info("Failed to push data for subscription {}: {}", subscriptionRequest, responseCode);
-                        subscriptionManager.pushFailedForSubscription(subscriptionRequest.getSubscriptionId());
+                        subscriptionManager.pushFailedForSubscription(subscriptionId);
                     } else {
-                        subscriptionManager.clearFailTracker(subscriptionRequest.getSubscriptionId());
+                        subscriptionManager.clearFailTracker(subscriptionId);
                     }
                 }
             } catch (Exception e) {
@@ -156,11 +161,11 @@ public class CamelRouteManager {
                     }
                     logger.info("Exception caught when pushing SIRI-data: {}", msg);
                 }
-                subscriptionManager.pushFailedForSubscription(subscriptionRequest.getSubscriptionId());
+                subscriptionManager.pushFailedForSubscription(subscriptionId);
 
                 metricsService.markPostToSubscription(subscriptionRequest.getSubscriptionType(),
                         SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
-                        subscriptionRequest.getSubscriptionId(),
+                        subscriptionId,
                         statusCode);
 
                 removeDeadSubscriptionExecutors(subscriptionManager);
@@ -169,6 +174,35 @@ public class CamelRouteManager {
                 MDC.remove("subscriptionId");
             }
         });
+    }
+
+    private static void addSubscriptionRefToServiceDelivery(Siri siri, String subscriptionId) {
+        if (subscriptionId == null || subscriptionId.isEmpty()) {
+            //ignore
+            return;
+        }
+        if (siri.getServiceDelivery() != null) {
+            SubscriptionRefStructure subscriptionRef = new SubscriptionRefStructure();
+            subscriptionRef.setValue(subscriptionId);
+            if (siri.getServiceDelivery().getSituationExchangeDeliveries() != null &&
+                    !siri.getServiceDelivery().getSituationExchangeDeliveries().isEmpty()) {
+                siri.getServiceDelivery().getSituationExchangeDeliveries().forEach(
+                        delivery -> delivery.setSubscriptionRef(subscriptionRef)
+                );
+            }
+            if (siri.getServiceDelivery().getVehicleMonitoringDeliveries() != null &&
+                    !siri.getServiceDelivery().getVehicleMonitoringDeliveries().isEmpty()) {
+                siri.getServiceDelivery().getVehicleMonitoringDeliveries().forEach(
+                        delivery -> delivery.setSubscriptionRef(subscriptionRef)
+                );
+            }
+            if (siri.getServiceDelivery().getEstimatedTimetableDeliveries() != null &&
+                    !siri.getServiceDelivery().getEstimatedTimetableDeliveries().isEmpty()) {
+                siri.getServiceDelivery().getEstimatedTimetableDeliveries().forEach(
+                        delivery -> delivery.setSubscriptionRef(subscriptionRef)
+                );
+            }
+        }
     }
 
     Map<String, ExecutorService> threadFactoryMap = new HashMap<>();
