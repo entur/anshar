@@ -16,6 +16,7 @@
 package no.rutebanken.anshar.data.collections;
 
 import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import com.esotericsoftware.kryo.pool.KryoFactory;
@@ -23,6 +24,7 @@ import com.esotericsoftware.kryo.pool.KryoPool;
 import com.hazelcast.nio.serialization.ByteArraySerializer;
 import org.objenesis.strategy.StdInstantiatorStrategy;
 
+import javax.xml.namespace.QName;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.util.zip.DeflaterOutputStream;
@@ -36,8 +38,7 @@ public class KryoSerializer implements ByteArraySerializer {
         KryoFactory factory = () -> {
             Kryo kryo = new Kryo();
             kryo.setInstantiatorStrategy(new Kryo.DefaultInstantiatorStrategy(new StdInstantiatorStrategy()));
-
-            // configure kryo instance, customize settings
+            kryo.register(QName.class, new QNameSerializer());
             return kryo;
         };
 
@@ -85,5 +86,25 @@ public class KryoSerializer implements ByteArraySerializer {
     @Override
     public void destroy() {
         //Ignore d
+    }
+}
+
+/**
+ * Serializer for QName objects.
+ * Ref.: https://github.com/EsotericSoftware/kryo/issues/885
+ */
+class QNameSerializer extends Serializer<QName> {
+    @Override
+    public void write(Kryo kryo, Output output, QName qName) {
+        output.writeString(qName.getNamespaceURI());
+        output.writeString(qName.getLocalPart());
+        output.writeString(qName.getPrefix());
+    }
+    @Override
+    public QName read(Kryo kryo, Input input, Class<QName> type) {
+        String namespaceURI = input.readString();
+        String localPart = input.readString();
+        String prefix = input.readString();
+        return new QName(namespaceURI, localPart, prefix);
     }
 }
