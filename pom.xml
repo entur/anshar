@@ -368,7 +368,7 @@
         <dependency>
             <groupId>io.rest-assured</groupId>
             <artifactId>xml-path</artifactId>
-            <version>5.5.0</version>
+            <version>5.5.6</version>
             <scope>test</scope>
         </dependency>
         <dependency>
