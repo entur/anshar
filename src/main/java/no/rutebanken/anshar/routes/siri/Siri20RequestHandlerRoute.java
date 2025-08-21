@@ -46,6 +46,7 @@ import static no.rutebanken.anshar.routes.HttpParameter.PARAM_EXCLUDED_DATASET_I
 import static no.rutebanken.anshar.routes.HttpParameter.PARAM_MAX_SIZE;
 import static no.rutebanken.anshar.routes.HttpParameter.PARAM_SUBSCRIPTION_ID;
 import static no.rutebanken.anshar.routes.HttpParameter.PARAM_USE_ORIGINAL_ID;
+import static no.rutebanken.anshar.routes.HttpParameter.SIRI_VERSION_HEADER_NAME;
 import static no.rutebanken.anshar.routes.HttpParameter.getParameterValuesAsList;
 
 @SuppressWarnings("unchecked")
@@ -308,7 +309,15 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
                 if (response != null) {
                     logger.info("Found ServiceRequest-response, streaming response");
 
-                    if ("2.1".equals(request.getVersion())) {
+                    boolean isSiri21Version = "2.1".equals(request.getVersion());
+
+                    if ("2.1".equals(p.getIn().getHeader(SIRI_VERSION_HEADER_NAME))) {
+                        // If the request explicitly asks for SIRI 2.1, we assume it is a SIRI 2.1 request.
+                        isSiri21Version = true;
+                    }
+
+                    // If the request is for SIRI 2.1, we return the response as is.
+                    if (isSiri21Version) {
                         p.getMessage().setBody(SiriXml.toXml(response));
                     } else {
                         p.getMessage().setBody(org.rutebanken.siri20.util.SiriXml.toXml(
