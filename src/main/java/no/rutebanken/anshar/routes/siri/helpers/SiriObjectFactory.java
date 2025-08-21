@@ -16,18 +16,14 @@
 package no.rutebanken.anshar.routes.siri.helpers;
 
 import com.esotericsoftware.kryo.Kryo;
-import com.esotericsoftware.kryo.Serializer;
-import com.esotericsoftware.kryo.io.Input;
-import com.esotericsoftware.kryo.io.Output;
 import com.esotericsoftware.kryo.pool.KryoFactory;
 import com.esotericsoftware.kryo.pool.KryoPool;
 import jakarta.xml.bind.JAXBException;
 import no.rutebanken.anshar.config.AnsharConfiguration;
+import no.rutebanken.anshar.data.collections.QNameSerializer;
 import no.rutebanken.anshar.routes.outbound.SiriHelper;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
-import org.apache.commons.lang3.NotImplementedException;
-import org.apache.xerces.dom.ElementNSImpl;
 import org.objenesis.strategy.StdInstantiatorStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,6 +71,7 @@ import uk.org.siri.siri21.VehicleMonitoringSubscriptionStructure;
 import uk.org.siri.siri21.VehicleRef;
 
 import javax.annotation.Nonnull;
+import javax.xml.namespace.QName;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -93,29 +90,9 @@ public class SiriObjectFactory {
 
     static {
     	KryoFactory factory = () -> {
-                      Kryo kryo = new Kryo();
-                      kryo.setInstantiatorStrategy(new Kryo.DefaultInstantiatorStrategy(new StdInstantiatorStrategy()));
-                      kryo.register(ElementNSImpl.class, new Serializer() {
-
-
-                @Override
-                public void write(Kryo kryo, Output output, Object object) {
-                    throw new NotImplementedException("write-method not implemented");
-                }
-
-                @Override
-                public Object read(Kryo kryo, Input input, Class type) {
-                    throw new NotImplementedException("read-method not implemented");
-                }
-
-                @Override
-                public Object copy(Kryo kryo, Object original) {
-
-                    return ((ElementNSImpl) original).cloneNode(true);
-                }
-            });
-
-          // configure kryo instance, customize settings
+            Kryo kryo = new Kryo();
+            kryo.setInstantiatorStrategy(new Kryo.DefaultInstantiatorStrategy(new StdInstantiatorStrategy()));
+            kryo.register(QName.class, new QNameSerializer());
           return kryo;
         };
 
