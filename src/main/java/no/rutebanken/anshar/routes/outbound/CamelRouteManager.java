@@ -51,6 +51,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
@@ -77,6 +78,8 @@ public class CamelRouteManager {
 
     @Value("${anshar.default.max.threads.per.outbound.subscription:5}")
     private int maximumThreadsPerOutboundSubscription;
+
+    private Map<String, ExecutorService> threadFactoryMap = new ConcurrentHashMap<>();
 
     private static final HttpClient httpClient = HttpClient.newBuilder()
             .version(HttpClient.Version.HTTP_1_1)
@@ -205,7 +208,6 @@ public class CamelRouteManager {
         }
     }
 
-    Map<String, ExecutorService> threadFactoryMap = new HashMap<>();
     private ExecutorService getOrCreateExecutorService(OutboundSubscriptionSetup subscriptionRequest) {
 
         final String subscriptionId = subscriptionRequest.getSubscriptionId();
