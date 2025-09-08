@@ -106,7 +106,7 @@ public class LivenessReadinessRoute extends RestRouteBuilder {
     public void configure() throws Exception {
         super.configure();
 
-        rest("").tag("health")
+        rest("")
                 .get("/scrape").to("direct:scrape")
                 .get("/ready").to("direct:ready")
                 .get("/up").to("direct:up")

@@ -75,9 +75,15 @@ public class RestRouteBuilder extends RouteBuilder {
     private AnsharConfiguration configuration;
 
     private static boolean isDataHandlersInitialized = false;
+    private static boolean isRestRoutesConfigured = false;
 
     @Override
     public void configure() throws Exception {
+
+        if (isRestRoutesConfigured) {
+            return;
+        }
+        isRestRoutesConfigured = true;
 
         restConfiguration()
                 .component("jetty")
@@ -117,14 +123,14 @@ public class RestRouteBuilder extends RouteBuilder {
                 .removeHeaders("*")
                 .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("400")) //400 Bad request
                 .setBody(constant("Missing required header (" + configuration.getTrackingHeaderName() + ")"))
-                .routeId("reject.request.missing.header")
+//                .routeId("reject.request.missing.header")
         ;
 
         from("direct:anshar.blocked.tracking.header.response")
             .removeHeaders("*")
             .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("400")) //400 Bad request
             .setBody(constant(""))
-            .routeId("reject.request.blocked.header")
+//            .routeId("reject.request.blocked.header")
         ;
 
     }

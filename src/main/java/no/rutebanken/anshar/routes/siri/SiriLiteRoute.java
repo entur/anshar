@@ -79,7 +79,6 @@ public class SiriLiteRoute extends RestRouteBuilder {
     public void configure() throws Exception {
         super.configure();
         rest("/anshar/rest")
-                .tag("siri.lite")
 
                 .get("/sx").to("direct:anshar.rest.sx")
                         .param().required(false).name(PARAM_DATASET_ID).type(RestParamType.query).description("The id of the dataset to get").dataType("string").endParam()

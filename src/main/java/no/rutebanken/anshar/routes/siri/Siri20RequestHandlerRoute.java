@@ -22,14 +22,12 @@ import no.rutebanken.anshar.routes.RestRouteBuilder;
 import no.rutebanken.anshar.routes.siri.handlers.OutboundIdMappingPolicy;
 import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
-import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.camel.Exchange;
 import org.apache.camel.Message;
 import org.apache.camel.model.rest.RestParamType;
 import org.entur.siri21.util.SiriXml;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
@@ -40,11 +38,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
-import static no.rutebanken.anshar.routes.HttpParameter.INTERNAL_SIRI_DATA_TYPE;
 import static no.rutebanken.anshar.routes.HttpParameter.PARAM_DATASET_ID;
 import static no.rutebanken.anshar.routes.HttpParameter.PARAM_EXCLUDED_DATASET_ID;
 import static no.rutebanken.anshar.routes.HttpParameter.PARAM_MAX_SIZE;
-import static no.rutebanken.anshar.routes.HttpParameter.PARAM_SUBSCRIPTION_ID;
 import static no.rutebanken.anshar.routes.HttpParameter.PARAM_USE_ORIGINAL_ID;
 import static no.rutebanken.anshar.routes.HttpParameter.SIRI_VERSION_HEADER_NAME;
 import static no.rutebanken.anshar.routes.HttpParameter.getParameterValuesAsList;
@@ -73,99 +69,58 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
 
         super.configure();
 
-        rest("anshar").tag("siri")
+        rest("anshar")
                 .consumes(MediaType.APPLICATION_XML).produces(MediaType.APPLICATION_XML)
 
-                .post("/anshar/services").to("direct:process.service.request")
+                .post("/anshar/services").to("direct:process.service.anshar.rest.request")
                         .param().required(false).name(PARAM_EXCLUDED_DATASET_ID).type(RestParamType.query).description("Comma-separated list of dataset-IDs to be excluded from response (SIRI ET and VM)").dataType("string").endParam()
                         .description("Backwards compatible endpoint used for SIRI ServiceRequest.")
 
-                .post("/anshar/services/{" + PARAM_DATASET_ID + "}").to("direct:process.service.request")
+                .post("/anshar/services/{" + PARAM_DATASET_ID + "}").to("direct:process.service.anshar.rest.request.codespace")
                         .description("Backwards compatible endpoint used for SIRI ServiceRequest limited to single dataprovider.")
                         .param().required(false).name(PARAM_DATASET_ID).type(RestParamType.path).description("The id of the Codespace to limit data to").dataType("string").endParam()
 
-                .post("/anshar/subscribe").to("direct:process.subscription.request")
+                .post("/anshar/subscribe").to("direct:process.subscription.anshar.rest.request")
                         .description("Backwards compatible endpoint used for SIRI SubscriptionRequest.")
 
-                .post("/anshar/subscribe/{" + PARAM_DATASET_ID + "}").to("direct:process.subscription.request")
+                .post("/anshar/subscribe/{" + PARAM_DATASET_ID + "}").to("direct:process.subscription.anshar.rest.request.codespace")
                     .description("Backwards compatible endpoint used for SIRI SubscriptionRequest limited to single dataprovider.")
                     .param().required(false).name(PARAM_DATASET_ID).type(RestParamType.path).description("The id of the Codespace to limit data to").dataType("string").endParam()
 
-                .post("/services").to("direct:process.service.request")
-                    .param().required(false).name(PARAM_EXCLUDED_DATASET_ID).type(RestParamType.query).description("Comma-separated list of dataset-IDs to be excluded from response (SIRI ET and VM)").dataType("string").endParam()
+                .post("/services").to("direct:process.service.rest.request")
                     .description("Endpoint used for SIRI ServiceRequest.")
 
-                .post("/services/{" + PARAM_DATASET_ID + "}").to("direct:process.service.request")
+                .post("/services/{" + PARAM_DATASET_ID + "}").to("direct:process.service.rest.request.codespace")
                     .description("Endpoint used for SIRI ServiceRequest limited to single dataprovider.")
                     .param().required(false).name(PARAM_DATASET_ID).type(RestParamType.path).description("The id of the Codespace to limit data to").dataType("string").endParam()
 
                 // Endpoints that returned cached data
-                .post("/services-cache").to("direct:process.service.request.cache")
-                .post("/services-cache/{" + PARAM_DATASET_ID + "}").to("direct:process.service.request.cache")
+                .post("/services-cache").to("direct:process.service.rest.request.cache")
+                .post("/services-cache/{" + PARAM_DATASET_ID + "}").to("direct:process.service.rest.request.cache.codespace")
 
 
-                .post("/subscribe").to("direct:process.subscription.request")
-                        .description("Endpoint used for SIRI SubscriptionRequest.")
-
-                .post("/subscribe/{" + PARAM_DATASET_ID + "}").to("direct:process.subscription.request")
-                        .description("Endpoint used for SIRI SubscriptionRequest limited to single dataprovider.")
-                        .param().required(false).name(PARAM_DATASET_ID).type(RestParamType.path).description("The id of the Codespace to limit data to").dataType("string").endParam()
-
-                .post("/{version}/{type}/{vendor}/{" + PARAM_SUBSCRIPTION_ID + "}").to("direct:process.incoming.request")
-                        .apiDocs(false)
-
-                .post("/{version}/{type}/{vendor}/{" + PARAM_SUBSCRIPTION_ID + "}/{service}").to("direct:process.incoming.request")
-                        .apiDocs(false)
-
-                .post("/{version}/{type}/{vendor}/{" + PARAM_SUBSCRIPTION_ID + "}/{service}/{operation}").to("direct:process.incoming.request")
-                        .description("Generated dynamically when creating Subscription. Endpoint for incoming data")
-                        .param().required(false).name("service").endParam()
-                        .param().required(false).name("operation").endParam()
+                .post("/subscribe").to("direct:process.subscription.rest.request")
+                    .description("Endpoint used for SIRI SubscriptionRequest.")
+                .post("/subscribe/{" + PARAM_DATASET_ID + "}").to("direct:process.subscription.rest.request.codespace")
+                    .description("Endpoint used for SIRI SubscriptionRequest limited to single dataprovider.")
+                    .param().required(false).name(PARAM_DATASET_ID).type(RestParamType.path).description("The id of the Codespace to limit data to").dataType("string").endParam()
         ;
 
-        from("direct:set.mdc.subscriptionId")
-                .process(p -> MDC.put("subscriptionId", p.getIn().getHeader("subscriptionId", String.class)))
-        ;
+        // Handle optional path-parameters
+        from("direct:process.service.anshar.rest.request").to("direct:process.service.request");
+        from("direct:process.service.anshar.rest.request.codespace").to("direct:process.service.request");
+        from("direct:process.subscription.anshar.rest.request").to("direct:process.subscription.request");
+        from("direct:process.subscription.anshar.rest.request.codespace").to("direct:process.subscription.request");
 
-        from("direct:clear.mdc.subscriptionId")
-                .process(p -> MDC.remove("subscriptionId"))
-        ;
+        from("direct:process.service.rest.request").to("direct:process.service.request");
+        from("direct:process.service.rest.request.codespace").to("direct:process.service.request");
 
-        from("direct:process.incoming.request")
-                .to("direct:set.mdc.subscriptionId")
-                .removeHeaders("<Siri*") //Since Camel 3, entire body is also included as header
-//                .to("log:incoming:" + getClass().getSimpleName() + "?showAll=true&multiline=true&showStreams=true")
-                .choice()
-                    .when(e -> subscriptionExistsAndIsActive(e))
-                        //Valid subscription
-                        .wireTap("direct:async.process.request")
-                        .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
-                        .setBody(constant(null))
-                    .endChoice()
-                    .otherwise()
-                        // Invalid subscription
-                        .log("Ignoring incoming delivery for invalid subscription")
-                        .removeHeaders("*")
-                        .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("403")) //403 Forbidden
-                        .setBody(constant("Subscription is not valid"))
-                    .endChoice()
-                .end()
-                .to("direct:clear.mdc.subscriptionId")
-            .routeId("process.incoming")
-                ;
+        from("direct:process.service.rest.request.cache").to("direct:process.service.request.cache");
+        from("direct:process.service.rest.request.cache.codespace").to("direct:process.service.request.cache");
 
-        from("direct:async.process.request")
-            .to("direct:set.mdc.subscriptionId")
-            .convertBodyTo(String.class)
-            .process(p -> {
-                p.getMessage().setBody(p.getIn().getBody());
-                p.getMessage().setHeaders(p.getIn().getHeaders());
-                p.getMessage().setHeader(INTERNAL_SIRI_DATA_TYPE, getSubscriptionDataType(p));
-            })
-            .to("direct:enqueue.message")
-            .to("direct:clear.mdc.subscriptionId")
-            .routeId("async.process.incoming")
-        ;
+        from("direct:process.subscription.rest.request").to("direct:process.subscription.request");
+        from("direct:process.subscription.rest.request.codespace").to("direct:process.subscription.request");
+
 
         from("direct:process.subscription.request")
                 .to("log:subRequest:" + getClass().getSimpleName() + "?showAll=true&multiline=true&showStreams=true")
@@ -339,48 +294,5 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
         inputStream.reset();
 
         return siri21Version;
-    }
-
-    private String getSubscriptionDataType(Exchange e) {
-        String subscriptionId = e.getIn().getHeader(PARAM_SUBSCRIPTION_ID, String.class);
-        if (subscriptionId == null || subscriptionId.isEmpty()) {
-            return null;
-        }
-        SubscriptionSetup subscriptionSetup = subscriptionManager.get(subscriptionId);
-
-        if (subscriptionSetup == null) {
-            return null;
-        }
-        return subscriptionSetup.getSubscriptionType().name();
-    }
-
-    private boolean subscriptionExistsAndIsActive(Exchange e) {
-        String subscriptionId = e.getIn().getHeader(PARAM_SUBSCRIPTION_ID, String.class);
-        if (subscriptionId == null || subscriptionId.isEmpty()) {
-            return false;
-        }
-        SubscriptionSetup subscriptionSetup = subscriptionManager.get(subscriptionId);
-
-        if (subscriptionSetup == null) {
-            return false;
-        }
-
-        boolean existsAndIsActive = (subscriptionManager.isSubscriptionRegistered(subscriptionId) &&
-                    subscriptionSetup.isActive());
-
-        if (existsAndIsActive) {
-            e.getOut().setHeaders(e.getIn().getHeaders());
-            e.getOut().setBody(e.getIn().getBody());
-
-            if ("1.4".equals(subscriptionSetup.getVersion())) {
-                e.getOut().setHeader(TRANSFORM_VERSION, TRANSFORM_VERSION);
-            }
-
-            if (subscriptionSetup.getServiceType() == SubscriptionSetup.ServiceType.SOAP) {
-                e.getOut().setHeader(TRANSFORM_SOAP, TRANSFORM_SOAP);
-            }
-        }
-
-        return existsAndIsActive;
     }
 }

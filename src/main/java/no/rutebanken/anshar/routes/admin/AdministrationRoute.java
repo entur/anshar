@@ -93,23 +93,17 @@ public class AdministrationRoute extends RestRouteBuilder {
         super.configure();
 
 
-        rest("/").tag("internal.admin.root")
-                .get("").produces(MediaType.TEXT_HTML).to(STATS_ROUTE)
-                .put("").to(OPERATION_ROUTE)
+        rest("/")
                 .get("/locks").to("direct:locks")
                 .get("/prepare-shutdown").to("direct:prepare-shutdown")
                 .delete("/flush-dataset").to("direct:flush.data.from.codespace")
                 .delete("/unmapped/{datasetId}").to("direct:clear-unmapped")
-        ;
-
-        rest("/anshar").tag("internal.admin")
-                .get("/stats").produces(MediaType.TEXT_HTML).to(STATS_ROUTE)
-                .get("/internalstats").produces(MediaType.APPLICATION_JSON).to(INTERNAL_STATS_ROUTE)
-                .get("/clusterstats").produces(MediaType.APPLICATION_JSON).to(CLUSTERSTATS_ROUTE)
-                .put("/stats").to(OPERATION_ROUTE)
-                .get("/unmapped").produces(MediaType.TEXT_HTML).to(UNMAPPED_ROUTE)
-                .get("/unmapped/{datasetId}").produces(MediaType.TEXT_HTML).to(UNMAPPED_ROUTE)
-                .get("/situations/{datasetId}").produces(MediaType.TEXT_HTML).to(SITUATIONS_ROUTE)
+                .get("/anshar/stats").produces(MediaType.TEXT_HTML).to(STATS_ROUTE)
+                .get("/anshar/internalstats").produces(MediaType.APPLICATION_JSON).to("direct:fetch.internal.stats")
+                .get("/anshar/clusterstats").produces(MediaType.APPLICATION_JSON).to(CLUSTERSTATS_ROUTE)
+                .put("/anshar/stats").to(OPERATION_ROUTE)
+                .get("/anshar/unmapped/{datasetId}").produces(MediaType.TEXT_HTML).to(UNMAPPED_ROUTE)
+                .get("/anshar/situations/{datasetId}").produces(MediaType.TEXT_HTML).to(SITUATIONS_ROUTE)
         ;
 
         if (autoLockVerificationEnabled) {
@@ -217,6 +211,9 @@ public class AdministrationRoute extends RestRouteBuilder {
         from("direct:removeHeaders")
                 .removeHeaders("*")
                 .routeId("admin.remove.headers");
+
+        from("direct:fetch.internal.stats")
+                .to(INTERNAL_STATS_ROUTE);
 
         from (INTERNAL_STATS_ROUTE)
             .process(p -> {
