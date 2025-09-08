@@ -241,8 +241,11 @@ abstract class SiriRepository<T> {
                     }
                 }
             }
-            logger.info("Cleaning {} expired objects took {} ms, finding {} ms, removing {}, changes {} ms, now have {} objects",
-                    expired.size(), (System.currentTimeMillis() - t1), (t2 - t1), (t3 - t2), (System.currentTimeMillis() - t3), map.size());
+            long totalCleanupTime = System.currentTimeMillis() - t1;
+            if (totalCleanupTime > 1000) {
+                logger.info("Cleaning {} expired objects took {} ms, finding {} ms, removing {}, changes {} ms, now have {} objects of type {}",
+                        expired.size(), totalCleanupTime, (t2 - t1), (t3 - t2), (System.currentTimeMillis() - t3), map.size(), SIRI_DATA_TYPE);
+            }
         } catch (Throwable t) {
             //Catch everything to avoid executor being killed
             logger.info("Exception caught when cleaning up expired data", t);

@@ -87,7 +87,10 @@ public class Situations extends SiriRepository<PtSituationElement> {
 
         enableCache(situationElements);
 
-        linkEntriesTtl(situationElements, changesMap, checksumCache);
+//        linkEntriesTtl(situationElements, changesMap, checksumCache);
+        if (configuration.processSX()) {
+            createCleanupJob(situationElements, changesMap, configuration.getCleanupIntervalSeconds(), -1);
+        }
     }
 
     /**

@@ -121,7 +121,11 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
                 Boolean.TRUE.equals(value.isCancellation()) |
                 Boolean.TRUE.equals(value.isExtraJourney()))
         );
-        linkEntriesTtl(timetableDeliveries, changesMap, checksumCache, idStartTimeMap);
+//        linkEntriesTtl(timetableDeliveries, changesMap, checksumCache, idStartTimeMap);
+        if (configuration.processET()) {
+            createCleanupJob(timetableDeliveries, changesMap, configuration.getCleanupIntervalSeconds(), -1);
+        }
+
     }
 
     /**

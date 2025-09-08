@@ -42,7 +42,6 @@ public class ValidationRoute extends RestRouteBuilder {
     public void configure() throws Exception {
         super.configure();
         rest("/anshar/validation")
-                .tag("validation")
                 .get("/{" + PARAM_CODESPACE + "}").produces(MediaType.TEXT_HTML).to("direct:validation.list")
                 .get("/report").produces(MediaType.TEXT_HTML).to("direct:validation.report")
                 .put("/toggle").produces(MediaType.TEXT_HTML).to("direct:validation.toggle")
