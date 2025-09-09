@@ -102,8 +102,9 @@ public class AdministrationRoute extends RestRouteBuilder {
                 .get("/anshar/unmapped/{datasetId}").produces(MediaType.TEXT_HTML).to(UNMAPPED_ROUTE)
 
                 .get("").produces(MediaType.TEXT_HTML).to("direct:fetch.stats")
+                .put("").to(OPERATION_ROUTE+".rest")
                 .get("/anshar/stats").produces(MediaType.TEXT_HTML).to("direct:fetch.anshar.stats")
-                .put("/anshar/stats").to(OPERATION_ROUTE)
+                .put("/anshar/stats").to(OPERATION_ROUTE+".anshar.rest")
 
                 .get("/anshar/internalstats").produces(MediaType.APPLICATION_JSON).to("direct:fetch.internal.stats")
                 .get("/anshar/clusterstats").produces(MediaType.APPLICATION_JSON).to(CLUSTERSTATS_ROUTE)
@@ -238,6 +239,12 @@ public class AdministrationRoute extends RestRouteBuilder {
         ;
 
         final String operationHeaderName = "operation";
+
+        from(OPERATION_ROUTE + ".rest")
+            .to(OPERATION_ROUTE);
+
+        from(OPERATION_ROUTE + ".anshar.rest")
+            .to(OPERATION_ROUTE);
 
         //Stop subscription
         from(OPERATION_ROUTE)
