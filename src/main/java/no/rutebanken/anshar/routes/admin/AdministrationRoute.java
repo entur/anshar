@@ -97,12 +97,16 @@ public class AdministrationRoute extends RestRouteBuilder {
                 .get("/locks").to("direct:locks")
                 .get("/prepare-shutdown").to("direct:prepare-shutdown")
                 .delete("/flush-dataset").to("direct:flush.data.from.codespace")
+
                 .delete("/unmapped/{datasetId}").to("direct:clear-unmapped")
-                .get("/anshar/stats").produces(MediaType.TEXT_HTML).to(STATS_ROUTE)
+                .get("/anshar/unmapped/{datasetId}").produces(MediaType.TEXT_HTML).to(UNMAPPED_ROUTE)
+
+                .get("").produces(MediaType.TEXT_HTML).to("direct:fetch.stats")
+                .get("/anshar/stats").produces(MediaType.TEXT_HTML).to("direct:fetch.anshar.stats")
+                .put("/anshar/stats").to(OPERATION_ROUTE)
+
                 .get("/anshar/internalstats").produces(MediaType.APPLICATION_JSON).to("direct:fetch.internal.stats")
                 .get("/anshar/clusterstats").produces(MediaType.APPLICATION_JSON).to(CLUSTERSTATS_ROUTE)
-                .put("/anshar/stats").to(OPERATION_ROUTE)
-                .get("/anshar/unmapped/{datasetId}").produces(MediaType.TEXT_HTML).to(UNMAPPED_ROUTE)
                 .get("/anshar/situations/{datasetId}").produces(MediaType.TEXT_HTML).to(SITUATIONS_ROUTE)
         ;
 
@@ -214,6 +218,11 @@ public class AdministrationRoute extends RestRouteBuilder {
 
         from("direct:fetch.internal.stats")
                 .to(INTERNAL_STATS_ROUTE);
+
+        from("direct:fetch.stats")
+                .to(STATS_ROUTE);
+        from("direct:fetch.anshar.stats")
+                .to(STATS_ROUTE);
 
         from (INTERNAL_STATS_ROUTE)
             .process(p -> {
