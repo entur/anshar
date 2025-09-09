@@ -36,8 +36,8 @@
 
         <!-- versions for use in mvn plugins as we cannot inherit them from a BOM -->
         <docker.maven.plugin.version>0.21.0</docker.maven.plugin.version>
-        <spring-boot-plugin.version>3.5.4</spring-boot-plugin.version>
-        <spring-boot.version>3.5.4</spring-boot.version>
+        <spring-boot-plugin.version>3.5.5</spring-boot-plugin.version>
+        <spring-boot.version>3.5.5</spring-boot.version>
 
         <camel.version>4.13.0</camel.version>
 
