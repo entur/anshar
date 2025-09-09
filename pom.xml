@@ -39,7 +39,7 @@
         <spring-boot-plugin.version>3.5.4</spring-boot-plugin.version>
         <spring-boot.version>3.5.4</spring-boot.version>
 
-        <camel.version>4.13.0</camel.version>
+        <camel.version>4.14.0</camel.version>
 
 <!--        <metrics.version>3.2.3</metrics.version>-->
         <entur.helpers.version>2.27</entur.helpers.version>
