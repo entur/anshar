@@ -217,8 +217,14 @@ public class AdministrationRoute extends RestRouteBuilder {
                 .removeHeaders("*")
                 .routeId("admin.remove.headers");
 
-        from("direct:fetch.internal.stats")
-                .to(INTERNAL_STATS_ROUTE);
+        if (configuration.processAdmin() && !configuration.processData()) {
+            // Avoid exposing internal stats if run as proxy only
+            from("direct:fetch.internal.stats")
+                    .to(STATS_ROUTE);
+        } else {
+            from("direct:fetch.internal.stats")
+                    .to(INTERNAL_STATS_ROUTE);
+        }
 
         from("direct:fetch.stats")
                 .to(STATS_ROUTE);
