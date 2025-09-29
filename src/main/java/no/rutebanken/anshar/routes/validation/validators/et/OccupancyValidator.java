@@ -40,12 +40,13 @@ public class OccupancyValidator extends LimitedSubsetValidator {
         FIELDNAME = "Occupancy";
         path = ESTIMATED_VEHICLE_JOURNEY + FIELD_DELIMITER + FIELDNAME;
         expectedValues = Sets.newHashSet(
-                OccupancyEnumeration.FULL.value(),
-                OccupancyEnumeration.STANDING_AVAILABLE.value(),
-                OccupancyEnumeration.SEATS_AVAILABLE.value(),
+                OccupancyEnumeration.UNKNOWN.value(),
                 OccupancyEnumeration.MANY_SEATS_AVAILABLE.value(),
-                OccupancyEnumeration.NOT_ACCEPTING_PASSENGERS.value(),
-                OccupancyEnumeration.UNKNOWN.value()
+                OccupancyEnumeration.SEATS_AVAILABLE.value(),
+                OccupancyEnumeration.FEW_SEATS_AVAILABLE.value(),
+                OccupancyEnumeration.STANDING_AVAILABLE.value(),
+                OccupancyEnumeration.FULL.value(),
+                OccupancyEnumeration.NOT_ACCEPTING_PASSENGERS.value()
         );
     }
 
