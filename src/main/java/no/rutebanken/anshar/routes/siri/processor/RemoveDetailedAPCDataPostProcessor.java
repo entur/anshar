@@ -24,9 +24,16 @@ import uk.org.siri.siri21.EstimatedVehicleJourney;
 import uk.org.siri.siri21.EstimatedVersionFrameStructure;
 import uk.org.siri.siri21.RecordedCall;
 import uk.org.siri.siri21.Siri;
+import uk.org.siri.siri21.VehicleOccupancyStructure;
 
+import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Post processor that removes detailed APC data, leaving only occupancy level.
+ * This is a "temporary solution" to avoid sharing potentially sensitive data about how many passengers
+ * are on board - until rules and regulations are clarified.
+ */
 public class RemoveDetailedAPCDataPostProcessor extends ValueAdapter implements PostProcessor {
     private Logger logger = LoggerFactory.getLogger(RemoveDetailedAPCDataPostProcessor.class);
 
@@ -49,7 +56,7 @@ public class RemoveDetailedAPCDataPostProcessor extends ValueAdapter implements 
                         if (estimatedVehicleJourney.getRecordedCalls() != null) {
                             List<RecordedCall> calls = estimatedVehicleJourney.getRecordedCalls().getRecordedCalls();
                             for (RecordedCall call : calls) {
-                                call.getRecordedDepartureOccupancies().clear();
+                                clearApcData(call.getRecordedDepartureOccupancies());
                                 call.getRecordedDepartureCapacities().clear();
                             }
                         }
@@ -57,9 +64,10 @@ public class RemoveDetailedAPCDataPostProcessor extends ValueAdapter implements 
                         if (estimatedVehicleJourney.getEstimatedCalls() != null) {
                             List<EstimatedCall> calls = estimatedVehicleJourney.getEstimatedCalls().getEstimatedCalls();
                             for (EstimatedCall call : calls) {
-                                call.getRecordedDepartureOccupancies().clear();
+                                clearApcData(call.getRecordedDepartureOccupancies());
+                                clearApcData(call.getExpectedDepartureOccupancies());
+
                                 call.getRecordedDepartureCapacities().clear();
-                                call.getExpectedDepartureOccupancies().clear();
                                 call.getExpectedDepartureCapacities().clear();
                             }
                         }
@@ -67,5 +75,21 @@ public class RemoveDetailedAPCDataPostProcessor extends ValueAdapter implements 
                 }
             }
         }
+    }
+
+    private static void clearApcData(List<VehicleOccupancyStructure> vehicleOccupancyStructures) {
+        List<VehicleOccupancyStructure> reducedOccupancyList =new ArrayList<>();
+        for (VehicleOccupancyStructure vehicleOccupancy : vehicleOccupancyStructures) {
+            if (vehicleOccupancy.getOccupancyLevel() != null) {
+                VehicleOccupancyStructure reduced = new VehicleOccupancyStructure();
+                if (vehicleOccupancy.getEntranceToVehicleRef() != null) {
+                    reduced.setEntranceToVehicleRef(vehicleOccupancy.getEntranceToVehicleRef());
+                }
+                reduced.setOccupancyLevel(vehicleOccupancy.getOccupancyLevel());
+                reducedOccupancyList.add(reduced);
+            }
+        }
+        vehicleOccupancyStructures.clear();
+        vehicleOccupancyStructures.addAll(reducedOccupancyList);
     }
 }
