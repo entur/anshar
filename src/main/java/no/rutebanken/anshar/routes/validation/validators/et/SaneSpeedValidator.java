@@ -113,7 +113,7 @@ public class SaneSpeedValidator extends SiriObjectValidator {
                                             catch (TooFastException e) {
                                                 events.addEvent(createCustomFieldEvent(DUMMY_NODE,
                                                     e.getMessage(),
-                                                    ValidationEvent.FATAL_ERROR
+                                                    ValidationEvent.WARNING
                                                 ));
                                             }
                                         }
@@ -148,7 +148,7 @@ public class SaneSpeedValidator extends SiriObjectValidator {
                                             catch (TooFastException e) {
                                                 events.addEvent(createCustomFieldEvent(DUMMY_NODE,
                                                     e.getMessage(),
-                                                    ValidationEvent.FATAL_ERROR
+                                                    ValidationEvent.WARNING
                                                 ));
                                             }
                                         }
