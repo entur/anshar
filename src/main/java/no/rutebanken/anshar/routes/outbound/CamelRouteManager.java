@@ -48,7 +48,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -141,7 +140,7 @@ public class CamelRouteManager {
                             subscriptionId,
                             responseCode);
 
-                    if (responseCode != 200) {
+                    if (responseCode > 299) {
                         logger.info("Failed to push data for subscription {}: {}", subscriptionRequest, responseCode);
                         subscriptionManager.pushFailedForSubscription(subscriptionId);
                     } else {
@@ -314,16 +313,17 @@ public class CamelRouteManager {
                 }
             }
 
-            if (responseCode == 200) {
+            if (responseCode >= 200 && responseCode < 300) {
+                // Clearing fail-tracker for all success-responses
                 subscriptionManager.clearFailTracker(subscription.getSubscriptionId());
             }
 
-            logger.info("Pushed {} to subscription {} took {} ms, got responseCode {}",
-                    siriContentType,
-                    subscription.getSubscriptionId(),
+                logger.info("Pushed {} to subscription {} took {} ms, got responseCode {}",
+                        siriContentType,
+                        subscription.getSubscriptionId(),
                     System.currentTimeMillis() - t1,
-                    responseCode
-            );
+                        responseCode
+                );
 
             return responseCode;
         }
