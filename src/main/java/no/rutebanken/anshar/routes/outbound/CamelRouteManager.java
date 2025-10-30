@@ -318,12 +318,16 @@ public class CamelRouteManager {
                 subscriptionManager.clearFailTracker(subscription.getSubscriptionId());
             }
 
+            long elapsed = System.currentTimeMillis() - t1;
+            if (elapsed > 100) {
+                // Only log "slow" requests
                 logger.info("Pushed {} to subscription {} took {} ms, got responseCode {}",
                         siriContentType,
                         subscription.getSubscriptionId(),
-                    System.currentTimeMillis() - t1,
+                        elapsed,
                         responseCode
                 );
+            }
 
             return responseCode;
         }
