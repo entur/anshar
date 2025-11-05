@@ -3,9 +3,135 @@
     <title>Anshar statistics</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+    <style>
+        /* ============================================
+           Anshar Statistics Page Styles
+           ============================================ */
+
+        /* --- Layout & Container --- */
+        .stats-header {
+            background-color: #f8f9fa;
+            padding: 3rem;
+            border-radius: 0.5rem;
+            text-align: center;
+            margin-left: auto;
+            margin-right: auto;
+            margin-bottom: 1.5rem;
+            max-width: 1140px;
+        }
+
+        .stats-server-info {
+            margin-left: auto;
+            margin-right: auto;
+            width: fit-content;
+        }
+
+        /* --- Table Styles --- */
+        .table-cell-middle {
+            vertical-align: middle !important;
+        }
+
+        .table-cell-center {
+            text-align: center;
+        }
+
+        .table-cell-right {
+            text-align: right;
+        }
+
+        .table-col-narrow {
+            width: 15%;
+        }
+
+        /* Status icon cells */
+        .status-icon-cell {
+            vertical-align: middle;
+            text-align: center;
+            font-size: 1.25rem;
+        }
+
+        /* --- Clickable Elements --- */
+        .clickable-row {
+            cursor: pointer;
+        }
+
+        .clickable-icon {
+            cursor: pointer;
+        }
+
+        .clickable-icon:hover {
+            opacity: 0.7;
+        }
+
+        /* --- Distribution Table --- */
+        .distribution-table tfoot {
+            border-top: 2px solid #ddd;
+            font-weight: bold;
+        }
+
+        /* --- Action Buttons --- */
+        .action-icon-wrapper {
+            text-align: right;
+        }
+
+        .btn-icon {
+            margin-right: 0.25rem;
+        }
+
+        /* --- Subscription Details Table --- */
+        .subscription-details {
+            margin: 1rem 0;
+        }
+
+        .subscription-actions {
+            margin-top: 1rem;
+        }
+
+        /* --- Admin Section --- */
+        .admin-action-row {
+            cursor: pointer;
+        }
+
+        .admin-action-row:hover {
+            background-color: rgba(0,0,0,0.02);
+        }
+
+        /* --- Responsive Adjustments --- */
+        @media (max-width: 768px) {
+            .stats-header {
+                padding: 2rem 1rem;
+            }
+
+            .table-responsive {
+                overflow-x: auto;
+            }
+
+            .status-icon-cell {
+                font-size: 1rem;
+            }
+        }
+
+        /* --- Loading & Feedback (for future use) --- */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .loading-overlay.d-none {
+            display: none !important;
+        }
+    </style>
     <script>
         function administerSubscription(operation,id, type) {
 
@@ -23,14 +149,14 @@
     </script>
 </head>
 <body>
-<div class="jumbotron text-center">
+<div class="stats-header">
     <h2>Anshar status/statistics</h2>
     <#if body.vmServerStarted??>
-    <table align="center" >
-        <tr><td align="right"><small>Proxyserver started:&nbsp;</small></td><td><small>${body.serverStarted}</small></td></tr>
-        <tr><td align="right"><small>VM-server started:&nbsp;</small></td> <td><small>${body.vmServerStarted}</small></td></tr>
-        <tr><td align="right"><small>ET-server started:&nbsp;</small></td> <td><small>${body.etServerStarted}</small></td></tr>
-        <tr><td align="right"><small>SX-server started:&nbsp;</small></td> <td><small>${body.sxServerStarted}</small></td></tr>
+    <table class="stats-server-info">
+        <tr><td class="table-cell-right"><small>Proxyserver started:&nbsp;</small></td><td><small>${body.serverStarted}</small></td></tr>
+        <tr><td class="table-cell-right"><small>VM-server started:&nbsp;</small></td><td><small>${body.vmServerStarted}</small></td></tr>
+        <tr><td class="table-cell-right"><small>ET-server started:&nbsp;</small></td><td><small>${body.etServerStarted}</small></td></tr>
+        <tr><td class="table-cell-right"><small>SX-server started:&nbsp;</small></td><td><small>${body.sxServerStarted}</small></td></tr>
     </table>
     <#else>
         <small>Server started ${body.serverStarted}</small>
@@ -41,19 +167,19 @@
 
     <ul class="nav nav-tabs" id="tabs" role="tablist">
         <li class="nav-item">
-            <a class="nav-link active" id="inbound-tab" data-toggle="tab" href="#inbound" onclick="location.hash='inbound'" role="tab" aria-controls="inbound" aria-selected="true">Inbound <span class="badge alert-success"></span> <span class="glyphicon glyphicon-arrow-down"></span> </a>
+            <a class="nav-link" id="inbound-tab" data-bs-toggle="tab" href="#inbound" onclick="location.hash='inbound'" role="tab" aria-controls="inbound">Inbound <span class="badge bg-success"></span> <span class="bi bi-arrow-down"></span> </a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" id="outbound-tab" data-toggle="tab" href="#outbound" onclick="location.hash='outbound'" role="tab" aria-controls="outbound" aria-selected="false">Outbound <span class="badge alert-success">${body.outbound?size}</span> <span class="glyphicon glyphicon-arrow-up"></span></a>
+            <a class="nav-link" id="outbound-tab" data-bs-toggle="tab" href="#outbound" onclick="location.hash='outbound'" role="tab" aria-controls="outbound">Outbound <span class="badge bg-success">${body.outbound?size}</span> <span class="bi bi-arrow-up"></span></a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" id="polling-tab" data-toggle="tab" href="#polling" onclick="location.hash='polling'" role="tab" aria-controls="polling" aria-selected="false">Polling clients <span class="glyphicon glyphicon-arrow-down"></span><span class="glyphicon glyphicon-arrow-up"></span></a>
+            <a class="nav-link" id="polling-tab" data-bs-toggle="tab" href="#polling" onclick="location.hash='polling'" role="tab" aria-controls="polling">Polling clients <span class="bi bi-arrow-down"></span><span class="bi bi-arrow-up"></span></a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" id="distribution-tab" data-toggle="tab" href="#distribution" onclick="location.hash='distribution'" role="tab" aria-controls="distribution" aria-selected="false">Distribution <span class="glyphicon glyphicon-equalizer"></span></a>
+            <a class="nav-link" id="distribution-tab" data-bs-toggle="tab" href="#distribution" onclick="location.hash='distribution'" role="tab" aria-controls="distribution">Distribution <span class="bi bi-bar-chart"></span></a>
         </li>
-        <li class="nav-item text-right">
-            <a class="nav-link" id="admin-tab" data-toggle="tab" href="#admin" onclick="location.hash='admin'" role="tab" aria-controls="admin" aria-selected="false">Admin <span class="glyphicon glyphicon-wrench"></span></a>
+        <li class="nav-item text-end">
+            <a class="nav-link" id="admin-tab" data-bs-toggle="tab" href="#admin" onclick="location.hash='admin'" role="tab" aria-controls="admin">Admin <span class="bi bi-wrench"></span></a>
         </li>
     </ul>
 
@@ -79,32 +205,32 @@
                 </thead>
                 <tbody>
                     <#list type.subscriptions?sort_by("name") as item>
-                        <tr data-toggle="collapse" data-target="#accordion${type?counter}-${item?counter}" style="cursor: pointer" class="clickable ${item.healthy???then(item.healthy?then("success","danger"), "warning")}">
-                            <th style="vertical-align: middle">${item?counter}</th>
-                            <td align="center" style="vertical-align: middle; font-size: larger">
+                        <tr data-bs-toggle="collapse" data-bs-target="#accordion${type?counter}-${item?counter}" class="clickable-row ${item.healthy???then(item.healthy?then("table-success","table-danger"), "table-warning")}">
+                            <th class="table-cell-middle">${item?counter}</th>
+                            <td class="status-icon-cell">
                                 <#if item.status=='active'>
-                                    <span class="glyphicon glyphicon-ok-sign text-success"></span>
+                                    <span class="bi bi-check-circle-fill text-success"></span>
                                 <#else>
-                                    <span class="glyphicon glyphicon-minus-sign text-warning"></span>
+                                    <span class="bi bi-dash-circle-fill text-warning"></span>
                                 </#if>
                             </td>
-                            <td align="center" style="vertical-align: middle; font-size: larger">
+                            <td class="status-icon-cell">
                                 <#if item.healthy??>
                                     <#if item.healthy>
-                                        <span class="glyphicon glyphicon-ok-sign text-success"></span>
+                                        <span class="bi bi-check-circle-fill text-success"></span>
                                     <#else>
-                                        <span class="glyphicon glyphicon-remove-sign text-danger"></span>
+                                        <span class="bi bi-x-circle-fill text-danger"></span>
                                     </#if>
                                 </#if>
                             </td>
-                            <td style="vertical-align: middle">${item.activated!""}</td>
-                            <td style="vertical-align: middle">${item.name}</td>
-                            <td style="vertical-align: middle">${item.lastDataReceived!""} ${item.flagAsNotReceivingData?then("<span class=\"glyphicon glyphicon-alert text-warning\" title=\"Subscription is alive, but not receiving data\"></span>","")}</td>
-                            <td align="right" style="vertical-align: middle">${item.hitcount!0}</td>
-                            <td align="right" style="vertical-align: middle">${item.objectcount!0}</td>
-                            <td align="right" style="vertical-align: middle">${item.bytecountLabel!""}</td>
+                            <td class="table-cell-middle">${item.activated!""}</td>
+                            <td class="table-cell-middle">${item.name}</td>
+                            <td class="table-cell-middle">${item.lastDataReceived!""} ${item.flagAsNotReceivingData?then("<span class=\"bi bi-exclamation-triangle-fill text-warning\" title=\"Subscription is alive, but not receiving data\"></span>","")}</td>
+                            <td class="table-cell-middle table-cell-right">${item.hitcount!0}</td>
+                            <td class="table-cell-middle table-cell-right">${item.objectcount!0}</td>
+                            <td class="table-cell-middle table-cell-right">${item.bytecountLabel!""}</td>
                         </tr>
-                        <tr id="accordion${type?counter}-${item?counter}" class="collapse ${item.healthy???then(item.healthy?then("success","danger"), "warning")}">
+                        <tr id="accordion${type?counter}-${item?counter}" class="collapse ${item.healthy???then(item.healthy?then("table-success","table-danger"), "table-warning")}">
                         <td colspan="9">
                             <table class="table table-striped">
                                 <tr><th>Dataset ID</th><td><a href="${item.validationUrl}" target="_blank">${item.datasetId}</a></td></tr>
@@ -148,8 +274,8 @@
                                         </#if>
                                     </td>
                                     <td>
-                                        <div align="right">
-                                            <span style="cursor: pointer"  class="glyphicon glyphicon-trash" onclick="administerSubscription('flush', '${item.subscriptionId}')"></span>
+                                        <div class="action-icon-wrapper">
+                                            <span class="bi bi-trash clickable-icon" onclick="administerSubscription('flush', '${item.subscriptionId}')"></span>
                                         </div>
                                     </td>
                                 </tr>
@@ -194,7 +320,7 @@
                             ${item.initialTerminationTime}
                         </td>
                         <td>
-                            <span style="cursor: pointer"  class="glyphicon glyphicon-trash" onclick="administerSubscription('terminate', '${item.subscriptionRef}')"></span>
+                            <span class="bi bi-trash clickable-icon" onclick="administerSubscription('terminate', '${item.subscriptionRef}')"></span>
                         </td>
                     </tr>
                     </#list>
@@ -221,7 +347,7 @@
             </thead>
             <tbody>
                 <#list pollingClient.polling?sort_by("id") as item>
-                <tr class="success">
+                <tr class="table-success">
                     <th>${item?counter}</th>
                     <td><span title="First request: ${item.firstRequest}
 Request count: ${item.requestCount}">${item.id}</span></td>
@@ -240,32 +366,32 @@ Request count: ${item.requestCount}">${item.id}</span></td>
             </#list>
         </div>
         <div class="tab-pane" id="distribution" role="tabpanel" aria-labelledby="distribution-tab">
-            <table class="table table-striped">
+            <table class="table table-striped distribution-table">
                 <thead>
-                <tr><th colspan="2"><h4>Active data per codespace:</h4></th></tr>
+                <tr><th colspan="4"><h4>Active data per codespace:</h4></th></tr>
                 <tr>
                     <th>Codespace</th>
-                    <th class="text-right">ET</th>
-                    <th class="text-right">VM</th>
-                    <th class="text-right">SX</th>
+                    <th class="text-end table-col-narrow">ET</th>
+                    <th class="text-end table-col-narrow">VM</th>
+                    <th class="text-end table-col-narrow">SX</th>
                 </tr>
                 </thead>
                 <tbody>
                 <#list body.elements.distribution?sort_by("datasetId") as item>
                 <tr>
                     <th>${item.datasetId}</th>
-                    <td class="text-right">${item.etCount}</td>
-                    <td class="text-right">${item.vmCount}</td>
-                    <td class="text-right">${item.sxCount}</td>
+                    <td class="text-end">${item.etCount}</td>
+                    <td class="text-end">${item.vmCount}</td>
+                    <td class="text-end">${item.sxCount}</td>
                 </tr>
                 </#list>
                 </tbody>
-                <tfoot style="border-top: 2px solid #ddd;">
+                <tfoot>
                 <tr>
                     <th>Total</th>
-                    <th class="text-right">${body.elements.et}</th>
-                    <th class="text-right">${body.elements.vm}</th>
-                    <th class="text-right">${body.elements.sx}</th>
+                    <th class="text-end">${body.elements.et}</th>
+                    <th class="text-end">${body.elements.vm}</th>
+                    <th class="text-end">${body.elements.sx}</th>
                 </tr>
                 </tfoot>
             </table>
@@ -276,7 +402,7 @@ Request count: ${item.requestCount}">${item.id}</span></td>
                     <tr><th colspan="2"><h4>Admin tools:</h4></th></tr>
                 </thead>
                 <tbody>
-                    <tr data-toggle="collapse" data-target="#accordion_admin_validate" style="cursor: pointer" class="clickable success">
+                    <tr data-bs-toggle="collapse" data-bs-target="#accordion_admin_validate" class="admin-action-row table-success">
                         <td colspan="2">Validate ALL subscriptions</td>
                     </tr>
                     <tr id="accordion_admin_validate" class="collapse ">
@@ -285,10 +411,10 @@ Request count: ${item.requestCount}">${item.id}</span></td>
                             Any previous validation reports will be deleted
                         </td>
                         <td>
-                            <p><button type="button" class="btn btn-danger"  onclick="administerSubscription('validateAll', '')"><span style="cursor: pointer"  class="glyphicon glyphicon-ok"></span> ALL</button> </p>
+                            <p><button type="button" class="btn btn-danger"  onclick="administerSubscription('validateAll', '')"><span class="bi bi-check btn-icon"></span> ALL</button> </p>
                         </td>
                     </tr>
-                    <tr data-toggle="collapse" data-target="#accordion_admin_terminate" style="cursor: pointer" class="clickable danger">
+                    <tr data-bs-toggle="collapse" data-bs-target="#accordion_admin_terminate" class="admin-action-row table-danger">
                         <td colspan="2">Terminate ALL subscriptions</td>
                     </tr>
                     <tr id="accordion_admin_terminate" class="collapse ">
@@ -298,14 +424,14 @@ Request count: ${item.requestCount}">${item.id}</span></td>
                             Use case: Server is to be taken down controlled, and all subscriptions should be stopped.
                         </td>
                         <td>
-                            <p><button type="button" class="btn btn-danger"  onclick="administerSubscription('terminateAll', '')"><span style="cursor: pointer"  class="glyphicon glyphicon-stop"></span> ALL</button> </p>
-                            <p><button type="button" class="btn btn-danger"  onclick="administerSubscription('terminateAll', null, 'ESTIMATED_TIMETABLE')"><span style="cursor: pointer"  class="glyphicon glyphicon-stop"></span> ET</button></p>
-                            <p><button type="button" class="btn btn-danger"  onclick="administerSubscription('terminateAll', null, 'VEHICLE_MONITORING')"><span style="cursor: pointer"  class="glyphicon glyphicon-stop"></span> VM</button></p>
-                            <p><button type="button" class="btn btn-danger"  onclick="administerSubscription('terminateAll', null, 'SITUATION_EXCHANGE')"><span style="cursor: pointer"  class="glyphicon glyphicon-stop"></span> SX</button></p>
+                            <p><button type="button" class="btn btn-danger"  onclick="administerSubscription('terminateAll', '')"><span class="bi bi-stop-fill btn-icon"></span> ALL</button> </p>
+                            <p><button type="button" class="btn btn-danger"  onclick="administerSubscription('terminateAll', null, 'ESTIMATED_TIMETABLE')"><span class="bi bi-stop-fill btn-icon"></span> ET</button></p>
+                            <p><button type="button" class="btn btn-danger"  onclick="administerSubscription('terminateAll', null, 'VEHICLE_MONITORING')"><span class="bi bi-stop-fill btn-icon"></span> VM</button></p>
+                            <p><button type="button" class="btn btn-danger"  onclick="administerSubscription('terminateAll', null, 'SITUATION_EXCHANGE')"><span class="bi bi-stop-fill btn-icon"></span> SX</button></p>
                         </td>
                     </tr>
 
-                    <tr data-toggle="collapse" data-target="#accordion_admin_start" style="cursor: pointer" class="clickable success">
+                    <tr data-bs-toggle="collapse" data-bs-target="#accordion_admin_start" class="admin-action-row table-success">
                         <td colspan="2">Restart ALL active subscriptions</td>
                     </tr>
                     <tr id="accordion_admin_start" class="collapse ">
@@ -314,14 +440,14 @@ Request count: ${item.requestCount}">${item.id}</span></td>
                             Use case: Server has just been started, and all subscriptions should be activated ASAP instead of waiting for health-trigger.
                         </td>
                         <td>
-                            <p><button type="button" class="btn btn-danger"  onclick="administerSubscription('startAll', '')"><span style="cursor: pointer"  class="glyphicon glyphicon-refresh"></span> ALL</button> </p>
-                            <p><button type="button" class="btn btn-danger"  onclick="administerSubscription('startAll', null, 'ESTIMATED_TIMETABLE')"><span style="cursor: pointer"  class="glyphicon glyphicon-refresh"></span> ET</button></p>
-                            <p><button type="button" class="btn btn-danger"  onclick="administerSubscription('startAll', null, 'VEHICLE_MONITORING')"><span style="cursor: pointer"  class="glyphicon glyphicon-refresh"></span> VM</button></p>
-                            <p><button type="button" class="btn btn-danger"  onclick="administerSubscription('startAll', null, 'SITUATION_EXCHANGE')"><span style="cursor: pointer"  class="glyphicon glyphicon-refresh"></span> SX</button></p>
+                            <p><button type="button" class="btn btn-danger"  onclick="administerSubscription('startAll', '')"><span class="bi bi-arrow-clockwise btn-icon"></span> ALL</button> </p>
+                            <p><button type="button" class="btn btn-danger"  onclick="administerSubscription('startAll', null, 'ESTIMATED_TIMETABLE')"><span class="bi bi-arrow-clockwise btn-icon"></span> ET</button></p>
+                            <p><button type="button" class="btn btn-danger"  onclick="administerSubscription('startAll', null, 'VEHICLE_MONITORING')"><span class="bi bi-arrow-clockwise btn-icon"></span> VM</button></p>
+                            <p><button type="button" class="btn btn-danger"  onclick="administerSubscription('startAll', null, 'SITUATION_EXCHANGE')"><span class="bi bi-arrow-clockwise btn-icon"></span> SX</button></p>
                         </td>
                     </tr>
 
-                    <tr data-toggle="collapse" data-target="#accordion_admin_delete" style="cursor: pointer" class="clickable success">
+                    <tr data-bs-toggle="collapse" data-bs-target="#accordion_admin_delete" class="admin-action-row table-success">
                         <td colspan="2">Delete subscriptions</td>
                     </tr>
                     <tr id="accordion_admin_delete" class="collapse ">
@@ -342,12 +468,12 @@ Request count: ${item.requestCount}">${item.id}</span></td>
                                                 <tr><th colspan="4"><h4>${type.typeName}</h4></th></tr>
                                                 <#list type.subscriptions?sort_by("vendor") as item>
                                                     <tr>
-                                                        <th style="vertical-align: middle">${item?counter}</th>
-                                                        <td style="vertical-align: middle">${item.name}</td>
+                                                        <th class="table-cell-middle">${item?counter}</th>
+                                                        <td class="table-cell-middle">${item.name}</td>
                                                         <td>${item.vendor}</td>
                                                         <td>
-                                                            <div align="right">
-                                                                <span style="cursor: pointer"  class="glyphicon glyphicon-trash" onclick="administerSubscription('delete', '${item.subscriptionId}')"></span>
+                                                            <div class="action-icon-wrapper">
+                                                                <span class="bi bi-trash clickable-icon" onclick="administerSubscription('delete', '${item.subscriptionId}')"></span>
                                                             </div>
                                                         </td>
                                                     </tr>
@@ -367,31 +493,27 @@ Request count: ${item.requestCount}">${item.id}</span></td>
 </div>
 </body>
 <script>
-    $(function () {
-        $(document).ready(function(){
-            //Manage hash in URL to open the right tab
-            var hash = window.location.hash;
-            // If a hash is provided
-            if(hash && hash.length>0)
-            {
-                $('ul.nav-tabs li a').each(function( index ) {
-                    if($(this).attr('href')==hash)
-                        $(this).parent('li').addClass('active');
-                    else
-                        $(this).parent('li').removeClass('active');
-                });
-                // Manage Tab content
-                var hash = hash.substring(1); // Remove the #
-                $('div.tab-content div').each(function( index ) {
-                    if($(this).attr('id')==hash)
-                        $(this).addClass('active');
-                    else
-                        $(this).removeClass('active');
-                });
-            } else {
-                $('.nav-tabs a[href="#inbound"]').tab('show')
-            }
-        });
-    })
+    document.addEventListener('DOMContentLoaded', function() {
+        // Manage hash in URL to open the right tab
+        const hash = window.location.hash;
+
+        // Determine which tab to show
+        let targetTab;
+        if(hash && hash.length > 0) {
+            // Try to find tab matching the hash
+            targetTab = document.querySelector('.nav-tabs a[href="' + hash + '"]');
+        }
+
+        // If no hash or hash doesn't match a tab, default to inbound
+        if(!targetTab) {
+            targetTab = document.querySelector('.nav-tabs a[href="#inbound"]');
+        }
+
+        // Use Bootstrap's Tab API to properly show the tab
+        if(targetTab) {
+            const tab = new bootstrap.Tab(targetTab);
+            tab.show();
+        }
+    });
 </script>
 </html>

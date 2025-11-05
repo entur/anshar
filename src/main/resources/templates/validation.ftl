@@ -3,110 +3,84 @@
     <title>SIRI Validation</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+    <style>
+        .clickable-row {
+            cursor: pointer;
+        }
+    </style>
     <script>
-        function toggleValidation(id) {
+        async function toggleValidation(id, event) {
+            const toggle = event.target;
+            const isChecked = toggle.checked;
 
-            var uri = "toggle?subscriptionId="+id;
-
-            var filterValue = document.getElementById("filterValue:"+id).value;
+            const filterValue = document.getElementById("filterValue:" + id).value;
+            let uri = "toggle?subscriptionId=" + id;
 
             if (filterValue) {
-                uri += "&filter="+filterValue;
-
-                console.log("Adding custom filter for validation: " + filterValue)
+                uri += "&filter=" + encodeURIComponent(filterValue);
+                console.log("Adding custom filter for validation: " + filterValue);
             }
 
-            var xhr = new XMLHttpRequest();
-            xhr.open('PUT', uri, true);
-            xhr.send(null);
+            // Disable toggle during request
+            toggle.disabled = true;
+
+            try {
+                const response = await fetch(uri, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to toggle validation: ' + response.status);
+                }
+
+                showNotification('Success', 'Validation toggled successfully', 'success');
+
+                // Reload after short delay to show notification
+                setTimeout(() => window.location.reload(), 1000);
+
+            } catch (error) {
+                console.error('Error toggling validation:', error);
+                showNotification('Error', error.message, 'danger');
+
+                // Revert toggle state on error
+                toggle.checked = !isChecked;
+            } finally {
+                toggle.disabled = false;
+            }
+        }
+
+        function showNotification(title, message, type) {
+            const toastEl = document.getElementById('notificationToast');
+            const toastTitle = document.getElementById('toastTitle');
+            const toastBody = document.getElementById('toastBody');
+            const toastHeader = toastEl.querySelector('.toast-header');
+
+            // Set content
+            toastTitle.textContent = title;
+            toastBody.textContent = message;
+
+            // Set color based on type
+            toastHeader.className = 'toast-header';
+            if (type === 'success') {
+                toastHeader.classList.add('bg-success', 'text-white');
+            } else if (type === 'danger') {
+                toastHeader.classList.add('bg-danger', 'text-white');
+            }
+
+            // Show toast
+            const toast = new bootstrap.Toast(toastEl);
+            toast.show();
         }
     </script>
-
-    <style>
-        /* The switch - the box around the slider */
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 34px;
-            height: 19px;
-        }
-
-        /* Hide default HTML checkbox */
-        .switch input {display:none;}
-
-        /* The slider */
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #ccc;
-            -webkit-transition: .4s;
-            transition: .4s;
-        }
-
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 15px;
-            width: 15px;
-            left: 2px;
-            bottom: 2px;
-            background-color: white;
-            -webkit-transition: .4s;
-            transition: .4s;
-        }
-
-        input:checked + .slider {
-            background-color: #2196F3;
-        }
-
-        input:focus + .slider {
-            box-shadow: 0 0 1px #2196F3;
-        }
-
-        input:checked + .slider:before {
-            -webkit-transform: translateX(15px);
-            -ms-transform: translateX(15px);
-            transform: translateX(15px);
-        }
-
-        /* Rounded sliders */
-        .slider.round {
-            border-radius: 19px;
-        }
-
-        .slider.round:before {
-            border-radius: 50%;
-        }
-
-        /* The text input field */
-        .input-field {
-            width: 150px;
-            height: 23px;
-            box-sizing: border-box;
-            -webkit-box-sizing: border-box;
-            -moz-box-sizing: border-box;
-            border: 1px solid #C2C2C2;
-            box-shadow: 1px 1px 4px #EBEBEB;
-            -moz-box-shadow: 1px 1px 4px #EBEBEB;
-            -webkit-box-shadow: 1px 1px 4px #EBEBEB;
-            border-radius: 3px;
-            -webkit-border-radius: 3px;
-            -moz-border-radius: 3px;
-            padding: 7px;
-            outline: none;
-        }
-
-    </style>
 </head>
 <body>
-<div class="jumbotron text-center">
+<div class="bg-light p-5 rounded-3 text-center mb-4">
     <h2>SIRI Validation</h2>
 </div>
 <#if body?? >
@@ -122,12 +96,12 @@
                 <th>Type</th>
                 <th>Filter (optional)</th>
                 <th>Results</th>
-                <th>On/Off <sup><span class="glyphicon glyphicon-info-sign text-info" ></span></sup></th>
+                <th>On/Off <sup><span class="bi bi-info-circle text-info" ></span></sup></th>
             </tr>
             </thead>
             <tbody>
                 <#list body.subscriptions?sort_by("name") as item>
-                <tr class="${item.healthy???then(item.healthy?then("success","danger"), "warning")}">
+                <tr class="${item.healthy???then(item.healthy?then("table-success","table-danger"), "table-warning")}">
                     <th>${item?counter}</th>
                     <td>
                         ${item.name}<br />
@@ -136,9 +110,10 @@
                     <td>${item.status!""}</td>
                     <td>${item.subscriptionType}</td>
                     <td>
-                        <label>
-                            <input type="text" class="input-field" id="filterValue:${item.internalId?long?c}" value="${item.validationFilter???then("${item.validationFilter}","")}" onchange="this.form.submit()">
-                        </label>
+                        <input type="text" class="form-control form-control-sm"
+                               id="filterValue:${item.internalId?long?c}"
+                               placeholder="e.g. LineRef:123"
+                               value="${item.validationFilter???then("${item.validationFilter}","")}">
                     </td>
                     <td>
                         <label>
@@ -146,10 +121,15 @@
                         </label>
                     </td>
                     <td>
-                        <label class="switch">
-                            <input type="checkbox" ${item.validation?then("checked", "")} onchange="toggleValidation(${item.internalId?long?c})">
-                            <span class="slider round"></span>
-                        </label>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox"
+                                   id="validation${item.internalId?long?c}"
+                                   ${item.validation?then("checked", "")}
+                                   onchange="toggleValidation(${item.internalId?long?c}, event)">
+                            <label class="form-check-label visually-hidden" for="validation${item.internalId?long?c}">
+                                Enable validation
+                            </label>
+                        </div>
                     </td>
                 </tr>
                 </#list>
@@ -157,7 +137,7 @@
         </table>
     </div>
     <div class="row">
-        <sup><span class="glyphicon glyphicon-info-sign text-info"></span></sup>
+        <sup><span class="bi bi-info-circle text-info"></span></sup>
         Switching on validation will remove all previous validation reports, and start validation of all incoming ServiceDeliveries<br />
         If the optional filter has been provided before switching on the report it will only validate ServiceDeliveries that contain the given string.<br />
         Validation will automatically be disabled when size limit has been reached.<br />
@@ -166,5 +146,17 @@
 </div>
 
 </#if>
+
+<!-- Toast notification container -->
+<div class="toast-container position-fixed top-0 end-0 p-3">
+    <div id="notificationToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header">
+            <strong class="me-auto" id="toastTitle"></strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body" id="toastBody"></div>
+    </div>
+</div>
+
 </body>
 </html>
