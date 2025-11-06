@@ -178,7 +178,7 @@
         <li class="nav-item">
             <a class="nav-link" id="admin-tab" data-bs-toggle="tab" href="#admin" onclick="location.hash='admin'" role="tab" aria-controls="admin">Admin <span class="bi bi-wrench"></span></a>
         </li>
-        <li class="nav-item ms-auto">
+        <li class="nav-item ms-auto d-flex align-items-center">
             <div class="input-group input-group-sm">
                 <span class="input-group-text"><i class="bi bi-funnel"></i></span>
                 <input type="text" class="form-control" id="subscriptionFilter" placeholder="Filter..." style="min-width: 200px;">
