@@ -162,7 +162,7 @@
 </div>
 <div class="container">
 
-    <ul class="nav nav-tabs" id="tabs" role="tablist">
+    <ul class="nav nav-tabs d-flex" id="tabs" role="tablist">
         <li class="nav-item">
             <a class="nav-link" id="inbound-tab" data-bs-toggle="tab" href="#inbound" onclick="location.hash='inbound'" role="tab" aria-controls="inbound">Inbound <span class="badge bg-success"></span> <span class="bi bi-arrow-down"></span> </a>
         </li>
@@ -175,8 +175,17 @@
         <li class="nav-item">
             <a class="nav-link" id="distribution-tab" data-bs-toggle="tab" href="#distribution" onclick="location.hash='distribution'" role="tab" aria-controls="distribution">Distribution <span class="bi bi-bar-chart"></span></a>
         </li>
-        <li class="nav-item text-end">
+        <li class="nav-item">
             <a class="nav-link" id="admin-tab" data-bs-toggle="tab" href="#admin" onclick="location.hash='admin'" role="tab" aria-controls="admin">Admin <span class="bi bi-wrench"></span></a>
+        </li>
+        <li class="nav-item ms-auto">
+            <div class="input-group input-group-sm">
+                <span class="input-group-text"><i class="bi bi-funnel"></i></span>
+                <input type="text" class="form-control" id="subscriptionFilter" placeholder="Filter..." style="min-width: 200px;">
+                <button class="btn btn-outline-secondary" type="button" onclick="clearFilter()" title="Clear filter">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
         </li>
     </ul>
 
@@ -184,7 +193,7 @@
         <div class="tab-pane" id="inbound" role="tabpanel" aria-labelledby="inbound-tab">
 
             <#list body.types as type>
-                <table class="table">
+                <table class="table subscription-type-table" data-type-name="${type.typeName}">
                 <thead>
                     <tr><th colspan="9"><h4>${type.typeName}</h4></th></tr>
 
@@ -202,7 +211,12 @@
                 </thead>
                 <tbody>
                     <#list type.subscriptions?sort_by("name") as item>
-                        <tr data-bs-toggle="collapse" data-bs-target="#accordion${type?counter}-${item?counter}" class="clickable-row ${item.healthy???then(item.healthy?then("table-success","table-danger"), "table-warning")}">
+                        <tr data-bs-toggle="collapse" data-bs-target="#accordion${type?counter}-${item?counter}"
+                            class="clickable-row subscription-row ${item.healthy???then(item.healthy?then("table-success","table-danger"), "table-warning")}"
+                            data-subscription-name="${item.name}"
+                            data-subscription-vendor="${item.vendor}"
+                            data-subscription-type="${type.typeName}"
+                            data-subscription-dataset="${item.datasetId}">
                             <th class="table-cell-middle">${item?counter}</th>
                             <td class="status-icon-cell">
                                 <#if item.status=='active'>
@@ -227,7 +241,12 @@
                             <td class="table-cell-middle table-cell-right">${item.objectcount!0}</td>
                             <td class="table-cell-middle table-cell-right">${item.bytecountLabel!""}</td>
                         </tr>
-                        <tr id="accordion${type?counter}-${item?counter}" class="collapse ${item.healthy???then(item.healthy?then("table-success","table-danger"), "table-warning")}">
+                        <tr id="accordion${type?counter}-${item?counter}"
+                            class="collapse subscription-details-row ${item.healthy???then(item.healthy?then("table-success","table-danger"), "table-warning")}"
+                            data-subscription-name="${item.name}"
+                            data-subscription-vendor="${item.vendor}"
+                            data-subscription-type="${type.typeName}"
+                            data-subscription-dataset="${item.datasetId}">
                         <td colspan="9">
                             <table class="table table-striped">
                                 <tr><th>Dataset ID</th><td><a href="${item.validationUrl}" target="_blank">${item.datasetId}</a></td></tr>
@@ -511,6 +530,74 @@ Request count: ${item.requestCount}">${item.id}</span></td>
             const tab = new bootstrap.Tab(targetTab);
             tab.show();
         }
+
+        // Subscription filtering functionality
+        const filterInput = document.getElementById('subscriptionFilter');
+        if (filterInput) {
+            filterInput.addEventListener('input', function() {
+                filterSubscriptions(this.value);
+            });
+        }
     });
+
+    function filterSubscriptions(searchTerm) {
+        const term = searchTerm.toLowerCase().trim();
+        const subscriptionRows = document.querySelectorAll('.subscription-row');
+        const detailRows = document.querySelectorAll('.subscription-details-row');
+        const tables = document.querySelectorAll('.subscription-type-table');
+
+        // If search is empty, show all
+        if (term === '') {
+            subscriptionRows.forEach(row => row.style.display = '');
+            detailRows.forEach(row => row.style.display = '');
+            tables.forEach(table => table.style.display = '');
+            return;
+        }
+
+        // Filter subscription rows
+        subscriptionRows.forEach(row => {
+            const name = (row.dataset.subscriptionName || '').toLowerCase();
+            const vendor = (row.dataset.subscriptionVendor || '').toLowerCase();
+            const type = (row.dataset.subscriptionType || '').toLowerCase();
+            const dataset = (row.dataset.subscriptionDataset || '').toLowerCase();
+
+            const matches = name.includes(term) ||
+                          vendor.includes(term) ||
+                          type.includes(term) ||
+                          dataset.includes(term);
+
+            row.style.display = matches ? '' : 'none';
+        });
+
+        // Filter detail rows to match their parent subscription rows
+        detailRows.forEach(row => {
+            const name = (row.dataset.subscriptionName || '').toLowerCase();
+            const vendor = (row.dataset.subscriptionVendor || '').toLowerCase();
+            const type = (row.dataset.subscriptionType || '').toLowerCase();
+            const dataset = (row.dataset.subscriptionDataset || '').toLowerCase();
+
+            const matches = name.includes(term) ||
+                          vendor.includes(term) ||
+                          type.includes(term) ||
+                          dataset.includes(term);
+
+            row.style.display = matches ? '' : 'none';
+        });
+
+        // Hide tables that have no visible subscription rows
+        tables.forEach(table => {
+            const visibleRows = table.querySelectorAll('.subscription-row[style=""], .subscription-row:not([style*="display: none"])');
+            table.style.display = visibleRows.length > 0 ? '' : 'none';
+        });
+    }
+
+    function clearFilter() {
+        const filterInput = document.getElementById('subscriptionFilter');
+        if (filterInput) {
+            filterInput.value = '';
+            filterSubscriptions('');
+            filterInput.focus();
+        }
+    }
 </script>
 </html>
