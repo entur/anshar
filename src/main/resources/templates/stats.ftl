@@ -178,19 +178,19 @@
         <li class="nav-item">
             <a class="nav-link" id="admin-tab" data-bs-toggle="tab" href="#admin" onclick="location.hash='admin'" role="tab" aria-controls="admin">Admin <span class="bi bi-wrench"></span></a>
         </li>
-        <li class="nav-item ms-auto d-flex align-items-center">
-            <div class="input-group input-group-sm">
-                <span class="input-group-text"><i class="bi bi-funnel"></i></span>
-                <input type="text" class="form-control" id="subscriptionFilter" placeholder="Filter..." style="min-width: 200px;">
-                <button class="btn btn-outline-secondary" type="button" onclick="clearFilter()" title="Clear filter">
-                    <i class="bi bi-x-lg"></i>
-                </button>
-            </div>
-        </li>
     </ul>
 
     <div class="tab-content">
         <div class="tab-pane" id="inbound" role="tabpanel" aria-labelledby="inbound-tab">
+            <div class="mb-3 mt-3">
+                <div class="input-group" style="max-width: 400px;">
+                    <span class="input-group-text"><i class="bi bi-funnel"></i></span>
+                    <input type="text" class="form-control" id="subscriptionFilter" placeholder="Filter..." >
+                    <button class="btn btn-outline-secondary" type="button" onclick="clearFilter()" title="Clear filter">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+            </div>
 
             <#list body.types as type>
                 <table class="table subscription-type-table" data-type-name="${type.typeName}">
