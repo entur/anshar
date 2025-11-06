@@ -17,10 +17,7 @@
             padding: 3rem;
             border-radius: 0.5rem;
             text-align: center;
-            margin-left: auto;
-            margin-right: auto;
             margin-bottom: 1.5rem;
-            max-width: 1140px;
         }
 
         .stats-server-info {
