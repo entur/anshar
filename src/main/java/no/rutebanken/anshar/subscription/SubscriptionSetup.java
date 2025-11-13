@@ -513,7 +513,9 @@ public class SubscriptionSetup implements Serializable {
     }
 
     public void setPreviewIntervalSeconds(int seconds) {
-        setPreviewInterval(Duration.ofSeconds(seconds));
+        if (seconds > 0) {
+            setPreviewInterval(Duration.ofSeconds(seconds));
+        }
     }
 
     private void setPreviewInterval(Duration previewIntervalSeconds) {
