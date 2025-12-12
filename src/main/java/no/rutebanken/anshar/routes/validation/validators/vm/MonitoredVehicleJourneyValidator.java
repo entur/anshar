@@ -63,7 +63,6 @@ public class MonitoredVehicleJourneyValidator extends NsrQuayValidator {
     public ValidationEvent isValid(Node node) {
         return verifyRequiredFields(node, FIELDNAME,
                 "LineRef",
-                "FramedVehicleJourneyRef",
                 "DataSource",
                 "VehicleLocation",
                 "VehicleRef",
