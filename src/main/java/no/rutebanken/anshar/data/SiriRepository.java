@@ -88,6 +88,16 @@ abstract class SiriRepository<T> {
 
     private ScheduledExecutorService singleThreadScheduledExecutor;
 
+    // Shared executor for async change tracker updates to prevent thread leak
+    private static final ExecutorService changeTrackerExecutor = Executors.newFixedThreadPool(
+        5,
+        r -> {
+            Thread t = new Thread(r, "change-tracker-updater");
+            t.setDaemon(true);
+            return t;
+        }
+    );
+
     @Autowired
     protected RequestorRefRepository requestorRefRepository;
 
@@ -402,8 +412,7 @@ abstract class SiriRepository<T> {
                               String key, Set<SiriObjectStorageKey> changes, int trackingPeriodMinutes, TimeUnit timeUnit) {
         final String breadcrumbId = MDC.get("camel.breadcrumbId");
 
-        ExecutorService executorService = Executors.newSingleThreadExecutor();
-        executorService.execute(() -> {
+        changeTrackerExecutor.execute(() -> {
             try {
                 MDC.put("camel.breadcrumbId", breadcrumbId);
 
