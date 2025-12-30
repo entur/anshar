@@ -42,7 +42,7 @@
         <camel.version>4.16.0</camel.version>
 
 <!--        <metrics.version>3.2.3</metrics.version>-->
-        <entur.helpers.version>2.34</entur.helpers.version>
+        <entur.helpers.version>5.50.0</entur.helpers.version>
         <geotools.version>33.2</geotools.version>
         <avro.version>1.12.1</avro.version>
 
@@ -234,7 +234,7 @@
         <!-- Entur helpers -->
         <dependency>
             <groupId>org.entur.ror.helpers</groupId>
-            <artifactId>gcp-storage</artifactId>
+            <artifactId>storage-gcp-gcs</artifactId>
             <version>${entur.helpers.version}</version>
         </dependency>
 
@@ -264,7 +264,7 @@
         <dependency>
             <groupId>org.entur</groupId>
             <artifactId>netex-parser-java</artifactId>
-            <version>3.1.56</version>
+            <version>3.1.68</version>
         </dependency>
 
         <!-- Geotools needed for calculating speed between stops-->
@@ -377,12 +377,12 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.14.0</version>
+                <version>3.14.1</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.5.3</version>
+                <version>3.5.4</version>
                 <inherited>true</inherited>
                 <configuration>
                     <excludes>
