@@ -47,6 +47,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -79,6 +80,8 @@ abstract class SiriRepository<T> {
     abstract T add(String datasetId, T timetableDelivery);
 
     abstract long getExpiration(T s);
+
+    abstract IMap<SiriObjectStorageKey, T> getMainMap();
 
     private final Logger logger = LoggerFactory.getLogger(SiriRepository.class);
 
@@ -491,6 +494,47 @@ abstract class SiriRepository<T> {
 
     abstract void clearAllByDatasetId(String datasetId);
 
+    /**
+     * @return Map of dataset sizes
+     */
+    public Map<String, Integer> getDatasetSize() {
+        Map<String, Integer> sizeMap = new HashMap<>();
+        long t1 = System.currentTimeMillis();
+        getMainMap().keySet().forEach(key -> {
+            String datasetId = key.getCodespaceId();
+            Integer count = sizeMap.getOrDefault(datasetId, 0);
+            sizeMap.put(datasetId, count + 1);
+        });
+        logger.debug("Calculating data-distribution ({}) took {} ms: {}",
+            SIRI_DATA_TYPE, (System.currentTimeMillis() - t1), sizeMap);
+        return sizeMap;
+    }
+
+    /**
+     * @return Map of local dataset sizes
+     */
+    public Map<String, Integer> getLocalDatasetSize() {
+        Map<String, Integer> sizeMap = new HashMap<>();
+        long t1 = System.currentTimeMillis();
+        getMainMap().localKeySet().forEach(key -> {
+            String datasetId = key.getCodespaceId();
+            Integer count = sizeMap.getOrDefault(datasetId, 0);
+            sizeMap.put(datasetId, count + 1);
+        });
+        logger.debug("Calculating local data-distribution ({}) took {} ms: {}",
+            SIRI_DATA_TYPE, (System.currentTimeMillis() - t1), sizeMap);
+        return sizeMap;
+    }
+
+    /**
+     * @param datasetId The dataset to get size for
+     * @return Size of dataset
+     */
+    public Integer getDatasetSize(String datasetId) {
+        return Math.toIntExact(getMainMap().keySet().stream()
+                .filter(key -> datasetId.equals(key.getCodespaceId()))
+                .count());
+    }
 
     Predicate<SiriObjectStorageKey, T> createHzCodespacePredicate(String datasetId) {
         return entry -> {

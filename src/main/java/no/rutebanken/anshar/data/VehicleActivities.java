@@ -132,37 +132,9 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
         return monitoredVehicles.keySet().size();
     }
 
-    public Map<String, Integer> getDatasetSize() {
-        Map<String, Integer> sizeMap = new HashMap<>();
-        long t1 = System.currentTimeMillis();
-        monitoredVehicles.keySet().forEach(key -> {
-            String datasetId = key.getCodespaceId();
-
-            Integer count = sizeMap.getOrDefault(datasetId, 0);
-            sizeMap.put(datasetId, count+1);
-        });
-        logger.debug("Calculating data-distribution (VM) took {} ms: {}", (System.currentTimeMillis()-t1), sizeMap);
-        return sizeMap;
-    }
-
-    public Map<String, Integer> getLocalDatasetSize() {
-        Map<String, Integer> sizeMap = new HashMap<>();
-        long t1 = System.currentTimeMillis();
-        monitoredVehicles.localKeySet().forEach(key -> {
-            String datasetId = key.getCodespaceId();
-
-            Integer count = sizeMap.getOrDefault(datasetId, 0);
-            sizeMap.put(datasetId, count+1);
-        });
-        logger.debug("Calculating data-distribution (VM) took {} ms: {}", (System.currentTimeMillis()-t1), sizeMap);
-        return sizeMap;
-    }
-
-
-    public Integer getDatasetSize(String datasetId) {
-        return Math.toIntExact(monitoredVehicles.keySet().stream()
-                .filter(key -> datasetId.equals(key.getCodespaceId()))
-                .count());
+    @Override
+    IMap<SiriObjectStorageKey, VehicleActivityStructure> getMainMap() {
+        return monitoredVehicles;
     }
 
     @Override

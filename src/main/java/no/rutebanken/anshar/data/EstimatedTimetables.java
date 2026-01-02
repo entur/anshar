@@ -159,37 +159,9 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
         return timetableDeliveries.keySet().size();
     }
 
-
-    public Map<String, Integer> getDatasetSize() {
-        Map<String, Integer> sizeMap = new HashMap<>();
-        long t1 = System.currentTimeMillis();
-        timetableDeliveries.keySet().forEach(key -> {
-                        String datasetId = key.getCodespaceId();
-
-                        Integer count = sizeMap.getOrDefault(datasetId, 0);
-                        sizeMap.put(datasetId, count+1);
-                    });
-        logger.debug("Calculating data-distribution (ET) took {} ms: {}", (System.currentTimeMillis()-t1), sizeMap);
-        return sizeMap;
-    }
-
-    public Map<String, Integer> getLocalDatasetSize() {
-        Map<String, Integer> sizeMap = new HashMap<>();
-        long t1 = System.currentTimeMillis();
-        timetableDeliveries.localKeySet().forEach(key -> {
-                        String datasetId = key.getCodespaceId();
-
-                        Integer count = sizeMap.getOrDefault(datasetId, 0);
-                        sizeMap.put(datasetId, count+1);
-                    });
-        logger.debug("Calculating local data-distribution (ET) took {} ms: {}", (System.currentTimeMillis()-t1), sizeMap);
-        return sizeMap;
-    }
-
-    public Integer getDatasetSize(String datasetId) {
-        return Math.toIntExact(timetableDeliveries.keySet().stream()
-                .filter(key -> datasetId.equals(key.getCodespaceId()))
-                .count());
+    @Override
+    IMap<SiriObjectStorageKey, EstimatedVehicleJourney> getMainMap() {
+        return timetableDeliveries;
     }
 
     @Override

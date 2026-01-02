@@ -108,39 +108,9 @@ public class Situations extends SiriRepository<PtSituationElement> {
         return situationElements.keySet().size();
     }
 
-
-    public Map<String, Integer> getDatasetSize() {
-        Map<String, Integer> sizeMap = new HashMap<>();
-        long t1 = System.currentTimeMillis();
-        situationElements.keySet().forEach(key -> {
-            String datasetId = key.getCodespaceId();
-
-            Integer count = sizeMap.getOrDefault(datasetId, 0);
-            sizeMap.put(datasetId, count+1);
-        });
-        logger.debug("Calculating data-distribution (SX) took {} ms: {}", (System.currentTimeMillis()-t1), sizeMap);
-        return sizeMap;
-    }
-
-
-    public Map<String, Integer> getLocalDatasetSize() {
-        Map<String, Integer> sizeMap = new HashMap<>();
-        long t1 = System.currentTimeMillis();
-        situationElements.localKeySet().forEach(key -> {
-            String datasetId = key.getCodespaceId();
-
-            Integer count = sizeMap.getOrDefault(datasetId, 0);
-            sizeMap.put(datasetId, count+1);
-        });
-        logger.debug("Calculating data-distribution (SX) took {} ms: {}", (System.currentTimeMillis()-t1), sizeMap);
-        return sizeMap;
-    }
-
-
-    public Integer getDatasetSize(String datasetId) {
-        return Math.toIntExact(situationElements.keySet().stream()
-                .filter(key -> datasetId.equals(key.getCodespaceId()))
-                .count());
+    @Override
+    IMap<SiriObjectStorageKey, PtSituationElement> getMainMap() {
+        return situationElements;
     }
 
     @Override
