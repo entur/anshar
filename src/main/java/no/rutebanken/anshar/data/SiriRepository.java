@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.SerializationUtils;
+import uk.org.siri.siri21.OccupancyEnumeration;
 import uk.org.siri.siri21.VehicleActivityStructure;
 
 import java.io.Serializable;
@@ -51,6 +52,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -72,6 +74,12 @@ abstract class SiriRepository<T> {
     abstract int getSize();
 
     abstract Collection<T> getAll(String datasetId);
+
+    protected static boolean isMeaningfulOccupancy(OccupancyEnumeration occupancyEnumeration) {
+        return Optional.ofNullable(occupancyEnumeration)
+                .filter(occ -> occ != OccupancyEnumeration.UNKNOWN && occ != OccupancyEnumeration.UNDEFINED)
+                .isPresent();
+    }
 
     abstract Collection<T> getAllUpdates(String requestorId, String datasetId);
 

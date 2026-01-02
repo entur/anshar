@@ -410,7 +410,8 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
         if (activity != null) {
             if (activity.getMonitoredVehicleJourney() != null) {
                 String dataSource = activity.getMonitoredVehicleJourney().getDataSource();
-                if (activity.getMonitoredVehicleJourney().getOccupancy() != null) {
+
+                if (isMeaningfulOccupancy(activity.getMonitoredVehicleJourney().getOccupancy())) {
                     metrics.registerSiriContent(
                             SiriDataType.VEHICLE_MONITORING,
                             dataSource,
