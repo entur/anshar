@@ -36,8 +36,8 @@
 
         <!-- versions for use in mvn plugins as we cannot inherit them from a BOM -->
         <docker.maven.plugin.version>0.21.0</docker.maven.plugin.version>
-        <spring-boot-plugin.version>3.5.5</spring-boot-plugin.version>
-        <spring-boot.version>3.5.5</spring-boot.version>
+        <spring-boot-plugin.version>3.5.9</spring-boot-plugin.version>
+        <spring-boot.version>3.5.9</spring-boot.version>
 
         <camel.version>4.16.0</camel.version>
 
@@ -48,6 +48,7 @@
 
         <log4j2.version>2.20.0</log4j2.version>
         <confluent-kafka.version>7.9.5</confluent-kafka.version>
+        <rest-assured.version>6.0.0</rest-assured.version>
     </properties>
 
     <distributionManagement>
@@ -200,18 +201,18 @@
         <dependency>
             <groupId>com.sun.xml.bind</groupId>
             <artifactId>jaxb-core</artifactId>
-            <version>4.0.5</version>
+            <version>4.0.6</version>
         </dependency>
         <dependency>
             <groupId>com.sun.xml.bind</groupId>
             <artifactId>jaxb-impl</artifactId>
-            <version>4.0.5</version>
+            <version>4.0.6</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.glassfish.jaxb</groupId>
             <artifactId>jaxb-runtime</artifactId>
-            <version>4.0.5</version>
+            <version>4.0.6</version>
         </dependency>
 
         <dependency>
@@ -349,19 +350,25 @@
         <dependency>
             <groupId>io.rest-assured</groupId>
             <artifactId>rest-assured</artifactId>
-            <version>5.5.6</version>
+            <version>${rest-assured.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.rest-assured</groupId>
+            <artifactId>rest-assured-common</artifactId>
+            <version>${rest-assured.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>io.rest-assured</groupId>
             <artifactId>json-path</artifactId>
-            <version>5.5.6</version>
+            <version>${rest-assured.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>io.rest-assured</groupId>
             <artifactId>xml-path</artifactId>
-            <version>5.5.6</version>
+            <version>${rest-assured.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
