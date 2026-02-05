@@ -42,7 +42,7 @@
         <camel.version>4.17.0</camel.version>
 
 <!--        <metrics.version>3.2.3</metrics.version>-->
-        <entur.helpers.version>5.50.0</entur.helpers.version>
+        <entur.helpers.version>6.1.0</entur.helpers.version>
         <geotools.version>34.2</geotools.version>
         <avro.version>1.12.1</avro.version>
 
