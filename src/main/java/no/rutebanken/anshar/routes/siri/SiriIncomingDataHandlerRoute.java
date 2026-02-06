@@ -83,6 +83,7 @@ public class SiriIncomingDataHandlerRoute extends RestRouteBuilder {
                     .when(this::subscriptionExistsAndIsActive)
                         //Valid subscription
                         .wireTap("direct:async.process.request")
+                        .removeHeaders("*")
                         .setHeader(Exchange.HTTP_RESPONSE_CODE, constant("200"))
                         .setBody(constant(null))
                     .endChoice()
