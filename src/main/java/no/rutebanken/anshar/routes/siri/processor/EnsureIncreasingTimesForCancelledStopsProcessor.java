@@ -29,7 +29,6 @@ import uk.org.siri.siri21.Siri;
 import java.time.ZonedDateTime;
 import java.util.List;
 
-import static no.rutebanken.anshar.routes.siri.transformer.MappingNames.ENSURE_INCREASING_TIMES;
 import static no.rutebanken.anshar.routes.siri.transformer.MappingNames.ENSURE_INCREASING_TIMES_CANCELLED_STOPS;
 import static no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter.getOriginalId;
 
@@ -176,7 +175,7 @@ public class EnsureIncreasingTimesForCancelledStopsProcessor extends ValueAdapte
         }
         if (hitCount > 0) {
             logger.warn("Fixed {} dwelltimes/runtimes for {} journeys with {} cancelled stops in {} ms.", hitCount, journeyCount, cancelledStopCount, (System.currentTimeMillis() - startTime));
-            getMetricsService().registerDataMapping(SiriDataType.ESTIMATED_TIMETABLE, datasetId, ENSURE_INCREASING_TIMES, hitCount);
+            getMetricsService().registerDataMapping(SiriDataType.ESTIMATED_TIMETABLE, datasetId, ENSURE_INCREASING_TIMES_CANCELLED_STOPS, hitCount);
         }
     }
 }
