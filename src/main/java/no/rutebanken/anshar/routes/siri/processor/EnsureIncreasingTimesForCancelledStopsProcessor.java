@@ -99,7 +99,10 @@ public class EnsureIncreasingTimesForCancelledStopsProcessor extends ValueAdapte
                                             latestTimestamp = recordedCall.getExpectedArrivalTime();
                                         }
                                     } else {
-                                        recordedCall.setExpectedArrivalTime(latestTimestamp);
+                                        if (isCancelledStop && recordedCall.getAimedArrivalTime() != null) {
+                                            recordedCall.setExpectedArrivalTime(latestTimestamp);
+                                            runtimeCount++;
+                                        }
                                     }
 
                                     if (recordedCall.getActualDepartureTime() != null) {
@@ -117,7 +120,10 @@ public class EnsureIncreasingTimesForCancelledStopsProcessor extends ValueAdapte
                                             latestTimestamp = recordedCall.getExpectedDepartureTime();
                                         }
                                     } else {
-                                        recordedCall.setExpectedDepartureTime(latestTimestamp);
+                                        if (isCancelledStop && recordedCall.getAimedDepartureTime() != null) {
+                                            recordedCall.setExpectedDepartureTime(latestTimestamp);
+                                            dwelltimeCount++;
+                                        }
                                     }
 
                                 }
@@ -140,6 +146,11 @@ public class EnsureIncreasingTimesForCancelledStopsProcessor extends ValueAdapte
                                         } else {
                                             latestTimestamp = estimatedCall.getExpectedArrivalTime();
                                         }
+                                    } else {
+                                        if (isCancelledStop && estimatedCall.getAimedArrivalTime() != null) {
+                                            estimatedCall.setExpectedArrivalTime(latestTimestamp);
+                                            runtimeCount++;
+                                        }
                                     }
                                     if (estimatedCall.getExpectedDepartureTime() != null) {
                                         if (isCancelledStop && latestTimestamp != null && estimatedCall.getExpectedDepartureTime().isBefore(latestTimestamp)) {
@@ -148,14 +159,12 @@ public class EnsureIncreasingTimesForCancelledStopsProcessor extends ValueAdapte
                                         } else {
                                             latestTimestamp = estimatedCall.getExpectedDepartureTime();
                                         }
+                                    } else {
+                                        if (isCancelledStop && estimatedCall.getAimedDepartureTime() != null) {
+                                            estimatedCall.setExpectedDepartureTime(latestTimestamp);
+                                            dwelltimeCount++;
+                                        }
                                     }
-
-                                    if (estimatedCall.getExpectedArrivalTime() == null &&
-                                            estimatedCall.getExpectedDepartureTime() == null) {
-                                        estimatedCall.setExpectedArrivalTime(latestTimestamp);
-                                        estimatedCall.setExpectedDepartureTime(latestTimestamp);
-                                    }
-
                                 }
                             }
 
