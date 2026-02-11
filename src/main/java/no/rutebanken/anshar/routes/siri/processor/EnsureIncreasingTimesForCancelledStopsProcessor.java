@@ -98,7 +98,10 @@ public class EnsureIncreasingTimesForCancelledStopsProcessor extends ValueAdapte
                                         } else {
                                             latestTimestamp = recordedCall.getExpectedArrivalTime();
                                         }
+                                    } else {
+                                        recordedCall.setExpectedArrivalTime(latestTimestamp);
                                     }
+
                                     if (recordedCall.getActualDepartureTime() != null) {
                                         if (isCancelledStop && latestTimestamp != null && recordedCall.getActualDepartureTime().isBefore(latestTimestamp)) {
                                             recordedCall.setActualDepartureTime(latestTimestamp);
@@ -113,6 +116,8 @@ public class EnsureIncreasingTimesForCancelledStopsProcessor extends ValueAdapte
                                         } else {
                                             latestTimestamp = recordedCall.getExpectedDepartureTime();
                                         }
+                                    } else {
+                                        recordedCall.setExpectedDepartureTime(latestTimestamp);
                                     }
 
                                 }
@@ -145,16 +150,24 @@ public class EnsureIncreasingTimesForCancelledStopsProcessor extends ValueAdapte
                                         }
                                     }
 
+                                    if (estimatedCall.getExpectedArrivalTime() == null &&
+                                            estimatedCall.getExpectedDepartureTime() == null) {
+                                        estimatedCall.setExpectedArrivalTime(latestTimestamp);
+                                        estimatedCall.setExpectedDepartureTime(latestTimestamp);
+                                    }
+
                                 }
                             }
 
-                            if ((runtimeCount + dwelltimeCount) > 0) {
+                            int fixedTimesCount = runtimeCount + dwelltimeCount;
+                            if (fixedTimesCount > 0) {
                                 String lineRef = estimatedVehicleJourney.getLineRef() != null ? estimatedVehicleJourney.getLineRef().getValue():"";
                                 String vehicleRef = estimatedVehicleJourney.getVehicleRef() != null ? estimatedVehicleJourney.getVehicleRef().getValue():"";
 
                                 logger.warn("Fixed {} dwelltimes, {} runtimes for line {}, vehicle {}.", dwelltimeCount, runtimeCount, getOriginalId(lineRef), vehicleRef);
+                                getMetricsService().registerDataMapping(SiriDataType.ESTIMATED_TIMETABLE, datasetId, ENSURE_INCREASING_TIMES, fixedTimesCount);
                             }
-                            hitCount += (runtimeCount + dwelltimeCount);
+                            hitCount += fixedTimesCount;
                         }
                     }
                 }
