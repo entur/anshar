@@ -12,6 +12,7 @@ public enum MappingNames {
         RESTRUCTURE_DEPARTURE("Restructure departure"),
         REPLACE_TRAIN_NUMBER("Train-number replaced"),
         ENSURE_INCREASING_TIMES("Ensure increasing times"),
+        ENSURE_INCREASING_TIMES_CANCELLED_STOPS("Ensure increasing times for cancelled stops"),
         ENSURE_INCREASING_INACCURATE_TIMES("Override missing realtime (predictionInaccurate)"),
         LINE_MAPPING("Create NeTEx-LineRef"),
         SET_MISSING_REPORT_TYPE("Set missing ReportType"),

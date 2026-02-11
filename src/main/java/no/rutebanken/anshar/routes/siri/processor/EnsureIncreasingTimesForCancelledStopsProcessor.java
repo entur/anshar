@@ -30,6 +30,7 @@ import java.time.ZonedDateTime;
 import java.util.List;
 
 import static no.rutebanken.anshar.routes.siri.transformer.MappingNames.ENSURE_INCREASING_TIMES;
+import static no.rutebanken.anshar.routes.siri.transformer.MappingNames.ENSURE_INCREASING_TIMES_CANCELLED_STOPS;
 import static no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter.getOriginalId;
 
 /**
@@ -165,7 +166,7 @@ public class EnsureIncreasingTimesForCancelledStopsProcessor extends ValueAdapte
                                 String vehicleRef = estimatedVehicleJourney.getVehicleRef() != null ? estimatedVehicleJourney.getVehicleRef().getValue():"";
 
                                 logger.warn("Fixed {} dwelltimes, {} runtimes for line {}, vehicle {}.", dwelltimeCount, runtimeCount, getOriginalId(lineRef), vehicleRef);
-                                getMetricsService().registerDataMapping(SiriDataType.ESTIMATED_TIMETABLE, datasetId, ENSURE_INCREASING_TIMES, fixedTimesCount);
+                                getMetricsService().registerDataMapping(SiriDataType.ESTIMATED_TIMETABLE, datasetId, ENSURE_INCREASING_TIMES_CANCELLED_STOPS, fixedTimesCount);
                             }
                             hitCount += fixedTimesCount;
                         }
