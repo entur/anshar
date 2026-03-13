@@ -49,6 +49,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 import uk.org.siri.siri21.EstimatedVehicleJourney;
+import uk.org.siri.siri21.FacilityConditionStructure;
 import uk.org.siri.siri21.PtSituationElement;
 import uk.org.siri.siri21.VehicleActivityStructure;
 
@@ -66,7 +67,7 @@ import java.util.Set;
 @Configuration
 public class ExtendedHazelcastService extends HazelCastService {
 
-    private Logger logger = LoggerFactory.getLogger(ExtendedHazelcastService.class);
+    private final Logger logger = LoggerFactory.getLogger(ExtendedHazelcastService.class);
 
     public ExtendedHazelcastService(@Autowired KubernetesService kubernetesService,
                                     @Value("${entur.hazelcast.backup.count.sync:2}") int backupCountSync) {
@@ -142,6 +143,21 @@ public class ExtendedHazelcastService extends HazelCastService {
     @Bean
     public IMap<String, Set<SiriObjectStorageKey>> getSituationChangesMap() {
         return hazelcast.getMap("anshar.sx.changes");
+    }
+
+    @Bean
+    public IMap<SiriObjectStorageKey, FacilityConditionStructure> getFacilitiesMap(){
+        return hazelcast.getMap("anshar.fm");
+    }
+
+    @Bean
+    public IMap<String, Set<SiriObjectStorageKey>> getFacilitiesChangesMap() {
+        return hazelcast.getMap("anshar.fm.changes");
+    }
+
+    @Bean
+    public IMap<SiriObjectStorageKey, String> getFmChecksumMap() {
+        return hazelcast.getMap("anshar.fm.checksum.cache");
     }
 
     @Bean
@@ -224,6 +240,11 @@ public class ExtendedHazelcastService extends HazelCastService {
     @Bean
     public IMap<String, Instant> getLastSxUpdateRequest() {
         return hazelcast.getMap("anshar.activity.last.sx.update.request");
+    }
+
+    @Bean
+    public IMap<String, Instant> getLastFmUpdateRequest() {
+        return hazelcast.getMap("anshar.activity.last.fm.update.request");
     }
 
     @Bean

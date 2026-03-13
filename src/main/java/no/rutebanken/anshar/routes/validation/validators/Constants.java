@@ -47,6 +47,10 @@ public class Constants {
     public static final String MONITORED_VEHICLE_JOURNEY =  VEHICLE_ACTIVITY + "/MonitoredVehicleJourney";
     public static final String MONITORED_CALL_STRUCTURE =  MONITORED_VEHICLE_JOURNEY + "/MonitoredCall";
 
+
+    public static final String FACILITY_MONITORING = SERVICE_DELIVERY + "/FacilityMonitoringDelivery/FacilityCondition";
+    public static final String FACILITY_CONDITION =  FACILITY_MONITORING + "/FacilityCondition";
+
     private Constants() {
         // should not be instantiated
     }

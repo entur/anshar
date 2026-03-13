@@ -75,6 +75,9 @@ public class AnsharConfiguration {
     @Value("${anshar.siri.sx.graceperiod.minutes:0}")
     private long sxGraceperiodMinutes;
 
+    @Value("${anshar.siri.fm.graceperiod.minutes:10}")
+    private long fmGraceperiodMinutes;
+
     @Value("${anshar.siri.et.graceperiod.minutes:0}")
     private long etGraceperiodMinutes;
 
@@ -188,6 +191,9 @@ public class AnsharConfiguration {
     public long getSxGraceperiodMinutes() {
         return sxGraceperiodMinutes;
     }
+    public long getFmGraceperiodMinutes() {
+        return fmGraceperiodMinutes;
+    }
 
     public long getEtGraceperiodMinutes() {
         return etGraceperiodMinutes;
@@ -260,6 +266,9 @@ public class AnsharConfiguration {
     }
     public boolean processSX() {
         return (appModes.isEmpty() || appModes.contains(AppMode.DATA_SX));
+    }
+    public boolean processFM() {
+        return (appModes.isEmpty() || appModes.contains(AppMode.DATA_FM));
     }
     public boolean processAdmin() {
         return (appModes.isEmpty() || appModes.contains(AppMode.PROXY));

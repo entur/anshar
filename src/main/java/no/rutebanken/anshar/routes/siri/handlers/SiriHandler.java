@@ -19,6 +19,7 @@ import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.UnmarshalException;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.data.EstimatedTimetables;
+import no.rutebanken.anshar.data.Facilities;
 import no.rutebanken.anshar.data.Situations;
 import no.rutebanken.anshar.data.VehicleActivities;
 import no.rutebanken.anshar.metrics.PrometheusMetricsService;
@@ -42,6 +43,8 @@ import uk.org.siri.siri21.ErrorCodeStructure;
 import uk.org.siri.siri21.ErrorDescriptionStructure;
 import uk.org.siri.siri21.EstimatedTimetableDeliveryStructure;
 import uk.org.siri.siri21.EstimatedVehicleJourney;
+import uk.org.siri.siri21.FacilityConditionStructure;
+import uk.org.siri.siri21.FacilityMonitoringDeliveryStructure;
 import uk.org.siri.siri21.LineRef;
 import uk.org.siri.siri21.PtSituationElement;
 import uk.org.siri.siri21.RequestorRef;
@@ -84,6 +87,9 @@ public class SiriHandler {
 
     @Autowired
     private Situations situations;
+
+    @Autowired
+    private Facilities facilities;
 
     @Autowired
     private VehicleActivities vehicleActivities;
@@ -189,6 +195,14 @@ public class SiriHandler {
 
                 logger.info("Returning {} elements from cache", elements.size());
                 serviceResponse = siriObjectFactory.createETServiceDelivery(elements);
+
+            } else if (hasValues(serviceRequest.getFacilityMonitoringRequests())) {
+                dataType = SiriDataType.FACILITY_MONITORING;
+
+                final Collection<FacilityConditionStructure> elements = facilities.getAllCachedUpdates(requestorRef, datasetId, clientTrackingName);
+
+                logger.info("Returning {} elements from cache", elements.size());
+                serviceResponse = siriObjectFactory.createFMServiceDelivery(elements);
 
             }
 
@@ -298,6 +312,9 @@ public class SiriHandler {
                 }
 
                 serviceResponse = estimatedTimetables.createServiceDelivery(requestorRef, datasetId, clientTrackingName, excludedDatasetIdList, maxSize, previewIntervalInMillis);
+            }else if (hasValues(serviceRequest.getFacilityMonitoringRequests())) {
+                dataType = SiriDataType.FACILITY_MONITORING;
+                serviceResponse = facilities.createServiceDelivery(requestorRef, datasetId, clientTrackingName, maxSize);
             }
 
 
@@ -407,6 +424,13 @@ public class SiriHandler {
                     addedOrUpdated = handleEstimatedTimetables(estimatedTimetableDeliveries, subscriptionSetup);
 
                     logger.info("Active ET-elements: {}, current delivery: {}, {}", estimatedTimetables.getSize(), addedOrUpdated.size(), subscriptionSetup);
+                } else if (subscriptionType.equals(SiriDataType.FACILITY_MONITORING)) {
+                    List<FacilityMonitoringDeliveryStructure> facilityMonitoringDeliveries = incoming.getServiceDelivery().getFacilityMonitoringDeliveries();
+                    logger.info("Got FM-delivery: Subscription {}", subscriptionSetup);
+
+                    addedOrUpdated = handleFacilityConditions(facilityMonitoringDeliveries, subscriptionSetup);
+
+                    logger.info("Active FM-elements: {}, current delivery: {}, {}", facilities.getSize(), addedOrUpdated.size(), subscriptionSetup);
                 }
 
                 deliveryContainsData = deliveryContainsData || (!addedOrUpdated.isEmpty());
@@ -476,6 +500,27 @@ public class SiriHandler {
                             }
                         }
                     }
+            );
+        }
+        return addedOrUpdated;
+    }
+
+    private List<FacilityConditionStructure> handleFacilityConditions(List<FacilityMonitoringDeliveryStructure> facilityMonitoringDeliveries, SubscriptionSetup subscriptionSetup) {
+        List<FacilityConditionStructure> addedOrUpdated = new ArrayList<>();
+        if (facilityMonitoringDeliveries != null) {
+            facilityMonitoringDeliveries.forEach(fm -> {
+                    if (fm != null) {
+                        if (fm.isStatus() != null && !fm.isStatus()) {
+                            logger.info(getErrorContents(fm.getErrorCondition()));
+                        } else {
+                            if (fm.getFacilityConditions() != null) {
+                                addedOrUpdated.addAll(
+                                    facilities.addAll(subscriptionSetup.getDatasetId(), fm.getFacilityConditions())
+                                );
+                            }
+                        }
+                    }
+                }
             );
         }
         return addedOrUpdated;

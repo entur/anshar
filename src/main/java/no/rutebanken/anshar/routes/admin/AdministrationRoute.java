@@ -187,12 +187,15 @@ public class AdministrationRoute extends RestRouteBuilder {
                     .setProperty("et-stats", body().convertTo(String.class))
                     .toD(sxHandlerBaseUrl + "/anshar/internalstats?bridgeEndpoint=true")
                     .setProperty("sx-stats", body().convertTo(String.class))
+                    .toD(fmHandlerBaseUrl + "/anshar/internalstats?bridgeEndpoint=true")
+                    .setProperty("fm-stats", body().convertTo(String.class))
                     .process(p -> {
                         JSONObject body = mergeJsonStats(
                                 p.getProperty("proxy-stats", String.class),
                                 p.getProperty("vm-stats", String.class),
                                 p.getProperty("et-stats", String.class),
-                                p.getProperty("sx-stats", String.class)
+                                p.getProperty("sx-stats", String.class),
+                                p.getProperty("fm-stats", String.class)
                         );
                         p.getMessage().setBody(body);
                     })
@@ -303,6 +306,7 @@ public class AdministrationRoute extends RestRouteBuilder {
                     .to("direct:redirect.request.et")
                     .to("direct:redirect.request.vm")
                     .to("direct:redirect.request.sx")
+                    .to("direct:redirect.request.fm")
                     .routeId("admin.terminate.subscription")
             ;
         } else {
@@ -381,6 +385,8 @@ public class AdministrationRoute extends RestRouteBuilder {
                         .toD(vmHandlerBaseUrl + "/anshar/stats?bridgeEndpoint=true&httpMethod=PUT&subscriptionId=${header.subscriptionId}")
                     .when(p -> !configuration.processSX() && p.getIn().getHeader("SiriDataType").equals(SiriDataType.SITUATION_EXCHANGE.name()))
                         .toD(sxHandlerBaseUrl + "/anshar/stats?bridgeEndpoint=true&httpMethod=PUT&subscriptionId=${header.subscriptionId}")
+                    .when(p -> !configuration.processSX() && p.getIn().getHeader("SiriDataType").equals(SiriDataType.FACILITY_MONITORING.name()))
+                        .toD(fmHandlerBaseUrl + "/anshar/stats?bridgeEndpoint=true&httpMethod=PUT&subscriptionId=${header.subscriptionId}")
                     .otherwise()
                         .bean(helper, "flushDataFromSubscription(${header.subscriptionId})")
                 .endChoice()
@@ -399,15 +405,19 @@ public class AdministrationRoute extends RestRouteBuilder {
             from("direct:internal.delete.subscription")
                     .choice()
                     .when(p -> !configuration.processET())
-                    .toD(etHandlerBaseUrl + "/anshar/stats?bridgeEndpoint=true&httpMethod=PUT&subscriptionId=${header.subscriptionId}")
+                        .toD(etHandlerBaseUrl + "/anshar/stats?bridgeEndpoint=true&httpMethod=PUT&subscriptionId=${header.subscriptionId}")
+                        .end()
+                    .choice()
+                        .when(p -> !configuration.processVM())
+                        .toD(vmHandlerBaseUrl + "/anshar/stats?bridgeEndpoint=true&httpMethod=PUT&subscriptionId=${header.subscriptionId}")
                     .end()
                     .choice()
-                    .when(p -> !configuration.processVM())
-                    .toD(vmHandlerBaseUrl + "/anshar/stats?bridgeEndpoint=true&httpMethod=PUT&subscriptionId=${header.subscriptionId}")
+                        .when(p -> !configuration.processSX())
+                        .toD(sxHandlerBaseUrl + "/anshar/stats?bridgeEndpoint=true&httpMethod=PUT&subscriptionId=${header.subscriptionId}")
                     .end()
                     .choice()
-                    .when(p -> !configuration.processSX())
-                    .toD(sxHandlerBaseUrl + "/anshar/stats?bridgeEndpoint=true&httpMethod=PUT&subscriptionId=${header.subscriptionId}")
+                        .when(p -> !configuration.processFM())
+                        .toD(fmHandlerBaseUrl + "/anshar/stats?bridgeEndpoint=true&httpMethod=PUT&subscriptionId=${header.subscriptionId}")
                     .end()
                     .routeId("admin.internal.delete.subscription")
             ;

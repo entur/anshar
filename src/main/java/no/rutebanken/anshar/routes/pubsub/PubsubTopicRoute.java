@@ -24,6 +24,9 @@ public class PubsubTopicRoute extends RouteBuilder {
     @Value("${anshar.outbound.camel.route.topic.sx.name.xml:}")
     private String sxTopicXml;
 
+    @Value("${anshar.outbound.camel.route.topic.fm.name.xml:}")
+    private String fmTopicXml;
+
     @Value("${anshar.outbound.pubsub.topic.enabled}")
     private boolean pushToTopicEnabled;
 
@@ -88,6 +91,20 @@ public class PubsubTopicRoute extends RouteBuilder {
                     .end()
             ;
 
+            /**
+             * Splits SIRI SX-ServiceDelivery into singular messages (i.e. one SX-message per ServiceDelivery), converts
+             * message to protobuf, and posts to Cloud Pubsub
+             */
+            from("direct:send.to.pubsub.topic.facility_monitoring")
+                    .to("direct:siri.transform.data")
+                    .choice().when(body().isNotNull())
+                        .to("xslt-saxon:xsl/split.xsl")
+                        .split().tokenizeXML("Siri").streaming()
+//                        .wireTap("direct:publish.sx.avro")// Publish as Avro
+                        .to("direct:publish.fm.xml")        // Publish as XML
+                    .end()
+            ;
+
             if (etTopicXml != null) {
                 from("direct:publish.et.xml")
                         .to(etTopicXml)
@@ -113,8 +130,24 @@ public class PubsubTopicRoute extends RouteBuilder {
                 from("direct:publish.sx.xml")
                         .process(p -> {
                             if (!sxTopicXmlWarned.get()) {
-                                log.warn("No XML topic defined for ET. Skipping XML publish.");
+                                log.warn("No XML topic defined for SX. Skipping XML publish.");
                                 sxTopicXmlWarned.set(true);
+                            }
+                        })
+                ;
+            }
+
+            if (fmTopicXml != null && !fmTopicXml.isEmpty()) {
+                from("direct:publish.fm.xml")
+                        .to(fmTopicXml)
+                ;
+            } else {
+                AtomicBoolean fmTopicXmlWarned = new AtomicBoolean(false);
+                from("direct:publish.fm.xml")
+                        .process(p -> {
+                            if (!fmTopicXmlWarned.get()) {
+                                log.warn("No XML topic defined for FM. Skipping XML publish.");
+                                fmTopicXmlWarned.set(true);
                             }
                         })
                 ;

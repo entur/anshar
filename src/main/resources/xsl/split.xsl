@@ -56,6 +56,20 @@
             </Siri>
         </xsl:for-each>
 
+        <xsl:for-each select="/siri:Siri/siri:ServiceDelivery/siri:FacilityMonitoringDelivery/siri:FacilityCondition">
+            <Siri xmlns="http://www.siri.org.uk/siri" version="2.0">
+                <ServiceDelivery>
+                    <xsl:copy-of select="/siri:Siri/siri:ServiceDelivery/siri:ResponseTimestamp"></xsl:copy-of>
+                    <xsl:copy-of select="/siri:Siri/siri:ServiceDelivery/siri:ProducerRef"></xsl:copy-of>
+                    <FacilityMonitoringDelivery version="2.0">
+                        <xsl:copy-of select="/siri:Siri/siri:ServiceDelivery/siri:FacilityMonitoringDelivery/siri:ResponseTimestamp"></xsl:copy-of>
+                        <xsl:copy-of select="/siri:Siri/siri:ServiceDelivery/siri:FacilityMonitoringDelivery/siri:Status"></xsl:copy-of>
+                        <xsl:copy-of select="."></xsl:copy-of>
+                    </FacilityMonitoringDelivery>
+                </ServiceDelivery>
+            </Siri>
+        </xsl:for-each>
+
     </xsl:template>
 
 </xsl:stylesheet>

@@ -38,6 +38,10 @@ import uk.org.siri.siri21.EstimatedTimetableRequestStructure;
 import uk.org.siri.siri21.EstimatedTimetableSubscriptionStructure;
 import uk.org.siri.siri21.EstimatedVehicleJourney;
 import uk.org.siri.siri21.EstimatedVersionFrameStructure;
+import uk.org.siri.siri21.FacilityConditionStructure;
+import uk.org.siri.siri21.FacilityMonitoringDeliveryStructure;
+import uk.org.siri.siri21.FacilityMonitoringRequestStructure;
+import uk.org.siri.siri21.FacilityMonitoringSubscriptionStructure;
 import uk.org.siri.siri21.HeartbeatNotificationStructure;
 import uk.org.siri.siri21.LineDirectionStructure;
 import uk.org.siri.siri21.LineRef;
@@ -151,6 +155,17 @@ public class SiriObjectFactory {
                     subscriptionSetup.getIncrementalUpdates(),
                     subscriptionSetup.getPreviewInterval(),
                     subscriptionSetup.getChangeBeforeUpdates(),
+                    subscriptionSetup.getVersion()
+            );
+        }
+        if (subscriptionSetup.getSubscriptionType().equals(SiriDataType.FACILITY_MONITORING)) {
+            request = createFacilityConditionSubscriptionRequest(subscriptionSetup.getRequestorRef(),subscriptionSetup.getSubscriptionId(),
+                    subscriptionSetup.getHeartbeatInterval(),
+                    subscriptionSetup.buildUrl(),
+                    subscriptionSetup.getDurationOfSubscription(),
+                    subscriptionSetup.getAddressFieldName(),
+                    subscriptionSetup.getIncrementalUpdates(),
+                    subscriptionSetup.getPreviewInterval(),
                     subscriptionSetup.getVersion()
             );
         }
@@ -275,6 +290,31 @@ public class SiriObjectFactory {
         sxSubscriptionReq.setIncrementalUpdates(incrementalUpdates);
 
         request.getSituationExchangeSubscriptionRequests().add(sxSubscriptionReq);
+
+        return request;
+    }
+
+    private static SubscriptionRequest createFacilityConditionSubscriptionRequest(String requestorRef, String subscriptionId,
+                                                                                  Duration heartbeatInterval, String address,
+                                                                                  Duration subscriptionDuration, String addressFieldName,
+                                                                                  Boolean incrementalUpdates, Duration previewInterval, @Nonnull String version) {
+        SubscriptionRequest request = createSubscriptionRequest(requestorRef, heartbeatInterval, address, addressFieldName);
+
+        FacilityMonitoringSubscriptionStructure fmSubscriptionReq = new FacilityMonitoringSubscriptionStructure();
+        fmSubscriptionReq.setSubscriptionIdentifier(createSubscriptionIdentifier(subscriptionId));
+        fmSubscriptionReq.setInitialTerminationTime(ZonedDateTime.now().plusSeconds(subscriptionDuration.getSeconds()));
+        fmSubscriptionReq.setSubscriberRef(request.getRequestorRef());
+
+        FacilityMonitoringRequestStructure fmRequest  = new FacilityMonitoringRequestStructure();
+
+        if (previewInterval != null) {
+            fmRequest.setPreviewInterval(previewInterval);
+        }
+
+        fmSubscriptionReq.setFacilityMonitoringRequest(fmRequest);
+        fmSubscriptionReq.setIncrementalUpdates(incrementalUpdates);
+
+        request.getFacilityMonitoringSubscriptionRequests().add(fmSubscriptionReq);
 
         return request;
     }
@@ -472,6 +512,19 @@ public class SiriObjectFactory {
 
     private static MessageRefStructure createMessageRef() {
         return createMessageRef(UUID.randomUUID().toString());
+    }
+
+    public Siri createFMServiceDelivery(Collection<FacilityConditionStructure> elements) {
+        Siri siri = createSiriObject(SiriHelper.FALLBACK_SIRI_VERSION);
+        ServiceDelivery delivery = createServiceDelivery();
+
+        FacilityMonitoringDeliveryStructure deliveryStructure = new FacilityMonitoringDeliveryStructure();
+        deliveryStructure.setResponseTimestamp(ZonedDateTime.now());
+        deliveryStructure.getFacilityConditions().addAll(elements);
+
+        delivery.getFacilityMonitoringDeliveries().add(deliveryStructure);
+        siri.setServiceDelivery(delivery);
+        return siri;
     }
 
     public Siri createSXServiceDelivery(Collection<PtSituationElement> elements) {

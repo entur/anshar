@@ -19,6 +19,13 @@
             text-align: center;
             margin-bottom: 1.5rem;
         }
+        .stats-footer {
+            background-color: #f8f9fa;
+            padding: 3rem;
+            border-radius: 0.5rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
 
         .stats-server-info {
             margin-left: auto;
@@ -154,6 +161,7 @@
         <tr><td class="table-cell-right"><small>VM-server started:&nbsp;</small></td><td><small>${body.vmServerStarted}</small></td></tr>
         <tr><td class="table-cell-right"><small>ET-server started:&nbsp;</small></td><td><small>${body.etServerStarted}</small></td></tr>
         <tr><td class="table-cell-right"><small>SX-server started:&nbsp;</small></td><td><small>${body.sxServerStarted}</small></td></tr>
+        <tr><td class="table-cell-right"><small>FM-server started: </small></td><td><small>${body.fmServerStarted}</small></td></tr>
     </table>
     <#else>
         <small>Server started ${body.serverStarted}</small>
@@ -390,6 +398,7 @@ Request count: ${item.requestCount}">${item.id}</span></td>
                     <th class="text-end table-col-narrow">ET</th>
                     <th class="text-end table-col-narrow">VM</th>
                     <th class="text-end table-col-narrow">SX</th>
+                    <th class="text-end table-col-narrow">FM</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -399,6 +408,7 @@ Request count: ${item.requestCount}">${item.id}</span></td>
                     <td class="text-end">${item.etCount}</td>
                     <td class="text-end">${item.vmCount}</td>
                     <td class="text-end">${item.sxCount}</td>
+                    <td class="text-end">${item.fmCount}</td>
                 </tr>
                 </#list>
                 </tbody>
@@ -408,6 +418,7 @@ Request count: ${item.requestCount}">${item.id}</span></td>
                     <th class="text-end">${body.elements.et}</th>
                     <th class="text-end">${body.elements.vm}</th>
                     <th class="text-end">${body.elements.sx}</th>
+                    <th class="text-end">${body.elements.fm}</th>
                 </tr>
                 </tfoot>
             </table>
@@ -444,6 +455,7 @@ Request count: ${item.requestCount}">${item.id}</span></td>
                             <p><button type="button" class="btn btn-danger"  onclick="administerSubscription('terminateAll', null, 'ESTIMATED_TIMETABLE')"><span class="bi bi-stop-fill btn-icon"></span> ET</button></p>
                             <p><button type="button" class="btn btn-danger"  onclick="administerSubscription('terminateAll', null, 'VEHICLE_MONITORING')"><span class="bi bi-stop-fill btn-icon"></span> VM</button></p>
                             <p><button type="button" class="btn btn-danger"  onclick="administerSubscription('terminateAll', null, 'SITUATION_EXCHANGE')"><span class="bi bi-stop-fill btn-icon"></span> SX</button></p>
+                            <p><button type="button" class="btn btn-danger"  onclick="administerSubscription('terminateAll', null, 'FACILITY_MONITORING')"><span class="bi bi-stop-fill btn-icon"></span> FM</button></p>
                         </td>
                     </tr>
 
@@ -460,6 +472,7 @@ Request count: ${item.requestCount}">${item.id}</span></td>
                             <p><button type="button" class="btn btn-danger"  onclick="administerSubscription('startAll', null, 'ESTIMATED_TIMETABLE')"><span class="bi bi-arrow-clockwise btn-icon"></span> ET</button></p>
                             <p><button type="button" class="btn btn-danger"  onclick="administerSubscription('startAll', null, 'VEHICLE_MONITORING')"><span class="bi bi-arrow-clockwise btn-icon"></span> VM</button></p>
                             <p><button type="button" class="btn btn-danger"  onclick="administerSubscription('startAll', null, 'SITUATION_EXCHANGE')"><span class="bi bi-arrow-clockwise btn-icon"></span> SX</button></p>
+                            <p><button type="button" class="btn btn-danger"  onclick="administerSubscription('startAll', null, 'FACILITY_MONITORING')"><span class="bi bi-arrow-clockwise btn-icon"></span> FM</button></p>
                         </td>
                     </tr>
 
@@ -506,6 +519,10 @@ Request count: ${item.requestCount}">${item.id}</span></td>
             </table>
         </div>
     </div>
+</div>
+
+<div class="stats-footer">
+    <p> --- </p>
 </div>
 </body>
 <script>

@@ -16,6 +16,7 @@
 package no.rutebanken.anshar.routes.admin;
 
 import no.rutebanken.anshar.data.EstimatedTimetables;
+import no.rutebanken.anshar.data.Facilities;
 import no.rutebanken.anshar.data.Situations;
 import no.rutebanken.anshar.data.VehicleActivities;
 import no.rutebanken.anshar.data.collections.ExtendedHazelcastService;
@@ -57,6 +58,9 @@ public class AdminRouteHelper {
 
     @Autowired
     private EstimatedTimetables estimatedTimetables;
+
+    @Autowired
+    private Facilities facilities;
 
     @Autowired
     private ExtendedHazelcastService hazelcastService;
@@ -193,28 +197,32 @@ public class AdminRouteHelper {
             case "SITUATION_EXCHANGE":
                 situations.clearAllByDatasetId(datasetId);
                 break;
+            case "FACILITY_MONITORING":
+                facilities.clearAllByDatasetId(datasetId);
+                break;
             default:
                 //Ignore
         }
         logger.info("Flushing all data of type {} for {} took {} ms", dataType, datasetId, (System.currentTimeMillis()-t1));
     }
 
-    static JSONObject mergeJsonStats(String jsonProxyStats, String jsonVmStats, String jsonEtStats, String jsonSxStats) {
+    static JSONObject mergeJsonStats(String jsonProxyStats, String jsonVmStats, String jsonEtStats, String jsonSxStats, String jsonFmStats) {
         try {
             JSONObject proxyStats = (JSONObject) new JSONParser().parse(jsonProxyStats);
             JSONObject vmStats    = (JSONObject) new JSONParser().parse(jsonVmStats);
             JSONObject etStats    = (JSONObject) new JSONParser().parse(jsonEtStats);
             JSONObject sxStats    = (JSONObject) new JSONParser().parse(jsonSxStats);
+            JSONObject fmStats    = (JSONObject) new JSONParser().parse(jsonFmStats);
 
-            mergeDataDistributionStats(proxyStats, vmStats, etStats, sxStats);
+            mergeDataDistributionStats(proxyStats, vmStats, etStats, sxStats, fmStats);
 
-            mergeSubscriptionStats(proxyStats, vmStats, etStats, sxStats);
+            mergeSubscriptionStats(proxyStats, vmStats, etStats, sxStats, fmStats);
 
-            mergePollingStats(proxyStats, vmStats, etStats, sxStats);
+            mergePollingStats(proxyStats, vmStats, etStats, sxStats, fmStats);
 
-            mergeOutboundSubscriptionStats(proxyStats, vmStats, etStats, sxStats);
+            mergeOutboundSubscriptionStats(proxyStats, vmStats, etStats, sxStats, fmStats);
 
-            mergeMetadata(proxyStats, vmStats, etStats, sxStats);
+            mergeMetadata(proxyStats, vmStats, etStats, sxStats, fmStats);
 
             return proxyStats ;
         } catch (ParseException e) {
@@ -223,38 +231,44 @@ public class AdminRouteHelper {
         return null;
     }
 
-    private static void mergeMetadata(JSONObject proxyStats, JSONObject vmStats, JSONObject etStats, JSONObject sxStats) {
+    private static void mergeMetadata(JSONObject proxyStats, JSONObject vmStats, JSONObject etStats, JSONObject sxStats, JSONObject fmStats) {
         proxyStats.put("vmServerStarted", vmStats.get("serverStarted"));
         proxyStats.put("sxServerStarted", sxStats.get("serverStarted"));
         proxyStats.put("etServerStarted", etStats.get("serverStarted"));
+        proxyStats.put("fmServerStarted", fmStats.get("serverStarted"));
     }
 
-    private static void mergeOutboundSubscriptionStats(JSONObject proxyStats, JSONObject vmStats, JSONObject etStats, JSONObject sxStats) {
+    private static void mergeOutboundSubscriptionStats(JSONObject proxyStats, JSONObject vmStats, JSONObject etStats, JSONObject sxStats, JSONObject fmStats) {
         JSONArray outbound = (JSONArray) proxyStats.get("outbound");
         JSONArray vmOutbound = (JSONArray) vmStats.get("outbound");
         JSONArray etOutbound = (JSONArray) etStats.get("outbound");
         JSONArray sxOutbound = (JSONArray) sxStats.get("outbound");
+        JSONArray fmOutbound = (JSONArray) fmStats.get("outbound");
 
 
         outbound.addAll(vmOutbound);
         outbound.addAll(etOutbound);
         outbound.addAll(sxOutbound);
+        outbound.addAll(fmOutbound);
     }
 
-    private static void mergeDataDistributionStats(JSONObject proxyStats, JSONObject vmStats, JSONObject etStats, JSONObject sxStats) {
+    private static void mergeDataDistributionStats(JSONObject proxyStats, JSONObject vmStats, JSONObject etStats, JSONObject sxStats, JSONObject fmStats) {
         JSONObject elements = (JSONObject) proxyStats.get("elements");
         JSONObject vmElements = (JSONObject) vmStats.get("elements");
         JSONObject etElements = (JSONObject) etStats.get("elements");
         JSONObject sxElements = (JSONObject) sxStats.get("elements");
+        JSONObject fmElements = (JSONObject) fmStats.get("elements");
 
         elements.put("vm", vmElements.get("vm"));
         elements.put("et", etElements.get("et"));
         elements.put("sx", sxElements.get("sx"));
+        elements.put("fm", fmElements.get("fm"));
 
         JSONArray distribution = (JSONArray) elements.get("distribution");
         JSONArray vmDistribution = (JSONArray) vmElements.get("distribution");
         JSONArray etDistribution = (JSONArray) etElements.get("distribution");
         JSONArray sxDistribution = (JSONArray) sxElements.get("distribution");
+        JSONArray fmDistribution = (JSONArray) fmElements.get("distribution");
 
         Map<String, DataCounter> combinedDistribution = new HashMap<>();
         // Populate ET-distribution
@@ -281,6 +295,14 @@ public class AdminRouteHelper {
             sxCounter.sx = (Long) counter.get("sxCount");
             combinedDistribution.put(datasetId, sxCounter);
         }
+        // Populate FM-distribution
+        for (Object o : fmDistribution) {
+            JSONObject counter = (JSONObject) o;
+            String datasetId = (String) counter.get("datasetId");
+            DataCounter fmCounter = combinedDistribution.getOrDefault(datasetId, new DataCounter());
+            fmCounter.fm = (Long) counter.get("fmCount");
+            combinedDistribution.put(datasetId, fmCounter);
+        }
         // Populate combined distribution
         for (String s : combinedDistribution.keySet()) {
             DataCounter dataCounter = combinedDistribution.get(s);
@@ -289,17 +311,21 @@ public class AdminRouteHelper {
             counter.put("etCount", dataCounter.et);
             counter.put("vmCount", dataCounter.vm);
             counter.put("sxCount", dataCounter.sx);
+            counter.put("fmCount", dataCounter.fm);
             distribution.add(counter);
         }
     }
-    private static void mergeSubscriptionStats(JSONObject proxyStats, JSONObject vmStats, JSONObject etStats, JSONObject sxStats) {
+    private static void mergeSubscriptionStats(JSONObject proxyStats, JSONObject vmStats, JSONObject etStats, JSONObject sxStats, JSONObject fmStats) {
         JSONArray subscriptionTypes = (JSONArray) proxyStats.get("types");
         JSONArray vmSubscriptionTypes = (JSONArray) vmStats.get("types");
         JSONArray etSubscriptionTypes = (JSONArray) etStats.get("types");
         JSONArray sxSubscriptionTypes = (JSONArray) sxStats.get("types");
+        JSONArray fmSubscriptionTypes = (JSONArray) fmStats.get("types");
+
         Map<String, JSONObject> etSubscriptions = filterSubscriptions(etSubscriptionTypes, SiriDataType.ESTIMATED_TIMETABLE);
         Map<String, JSONObject> vmSubscriptions = filterSubscriptions(vmSubscriptionTypes, SiriDataType.VEHICLE_MONITORING);
         Map<String, JSONObject> sxSubscriptions = filterSubscriptions(sxSubscriptionTypes, SiriDataType.SITUATION_EXCHANGE);
+        Map<String, JSONObject> fmSubscriptions = filterSubscriptions(fmSubscriptionTypes, SiriDataType.FACILITY_MONITORING);
 
         for (Object o : subscriptionTypes) {
             JSONObject typeObj = (JSONObject) o;
@@ -331,6 +357,16 @@ public class AdminRouteHelper {
 
                     String subscriptionId = (String) subscription.get("subscriptionId");
                     JSONObject subscriptionDetail = sxSubscriptions.get(subscriptionId);
+                    updateSubscriptionDetails(subscription, subscriptionDetail);
+                }
+            }
+            if (typeObj.get("typeName").equals(SiriDataType.FACILITY_MONITORING.name())) {
+                JSONArray subscriptions = (JSONArray) typeObj.get("subscriptions");
+                for (Object fm : subscriptions) {
+                    JSONObject subscription = (JSONObject) fm;
+
+                    String subscriptionId = (String) subscription.get("subscriptionId");
+                    JSONObject subscriptionDetail = fmSubscriptions.get(subscriptionId);
                     updateSubscriptionDetails(subscription, subscriptionDetail);
                 }
             }
@@ -367,11 +403,12 @@ public class AdminRouteHelper {
         return result;
     }
 
-    private static void mergePollingStats(JSONObject proxyStats, JSONObject vmStats, JSONObject etStats, JSONObject sxStats) {
+    private static void mergePollingStats(JSONObject proxyStats, JSONObject vmStats, JSONObject etStats, JSONObject sxStats, JSONObject fmStats) {
         JSONArray polling = (JSONArray) proxyStats.get("polling");
         JSONArray vmPolling = (JSONArray) vmStats.get("polling");
         JSONArray etPolling = (JSONArray) etStats.get("polling");
         JSONArray sxPolling = (JSONArray) sxStats.get("polling");
+        JSONArray fmPolling = (JSONArray) fmStats.get("polling");
 
         for (Object o : polling) {
             JSONObject pollingObj = (JSONObject) o;
@@ -416,9 +453,22 @@ public class AdminRouteHelper {
                     }
                 }
             }
+            if (pollingObj.get("typeName").equals(SiriDataType.FACILITY_MONITORING.name())) {
+                JSONArray pollingArray = (JSONArray) pollingObj.get("polling");
+                for (Object obj : fmPolling) {
+                    JSONObject value = (JSONObject) obj;
+                    if (value.get("typeName").equals(SiriDataType.FACILITY_MONITORING.name())) {
+                        for (Object pollingClient : (JSONArray) value.get("polling")) {
+                            if (!pollingArray.contains(pollingClient)) {
+                                pollingArray.add(pollingClient);
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
 class DataCounter {
-    long vm, et, sx;
+    long vm, et, sx, fm;
 }

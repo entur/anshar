@@ -71,6 +71,9 @@ public class RestRouteBuilder extends RouteBuilder {
     @Value("${anshar.data.handler.baseurl.sx:}")
     protected String sxHandlerBaseUrl;
 
+    @Value("${anshar.data.handler.baseurl.fm:}")
+    protected String fmHandlerBaseUrl;
+
     @Autowired
     private AnsharConfiguration configuration;
 
@@ -326,6 +329,64 @@ public class RestRouteBuilder extends RouteBuilder {
                 ;
             }
         }
+
+        if (configuration.processFM()) {
+            from("direct:process.fm.subscription.request")
+                    .to("direct:internal.handle.subscription")
+            ;
+            from("direct:process.fm.service.request")
+                    .to("direct:internal.process.service.request")
+            ;
+            from("direct:process.fm.service.request.cache")
+                    .to("direct:internal.process.service.request.cache")
+            ;
+
+            //REST
+            from("direct:anshar.rest.fm")
+                    .to("direct:internal.anshar.rest.fm")
+            ;
+            from("direct:anshar.rest.fm.cached")
+                    .to("direct:internal.anshar.rest.fm.cached")
+            ;
+        } else {
+            from("direct:process.fm.subscription.request")
+                    .to("direct:redirect.request.fm")
+            ;
+            from("direct:process.fm.service.request")
+                    .to("direct:redirect.request.fm")
+            ;
+            from("direct:process.fm.service.request.cache")
+                    .to("direct:redirect.request.fm")
+            ;
+            from("direct:anshar.rest.fm")
+                    .to("direct:redirect.request.fm")
+            ;
+            from("direct:anshar.rest.fm.cached")
+                    .to("direct:redirect.request.fm")
+            ;
+
+            if (!configuration.processAdmin()) {
+                // Data-instances should never redirect requests
+                from("direct:redirect.request.fm")
+                        .log("Ignore redirect")
+                ;
+
+            } else {
+                from("direct:redirect.request.fm")
+                        // Setting default encoding if none is set
+                        .choice().when(header("Content-Type").isEqualTo(""))
+                        .setHeader("Content-Type", simple(MediaType.APPLICATION_XML))
+                        .end()
+
+                        //Force forwarding parameters - if used in query
+                        .choice().when(header("CamelHttpQuery").isNull())
+                        .toD(fmHandlerBaseUrl + "${header.CamelHttpUri}?Content-Type=${header.Content-Type}&bridgeEndpoint=true")
+                        .otherwise()
+                        .toD(fmHandlerBaseUrl + "${header.CamelHttpUri}?Content-Type=${header.Content-Type}&bridgeEndpoint=true&${header.CamelHttpQuery}")
+                        .endChoice()
+                ;
+            }
+        }
     }
 
     protected boolean isTrackingHeaderAcceptable(Exchange e) {
@@ -361,10 +422,7 @@ public class RestRouteBuilder extends RouteBuilder {
         if ("POST".equals(httpMethod) && configuration.isTrackingHeaderRequiredforPost()) {
             return true;
         }
-        if ("GET".equals(httpMethod) && configuration.isTrackingHeaderRequiredForGet()) {
-            return true;
-        }
-        return false;
+        return "GET".equals(httpMethod) && configuration.isTrackingHeaderRequiredForGet();
     }
 
     protected String getSubscriptionIdFromPath(String path) {
@@ -408,10 +466,7 @@ public class RestRouteBuilder extends RouteBuilder {
     }
     protected void streamOutput(Exchange p, Siri response, HttpServletResponse out) throws IOException, JAXBException, XMLStreamException {
 
-        boolean siri21Version = false;
-        if ("2.1".equals(p.getIn().getHeader(SIRI_VERSION_HEADER_NAME))) {
-            siri21Version = true;
-        }
+        boolean siri21Version = "2.1".equals(p.getIn().getHeader(SIRI_VERSION_HEADER_NAME));
 
         if (MediaType.APPLICATION_JSON.equals(p.getIn().getHeader(HttpHeaders.CONTENT_TYPE)) |
             MediaType.APPLICATION_JSON.equals(p.getIn().getHeader(HttpHeaders.ACCEPT))) {

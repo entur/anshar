@@ -16,6 +16,7 @@
 package no.rutebanken.anshar.routes.outbound;
 
 import no.rutebanken.anshar.data.EstimatedTimetables;
+import no.rutebanken.anshar.data.Facilities;
 import no.rutebanken.anshar.data.Situations;
 import no.rutebanken.anshar.data.VehicleActivities;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
@@ -31,6 +32,7 @@ import uk.org.siri.siri21.EstimatedTimetableRequestStructure;
 import uk.org.siri.siri21.EstimatedTimetableSubscriptionStructure;
 import uk.org.siri.siri21.EstimatedVehicleJourney;
 import uk.org.siri.siri21.EstimatedVersionFrameStructure;
+import uk.org.siri.siri21.FacilityConditionStructure;
 import uk.org.siri.siri21.LineDirectionStructure;
 import uk.org.siri.siri21.LineRef;
 import uk.org.siri.siri21.PtSituationElement;
@@ -69,6 +71,9 @@ public class SiriHelper {
 
     @Autowired
     private EstimatedTimetables estimatedTimetables;
+
+    @Autowired
+    private Facilities facilities;
 
     private final SiriObjectFactory siriObjectFactory;
 
@@ -219,6 +224,17 @@ public class SiriHelper {
 
             for (List<EstimatedVehicleJourney> list : etList) {
                 siriList.add(siriObjectFactory.createETServiceDelivery(list));
+            }
+        } else if (containsValues(payload.getServiceDelivery().getFacilityMonitoringDeliveries())) {
+
+            List<FacilityConditionStructure> timetables = payload.getServiceDelivery()
+                    .getFacilityMonitoringDeliveries().get(0)
+                    .getFacilityConditions();
+
+            List<List> fmList = splitList(timetables, maximumSizePerDelivery);
+
+            for (List<FacilityConditionStructure> list : fmList) {
+                siriList.add(siriObjectFactory.createFMServiceDelivery(list));
             }
         }
 
@@ -443,5 +459,8 @@ public class SiriHelper {
     }
     public Siri getAllET() {
         return siriObjectFactory.createETServiceDelivery(estimatedTimetables.getAll());
+    }
+    public Siri getAllFM() {
+        return siriObjectFactory.createFMServiceDelivery(facilities.getAll());
     }
 }

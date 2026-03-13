@@ -50,7 +50,7 @@ import static no.rutebanken.anshar.routes.validation.validators.et.SaneSpeedVali
  * the reported arrival-/departure times are reasonable
  */
 public class ExtraJourneyPostProcessor extends ValueAdapter implements PostProcessor {
-    private Logger logger = LoggerFactory.getLogger(ExtraJourneyPostProcessor.class);
+    private final Logger logger = LoggerFactory.getLogger(ExtraJourneyPostProcessor.class);
     private final String datasetId;
 
     public ExtraJourneyPostProcessor(String datasetId) {
@@ -269,10 +269,10 @@ public class ExtraJourneyPostProcessor extends ValueAdapter implements PostProce
 
         // Only use comparable times
         if (thisCall.getExpectedDepartureTime() != null && nextCall.getExpectedArrivalTime() != null) {
-            fromTime = thisCall.getExpectedDepartureTime();
+                fromTime = thisCall.getExpectedDepartureTime();
             toTime = nextCall.getExpectedArrivalTime();
         } else {
-            fromTime = thisCall.getAimedDepartureTime();
+                fromTime = thisCall.getAimedDepartureTime();
             toTime = nextCall.getAimedArrivalTime();
         }
 

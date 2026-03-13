@@ -132,6 +132,8 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
                     .choice()
                         .when().xpath("/siri:Siri/siri:SubscriptionRequest/siri:VehicleMonitoringSubscriptionRequest", ns)
                         .to("direct:process.vm.subscription.request")
+                        .when().xpath("/siri:Siri/siri:SubscriptionRequest/siri:FacilityMonitoringSubscriptionRequest", ns)
+                        .to("direct:process.fm.subscription.request")
                         .when().xpath("/siri:Siri/siri:SubscriptionRequest/siri:SituationExchangeSubscriptionRequest", ns)
                         .to("direct:process.sx.subscription.request")
                         .when().xpath("/siri:Siri/siri:SubscriptionRequest/siri:EstimatedTimetableSubscriptionRequest", ns)
@@ -141,6 +143,7 @@ public class Siri20RequestHandlerRoute extends RestRouteBuilder {
                             .wireTap("direct:process.et.subscription.request")
                             .wireTap("direct:process.vm.subscription.request")
                             .wireTap("direct:process.sx.subscription.request")
+                            .wireTap("direct:process.fm.subscription.request")
                             .to("direct:internal.handle.subscription") //Build response
                     .endChoice()
                 .endChoice()

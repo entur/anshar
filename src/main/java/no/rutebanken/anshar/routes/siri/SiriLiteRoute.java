@@ -19,6 +19,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.data.EstimatedTimetables;
+import no.rutebanken.anshar.data.Facilities;
 import no.rutebanken.anshar.data.Situations;
 import no.rutebanken.anshar.data.VehicleActivities;
 import no.rutebanken.anshar.metrics.PrometheusMetricsService;
@@ -52,13 +53,16 @@ import static no.rutebanken.anshar.routes.HttpParameter.getParameterValuesAsList
 
 @Service
 public class SiriLiteRoute extends RestRouteBuilder {
-    private Logger logger = LoggerFactory.getLogger(this.getClass());
+    private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
     private AnsharConfiguration configuration;
 
     @Autowired
     private Situations situations;
+
+    @Autowired
+    private Facilities facilities;
 
     @Autowired
     private VehicleActivities vehicleActivities;
@@ -84,6 +88,11 @@ public class SiriLiteRoute extends RestRouteBuilder {
                         .param().required(false).name(PARAM_DATASET_ID).type(RestParamType.query).description("The id of the dataset to get").dataType("string").endParam()
                         .param().required(false).name(PARAM_USE_ORIGINAL_ID).type(RestParamType.query).description("Option to return original Ids").dataType("boolean").endParam()
                         .param().required(false).name(PARAM_MAX_SIZE).type(RestParamType.query).description("Specify max number of returned elements").dataType("integer").endParam()
+
+                .get("/fm").to("direct:anshar.rest.fm")
+                    .param().required(false).name(PARAM_DATASET_ID).type(RestParamType.query).description("The id of the dataset to get").dataType("string").endParam()
+                    .param().required(false).name(PARAM_MAX_SIZE).type(RestParamType.query).description("Specify max number of returned elements").dataType("integer").endParam()
+
 
                 .get("/vm").to("direct:anshar.rest.vm")
                         .param().required(false).name(PARAM_DATASET_ID).type(RestParamType.query).description("The id of the dataset to get").dataType("string").endParam()
@@ -144,6 +153,44 @@ public class SiriLiteRoute extends RestRouteBuilder {
                 .otherwise()
                     .to("direct:anshar.invalid.tracking.header.response")
                 .routeId("incoming.rest.sx")
+        ;
+
+        // Dataproviders
+        from("direct:internal.anshar.rest.fm")
+                .log("RequestTracer - Incoming request (FM)")
+                .to("log:restRequest:" + getClass().getSimpleName() + "?showAll=false&showHeaders=true")
+                .choice()
+                .when(e -> isTrackingHeaderAcceptable(e))
+                    .process(p -> {
+                        String requestorId = resolveRequestorId(p.getIn().getBody(HttpServletRequest.class));
+
+                        String datasetId = p.getIn().getHeader(PARAM_DATASET_ID, String.class);
+                        Integer maxSizeStr = p.getIn().getHeader(PARAM_MAX_SIZE, Integer.class);
+                        String etClientName = p.getIn().getHeader(configuration.getTrackingHeaderName(), String.class);
+                        int maxSize = datasetId != null ? Integer.MAX_VALUE:configuration.getDefaultMaxSize();
+
+                        if (maxSizeStr != null) {
+                            maxSize = maxSizeStr;
+                        }
+
+                        Siri response = facilities.createServiceDelivery(requestorId, datasetId, etClientName, maxSize);
+
+                        List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(
+                            SiriDataType.SITUATION_EXCHANGE,
+                            OutboundIdMappingPolicy.DEFAULT
+                        );
+
+                        response = SiriValueTransformer.transform(response, outboundAdapters, false, false);
+
+                        metrics.countOutgoingData(response, SubscriptionSetup.SubscriptionMode.LITE);
+
+                        HttpServletResponse out = p.getIn().getBody(HttpServletResponse.class);
+                        streamOutput(p, response, out);
+                    })
+                    .log("RequestTracer - Request done (FM)")
+                .otherwise()
+                    .to("direct:anshar.invalid.tracking.header.response")
+                .routeId("incoming.rest.fm")
         ;
 
         from("direct:internal.anshar.rest.vm")
@@ -228,7 +275,7 @@ public class SiriLiteRoute extends RestRouteBuilder {
                         long previewIntervalMillis = -1;
                         if (previewIntervalMinutesStr != null) {
                             int minutes = Integer.parseInt(previewIntervalMinutesStr);
-                            previewIntervalMillis = minutes*60*1000;
+                            previewIntervalMillis = (long) minutes *60*1000;
                         }
 
                         Siri response;
@@ -326,6 +373,43 @@ public class SiriLiteRoute extends RestRouteBuilder {
                 .otherwise()
                     .to("direct:anshar.invalid.tracking.header.response")
                 .routeId("incoming.rest.sx.cached")
+        ;
+
+        from("direct:internal.anshar.rest.fm.cached")
+                .log("RequestTracer - Incoming request (FM)")
+                .to("log:restRequest:" + getClass().getSimpleName() + "?showAll=false&showHeaders=true")
+                .choice()
+                .when(e -> isTrackingHeaderAcceptable(e))
+                .process(p -> {
+                    String requestorId = resolveRequestorId(p.getIn().getBody(HttpServletRequest.class));
+                    String datasetId = p.getIn().getHeader(PARAM_DATASET_ID, String.class);
+                    String clientTrackingName = p.getIn().getHeader(configuration.getTrackingHeaderName(), String.class);
+
+                    logger.info("Fetching cached FM-data");
+                    Siri response = siriObjectFactory.createFMServiceDelivery(facilities.getAllCachedUpdates(requestorId,
+                            datasetId, clientTrackingName
+                    ));
+
+                    List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(
+                            SiriDataType.SITUATION_EXCHANGE,
+                            OutboundIdMappingPolicy.DEFAULT
+                    );
+
+                    logger.info("Transforming cached FM-data");
+                    response = SiriValueTransformer.transform(response, outboundAdapters, false, false);
+
+                    metrics.countOutgoingData(response, SubscriptionSetup.SubscriptionMode.LITE);
+
+                    HttpServletResponse out = p.getIn().getBody(HttpServletResponse.class);
+
+                    logger.info("Streaming cached FM-data");
+                    streamOutput(p, response, out);
+                    logger.info("Done processing cached FM-data");
+                })
+                .log("RequestTracer - Request done (FM)")
+                .otherwise()
+                .to("direct:anshar.invalid.tracking.header.response")
+                .routeId("incoming.rest.fm.cached")
         ;
 
         from("direct:internal.anshar.rest.vm.cached")

@@ -37,6 +37,8 @@ import uk.org.siri.siri21.AbstractSubscriptionStructure;
 import uk.org.siri.siri21.CheckStatusRequestStructure;
 import uk.org.siri.siri21.EstimatedTimetableSubscriptionStructure;
 import uk.org.siri.siri21.EstimatedVehicleJourney;
+import uk.org.siri.siri21.FacilityConditionStructure;
+import uk.org.siri.siri21.FacilityMonitoringSubscriptionStructure;
 import uk.org.siri.siri21.PtSituationElement;
 import uk.org.siri.siri21.Siri;
 import uk.org.siri.siri21.SituationExchangeSubscriptionStructure;
@@ -99,6 +101,8 @@ public class ServerSubscriptionManager {
     private boolean pushToEtTopicEnabled;
     @Value("${anshar.outbound.pubsub.sx.topic.enabled}")
     private boolean pushToSxTopicEnabled;
+    @Value("${anshar.outbound.pubsub.fm.topic.enabled}")
+    private boolean pushToFmTopicEnabled;
 
     @Autowired
     private MappingAdapterPresets mappingAdapterPresets;
@@ -113,6 +117,9 @@ public class ServerSubscriptionManager {
 
     @Produce(value = "direct:send.to.pubsub.topic.situation_exchange")
     protected ProducerTemplate siriSxTopicProducer;
+
+    @Produce(value = "direct:send.to.pubsub.topic.facility_monitoring")
+    protected ProducerTemplate siriFmTopicProducer;
 
     @Autowired
     private CamelRouteManager camelRouteManager;
@@ -249,6 +256,11 @@ public class ServerSubscriptionManager {
             if (subscriptionRequest.getSituationExchangeSubscriptionRequests().get(0).getSubscriberRef() != null) {
                 return subscriptionRequest.getSituationExchangeSubscriptionRequests().get(0).getSubscriberRef().getValue();
             }
+        } else if (subscriptionRequest.getFacilityMonitoringSubscriptionRequests() != null &&
+                !subscriptionRequest.getFacilityMonitoringSubscriptionRequests().isEmpty()) {
+            if (subscriptionRequest.getFacilityMonitoringSubscriptionRequests().get(0).getSubscriberRef() != null) {
+                return subscriptionRequest.getFacilityMonitoringSubscriptionRequests().get(0).getSubscriberRef().getValue();
+            }
         }
         return subscriptionRequest.getRequestorRef().getValue();
     }
@@ -265,6 +277,8 @@ public class ServerSubscriptionManager {
             version = subscriptionRequest.getVehicleMonitoringSubscriptionRequests().get(0).getVehicleMonitoringRequest().getVersion();
         } else if (SiriHelper.containsValues(subscriptionRequest.getEstimatedTimetableSubscriptionRequests())) {
             version = subscriptionRequest.getEstimatedTimetableSubscriptionRequests().get(0).getEstimatedTimetableRequest().getVersion();
+        } else if (SiriHelper.containsValues(subscriptionRequest.getFacilityMonitoringSubscriptionRequests())) {
+            version = subscriptionRequest.getFacilityMonitoringSubscriptionRequests().get(0).getFacilityMonitoringRequest().getVersion();
         }
 
         // Subscriber requests SIRI 2.1 version in request
@@ -299,6 +313,8 @@ public class ServerSubscriptionManager {
             return SiriDataType.VEHICLE_MONITORING;
         } else if (SiriHelper.containsValues(subscriptionRequest.getEstimatedTimetableSubscriptionRequests())) {
             return SiriDataType.ESTIMATED_TIMETABLE;
+        } else if (SiriHelper.containsValues(subscriptionRequest.getFacilityMonitoringSubscriptionRequests())) {
+            return SiriDataType.FACILITY_MONITORING;
         }
         return null;
     }
@@ -351,6 +367,12 @@ public class ServerSubscriptionManager {
                     subscriptionRequest.getEstimatedTimetableSubscriptionRequests().get(0);
 
             return getSubscriptionIdentifier(estimatedTimetableSubscriptionStructure);
+        } else if (SiriHelper.containsValues(subscriptionRequest.getFacilityMonitoringSubscriptionRequests())) {
+
+            FacilityMonitoringSubscriptionStructure facilityMonitoringSubscriptionStructure =
+                    subscriptionRequest.getFacilityMonitoringSubscriptionRequests().get(0);
+
+            return getSubscriptionIdentifier(facilityMonitoringSubscriptionStructure);
         }
         return null;
     }
@@ -372,6 +394,9 @@ public class ServerSubscriptionManager {
         } else if (SiriHelper.containsValues(subscriptionRequest.getEstimatedTimetableSubscriptionRequests())) {
 
             return subscriptionRequest.getEstimatedTimetableSubscriptionRequests().get(0).getInitialTerminationTime();
+        } else if (SiriHelper.containsValues(subscriptionRequest.getFacilityMonitoringSubscriptionRequests())) {
+
+            return subscriptionRequest.getFacilityMonitoringSubscriptionRequests().get(0).getInitialTerminationTime();
         }
         return null;
     }
@@ -428,6 +453,9 @@ public class ServerSubscriptionManager {
                 break;
             case VEHICLE_MONITORING:
                 outboundSenderExecutorService.execute(() -> pushUpdatedVehicleActivities(updates, datasetId, breadcrumbId));
+                break;
+            case FACILITY_MONITORING:
+                outboundSenderExecutorService.execute(() -> pushUpdatedFacilityMonitoring(updates, datasetId, breadcrumbId));
                 break;
             default:
                 // Ignore
@@ -558,6 +586,49 @@ public class ServerSubscriptionManager {
                 camelRouteManager.pushSiriData(delivery, recipient, false);
             }
         }
+        MDC.remove("camel.breadcrumbId");
+    }
+
+    private void pushUpdatedFacilityMonitoring(
+            List<FacilityConditionStructure> addedOrUpdated, String datasetId, String breadcrumbId
+    ) {
+        MDC.put("camel.breadcrumbId", breadcrumbId);
+
+        if (addedOrUpdated == null || addedOrUpdated.isEmpty()) {
+            return;
+        }
+        Siri delivery = siriObjectFactory.createFMServiceDelivery(addedOrUpdated);
+
+        if (pushToFmTopicEnabled) {
+            siriFmTopicProducer.asyncRequestBodyAndHeader(siriFmTopicProducer.getDefaultEndpoint(),
+                    delivery, CODESPACE_ID_KAFKA_HEADER_NAME, datasetId);
+        }
+
+        final List<OutboundSubscriptionSetup> recipients = subscriptions
+                .values()
+                .stream()
+                .filter(subscriptionRequest -> (
+                                subscriptionRequest.getSubscriptionType().equals(SiriDataType.FACILITY_MONITORING)
+                                        && (
+                                        subscriptionRequest.getDatasetId() == null || (
+                                                subscriptionRequest
+                                                        .getDatasetId()
+                                                        .equals(datasetId)
+                                        )
+                                )
+                        )
+
+                )
+                .collect(Collectors.toList());
+
+        if (!recipients.isEmpty()) {
+            logger.info("Pushing {} FM updates to {} outbound subscriptions", addedOrUpdated.size(), recipients.size());
+
+            for (OutboundSubscriptionSetup recipient : recipients) {
+                camelRouteManager.pushSiriData(delivery, recipient, false);
+            }
+        }
+
         MDC.remove("camel.breadcrumbId");
     }
 

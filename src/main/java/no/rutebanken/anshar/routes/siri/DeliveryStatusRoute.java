@@ -51,6 +51,9 @@ public class DeliveryStatusRoute extends BaseRouteBuilder {
     @Value("${anshar.data.handler.baseurl.sx:}")
     protected String sxHandlerBaseUrl;
 
+    @Value("${anshar.data.handler.baseurl.fm:}")
+    protected String fmHandlerBaseUrl;
+
     public DeliveryStatusRoute(AnsharConfiguration config, SubscriptionManager subscriptionManager) {
         super(config, subscriptionManager);
     }
@@ -80,6 +83,9 @@ public class DeliveryStatusRoute extends BaseRouteBuilder {
                                     break;
                                 case SITUATION_EXCHANGE:
                                     baseUrl = sxHandlerBaseUrl;
+                                    break;
+                                case FACILITY_MONITORING:
+                                    baseUrl = fmHandlerBaseUrl;
                                     break;
                             }
 

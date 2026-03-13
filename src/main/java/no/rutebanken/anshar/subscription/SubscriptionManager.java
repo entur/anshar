@@ -20,6 +20,7 @@ import com.hazelcast.map.IMap;
 import com.hazelcast.replicatedmap.ReplicatedMap;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.data.EstimatedTimetables;
+import no.rutebanken.anshar.data.Facilities;
 import no.rutebanken.anshar.data.RequestorRefRepository;
 import no.rutebanken.anshar.data.RequestorRefStats;
 import no.rutebanken.anshar.data.SiriObjectStorageKey;
@@ -55,6 +56,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static no.rutebanken.anshar.subscription.SiriDataType.ESTIMATED_TIMETABLE;
+import static no.rutebanken.anshar.subscription.SiriDataType.FACILITY_MONITORING;
 import static no.rutebanken.anshar.subscription.SiriDataType.SITUATION_EXCHANGE;
 import static no.rutebanken.anshar.subscription.SiriDataType.VEHICLE_MONITORING;
 
@@ -115,6 +117,8 @@ public class SubscriptionManager {
     private EstimatedTimetables et;
     @Autowired
     private VehicleActivities vm;
+    @Autowired
+    private Facilities fm;
 
     @Autowired
     @Qualifier("getSituationChangesMap")
@@ -127,6 +131,10 @@ public class SubscriptionManager {
     @Autowired
     @Qualifier("getVehicleChangesMap")
     private IMap<String, Set<SiriObjectStorageKey>> vmChanges;
+
+    @Autowired
+    @Qualifier("getFacilitiesChangesMap")
+    private IMap<String, Set<SiriObjectStorageKey>> fmChanges;
 
     @Autowired
     private RequestorRefRepository requestorRefRepository;
@@ -388,6 +396,15 @@ public class SubscriptionManager {
         );
         logger.debug("Built SX stats");
 
+        JSONArray fmSubscriptions = new JSONArray();
+        fmSubscriptions.addAll(this.subscriptions.values().stream()
+                .filter(subscriptionSetup -> subscriptionSetup.getSubscriptionType() == FACILITY_MONITORING)
+                .map(this::getJsonObject)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList())
+        );
+        logger.debug("Built FM stats");
+
         JSONObject etType = new JSONObject();
         etType.put("typeName", ""+ ESTIMATED_TIMETABLE);
         etType.put("subscriptions", etSubscriptions);
@@ -397,10 +414,14 @@ public class SubscriptionManager {
         JSONObject sxType = new JSONObject();
         sxType.put("typeName", ""+ SITUATION_EXCHANGE);
         sxType.put("subscriptions", sxSubscriptions);
+        JSONObject fmType = new JSONObject();
+        fmType.put("typeName", ""+ FACILITY_MONITORING);
+        fmType.put("subscriptions", fmSubscriptions);
 
         stats.add(etType);
         stats.add(vmType);
         stats.add(sxType);
+        stats.add(fmType);
 
         result.put("types", stats);
 
@@ -419,10 +440,15 @@ public class SubscriptionManager {
         sxPolling.put("typeName", ""+ SITUATION_EXCHANGE);
         sxPolling.put("polling", getIdAndCount(sxChanges, SITUATION_EXCHANGE));
         logger.debug("Built SX polling stats");
+        JSONObject fmPolling = new JSONObject();
+        fmPolling.put("typeName", ""+ FACILITY_MONITORING);
+        fmPolling.put("polling", getIdAndCount(fmChanges, FACILITY_MONITORING));
+        logger.debug("Built FM polling stats");
 
         pollingClients.add(etPolling);
         pollingClients.add(vmPolling);
         pollingClients.add(sxPolling);
+        pollingClients.add(fmPolling);
 
         result.put("polling", pollingClients);
 
@@ -438,13 +464,16 @@ public class SubscriptionManager {
         logger.debug("Got VM size");
         Map<String, Integer> sxDatasetSize = sx.getDatasetSize();
         logger.debug("Got SX size");
+        Map<String, Integer> fmDatasetSize = fm.getDatasetSize();
+        logger.debug("Got FM size");
 
         count.put("sx", sxDatasetSize.values().stream().mapToInt(Number::intValue).sum());
         count.put("et", etDatasetSize.values().stream().mapToInt(Number::intValue).sum());
         count.put("vm", vmDatasetSize.values().stream().mapToInt(Number::intValue).sum());
+        count.put("fm", fmDatasetSize.values().stream().mapToInt(Number::intValue).sum());
 
         logger.debug("Building distribution stats");
-        count.put("distribution", getCountPerDataset(etDatasetSize, vmDatasetSize, sxDatasetSize));
+        count.put("distribution", getCountPerDataset(etDatasetSize, vmDatasetSize, sxDatasetSize,fmDatasetSize));
         logger.debug("Built distribution stats");
 
         result.put("elements", count);
@@ -505,13 +534,19 @@ public class SubscriptionManager {
         return count;
     }
 
-    private JSONArray getCountPerDataset(Map<String, Integer> etDatasetSize, Map<String, Integer> vmDatasetSize, Map<String, Integer> sxDatasetSize) {
+    private JSONArray getCountPerDataset(
+            Map<String, Integer> etDatasetSize,
+            Map<String, Integer> vmDatasetSize,
+            Map<String, Integer> sxDatasetSize,
+            Map<String, Integer> fmDatasetSize
+    ) {
         JSONArray etDatasetCount = new JSONArray();
 
         Set<String> allKeys = new HashSet<>();
         allKeys.addAll(etDatasetSize.keySet());
         allKeys.addAll(vmDatasetSize.keySet());
         allKeys.addAll(sxDatasetSize.keySet());
+        allKeys.addAll(fmDatasetSize.keySet());
 
         for (String datasetId : allKeys) {
             JSONObject counter = new JSONObject();
@@ -519,6 +554,7 @@ public class SubscriptionManager {
             counter.put("etCount", etDatasetSize.getOrDefault(datasetId,0));
             counter.put("vmCount", vmDatasetSize.getOrDefault(datasetId,0));
             counter.put("sxCount", sxDatasetSize.getOrDefault(datasetId,0));
+            counter.put("fmCount", fmDatasetSize.getOrDefault(datasetId,0));
             etDatasetCount.add(counter);
         }
         return etDatasetCount;
@@ -530,8 +566,8 @@ public class SubscriptionManager {
         }
         JSONObject obj = setup.toJSON();
         obj.put("activated",formatTimestamp(activatedTimestamp.get(setup.getSubscriptionId())));
-        obj.put("lastActivity",""+formatTimestamp(lastActivity.get(setup.getSubscriptionId())));
-        obj.put("lastDataReceived",""+formatTimestamp(dataReceived.get(setup.getSubscriptionId())));
+        obj.put("lastActivity", formatTimestamp(lastActivity.get(setup.getSubscriptionId())));
+        obj.put("lastDataReceived", formatTimestamp(dataReceived.get(setup.getSubscriptionId())));
         if (!setup.isActive()) {
             obj.put("status", "deactivated");
             obj.put("healthy",null);

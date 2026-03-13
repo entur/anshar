@@ -61,6 +61,7 @@ public class MessagingRoute extends RestRouteBuilder {
 
 
         final String pubsubQueueSX = messageQueueCamelRoutePrefix + CamelRouteNames.TRANSFORM_QUEUE_SX;
+        final String pubsubQueueFM = messageQueueCamelRoutePrefix + CamelRouteNames.TRANSFORM_QUEUE_FM;
         final String pubsubQueueVM = messageQueueCamelRoutePrefix + CamelRouteNames.TRANSFORM_QUEUE_VM;
         final String pubsubQueueET = messageQueueCamelRoutePrefix + CamelRouteNames.TRANSFORM_QUEUE_ET;
         final String pubsubQueueDefault = messageQueueCamelRoutePrefix + CamelRouteNames.TRANSFORM_QUEUE_DEFAULT;
@@ -104,6 +105,9 @@ public class MessagingRoute extends RestRouteBuilder {
                     .endChoice()
                     .when(header(INTERNAL_SIRI_DATA_TYPE).isEqualTo(SiriDataType.SITUATION_EXCHANGE.name()))
                         .setHeader("target_topic", simple(pubsubQueueSX))
+                    .endChoice()
+                    .when(header(INTERNAL_SIRI_DATA_TYPE).isEqualTo(SiriDataType.FACILITY_MONITORING.name()))
+                        .setHeader("target_topic", simple(pubsubQueueFM))
                     .endChoice()
                     .otherwise()
                         .choice()
@@ -250,6 +254,22 @@ public class MessagingRoute extends RestRouteBuilder {
                     .end()
                     .to("direct:clear.mdc.subscriptionId")
                     .routeId("incoming.transform.et")
+            ;
+        }
+
+        if (configuration.processFM()) {
+            from(pubsubQueueFM + queueConsumerParameters)
+                    .process(convertAttributesToHeaders)
+                    .to("direct:set.mdc.subscriptionId")
+                    .choice()
+                        .when(readFromPubsub)
+                            .log("Processing data from " + pubsubQueueFM)
+                            .to("direct:decompress.jaxb")
+                            .to("direct:" + CamelRouteNames.PROCESSOR_QUEUE_DEFAULT)
+                        .endChoice()
+                    .end()
+                    .to("direct:clear.mdc.subscriptionId")
+                    .routeId("incoming.transform.fm")
             ;
         }
 
