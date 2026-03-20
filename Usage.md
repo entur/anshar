@@ -24,9 +24,9 @@ To run the image:
 
 ```shell
 # With default configuration
-docker run -p 8012:8012 ghcr.io/entur/anshar:latest
+docker run -p 8012:8012 docker.io/entur/anshar:latest
 # With custom properties. In this example, application.properties' anshar.subscriptions.config.path should be "/subscriptions.yml"
-docker run -p 8012:8012 --mount type=bind,source=/path/to/application.properties,target=/application.properties --mount type=bind,source=/path/to/subscriptions.yml,target=/subscriptions.yml ghcr.io/entur/anshar:latest
+docker run -p 8012:8012 --mount type=bind,source=/path/to/application.properties,target=/application.properties --mount type=bind,source=/path/to/subscriptions.yml,target=/subscriptions.yml docker.io/entur/anshar:latest
 
 # a more extensive example using podman
 podman run -p 8012:8012 --rm \
