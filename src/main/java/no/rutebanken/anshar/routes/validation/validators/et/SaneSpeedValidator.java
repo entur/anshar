@@ -21,6 +21,7 @@ import uk.org.siri.siri21.EstimatedVersionFrameStructure;
 import uk.org.siri.siri21.RecordedCall;
 import uk.org.siri.siri21.Siri;
 import uk.org.siri.siri21.StopPointRefStructure;
+import uk.org.siri.siri21.VehicleModesEnumeration;
 
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -34,6 +35,7 @@ public class SaneSpeedValidator extends SiriObjectValidator {
     private Logger logger = LoggerFactory.getLogger(SaneSpeedValidator.class);
 
     public static final int SANE_SPEED_LIMIT = 300;
+    public static final int SANE_SPEED_LIMIT_AIR = 3000;
 
     private static final Node DUMMY_NODE = new NodeImpl() {
         @Override
@@ -193,8 +195,13 @@ public class SaneSpeedValidator extends SiriObjectValidator {
     ) throws TooFastException {
         final double kph = StopsUtil.calculateSpeedKph(fromStop, toStop, fromTime, toTime);
 
+        int saneSpeedLimit = SANE_SPEED_LIMIT;
+        if (StopsUtil.doesVehicleModeMatchStopMode(List.of(VehicleModesEnumeration.AIR), fromStop) &
+                StopsUtil.doesVehicleModeMatchStopMode(List.of(VehicleModesEnumeration.AIR), toStop)) {
+            saneSpeedLimit = SANE_SPEED_LIMIT_AIR;
+        }
 
-        if (kph > SANE_SPEED_LIMIT) {
+        if (kph > saneSpeedLimit) {
             throw new TooFastException(estimatedVehicleJourney, fromStop, toStop, fromTime, toTime);
         } else {
             logger.debug("Calculated speed between {} and {}: {}", fromStop, toStop, kph);
