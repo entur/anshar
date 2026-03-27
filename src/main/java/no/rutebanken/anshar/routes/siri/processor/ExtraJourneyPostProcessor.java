@@ -21,9 +21,9 @@ import no.rutebanken.anshar.routes.siri.processor.routedata.StopsUtil;
 import no.rutebanken.anshar.routes.siri.processor.routedata.TooFastException;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.subscription.SiriDataType;
-import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import uk.org.siri.siri21.DepartureBoardingActivityEnumeration;
 import uk.org.siri.siri21.EstimatedCall;
 import uk.org.siri.siri21.EstimatedTimetableDeliveryStructure;
 import uk.org.siri.siri21.EstimatedVehicleJourney;
@@ -64,218 +64,161 @@ public class ExtraJourneyPostProcessor extends ValueAdapter implements PostProce
 
     @Override
     public void process(Siri siri) {
-        if (siri != null && siri.getServiceDelivery() != null) {
+        if (siri == null || siri.getServiceDelivery() == null) {
+            return;
+        }
+        List<EstimatedTimetableDeliveryStructure> etDeliveries = siri.getServiceDelivery().getEstimatedTimetableDeliveries();
+        if (etDeliveries == null) {
+            return;
+        }
+        for (EstimatedTimetableDeliveryStructure etDelivery : etDeliveries) {
+            for (EstimatedVersionFrameStructure frame : etDelivery.getEstimatedJourneyVersionFrames()) {
+                List<EstimatedVehicleJourney> journeys = frame.getEstimatedVehicleJourneies();
+                List<EstimatedVehicleJourney> toRemove = new ArrayList<>();
 
-            List<EstimatedTimetableDeliveryStructure> etDeliveries = siri.getServiceDelivery().getEstimatedTimetableDeliveries();
-            if (etDeliveries != null) {
-                for (EstimatedTimetableDeliveryStructure etDelivery : etDeliveries) {
-                    List<EstimatedVersionFrameStructure> estimatedJourneyVersionFrames = etDelivery.getEstimatedJourneyVersionFrames();
-                    for (EstimatedVersionFrameStructure estimatedJourneyVersionFrame : estimatedJourneyVersionFrames) {
-
-                        List<EstimatedVehicleJourney> estimatedVehicleJourneies = estimatedJourneyVersionFrame.getEstimatedVehicleJourneies();
-
-                        List<EstimatedVehicleJourney> extraJourneysToRemove = new ArrayList<>();
-
-                        for (EstimatedVehicleJourney estimatedVehicleJourney : estimatedVehicleJourneies) {
-                            String estimatedVehicleJourneyCode = estimatedVehicleJourney.getEstimatedVehicleJourneyCode();
-
-                            /*
-                                Only verify that EstimatedVehicleJourneyCode exists - as it should only be
-                                used together when also "ExtraJourney=true" is set
-                             */
-                            if (estimatedVehicleJourneyCode != null) {
-                                try {
-
-                                    if (serviceJourneyIdExists(estimatedVehicleJourneyCode)) {
-                                        throw new AlreadyExistsException(estimatedVehicleJourneyCode);
-                                    }
-
-
-
-                                    final List<VehicleModesEnumeration> vehicleModes = estimatedVehicleJourney
-                                        .getVehicleModes();
-
-                                    final EstimatedVehicleJourney.RecordedCalls recordedCalls = estimatedVehicleJourney
-                                        .getRecordedCalls();
-                                    if (recordedCalls != null && recordedCalls.getRecordedCalls() != null) {
-                                        final List<RecordedCall> calls = recordedCalls.getRecordedCalls();
-                                        for (
-                                            int i = 0; i < calls.size() - 1; i++
-                                        ) {
-                                            final RecordedCall thisCall = calls.get(i);
-                                            final RecordedCall nextCall = calls.get(i + 1);
-
-                                            if (thisCall.getStopPointRef() != null &&
-                                                nextCall.getStopPointRef() != null) {
-
-                                                final String fromStop = getMappedId(thisCall
-                                                    .getStopPointRef()
-                                                    .getValue());
-                                                final String toStop = getMappedId(nextCall
-                                                    .getStopPointRef()
-                                                    .getValue());
-
-                                                Pair<ZonedDateTime, ZonedDateTime> times = getTimes(thisCall,
-                                                    nextCall
-                                                );
-                                                validateContents( estimatedVehicleJourney,
-                                                        vehicleModes,
-                                                        fromStop,
-                                                        toStop,
-                                                        times
-                                                );
-                                            }
-                                        }
-                                    }
-                                    final EstimatedVehicleJourney.EstimatedCalls estimatedCalls = estimatedVehicleJourney
-                                        .getEstimatedCalls();
-                                    if (estimatedCalls != null && estimatedCalls.getEstimatedCalls() != null) {
-                                        final List<EstimatedCall> calls = estimatedCalls.getEstimatedCalls();
-                                        for (
-                                            int i = 0; i < calls.size() - 1; i++
-                                        ) {
-                                            final EstimatedCall thisCall = calls.get(i);
-                                            final EstimatedCall nextCall = calls.get(i + 1);
-
-                                            if (thisCall.getStopPointRef() != null &&
-                                                nextCall.getStopPointRef() != null) {
-
-                                                final String fromStop = getMappedId(thisCall
-                                                    .getStopPointRef()
-                                                    .getValue());
-                                                final String toStop = getMappedId(nextCall
-                                                    .getStopPointRef()
-                                                    .getValue());
-
-                                                Pair<ZonedDateTime, ZonedDateTime> times = getTimes(thisCall,
-                                                    nextCall
-                                                );
-
-                                                validateContents(estimatedVehicleJourney, vehicleModes,
-                                                    fromStop,
-                                                    toStop,
-                                                    times
-                                                );
-                                            }
-                                        }
-                                    }
-                                } catch (TooFastException e) {
-                                    getMetricsService().registerDataMapping(SiriDataType.ESTIMATED_TIMETABLE, datasetId, EXTRA_JOURNEY_TOO_FAST, 1);
-                                    logger.info("Removing {}, cause: {}", estimatedVehicleJourneyCode, e.getMessage());
-                                    extraJourneysToRemove.add(estimatedVehicleJourney);
-                                } catch (InvalidVehicleModeForStopException e) {
-                                    getMetricsService().registerDataMapping(SiriDataType.ESTIMATED_TIMETABLE, datasetId, EXTRA_JOURNEY_INVALID_MODE, 1);
-                                    logger.info("Removing {}, cause: {}", estimatedVehicleJourneyCode, e.getMessage());
-                                    extraJourneysToRemove.add(estimatedVehicleJourney);
-                                } catch (AlreadyExistsException e) {
-                                    getMetricsService().registerDataMapping(SiriDataType.ESTIMATED_TIMETABLE, datasetId, EXTRA_JOURNEY_ID_EXISTS, 1);
-                                    logger.info("Removing {}, cause: {}", estimatedVehicleJourneyCode, e.getMessage());
-                                    extraJourneysToRemove.add(estimatedVehicleJourney);
-                                }
-                            }
+                for (EstimatedVehicleJourney journey : journeys) {
+                    String journeyCode = journey.getEstimatedVehicleJourneyCode();
+                    /*
+                        Only verify that EstimatedVehicleJourneyCode exists - as it should only be
+                        used together when also "ExtraJourney=true" is set
+                     */
+                    if (journeyCode == null) {
+                        continue;
+                    }
+                    try {
+                        if (serviceJourneyIdExists(journeyCode)) {
+                            throw new AlreadyExistsException(journeyCode);
                         }
-
-                        if (!extraJourneysToRemove.isEmpty()) {
-                            estimatedVehicleJourneies.removeAll(extraJourneysToRemove);
-                        }
+                        validateJourney(journey);
+                    } catch (TooFastException e) {
+                        getMetricsService().registerDataMapping(SiriDataType.ESTIMATED_TIMETABLE, datasetId, EXTRA_JOURNEY_TOO_FAST, 1);
+                        logger.info("Removing {}, cause: {}", journeyCode, e.getMessage());
+                        toRemove.add(journey);
+                    } catch (InvalidVehicleModeForStopException e) {
+                        getMetricsService().registerDataMapping(SiriDataType.ESTIMATED_TIMETABLE, datasetId, EXTRA_JOURNEY_INVALID_MODE, 1);
+                        logger.info("Removing {}, cause: {}", journeyCode, e.getMessage());
+                        toRemove.add(journey);
+                    } catch (AlreadyExistsException e) {
+                        getMetricsService().registerDataMapping(SiriDataType.ESTIMATED_TIMETABLE, datasetId, EXTRA_JOURNEY_ID_EXISTS, 1);
+                        logger.info("Removing {}, cause: {}", journeyCode, e.getMessage());
+                        toRemove.add(journey);
                     }
                 }
+                journeys.removeAll(toRemove);
+            }
+        }
+    }
+
+    private void validateJourney(EstimatedVehicleJourney journey)
+            throws TooFastException, InvalidVehicleModeForStopException {
+        List<VehicleModesEnumeration> modes = journey.getVehicleModes();
+
+        // lastBoarding* tracks across both loops: a RecordedCall boarding stop seeds the EstimatedCalls loop
+        String lastBoardingStopId = null;
+        ZonedDateTime lastBoardingDepartureTime = null;
+
+        EstimatedVehicleJourney.RecordedCalls recordedCallsWrapper = journey.getRecordedCalls();
+        if (recordedCallsWrapper != null && recordedCallsWrapper.getRecordedCalls() != null) {
+            List<RecordedCall> calls = recordedCallsWrapper.getRecordedCalls();
+            for (int i = 0; i < calls.size(); i++) {
+                RecordedCall call = calls.get(i);
+                if (isBoarding(call.getDepartureBoardingActivity()) && call.getStopPointRef() != null) {
+                    lastBoardingStopId = getMappedId(call.getStopPointRef().getValue());
+                    lastBoardingDepartureTime = getDepartureTime(call);
+                }
+                if (lastBoardingStopId == null || i == calls.size() - 1) {
+                    continue;
+                }
+                RecordedCall next = calls.get(i + 1);
+                if (next.getStopPointRef() == null) {
+                    continue;
+                }
+                validateContents(journey, modes,
+                        lastBoardingStopId, getMappedId(next.getStopPointRef().getValue()),
+                        lastBoardingDepartureTime, getArrivalTime(next));
             }
         }
 
+        EstimatedVehicleJourney.EstimatedCalls estimatedCallsWrapper = journey.getEstimatedCalls();
+        if (estimatedCallsWrapper != null && estimatedCallsWrapper.getEstimatedCalls() != null) {
+            List<EstimatedCall> calls = estimatedCallsWrapper.getEstimatedCalls();
+            for (int i = 0; i < calls.size() - 1; i++) {
+                EstimatedCall call = calls.get(i);
+                if (isBoarding(call.getDepartureBoardingActivity()) && call.getStopPointRef() != null) {
+                    lastBoardingStopId = getMappedId(call.getStopPointRef().getValue());
+                    lastBoardingDepartureTime = getDepartureTime(call);
+                }
+                if (lastBoardingStopId == null) {
+                    continue;
+                }
+                EstimatedCall next = calls.get(i + 1);
+                if (next.getStopPointRef() == null) {
+                    continue;
+                }
+                validateContents(journey, modes,
+                        lastBoardingStopId, getMappedId(next.getStopPointRef().getValue()),
+                        lastBoardingDepartureTime, getArrivalTime(next));
+            }
+        }
     }
 
     private void validateContents(
-            EstimatedVehicleJourney estimatedVehicleJourney, List<VehicleModesEnumeration> vehicleModes, String fromStop, String toStop,
-            Pair<ZonedDateTime, ZonedDateTime> times
+            EstimatedVehicleJourney journey, List<VehicleModesEnumeration> modes,
+            String fromStop, String toStop, ZonedDateTime fromTime, ZonedDateTime toTime
     ) throws TooFastException, InvalidVehicleModeForStopException {
-        if (!StopsUtil.doesVehicleModeMatchStopMode(vehicleModes, fromStop)) {
-            logger.warn( "Vehicle mode {} does not match Stop-mode for stop {}",
-                vehicleModes,
-                fromStop
-            );
-            throw new InvalidVehicleModeForStopException(estimatedVehicleJourney, vehicleModes, fromStop);
+        if (!StopsUtil.doesVehicleModeMatchStopMode(modes, fromStop)) {
+            logger.warn("Vehicle mode {} does not match Stop-mode for stop {}", modes, fromStop);
+            throw new InvalidVehicleModeForStopException(journey, modes, fromStop);
         }
-        if (!StopsUtil.doesVehicleModeMatchStopMode(vehicleModes, toStop)) {
-            logger.warn("Vehicle mode {} does not match Stop-mode for stop {}",
-                vehicleModes,
-                toStop
-            );
-            throw new InvalidVehicleModeForStopException(estimatedVehicleJourney, vehicleModes, toStop);
+        if (!StopsUtil.doesVehicleModeMatchStopMode(modes, toStop)) {
+            logger.warn("Vehicle mode {} does not match Stop-mode for stop {}", modes, toStop);
+            throw new InvalidVehicleModeForStopException(journey, modes, toStop);
         }
 
-        final ZonedDateTime fromTime = times.getLeft();
-        final ZonedDateTime toTime = times.getRight();
-
-        if (fromTime != null && toTime != null) {
-            double distance = getDistance(fromStop, toStop);
-
-            long seconds = getSeconds(fromTime, toTime);
-            if (seconds < 0) {
-                logger.warn(
-                    "Negative time difference between {} and {}: {} seconds",
-                    fromStop, toStop, seconds
-                );
-                throw new TooFastException(estimatedVehicleJourney, fromStop, toStop, fromTime, toTime);
-            }
-            if (seconds <= 60) {
-                seconds = 60;
-            }
-
-            final int kph = StopsUtil.calculateSpeedKph(distance, seconds);
-
-            if (kph > SANE_SPEED_LIMIT) {
-                logger.warn(
-                    "Calculated speed between {} and {}: {} kph", fromStop, toStop,
-                    kph
-                );
-                throw new TooFastException(estimatedVehicleJourney, fromStop, toStop, fromTime, toTime);
-            }
-            else {
-                logger.debug(
-                    "Calculated speed between {} and {}: {} kph", fromStop, toStop,
-                    kph
-                );
-            }
+        if (fromTime == null || toTime == null) {
+            return;
+        }
+        double distance = getDistance(fromStop, toStop);
+        long seconds = getSeconds(fromTime, toTime);
+        if (seconds < 0) {
+            logger.warn("Negative time difference between {} and {}: {} seconds", fromStop, toStop, seconds);
+            throw new TooFastException(journey, fromStop, toStop, fromTime, toTime);
+        }
+        if (seconds <= 60) {
+            seconds = 60;
+        }
+        final int kph = StopsUtil.calculateSpeedKph(distance, seconds);
+        if (kph > SANE_SPEED_LIMIT) {
+            logger.warn("Calculated speed between {} and {}: {} kph", fromStop, toStop, kph);
+            throw new TooFastException(journey, fromStop, toStop, fromTime, toTime);
+        } else {
+            logger.debug("Calculated speed between {} and {}: {} kph", fromStop, toStop, kph);
         }
     }
 
-    private Pair<ZonedDateTime, ZonedDateTime> getTimes(
-        RecordedCall thisCall, RecordedCall nextCall
-    ) {
-        ZonedDateTime fromTime;
-        ZonedDateTime toTime;
-
-        // Only use comparable times
-        if (thisCall.getActualDepartureTime() != null && nextCall.getActualArrivalTime() != null) {
-            fromTime = thisCall.getActualDepartureTime();
-            toTime = nextCall.getActualArrivalTime();
-        } else if (thisCall.getExpectedDepartureTime() != null && nextCall.getExpectedArrivalTime() != null) {
-            fromTime = thisCall.getExpectedDepartureTime();
-            toTime = nextCall.getExpectedArrivalTime();
-        } else {
-            fromTime = thisCall.getAimedDepartureTime();
-            toTime = nextCall.getAimedArrivalTime();
-        }
-
-        return Pair.of(fromTime, toTime);
+    private boolean isBoarding(DepartureBoardingActivityEnumeration activity) {
+        return activity == null || activity == DepartureBoardingActivityEnumeration.BOARDING;
     }
 
-    private Pair<ZonedDateTime, ZonedDateTime> getTimes(
-        EstimatedCall thisCall, EstimatedCall nextCall
-    ) {
-        ZonedDateTime fromTime;
-        ZonedDateTime toTime;
+    private ZonedDateTime getDepartureTime(RecordedCall call) {
+        if (call.getActualDepartureTime() != null) return call.getActualDepartureTime();
+        if (call.getExpectedDepartureTime() != null) return call.getExpectedDepartureTime();
+        return call.getAimedDepartureTime();
+    }
 
-        // Only use comparable times
-        if (thisCall.getExpectedDepartureTime() != null && nextCall.getExpectedArrivalTime() != null) {
-                fromTime = thisCall.getExpectedDepartureTime();
-            toTime = nextCall.getExpectedArrivalTime();
-        } else {
-                fromTime = thisCall.getAimedDepartureTime();
-            toTime = nextCall.getAimedArrivalTime();
-        }
+    private ZonedDateTime getDepartureTime(EstimatedCall call) {
+        if (call.getExpectedDepartureTime() != null) return call.getExpectedDepartureTime();
+        return call.getAimedDepartureTime();
+    }
 
-        return Pair.of(fromTime, toTime);
+    private ZonedDateTime getArrivalTime(RecordedCall call) {
+        if (call.getActualArrivalTime() != null) return call.getActualArrivalTime();
+        if (call.getExpectedArrivalTime() != null) return call.getExpectedArrivalTime();
+        return call.getAimedArrivalTime();
+    }
+
+    private ZonedDateTime getArrivalTime(EstimatedCall call) {
+        if (call.getExpectedArrivalTime() != null) return call.getExpectedArrivalTime();
+        return call.getAimedArrivalTime();
     }
 }
