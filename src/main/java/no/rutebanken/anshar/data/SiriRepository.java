@@ -25,7 +25,6 @@ import com.hazelcast.map.listener.EntryRemovedListener;
 import com.hazelcast.map.listener.EntryUpdatedListener;
 import com.hazelcast.query.Predicate;
 import jakarta.xml.bind.DatatypeConverter;
-import no.rutebanken.anshar.data.collections.ExtendedHazelcastService;
 import no.rutebanken.anshar.metrics.PrometheusMetricsService;
 import no.rutebanken.anshar.routes.siri.transformer.ApplicationContextHolder;
 import no.rutebanken.anshar.subscription.SiriDataType;
@@ -37,6 +36,7 @@ import org.springframework.util.SerializationUtils;
 import uk.org.siri.siri21.OccupancyEnumeration;
 import uk.org.siri.siri21.VehicleActivityStructure;
 
+import javax.annotation.PreDestroy;
 import java.io.Serializable;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
@@ -342,25 +342,28 @@ abstract class SiriRepository<T> {
             .collect(Collectors.toList());
     }
 
-    void initBufferCommitter(ExtendedHazelcastService hazelcastService, IMap<String, Instant> lastUpdateRequested, IMap<String, Set<SiriObjectStorageKey>> changesMap, int commitFrequency) {
+    void initBufferCommitter(IMap<String, Instant> lastUpdateRequested, IMap<String, Set<SiriObjectStorageKey>> changesMap, int commitFrequency) {
         this.lastUpdateRequested = lastUpdateRequested;
         this.changesMap = changesMap;
 
         if (singleThreadScheduledExecutor == null) {
             singleThreadScheduledExecutor = Executors.newSingleThreadScheduledExecutor();
 
-        logger.info("Initializing scheduled change-buffer-updater with commit every {} seconds", commitFrequency);
-
-        singleThreadScheduledExecutor.scheduleWithFixedDelay(this::commitChanges, 0, commitFrequency, TimeUnit.SECONDS);
+            logger.info("Initializing scheduled change-buffer-updater with commit every {} seconds", commitFrequency);
+            singleThreadScheduledExecutor.scheduleWithFixedDelay(this::commitChanges, 0, commitFrequency, TimeUnit.SECONDS);
         }
+    }
 
-        hazelcastService.addBeforeShuttingDownHook(() -> {
-            while (!dirtyChanges.isEmpty()) {
-                logger.info("Shutdown triggered - committing {} changes", dirtyChanges.size());
-                commitChanges();
-            }
-            logger.info("ShutDownHook finished");
-        });
+    @PreDestroy
+    void flushOnShutdown() {
+        if (singleThreadScheduledExecutor != null) {
+            singleThreadScheduledExecutor.shutdown();
+        }
+        while (!dirtyChanges.isEmpty()) {
+            logger.info("Shutdown triggered - committing {} changes", dirtyChanges.size());
+            commitChanges();
+        }
+        logger.info("ShutDownHook finished");
     }
 
     /**

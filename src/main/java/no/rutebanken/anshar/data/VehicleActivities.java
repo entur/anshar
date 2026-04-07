@@ -17,7 +17,6 @@ package no.rutebanken.anshar.data;
 
 import com.hazelcast.map.IMap;
 import no.rutebanken.anshar.config.AnsharConfiguration;
-import no.rutebanken.anshar.data.collections.ExtendedHazelcastService;
 import no.rutebanken.anshar.data.util.TimingTracer;
 import no.rutebanken.anshar.metrics.SiriContent;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
@@ -81,9 +80,6 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
     @Autowired
     private AnsharConfiguration configuration;
 
-    @Autowired
-    ExtendedHazelcastService hazelcastService;
-
     @Value("${anshar.vehicle-activities.remove-extensions:false}")
     private boolean REMOVE_EXTENSIONS;
 
@@ -108,7 +104,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
 
     @PostConstruct
     private void initializeUpdateCommitter() {
-        super.initBufferCommitter(hazelcastService, lastUpdateRequested, changesMap, configuration.getChangeBufferCommitFrequency());
+        super.initBufferCommitter(lastUpdateRequested, changesMap, configuration.getChangeBufferCommitFrequency());
 
         enableCache(monitoredVehicles);
 

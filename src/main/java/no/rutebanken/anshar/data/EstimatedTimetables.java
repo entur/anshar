@@ -18,7 +18,6 @@ package no.rutebanken.anshar.data;
 import com.hazelcast.map.IMap;
 import com.hazelcast.query.Predicates;
 import no.rutebanken.anshar.config.AnsharConfiguration;
-import no.rutebanken.anshar.data.collections.ExtendedHazelcastService;
 import no.rutebanken.anshar.data.util.TimingTracer;
 import no.rutebanken.anshar.metrics.SiriContent;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
@@ -96,9 +95,6 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
     @Autowired
     private SiriObjectFactory siriObjectFactory;
 
-    @Autowired
-    ExtendedHazelcastService hazelcastService;
-
     private long hardLimitFutureUpdates = Integer.MAX_VALUE;
 
     protected EstimatedTimetables() {
@@ -114,7 +110,7 @@ public class EstimatedTimetables  extends SiriRepository<EstimatedVehicleJourney
 
     @PostConstruct
     private void initializeUpdateCommitter() {
-        super.initBufferCommitter(hazelcastService, lastUpdateRequested, changesMap, configuration.getChangeBufferCommitFrequency());
+        super.initBufferCommitter(lastUpdateRequested, changesMap, configuration.getChangeBufferCommitFrequency());
         enableCache(timetableDeliveries,
             // Only cache monitored/cancelled/extra trips
             value -> (Boolean.TRUE.equals(value.isMonitored()) |
