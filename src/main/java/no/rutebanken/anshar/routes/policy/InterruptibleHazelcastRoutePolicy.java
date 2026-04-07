@@ -63,8 +63,6 @@ public class InterruptibleHazelcastRoutePolicy extends HazelcastRoutePolicy {
             future = null;
         }
 
-        instance.shutdown();
-
         getCamelContext().getExecutorServiceManager().shutdownGraceful(executorService);
 
         super.doStop();
