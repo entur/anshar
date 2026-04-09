@@ -59,7 +59,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
 @SuppressWarnings("WeakerAccess")
@@ -216,8 +215,7 @@ public class NetexParserProcessor {
             JourneysInFrame_RelStructure vehicleJourneys = timetableFrame.getVehicleJourneys();
             List<Journey_VersionStructure> datedServiceJourneyOrDeadRunOrServiceJourney = vehicleJourneys.getVehicleJourneyOrDatedVehicleJourneyOrNormalDatedVehicleJourney();
             for (Journey_VersionStructure jStructure : datedServiceJourneyOrDeadRunOrServiceJourney) {
-                if (jStructure instanceof ServiceJourney) {
-                    ServiceJourney sj = (ServiceJourney) jStructure;
+                if (jStructure instanceof ServiceJourney sj) {
 
                     //Only process RAIL-mode
                     if (AllVehicleModesOfTransportEnumeration.RAIL.equals(sj.getTransportMode())) {
@@ -236,19 +234,14 @@ public class NetexParserProcessor {
                         }
                         serviceJourneyById.put(sj.getId(), sj);
                     }
-                } else if (jStructure instanceof DatedServiceJourney) {
-                    DatedServiceJourney dsj = (DatedServiceJourney) jStructure;
+                } else if (jStructure instanceof DatedServiceJourney dsj) {
+                    JourneyRefStructure journeyRefStructure = dsj.getJourneyRef().getValue();
+                    String serviceJourneyRef = journeyRefStructure.getRef();
 
-                    Optional<JAXBElement<? extends JourneyRefStructure>> first = dsj.getJourneyRef().stream().findFirst();
-                    if (first.isPresent()) {
-                        JourneyRefStructure journeyRefStructure = first.get().getValue();
-                        String serviceJourneyRef = journeyRefStructure.getRef();
+                    List<DatedServiceJourney> datedServiceJourneys = datedServiceJourneyForServiceJourneyId.getOrDefault(serviceJourneyRef, new ArrayList<>());
+                    datedServiceJourneys.add(dsj);
 
-                        List<DatedServiceJourney> datedServiceJourneys = datedServiceJourneyForServiceJourneyId.getOrDefault(serviceJourneyRef, new ArrayList<>());
-                        datedServiceJourneys.add(dsj);
-
-                        datedServiceJourneyForServiceJourneyId.put(serviceJourneyRef, datedServiceJourneys);
-                    }
+                    datedServiceJourneyForServiceJourneyId.put(serviceJourneyRef, datedServiceJourneys);
                 }
             }
         }
