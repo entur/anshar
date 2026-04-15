@@ -19,6 +19,7 @@ import no.rutebanken.anshar.integration.SpringBootBaseTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import uk.org.siri.siri21.DatedVehicleJourneyRef;
 import uk.org.siri.siri21.EstimatedCall;
 import uk.org.siri.siri21.EstimatedVehicleJourney;
 import uk.org.siri.siri21.Extensions;
@@ -605,6 +606,104 @@ public class EstimatedTimetablesTest extends SpringBootBaseTest {
         assertTrue(verifiedValue);
     }
 
+    @Test
+    public void testPatternChangeWithMonitoredFalse() {
+        String datasetId = "PatternChange";
+        String dsj = "TST:DatedServiceJourney:" + UUID.randomUUID();
+        EstimatedVehicleJourney vehicleJourney = createEstimatedVehicleJourney(
+                dsj,"123","3", 0, 30, ZonedDateTime.now().plusMinutes(30), ZonedDateTime.now().plusMinutes(30), true);
+
+        /*
+            Monitored=false
+         */
+        vehicleJourney.setMonitored(Boolean.FALSE);
+
+        estimatedTimetables.add(datasetId, vehicleJourney);
+
+        estimatedTimetables.commitChanges();
+
+        Collection<EstimatedVehicleJourney> allMonitored = estimatedTimetables.getAllMonitored();
+        boolean verifiedValue = false;
+        for (EstimatedVehicleJourney estimatedVehicleJourney : allMonitored) {
+            if (estimatedVehicleJourney.getDatedVehicleJourneyRef() != null &&
+                    estimatedVehicleJourney.getDatedVehicleJourneyRef().getValue().equals(dsj)) {
+                verifiedValue = true;
+            }
+        }
+        // Not monitored - should not be found
+        assertFalse(verifiedValue);
+
+        /*
+           Cancel first call
+            ...monitored _should_ be updated to true, and thus returned in getAllMonitored()
+         */
+        vehicleJourney.getEstimatedCalls().getEstimatedCalls().get(0).setCancellation(true);
+        estimatedTimetables.add(datasetId, vehicleJourney);
+
+        estimatedTimetables.commitChanges();
+
+        allMonitored = estimatedTimetables.getAllMonitored();
+        verifiedValue = false;
+        for (EstimatedVehicleJourney estimatedVehicleJourney : allMonitored) {
+            if (estimatedVehicleJourney.getDatedVehicleJourneyRef() != null &&
+                    estimatedVehicleJourney.getDatedVehicleJourneyRef().getValue().equals(dsj)) {
+                verifiedValue = true;
+            }
+        }
+        // Monitored should have been set to true, and update returned
+        assertTrue(verifiedValue);
+    }
+
+    @Test
+    public void testCancellationWithMonitoredFalse() {
+        String datasetId = "UnMonitored";
+        String dsj = "TST:DatedServiceJourney:" + UUID.randomUUID();
+        EstimatedVehicleJourney estimatedVehicleJourneyWithCancellation = createEstimatedVehicleJourney(
+                dsj,"4321","3", 0, 30, ZonedDateTime.now().plusMinutes(30), ZonedDateTime.now().plusMinutes(30), true);
+
+        /*
+            Cancellation=true
+            Monitored=false
+         */
+        estimatedVehicleJourneyWithCancellation.setCancellation(Boolean.TRUE);
+        estimatedVehicleJourneyWithCancellation.setMonitored(Boolean.FALSE);
+
+
+        estimatedTimetables.add(datasetId, estimatedVehicleJourneyWithCancellation);
+
+        estimatedTimetables.commitChanges();
+
+        Collection<EstimatedVehicleJourney> allMonitored = estimatedTimetables.getAllMonitored();
+        boolean verifiedValue = false;
+        for (EstimatedVehicleJourney estimatedVehicleJourney : allMonitored) {
+            if (estimatedVehicleJourney.getDatedVehicleJourneyRef() != null &&
+                estimatedVehicleJourney.getDatedVehicleJourneyRef().getValue().equals(dsj)) {
+                verifiedValue = true;
+            }
+        }
+        assertTrue(verifiedValue);
+
+        /*
+            Cancellation=false
+            ...monitored _should_ be updated to true, and thus returned in getAllMonitored()
+         */
+
+        estimatedVehicleJourneyWithCancellation.setCancellation(Boolean.FALSE);
+        estimatedTimetables.add(datasetId, estimatedVehicleJourneyWithCancellation);
+
+        estimatedTimetables.commitChanges();
+
+        allMonitored = estimatedTimetables.getAllMonitored();
+        verifiedValue = false;
+        for (EstimatedVehicleJourney estimatedVehicleJourney : allMonitored) {
+            if (estimatedVehicleJourney.getDatedVehicleJourneyRef() != null &&
+                    estimatedVehicleJourney.getDatedVehicleJourneyRef().getValue().equals(dsj)) {
+                verifiedValue = true;
+            }
+        }
+        assertTrue(verifiedValue);
+    }
+
 
     private void assertExcludedId(String excludedDatasetId) {
         Siri serviceDelivery = estimatedTimetables.createServiceDelivery(null, null, null, Arrays.asList(excludedDatasetId), 100, -1);
@@ -619,11 +718,16 @@ public class EstimatedTimetablesTest extends SpringBootBaseTest {
 
 
     private EstimatedVehicleJourney createEstimatedVehicleJourney(String lineRefValue, String vehicleRefValue, int startOrder, int callCount, ZonedDateTime arrival, Boolean isComplete) {
-        return createEstimatedVehicleJourney(lineRefValue, vehicleRefValue, startOrder, callCount, arrival, arrival, isComplete);
+        return createEstimatedVehicleJourney(null, lineRefValue, vehicleRefValue, startOrder, callCount, arrival, arrival, isComplete);
     }
 
-    private EstimatedVehicleJourney createEstimatedVehicleJourney(String lineRefValue, String vehicleRefValue, int startOrder, int callCount, ZonedDateTime arrival, ZonedDateTime departure, Boolean isComplete) {
+    private EstimatedVehicleJourney createEstimatedVehicleJourney(String dsjValue, String lineRefValue, String vehicleRefValue, int startOrder, int callCount, ZonedDateTime arrival, ZonedDateTime departure, Boolean isComplete) {
         EstimatedVehicleJourney element = new EstimatedVehicleJourney();
+        if (dsjValue != null) {
+            DatedVehicleJourneyRef dsj = new DatedVehicleJourneyRef();
+            dsj.setValue(dsjValue);
+            element.setDatedVehicleJourneyRef(dsj);
+        }
         LineRef lineRef = new LineRef();
         lineRef.setValue(lineRefValue);
         element.setLineRef(lineRef);
