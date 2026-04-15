@@ -99,7 +99,10 @@ public class AdministrationRoute extends RestRouteBuilder {
     @Autowired
     private BasicAuthService basicAuthProcessor;
 
-    private final HttpClient statsHttpClient = HttpClient.newHttpClient();
+    private final HttpClient statsHttpClient = HttpClient.newBuilder()
+            .version(HttpClient.Version.HTTP_1_1)
+            .connectTimeout(java.time.Duration.ofSeconds(5))
+            .build();
     private final ExecutorService statsExecutor = Executors.newFixedThreadPool(4,
             r -> {
                 Thread t = new Thread(r, "stats-fetcher");
@@ -512,6 +515,7 @@ public class AdministrationRoute extends RestRouteBuilder {
         try {
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(baseUrl + "/anshar/internalstats"))
+                    .timeout(java.time.Duration.ofSeconds(10))
                     .GET()
                     .build();
             return statsHttpClient.send(request, HttpResponse.BodyHandlers.ofString()).body();
