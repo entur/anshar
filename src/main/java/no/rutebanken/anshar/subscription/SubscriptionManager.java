@@ -229,9 +229,18 @@ public class SubscriptionManager {
         JSONObject jsonSubscriptions = new JSONObject();
         JSONArray filteredSubscriptions = new JSONArray();
 
-        filteredSubscriptions.addAll(subscriptions.values().stream()
+        List<SubscriptionSetup> matching = subscriptions.values().stream()
                 .filter(subscription -> subscription.getDatasetId().equalsIgnoreCase(codespace))
-                .map(this::getJsonObject)
+                .collect(Collectors.toList());
+
+        // Validation page only needs activated (for health check) — skip hitcount/objectCounter/receivedBytes
+        Set<String> ids = matching.stream()
+                .map(SubscriptionSetup::getSubscriptionId)
+                .collect(Collectors.toCollection(HashSet::new));
+        Map<String, Instant> activatedTimestamps = activatedTimestamp.getAll(ids);
+
+        filteredSubscriptions.addAll(matching.stream()
+                .map(setup -> getValidationJsonObject(setup, activatedTimestamps))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList()));
 
@@ -629,39 +638,25 @@ public class SubscriptionManager {
     }
 
     /**
-     * Original single-subscription variant — still used by getSubscriptionsForCodespace().
+     * Lean JSON for the validation page — only the fields the template actually uses.
+     * Avoids fetching hitcount, objectCounter, receivedBytes, and dataReceived.
      */
-    private JSONObject getJsonObject(SubscriptionSetup setup) {
+    private JSONObject getValidationJsonObject(SubscriptionSetup setup, Map<String, Instant> activatedTimestamps) {
         if (setup == null) {
             return null;
         }
+        // toJSON() provides name, description, subscriptionType, internalId, validation,
+        // validationFilter — all from local state, no IMap calls.
         JSONObject obj = setup.toJSON();
-        obj.put("activated",formatTimestamp(activatedTimestamp.get(setup.getSubscriptionId())));
-        obj.put("lastActivity", formatTimestamp(lastActivity.get(setup.getSubscriptionId())));
-        obj.put("lastDataReceived", formatTimestamp(dataReceived.get(setup.getSubscriptionId())));
+
         if (!setup.isActive()) {
             obj.put("status", "deactivated");
-            obj.put("healthy",null);
-            obj.put("flagAsNotReceivingData", false);
+            obj.put("healthy", null);
         } else {
             obj.put("status", "active");
-            obj.put("healthy", isSubscriptionHealthy(setup.getSubscriptionId()));
-            obj.put("flagAsNotReceivingData", (dataReceived.get(setup.getSubscriptionId()) != null && (dataReceived.get(setup.getSubscriptionId())).isBefore(Instant.now().minusSeconds(1800))));
+            Instant activated = activatedTimestamps.get(setup.getSubscriptionId());
+            obj.put("healthy", isSubscriptionHealthy(setup.getSubscriptionId(), HEALTHCHECK_INTERVAL_FACTOR, activated));
         }
-        obj.put("hitcount",hitcount.get(setup.getSubscriptionId()));
-        obj.put("objectcount", objectCounter.get(setup.getSubscriptionId()));
-
-        Long byteCount = receivedBytes.get(setup.getSubscriptionId());
-        obj.put("bytecount", byteCount);
-        obj.put("bytecountLabel", byteCount != null ? FileUtils.byteCountToDisplaySize(byteCount):null);
-
-        JSONObject urllist = new JSONObject();
-        for (RequestType s : setup.getUrlMap().keySet()) {
-            urllist.put(s.name(), setup.getUrlMap().get(s));
-        }
-        obj.put("urllist", urllist);
-        obj.put("validationUrl", configuration.getInboundUrl() + "validation/" + setup.getDatasetId());
-
         return obj;
     }
 
