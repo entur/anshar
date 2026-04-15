@@ -37,8 +37,10 @@ import uk.org.siri.siri21.PtSituationElement;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -405,68 +407,45 @@ public class AdminRouteHelper {
 
     private static void mergePollingStats(JSONObject proxyStats, JSONObject vmStats, JSONObject etStats, JSONObject sxStats, JSONObject fmStats) {
         JSONArray polling = (JSONArray) proxyStats.get("polling");
-        JSONArray vmPolling = (JSONArray) vmStats.get("polling");
-        JSONArray etPolling = (JSONArray) etStats.get("polling");
-        JSONArray sxPolling = (JSONArray) sxStats.get("polling");
-        JSONArray fmPolling = (JSONArray) fmStats.get("polling");
+
+        Map<String, JSONArray> remoteByType = Map.of(
+                SiriDataType.ESTIMATED_TIMETABLE.name(), extractPollingForType(etStats, SiriDataType.ESTIMATED_TIMETABLE),
+                SiriDataType.VEHICLE_MONITORING.name(), extractPollingForType(vmStats, SiriDataType.VEHICLE_MONITORING),
+                SiriDataType.SITUATION_EXCHANGE.name(), extractPollingForType(sxStats, SiriDataType.SITUATION_EXCHANGE),
+                SiriDataType.FACILITY_MONITORING.name(), extractPollingForType(fmStats, SiriDataType.FACILITY_MONITORING)
+        );
 
         for (Object o : polling) {
             JSONObject pollingObj = (JSONObject) o;
+            String typeName = (String) pollingObj.get("typeName");
+            JSONArray pollingArray = (JSONArray) pollingObj.get("polling");
 
-            if (pollingObj.get("typeName").equals(SiriDataType.ESTIMATED_TIMETABLE.name())) {
-                JSONArray pollingArray = (JSONArray) pollingObj.get("polling");
-                for (Object et : etPolling) {
-                    JSONObject value = (JSONObject) et;
-                    if (value.get("typeName").equals(SiriDataType.ESTIMATED_TIMETABLE.name())) {
-                        for (Object pollingClient : (JSONArray) value.get("polling")) {
-                            if (!pollingArray.contains(pollingClient)) {
-                                pollingArray.add(pollingClient);
-                            }
-                        }
-                    }
-                }
-            }
-            if (pollingObj.get("typeName").equals(SiriDataType.VEHICLE_MONITORING.name())) {
-                JSONArray pollingArray = (JSONArray) pollingObj.get("polling");
-                for (Object obj : vmPolling) {
-                    JSONObject value = (JSONObject) obj;
-                    pollingArray.addAll((JSONArray)value.get("polling"));
-                    if (value.get("typeName").equals(SiriDataType.VEHICLE_MONITORING.name())) {
-                        for (Object pollingClient : (JSONArray) value.get("polling")) {
-                            if (!pollingArray.contains(pollingClient)) {
-                                pollingArray.add(pollingClient);
-                            }
-                        }
-                    }
-                }
-            }
-            if (pollingObj.get("typeName").equals(SiriDataType.SITUATION_EXCHANGE.name())) {
-                JSONArray pollingArray = (JSONArray) pollingObj.get("polling");
-                for (Object obj : sxPolling) {
-                    JSONObject value = (JSONObject) obj;
-                    if (value.get("typeName").equals(SiriDataType.SITUATION_EXCHANGE.name())) {
-                        for (Object pollingClient : (JSONArray) value.get("polling")) {
-                            if (!pollingArray.contains(pollingClient)) {
-                                pollingArray.add(pollingClient);
-                            }
-                        }
-                    }
-                }
-            }
-            if (pollingObj.get("typeName").equals(SiriDataType.FACILITY_MONITORING.name())) {
-                JSONArray pollingArray = (JSONArray) pollingObj.get("polling");
-                for (Object obj : fmPolling) {
-                    JSONObject value = (JSONObject) obj;
-                    if (value.get("typeName").equals(SiriDataType.FACILITY_MONITORING.name())) {
-                        for (Object pollingClient : (JSONArray) value.get("polling")) {
-                            if (!pollingArray.contains(pollingClient)) {
-                                pollingArray.add(pollingClient);
-                            }
-                        }
-                    }
-                }
+            JSONArray remote = remoteByType.get(typeName);
+            if (remote != null) {
+                // LinkedHashSet deduplicates in O(1) per element while preserving insertion order
+                Set<Object> seen = new LinkedHashSet<>(pollingArray);
+                seen.addAll(remote);
+                pollingArray.clear();
+                pollingArray.addAll(seen);
             }
         }
+    }
+
+    private static JSONArray extractPollingForType(JSONObject stats, SiriDataType type) {
+        if (stats == null) {
+            return new JSONArray();
+        }
+        JSONArray pollingTypes = (JSONArray) stats.get("polling");
+        if (pollingTypes == null) {
+            return new JSONArray();
+        }
+        for (Object o : pollingTypes) {
+            JSONObject obj = (JSONObject) o;
+            if (type.name().equals(obj.get("typeName"))) {
+                return (JSONArray) obj.get("polling");
+            }
+        }
+        return new JSONArray();
     }
 }
 class DataCounter {

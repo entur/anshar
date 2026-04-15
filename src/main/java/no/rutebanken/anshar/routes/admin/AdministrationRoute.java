@@ -30,17 +30,26 @@ import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.camel.Exchange;
 import org.apache.commons.lang3.StringUtils;
 import org.json.simple.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 
 import java.net.InetAddress;
+import java.net.URI;
 import java.net.UnknownHostException;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 import static no.rutebanken.anshar.routes.admin.AdminRouteHelper.mergeJsonStats;
@@ -50,6 +59,8 @@ import static no.rutebanken.anshar.routes.policy.SingletonRoutePolicyFactory.DEF
 @Service
 @Configuration
 public class AdministrationRoute extends RestRouteBuilder {
+
+    private static final Logger logger = LoggerFactory.getLogger(AdministrationRoute.class);
 
     private static final String STATS_ROUTE = "direct:stats";
     private static final String INTERNAL_STATS_ROUTE = "direct:internal.stats";
@@ -87,6 +98,14 @@ public class AdministrationRoute extends RestRouteBuilder {
 
     @Autowired
     private BasicAuthService basicAuthProcessor;
+
+    private final HttpClient statsHttpClient = HttpClient.newHttpClient();
+    private final ExecutorService statsExecutor = Executors.newFixedThreadPool(4,
+            r -> {
+                Thread t = new Thread(r, "stats-fetcher");
+                t.setDaemon(true);
+                return t;
+            });
 
     @Override
     public void configure() throws Exception {
@@ -179,25 +198,27 @@ public class AdministrationRoute extends RestRouteBuilder {
                     .process(basicAuthProcessor)
                     .setHeader(HttpHeaders.CONTENT_TYPE, simple(MediaType.APPLICATION_JSON))
                     .to(INTERNAL_STATS_ROUTE)
-                    .removeHeader(HttpHeaders.CONTENT_TYPE)
                     .setProperty("proxy-stats", body())
-                    .toD(vmHandlerBaseUrl + "/anshar/internalstats?bridgeEndpoint=true")
-                    .setProperty("vm-stats", body().convertTo(String.class))
-                    .toD(etHandlerBaseUrl + "/anshar/internalstats?bridgeEndpoint=true")
-                    .setProperty("et-stats", body().convertTo(String.class))
-                    .toD(sxHandlerBaseUrl + "/anshar/internalstats?bridgeEndpoint=true")
-                    .setProperty("sx-stats", body().convertTo(String.class))
-                    .toD(fmHandlerBaseUrl + "/anshar/internalstats?bridgeEndpoint=true")
-                    .setProperty("fm-stats", body().convertTo(String.class))
                     .process(p -> {
-                        JSONObject body = mergeJsonStats(
-                                p.getProperty("proxy-stats", String.class),
-                                p.getProperty("vm-stats", String.class),
-                                p.getProperty("et-stats", String.class),
-                                p.getProperty("sx-stats", String.class),
-                                p.getProperty("fm-stats", String.class)
-                        );
-                        p.getMessage().setBody(body);
+                        // Fetch all 4 data-handler pods in parallel instead of sequentially
+                        CompletableFuture<String> vmFuture = CompletableFuture.supplyAsync(
+                                () -> fetchHandlerStats(vmHandlerBaseUrl), statsExecutor);
+                        CompletableFuture<String> etFuture = CompletableFuture.supplyAsync(
+                                () -> fetchHandlerStats(etHandlerBaseUrl), statsExecutor);
+                        CompletableFuture<String> sxFuture = CompletableFuture.supplyAsync(
+                                () -> fetchHandlerStats(sxHandlerBaseUrl), statsExecutor);
+                        CompletableFuture<String> fmFuture = CompletableFuture.supplyAsync(
+                                () -> fetchHandlerStats(fmHandlerBaseUrl), statsExecutor);
+                        try {
+                            CompletableFuture.allOf(vmFuture, etFuture, sxFuture, fmFuture).join();
+                            JSONObject body = mergeJsonStats(
+                                    p.getProperty("proxy-stats", String.class),
+                                    vmFuture.get(), etFuture.get(), sxFuture.get(), fmFuture.get()
+                            );
+                            p.getMessage().setBody(body);
+                        } catch (Exception e) {
+                            throw new RuntimeException("Failed to fetch handler stats", e);
+                        }
                     })
                     .to("direct:removeHeaders")
                     .setHeader(HttpHeaders.CONTENT_TYPE, simple(MediaType.TEXT_HTML))
@@ -485,5 +506,18 @@ public class AdministrationRoute extends RestRouteBuilder {
                 .bean(helper, "listClusterStats")
                 .routeId("admin.clusterstats")
         ;
+    }
+
+    private String fetchHandlerStats(String baseUrl) {
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(baseUrl + "/anshar/internalstats"))
+                    .GET()
+                    .build();
+            return statsHttpClient.send(request, HttpResponse.BodyHandlers.ofString()).body();
+        } catch (Exception e) {
+            logger.warn("Failed to fetch stats from {}: {}", baseUrl, e.getMessage());
+            return "{}";
+        }
     }
 }

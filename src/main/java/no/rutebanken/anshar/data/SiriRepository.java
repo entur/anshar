@@ -522,6 +522,15 @@ abstract class SiriRepository<T> {
     }
 
     /**
+     * @return Map of dataset sizes using the local cache (avoids distributed keySet scan)
+     */
+    public Map<String, Integer> getCachedDatasetSize() {
+        Map<String, Integer> sizeMap = new HashMap<>();
+        cache.keySet().forEach(key -> sizeMap.merge(key.getCodespaceId(), 1, Integer::sum));
+        return sizeMap;
+    }
+
+    /**
      * @return Map of local dataset sizes
      */
     public Map<String, Integer> getLocalDatasetSize() {

@@ -311,7 +311,16 @@ public class SubscriptionManager {
     public Boolean isSubscriptionHealthy(String subscriptionId) {
         return isSubscriptionHealthy(subscriptionId, HEALTHCHECK_INTERVAL_FACTOR);
     }
+
+    private Boolean isSubscriptionHealthy(String subscriptionId, BulkSubscriptionData bulkData) {
+        return isSubscriptionHealthy(subscriptionId, HEALTHCHECK_INTERVAL_FACTOR, bulkData.activatedTimestamps.get(subscriptionId));
+    }
+
     private Boolean isSubscriptionHealthy(String subscriptionId, int healthCheckIntervalFactor) {
+        return isSubscriptionHealthy(subscriptionId, healthCheckIntervalFactor, activatedTimestamp.get(subscriptionId));
+    }
+
+    private Boolean isSubscriptionHealthy(String subscriptionId, int healthCheckIntervalFactor, Instant activated) {
         Instant instant = lastActivity.get(subscriptionId);
 
         if (instant == null) {
@@ -340,7 +349,6 @@ public class SubscriptionManager {
                 //Only actual subscriptions have an expiration - NOT request/response-"subscriptions"
 
                 //If active subscription has existed longer than "initial subscription duration" - restart
-                Instant activated = activatedTimestamp.get(subscriptionId);
                 if (activated != null) {
                     if (activeSubscription.getRestartTime() != null && activeSubscription.getRestartTime().contains(":")) {
                         // Allowing subscriptions to be restarted at specified time
@@ -369,41 +377,37 @@ public class SubscriptionManager {
         JSONObject result = new JSONObject();
         JSONArray stats = new JSONArray();
 
+        // Bulk-fetch all IMap data once before iterating subscriptions.
+        // activatedTimestamp, hitcount, objectCounter and receivedBytes are distributed
+        // IMaps — each individual .get() is a network round-trip. Fetching all keys at
+        // once reduces N×4 network calls to 4 calls regardless of subscription count.
+        Set<String> allIds = new HashSet<>(this.subscriptions.keySet());
+        BulkSubscriptionData bulkData = new BulkSubscriptionData(
+                activatedTimestamp.getAll(allIds),
+                hitcount.getAll(allIds),
+                objectCounter.getAll(allIds),
+                receivedBytes.getAll(allIds)
+        );
+
+        // Single pass: group all subscriptions by type, mapping each to its JSON object.
+        Map<SiriDataType, List<JSONObject>> subscriptionsByType = this.subscriptions.values().stream()
+                .collect(Collectors.groupingBy(
+                        SubscriptionSetup::getSubscriptionType,
+                        Collectors.mapping(
+                                setup -> getJsonObject(setup, bulkData),
+                                Collectors.filtering(Objects::nonNull, Collectors.toList())
+                        )
+                ));
+        logger.debug("Built subscription stats");
+
         JSONArray etSubscriptions = new JSONArray();
-        etSubscriptions.addAll(this.subscriptions.values().stream()
-                .filter(subscriptionSetup -> subscriptionSetup.getSubscriptionType() == ESTIMATED_TIMETABLE)
-                .map(this::getJsonObject)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList())
-        );
-        logger.debug("Built ET stats");
-
+        etSubscriptions.addAll(subscriptionsByType.getOrDefault(ESTIMATED_TIMETABLE, List.of()));
         JSONArray vmSubscriptions = new JSONArray();
-        vmSubscriptions.addAll(this.subscriptions.values().stream()
-                .filter(subscriptionSetup -> subscriptionSetup.getSubscriptionType() == VEHICLE_MONITORING)
-                .map(this::getJsonObject)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList())
-        );
-        logger.debug("Built VM stats");
-
+        vmSubscriptions.addAll(subscriptionsByType.getOrDefault(VEHICLE_MONITORING, List.of()));
         JSONArray sxSubscriptions = new JSONArray();
-        sxSubscriptions.addAll(this.subscriptions.values().stream()
-                .filter(subscriptionSetup -> subscriptionSetup.getSubscriptionType() == SITUATION_EXCHANGE)
-                .map(this::getJsonObject)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList())
-        );
-        logger.debug("Built SX stats");
-
+        sxSubscriptions.addAll(subscriptionsByType.getOrDefault(SITUATION_EXCHANGE, List.of()));
         JSONArray fmSubscriptions = new JSONArray();
-        fmSubscriptions.addAll(this.subscriptions.values().stream()
-                .filter(subscriptionSetup -> subscriptionSetup.getSubscriptionType() == FACILITY_MONITORING)
-                .map(this::getJsonObject)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList())
-        );
-        logger.debug("Built FM stats");
+        fmSubscriptions.addAll(subscriptionsByType.getOrDefault(FACILITY_MONITORING, List.of()));
 
         JSONObject etType = new JSONObject();
         etType.put("typeName", ""+ ESTIMATED_TIMETABLE);
@@ -458,13 +462,13 @@ public class SubscriptionManager {
         JSONObject count = new JSONObject();
 
         logger.debug("Getting dataset sizes");
-        Map<String, Integer> etDatasetSize = et.getDatasetSize();
+        Map<String, Integer> etDatasetSize = et.getCachedDatasetSize();
         logger.debug("Got ET size");
-        Map<String, Integer> vmDatasetSize = vm.getDatasetSize();
+        Map<String, Integer> vmDatasetSize = vm.getCachedDatasetSize();
         logger.debug("Got VM size");
-        Map<String, Integer> sxDatasetSize = sx.getDatasetSize();
+        Map<String, Integer> sxDatasetSize = sx.getCachedDatasetSize();
         logger.debug("Got SX size");
-        Map<String, Integer> fmDatasetSize = fm.getDatasetSize();
+        Map<String, Integer> fmDatasetSize = fm.getCachedDatasetSize();
         logger.debug("Got FM size");
 
         count.put("sx", sxDatasetSize.values().stream().mapToInt(Number::intValue).sum());
@@ -484,10 +488,11 @@ public class SubscriptionManager {
 
     private JSONArray getIdAndCount(Map<String, Set<SiriObjectStorageKey>> map, SiriDataType dataType) {
         JSONArray count = new JSONArray();
-        for (String key : map.keySet()) {
+        for (Map.Entry<String, Set<SiriObjectStorageKey>> entry : map.entrySet()) {
+            String key = entry.getKey();
             JSONObject keyValue = new JSONObject();
             keyValue.put("id", key);
-            keyValue.put("count", map.getOrDefault(key, new HashSet<>()).size());
+            keyValue.put("count", entry.getValue() != null ? entry.getValue().size() : 0);
 
             RequestorRefStats stats = requestorRefRepository.getStats(key, dataType);
             String clientTrackingName = "";
@@ -560,6 +565,72 @@ public class SubscriptionManager {
         return etDatasetCount;
     }
 
+    /**
+     * Holds pre-fetched data from distributed IMaps to avoid N individual network
+     * round-trips when building stats for many subscriptions.
+     */
+    private static class BulkSubscriptionData {
+        final Map<String, Instant> activatedTimestamps;
+        final Map<String, Integer> hitcounts;
+        final Map<String, BigInteger> objectCounts;
+        final Map<String, Long> receivedBytesMap;
+
+        BulkSubscriptionData(
+                Map<String, Instant> activatedTimestamps,
+                Map<String, Integer> hitcounts,
+                Map<String, BigInteger> objectCounts,
+                Map<String, Long> receivedBytesMap
+        ) {
+            this.activatedTimestamps = activatedTimestamps;
+            this.hitcounts = hitcounts;
+            this.objectCounts = objectCounts;
+            this.receivedBytesMap = receivedBytesMap;
+        }
+    }
+
+    /**
+     * Builds a JSON object for a subscription using pre-fetched IMap data.
+     * Used by buildStats() to avoid per-subscription distributed map lookups.
+     */
+    private JSONObject getJsonObject(SubscriptionSetup setup, BulkSubscriptionData bulkData) {
+        if (setup == null) {
+            return null;
+        }
+        String id = setup.getSubscriptionId();
+        JSONObject obj = setup.toJSON();
+        obj.put("activated", formatTimestamp(bulkData.activatedTimestamps.get(id)));
+        obj.put("lastActivity", formatTimestamp(lastActivity.get(id)));
+        obj.put("lastDataReceived", formatTimestamp(dataReceived.get(id)));
+        if (!setup.isActive()) {
+            obj.put("status", "deactivated");
+            obj.put("healthy", null);
+            obj.put("flagAsNotReceivingData", false);
+        } else {
+            obj.put("status", "active");
+            obj.put("healthy", isSubscriptionHealthy(id, bulkData));
+            Instant lastDataReceived = dataReceived.get(id);
+            obj.put("flagAsNotReceivingData", lastDataReceived != null && lastDataReceived.isBefore(Instant.now().minusSeconds(1800)));
+        }
+        obj.put("hitcount", bulkData.hitcounts.get(id));
+        obj.put("objectcount", bulkData.objectCounts.get(id));
+
+        Long byteCount = bulkData.receivedBytesMap.get(id);
+        obj.put("bytecount", byteCount);
+        obj.put("bytecountLabel", byteCount != null ? FileUtils.byteCountToDisplaySize(byteCount) : null);
+
+        JSONObject urllist = new JSONObject();
+        for (RequestType s : setup.getUrlMap().keySet()) {
+            urllist.put(s.name(), setup.getUrlMap().get(s));
+        }
+        obj.put("urllist", urllist);
+        obj.put("validationUrl", configuration.getInboundUrl() + "validation/" + setup.getDatasetId());
+
+        return obj;
+    }
+
+    /**
+     * Original single-subscription variant — still used by getSubscriptionsForCodespace().
+     */
     private JSONObject getJsonObject(SubscriptionSetup setup) {
         if (setup == null) {
             return null;
