@@ -194,7 +194,6 @@ public class MessagingRoute extends RestRouteBuilder {
                 .endChoice()
                 .end()
                 .to("direct:process.mapping")
-                .to("direct:format.xml")
                 .to("direct:clear.mdc.subscriptionId")
         ;
 
