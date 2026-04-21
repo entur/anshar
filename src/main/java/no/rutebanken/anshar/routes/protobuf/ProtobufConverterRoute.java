@@ -4,6 +4,8 @@ import no.rutebanken.anshar.data.collections.KryoSerializer;
 import org.apache.camel.builder.RouteBuilder;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
+
 import static org.apache.camel.Exchange.CONTENT_LENGTH;
 
 @Service
@@ -21,7 +23,7 @@ public class ProtobufConverterRoute extends RouteBuilder {
                     final String body = fixEncodingErrorsInXml(p.getIn().getBody(String.class), p.getIn().getHeader("subscriptionId", String.class));
                     p.getOut().setBody(body);
                     p.getOut().setHeaders(p.getIn().getHeaders());
-                    p.getOut().setHeader(CONTENT_LENGTH, body.getBytes().length);
+                    p.getOut().setHeader(CONTENT_LENGTH, body.getBytes(StandardCharsets.UTF_8).length);
                 })
                 .bean(kryoSerializer, "write")
         ;

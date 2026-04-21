@@ -12,6 +12,7 @@ import no.rutebanken.anshar.subscription.SiriDataType;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.apache.camel.Exchange;
+import org.apache.camel.LoggingLevel;
 import org.apache.camel.Predicate;
 import org.apache.camel.Processor;
 import org.apache.camel.component.google.pubsub.GooglePubsubConstants;
@@ -226,7 +227,7 @@ public class MessagingRoute extends RestRouteBuilder {
                     .to("direct:set.mdc.subscriptionId")
                     .choice()
                         .when(readFromPubsub)
-                            .log("Processing data from " + pubsubQueueSX)
+                            .log(LoggingLevel.DEBUG, "Processing data from " + pubsubQueueSX)
                             .to("direct:decompress.jaxb")
                             .to("direct:" + CamelRouteNames.PROCESSOR_QUEUE_DEFAULT)
                         .otherwise()
@@ -243,7 +244,7 @@ public class MessagingRoute extends RestRouteBuilder {
                     .to("direct:set.mdc.subscriptionId")
                     .choice()
                         .when(readFromPubsub)
-                            .log("Processing data from " + pubsubQueueVM)
+                            .log(LoggingLevel.DEBUG, "Processing data from " + pubsubQueueVM)
                             .to("direct:decompress.jaxb")
                             .to("direct:" + CamelRouteNames.PROCESSOR_QUEUE_DEFAULT)
                         .otherwise()
@@ -260,7 +261,7 @@ public class MessagingRoute extends RestRouteBuilder {
                     .to("direct:set.mdc.subscriptionId")
                     .choice()
                         .when(readFromPubsub)
-                            .log("Processing data from " + pubsubQueueET)
+                            .log(LoggingLevel.DEBUG, "Processing data from " + pubsubQueueET)
                             .to("direct:decompress.jaxb")
                             .to("direct:" + CamelRouteNames.PROCESSOR_QUEUE_DEFAULT)
                         .otherwise()
@@ -277,7 +278,7 @@ public class MessagingRoute extends RestRouteBuilder {
                     .to("direct:set.mdc.subscriptionId")
                     .choice()
                         .when(readFromPubsub)
-                            .log("Processing data from " + pubsubQueueFM)
+                            .log(LoggingLevel.DEBUG, "Processing data from " + pubsubQueueFM)
                             .to("direct:decompress.jaxb")
                             .to("direct:" + CamelRouteNames.PROCESSOR_QUEUE_DEFAULT)
                         .otherwise()
