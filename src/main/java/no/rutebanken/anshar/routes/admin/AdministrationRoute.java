@@ -464,11 +464,7 @@ public class AdministrationRoute extends RestRouteBuilder {
             .log("Triggered to prepare for shutdown")
                 .process(p -> {
                     helper.shutdownTriggered = true;
-
-//                    final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
-//
-//                    executorService.schedule(() -> getContext().shutdown(), 500, TimeUnit.MILLISECONDS);
-
+                    helper.stopConsumerRoutes();
                 })
                 .routeId("admin.prepare.shutdown")
         ;

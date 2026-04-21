@@ -23,6 +23,7 @@ import no.rutebanken.anshar.data.collections.ExtendedHazelcastService;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
+import org.apache.camel.CamelContext;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -30,6 +31,8 @@ import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.stereotype.Component;
 import uk.org.siri.siri21.DefaultedTextStructure;
 import uk.org.siri.siri21.HalfOpenTimestampOutputRangeStructure;
@@ -43,10 +46,21 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 @Component
-public class AdminRouteHelper {
+public class AdminRouteHelper implements ApplicationListener<ContextClosedEvent> {
     private final Logger logger = LoggerFactory.getLogger(AdminRouteHelper.class);
+
+    private static final List<String> PUBSUB_CONSUMER_ROUTE_IDS = List.of(
+            "incoming.transform.vm",
+            "incoming.transform.et",
+            "incoming.transform.sx",
+            "incoming.transform.fm"
+    );
+
+    @Autowired
+    private CamelContext camelContext;
 
     @Autowired
     private SubscriptionManager subscriptionManager;
@@ -176,6 +190,30 @@ public class AdminRouteHelper {
 
     public boolean isNotShuttingDown() {
         return !shutdownTriggered;
+    }
+
+    /**
+     * Fires early in Spring shutdown (before @PreDestroy and before Camel's SmartLifecycle.stop()),
+     * giving us a window to stop Pub/Sub consumers cleanly while Hazelcast is still running.
+     */
+    @Override
+    public void onApplicationEvent(ContextClosedEvent event) {
+        logger.info("Spring context closing - initiating graceful Pub/Sub consumer shutdown");
+        shutdownTriggered = true;
+        stopConsumerRoutes();
+    }
+
+    public void stopConsumerRoutes() {
+        for (String routeId : PUBSUB_CONSUMER_ROUTE_IDS) {
+            try {
+                if (camelContext.getRoute(routeId) != null) {
+                    camelContext.getRouteController().stopRoute(routeId, 10, TimeUnit.SECONDS);
+                    logger.info("Stopped Pub/Sub consumer route: {}", routeId);
+                }
+            } catch (Exception e) {
+                logger.warn("Failed to stop route {}: {}", routeId, e.getMessage());
+            }
+        }
     }
 
     public Map<String, String> getAllLocks() {
