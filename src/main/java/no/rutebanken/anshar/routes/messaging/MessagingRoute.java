@@ -63,12 +63,12 @@ public class MessagingRoute extends RestRouteBuilder {
         final String pubsubQueueET = messageQueueCamelRoutePrefix + CamelRouteNames.TRANSFORM_QUEUE_ET;
         final String pubsubQueueDefault = messageQueueCamelRoutePrefix + CamelRouteNames.TRANSFORM_QUEUE_DEFAULT;
 
-        final boolean isDirectQueue = messageQueueCamelRoutePrefix.contains("direct");
+        final boolean isPubsub = !messageQueueCamelRoutePrefix.startsWith("direct");
 
-        final String queueConsumerParametersEt = isDirectQueue ? "" : "?concurrentConsumers=" + configuration.getConcurrentConsumersEt();
-        final String queueConsumerParametersVm = isDirectQueue ? "" : "?concurrentConsumers=" + configuration.getConcurrentConsumersVm();
-        final String queueConsumerParametersSx = isDirectQueue ? "" : "?concurrentConsumers=" + configuration.getConcurrentConsumersSx();
-        final String queueConsumerParametersFm = isDirectQueue ? "" : "?concurrentConsumers=" + configuration.getConcurrentConsumersFm();
+        final String queueConsumerParametersEt = isPubsub ? "?concurrentConsumers=" + configuration.getConcurrentConsumersEt() : "";
+        final String queueConsumerParametersVm = isPubsub ? "?concurrentConsumers=" + configuration.getConcurrentConsumersVm() : "";
+        final String queueConsumerParametersSx = isPubsub ? "?concurrentConsumers=" + configuration.getConcurrentConsumersSx() : "";
+        final String queueConsumerParametersFm = isPubsub ? "?concurrentConsumers=" + configuration.getConcurrentConsumersFm() : "";
 
         // Processors that handles conversion between Camel headers and Google Pubsub Attributes
         Processor convertAttributesToHeaders = exchange ->  {
