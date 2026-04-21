@@ -57,18 +57,18 @@ public class MessagingRoute extends RestRouteBuilder {
 
         String messageQueueCamelRoutePrefix = configuration.getMessageQueueCamelRoutePrefix();
 
-        String queueConsumerParameters = "?concurrentConsumers="+configuration.getConcurrentConsumers();
-
-
         final String pubsubQueueSX = messageQueueCamelRoutePrefix + CamelRouteNames.TRANSFORM_QUEUE_SX;
         final String pubsubQueueFM = messageQueueCamelRoutePrefix + CamelRouteNames.TRANSFORM_QUEUE_FM;
         final String pubsubQueueVM = messageQueueCamelRoutePrefix + CamelRouteNames.TRANSFORM_QUEUE_VM;
         final String pubsubQueueET = messageQueueCamelRoutePrefix + CamelRouteNames.TRANSFORM_QUEUE_ET;
         final String pubsubQueueDefault = messageQueueCamelRoutePrefix + CamelRouteNames.TRANSFORM_QUEUE_DEFAULT;
 
-        if (messageQueueCamelRoutePrefix.contains("direct")) {
-            queueConsumerParameters = "";
-        }
+        final boolean isDirectQueue = messageQueueCamelRoutePrefix.contains("direct");
+
+        final String queueConsumerParametersEt = isDirectQueue ? "" : "?concurrentConsumers=" + configuration.getConcurrentConsumersEt();
+        final String queueConsumerParametersVm = isDirectQueue ? "" : "?concurrentConsumers=" + configuration.getConcurrentConsumersVm();
+        final String queueConsumerParametersSx = isDirectQueue ? "" : "?concurrentConsumers=" + configuration.getConcurrentConsumersSx();
+        final String queueConsumerParametersFm = isDirectQueue ? "" : "?concurrentConsumers=" + configuration.getConcurrentConsumersFm();
 
         // Processors that handles conversion between Camel headers and Google Pubsub Attributes
         Processor convertAttributesToHeaders = exchange ->  {
@@ -210,7 +210,7 @@ public class MessagingRoute extends RestRouteBuilder {
         Predicate readFromPubsub = exchange -> adminRouteHelper.isNotShuttingDown();
 
         if (configuration.processSX()) {
-            from(pubsubQueueSX + queueConsumerParameters)
+            from(pubsubQueueSX + queueConsumerParametersSx)
                     .process(convertAttributesToHeaders)
                     .to("direct:set.mdc.subscriptionId")
                     .choice()
@@ -227,7 +227,7 @@ public class MessagingRoute extends RestRouteBuilder {
         }
 
         if (configuration.processVM()) {
-            from(pubsubQueueVM + queueConsumerParameters)
+            from(pubsubQueueVM + queueConsumerParametersVm)
                     .process(convertAttributesToHeaders)
                     .to("direct:set.mdc.subscriptionId")
                     .choice()
@@ -244,7 +244,7 @@ public class MessagingRoute extends RestRouteBuilder {
         }
 
         if (configuration.processET()) {
-            from(pubsubQueueET + queueConsumerParameters)
+            from(pubsubQueueET + queueConsumerParametersEt)
                     .process(convertAttributesToHeaders)
                     .to("direct:set.mdc.subscriptionId")
                     .choice()
@@ -261,7 +261,7 @@ public class MessagingRoute extends RestRouteBuilder {
         }
 
         if (configuration.processFM()) {
-            from(pubsubQueueFM + queueConsumerParameters)
+            from(pubsubQueueFM + queueConsumerParametersFm)
                     .process(convertAttributesToHeaders)
                     .to("direct:set.mdc.subscriptionId")
                     .choice()

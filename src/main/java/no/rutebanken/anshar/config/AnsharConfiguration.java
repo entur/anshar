@@ -42,6 +42,18 @@ public class AnsharConfiguration {
     @Value("${anshar.incoming.concurrentConsumers}")
     private long concurrentConsumers;
 
+    @Value("${anshar.incoming.concurrentConsumers.et:${anshar.incoming.concurrentConsumers}}")
+    private long concurrentConsumersEt;
+
+    @Value("${anshar.incoming.concurrentConsumers.vm:${anshar.incoming.concurrentConsumers}}")
+    private long concurrentConsumersVm;
+
+    @Value("${anshar.incoming.concurrentConsumers.sx:${anshar.incoming.concurrentConsumers}}")
+    private long concurrentConsumersSx;
+
+    @Value("${anshar.incoming.concurrentConsumers.fm:${anshar.incoming.concurrentConsumers}}")
+    private long concurrentConsumersFm;
+
     @Value("${anshar.incoming.logdirectory}")
     private String incomingLogDirectory = "/tmp";
 
@@ -158,6 +170,22 @@ public class AnsharConfiguration {
 
     public long getConcurrentConsumers() {
         return concurrentConsumers;
+    }
+
+    public long getConcurrentConsumersEt() {
+        return concurrentConsumersEt;
+    }
+
+    public long getConcurrentConsumersVm() {
+        return concurrentConsumersVm;
+    }
+
+    public long getConcurrentConsumersSx() {
+        return concurrentConsumersSx;
+    }
+
+    public long getConcurrentConsumersFm() {
+        return concurrentConsumersFm;
     }
 
     public String getEnvironment() {
