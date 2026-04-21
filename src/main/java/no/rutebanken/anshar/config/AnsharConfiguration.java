@@ -39,9 +39,6 @@ public class AnsharConfiguration {
     @Value("${anshar.incoming.port}")
     private String inboundPort;
 
-    @Value("${anshar.incoming.concurrentConsumers}")
-    private long concurrentConsumers;
-
     @Value("${anshar.incoming.concurrentConsumers.et:${anshar.incoming.concurrentConsumers}}")
     private long concurrentConsumersEt;
 
@@ -53,9 +50,6 @@ public class AnsharConfiguration {
 
     @Value("${anshar.incoming.concurrentConsumers.fm:${anshar.incoming.concurrentConsumers}}")
     private long concurrentConsumersFm;
-
-    @Value("${anshar.incoming.parallelPullCount:1}")
-    private int parallelPullCount;
 
     @Value("${anshar.incoming.logdirectory}")
     private String incomingLogDirectory = "/tmp";
@@ -171,10 +165,6 @@ public class AnsharConfiguration {
         return incomingPathPattern;
     }
 
-    public long getConcurrentConsumers() {
-        return concurrentConsumers;
-    }
-
     public long getConcurrentConsumersEt() {
         return concurrentConsumersEt;
     }
@@ -190,8 +180,6 @@ public class AnsharConfiguration {
     public long getConcurrentConsumersFm() {
         return concurrentConsumersFm;
     }
-
-    public int getParallelPullCount() { return parallelPullCount; }
 
     public String getEnvironment() {
         return environment;
