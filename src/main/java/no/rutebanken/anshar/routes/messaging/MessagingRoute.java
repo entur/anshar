@@ -182,8 +182,19 @@ public class MessagingRoute extends RestRouteBuilder {
                     .to("xslt-saxon:xsl/siri_14_20.xsl?allowStAX=false&resultHandlerFactory=#streamResultHandlerFactory") // Convert from v1.4 to 2.0
                 .endChoice()
                 .end()
+                .choice()
+                    .when(exchange -> {
+                        if (configuration.isFullValidationEnabled()) {
+                            return true;
+                        }
+                        SubscriptionSetup setup = subscriptionManager.get(
+                            exchange.getIn().getHeader("subscriptionId", String.class));
+                        return setup != null && setup.isValidation();
+                    })
+                    .to("direct:format.xml")
+                .endChoice()
+                .end()
                 .to("direct:process.mapping")
-                .to("direct:format.xml")
                 .to("direct:clear.mdc.subscriptionId")
         ;
 
