@@ -54,6 +54,9 @@ public class AnsharConfiguration {
     @Value("${anshar.incoming.concurrentConsumers.fm:${anshar.incoming.concurrentConsumers}}")
     private long concurrentConsumersFm;
 
+    @Value("${anshar.incoming.parallelPullCount:1}")
+    private int parallelPullCount;
+
     @Value("${anshar.incoming.logdirectory}")
     private String incomingLogDirectory = "/tmp";
 
@@ -187,6 +190,8 @@ public class AnsharConfiguration {
     public long getConcurrentConsumersFm() {
         return concurrentConsumersFm;
     }
+
+    public int getParallelPullCount() { return parallelPullCount; }
 
     public String getEnvironment() {
         return environment;
