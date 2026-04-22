@@ -463,8 +463,8 @@ public class AdministrationRoute extends RestRouteBuilder {
         from("direct:prepare-shutdown")
             .log("Triggered to prepare for shutdown")
                 .process(p -> {
-                    helper.shutdownTriggered = true;
                     helper.stopConsumerRoutes();
+                    helper.shutdownTriggered = true;
                 })
                 .routeId("admin.prepare.shutdown")
         ;

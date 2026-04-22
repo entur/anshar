@@ -195,12 +195,15 @@ public class AdminRouteHelper implements ApplicationListener<ContextClosedEvent>
     /**
      * Fires early in Spring shutdown (before @PreDestroy and before Camel's SmartLifecycle.stop()),
      * giving us a window to stop Pub/Sub consumers cleanly while Hazelcast is still running.
+     *
+     * Routes are stopped first so in-flight messages drain normally (acked) rather than being
+     * NACKed by the shutdownTriggered check, which would cause a Pub/Sub unacked-message spike.
      */
     @Override
     public void onApplicationEvent(ContextClosedEvent event) {
         logger.info("Spring context closing - initiating graceful Pub/Sub consumer shutdown");
-        shutdownTriggered = true;
         stopConsumerRoutes();
+        shutdownTriggered = true;
     }
 
     public void stopConsumerRoutes() {
