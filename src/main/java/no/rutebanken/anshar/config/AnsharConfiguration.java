@@ -39,16 +39,16 @@ public class AnsharConfiguration {
     @Value("${anshar.incoming.port}")
     private String inboundPort;
 
-    @Value("${anshar.incoming.concurrentConsumers.et:${anshar.incoming.concurrentConsumers}}")
+    @Value("${anshar.incoming.concurrentConsumers.et:5}")
     private long concurrentConsumersEt;
 
-    @Value("${anshar.incoming.concurrentConsumers.vm:${anshar.incoming.concurrentConsumers}}")
+    @Value("${anshar.incoming.concurrentConsumers.vm:5}")
     private long concurrentConsumersVm;
 
-    @Value("${anshar.incoming.concurrentConsumers.sx:${anshar.incoming.concurrentConsumers}}")
+    @Value("${anshar.incoming.concurrentConsumers.sx:1}")
     private long concurrentConsumersSx;
 
-    @Value("${anshar.incoming.concurrentConsumers.fm:${anshar.incoming.concurrentConsumers}}")
+    @Value("${anshar.incoming.concurrentConsumers.fm:1}")
     private long concurrentConsumersFm;
 
     @Value("${anshar.incoming.logdirectory}")
