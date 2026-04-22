@@ -184,7 +184,7 @@ public class SubscriptionManager {
 
         boolean success = (setup != null);
 
-        logger.info("Touched subscription {}, success:{}", setup, success);
+        logger.debug("Touched subscription {}, success:{}", setup, success);
         if (success) {
             lastActivity.put(subscriptionId, Instant.now());
         }

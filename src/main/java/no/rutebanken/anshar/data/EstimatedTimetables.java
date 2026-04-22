@@ -758,7 +758,12 @@ public class EstimatedTimetables extends SiriRepository<EstimatedVehicleJourney>
 
         });
 
-        logger.info("Updated {} (of {}), {} outdated, {} without changes, {} too far ahead.", changes.size(), etList.size(), outdatedCounter.get(), notUpdatedCounter.get(), tooFarAheadCounter.get());
+        if (changes.size() == etList.size()) {
+            // ignore details if everything is updated
+            logger.info("Updated {} (of {})", changes.size(), etList.size());
+        } else {
+            logger.info("Updated {} (of {}), {} outdated, {} without changes, {} too far ahead.", changes.size(), etList.size(), outdatedCounter.get(), notUpdatedCounter.get(), tooFarAheadCounter.get());
+        }
 
         markDataReceived(SiriDataType.ESTIMATED_TIMETABLE, datasetId, etList.size(), changes.size(), outdatedCounter.get(), notUpdatedCounter.get() + tooFarAheadCounter.get());
         TimingTracer timingTracer = new TimingTracer("all-et [" + changes.size() + " changes]");

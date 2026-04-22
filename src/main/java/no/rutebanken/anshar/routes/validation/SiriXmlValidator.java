@@ -236,9 +236,11 @@ public class SiriXmlValidator extends ApplicationContextHolder {
                 });
             }
 
-            long parseDone = System.currentTimeMillis();
-
-            logger.info("Parsing and validating XML took {} ms ", parseDone-parseStart);
+            long elapsed = System.currentTimeMillis() - parseStart;
+            if (elapsed >= 10) {
+                // only log when slower than expected
+                logger.info("Parsing and validating XML took {} ms ", elapsed);
+            }
 
             return siri;
         } catch (XMLStreamException e) {

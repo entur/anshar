@@ -172,13 +172,13 @@ public class MessagingRoute extends RestRouteBuilder {
                 .to("direct:set.mdc.subscriptionId")
                 .choice()
                     .when(header(TRANSFORM_SOAP).isEqualTo(simple(TRANSFORM_SOAP)))
-                    .log("Transforming SOAP")
+                    .log(LoggingLevel.DEBUG, "Transforming SOAP")
                     .to("xslt-saxon:xsl/siri_soap_raw.xsl?allowStAX=false&resultHandlerFactory=#streamResultHandlerFactory") // Extract SOAP version and convert to raw SIRI
                 .endChoice()
                 .end()
                 .choice()
                     .when(header(TRANSFORM_VERSION).isEqualTo(simple(TRANSFORM_VERSION)))
-                    .log("Transforming version")
+                    .log(LoggingLevel.DEBUG, "Transforming version")
                     .to("xslt-saxon:xsl/siri_14_20.xsl?allowStAX=false&resultHandlerFactory=#streamResultHandlerFactory") // Convert from v1.4 to 2.0
                 .endChoice()
                 .end()
