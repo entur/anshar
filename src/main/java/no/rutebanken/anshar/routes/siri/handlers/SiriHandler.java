@@ -376,7 +376,7 @@ public class SiriHandler {
                 subscriptionManager.touchSubscription(subscriptionId);
                 logger.info("Heartbeat - {}", subscriptionSetup);
             } else if (incoming.getCheckStatusResponse() != null) {
-                logger.info("Incoming CheckStatusResponse [{}], reporting ServiceStartedTime: {}", subscriptionSetup, incoming.getCheckStatusResponse().getServiceStartedTime());
+                logger.info("Incoming CheckStatusResponse {}, reporting ServiceStartedTime: {}", subscriptionSetup, incoming.getCheckStatusResponse().getServiceStartedTime());
                 subscriptionManager.touchSubscription(subscriptionId, incoming.getCheckStatusResponse().getServiceStartedTime());
             } else if (incoming.getSubscriptionResponse() != null) {
                 SubscriptionResponseStructure subscriptionResponse = incoming.getSubscriptionResponse();
@@ -403,7 +403,7 @@ public class SiriHandler {
 
                 if (subscriptionType.equals(SiriDataType.SITUATION_EXCHANGE)) {
                     List<SituationExchangeDeliveryStructure> situationExchangeDeliveries = incoming.getServiceDelivery().getSituationExchangeDeliveries();
-                    logger.info("Got SX-delivery: Subscription [{}]", subscriptionSetup);
+                    logger.info("Got SX-delivery: Subscription {}", subscriptionSetup);
 
                     addedOrUpdated = handlePtSituations(situationExchangeDeliveries, subscriptionSetup);
 
@@ -411,7 +411,7 @@ public class SiriHandler {
                 } else if (subscriptionType.equals(SiriDataType.VEHICLE_MONITORING)) {
 
                     List<VehicleMonitoringDeliveryStructure> vehicleMonitoringDeliveries = incoming.getServiceDelivery().getVehicleMonitoringDeliveries();
-                    logger.info("Got VM-delivery: Subscription [{}] {}", subscriptionSetup, subscriptionSetup.forwardPositionData() ? "- Position only":"");
+                    logger.info("Got VM-delivery: Subscription {} {}", subscriptionSetup, subscriptionSetup.forwardPositionData() ? "- Position only":"");
 
                     addedOrUpdated = handleVehicleActivities(vehicleMonitoringDeliveries, subscriptionSetup);
 
