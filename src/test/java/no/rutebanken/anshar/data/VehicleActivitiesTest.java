@@ -21,6 +21,8 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.org.siri.siri21.CourseOfJourneyRefStructure;
+import uk.org.siri.siri21.DataFrameRefStructure;
+import uk.org.siri.siri21.FramedVehicleJourneyRefStructure;
 import uk.org.siri.siri21.LocationStructure;
 import uk.org.siri.siri21.ProgressBetweenStopsStructure;
 import uk.org.siri.siri21.Siri;
@@ -66,6 +68,51 @@ public class VehicleActivitiesTest extends SpringBootBaseTest {
 
         vehicleActivities.add("test", null);
         assertEquals(previousSize, vehicleActivities.getAll().size(), "Null-element added");
+    }
+
+    @Test
+    public void testAddFilters() {
+        int previousSize = vehicleActivities.getAll().size();
+        VehicleActivityStructure element = createVehicleActivityStructure(
+                ZonedDateTime.now().plusMinutes(1), UUID.randomUUID().toString()
+        );
+        element.getMonitoredVehicleJourney().setVehicleRef(null);
+
+        vehicleActivities.add("test", element);
+        assertEquals(previousSize, vehicleActivities.getAll().size(), "Null-element added");
+    }
+
+    @Test
+    public void testEmptyFramedVehicleJourneyRefFilter() {
+        int previousSize = vehicleActivities.getAll().size();
+        VehicleActivityStructure element = createVehicleActivityStructure(
+                ZonedDateTime.now().plusMinutes(1), UUID.randomUUID().toString()
+        );
+
+        FramedVehicleJourneyRefStructure framedVehicleJourneyRef = new FramedVehicleJourneyRefStructure();
+        element.getMonitoredVehicleJourney().setFramedVehicleJourneyRef(framedVehicleJourneyRef);
+
+        vehicleActivities.add("test", element);
+        assertEquals(previousSize, vehicleActivities.getAll().size(), "Null-element added");
+
+    }
+
+    @Test
+    public void testNullDatedVehicleJourneyRefFilter() {
+        int previousSize = vehicleActivities.getAll().size();
+        VehicleActivityStructure element = createVehicleActivityStructure(
+                ZonedDateTime.now().plusMinutes(1), UUID.randomUUID().toString()
+        );
+        FramedVehicleJourneyRefStructure framedVehicleJourneyRef = new FramedVehicleJourneyRefStructure();
+
+        DataFrameRefStructure dataFrame = new DataFrameRefStructure();
+        framedVehicleJourneyRef.setDataFrameRef(dataFrame);
+        framedVehicleJourneyRef.setDatedVehicleJourneyRef(null);
+        element.getMonitoredVehicleJourney().setFramedVehicleJourneyRef(framedVehicleJourneyRef);
+
+        vehicleActivities.add("test", element);
+        assertEquals(previousSize, vehicleActivities.getAll().size(), "Null-element added");
+
     }
 
     @Test

@@ -43,7 +43,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -51,6 +50,7 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -302,7 +302,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
 
     public Collection<VehicleActivityStructure> addAll(String datasetId, List<VehicleActivityStructure> vmList) {
 
-        Map<SiriObjectStorageKey, VehicleActivityStructure> changes = new HashMap<>();
+        Map<SiriObjectStorageKey, VehicleActivityStructure> changes = new ConcurrentHashMap<>();
 
         AtomicInteger invalidLocationCounter = new AtomicInteger(0);
         AtomicInteger notMeaningfulCounter = new AtomicInteger(0);
@@ -311,7 +311,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
         AtomicInteger invalidStructureCounter = new AtomicInteger(0);
         prepareMetrics();
 
-        vmList.forEach(activity -> {
+        vmList.parallelStream().forEach(activity -> {
                     if (activity.getMonitoredVehicleJourney() == null) {
                         invalidStructureCounter.incrementAndGet();
                         return;
@@ -322,11 +322,9 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
                         return;
                     }
 
-                    var mvj = activity.getMonitoredVehicleJourney();
-                    var framedRef = mvj.getFramedVehicleJourneyRef();
-                    boolean hasValidFramedRef = framedRef != null && framedRef.getDatedVehicleJourneyRef() != null;
-                    boolean hasVehicleJourneyRef = mvj.getVehicleJourneyRef() != null;
-                    if (!hasValidFramedRef && !hasVehicleJourneyRef) {
+                    if (activity.getMonitoredVehicleJourney().getFramedVehicleJourneyRef() != null &&
+                            ( activity.getMonitoredVehicleJourney().getFramedVehicleJourneyRef() == null ||
+                                    activity.getMonitoredVehicleJourney().getFramedVehicleJourneyRef().getDatedVehicleJourneyRef() == null)) {
                         invalidStructureCounter.incrementAndGet();
                         return;
                     }

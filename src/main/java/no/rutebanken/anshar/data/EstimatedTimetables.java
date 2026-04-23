@@ -42,7 +42,6 @@ import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +49,7 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
@@ -619,16 +619,16 @@ public class EstimatedTimetables extends SiriRepository<EstimatedVehicleJourney>
 
     public Collection<EstimatedVehicleJourney> addAll(String datasetId, List<EstimatedVehicleJourney> etList) {
         prepareMetrics();
-        Map<SiriObjectStorageKey, EstimatedVehicleJourney> changes = new HashMap();
+        Map<SiriObjectStorageKey, EstimatedVehicleJourney> changes = new ConcurrentHashMap<>();
 
-        Map<SiriObjectStorageKey, String> checksumCacheTmp = new HashMap<>();
-        Map<SiriObjectStorageKey, ZonedDateTime> idStartTimeMapTmp = new HashMap<>();
-        Map<SiriObjectStorageKey, Long> expirationMap = new HashMap<>();
+        Map<SiriObjectStorageKey, String> checksumCacheTmp = new ConcurrentHashMap<>();
+        Map<SiriObjectStorageKey, ZonedDateTime> idStartTimeMapTmp = new ConcurrentHashMap<>();
+        Map<SiriObjectStorageKey, Long> expirationMap = new ConcurrentHashMap<>();
 
         AtomicInteger outdatedCounter = new AtomicInteger(0);
         AtomicInteger tooFarAheadCounter = new AtomicInteger(0);
         AtomicInteger notUpdatedCounter = new AtomicInteger(0);
-        etList.forEach(et -> {
+        etList.parallelStream().forEach(et -> {
             TimingTracer timingTracer = new TimingTracer("single-et");
             SiriObjectStorageKey key = createKey(datasetId, et);
 
