@@ -308,16 +308,29 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
         AtomicInteger notMeaningfulCounter = new AtomicInteger(0);
         AtomicInteger outdatedCounter = new AtomicInteger(0);
         AtomicInteger notUpdatedCounter = new AtomicInteger(0);
+        AtomicInteger invalidStructureCounter = new AtomicInteger(0);
         prepareMetrics();
 
-        vmList.stream()
-                .filter(activity -> activity.getMonitoredVehicleJourney() != null)
-                .filter(activity -> activity.getMonitoredVehicleJourney().getVehicleRef() != null)
-                .filter(activity -> activity.getMonitoredVehicleJourney().getFramedVehicleJourneyRef() == null ||
-                        ( activity.getMonitoredVehicleJourney().getFramedVehicleJourneyRef() != null &&
-                                activity.getMonitoredVehicleJourney().getFramedVehicleJourneyRef().getDatedVehicleJourneyRef() != null)
-                )
-                .forEach(activity -> {
+        vmList.forEach(activity -> {
+                    if (activity.getMonitoredVehicleJourney() == null) {
+                        invalidStructureCounter.incrementAndGet();
+                        return;
+                    }
+
+                    if (activity.getMonitoredVehicleJourney().getVehicleRef() == null) {
+                        invalidStructureCounter.incrementAndGet();
+                        return;
+                    }
+
+                    var mvj = activity.getMonitoredVehicleJourney();
+                    var framedRef = mvj.getFramedVehicleJourneyRef();
+                    boolean hasValidFramedRef = framedRef != null && framedRef.getDatedVehicleJourneyRef() != null;
+                    boolean hasVehicleJourneyRef = mvj.getVehicleJourneyRef() != null;
+                    if (!hasValidFramedRef && !hasVehicleJourneyRef) {
+                        invalidStructureCounter.incrementAndGet();
+                        return;
+                    }
+
                     TimingTracer timingTracer = new TimingTracer("single-vm");
                     SiriObjectStorageKey key = createKey(datasetId, activity.getMonitoredVehicleJourney());
                     timingTracer.mark("createKey");
@@ -391,7 +404,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
             // ignore details if everything is updated
             logger.info("Updated {} (of {})", changes.size(), vmList.size());
         } else {
-            logger.info("Updated {} (of {}) :: Ignored elements - Missing location:{}, Missing values: {}, Expired: {}, Not updated: {}", changes.size(), vmList.size(), invalidLocationCounter.get(), notMeaningfulCounter.get(), outdatedCounter.get(), notUpdatedCounter.get());
+            logger.info("Updated {} (of {}) :: Ignored elements - Missing location:{}, Missing values: {}, Expired: {}, Not updated: {}, Invalid structure: {}", changes.size(), vmList.size(), invalidLocationCounter.get(), notMeaningfulCounter.get(), outdatedCounter.get(), notUpdatedCounter.get(), invalidStructureCounter.get());
         }
 
         markDataReceived(SiriDataType.VEHICLE_MONITORING, datasetId, vmList.size(), changes.size(), outdatedCounter.get(), (invalidLocationCounter.get() + notMeaningfulCounter.get() + notUpdatedCounter.get()));
