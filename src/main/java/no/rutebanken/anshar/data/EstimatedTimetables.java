@@ -576,45 +576,38 @@ public class EstimatedTimetables extends SiriRepository<EstimatedVehicleJourney>
                 List<RecordedCall> recordedCalls = vehicleJourney.getRecordedCalls().getRecordedCalls();
                 RecordedCall lastRecordedCall = recordedCalls.get(recordedCalls.size() - 1);
 
-                if (lastRecordedCall.getAimedArrivalTime() != null) {
-                    expiryTimestamp = lastRecordedCall.getAimedArrivalTime();
-                }
-                if (lastRecordedCall.getAimedDepartureTime() != null) {
-                    expiryTimestamp = lastRecordedCall.getAimedDepartureTime();
-                }
-                if (lastRecordedCall.getExpectedArrivalTime() != null) {
-                    expiryTimestamp = lastRecordedCall.getExpectedArrivalTime();
-                }
-                if (lastRecordedCall.getExpectedDepartureTime() != null) {
-                    expiryTimestamp = lastRecordedCall.getExpectedDepartureTime();
-                }
-                if (lastRecordedCall.getActualArrivalTime() != null) {
-                    expiryTimestamp = lastRecordedCall.getActualArrivalTime();
-                }
-                if (lastRecordedCall.getActualDepartureTime() != null) {
-                    expiryTimestamp = lastRecordedCall.getActualDepartureTime();
-                }
-
+                expiryTimestamp = latest(expiryTimestamp,
+                        lastRecordedCall.getAimedArrivalTime(),
+                        lastRecordedCall.getAimedDepartureTime(),
+                        lastRecordedCall.getExpectedArrivalTime(),
+                        lastRecordedCall.getExpectedDepartureTime(),
+                        lastRecordedCall.getActualArrivalTime(),
+                        lastRecordedCall.getActualDepartureTime()
+                );
             }
             if (vehicleJourney.getEstimatedCalls() != null && !vehicleJourney.getEstimatedCalls().getEstimatedCalls().isEmpty()) {
                 List<EstimatedCall> estimatedCalls = vehicleJourney.getEstimatedCalls().getEstimatedCalls();
                 EstimatedCall lastEstimatedCall = estimatedCalls.get(estimatedCalls.size() - 1);
 
-                if (lastEstimatedCall.getAimedArrivalTime() != null) {
-                    expiryTimestamp = lastEstimatedCall.getAimedArrivalTime();
-                }
-                if (lastEstimatedCall.getAimedDepartureTime() != null) {
-                    expiryTimestamp = lastEstimatedCall.getAimedDepartureTime();
-                }
-                if (lastEstimatedCall.getExpectedArrivalTime() != null) {
-                    expiryTimestamp = lastEstimatedCall.getExpectedArrivalTime();
-                }
-                if (lastEstimatedCall.getExpectedDepartureTime() != null) {
-                    expiryTimestamp = lastEstimatedCall.getExpectedDepartureTime();
-                }
+                expiryTimestamp = latest(expiryTimestamp,
+                        lastEstimatedCall.getAimedArrivalTime(),
+                        lastEstimatedCall.getAimedDepartureTime(),
+                        lastEstimatedCall.getExpectedArrivalTime(),
+                        lastEstimatedCall.getExpectedDepartureTime()
+                );
             }
         }
         return expiryTimestamp;
+    }
+
+    private static ZonedDateTime latest(ZonedDateTime... timestamps) {
+        ZonedDateTime result = null;
+        for (ZonedDateTime ts : timestamps) {
+            if (ts != null && (result == null || ts.isAfter(result))) {
+                result = ts;
+            }
+        }
+        return result;
     }
 
     public Collection<EstimatedVehicleJourney> addAll(String datasetId, List<EstimatedVehicleJourney> etList) {

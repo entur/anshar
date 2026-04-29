@@ -704,6 +704,123 @@ public class EstimatedTimetablesTest extends SpringBootBaseTest {
         assertTrue(verifiedValue);
     }
 
+    @Test
+    public void testGetLatestArrivalTime() {
+        assertNull(EstimatedTimetables.getLatestArrivalTime(null));
+    }
+
+    @Test
+    public void testGetLatestArrivalTime_noCallsReturnsNull() {
+        EstimatedVehicleJourney journey = new EstimatedVehicleJourney();
+        assertNull(EstimatedTimetables.getLatestArrivalTime(journey));
+    }
+
+    @Test
+    public void testGetLatestArrivalTime_estimatedCallsPicksLatestTimestampFromLastCall() {
+        ZonedDateTime early = ZonedDateTime.now().plusHours(1);
+        ZonedDateTime latest = ZonedDateTime.now().plusHours(3);
+
+        EstimatedVehicleJourney journey = new EstimatedVehicleJourney();
+        EstimatedVehicleJourney.EstimatedCalls estimatedCalls = new EstimatedVehicleJourney.EstimatedCalls();
+
+        EstimatedCall firstCall = new EstimatedCall();
+        firstCall.setAimedArrivalTime(latest.plusHours(10)); // earlier calls must not affect result
+        estimatedCalls.getEstimatedCalls().add(firstCall);
+
+        EstimatedCall lastCall = new EstimatedCall();
+        lastCall.setAimedArrivalTime(early);
+        lastCall.setAimedDepartureTime(early.plusMinutes(10));
+        lastCall.setExpectedArrivalTime(early.plusMinutes(20));
+        lastCall.setExpectedDepartureTime(latest);
+        estimatedCalls.getEstimatedCalls().add(lastCall);
+
+        journey.setEstimatedCalls(estimatedCalls);
+
+        assertEquals(latest, EstimatedTimetables.getLatestArrivalTime(journey));
+    }
+
+    @Test
+    public void testGetLatestArrivalTime_recordedCallsPicksLatestTimestampFromLastCall() {
+        ZonedDateTime base = ZonedDateTime.now().minusHours(1);
+        ZonedDateTime latest = base.plusMinutes(50);
+
+        EstimatedVehicleJourney journey = new EstimatedVehicleJourney();
+        EstimatedVehicleJourney.RecordedCalls recordedCalls = new EstimatedVehicleJourney.RecordedCalls();
+
+        RecordedCall firstCall = new RecordedCall();
+        firstCall.setActualDepartureTime(latest.plusHours(5)); // must not affect result
+        recordedCalls.getRecordedCalls().add(firstCall);
+
+        RecordedCall lastCall = new RecordedCall();
+        lastCall.setAimedArrivalTime(base);
+        lastCall.setAimedDepartureTime(base.plusMinutes(10));
+        lastCall.setExpectedArrivalTime(base.plusMinutes(20));
+        lastCall.setExpectedDepartureTime(base.plusMinutes(30));
+        lastCall.setActualArrivalTime(base.plusMinutes(40));
+        lastCall.setActualDepartureTime(latest);
+        recordedCalls.getRecordedCalls().add(lastCall);
+
+        journey.setRecordedCalls(recordedCalls);
+
+        assertEquals(latest, EstimatedTimetables.getLatestArrivalTime(journey));
+    }
+
+    @Test
+    public void testGetLatestArrivalTime_bothRecordedAndEstimatedPicksOverallLatest() {
+        ZonedDateTime recordedLatest = ZonedDateTime.now().minusHours(1);
+        ZonedDateTime estimatedLatest = ZonedDateTime.now().plusHours(2);
+
+        EstimatedVehicleJourney journey = new EstimatedVehicleJourney();
+
+        EstimatedVehicleJourney.RecordedCalls recordedCalls = new EstimatedVehicleJourney.RecordedCalls();
+        RecordedCall recordedCall = new RecordedCall();
+        recordedCall.setActualDepartureTime(recordedLatest);
+        recordedCalls.getRecordedCalls().add(recordedCall);
+        journey.setRecordedCalls(recordedCalls);
+
+        EstimatedVehicleJourney.EstimatedCalls estimatedCalls = new EstimatedVehicleJourney.EstimatedCalls();
+        EstimatedCall estimatedCall = new EstimatedCall();
+        estimatedCall.setExpectedDepartureTime(estimatedLatest);
+        estimatedCalls.getEstimatedCalls().add(estimatedCall);
+        journey.setEstimatedCalls(estimatedCalls);
+
+        assertEquals(estimatedLatest, EstimatedTimetables.getLatestArrivalTime(journey));
+    }
+
+    @Test
+    public void testGetLatestArrivalTime_aimedTimeAfterExpectedIsUsed() {
+        ZonedDateTime expected = ZonedDateTime.now().plusHours(1);
+        ZonedDateTime aimed = expected.plusHours(1);
+
+        EstimatedVehicleJourney journey = new EstimatedVehicleJourney();
+        EstimatedVehicleJourney.EstimatedCalls estimatedCalls = new EstimatedVehicleJourney.EstimatedCalls();
+        EstimatedCall lastCall = new EstimatedCall();
+        lastCall.setAimedDepartureTime(aimed);
+        lastCall.setExpectedArrivalTime(expected);
+        lastCall.setExpectedDepartureTime(expected);
+        estimatedCalls.getEstimatedCalls().add(lastCall);
+        journey.setEstimatedCalls(estimatedCalls);
+
+        assertEquals(aimed, EstimatedTimetables.getLatestArrivalTime(journey));
+    }
+
+    @Test
+    public void testGetLatestArrivalTime_aimedTimeAfterActualIsUsedForRecordedCalls() {
+        ZonedDateTime actual = ZonedDateTime.now().minusHours(1);
+        ZonedDateTime aimed = actual.plusMinutes(30);
+
+        EstimatedVehicleJourney journey = new EstimatedVehicleJourney();
+        EstimatedVehicleJourney.RecordedCalls recordedCalls = new EstimatedVehicleJourney.RecordedCalls();
+        RecordedCall lastCall = new RecordedCall();
+        lastCall.setAimedDepartureTime(aimed);
+        lastCall.setActualArrivalTime(actual);
+        lastCall.setActualDepartureTime(actual);
+        recordedCalls.getRecordedCalls().add(lastCall);
+        journey.setRecordedCalls(recordedCalls);
+
+        assertEquals(aimed, EstimatedTimetables.getLatestArrivalTime(journey));
+    }
+
 
     private void assertExcludedId(String excludedDatasetId) {
         Siri serviceDelivery = estimatedTimetables.createServiceDelivery(null, null, null, Arrays.asList(excludedDatasetId), 100, -1);
