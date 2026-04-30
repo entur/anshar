@@ -3,18 +3,45 @@
     <title>SIRI Situations</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+    <style>
+        .situations-header {
+            background-color: #f8f9fa;
+            padding: 3rem;
+            border-radius: 0.5rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .clickable-row {
+            cursor: pointer;
+        }
+
+        .table-cell-middle {
+            vertical-align: middle !important;
+        }
+
+        @media (max-width: 768px) {
+            .situations-header {
+                padding: 2rem 1rem;
+            }
+
+            .table-responsive {
+                overflow-x: auto;
+            }
+        }
+    </style>
 </head>
 <body>
-<div class="jumbotron text-center">
+<div class="situations-header">
     <h2>SIRI Situations</h2>
 </div>
 <#if body?? >
 <div class="container">
-
     <div class="row">
+        <div class="table-responsive">
         <table class="table">
             <thead>
             <tr>
@@ -26,61 +53,61 @@
             </thead>
             <tbody>
                 <#list body.situations?sort_by("situationNumber") as item>
-                    <#if item.progress == "OPEN">
-                        <tr class="success">
-                    <#else>
-                        <tr class="danger">
-                    </#if>
-                    <th data-toggle="collapse" data-target="#accordion${item?counter}">${item?counter}</th>
-                    <td data-toggle="collapse" data-target="#accordion${item?counter}">${item.situationNumber}</td>
-                    <td data-toggle="collapse" data-target="#accordion${item?counter}">${item.progress}</td>
-                    <td data-toggle="collapse" data-target="#accordion${item?counter}">
-                        <#list item.summaries as summary>
-                            <span>${summary.value}</span><br />
-                        </#list></td>
+                    <tr data-bs-toggle="collapse" data-bs-target="#accordion${item?counter}"
+                        class="clickable-row ${(item.progress == "OPEN")?then("table-success", "table-danger")}">
+                        <th class="table-cell-middle">${item?counter}</th>
+                        <td class="table-cell-middle">${item.situationNumber}</td>
+                        <td class="table-cell-middle">${item.progress}</td>
+                        <td class="table-cell-middle">
+                            <#list item.summaries as summary>
+                                <span>${summary.value}</span><br />
+                            </#list>
+                        </td>
                     </tr>
-                    <tr id="accordion${item?counter}" class="collapse">
+                    <tr id="accordion${item?counter}" class="collapse ${(item.progress == "OPEN")?then("table-success", "table-danger")}">
                         <td colspan="4">
-                            <table width="90%" class="table table-sm">
+                            <table class="table table-sm table-striped">
                                 <tr>
                                     <td>
-                                    <div>
-                                    <label>Summary:</label><br />
-                                    <#list item.summaries as summary>
-                                        <span>${summary.lang}</span> <span>${summary.value}</span><br />
-                                    </#list>
-                                    </div>
-                                    <div>
-                                        <label>Description:</label><br />
-                                    <#list item.descriptions as description>
-                                        <span>${description.lang}</span> <span>${description.value}</span><br />
-                                    </#list>
-                                    </div>
-                                    <div>
-                                        <label>Advice:</label><br />
-                                    <#list item.advices as advice>
-                                        <span>${advice.lang}</span> <span>${advice.value}</span><br />
-                                    </#list>
-                                    </div>
-                                </td>
-                                <td>
-                                    <label>CreationTime:</label><br />
-                                    <span>${item.creationTime}</span><br />
-                                    <#list item.validity as validity>
-                                        <label>StartTime:</label><br />
-                                        <span>${validity.startTime}</span><br />
-                                        <label>EndTime:</label><br />
-                                        <span>${validity.endTime}</span><br />
-                                    </#list>
-                                </td>
-                            </tr>
-                        </table>
+                                        <div>
+                                            <label class="fw-bold">Summary:</label><br />
+                                            <#list item.summaries as summary>
+                                                <span class="text-muted">${summary.lang}</span> <span>${summary.value}</span><br />
+                                            </#list>
+                                        </div>
+                                        <div class="mt-2">
+                                            <label class="fw-bold">Description:</label><br />
+                                            <#list item.descriptions as description>
+                                                <span class="text-muted">${description.lang}</span> <span>${description.value}</span><br />
+                                            </#list>
+                                        </div>
+                                        <div class="mt-2">
+                                            <label class="fw-bold">Advice:</label><br />
+                                            <#list item.advices as advice>
+                                                <span class="text-muted">${advice.lang}</span> <span>${advice.value}</span><br />
+                                            </#list>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <label class="fw-bold">CreationTime:</label><br />
+                                        <span>${item.creationTime}</span><br />
+                                        <#list item.validity as validity>
+                                            <label class="fw-bold">StartTime:</label><br />
+                                            <span>${validity.startTime}</span><br />
+                                            <label class="fw-bold">EndTime:</label><br />
+                                            <span>${validity.endTime}</span><br />
+                                        </#list>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
                 </#list>
             </tbody>
         </table>
+        </div>
     </div>
 </div>
-
 </#if>
 </body>
 </html>
