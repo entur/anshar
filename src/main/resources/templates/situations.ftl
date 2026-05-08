@@ -87,6 +87,10 @@
                                                 <span class="text-muted">${advice.lang}</span> <span>${advice.value}</span><br />
                                             </#list>
                                         </div>
+                                        <div class="mt-2">
+                                            <label class="fw-bold">Affects / Consequences:</label>
+                                            <pre class="mb-0" style="white-space: pre-wrap; font-size: 0.85em;">${item.description!""}</pre>
+                                        </div>
                                     </td>
                                     <td>
                                         <label class="fw-bold">CreationTime:</label><br />

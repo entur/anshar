@@ -111,6 +111,7 @@ public class AdminRouteHelper implements ApplicationListener<ContextClosedEvent>
             situationObj.put("summaries", getSummaries(ptSituationElement));
             situationObj.put("descriptions", getDescriptions(ptSituationElement));
             situationObj.put("advices", getAdvice(ptSituationElement));
+            situationObj.put("description", SituationDescriber.describe(ptSituationElement));
             situations.add(situationObj);
         }
         JSONObject all = new JSONObject();
