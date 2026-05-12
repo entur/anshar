@@ -37,6 +37,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.AccessDeniedException;
 import uk.org.siri.siri20.EstimatedTimetableDeliveryStructure;
+import uk.org.siri.siri20.PtAdviceStructure;
+import uk.org.siri.siri20.PtConsequenceStructure;
+import uk.org.siri.siri20.PtSituationElement;
 import uk.org.siri.siri20.ServiceDelivery;
 import uk.org.siri.siri20.SituationExchangeDeliveryStructure;
 import uk.org.siri.siri20.VehicleMonitoringDeliveryStructure;
@@ -50,6 +53,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static no.rutebanken.anshar.routes.HttpParameter.SIRI_VERSION_HEADER_NAME;
@@ -580,6 +584,20 @@ public class RestRouteBuilder extends RouteBuilder {
             if (!serviceDelivery.getSituationExchangeDeliveries().isEmpty()) {
                 for (SituationExchangeDeliveryStructure delivery : serviceDelivery.getSituationExchangeDeliveries()) {
                     delivery.setVersion("2.0");
+                    if (delivery.getSituations() != null && delivery.getSituations().getPtSituationElements() != null) {
+                        for (PtSituationElement situationElement : delivery.getSituations().getPtSituationElements()) {
+                            if (situationElement.getConsequences() != null && !situationElement.getConsequences().getConsequences().isEmpty()) {
+                                List<PtConsequenceStructure> consequences = situationElement.getConsequences().getConsequences();
+                                for (PtConsequenceStructure consequence : consequences) {
+                                    PtAdviceStructure advice = consequence.getAdvice();
+                                    if (advice != null && advice.getAdviceRef() == null && advice.getDetails().isEmpty()) {
+                                        // Downgrade resulted in an empty Advice-element - remove it
+                                        consequence.setAdvice(null);
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
