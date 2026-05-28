@@ -173,13 +173,14 @@ public class MessagingRoute extends RestRouteBuilder {
                     .choice()
                     .when(header(INTERNAL_PUBLISH_TO_KAFKA_FOR_APC_ENRICHMENT).isEqualTo(Boolean.TRUE))
                         .removeHeader(INTERNAL_PUBLISH_TO_KAFKA_FOR_APC_ENRICHMENT)
-                        .log("Sending data to enrichment topic")
+                        .log(LoggingLevel.DEBUG, "Sending data to enrichment topic")
                         .to("direct:anshar.enrich.siri.et")
                     .otherwise()
-                        .log("Sending data to topic ${header.target_topic}")
+                        .log(LoggingLevel.DEBUG, "Sending data to topic ${header.target_topic}")
                         .to("direct:compress.jaxb")
                         .toD("${header.target_topic}")
                         .end()
+                    .routeId("queue.data.for.processing")
             ;
         }
 
