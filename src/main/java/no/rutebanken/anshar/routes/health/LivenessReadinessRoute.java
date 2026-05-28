@@ -16,6 +16,7 @@
 package no.rutebanken.anshar.routes.health;
 
 import com.hazelcast.collection.ISet;
+import jakarta.annotation.PostConstruct;
 import no.rutebanken.anshar.metrics.PrometheusMetricsService;
 import no.rutebanken.anshar.routes.RestRouteBuilder;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
@@ -28,7 +29,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import java.text.MessageFormat;
 import java.time.LocalTime;
 import java.util.Set;

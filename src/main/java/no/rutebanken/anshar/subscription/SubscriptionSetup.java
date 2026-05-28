@@ -15,6 +15,7 @@
 
 package no.rutebanken.anshar.subscription;
 
+import jakarta.annotation.Nonnull;
 import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.subscription.helpers.DataNotReceivedAction;
 import no.rutebanken.anshar.subscription.helpers.FilterMapPresets;
@@ -24,7 +25,6 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nonnull;
 import java.io.Serializable;
 import java.text.MessageFormat;
 import java.time.Duration;

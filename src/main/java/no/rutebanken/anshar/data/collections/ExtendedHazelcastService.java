@@ -32,6 +32,7 @@ import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.LifecycleEvent;
 import com.hazelcast.map.IMap;
 import com.hazelcast.replicatedmap.ReplicatedMap;
+import jakarta.annotation.PreDestroy;
 import no.rutebanken.anshar.data.RequestorRefStats;
 import no.rutebanken.anshar.data.SiriObjectStorageKey;
 import no.rutebanken.anshar.routes.outbound.OutboundSubscriptionSetup;
@@ -53,7 +54,6 @@ import uk.org.siri.siri21.FacilityConditionStructure;
 import uk.org.siri.siri21.PtSituationElement;
 import uk.org.siri.siri21.VehicleActivityStructure;
 
-import javax.annotation.PreDestroy;
 import java.math.BigInteger;
 import java.time.Instant;
 import java.time.ZonedDateTime;

@@ -16,6 +16,7 @@
 package no.rutebanken.anshar.routes.outbound;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import jakarta.annotation.PostConstruct;
 import jakarta.xml.bind.JAXBException;
 import no.rutebanken.anshar.metrics.PrometheusMetricsService;
 import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
@@ -36,7 +37,6 @@ import uk.org.siri.siri21.SituationExchangeDeliveryStructure;
 import uk.org.siri.siri21.SubscriptionRefStructure;
 import uk.org.siri.siri21.VehicleMonitoringDeliveryStructure;
 
-import javax.annotation.PostConstruct;
 import javax.xml.stream.XMLStreamException;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

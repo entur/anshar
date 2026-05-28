@@ -16,6 +16,8 @@
 package no.rutebanken.anshar.subscription;
 
 import com.google.common.base.Preconditions;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.routes.siri.Siri20ToSiriRS14Subscription;
 import no.rutebanken.anshar.routes.siri.Siri20ToSiriRS20RequestResponse;
@@ -49,8 +51,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;

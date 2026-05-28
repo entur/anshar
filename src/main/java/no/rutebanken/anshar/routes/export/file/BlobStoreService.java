@@ -16,6 +16,7 @@
 package no.rutebanken.anshar.routes.export.file;
 
 import com.google.cloud.storage.Storage;
+import jakarta.annotation.PostConstruct;
 import org.apache.camel.Header;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +24,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;

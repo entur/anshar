@@ -18,6 +18,7 @@ package no.rutebanken.anshar.routes.siri.helpers;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.pool.KryoFactory;
 import com.esotericsoftware.kryo.pool.KryoPool;
+import jakarta.annotation.Nonnull;
 import jakarta.xml.bind.JAXBException;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.data.collections.QNameSerializer;
@@ -74,7 +75,6 @@ import uk.org.siri.siri21.VehicleMonitoringRequestStructure;
 import uk.org.siri.siri21.VehicleMonitoringSubscriptionStructure;
 import uk.org.siri.siri21.VehicleRef;
 
-import javax.annotation.Nonnull;
 import javax.xml.namespace.QName;
 import java.time.Duration;
 import java.time.Instant;

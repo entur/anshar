@@ -16,6 +16,7 @@
 package no.rutebanken.anshar.data;
 
 import com.hazelcast.map.IMap;
+import jakarta.annotation.PostConstruct;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.data.util.TimingTracer;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
@@ -31,7 +32,6 @@ import uk.org.siri.siri21.PtSituationElement;
 import uk.org.siri.siri21.Siri;
 import uk.org.siri.siri21.SituationVersion;
 
-import javax.annotation.PostConstruct;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
