@@ -13,12 +13,17 @@
 </div>
 <div class="container">
 <#if body?? && body.codespaces?? && (body.codespaces?size > 0)>
-    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-3">
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
         <#list body.codespaces as item>
         <div class="col">
             <div class="card h-100 text-center position-relative bg-success-subtle border-success-subtle">
                 <div class="card-body">
-                    <h3 class="card-title mb-2">${item.codespace}</h3>
+                    <#if item.displayName??>
+                        <h3 class="card-title mb-1">${item.displayName}</h3>
+                        <p class="card-subtitle text-muted small mb-2">${item.codespace}</p>
+                    <#else>
+                        <h3 class="card-title mb-2">${item.codespace}</h3>
+                    </#if>
                     <p class="card-text text-muted mb-0">
                         <span class="badge bg-secondary">${item.subscriptionCount}</span>
                         subscription<#if item.subscriptionCount != 1>s</#if>

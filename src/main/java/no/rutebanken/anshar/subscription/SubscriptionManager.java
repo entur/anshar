@@ -141,6 +141,9 @@ public class SubscriptionManager {
     @Autowired
     private RequestorRefRepository requestorRefRepository;
 
+    @Autowired
+    private CodespaceNameRepository codespaceNameRepository;
+
     public void addSubscription(String subscriptionId, SubscriptionSetup setup) {
 
         subscriptions.put(subscriptionId, setup);
@@ -275,9 +278,16 @@ public class SubscriptionManager {
             JSONObject entry = new JSONObject();
             entry.put("codespace", e.getValue());
             entry.put("subscriptionCount", counts.get(e.getKey()));
+            String name = codespaceNameRepository.displayNameFor(e.getKey());
+            if (name != null) {
+                entry.put("displayName", name);
+            }
             entries.add(entry);
         }
-        entries.sort(Comparator.comparing(o -> ((String) o.get("codespace")).toLowerCase()));
+        entries.sort(Comparator.comparing(o -> {
+            String name = (String) o.get("displayName");
+            return (name != null ? name : (String) o.get("codespace")).toLowerCase();
+        }));
 
         JSONArray codespaces = new JSONArray();
         codespaces.addAll(entries);
