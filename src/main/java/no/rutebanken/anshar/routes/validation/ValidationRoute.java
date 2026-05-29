@@ -42,6 +42,7 @@ public class ValidationRoute extends RestRouteBuilder {
     public void configure() throws Exception {
         super.configure();
         rest("/anshar/validation")
+                .get().produces(MediaType.TEXT_HTML).to("direct:validation.index")
                 .get("/{" + PARAM_CODESPACE + "}").produces(MediaType.TEXT_HTML).to("direct:validation.list")
                 .get("/report").produces(MediaType.TEXT_HTML).to("direct:validation.report")
                 .put("/toggle").produces(MediaType.TEXT_HTML).to("direct:validation.toggle")
@@ -59,6 +60,12 @@ public class ValidationRoute extends RestRouteBuilder {
                 .to("direct:removeHeaders")
                 .to("freemarker:templates/validation.ftl")
                 .routeId("admin.validation.list")
+        ;
+        from("direct:validation.index")
+                .bean(subscriptionManager, "getCodespaces")
+                .to("direct:removeHeaders")
+                .to("freemarker:templates/validation-index.ftl")
+                .routeId("admin.validation.index")
         ;
         from("direct:validation.report")
                 .bean(siriXmlValidator, "getValidationResults(${header." + PARAM_SUBSCRIPTION_ID + "})")

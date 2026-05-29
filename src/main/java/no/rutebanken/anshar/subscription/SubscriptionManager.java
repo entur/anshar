@@ -48,6 +48,8 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -251,6 +253,38 @@ public class SubscriptionManager {
         jsonSubscriptions.put("config", configObject);
 
         return jsonSubscriptions;
+    }
+
+    public JSONObject getCodespaces() {
+        // Deterministic: per lowercase key, keep the alphabetically smallest display variant and count occurrences.
+        Map<String, String> displayName = new HashMap<>();
+        Map<String, Integer> counts = new HashMap<>();
+
+        for (SubscriptionSetup setup : subscriptions.values()) {
+            String datasetId = setup.getDatasetId();
+            if (datasetId == null || datasetId.trim().isEmpty()) {
+                continue;
+            }
+            String key = datasetId.toLowerCase();
+            displayName.merge(key, datasetId, (a, b) -> a.compareTo(b) <= 0 ? a : b);
+            counts.merge(key, 1, Integer::sum);
+        }
+
+        List<JSONObject> entries = new ArrayList<>();
+        for (Map.Entry<String, String> e : displayName.entrySet()) {
+            JSONObject entry = new JSONObject();
+            entry.put("codespace", e.getValue());
+            entry.put("subscriptionCount", counts.get(e.getKey()));
+            entries.add(entry);
+        }
+        entries.sort(Comparator.comparing(o -> ((String) o.get("codespace")).toLowerCase()));
+
+        JSONArray codespaces = new JSONArray();
+        codespaces.addAll(entries);
+
+        JSONObject result = new JSONObject();
+        result.put("codespaces", codespaces);
+        return result;
     }
 
     private void hit(String subscriptionId) {

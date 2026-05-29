@@ -439,4 +439,47 @@ public class SubscriptionManagerTest extends SpringBootBaseTest {
                 true
         );
     }
+
+    private SubscriptionSetup createSubscriptionWithDatasetId(String datasetId) {
+        SubscriptionSetup setup = createSubscription(1000);
+        setup.setDatasetId(datasetId);
+        return setup;
+    }
+
+    @Test
+    public void getCodespacesGroupsCountsSortsAndSkipsBlank() {
+        // Two NSB (case differs), two ATB, one RUT, one null, one blank
+        String[][] entries = {
+            {"NSB", "a"}, {"nsb", "b"},
+            {"ATB", "c"}, {"ATB", "d"},
+            {"RUT", "e"},
+            {null,  "f"},
+            {"   ", "g"},
+        };
+        for (String[] e : entries) {
+            SubscriptionSetup setup = createSubscriptionWithDatasetId(e[0]);
+            subscriptionManager.addSubscription(e[1] + "-" + UUID.randomUUID(), setup);
+        }
+
+        JSONObject result = subscriptionManager.getCodespaces();
+        JSONArray codespaces = (JSONArray) result.get("codespaces");
+
+        assertNotNull(codespaces, "result should contain a 'codespaces' array");
+        assertEquals(3, codespaces.size(), "null/blank datasetIds should be excluded; case-insensitive duplicates merged");
+
+        // Sorted alphabetically (case-insensitive): ATB, NSB, RUT
+        JSONObject atb = (JSONObject) codespaces.get(0);
+        JSONObject nsb = (JSONObject) codespaces.get(1);
+        JSONObject rut = (JSONObject) codespaces.get(2);
+
+        assertEquals("ATB", atb.get("codespace"));
+        assertEquals(2L,    ((Number) atb.get("subscriptionCount")).longValue());
+
+        // Deterministic casing: alphabetically smallest variant wins (uppercase ASCII < lowercase)
+        assertEquals("NSB", nsb.get("codespace"));
+        assertEquals(2L,    ((Number) nsb.get("subscriptionCount")).longValue());
+
+        assertEquals("RUT", rut.get("codespace"));
+        assertEquals(1L,    ((Number) rut.get("subscriptionCount")).longValue());
+    }
 }

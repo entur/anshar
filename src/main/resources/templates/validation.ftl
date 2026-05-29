@@ -82,6 +82,7 @@
 <body>
 <div class="bg-light p-5 rounded-3 text-center mb-4">
     <h2>SIRI Validation</h2>
+    <a href="../validation" class="text-decoration-none">&larr; All codespaces</a>
 </div>
 <#if body?? >
 <div class="container">
