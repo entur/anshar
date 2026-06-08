@@ -109,8 +109,11 @@ public abstract class SiriSubscriptionRouteBuilder extends BaseRouteBuilder {
                     .toD(subscriptionSetup.getDataNotReceivedAction() != null ? subscriptionSetup.getDataNotReceivedAction().getEndpoint():"empty", true)
                 .when(p -> shouldBeStarted(p.getFromRouteId()))
                     .log("Triggering start subscription: " + subscriptionSetup)
+                    // Flag as started up-front so a concurrent monitor-tick does not double-start while the
+                    // (synchronous) start-request is still in progress. The wrapper route below clears the
+                    // flag again if the start-request fails, so the start is retried on the next tick.
                     .process(p -> hasBeenStarted = true)
-                    .to("direct:" + subscriptionSetup.getStartSubscriptionRouteName()) // Start subscription
+                    .to("direct:" + getMonitoredStartRouteName()) // Start subscription (with failure-reset)
                 .when(p -> shouldBeCancelled(p.getFromRouteId()))
                     .log("Triggering cancel subscription: " + subscriptionSetup)
                     .process(p -> hasBeenStarted = false)
@@ -121,6 +124,28 @@ public abstract class SiriSubscriptionRouteBuilder extends BaseRouteBuilder {
                     .to("direct:" + subscriptionSetup.getCheckStatusRouteName()) // Check status
                 .end()
         ;
+
+        // Wraps the actual start-subscription call so that a failed start (e.g. remote is down) resets
+        // hasBeenStarted. Without this, a start that throws would leave the subscription permanently
+        // flagged as "started" - CheckStatus would keep it flagged healthy, so neither the cancel nor the
+        // start branch in the monitor would ever fire again, and the subscription would never be re-established.
+        from("direct:" + getMonitoredStartRouteName())
+                .routeId("monitored.start.subscription." + subscriptionSetup.getVendor())
+                .doTry()
+                    .to("direct:" + subscriptionSetup.getStartSubscriptionRouteName())
+                .doCatch(Exception.class)
+                    .process(p -> hasBeenStarted = false)
+                    .log("Start subscription failed - will retry on next monitor tick: " + subscriptionSetup)
+                    // Rethrow to preserve the existing JobExecutionException logging for visibility.
+                    .process(p -> {
+                        throw p.getProperty(Exchange.EXCEPTION_CAUGHT, Exception.class);
+                    })
+                .endDoTry()
+        ;
+    }
+
+    private String getMonitoredStartRouteName() {
+        return "monitored.start." + subscriptionSetup.getSubscriptionId();
     }
 
     private boolean shouldPerformDataNotReceivedAction(String routeId) {
