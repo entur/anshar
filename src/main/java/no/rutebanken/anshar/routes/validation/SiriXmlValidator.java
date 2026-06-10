@@ -45,6 +45,7 @@ import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+import no.rutebanken.anshar.util.SecureXmlFactories;
 import uk.org.siri.siri21.Siri;
 
 import javax.xml.XMLConstants;
@@ -94,8 +95,8 @@ public class SiriXmlValidator extends ApplicationContextHolder {
 
     private static JAXBContext jaxbContext;
     private static Schema schema;
-    private static final XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
-    private static final DocumentBuilderFactory builderFactory = DocumentBuilderFactory.newInstance();
+    private static final XMLInputFactory xmlInputFactory = SecureXmlFactories.secureXmlInputFactory();
+    private static final DocumentBuilderFactory builderFactory = SecureXmlFactories.secureDocumentBuilderFactory();
 
 
     @Autowired
