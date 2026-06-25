@@ -21,7 +21,7 @@
   <parent>
       <groupId>org.entur.ror</groupId>
       <artifactId>superpom</artifactId>
-      <version>6.4.0</version>
+      <version>6.5.0</version>
   </parent>
 
 
