@@ -116,6 +116,55 @@ public class VehicleActivitiesTest extends SpringBootBaseTest {
     }
 
     @Test
+    public void testZeroZeroLocationFilter() {
+        int previousSize = vehicleActivities.getAll().size();
+        VehicleActivityStructure element = createVehicleActivityStructure(
+                ZonedDateTime.now().plusMinutes(1), UUID.randomUUID().toString()
+        );
+        element.getMonitoredVehicleJourney().getVehicleLocation().setLatitude(BigDecimal.ZERO);
+        element.getMonitoredVehicleJourney().getVehicleLocation().setLongitude(BigDecimal.ZERO);
+
+        vehicleActivities.add("test", element);
+        assertEquals(previousSize, vehicleActivities.getAll().size(), "Vehicle with [0, 0]-location was added");
+    }
+
+    @Test
+    public void testZeroLatitudeFilter() {
+        int previousSize = vehicleActivities.getAll().size();
+        VehicleActivityStructure element = createVehicleActivityStructure(
+                ZonedDateTime.now().plusMinutes(1), UUID.randomUUID().toString()
+        );
+        element.getMonitoredVehicleJourney().getVehicleLocation().setLatitude(BigDecimal.ZERO);
+
+        vehicleActivities.add("test", element);
+        assertEquals(previousSize, vehicleActivities.getAll().size(), "Vehicle with latitude=0 was added");
+    }
+
+    @Test
+    public void testZeroLongitudeFilter() {
+        int previousSize = vehicleActivities.getAll().size();
+        VehicleActivityStructure element = createVehicleActivityStructure(
+                ZonedDateTime.now().plusMinutes(1), UUID.randomUUID().toString()
+        );
+        element.getMonitoredVehicleJourney().getVehicleLocation().setLongitude(BigDecimal.ZERO);
+
+        vehicleActivities.add("test", element);
+        assertEquals(previousSize, vehicleActivities.getAll().size(), "Vehicle with longitude=0 was added");
+    }
+
+    @Test
+    public void testNullVehicleLocationFilter() {
+        int previousSize = vehicleActivities.getAll().size();
+        VehicleActivityStructure element = createVehicleActivityStructure(
+                ZonedDateTime.now().plusMinutes(1), UUID.randomUUID().toString()
+        );
+        element.getMonitoredVehicleJourney().setVehicleLocation(null);
+
+        vehicleActivities.add("test", element);
+        assertEquals(previousSize, vehicleActivities.getAll().size(), "Vehicle with null location was added");
+    }
+
+    @Test
     public void testUpdatedVehicle() {
         int previousSize = vehicleActivities.getAll().size();
 

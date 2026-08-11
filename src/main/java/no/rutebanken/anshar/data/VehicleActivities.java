@@ -351,26 +351,28 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
 
                     if (isUpdated(existingChecksum, currentChecksum)) {
 
-                        boolean keep = (existing == null); //No existing data i.e. keep
+                        boolean isNewer = (existing == null); //No existing data i.e. keep
 
                         if (existing != null &&
                                 (activity.getRecordedAtTime() != null && existing.getRecordedAtTime() != null)) {
                             //Newer data has already been processed
-                            keep = activity.getRecordedAtTime().isAfter(existing.getRecordedAtTime());
+                            isNewer = activity.getRecordedAtTime().isAfter(existing.getRecordedAtTime());
                         }
 
                         long expiration = getExpiration(activity);
                         timingTracer.mark("getExpiration");
 
+                        boolean locationValid = isLocationValid(activity);
+                        timingTracer.mark("isLocationValid");
+
                         resolveContentMetrics(activity, expiration);
-                        if (expiration > 0 && keep) {
+                        if (expiration > 0 && isNewer && locationValid) {
                             changes.put(key, activity);
+                        } else if (!locationValid) {
+                            invalidLocationCounter.incrementAndGet();
                         } else {
                             outdatedCounter.incrementAndGet();
                         }
-
-                        if (!isLocationValid(activity)) {invalidLocationCounter.incrementAndGet();}
-                        timingTracer.mark("isLocationValid");
 
                         // Skip this check for now
                         if (!isActivityMeaningful(activity)) {notMeaningfulCounter.incrementAndGet();}
