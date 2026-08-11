@@ -368,10 +368,12 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
                         resolveContentMetrics(activity, expiration);
                         if (expiration > 0 && isNewer && locationValid) {
                             changes.put(key, activity);
-                        } else if (!locationValid) {
-                            invalidLocationCounter.incrementAndGet();
-                        } else {
+                        }
+                        if (!(expiration > 0 && isNewer)) {
                             outdatedCounter.incrementAndGet();
+                        }
+                        if (!locationValid) {
+                            invalidLocationCounter.incrementAndGet();
                         }
 
                         // Skip this check for now
