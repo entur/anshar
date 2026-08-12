@@ -42,7 +42,9 @@ public enum MappingNames {
         OVERRIDE_MONITORED_NO_LONGER_TRUE("Monitored is set to false but was previously set to true"),
         UPDATED_CODESPACE("Updated the defined codespace"),
         REMOVE_INVALID_CODESPACE("Received data on codespace that is not valid for subscription"),
-        LIMIT_CLOSED_SX_MESSAGE_END_TIME("Limit validity-period for closed SX-messages")
+        LIMIT_CLOSED_SX_MESSAGE_END_TIME("Limit validity-period for closed SX-messages"),
+        REMOVE_INVALID_INFO_LINK("Remove InfoLink with missing or invalid URI"),
+        APPEND_SCHEME_TO_INFO_LINK("Add missing scheme to InfoLink-URI")
         ;
 
 

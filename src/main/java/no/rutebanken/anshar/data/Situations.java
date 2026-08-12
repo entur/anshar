@@ -278,22 +278,6 @@ public class Situations extends SiriRepository<PtSituationElement> {
                 return;
             }
 
-            if (situation.getInfoLinks() != null) {
-                PtSituationElement.InfoLinks infoLinks = situation.getInfoLinks();
-
-                boolean removedInfoLinks = infoLinks.getInfoLinks().removeIf(infoLink ->
-                        infoLink.getUri() == null ||
-                        infoLink.getUri().isEmpty());
-
-                if (removedInfoLinks) {
-                    logger.warn("Removed infoLinks with null URI");
-                    if (infoLinks.getInfoLinks().isEmpty()) {
-                        // no infoLinks left
-                        situation.setInfoLinks(null);
-                    }
-                }
-            }
-
             TimingTracer timingTracer = new TimingTracer("single-sx");
 
             SiriObjectStorageKey key = createKey(datasetId, situation);
