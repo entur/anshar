@@ -26,22 +26,8 @@ import no.rutebanken.anshar.routes.siri.Siri20ToSiriWS14RequestResponse;
 import no.rutebanken.anshar.routes.siri.Siri20ToSiriWS14Subscription;
 import no.rutebanken.anshar.routes.siri.Siri20ToSiriWS20RequestResponse;
 import no.rutebanken.anshar.routes.siri.Siri20ToSiriWS20Subscription;
-import no.rutebanken.anshar.routes.siri.adapters.Mapping;
+import no.rutebanken.anshar.routes.siri.adapters.MappingAdapterRegistry;
 import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
-import no.rutebanken.anshar.routes.siri.processor.AddOrderToAllCallsPostProcessor;
-import no.rutebanken.anshar.routes.siri.processor.CleanupInfoLinksPostProcessor;
-import no.rutebanken.anshar.routes.siri.processor.CodespaceBlackListProcessor;
-import no.rutebanken.anshar.routes.siri.processor.CodespaceProcessor;
-import no.rutebanken.anshar.routes.siri.processor.CodespaceWhiteListProcessor;
-import no.rutebanken.anshar.routes.siri.processor.EnsureIncreasingTimesForCancelledStopsProcessor;
-import no.rutebanken.anshar.routes.siri.processor.EnsureNonNullVehicleModePostProcessor;
-import no.rutebanken.anshar.routes.siri.processor.ExtraJourneyDestinationDisplayPostProcessor;
-import no.rutebanken.anshar.routes.siri.processor.ExtraJourneyPostProcessor;
-import no.rutebanken.anshar.routes.siri.processor.LimitClosedProgressValidityPostProcessor;
-import no.rutebanken.anshar.routes.siri.processor.RemovePersonalInformationProcessor;
-import no.rutebanken.anshar.routes.siri.processor.ReportTypeProcessor;
-import no.rutebanken.anshar.routes.siri.transformer.ApplicationContextHolder;
-import no.rutebanken.anshar.routes.siri.transformer.ValueAdapter;
 import no.rutebanken.anshar.subscription.helpers.RequestType;
 import org.apache.camel.CamelContext;
 import org.apache.camel.CamelContextAware;
@@ -53,7 +39,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -78,6 +63,9 @@ public class SubscriptionInitializer implements CamelContextAware {
 
     @Autowired
     private AnsharConfiguration configuration;
+
+    @Autowired
+    private MappingAdapterRegistry mappingAdapterRegistry;
 
     @Value("${anshar.reduced.logging.override.names}")
     List<String> reducedLoggingOverrideNames = new ArrayList<>();
@@ -111,18 +99,6 @@ public class SubscriptionInitializer implements CamelContextAware {
 
         if (!configuration.getAppModes().isEmpty()) {
             logger.info("App started with mode(s): {}", configuration.getAppModes());
-        }
-
-        final Map<String, Class> mappingAdaptersById = new HashMap<>();
-        if (configuration.isDisableAllMappingAdapters()) {
-            logger.info("All mapping adapters are disabled");
-        } else {
-            final Map<String, Object> mappingBeans = ApplicationContextHolder.getContext().getBeansWithAnnotation(Mapping.class);
-            for (final Object myFoo : mappingBeans.values()) {
-                final Class<?> mappingAdapterClass = myFoo.getClass();
-                final Mapping annotation = mappingAdapterClass.getAnnotation(Mapping.class);
-                mappingAdaptersById.put(annotation.id(), mappingAdapterClass);
-            }
         }
 
         logger.info("Initializing subscriptions for environment: {}", configuration.getEnvironment());
@@ -164,51 +140,6 @@ public class SubscriptionInitializer implements CamelContextAware {
                 if (subscriptionSetup.isReduceLogging()) {
                     logger.info("Permanently reduce logging for subscription {}", subscriptionSetup);
                     reduceLogging(subscriptionSetup.getSubscriptionId());
-                }
-
-                if (!configuration.isDisableAllMappingAdapters()) {
-
-                    List<ValueAdapter> valueAdapters = new ArrayList<>();
-
-                    if (mappingAdaptersById.containsKey(subscriptionSetup.getMappingAdapterId())) {
-                        Class adapterClass = mappingAdaptersById.get(subscriptionSetup.getMappingAdapterId());
-                        try {
-                            valueAdapters.addAll((List<ValueAdapter>) adapterClass.getMethod("getValueAdapters", SubscriptionSetup.class).invoke(adapterClass.newInstance(), subscriptionSetup));
-
-                        } catch (Exception e) {
-                            throw new ServiceConfigurationError("Invalid mappingAdapterId for subscription " + subscriptionSetup, e);
-                        }
-                    }
-                    //Is added to ALL subscriptions AFTER subscription-specific adapters
-                    if (!subscriptionSetup.isUseProvidedCodespaceId()) {
-                        valueAdapters.add(new CodespaceProcessor(subscriptionSetup.getDatasetId()));
-                    }
-
-                    // SX
-                    if (subscriptionSetup.getSubscriptionType() == SiriDataType.SITUATION_EXCHANGE) {
-                        valueAdapters.add(new ReportTypeProcessor(subscriptionSetup.getDatasetId()));
-                        valueAdapters.add(new RemovePersonalInformationProcessor());
-                        valueAdapters.add(new LimitClosedProgressValidityPostProcessor(subscriptionSetup.getDatasetId()));
-                        valueAdapters.add(new CleanupInfoLinksPostProcessor(subscriptionSetup.getDatasetId()));
-                    }
-
-                    // ET
-                    if (subscriptionSetup.getSubscriptionType() == SiriDataType.ESTIMATED_TIMETABLE) {
-                        valueAdapters.add(new EnsureIncreasingTimesForCancelledStopsProcessor(subscriptionSetup.getDatasetId()));
-                        valueAdapters.add(new ExtraJourneyDestinationDisplayPostProcessor(subscriptionSetup.getDatasetId()));
-                        valueAdapters.add(new AddOrderToAllCallsPostProcessor(subscriptionSetup.getDatasetId()));
-                        valueAdapters.add(new EnsureNonNullVehicleModePostProcessor());
-                        valueAdapters.add(new ExtraJourneyPostProcessor(subscriptionSetup.getDatasetId()));
-                    }
-
-                    if (!subscriptionSetup.getCodespaceWhiteList().isEmpty()) {
-                        valueAdapters.add(new CodespaceWhiteListProcessor(subscriptionSetup.getDatasetId(), subscriptionSetup.getCodespaceWhiteList()));
-                    }
-                    if (!subscriptionSetup.getCodespaceBlackList().isEmpty()) {
-                        valueAdapters.add(new CodespaceBlackListProcessor(subscriptionSetup.getDatasetId(), subscriptionSetup.getCodespaceBlackList()));
-                    }
-
-                    subscriptionSetup.getMappingAdapters().addAll(valueAdapters);
                 }
 
                 if (subscriptionSetup.getSubscriptionMode() == SubscriptionSetup.SubscriptionMode.FETCHED_DELIVERY |
@@ -273,6 +204,12 @@ public class SubscriptionInitializer implements CamelContextAware {
                 }
             }
             for (SubscriptionSetup subscriptionSetup : actualSubscriptionSetups) {
+
+                // Resolving adapters from locally deployed code - also for subscriptions that were
+                // already registered by another pod. Doing it here - and not on first received
+                // message - makes invalid mapping-config fail on startup.
+                mappingAdapterRegistry.resolveAdapters(subscriptionSetup);
+
                 if (!subscriptionManager.isSubscriptionRegistered(subscriptionSetup.getSubscriptionId())) {
                     subscriptionManager.addSubscription(subscriptionSetup.getSubscriptionId(), subscriptionSetup);
                 }

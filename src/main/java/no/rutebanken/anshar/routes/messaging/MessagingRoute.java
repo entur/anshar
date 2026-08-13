@@ -19,6 +19,7 @@ import no.rutebanken.anshar.metrics.PrometheusMetricsService;
 import no.rutebanken.anshar.routes.CamelRouteNames;
 import no.rutebanken.anshar.routes.RestRouteBuilder;
 import no.rutebanken.anshar.routes.admin.AdminRouteHelper;
+import no.rutebanken.anshar.routes.siri.adapters.MappingAdapterRegistry;
 import no.rutebanken.anshar.routes.siri.handlers.SiriHandler;
 import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
 import no.rutebanken.anshar.routes.validation.SiriXmlValidator;
@@ -63,6 +64,9 @@ public class MessagingRoute extends RestRouteBuilder {
 
     @Autowired
     private SiriXmlValidator siriXmlValidator;
+
+    @Autowired
+    private MappingAdapterRegistry mappingAdapterRegistry;
 
     @Autowired
     private AdminRouteHelper adminRouteHelper;
@@ -221,7 +225,7 @@ public class MessagingRoute extends RestRouteBuilder {
                     SubscriptionSetup subscriptionSetup = subscriptionManager.get(p.getIn().getHeader("subscriptionId", String.class));
                     Siri originalInput = siriXmlValidator.parseXml(subscriptionSetup, p.getIn().getBody(String.class));
 
-                    Siri incoming = SiriValueTransformer.transform(originalInput, subscriptionSetup.getMappingAdapters(), false, true);
+                    Siri incoming = SiriValueTransformer.transform(originalInput, mappingAdapterRegistry.getAdapters(subscriptionSetup), false, true);
 
                     p.getMessage().setHeaders(p.getIn().getHeaders());
                     p.getMessage().setBody(SiriXml.toXml(incoming));

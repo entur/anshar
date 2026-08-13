@@ -40,6 +40,14 @@ import static no.rutebanken.anshar.routes.outbound.SiriHelper.FALLBACK_SIRI_VERS
 
 public class SubscriptionSetup implements Serializable {
 
+    /**
+     * Pinned to the value previously computed for this class. Subscriptions are replicated between
+     * pods as serialized objects, so a changed serialVersionUID makes pods running different
+     * versions unable to read each other's subscriptions during a rolling upgrade.
+     * NOTE: Adding/removing a private transient field changes the computed value.
+     */
+    private static final long serialVersionUID = -3520903682492551223L;
+
     private final Logger logger = LoggerFactory.getLogger(SubscriptionSetup.class);
     private long internalId;
     private List<ValueAdapter> mappingAdapters = new ArrayList<>();
@@ -228,7 +236,16 @@ public class SubscriptionSetup implements Serializable {
         return serviceType;
     }
 
+    /**
+     * NOTE: This is NOT the list of adapters applied to incoming data - see
+     * {@link no.rutebanken.anshar.routes.siri.adapters.MappingAdapterRegistry}, which resolves the
+     * adapters from locally deployed code. The list kept here is only used while resolving them,
+     * as vendor-specific adapters add their id-prefix-adapters directly to it.
+     */
     public List<ValueAdapter> getMappingAdapters() {
+        if (mappingAdapters == null) {
+            mappingAdapters = new ArrayList<>();
+        }
         return mappingAdapters;
     }
 
