@@ -50,7 +50,7 @@ public class SubscriptionSetup implements Serializable {
 
     private final Logger logger = LoggerFactory.getLogger(SubscriptionSetup.class);
     private long internalId;
-    private List<ValueAdapter> mappingAdapters = new ArrayList<>();
+    private transient List<ValueAdapter> mappingAdapters = new ArrayList<>();
     private SiriDataType subscriptionType;
     private String address;
     private Duration heartbeatInterval;
