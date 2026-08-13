@@ -15,10 +15,17 @@
 
 package no.rutebanken.anshar.subscription;
 
+import no.rutebanken.anshar.routes.siri.transformer.impl.PrefixAdapter;
 import no.rutebanken.anshar.subscription.helpers.RequestType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import uk.org.siri.siri21.LineRef;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.ObjectStreamClass;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,6 +33,8 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class SubscriptionSetupTest {
 
@@ -137,6 +146,39 @@ public class SubscriptionSetupTest {
     public void testEqualsAlteredSubscriptionIdIgnored() {
         assertFalse(setup_1.getSubscriptionId().equals(setup_2.getSubscriptionId()));
         assertEquals(setup_1, setup_2);
+    }
+
+    /**
+     * Subscriptions are replicated between pods as serialized objects. A changed serialVersionUID
+     * makes pods running different versions unable to read each other's subscriptions during a
+     * rolling upgrade - the value must stay pinned even when fields are added or removed.
+     */
+    @Test
+    public void testSerialVersionUidIsPinned() {
+        assertEquals(-3520903682492551223L, ObjectStreamClass.lookup(SubscriptionSetup.class).getSerialVersionUID());
+    }
+
+    /**
+     * mappingAdapters is transient - and transient fields are NOT initialized when deserializing.
+     */
+    @Test
+    public void testMappingAdaptersAreUsableAfterDeserializing() throws Exception {
+        setup_1.getMappingAdapters().add(new PrefixAdapter(SiriDataType.SITUATION_EXCHANGE, "tst", LineRef.class, "tst:Line:"));
+
+        SubscriptionSetup deserialized = serializeAndDeserialize(setup_1);
+
+        assertNotNull(deserialized.getMappingAdapters());
+        assertTrue(deserialized.getMappingAdapters().isEmpty(), "Adapters should not be replicated between pods");
+    }
+
+    private SubscriptionSetup serializeAndDeserialize(SubscriptionSetup setup) throws Exception {
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        try (ObjectOutputStream out = new ObjectOutputStream(bytes)) {
+            out.writeObject(setup);
+        }
+        try (ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(bytes.toByteArray()))) {
+            return (SubscriptionSetup) in.readObject();
+        }
     }
 
 }
