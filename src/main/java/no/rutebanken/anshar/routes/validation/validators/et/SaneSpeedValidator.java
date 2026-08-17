@@ -207,6 +207,10 @@ public class SaneSpeedValidator extends SiriObjectValidator {
         EstimatedVehicleJourney estimatedVehicleJourney,
         String fromStop, String toStop, ZonedDateTime fromTime, ZonedDateTime toTime
     ) throws TooFastException {
+        if (toTime != null && fromTime != null && toTime.isBefore(fromTime)) {
+            //Negative travel-time - will be caught by other validators
+            return;
+        }
         final double kph = StopsUtil.calculateSpeedKph(fromStop, toStop, fromTime, toTime);
 
         int saneSpeedLimit = SANE_SPEED_LIMIT;
