@@ -44,6 +44,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.ServiceConfigurationError;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import static no.rutebanken.anshar.config.CustomMDCTurboFilter.loggerIgnoreReducedLogging;
 import static no.rutebanken.anshar.config.CustomMDCTurboFilter.reduceLogging;
@@ -51,6 +52,8 @@ import static no.rutebanken.anshar.config.CustomMDCTurboFilter.reduceLogging;
 @Component
 public class SubscriptionInitializer implements CamelContextAware {
     private final Logger logger = LoggerFactory.getLogger(SubscriptionInitializer.class);
+
+    private static final Pattern UNRESOLVED_PLACEHOLDER = Pattern.compile("\\$\\{[^}]*}");
 
     @Autowired
     private SubscriptionManager subscriptionManager;
@@ -266,7 +269,9 @@ public class SubscriptionInitializer implements CamelContextAware {
         return routeBuilders;
     }
 
-    private boolean isValid(SubscriptionSetup s) {
+    boolean isValid(SubscriptionSetup s) {
+        checkForUnresolvedPlaceholders(s);
+
         Preconditions.checkNotNull(s.getVendor(), "Vendor is not set");
         Preconditions.checkNotNull(s.getDatasetId(), "DatasetId is not set");
         Preconditions.checkNotNull(s.getServiceType(), "ServiceType is not set");
@@ -313,5 +318,29 @@ public class SubscriptionInitializer implements CamelContextAware {
         }
 
         return true;
+    }
+
+    /**
+     * A ${...} that survives property-binding means the referenced value - typically a secret - was not
+     * available when the config was bound. Spring binds the literal placeholder without complaining, and it
+     * would be sent to the data provider as-is, so fail startup instead.
+     */
+    private void checkForUnresolvedPlaceholders(SubscriptionSetup s) {
+        checkForUnresolvedPlaceholders(s, "customHeaders", s.getCustomHeaders());
+        checkForUnresolvedPlaceholders(s, "oauth2Config", s.getOauth2Config());
+        checkForUnresolvedPlaceholders(s, "urlMap", s.getUrlMap());
+    }
+
+    private void checkForUnresolvedPlaceholders(SubscriptionSetup s, String propertyName, Map<?, ?> values) {
+        if (values == null) {
+            return;
+        }
+        for (Map.Entry<?, ?> entry : values.entrySet()) {
+            final Object value = entry.getValue();
+
+            // NOTE: the value may be an unset secret - only the key it is configured under may be logged
+            Preconditions.checkState(value == null || !UNRESOLVED_PLACEHOLDER.matcher(value.toString()).find(),
+                    "Unresolved placeholder in %s[%s] for subscription %s", propertyName, entry.getKey(), s);
+        }
     }
 }

@@ -23,12 +23,18 @@ import no.rutebanken.anshar.routes.siri.Siri20ToSiriWS14RequestResponse;
 import no.rutebanken.anshar.routes.siri.Siri20ToSiriWS14Subscription;
 import no.rutebanken.anshar.routes.siri.Siri20ToSiriWS20RequestResponse;
 import no.rutebanken.anshar.routes.siri.Siri20ToSiriWS20Subscription;
+import no.rutebanken.anshar.subscription.helpers.RequestType;
 import org.apache.camel.builder.RouteBuilder;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
@@ -177,6 +183,80 @@ public class SubscriptionInitializerTest extends SpringBootBaseTest {
         assertTrue(routeBuilders.size() == 2);
         assertTrue(routeBuilders.get(0) instanceof Siri20ToSiriWS14Subscription | routeBuilders.get(0) instanceof Siri20ToSiriWS14RequestResponse);
         assertTrue(routeBuilders.get(1) instanceof Siri20ToSiriWS14Subscription | routeBuilders.get(1) instanceof Siri20ToSiriWS14RequestResponse);
+    }
+
+    /*
+
+
+      Unresolved placeholders
+
+     */
+
+    @Test
+    public void testValidSubscriptionSetupIsAccepted() {
+        assertTrue(initializer.isValid(createValidSubscriptionSetup()));
+    }
+
+    @Test
+    public void testUnresolvedPlaceholderInCustomHeaderIsRejected() {
+        SubscriptionSetup subscriptionSetup = createValidSubscriptionSetup();
+        subscriptionSetup.setCustomHeaders(new HashMap<>(Map.of("X-Api-Key", "${FJORDLINE_API_KEY_TEST}")));
+
+        IllegalStateException e = assertThrows(IllegalStateException.class, () -> initializer.isValid(subscriptionSetup));
+
+        assertTrue(e.getMessage().contains("X-Api-Key"), "Message should name the offending key: " + e.getMessage());
+        assertTrue(e.getMessage().contains("vendorName"), "Message should name the subscription: " + e.getMessage());
+    }
+
+    @Test
+    public void testUnresolvedPlaceholderInOauth2ConfigIsRejected() {
+        SubscriptionSetup subscriptionSetup = createValidSubscriptionSetup();
+        subscriptionSetup.setOauth2Config(new HashMap<>(Map.of(OAuthConfigElement.CLIENT_SECRET, "${SOME_CLIENT_SECRET}")));
+
+        IllegalStateException e = assertThrows(IllegalStateException.class, () -> initializer.isValid(subscriptionSetup));
+
+        assertTrue(e.getMessage().contains("CLIENT_SECRET"), "Message should name the offending key: " + e.getMessage());
+    }
+
+    @Test
+    public void testUnresolvedPlaceholderInUrlMapIsRejected() {
+        SubscriptionSetup subscriptionSetup = createValidSubscriptionSetup();
+        subscriptionSetup.getUrlMap().put(RequestType.GET_SITUATION_EXCHANGE, "https://${SOME_HOST}/siri");
+
+        IllegalStateException e = assertThrows(IllegalStateException.class, () -> initializer.isValid(subscriptionSetup));
+
+        assertTrue(e.getMessage().contains("GET_SITUATION_EXCHANGE"), "Message should name the offending key: " + e.getMessage());
+    }
+
+    /**
+     * The unresolved value may be an unset secret - only the key it is configured under may be logged.
+     */
+    @Test
+    public void testUnresolvedPlaceholderIsRejectedWithoutRevealingTheValue() {
+        SubscriptionSetup subscriptionSetup = createValidSubscriptionSetup();
+        subscriptionSetup.setCustomHeaders(new HashMap<>(Map.of("X-Api-Key", "${FJORDLINE_API_KEY_TEST}")));
+
+        IllegalStateException e = assertThrows(IllegalStateException.class, () -> initializer.isValid(subscriptionSetup));
+
+        assertFalse(e.getMessage().contains("${FJORDLINE_API_KEY_TEST}"), "Message should not repeat the value: " + e.getMessage());
+    }
+
+    private SubscriptionSetup createValidSubscriptionSetup() {
+        SubscriptionSetup subscriptionSetup = createSubscriptionSetup(SubscriptionSetup.SubscriptionMode.REQUEST_RESPONSE, SubscriptionSetup.ServiceType.REST, "2.0");
+        subscriptionSetup.setSubscriptionType(SiriDataType.SITUATION_EXCHANGE);
+        subscriptionSetup.setVendor("vendorName");
+        subscriptionSetup.setDatasetId("TST");
+        subscriptionSetup.setSubscriptionId(UUID.randomUUID().toString());
+        subscriptionSetup.setRequestorRef("anshar");
+        subscriptionSetup.setContentType("text/xml");
+        subscriptionSetup.setDurationOfSubscriptionHours(1);
+        subscriptionSetup.setHeartbeatIntervalSeconds(60);
+
+        Map<RequestType, String> urlMap = new HashMap<>();
+        urlMap.put(RequestType.GET_SITUATION_EXCHANGE, "https://localhost:1234/siri");
+        subscriptionSetup.setUrlMap(urlMap);
+
+        return subscriptionSetup;
     }
 
     private SubscriptionSetup createSubscriptionSetup(SubscriptionSetup.SubscriptionMode requestResponse, SubscriptionSetup.ServiceType rest, String version) {
