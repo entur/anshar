@@ -29,6 +29,7 @@ import java.io.ObjectStreamClass;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -141,6 +142,49 @@ public class SubscriptionSetupTest {
 //        urlMap.put(RequestType.GET_VEHICLE_MONITORING, urlMap.get(RequestType.SUBSCRIBE) + "/vm");
 //        assertFalse(setup_1.equals(setup_2));
 //    }
+
+    @Test
+    public void testEqualsUpdatedCustomHeaderValue() {
+        setup_1.setCustomHeaders(new HashMap<>(Map.of("X-Api-Key", "secret-value")));
+        setup_2.setCustomHeaders(new HashMap<>(Map.of("X-Api-Key", "secret-value")));
+        assertEquals(setup_1, setup_2);
+
+        setup_2.setCustomHeaders(new HashMap<>(Map.of("X-Api-Key", "other-secret-value")));
+        assertFalse(setup_1.equals(setup_2));
+    }
+
+    @Test
+    public void testEqualsAddedCustomHeader() {
+        setup_1.setCustomHeaders(new HashMap<>(Map.of("ET-Client-Name", "anshar")));
+        setup_2.setCustomHeaders(new HashMap<>(Map.of("ET-Client-Name", "anshar", "X-Api-Key", "secret-value")));
+
+        assertFalse(setup_1.equals(setup_2));
+    }
+
+    @Test
+    public void testEqualsUpdatedOauth2Config() {
+        setup_1.setOauth2Config(new HashMap<>(Map.of(OAuthConfigElement.CLIENT_SECRET, "secret-value")));
+        setup_2.setOauth2Config(new HashMap<>(Map.of(OAuthConfigElement.CLIENT_SECRET, "secret-value")));
+        assertEquals(setup_1, setup_2);
+
+        setup_2.setOauth2Config(new HashMap<>(Map.of(OAuthConfigElement.CLIENT_SECRET, "other-secret-value")));
+        assertFalse(setup_1.equals(setup_2));
+    }
+
+    /**
+     * Subscriptions registered before these fields were compared hold null, while newly bound
+     * config gives an empty map. That difference must not flag every subscription as updated.
+     */
+    @Test
+    public void testEqualsNullAndEmptyHeadersAreEquivalent() {
+        setup_1.setCustomHeaders(null);
+        setup_2.setCustomHeaders(new HashMap<>());
+        assertEquals(setup_1, setup_2);
+
+        setup_1.setOauth2Config(null);
+        setup_2.setOauth2Config(new HashMap<>());
+        assertEquals(setup_1, setup_2);
+    }
 
     @Test
     public void testEqualsAlteredSubscriptionIdIgnored() {

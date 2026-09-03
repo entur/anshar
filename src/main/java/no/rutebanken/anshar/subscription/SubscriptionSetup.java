@@ -30,9 +30,12 @@ import java.text.MessageFormat;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
@@ -699,6 +702,37 @@ public class SubscriptionSetup implements Serializable {
             logger.info("filterMapPresets does not match [{}] vs [{}]", filterMapPresets, that.filterMapPresets);
             return false;
         }
+        // NOTE: customHeaders and oauth2Config hold credentials - log the differing keys, never the values
+        if (!nullSafe(getCustomHeaders()).equals(nullSafe(that.getCustomHeaders()))) {
+            logger.info("customHeaders does not match - differing keys {}", differingKeys(getCustomHeaders(), that.getCustomHeaders()));
+            return false;
+        }
+        if (!nullSafe(getOauth2Config()).equals(nullSafe(that.getOauth2Config()))) {
+            logger.info("oauth2Config does not match - differing keys {}", differingKeys(getOauth2Config(), that.getOauth2Config()));
+            return false;
+        }
         return true;
+    }
+
+    /**
+     * Treats null and empty as equivalent - subscriptions registered before these fields were
+     * compared hold null, while newly bound config gives an empty map.
+     */
+    private static Map<?, ?> nullSafe(Map<?, ?> map) {
+        return map != null ? map : Collections.emptyMap();
+    }
+
+    /**
+     * Names of the keys that are missing from one of the maps, or that map to different values.
+     * Returns keys only - the values may be secrets.
+     */
+    private static Set<?> differingKeys(Map<?, ?> one, Map<?, ?> other) {
+        Map<?, ?> first = nullSafe(one);
+        Map<?, ?> second = nullSafe(other);
+
+        Set<Object> keys = new HashSet<>(first.keySet());
+        keys.addAll(second.keySet());
+        keys.removeIf(key -> Objects.equals(first.get(key), second.get(key)));
+        return keys;
     }
 }
