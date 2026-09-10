@@ -68,10 +68,10 @@ public class Siri20ToSiriRS14Subscription extends SiriSubscriptionRouteBuilder {
                 .setHeader(Exchange.CONTENT_TYPE, constant(subscriptionSetup.getContentType())) // Necessary when talking to Microsoft web services
                 .setHeader(Exchange.HTTP_METHOD, constant(HttpMethods.POST))
                 .process(addCustomHeaders())
-                .to("log:sent:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
+                .to(maskedLog("sent"))
                 .doTry()
                     .to(getCamelUrl(urlMap.get(RequestType.SUBSCRIBE)))
-                    .to("log:received response:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
+                    .to(maskedLog("received response"))
                 .doCatch(ConnectException.class)
                     .log("Caught ConnectException - subscription not started - will try again: "+ subscriptionSetup.toString())
                     .process(p -> p.getOut().setBody(null))
@@ -102,13 +102,13 @@ public class Siri20ToSiriRS14Subscription extends SiriSubscriptionRouteBuilder {
                 .setHeader("SOAPAction", constant("DeleteSubscription")) // set SOAPAction Header (Microsoft requirement)
                 .setHeader("operatorNamespace", constant(subscriptionSetup.getOperatorNamespace())) // Need to make SOAP request with endpoint specific element namespace
                 .to("xslt-saxon:xsl/siri_20_14.xsl") // Convert from SIRI 2.0 to SIRI 1.4
-                .to("log:sent:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
+                .to(maskedLog("sent"))
                 .removeHeaders("CamelHttp*") // Remove any incoming HTTP headers as they interfere with the outgoing definition
                 .setHeader(Exchange.CONTENT_TYPE, constant(subscriptionSetup.getContentType())) // Necessary when talking to Microsoft web services
                 .setHeader(Exchange.HTTP_METHOD, constant(org.apache.camel.component.http.HttpMethods.POST))
                 .process(addCustomHeaders())
                 .to(getCamelUrl(urlMap.get(RequestType.DELETE_SUBSCRIPTION)))
-                .to("log:received:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
+                .to(maskedLog("received"))
                 .process(p -> {
                     InputStream body = p.getIn().getBody(InputStream.class);
                     logger.info("Response body [{}]", body);

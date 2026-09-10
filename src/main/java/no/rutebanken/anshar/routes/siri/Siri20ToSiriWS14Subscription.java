@@ -76,10 +76,10 @@ public class Siri20ToSiriWS14Subscription extends SiriSubscriptionRouteBuilder {
                 .setHeader(Exchange.CONTENT_TYPE, constant(subscriptionSetup.getContentType())) // Necessary when talking to Microsoft web services
                 .setHeader(Exchange.HTTP_METHOD, constant(HttpMethods.POST))
                 .process(addCustomHeaders())
-                .to("log:sent:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
+                .to(maskedLog("sent"))
                 .doTry()
                     .to(getCamelUrl(urlMap.get(RequestType.SUBSCRIBE)))
-                    .to("log:received response:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
+                    .to(maskedLog("received response"))
                 .doCatch(ConnectException.class)
                     .log("Caught ConnectException - subscription not started - will try again: "+ subscriptionSetup.toString())
                     .process(p -> p.getOut().setBody(null))
@@ -88,7 +88,7 @@ public class Siri20ToSiriWS14Subscription extends SiriSubscriptionRouteBuilder {
                     .to("xslt-saxon:xsl/siri_soap_raw.xsl?allowStAX=false") // Extract SOAP version and convert to raw SIRI
                     .to("xslt-saxon:xsl/siri_14_20.xsl?allowStAX=false") // Convert from v1.4 to 2.0
                 .end()
-                .to("log:received:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
+                .to(maskedLog("received"))
                 .process(p -> {
 
                     String responseCode = p.getIn().getHeader(PARAM_RESPONSE_CODE, String.class);
@@ -135,13 +135,13 @@ public class Siri20ToSiriWS14Subscription extends SiriSubscriptionRouteBuilder {
                 .setHeader(Exchange.CONTENT_TYPE, constant(subscriptionSetup.getContentType())) // Necessary when talking to Microsoft web services
                 .setHeader(Exchange.HTTP_METHOD, constant(org.apache.camel.component.http.HttpMethods.POST))
                 .process(addCustomHeaders())
-                .to("log:sent:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
+                .to(maskedLog("sent"))
                 .to(getCamelUrl(urlMap.get(RequestType.DELETE_SUBSCRIPTION)))
                 .choice().when(simple("${in.body} != null"))
                     .to("xslt-saxon:xsl/siri_soap_raw.xsl?allowStAX=false") // Extract SOAP version and convert to raw SIRI
                     .to("xslt-saxon:xsl/siri_14_20.xsl?allowStAX=false") // Convert from v1.4 to 2.0
                 .end()
-                .to("log:received:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
+                .to(maskedLog("received"))
                 .process(p -> {
                     InputStream body = p.getIn().getBody(InputStream.class);
                     logger.info("Response body [{}]", body);

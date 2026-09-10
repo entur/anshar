@@ -74,7 +74,7 @@ public class Siri20ToSiriRS20RequestResponse extends SiriSubscriptionRouteBuilde
             .setHeader(Exchange.CONTENT_TYPE, constant(subscriptionSetup.getContentType())) // Necessary when talking to Microsoft web services
             .setHeader(Exchange.HTTP_METHOD, constant(HttpMethods.POST))
             .process(addCustomHeaders())
-            .to("log:request:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
+            .to(maskedLog("request"))
             .doTry()
                 .to(getRequestUrl(subscriptionSetup, httpOptions))
                 .setHeader("CamelHttpPath", constant("/appContext" + subscriptionSetup.buildUrl(false)))

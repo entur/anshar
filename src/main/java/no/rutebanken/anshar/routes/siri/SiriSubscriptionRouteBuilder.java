@@ -20,11 +20,13 @@ import jakarta.ws.rs.core.MediaType;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.data.EstimatedTimetables;
 import no.rutebanken.anshar.routes.BaseRouteBuilder;
+import no.rutebanken.anshar.routes.siri.helpers.MaskedHeadersExchangeFormatter;
 import no.rutebanken.anshar.routes.siri.transformer.ApplicationContextHolder;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import no.rutebanken.anshar.subscription.helpers.DataNotReceivedAction;
 import no.rutebanken.anshar.subscription.helpers.RequestType;
+import org.apache.camel.Endpoint;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.component.http.HttpMethods;
@@ -50,6 +52,8 @@ public abstract class SiriSubscriptionRouteBuilder extends BaseRouteBuilder {
     @Autowired
     EstimatedTimetables estimatedTimetables;
 
+    private final MaskedHeadersExchangeFormatter maskedHeadersExchangeFormatter;
+
     boolean hasBeenStarted;
 
     private Instant lastCheckStatus = Instant.now();
@@ -57,6 +61,7 @@ public abstract class SiriSubscriptionRouteBuilder extends BaseRouteBuilder {
     public SiriSubscriptionRouteBuilder(AnsharConfiguration config, SubscriptionManager subscriptionManager) {
         super(config, subscriptionManager);
         estimatedTimetables = ApplicationContextHolder.getContext().getBean(EstimatedTimetables.class);
+        maskedHeadersExchangeFormatter = ApplicationContextHolder.getContext().getBean(MaskedHeadersExchangeFormatter.class);
     }
 
     String getTimeout() {
@@ -70,6 +75,15 @@ public abstract class SiriSubscriptionRouteBuilder extends BaseRouteBuilder {
         }
 
         return "?socketTimeout=" + timeout + "&connectTimeout=" + timeout;
+    }
+
+    /**
+     * Logs the exchange the way {@code log:<name>?showAll=true&multiline=true} does, except that the values of
+     * the oauth2- and custom headers are masked. These requests carry the credentials of the data provider,
+     * which must never be written to the log.
+     */
+    protected Endpoint maskedLog(String name) {
+        return maskedHeadersExchangeFormatter.logEndpoint(getContext(), name + ":" + getClass().getSimpleName());
     }
 
     protected Processor addCustomHeaders() {
@@ -105,7 +119,7 @@ public abstract class SiriSubscriptionRouteBuilder extends BaseRouteBuilder {
                     .setBody(simple(subscriptionSetup.getDataNotReceivedAction() != null ? subscriptionSetup.getDataNotReceivedAction().getJsonPostContent():""))
                     .setHeader(Exchange.CONTENT_TYPE, constant(MediaType.APPLICATION_JSON))
                     .setHeader(Exchange.HTTP_METHOD, constant(HttpMethods.POST))
-                    .to("log:datanotreceived:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
+                    .to(maskedLog("datanotreceived"))
                     .toD(subscriptionSetup.getDataNotReceivedAction() != null ? subscriptionSetup.getDataNotReceivedAction().getEndpoint():"empty", true)
                 .when(p -> shouldBeStarted(p.getFromRouteId()))
                     .log("Triggering start subscription: " + subscriptionSetup)

@@ -83,10 +83,10 @@ public class Siri20ToSiriWS20RequestResponse extends SiriSubscriptionRouteBuilde
                 .setHeader(Exchange.CONTENT_TYPE, constant(subscriptionSetup.getContentType())) // Necessary when talking to Microsoft web services
                 .setHeader(Exchange.HTTP_METHOD, constant(org.apache.camel.component.http.HttpMethods.POST))
                 .process(addCustomHeaders())
-                .to("log:request:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
+                .to(maskedLog("request"))
                 .doTry()
                     .to(getRequestUrl(subscriptionSetup, httpOptions))
-                    .to("log:response:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
+                    .to(maskedLog("response"))
                     .setHeader("CamelHttpPath", constant("/appContext" + subscriptionSetup.buildUrl(false)))
                     .log("Got response " + subscriptionSetup.toString())
                     .setHeader(TRANSFORM_SOAP, constant(TRANSFORM_SOAP))
@@ -95,7 +95,7 @@ public class Siri20ToSiriWS20RequestResponse extends SiriSubscriptionRouteBuilde
                     .to("direct:process.message.synchronous")
                 .doCatch(Exception.class)
                     .log("Caught exception - releasing leadership: " + subscriptionSetup.toString())
-                    .to("log:response:" + getClass().getSimpleName() + "?showCaughtException=true&showAll=true&multiline=true")
+                    .to(maskedLog("response"))
                     .process(p -> {
                         if (releaseLeadershipOnError) {
                             releaseLeadership(monitoringRouteId);

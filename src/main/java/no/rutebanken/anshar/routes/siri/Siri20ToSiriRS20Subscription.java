@@ -101,10 +101,10 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
                 .setHeader(Exchange.CONTENT_TYPE, constant(subscriptionSetup.getContentType())) // Necessary when talking to Microsoft web services
                 .setHeader(Exchange.HTTP_METHOD, constant(HttpMethods.POST))
                 .process(addCustomHeaders())
-                .to("log:sent request:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
+                .to(maskedLog("sent request"))
                 .doTry()
                     .to(getCamelUrl(urlMap.get(RequestType.SUBSCRIBE)))
-                    .to("log:received response:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
+                    .to(maskedLog("received response"))
                     .process(p -> {
 
                         String responseCode = p.getIn().getHeader(PARAM_RESPONSE_CODE, String.class);
@@ -188,9 +188,9 @@ public class Siri20ToSiriRS20Subscription extends SiriSubscriptionRouteBuilder {
                 .setHeader(Exchange.CONTENT_TYPE, constant(subscriptionSetup.getContentType())) // Necessary when talking to Microsoft web services
                 .setHeader(Exchange.HTTP_METHOD, constant(HttpMethods.POST))
                 .process(addCustomHeaders())
-                .to("log:sent request:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
+                .to(maskedLog("sent request"))
                 .to(getCamelUrl(urlMap.get(RequestType.DELETE_SUBSCRIPTION)))
-                .to("log:received response:" + getClass().getSimpleName() + "?showAll=true&multiline=true")
+                .to(maskedLog("received response"))
                 .process(p -> {
                     InputStream body = p.getIn().getBody(InputStream.class);
                     if (body != null && body.available() >0) {
