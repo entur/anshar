@@ -1,0 +1,65 @@
+# publiccode.yml metadata, see https://yml.publiccode.tools/
+publiccodeYmlVersion: "0.7.0"
+
+name: Anshar
+url: https://github.com/entur/anshar
+
+platforms:
+  - web
+  - linux
+
+categories:
+  - data-collection
+  - communications
+
+developmentStatus: stable
+softwareType: standalone/backend
+
+organisation:
+  name: Entur AS
+  uri: https://entur.no
+
+usedBy:
+  - Norway (nationwide), Entur AS
+
+intendedAudience:
+  scope:
+    - transportation
+  countries:
+    - "NO"
+
+description:
+  en:
+    localisedName: Anshar
+    shortDescription: Publish-subscribe hub that collects and redistributes real-time SIRI data.
+    longDescription: >
+      Anshar is the national hub for real-time public transport data in Norway. It subscribes to SIRI endpoints
+      operated by transport companies, collects SIRI-ET, SIRI-VM and SIRI-SX messages, and republishes the
+      aggregated data on its own endpoints for consumers such as journey planners and passenger information
+      systems. Both subscription-based and request-response exchange are supported.
+      Anshar validates incoming XML against the SIRI XML schema and against a configurable profile subset, by
+      default the Norwegian SIRI profile, and reports the results per codespace. It exposes live statistics for
+      all subscriptions, and it runs as a cluster of Spring Boot instances with liveness, readiness and health
+      endpoints.
+    documentation: https://github.com/entur/anshar/blob/master/README.md
+    features:
+      - Subscribes to external SIRI endpoints and manages subscriptions
+      - Serves SIRI-ET, SIRI-VM and SIRI-SX to downstream consumers
+      - Validation against the SIRI schema and the Norwegian SIRI profile
+      - Per-subscription status and statistics endpoints
+      - Clustered operation with health, liveness and readiness probes
+
+legal:
+  license: EUPL-1.2
+  mainCopyrightOwner: Entur AS
+
+maintenance:
+  type: internal
+  contacts:
+    - name: Entur ROR (Open Data and Journey Planning)
+      email: kollektivdata@entur.org
+
+localisation:
+  localisationReady: false
+  availableLanguages:
+    - en
