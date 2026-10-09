@@ -38,6 +38,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalTime;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -317,6 +319,8 @@ public class SubscriptionInitializer implements CamelContextAware {
             Preconditions.checkArgument(! s.forwardPositionData(), "Position only is only valid for VM-subscription.");
         }
 
+        checkRestartTime(s);
+
         return true;
     }
 
@@ -325,6 +329,23 @@ public class SubscriptionInitializer implements CamelContextAware {
      * available when the config was bound. Spring binds the literal placeholder without complaining, and it
      * would be sent to the data provider as-is, so fail startup instead.
      */
+    /**
+     * restartTime must be parseable as HH:mm. Unquoted values like 10:30 are parsed by YAML as the
+     * sexagesimal integer 630, which would otherwise be silently ignored.
+     */
+    private void checkRestartTime(SubscriptionSetup s) {
+        String restartTime = s.getRestartTime();
+        if (restartTime == null || restartTime.isEmpty()) {
+            return;
+        }
+        try {
+            LocalTime.parse(restartTime);
+        } catch (DateTimeParseException e) {
+            throw new IllegalStateException("Invalid restartTime '" + restartTime + "' for subscription " + s +
+                    " - expected format HH:mm, quoted in YAML (e.g. \"01:30\")", e);
+        }
+    }
+
     private void checkForUnresolvedPlaceholders(SubscriptionSetup s) {
         checkForUnresolvedPlaceholders(s, "customHeaders", s.getCustomHeaders());
         checkForUnresolvedPlaceholders(s, "oauth2Config", s.getOauth2Config());

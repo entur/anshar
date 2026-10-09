@@ -404,7 +404,7 @@ public class SubscriptionManager {
                 //If active subscription has existed longer than "initial subscription duration" - restart
                 if (activated != null) {
                     if (activeSubscription.getRestartTime() != null && activeSubscription.getRestartTime().contains(":")) {
-                        // Allowing subscriptions to be restarted at specified time
+                        // Allowing subscriptions to be restarted at specified time (in the server's timezone)
                         ZonedDateTime restartTime = ZonedDateTime.of(LocalDate.now(), LocalTime.parse(activeSubscription.getRestartTime()), ZoneId.systemDefault());
                         if (restartTime.isBefore(ZonedDateTime.now()) && activated.atZone(ZoneId.systemDefault()).isBefore(restartTime)) {
                             logger.info("Subscription [{}] configured for nightly restart at {}.", activeSubscription, restartTime);

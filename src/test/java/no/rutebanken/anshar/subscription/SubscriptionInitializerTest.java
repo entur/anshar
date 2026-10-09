@@ -241,6 +241,43 @@ public class SubscriptionInitializerTest extends SpringBootBaseTest {
         assertFalse(e.getMessage().contains("${FJORDLINE_API_KEY_TEST}"), "Message should not repeat the value: " + e.getMessage());
     }
 
+    /*
+
+
+      restartTime
+
+     */
+
+    @Test
+    public void testValidRestartTimeIsAccepted() {
+        SubscriptionSetup subscriptionSetup = createValidSubscriptionSetup();
+        subscriptionSetup.setRestartTime("01:30");
+
+        assertTrue(initializer.isValid(subscriptionSetup));
+    }
+
+    /**
+     * Unquoted 10:30 in YAML is parsed as the sexagesimal integer 630, and must not be silently ignored.
+     */
+    @Test
+    public void testRestartTimeParsedAsSexagesimalIntegerIsRejected() {
+        SubscriptionSetup subscriptionSetup = createValidSubscriptionSetup();
+        subscriptionSetup.setRestartTime("630");
+
+        IllegalStateException e = assertThrows(IllegalStateException.class, () -> initializer.isValid(subscriptionSetup));
+
+        assertTrue(e.getMessage().contains("restartTime"), "Message should name the property: " + e.getMessage());
+        assertTrue(e.getMessage().contains("630"), "Message should include the value: " + e.getMessage());
+    }
+
+    @Test
+    public void testRestartTimeWithoutLeadingZeroIsRejected() {
+        SubscriptionSetup subscriptionSetup = createValidSubscriptionSetup();
+        subscriptionSetup.setRestartTime("1:30");
+
+        assertThrows(IllegalStateException.class, () -> initializer.isValid(subscriptionSetup));
+    }
+
     private SubscriptionSetup createValidSubscriptionSetup() {
         SubscriptionSetup subscriptionSetup = createSubscriptionSetup(SubscriptionSetup.SubscriptionMode.REQUEST_RESPONSE, SubscriptionSetup.ServiceType.REST, "2.0");
         subscriptionSetup.setSubscriptionType(SiriDataType.SITUATION_EXCHANGE);

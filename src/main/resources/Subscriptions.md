@@ -67,7 +67,7 @@ For `FETCHED_DELIVERY`, the `GET_*` URLs default to the `SUBSCRIBE` URL.
 | `updateIntervalSeconds`       | Integer            | Sets `UpdateInterval` in VM subscription requests.                                                               |
 | `previewIntervalSeconds`      | Integer            | Requested preview interval (ET/SX/FM).                                                                           |
 | `changeBeforeUpdatesSeconds`  | Integer            | Sets `ChangeBeforeUpdates` in ET/VM subscription requests.                                                       |
-| `restartTime`                 | `"HH:mm"`, e.g. `"01:00"` | Time of day at which a `SUBSCRIBE` subscription is restarted. Must be quoted.                             |
+| `restartTime`                 | `"HH:mm"`, e.g. `"01:00"` | Time of day, in the server's timezone, at which a `SUBSCRIBE` subscription is restarted. Must be quoted - startup fails if the value is not a valid time. |
 | `incrementalUpdates`          | `true`, `false`, empty | Sets `IncrementalUpdates` in the request. If left empty, the element is omitted.                                  |
 | `dataSupplyRequestForInitialDelivery` | `true`, `false` | Sends a `DataSupplyRequest` to fetch the first delivery when the subscription starts.                    |
 
