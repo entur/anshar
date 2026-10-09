@@ -1,63 +1,127 @@
-| Propertyname                | Possible values | Description                                                                                                                                                                                                                                                              |
-|-----------------------------|---|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| vendor                      |Any string| Informational label used in incoming url                                                                                                                                                                                                                                 |
-| name                        |Any string| Informational name used in stats-page                                                                                                                                                                                                                                    |
-| datasetId                   |Any string - should be short| Preferable Codespace-ID used to separate data from different vendors - also used in urls                                                                                                                                                                                 |
-| serviceType                 |REST, SOAP| Specifies if requests should be wrapped in soap envelopes                                                                                                                                                                                                                |
-| subscriptionType            |VEHICLE_MONITORING, SITUATION_EXCHANGE, ESTIMATED_TIMETABLE| SIRI datatype for this subscription                                                                                                                                                                                                                                      |
-| subscriptionMode            |REQUEST_RESPONSE, SUBSCRIBE, FETCHED_DELIVERY| - REQUEST_RESPONSE: Client gets all current data at som interval - SUBSCRIBE:Pubsub-pattern - changes are pushed from server to client when they occur. - FETCHED_DELIVERY:Client is notified that data is updated, and should POST a GetServiceRequest to get updated data. |
-| heartbeatIntervalSeconds    |Any int| Expected heartbeat frequency                                                                                                                                                                                                                                             |
-| updateIntervalSeconds       |Any int| Indicates update-interval (only applicable when subscription is ESTIMATED_TIMETABLE/VEHICLE_MONITORING and type SUBSCRIBE)                                                                                                                                               |
-| previewIntervalSeconds      |Any int| Requested preview interval                                                                                                                                                                                                                                               |
-| operatorNamespace           |Namespace URL| Optional namespace used in XML-marshalling data from this subscription                                                                                                                                                                                                   |
-| addressFieldName            | *Address* or *ConsumerAddress* (default)| XML-attribute to use for inbound URL                                                                                                                                                                                                                                     |
-| soapenvNamespace            | Namespace URL for soap-Envelope| Optional namespace used in XML-marshalling Soap-Envelope                                                                                                                                                                                                                 |
-| incrementalUpdates          |_true_, _false_ or leave empty | _true_ and _false_ sets the attribute to specified value. If empty, the IncrementalUpdates-element is not included in the Request                                                                                                                                        | 
-| urlMap                      |List of urls| Specifies URLs to separate services, unused may be deleted. Specify https4:// for HTTPS (e.g. https4://localhost:8080/siri/sx)                                                                                                                                           |
-| SUBSCRIBE                   |localhost:8080/siri/service/subscribe.xml | URL to register subscription                                                                                                                                                                                                                                             |
-| DELETE_SUBSCRIPTION         |localhost:8080/siri/service/managesubscription.xml | URL to terminate subscription                                                                                                                                                                                                                                            |
-| CHECK_STATUS                |localhost:8080/siri/service/checkstatus.xml| URL used to check status                                                                                                                                                                                                                                                 |
-| GET_VEHICLE_MONITORING      |localhost:8080/siri/vm | URL to SIRI VM-ServiceRequest                                                                                                                                                                                                                                            |
-| GET_SITUATION_EXCHANGE      |localhost:8080/siri/sx | URL to SIRI SX-ServiceRequest                                                                                                                                                                                                                                            |
-| customHeaders               |header-name : header:value | List of headers that will be aded to all outgoing requests for subscription.                                                                                                                                                                                             |
-| header-name: header-value   | |                                                                                                                                                                                                                                                                          |
-| version                     |1.4, 2.0  | SIRI-version remote service implements                                                                                                                                                                                                                                   |
-| subscriptionId              |Random uuid| Unique ID used to identify subscription                                                                                                                                                                                                                                  |
-| requestorRef                |Any String, may be provided by remote serviceprovider | Used to identify against remote server                                                                                                                                                                                                                                   |
-| durationOfSubscriptionHours |Any int | Number of hours to trigger subscription to be terminated/restarted                                                                                                                                                                                                       |
-| mappingAdapterPreset        |RUTER, ATB, KOLUMBUS, AKT| Adapters used to convert ids to common format                                                                                                                                                                                                                            |
-| filterPresets               |BYBANEN| Specific filters to use                                                                                                                                                                                                                                                  |
-| idMappingPrefixes           |RUT, ATB, KOL, AKT, NRI+++| List of prefixes to be used when mapping ids form NSR                                                                                                                                                                                                                    |
-| restartTime                 | "01:00"| Time of day that a subscription will be restarted in the format HH:mm                                                                                                                                                                                                    |
-| codespaceWhiteList          |RUT, ATB, KOL, AKT, NRI+++| List of prefixes to be allowed as codespace on id-values                                                                                                                                                                                                          |
-| active                      |true,false | Enables/disables subscription                                                                                                                                                                                                                                            |
-| validation                  |true,false | Enables/disables validation on startup                                                                                                                                                                                                                                   |
+# Subscription configuration
 
-Example:
-```
+Outbound subscriptions (Anshar → external SIRI provider) are configured as a list under `anshar.subscriptions`
+in a YAML file. See `subscriptions-example.yml` for a working example.
+
+Each entry is validated on startup, and startup fails on missing required fields or unresolved `${...}` placeholders.
+Fields marked **required** must be set.
+
+## Identification
+
+| Property         | Values               | Description                                                                                                         |
+|------------------|----------------------|---------------------------------------------------------------------------------------------------------------------|
+| `internalId`     | Unique number        | **Required.** Must be unique across all subscriptions. Used to detect when a subscription's config has changed.     |
+| `vendor`         | String               | **Required.** Label used in the inbound URL (`/anshar/{version}/{type}/{vendor}/{subscriptionId}`).               |
+| `name`           | String               | Name shown on the stats page.                                                                                       |
+| `datasetId`      | Short string         | **Required.** Preferably the codespace ID. Separates data from different providers, and is used in URLs.         |
+| `subscriptionId` | String, e.g. a UUID  | **Required.** Unique ID for the subscription. `${random.uuid}` can be used.                                         |
+| `requestorRef`   | String               | **Required.** Identifies Anshar to the remote server. Sometimes assigned by the provider.                           |
+| `active`         | `true`, `false`      | Enables/disables the subscription.                                                                                   |
+
+## Type and mode
+
+| Property           | Values                                                                              | Description                                                                                                                                                                                                                                                                                   |
+|--------------------|-------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `subscriptionType` | `ESTIMATED_TIMETABLE`, `VEHICLE_MONITORING`, `SITUATION_EXCHANGE`, `FACILITY_MONITORING` | **Required.** SIRI data type.                                                                                                                                                                                                                                                                 |
+| `subscriptionMode` | `REQUEST_RESPONSE`, `SUBSCRIBE`, `FETCHED_DELIVERY`, `POLLING_FETCHED_DELIVERY`     | **Required.** <br>• `REQUEST_RESPONSE`: Anshar polls for all current data at a regular interval. <br>• `SUBSCRIBE`: The provider pushes changes to Anshar as they happen. Requires `anshar.inbound.url` to be reachable by the provider. <br>• `FETCHED_DELIVERY` / `POLLING_FETCHED_DELIVERY`: The provider notifies Anshar when data has been updated, and Anshar then sends a `ServiceRequest` to fetch it. |
+| `serviceType`      | `REST`, `SOAP`                                                                      | **Required.** `SOAP` wraps requests in a SOAP envelope.                                                                                                                                                                                                                                       |
+| `version`          | `1.4`, `2.0`, `2.1`                                                                 | SIRI version the remote service implements. Defaults to `2.1`.                                                                                                                                                                                                                                 |
+
+## Endpoints
+
+### `urlMap`
+
+**Required.** Maps each request type to a URL. Only the entries needed for the chosen mode are required:
+
+| Key                       | Used for                                    | Required when                                           |
+|---------------------------|---------------------------------------------|---------------------------------------------------------|
+| `SUBSCRIBE`               | Setting up the subscription                 | `SUBSCRIBE`, `FETCHED_DELIVERY`                         |
+| `DELETE_SUBSCRIPTION`     | Ending the subscription                     | `SUBSCRIBE`, `FETCHED_DELIVERY`                         |
+| `CHECK_STATUS`            | `CheckStatusRequest`                        | Optional                                                |
+| `GET_ESTIMATED_TIMETABLE` | ET `ServiceRequest`                         | `REQUEST_RESPONSE` with `ESTIMATED_TIMETABLE`           |
+| `GET_VEHICLE_MONITORING`  | VM `ServiceRequest`                         | `REQUEST_RESPONSE` with `VEHICLE_MONITORING`            |
+| `GET_SITUATION_EXCHANGE`  | SX `ServiceRequest`                         | `REQUEST_RESPONSE` with `SITUATION_EXCHANGE`            |
+
+URLs without a scheme are prefixed with `http://`. The legacy `https4://` scheme is rewritten to `https://`.
+For `FETCHED_DELIVERY`, the `GET_*` URLs default to the `SUBSCRIBE` URL.
+
+### Request details
+
+| Property            | Values                                   | Description                                                                                                             |
+|---------------------|------------------------------------------|-------------------------------------------------------------------------------------------------------------------------|
+| `contentType`       | e.g. `text/xml;charset=UTF-8`            | **Required.** `Content-Type` header on outgoing requests.                                                                 |
+| `customHeaders`     | Map of `header-name: value`              | Headers added to every outgoing request. Values are masked in logs.                                                     |
+| `oauth2Config`      | Map, see below                           | If set, an OAuth2 token is fetched and added to outgoing requests. Values are masked in logs.                           |
+| `operatorNamespace` | Namespace URL                            | Namespace used when marshalling requests for this subscription, e.g. `http://www.siri.org.uk/siri`.                     |
+| `soapenvNamespace`  | Namespace URL                            | Namespace used for the SOAP envelope (only applies when `serviceType: SOAP`).                                                |
+| `addressFieldName`  | `Address`, `ConsumerAddress` (default)   | Element that holds Anshar's inbound URL in subscription requests.                                                       |
+
+`oauth2Config` keys: `SERVER`, `CLIENT_ID`, `CLIENT_SECRET`, `AUDIENCE`, `SCOPE`, `GRANT_TYPE`, `CONTENT_TYPE`.
+
+## Timing
+
+| Property                      | Values             | Description                                                                                                      |
+|-------------------------------|--------------------|------------------------------------------------------------------------------------------------------------------|
+| `heartbeatIntervalSeconds`    | Integer > 0        | **Required.** Expected heartbeat interval. Used to detect subscriptions that have stopped responding.             |
+| `durationOfSubscriptionHours` | Integer > 0        | **Required.** Requested lifetime of the subscription.                                                            |
+| `updateIntervalSeconds`       | Integer            | Sets `UpdateInterval` in VM subscription requests.                                                               |
+| `previewIntervalSeconds`      | Integer            | Requested preview interval (ET/SX/FM).                                                                           |
+| `changeBeforeUpdatesSeconds`  | Integer            | Sets `ChangeBeforeUpdates` in ET/VM subscription requests.                                                       |
+| `restartTime`                 | `"HH:mm"`, e.g. `"01:00"` | Time of day at which a `SUBSCRIBE` subscription is restarted. Must be quoted.                             |
+| `incrementalUpdates`          | `true`, `false`, empty | Sets `IncrementalUpdates` in the request. If left empty, the element is omitted.                                  |
+| `dataSupplyRequestForInitialDelivery` | `true`, `false` | Sends a `DataSupplyRequest` to fetch the first delivery when the subscription starts.                    |
+
+## Data processing
+
+| Property                 | Values                          | Description                                                                                                                                   |
+|--------------------------|---------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
+| `mappingAdapterId`       | Adapter ID, e.g. `entur`        | Selects the mapping adapter used to convert IDs to a common format. See `MappingAdapters.md`.                                                 |
+| `idMappingPrefixes`      | List, e.g. `RUT,ATB,KOL`        | Prefixes used when mapping stop IDs to NSR IDs (used by some adapters).                                                                      |
+| `filterPresets`          | List of `SubscriptionPreset` values, e.g. `BYBANEN` | Predefined filters added to the subscription request.                                                                    |
+| `codespaceWhiteList`     | List of codespaces              | Only data with these codespaces is kept.                                                                                                    |
+| `codespaceBlackList`     | List of codespaces              | Data with these codespaces is dropped.                                                                                                        |
+| `useProvidedCodespaceId` | `true`, `false` (default)       | Keep the codespace given in the data instead of overriding it with `datasetId`. Use this when one subscription delivers data for several codespaces. |
+| `validation`             | `true`, `false`                 | Enables validation of incoming data from startup.                                                                                    |
+| `validationFilter`       | String                          | Only validate deliveries that contain this string. Cleared when `validation` is `false`.                                                   |
+| `enrichSiriData`         | `true`, `false` (default)       | Publishes incoming data to Kafka for APC enrichment.                                                                                         |
+| `forwardPositionData`    | `true`, `false` (default)       | VM only: forward position data only.                                                                                                       |
+| `vehicleMonitoringRefValue` | String                       | VM only: sets `VehicleMonitoringRef` in the subscription request.                                                                          |
+
+## Operations
+
+| Property                | Values          | Description                                                                                                                                       |
+|-------------------------|-----------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
+| `reduceLogging`         | `true`, `false` | Permanently reduces logging for this subscription.                                                                                                |
+| `dataNotReceivedAction` | Object          | Sends an HTTP POST if no data has been received for a while. Fields: `enabled`, `inactivityMinutes`, `endpoint`, `jsonPostContent`.               |
+
+## Example
+
+```yaml
 anshar:
   subscriptions:
-    -
-      vendor: rutebanken
-      datasetId: rb
+    - internalId: 100
+      vendor: enturVm
+      name: Entur - VM
+      datasetId: ENT
       serviceType: REST
       subscriptionType: VEHICLE_MONITORING
       subscriptionMode: REQUEST_RESPONSE
       heartbeatIntervalSeconds: 60
+      updateIntervalSeconds: 1
       operatorNamespace: http://www.siri.org.uk/siri
       urlMap:
-        SUBSCRIBE: mottak-test.rutebanken.org/anshar/subscribe
-        DELETE_SUBSCRIPTION: mottak-test.rutebanken.org/anshar/subscribe
-        GET_VEHICLE_MONITORING: mottak-test.rutebanken.org/anshar/services
+        GET_VEHICLE_MONITORING: https://api.entur.io/realtime/v1/services
+      customHeaders:
+        ET-Client-Name: anshar-example-client
       version: 2.0
-      subscriptionId: bbd85dee-2a50-49d4-852a-60e8fd00269a
-      requestorRef: RutebankenDEV
+      contentType: text/xml;charset=UTF-8
+      subscriptionId: anshar-example-${random.uuid}
+      requestorRef: anshar-example-${random.uuid}
       durationOfSubscriptionHours: 168
-      mappingAdapterPreset: RUTER
-      filterPresets: BYBANEN
-      idMappingPrefixes: RUT,OPP,BRA
+      mappingAdapterId: entur
+      codespaceWhiteList: TST
       restartTime: "01:30"
       active: true
 ```
 
-**Note!** Since this is a .yml-file, correct indentation is crucial.
+**Note:** YAML is indentation-sensitive. Make sure list items and nested maps are indented correctly.
