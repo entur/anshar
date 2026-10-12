@@ -21,6 +21,7 @@ import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.data.collections.ExtendedHazelcastService;
 import no.rutebanken.anshar.routes.RestRouteBuilder;
 import no.rutebanken.anshar.routes.admin.auth.BasicAuthService;
+import no.rutebanken.anshar.routes.admin.auth.LocalRequestOnlyService;
 import no.rutebanken.anshar.routes.health.HealthManager;
 import no.rutebanken.anshar.routes.outbound.ServerSubscriptionManager;
 import no.rutebanken.anshar.routes.validation.SiriXmlValidator;
@@ -99,6 +100,9 @@ public class AdministrationRoute extends RestRouteBuilder {
     @Autowired
     private BasicAuthService basicAuthProcessor;
 
+    @Autowired
+    private LocalRequestOnlyService localRequestOnlyProcessor;
+
     private final HttpClient statsHttpClient = HttpClient.newBuilder()
             .version(HttpClient.Version.HTTP_1_1)
             .connectTimeout(java.time.Duration.ofSeconds(5))
@@ -166,6 +170,7 @@ public class AdministrationRoute extends RestRouteBuilder {
         }
 
         from("direct:locks")
+            .process(basicAuthProcessor)
             .choice()
             .when().header("unlock")
             .process(p -> helper.forceUnlock((String) p.getIn().getHeader("unlock")))
@@ -374,6 +379,7 @@ public class AdministrationRoute extends RestRouteBuilder {
 
         //Return subscription status
         from("direct:flush.data.from.codespace")
+                .process(basicAuthProcessor)
                 .log("Triggered deletion of all data of type ${header.dataType} from codespace ${header.codespaceId}")
                 .process(p -> {
                     String codespaceId = p.getIn().getHeader("codespaceId", String.class);
@@ -454,13 +460,16 @@ public class AdministrationRoute extends RestRouteBuilder {
 
         //Return subscription status
         from("direct:clear-unmapped")
+                .process(basicAuthProcessor)
                 .bean(healthManager, "clearUnmappedIds(${header.datasetId})")
                 .routeId("admin.clear.unmapped")
         ;
 
 
         //Prepare Camel shutdown
+        // Triggered by the preStop-hook from within the pod - must not be available through ingress
         from("direct:prepare-shutdown")
+            .process(localRequestOnlyProcessor)
             .log("Triggered to prepare for shutdown")
                 .process(p -> {
                     helper.stopConsumerRoutes();
@@ -502,6 +511,7 @@ public class AdministrationRoute extends RestRouteBuilder {
         }
 
         from (CLUSTERSTATS_ROUTE)
+                .process(basicAuthProcessor)
                 .bean(helper, "listClusterStats")
                 .routeId("admin.clusterstats")
         ;
