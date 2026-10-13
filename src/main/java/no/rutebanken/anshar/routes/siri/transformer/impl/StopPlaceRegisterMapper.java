@@ -44,7 +44,8 @@ public class StopPlaceRegisterMapper extends ValueAdapter {
     private final String datatype;
 
     // Limits memory usage if a provider keeps sending new, unknown ids - limit is per dataset and datatype
-    private static final int MAX_TRACKED_UNMAPPED_IDS = 10000;
+    // Same limit as HealthManager, to ensure that all tracked ids are reported when there is room
+    private static final int MAX_TRACKED_UNMAPPED_IDS = HealthManager.MAX_PENDING_UNMAPPED_IDS;
 
     private static final Map<String, Set<String>> unmappedAlreadyAdded = new ConcurrentHashMap<>();
 

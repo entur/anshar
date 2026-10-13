@@ -162,6 +162,16 @@ public class EstimatedTimetables extends SiriRepository<EstimatedVehicleJourney>
     }
 
     @Override
+    com.hazelcast.query.Predicate<SiriObjectStorageKey, EstimatedVehicleJourney> getCachedDataPredicate() {
+        // Same as the cache-predicate - monitored/cancelled/extra trips
+        return Predicates.or(
+                Predicates.equal("monitored", "true"),
+                Predicates.equal("cancellation", "true"),
+                Predicates.equal("extraJourney", "true")
+        );
+    }
+
+    @Override
     public void clearAllByDatasetId(String datasetId) {
 
         Set<SiriObjectStorageKey> idsToRemove = timetableDeliveries.keySet(createHzCodespacePredicate(datasetId));

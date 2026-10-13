@@ -200,6 +200,10 @@ public class CamelRouteManager {
                     }
                 }
             } catch (Exception e) {
+                if (shuttingDown) {
+                    // Interrupted by shutdown - not caused by the subscriber
+                    return;
+                }
                 logger.info("Failed to push data for subscription {}: {}", subscriptionRequest, e.toString());
 
                 int statusCode = -1;

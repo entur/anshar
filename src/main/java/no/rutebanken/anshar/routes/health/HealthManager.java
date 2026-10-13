@@ -62,6 +62,9 @@ public class HealthManager {
     @Value("${anshar.mapping.unmapped.max.ids:1000}")
     private int maxUnmappedIds = 1000;
 
+    // Max number of ids, per dataset and datatype, that are kept until there is room
+    public static final int MAX_PENDING_UNMAPPED_IDS = 10000;
+
     // Ids that could not be added because the limit was reached - added when there is room
     private final Map<String, Set<String>> pendingUnmappedIds = new ConcurrentHashMap<>();
 
@@ -161,7 +164,7 @@ public class HealthManager {
         if (ids.size() >= maxUnmappedIds) {
             // Limit reached - keep id until there is room
             Set<String> pending = pendingUnmappedIds.computeIfAbsent(pendingKey(type, datasetId), k -> new HashSet<>());
-            if (pending.size() < maxUnmappedIds) {
+            if (pending.size() < MAX_PENDING_UNMAPPED_IDS) {
                 pending.add(id);
             }
             return;

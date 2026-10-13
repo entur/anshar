@@ -259,12 +259,12 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
     }
 
     @Override
-    public String scrape() {
+    public synchronized String scrape() {
         update();
         return super.scrape();
     }
 
-    public void update() {
+    public synchronized void update() {
 
         for (Meter meter : getMeters()) {
             if (DATA_COUNTER_NAME.equals(meter.getId().getName())) {

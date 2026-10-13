@@ -95,6 +95,13 @@ abstract class SiriRepository<T> {
 
     abstract IMap<SiriObjectStorageKey, T> getMainMap();
 
+    /**
+     * @return Predicate matching the objects that are kept in the local cache - null if all objects are kept
+     */
+    Predicate<SiriObjectStorageKey, T> getCachedDataPredicate() {
+        return null;
+    }
+
     private final Logger logger = LoggerFactory.getLogger(SiriRepository.class);
 
     protected PrometheusMetricsService metrics;
@@ -250,11 +257,12 @@ abstract class SiriRepository<T> {
      * @param linkedMaps maps keyed by the same id as the main map (e.g. checksums) - entries are removed together with the expired object
      */
     @SafeVarargs
-    final void createCleanupJob(IMap<SiriObjectStorageKey, T> map, IMap<String, Set<SiriObjectStorageKey>> linkedChangeMap, long cleanupInterval, long maxValidityMillis, IMap<SiriObjectStorageKey, ?>... linkedMaps) {
+    final ScheduledExecutorService createCleanupJob(IMap<SiriObjectStorageKey, T> map, IMap<String, Set<SiriObjectStorageKey>> linkedChangeMap, long cleanupInterval, long maxValidityMillis, IMap<SiriObjectStorageKey, ?>... linkedMaps) {
 
         logger.info("Initializing scheduled cleanup job with interval {} seconds", cleanupInterval);
-        Executors.newSingleThreadScheduledExecutor()
-                .scheduleWithFixedDelay(() -> removeExpired(map, linkedChangeMap, maxValidityMillis, linkedMaps), cleanupInterval, cleanupInterval, TimeUnit.SECONDS);
+        ScheduledExecutorService cleanupExecutor = Executors.newSingleThreadScheduledExecutor();
+        cleanupExecutor.scheduleWithFixedDelay(() -> removeExpired(map, linkedChangeMap, maxValidityMillis, linkedMaps), cleanupInterval, cleanupInterval, TimeUnit.SECONDS);
+        return cleanupExecutor;
     }
 
     private void removeExpired(IMap<SiriObjectStorageKey, T> map, IMap<String, Set<SiriObjectStorageKey>> linkedChangeMap, long maxValidityMillis, IMap<SiriObjectStorageKey, ?>[] linkedMaps) {
@@ -406,8 +414,8 @@ abstract class SiriRepository<T> {
         }
 
         if (!cacheEnabled) {
-            // No local copy - read from main map, filtering by dataset/line is done by the cluster-members
-            Predicate<SiriObjectStorageKey, T> keyPredicate = null;
+            // No local copy - read from main map, filtering is done by the cluster-members
+            Predicate<SiriObjectStorageKey, T> keyPredicate = getCachedDataPredicate();
             if (datasetId != null) {
                 keyPredicate = createHzCodespacePredicate(datasetId);
             }
@@ -520,6 +528,8 @@ abstract class SiriRepository<T> {
         final String breadcrumbId = MDC.get("camel.breadcrumbId");
 
         changeTrackerExecutor.execute(() -> {
+            // May be executed by the calling thread if the queue is full - its breadcrumb must be kept
+            final String previousBreadcrumbId = MDC.get("camel.breadcrumbId");
             try {
                 MDC.put("camel.breadcrumbId", breadcrumbId);
 
@@ -533,7 +543,11 @@ abstract class SiriRepository<T> {
                 logger.info("Replacing changes for requestor async {} took {} ms. ({})",
                     key,(System.currentTimeMillis() - t1),this.getClass().getSimpleName());
             } finally {
-                MDC.remove("camel.breadcrumbId");
+                if (previousBreadcrumbId != null) {
+                    MDC.put("camel.breadcrumbId", previousBreadcrumbId);
+                } else {
+                    MDC.remove("camel.breadcrumbId");
+                }
             }
         });
         logger.info("Changetracker-update submitted");
@@ -622,7 +636,12 @@ abstract class SiriRepository<T> {
             // No local copy - limit how often the cluster is queried
             Map<String, Integer> sizeMap = datasetSizeSnapshot;
             if (sizeMap == null || System.currentTimeMillis() - datasetSizeSnapshotTime > DATASET_SIZE_SNAPSHOT_MILLIS) {
-                sizeMap = getDatasetSize();
+                // Counting the same objects as the local cache would have held
+                final Predicate<SiriObjectStorageKey, T> cachedDataPredicate = getCachedDataPredicate();
+                final Map<String, Integer> counts = new HashMap<>();
+                (cachedDataPredicate == null ? getMainMap().keySet() : getMainMap().keySet(cachedDataPredicate))
+                        .forEach(key -> counts.merge(key.getCodespaceId(), 1, Integer::sum));
+                sizeMap = counts;
                 datasetSizeSnapshot = sizeMap;
                 datasetSizeSnapshotTime = System.currentTimeMillis();
             }

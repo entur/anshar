@@ -43,6 +43,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ScheduledExecutorService;
 
 import static no.rutebanken.anshar.helpers.SleepUtil.sleep;
 import static org.junit.Assert.assertNull;
@@ -123,13 +124,16 @@ public class EstimatedTimetablesTest extends SpringBootBaseTest {
         estimatedTimetables.cache.put(staleKey, new EstimatedVehicleJourney());
 
         // Default cleanup interval is too long for a test - schedule an extra job
-        estimatedTimetables.createCleanupJob(timetableDeliveries, changesMap, 1, -1, checksumCache, idStartTimeMap);
-
-        long timeout = System.currentTimeMillis() + 10000;
-        while (!timetableDeliveries.isEmpty() && System.currentTimeMillis() < timeout) {
+        ScheduledExecutorService cleanupJob = estimatedTimetables.createCleanupJob(timetableDeliveries, changesMap, 1, -1, checksumCache, idStartTimeMap);
+        try {
+            long timeout = System.currentTimeMillis() + 10000;
+            while (!timetableDeliveries.isEmpty() && System.currentTimeMillis() < timeout) {
+                sleep(0);
+            }
             sleep(0);
+        } finally {
+            cleanupJob.shutdownNow();
         }
-        sleep(0);
 
         assertTrue(timetableDeliveries.isEmpty());
         assertTrue(checksumCache.isEmpty());
@@ -174,7 +178,8 @@ public class EstimatedTimetablesTest extends SpringBootBaseTest {
             // Tracked changes
             assertEquals(1, estimatedTimetables.getAllCachedUpdates(requestorId, "test", null).size());
 
-            assertEquals(3, estimatedTimetables.getCachedDatasetSize().values().stream().mapToInt(Integer::intValue).sum());
+            // Same count as with local cache
+            assertEquals(2, estimatedTimetables.getCachedDatasetSize().values().stream().mapToInt(Integer::intValue).sum());
         } finally {
             ReflectionTestUtils.setField(estimatedTimetables, "cacheEnabled", true);
         }

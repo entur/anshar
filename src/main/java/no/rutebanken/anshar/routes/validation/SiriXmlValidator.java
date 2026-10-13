@@ -213,13 +213,20 @@ public class SiriXmlValidator extends ApplicationContextHolder {
     }
 
     /**
+     * @return Number of hours to keep validation data - minimum 1 hour, since validation data is never kept forever
+     */
+    private int getPersistHours() {
+        return Math.max(1, configuration.getNumberOfHoursToKeepValidation());
+    }
+
+    /**
      * Deletes XML-dumps that are older than the configured persist-period
      */
     private void removeExpiredDumpFiles() throws IOException {
         if (!Files.isDirectory(validationDumpDirectory)) {
             return;
         }
-        final Instant expiry = Instant.now().minus(configuration.getNumberOfHoursToKeepValidation(), ChronoUnit.HOURS);
+        final Instant expiry = Instant.now().minus(getPersistHours(), ChronoUnit.HOURS);
         try (Stream<Path> files = Files.list(validationDumpDirectory)) {
             files.forEach(file -> {
                 try {
@@ -684,7 +691,7 @@ public class SiriXmlValidator extends ApplicationContextHolder {
         // GZIP'ing contents to reduce memory-footprint
         byte[] byteArray = compress(siriXml);
 
-        final int persistHours = configuration.getNumberOfHoursToKeepValidation();
+        final int persistHours = getPersistHours();
         validatedSiri.set(newUniqueReference, byteArray, persistHours, TimeUnit.HOURS);
         validationResults.set(newUniqueReference, jsonObject, persistHours, TimeUnit.HOURS);
 
