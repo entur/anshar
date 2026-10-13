@@ -59,7 +59,7 @@ public class NetexUpdaterService {
     private static final TimeUnit FREQUENCY_TIME_UNIT = TimeUnit.HOURS;
 
     private static final long INITIAL_RETRY_DELAY_MILLIS = 10_000;
-    private static final long MAX_RETRY_DELAY_MILLIS = 5 * 60_000;
+    private static final long MAX_RETRY_DELAY_MILLIS = 5 * 60_000L;
 
     // The temp-directory is shared, so downloaded files should only be accessible by the owner
     private static final FileAttribute<Set<PosixFilePermission>> OWNER_ONLY =
@@ -277,9 +277,8 @@ public class NetexUpdaterService {
         boolean posix = FileSystems.getDefault().supportedFileAttributeViews().contains("posix");
         FileAttribute<?>[] attributes = posix ? new FileAttribute<?>[]{OWNER_ONLY} : new FileAttribute<?>[0];
         File tmpFile = Files.createTempFile("netex", ".zip", attributes).toFile();
-        if (!posix) {
-            tmpFile.setReadable(true, true);
-            tmpFile.setWritable(true, true);
+        if (!posix && !(tmpFile.setReadable(true, true) && tmpFile.setWritable(true, true))) {
+            logger.warn("Could not restrict access to temporary file {}", tmpFile.getAbsolutePath());
         }
         return tmpFile;
     }
