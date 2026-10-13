@@ -493,9 +493,7 @@ public class RestRouteBuilder extends RouteBuilder {
                 SiriRecord.getEncoder().encode(siriRecord, out.getOutputStream());
 
             } catch (NullPointerException npe) {
-                File file = new File("ET-" + System.currentTimeMillis() + ".xml");
-                log.error("Caught NullPointerException, data written to " + file.getAbsolutePath(), npe);
-                SiriXml.toXml(response, null, new FileOutputStream(file));
+                writeFailedAvroConversionToFile(response, npe);
             }
         }
         else if ("application/avro+json".equals(p.getIn().getHeader(HttpHeaders.CONTENT_TYPE)) |
@@ -508,9 +506,7 @@ public class RestRouteBuilder extends RouteBuilder {
                 out.getOutputStream().write(siriRecord.toString().getBytes());
 
             } catch (NullPointerException npe) {
-                File file = new File("ET-" + System.currentTimeMillis() + ".xml");
-                log.error("Caught NullPointerException, data written to " + file.getAbsolutePath(), npe);
-                SiriXml.toXml(response, null, new FileOutputStream(file));
+                writeFailedAvroConversionToFile(response, npe);
             }
         }
         else {
@@ -526,6 +522,21 @@ public class RestRouteBuilder extends RouteBuilder {
             }
         }
     }
+
+    /**
+     * Writes data that could not be converted to file for debugging - only the most recent failure is kept
+     */
+    private void writeFailedAvroConversionToFile(Siri response, NullPointerException npe) throws IOException, JAXBException {
+        File file = new File("ET-avro-conversion-failure.xml");
+        log.error("Caught NullPointerException, data written to " + file.getAbsolutePath(), npe);
+        synchronized (AVRO_FAILURE_FILE_LOCK) {
+            try (FileOutputStream fileOut = new FileOutputStream(file)) {
+                SiriXml.toXml(response, null, fileOut);
+            }
+        }
+    }
+
+    private static final Object AVRO_FAILURE_FILE_LOCK = new Object();
 
     public static uk.org.siri.siri20.Siri downgradeSiriVersion(Siri response) throws JAXBException, XMLStreamException {
         uk.org.siri.siri20.Siri siri20Response;

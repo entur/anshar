@@ -53,6 +53,9 @@ public class NetexUpdaterService {
     private static final int UPDATE_FREQUENCY = 6;
     private static final TimeUnit FREQUENCY_TIME_UNIT = TimeUnit.HOURS;
 
+    private static final long INITIAL_RETRY_DELAY_MILLIS = 10_000;
+    private static final long MAX_RETRY_DELAY_MILLIS = 5 * 60_000;
+
     //Initial NeTEX-loading is async by default
     @Value("${anshar.startup.wait.for.netex.initialization:false}")
     private boolean delayStartupForInitialization;
@@ -178,10 +181,10 @@ public class NetexUpdaterService {
         try {
             for (int i = 0; i < urls.length; i++) {
                 logger.info("Downloading {}", urls[i]);
-                paths[i] = readUrl(urls[i]);
+                paths[i] = readUrlWithRetry(urls[i]);
                 if (paths[i] == null) {
-                    logger.error("File could not be downloaded - retrying: {}", urls[i]);
-                    i--; // trigger retry
+                    logger.warn("Interrupted while downloading - NeTEx-data is not updated");
+                    return;
                 }
             }
 
@@ -239,13 +242,36 @@ public class NetexUpdaterService {
         logger.info("Read and merged {} NeTEx files in {} ms", paths.length, (System.currentTimeMillis()-start));
     }
 
+    /**
+     * Retries until the file is downloaded - waiting between each attempt
+     * @return path to downloaded file, or null if interrupted
+     */
+    private static String readUrlWithRetry(String url) {
+        long retryDelayMillis = INITIAL_RETRY_DELAY_MILLIS;
+        while (true) {
+            String path = readUrl(url);
+            if (path != null) {
+                return path;
+            }
+            logger.error("File could not be downloaded - retrying in {} s: {}", retryDelayMillis / 1000, url);
+            try {
+                Thread.sleep(retryDelayMillis);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return null;
+            }
+            retryDelayMillis = Math.min(retryDelayMillis * 2, MAX_RETRY_DELAY_MILLIS);
+        }
+    }
+
     private static String readUrl(String url) {
 
         InputStream httpIn = null;
         OutputStream bufferedOut = null;
+        File tmpFile = null;
         try {
             long start = System.currentTimeMillis();
-            File tmpFile = File.createTempFile("netex", ".zip");
+            tmpFile = File.createTempFile("netex", ".zip");
             // check the http connection before we do anything to the fs
             httpIn = new BufferedInputStream(new URL(url).openStream());
             bufferedOut = new BufferedOutputStream(new FileOutputStream(tmpFile), 1024);
@@ -264,6 +290,9 @@ public class NetexUpdaterService {
             return tmpFile.getAbsolutePath();
         } catch (IOException e) {
             logger.error("Could not download file", e);
+            if (tmpFile != null) {
+                cleanup(tmpFile.getAbsolutePath());
+            }
         } finally {
             try {
                 if (httpIn != null) httpIn.close();
