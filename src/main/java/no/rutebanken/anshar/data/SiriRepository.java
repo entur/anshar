@@ -288,9 +288,16 @@ abstract class SiriRepository<T> {
             removeStaleCacheEntries(map, allKeys);
 
             long t2 = System.currentTimeMillis();
+            final Set<SiriObjectStorageKey> removed = new HashSet<>();
             if (!expired.isEmpty()) {
-                for (SiriObjectStorageKey key : expired) {
-                    map.delete(key);
+                // Expiry is checked again when removing - an object may have been updated since it was found to be expired
+                map.executeOnKeys(expired, new RemoveIfExpiredEntryProcessor<T>(SIRI_DATA_TYPE, maxValidityMillis))
+                        .forEach((key, isRemoved) -> {
+                            if (Boolean.TRUE.equals(isRemoved)) {
+                                removed.add(key);
+                            }
+                        });
+                for (SiriObjectStorageKey key : removed) {
                     for (IMap<SiriObjectStorageKey, ?> linkedMap : linkedMaps) {
                         linkedMap.delete(key);
                     }
@@ -298,13 +305,13 @@ abstract class SiriRepository<T> {
             }
 
             long t3 = System.currentTimeMillis();
-            if (!expired.isEmpty() && !linkedChangeMap.isEmpty()) {
-                linkedChangeMap.executeOnEntries(new RemoveChangesFromSetEntryProcessor(expired));
+            if (!removed.isEmpty() && !linkedChangeMap.isEmpty()) {
+                linkedChangeMap.executeOnEntries(new RemoveChangesFromSetEntryProcessor(removed));
             }
             long totalCleanupTime = System.currentTimeMillis() - t1;
             if (totalCleanupTime > 1000) {
                 logger.info("Cleaning {} expired objects took {} ms, finding {} ms, removing {}, changes {} ms, now have {} objects of type {}",
-                        expired.size(), totalCleanupTime, (t2 - t1), (t3 - t2), (System.currentTimeMillis() - t3), map.size(), SIRI_DATA_TYPE);
+                        removed.size(), totalCleanupTime, (t2 - t1), (t3 - t2), (System.currentTimeMillis() - t3), map.size(), SIRI_DATA_TYPE);
             }
         } catch (Throwable t) {
             //Catch everything to avoid executor being killed
@@ -312,7 +319,7 @@ abstract class SiriRepository<T> {
         }
     }
 
-    private boolean isExpired(T value, long maxValidityMillis) {
+    boolean isExpired(T value, long maxValidityMillis) {
         // Check if entry is expired
         if (getExpiration(value) < 0) {
             return true;

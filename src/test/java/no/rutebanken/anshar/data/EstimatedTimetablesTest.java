@@ -17,6 +17,7 @@ package no.rutebanken.anshar.data;
 
 import com.hazelcast.map.IMap;
 import no.rutebanken.anshar.integration.SpringBootBaseTest;
+import no.rutebanken.anshar.subscription.SiriDataType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -143,6 +144,19 @@ public class EstimatedTimetablesTest extends SpringBootBaseTest {
         // Empty set is kept to keep tracking the requestor
         assertEquals(Set.of(), changesMap.get("cleanup-requestor-single-change"));
         assertFalse(estimatedTimetables.cache.containsKey(staleKey));
+    }
+
+    @Test
+    public void testOnlyExpiredJourneyIsRemovedByCleanup() {
+        estimatedTimetables.add("test", createEstimatedVehicleJourney("1234-not-expired", "4321", 0, 30, ZonedDateTime.now().plusHours(1), true));
+        final SiriObjectStorageKey key = timetableDeliveries.keySet().iterator().next();
+
+        // Journey is not expired when the removal is executed - e.g. updated after it was found to be expired
+        Boolean removed = timetableDeliveries.executeOnKey(key, new RemoveIfExpiredEntryProcessor<>(SiriDataType.ESTIMATED_TIMETABLE, -1));
+
+        assertFalse(removed);
+        assertTrue(timetableDeliveries.containsKey(key));
+        assertTrue(checksumCache.containsKey(key));
     }
 
     @Test
