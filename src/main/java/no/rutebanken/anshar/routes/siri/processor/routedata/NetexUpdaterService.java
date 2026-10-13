@@ -274,12 +274,13 @@ public class NetexUpdaterService {
     }
 
     private static File createTempFile() throws IOException {
-        if (FileSystems.getDefault().supportedFileAttributeViews().contains("posix")) {
-            return Files.createTempFile("netex", ".zip", OWNER_ONLY).toFile();
+        boolean posix = FileSystems.getDefault().supportedFileAttributeViews().contains("posix");
+        FileAttribute<?>[] attributes = posix ? new FileAttribute<?>[]{OWNER_ONLY} : new FileAttribute<?>[0];
+        File tmpFile = Files.createTempFile("netex", ".zip", attributes).toFile();
+        if (!posix) {
+            tmpFile.setReadable(true, true);
+            tmpFile.setWritable(true, true);
         }
-        File tmpFile = Files.createTempFile("netex", ".zip").toFile();
-        tmpFile.setReadable(true, true);
-        tmpFile.setWritable(true, true);
         return tmpFile;
     }
 
