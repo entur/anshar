@@ -18,6 +18,8 @@ package no.rutebanken.anshar.routes.validation;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.hazelcast.map.IMap;
 import com.hazelcast.replicatedmap.ReplicatedMap;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Unmarshaller;
@@ -40,6 +42,7 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
@@ -68,7 +71,10 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashSet;
@@ -78,8 +84,14 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Stream;
 import java.util.zip.GZIPInputStream;
 
 import static java.util.Collections.EMPTY_LIST;
@@ -135,17 +147,136 @@ public class SiriXmlValidator extends ApplicationContextHolder {
     @Autowired
     private PrometheusMetricsService metricsService;
 
-    private final Map<SiriDataType, Set<CustomValidator>> validationRules = new EnumMap(SiriDataType.class);
+    private volatile Map<SiriDataType, Set<CustomValidator>> validationRules;
+
+    private static final int CLEANUP_INTERVAL_MINUTES = 10;
+
+    @Value("${anshar.validation.concurrent.threads:5}")
+    private int maxConcurrentValidations;
+
+    @Value("${anshar.validation.queue.size:100}")
+    private int maxQueuedValidations;
+
+    private final Path validationDumpDirectory = Path.of(System.getProperty("java.io.tmpdir"), "anshar-validation");
 
     private ExecutorService validationExecutorService;
 
-    public  SiriXmlValidator() {
+    private ScheduledExecutorService cleanupScheduler;
+
+    @PostConstruct
+    private void initExecutors() {
         ThreadFactory factory = new ThreadFactoryBuilder()
             .setNameFormat("validation")
             .setDaemon(true)
             .build();
 
-        validationExecutorService = Executors.newCachedThreadPool(factory);
+        // Threads and queue are bounded to limit memory usage - validation is skipped when the queue is full
+        final AtomicLong skippedCounter = new AtomicLong();
+        ThreadPoolExecutor executor = new ThreadPoolExecutor(
+            maxConcurrentValidations,
+            maxConcurrentValidations,
+            60L,
+            TimeUnit.SECONDS,
+            new LinkedBlockingQueue<>(maxQueuedValidations),
+            factory,
+            (runnable, rejectedBy) -> {
+                long skipped = skippedCounter.incrementAndGet();
+                if (skipped == 1 || skipped % 100 == 0) {
+                    logger.warn("Validation queue is full - {} validations skipped so far", skipped);
+                }
+            }
+        );
+        executor.allowCoreThreadTimeOut(true);
+        validationExecutorService = executor;
+
+        cleanupScheduler = Executors.newSingleThreadScheduledExecutor(
+            new ThreadFactoryBuilder().setNameFormat("validation-cleanup").setDaemon(true).build());
+        cleanupScheduler.scheduleWithFixedDelay(() -> {
+            try {
+                removeExpiredDumpFiles();
+                removeExpiredValidationResults();
+            } catch (Throwable t) {
+                //Catch everything to avoid executor being killed
+                logger.info("Exception caught when cleaning up validation data", t);
+            }
+        }, CLEANUP_INTERVAL_MINUTES, CLEANUP_INTERVAL_MINUTES, TimeUnit.MINUTES);
+    }
+
+    @PreDestroy
+    private void shutdownExecutors() {
+        if (cleanupScheduler != null) {
+            cleanupScheduler.shutdownNow();
+        }
+        if (validationExecutorService != null) {
+            validationExecutorService.shutdownNow();
+        }
+    }
+
+    /**
+     * Deletes XML-dumps that are older than the configured persist-period
+     */
+    private void removeExpiredDumpFiles() throws IOException {
+        if (!Files.isDirectory(validationDumpDirectory)) {
+            return;
+        }
+        final Instant expiry = Instant.now().minus(configuration.getNumberOfHoursToKeepValidation(), ChronoUnit.HOURS);
+        try (Stream<Path> files = Files.list(validationDumpDirectory)) {
+            files.forEach(file -> {
+                try {
+                    if (Files.getLastModifiedTime(file).toInstant().isBefore(expiry)) {
+                        Files.deleteIfExists(file);
+                    }
+                } catch (IOException e) {
+                    logger.info("Unable to delete {}: {}", file, e.toString());
+                }
+            });
+        }
+    }
+
+    /**
+     * Validation results expire after the configured persist-period - this removes the references to expired results
+     */
+    void removeExpiredValidationResults() {
+        for (String subscriptionId : validationResultRefs.keySet()) {
+            // Locked to avoid overwriting results that are added concurrently
+            validationResultRefs.lock(subscriptionId);
+            try {
+                removeExpiredValidationResults(subscriptionId);
+            } finally {
+                validationResultRefs.unlock(subscriptionId);
+            }
+        }
+    }
+
+    private void removeExpiredValidationResults(String subscriptionId) {
+        List<String> validationRefs = validationResultRefs.get(subscriptionId);
+        if (validationRefs == null) {
+            return;
+        }
+
+        List<String> remainingRefs = new ArrayList<>();
+        for (String ref : validationRefs) {
+            if (validationResults.containsKey(ref)) {
+                remainingRefs.add(ref);
+            } else {
+                validatedSiri.delete(ref);
+            }
+        }
+
+        if (remainingRefs.isEmpty()) {
+            validationResultRefs.delete(subscriptionId);
+            validationSize.delete(subscriptionId);
+        } else if (remainingRefs.size() < validationRefs.size()) {
+            long totalXmlSize = 0;
+            for (String ref : remainingRefs) {
+                Integer size = validatedSiri.executeOnKey(ref, new ValueLengthEntryProcessor());
+                if (size != null) {
+                    totalXmlSize += size;
+                }
+            }
+            validationResultRefs.set(subscriptionId, remainingRefs);
+            validationSize.set(subscriptionId, totalXmlSize);
+        }
     }
 
     static {
@@ -163,7 +294,27 @@ public class SiriXmlValidator extends ApplicationContextHolder {
         }
     }
 
-    private void populateValidationRules() {
+    /**
+     * Rules are loaded on first use - the map is not published until it is complete, since validation is done by multiple threads
+     */
+    private Map<SiriDataType, Set<CustomValidator>> getValidationRules() {
+        Map<SiriDataType, Set<CustomValidator>> rules = validationRules;
+        if (rules == null) {
+            synchronized (this) {
+                rules = validationRules;
+                if (rules == null) {
+                    rules = loadValidationRules();
+                    if (!rules.isEmpty()) {
+                        validationRules = rules;
+                    }
+                }
+            }
+        }
+        return rules;
+    }
+
+    private Map<SiriDataType, Set<CustomValidator>> loadValidationRules() {
+        Map<SiriDataType, Set<CustomValidator>> rules = new EnumMap<>(SiriDataType.class);
         Map<String, Object> validatorBeans = getContext().getBeansWithAnnotation(Validator.class);
 
         for (Object o : validatorBeans.values()) {
@@ -172,12 +323,11 @@ public class SiriXmlValidator extends ApplicationContextHolder {
                 if (profileName.equals(configuration.getValidationProfileName())) {
                     final SiriDataType type = o.getClass().getAnnotation(Validator.class).targetType();
 
-                    final Set<CustomValidator> validators = validationRules.getOrDefault(type, new HashSet<>());
-                    validators.add((CustomValidator) o);
-                    validationRules.put(type, validators);
+                    rules.computeIfAbsent(type, t -> new HashSet<>()).add((CustomValidator) o);
                 }
             }
         }
+        return rules;
     }
 
 
@@ -208,7 +358,9 @@ public class SiriXmlValidator extends ApplicationContextHolder {
                 unmarshaller.setEventHandler(schemaValidationHandler);
 
                 // Write full stream-contents to disk for easier debugging
-                File targetFile = File.createTempFile(subscriptionSetup.getVendor() + "-", ".xml");
+                // Files are removed after the configured persist-period
+                Files.createDirectories(validationDumpDirectory);
+                File targetFile = File.createTempFile(subscriptionSetup.getVendor() + "-", ".xml", validationDumpDirectory.toFile());
 
                 Files.copy(
                         xml,
@@ -359,9 +511,6 @@ public class SiriXmlValidator extends ApplicationContextHolder {
     private void validateAttributes(
         String siriXml, SiriDataType type, Siri siri, SiriValidationEventHandler handler
     ) throws XPathExpressionException, ParserConfigurationException, IOException, SAXException {
-        if (validationRules.isEmpty()) {
-            populateValidationRules();
-        }
         XPathFactory xpathFactory = XPathFactory.newInstance();
         XPath xpath = xpathFactory.newXPath();
         DocumentBuilder builder = builderFactory.newDocumentBuilder();
@@ -372,7 +521,8 @@ public class SiriXmlValidator extends ApplicationContextHolder {
 
         int errorCounter = 0;
         int ruleCounter = 0;
-        for (CustomValidator rule : validationRules.get(type)) {
+        // No rules may be defined for the type in the current profile
+        for (CustomValidator rule : getValidationRules().getOrDefault(type, Set.of())) {
             if (rule instanceof SiriObjectValidator) {
                 ValidationEvent event = ((SiriObjectValidator)rule).isValid(siri);
                 ruleCounter++;
@@ -529,21 +679,31 @@ public class SiriXmlValidator extends ApplicationContextHolder {
 
     private void addResult(SubscriptionSetup subscriptionSetup, String siriXml, JSONObject jsonObject) throws IOException {
 
-        List<String> subscriptionValidationRefs = validationResultRefs.getOrDefault(subscriptionSetup.getSubscriptionId(), new ArrayList<>());
-
         String newUniqueReference = UUID.randomUUID().toString();
-
-        subscriptionValidationRefs.add(newUniqueReference);
 
         // GZIP'ing contents to reduce memory-footprint
         byte[] byteArray = compress(siriXml);
 
-        final Long totalXmlSize = (validationSize.getOrDefault(subscriptionSetup.getSubscriptionId(), 0L) + byteArray.length);
+        final int persistHours = configuration.getNumberOfHoursToKeepValidation();
+        validatedSiri.set(newUniqueReference, byteArray, persistHours, TimeUnit.HOURS);
+        validationResults.set(newUniqueReference, jsonObject, persistHours, TimeUnit.HOURS);
 
-        validatedSiri.set(newUniqueReference, byteArray);
-        validationResults.set(newUniqueReference, jsonObject);
-        validationResultRefs.set(subscriptionSetup.getSubscriptionId(), subscriptionValidationRefs);
-        validationSize.set(subscriptionSetup.getSubscriptionId(), totalXmlSize);
+        final List<String> subscriptionValidationRefs;
+        final Long totalXmlSize;
+
+        // Locked to avoid concurrent updates overwriting each other
+        validationResultRefs.lock(subscriptionSetup.getSubscriptionId());
+        try {
+            subscriptionValidationRefs = validationResultRefs.getOrDefault(subscriptionSetup.getSubscriptionId(), new ArrayList<>());
+            subscriptionValidationRefs.add(newUniqueReference);
+
+            totalXmlSize = (validationSize.getOrDefault(subscriptionSetup.getSubscriptionId(), 0L) + byteArray.length);
+
+            validationResultRefs.set(subscriptionSetup.getSubscriptionId(), subscriptionValidationRefs);
+            validationSize.set(subscriptionSetup.getSubscriptionId(), totalXmlSize);
+        } finally {
+            validationResultRefs.unlock(subscriptionSetup.getSubscriptionId());
+        }
 
         if (totalXmlSize > (configuration.getMaxTotalXmlSizeOfValidation() * 1024*1024)) {
             subscriptionSetup.setValidation(false);
