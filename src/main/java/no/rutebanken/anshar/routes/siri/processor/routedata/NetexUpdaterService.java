@@ -35,6 +35,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.attribute.FileAttribute;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -55,6 +60,10 @@ public class NetexUpdaterService {
 
     private static final long INITIAL_RETRY_DELAY_MILLIS = 10_000;
     private static final long MAX_RETRY_DELAY_MILLIS = 5 * 60_000;
+
+    // The temp-directory is shared, so downloaded files should only be accessible by the owner
+    private static final FileAttribute<Set<PosixFilePermission>> OWNER_ONLY =
+            PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rw-------"));
 
     //Initial NeTEX-loading is async by default
     @Value("${anshar.startup.wait.for.netex.initialization:false}")
@@ -264,6 +273,16 @@ public class NetexUpdaterService {
         }
     }
 
+    private static File createTempFile() throws IOException {
+        if (FileSystems.getDefault().supportedFileAttributeViews().contains("posix")) {
+            return Files.createTempFile("netex", ".zip", OWNER_ONLY).toFile();
+        }
+        File tmpFile = Files.createTempFile("netex", ".zip").toFile();
+        tmpFile.setReadable(true, true);
+        tmpFile.setWritable(true, true);
+        return tmpFile;
+    }
+
     private static String readUrl(String url) {
 
         InputStream httpIn = null;
@@ -271,7 +290,7 @@ public class NetexUpdaterService {
         File tmpFile = null;
         try {
             long start = System.currentTimeMillis();
-            tmpFile = File.createTempFile("netex", ".zip");
+            tmpFile = createTempFile();
             // check the http connection before we do anything to the fs
             httpIn = new BufferedInputStream(new URL(url).openStream());
             bufferedOut = new BufferedOutputStream(new FileOutputStream(tmpFile), 1024);
