@@ -21,7 +21,11 @@ import no.rutebanken.anshar.routes.health.HealthManager;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.util.ReflectionTestUtils;
 
+import no.rutebanken.anshar.subscription.SiriDataType;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -42,5 +46,26 @@ public class HealthManagerTest extends SpringBootBaseTest {
         assertTrue(healthManager.isHazelcastAlive());
         extendedHazelcastService.shutdown();
         assertFalse(healthManager.isHazelcastAlive());
+    }
+
+    @Test
+    public void testUnmappedIdsAreLimited() {
+        final String datasetId = "unmapped-limit-test";
+        final Object originalLimit = ReflectionTestUtils.getField(healthManager, "maxUnmappedIds");
+        ReflectionTestUtils.setField(healthManager, "maxUnmappedIds", 3);
+        try {
+            for (int i = 0; i < 10; i++) {
+                healthManager.addUnmappedId(SiriDataType.ESTIMATED_TIMETABLE, datasetId, "id-" + i);
+            }
+            assertEquals(3, healthManager.getUnmappedIds(datasetId).get(SiriDataType.ESTIMATED_TIMETABLE).size());
+
+            // An id that did not fit is added when there is room
+            healthManager.removeUnmappedId(SiriDataType.ESTIMATED_TIMETABLE, datasetId, "id-0");
+            assertEquals(3, healthManager.getUnmappedIds(datasetId).get(SiriDataType.ESTIMATED_TIMETABLE).size());
+            assertFalse(healthManager.getUnmappedIds(datasetId).get(SiriDataType.ESTIMATED_TIMETABLE).contains("id-0"));
+        } finally {
+            ReflectionTestUtils.setField(healthManager, "maxUnmappedIds", originalLimit);
+            healthManager.clearUnmappedIds(datasetId);
+        }
     }
 }

@@ -33,8 +33,10 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 @SuppressWarnings("unchecked")
 @Service
@@ -56,6 +58,12 @@ public class HealthManager {
 
     @Value("${anshar.healthcheck.interval.seconds}")
     private int healthCheckInterval = 30;
+
+    @Value("${anshar.mapping.unmapped.max.ids:1000}")
+    private int maxUnmappedIds = 1000;
+
+    // Ids that could not be added because the limit was reached - added when there is room
+    private final Map<String, Set<String>> pendingUnmappedIds = new ConcurrentHashMap<>();
 
     public boolean isHazelcastAlive() {
         try {
@@ -108,7 +116,10 @@ public class HealthManager {
         return unmappedIds.getOrDefault(datasetId, new HashMap<>());
     }
 
-    public Map<SiriDataType, Set<String>> clearUnmappedIds(String datasetId) {
+    public synchronized Map<SiriDataType, Set<String>> clearUnmappedIds(String datasetId) {
+        for (SiriDataType type : SiriDataType.values()) {
+            pendingUnmappedIds.remove(pendingKey(type, datasetId));
+        }
         return unmappedIds.remove(datasetId);
     }
 
@@ -140,23 +151,56 @@ public class HealthManager {
         return result;
     }
 
-    public void addUnmappedId(SiriDataType type, String datasetId, String id) {
+    public synchronized void addUnmappedId(SiriDataType type, String datasetId, String id) {
         Map<SiriDataType, Set<String>> unmappedIds = getUnmappedIds(datasetId);
 
         Set<String> ids = unmappedIds.getOrDefault(type, new HashSet<>());
+        if (ids.contains(id)) {
+            return;
+        }
+        if (ids.size() >= maxUnmappedIds) {
+            // Limit reached - keep id until there is room
+            Set<String> pending = pendingUnmappedIds.computeIfAbsent(pendingKey(type, datasetId), k -> new HashSet<>());
+            if (pending.size() < maxUnmappedIds) {
+                pending.add(id);
+            }
+            return;
+        }
         ids.add(id);
+        addPendingUnmappedIds(type, datasetId, ids);
         unmappedIds.put(type, ids);
 
         this.unmappedIds.set(datasetId, unmappedIds);
     }
 
-    public void removeUnmappedId(SiriDataType type, String datasetId, String id) {
+    public synchronized void removeUnmappedId(SiriDataType type, String datasetId, String id) {
+        Set<String> pending = pendingUnmappedIds.get(pendingKey(type, datasetId));
+        if (pending != null) {
+            pending.remove(id);
+        }
+
         Map<SiriDataType, Set<String>> unmappedIds = getUnmappedIds(datasetId);
 
-        Set<String> ids = unmappedIds.getOrDefault(type, new HashSet<>());
-        ids.remove(id);
-        unmappedIds.put(type, ids);
+        Set<String> ids = unmappedIds.get(type);
+        if (ids == null || !ids.remove(id)) {
+            return;
+        }
+        addPendingUnmappedIds(type, datasetId, ids);
 
         this.unmappedIds.set(datasetId, unmappedIds);
+    }
+
+    private void addPendingUnmappedIds(SiriDataType type, String datasetId, Set<String> ids) {
+        Set<String> pending = pendingUnmappedIds.get(pendingKey(type, datasetId));
+        if (pending != null) {
+            for (Iterator<String> it = pending.iterator(); it.hasNext() && ids.size() < maxUnmappedIds; ) {
+                ids.add(it.next());
+                it.remove();
+            }
+        }
+    }
+
+    private static String pendingKey(SiriDataType type, String datasetId) {
+        return datasetId + "|" + type;
     }
 }
