@@ -21,7 +21,7 @@
   <parent>
       <groupId>org.entur.ror</groupId>
       <artifactId>superpom</artifactId>
-      <version>6.4.0</version>
+      <version>7.0.0</version>
   </parent>
 
 
@@ -36,14 +36,14 @@
 
         <!-- versions for use in mvn plugins as we cannot inherit them from a BOM -->
         <docker.maven.plugin.version>0.21.0</docker.maven.plugin.version>
-        <spring-boot-plugin.version>4.0.6</spring-boot-plugin.version>
-        <spring-boot.version>4.0.6</spring-boot.version>
+        <spring-boot-plugin.version>4.1.0</spring-boot-plugin.version>
+        <spring-boot.version>4.1.0</spring-boot.version>
 
         <camel.version>4.20.0</camel.version>
 
 <!--        <metrics.version>3.2.3</metrics.version>-->
         <entur.helpers.version>6.3.0</entur.helpers.version>
-        <geotools.version>34.4</geotools.version>
+        <geotools.version>35.0</geotools.version>
         <avro.version>1.12.1</avro.version>
 
         <log4j2.version>2.20.0</log4j2.version>
