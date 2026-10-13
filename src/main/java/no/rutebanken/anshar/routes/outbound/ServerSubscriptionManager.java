@@ -427,7 +427,8 @@ public class ServerSubscriptionManager {
                 Siri terminateSubscriptionResponse = siriObjectFactory.createTerminateSubscriptionResponse(subscriptionRef);
                 logger.info("Sending TerminateSubscriptionResponse to {}", subscriptionRequest.getAddress());
 
-                camelRouteManager.pushSiriData(terminateSubscriptionResponse, subscriptionRequest, true);
+                // Subscription is already removed - push regardless
+                camelRouteManager.pushSiriData(terminateSubscriptionResponse, subscriptionRequest, true, false);
             } else {
                 logger.info("Subscription terminated, but no response was sent");
             }
