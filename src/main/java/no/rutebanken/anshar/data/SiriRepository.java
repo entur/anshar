@@ -24,6 +24,7 @@ import com.hazelcast.map.listener.EntryExpiredListener;
 import com.hazelcast.map.listener.EntryRemovedListener;
 import com.hazelcast.map.listener.EntryUpdatedListener;
 import com.hazelcast.query.Predicate;
+import com.hazelcast.query.Predicates;
 import jakarta.annotation.PreDestroy;
 import jakarta.xml.bind.DatatypeConverter;
 import no.rutebanken.anshar.metrics.PrometheusMetricsService;
@@ -50,13 +51,16 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -100,29 +104,53 @@ abstract class SiriRepository<T> {
     private ScheduledExecutorService singleThreadScheduledExecutor;
 
     // Shared executor for async change tracker updates to prevent thread leak
-    private static final ExecutorService changeTrackerExecutor = Executors.newFixedThreadPool(
+    // Queue is bounded to limit memory usage - when full, the update is executed by the calling thread
+    private static final ExecutorService changeTrackerExecutor = new ThreadPoolExecutor(
         5,
+        5,
+        0L,
+        TimeUnit.MILLISECONDS,
+        new LinkedBlockingQueue<>(1000),
         r -> {
             Thread t = new Thread(r, "change-tracker-updater");
             t.setDaemon(true);
             return t;
-        }
+        },
+        new ThreadPoolExecutor.CallerRunsPolicy()
     );
+
+    private static final int CLEANUP_BATCH_SIZE = 500;
 
     @Autowired
     protected RequestorRefRepository requestorRefRepository;
 
     Map<SiriObjectStorageKey, T> cache = Maps.newConcurrentMap();
 
+    private volatile boolean cacheEnabled = false;
+
+    private static final long DATASET_SIZE_SNAPSHOT_MILLIS = 60_000;
+    private volatile Map<String, Integer> datasetSizeSnapshot;
+    private volatile long datasetSizeSnapshotTime;
+    private java.util.function.Predicate<T> includeInCachePredicate;
+
     protected SiriRepository (SiriDataType siriDataType) {
         this.SIRI_DATA_TYPE = siriDataType;
     }
 
-    protected void enableCache(IMap<SiriObjectStorageKey, T> map) {
-        enableCache(map, null);
+    protected void enableCache(IMap<SiriObjectStorageKey, T> map, boolean keepLocalCopy) {
+        enableCache(map, null, keepLocalCopy);
     }
 
-    protected void enableCache(IMap<SiriObjectStorageKey, T> map, java.util.function.Predicate<T> includeInCachePredicate) {
+    /**
+     * @param keepLocalCopy if false, no local copy of the data is kept - "cached" requests are then served from the main map
+     */
+    protected void enableCache(IMap<SiriObjectStorageKey, T> map, java.util.function.Predicate<T> includeInCachePredicate, boolean keepLocalCopy) {
+        this.includeInCachePredicate = includeInCachePredicate;
+        if (!keepLocalCopy) {
+            logger.info("Local cache is disabled for {}", SIRI_DATA_TYPE);
+            return;
+        }
+        cacheEnabled = true;
 
         // Entry added - new data
         map.addEntryListener((EntryAddedListener<SiriObjectStorageKey, T>) entryEvent -> {
@@ -137,6 +165,9 @@ abstract class SiriRepository<T> {
 
             if (includeInCachePredicate == null || includeInCachePredicate.test(entryEvent.getValue())) {
                 cache.put(entryEvent.getKey(), entryEvent.getValue());
+            } else {
+                // No longer matches - remove previous version
+                cache.remove(entryEvent.getKey());
             }
         }, true);
 
@@ -213,54 +244,54 @@ abstract class SiriRepository<T> {
         }
     }
 
-    void createCleanupJob(IMap<SiriObjectStorageKey, T> map, IMap<String, Set<SiriObjectStorageKey>> linkedChangeMap, long cleanupInterval, long maxValidityMillis) {
+    /**
+     * Schedules periodic removal of expired objects.
+     *
+     * @param linkedMaps maps keyed by the same id as the main map (e.g. checksums) - entries are removed together with the expired object
+     */
+    @SafeVarargs
+    final void createCleanupJob(IMap<SiriObjectStorageKey, T> map, IMap<String, Set<SiriObjectStorageKey>> linkedChangeMap, long cleanupInterval, long maxValidityMillis, IMap<SiriObjectStorageKey, ?>... linkedMaps) {
 
         logger.info("Initializing scheduled cleanup job with interval {} seconds", cleanupInterval);
         Executors.newSingleThreadScheduledExecutor()
-                .scheduleWithFixedDelay(() -> removeExpired(map, linkedChangeMap, maxValidityMillis), cleanupInterval, cleanupInterval, TimeUnit.SECONDS);
+                .scheduleWithFixedDelay(() -> removeExpired(map, linkedChangeMap, maxValidityMillis, linkedMaps), cleanupInterval, cleanupInterval, TimeUnit.SECONDS);
     }
 
-    private void removeExpired(IMap<SiriObjectStorageKey, T> map, IMap<String, Set<SiriObjectStorageKey>> linkedChangeMap, long maxValidityMillis) {
+    private void removeExpired(IMap<SiriObjectStorageKey, T> map, IMap<String, Set<SiriObjectStorageKey>> linkedChangeMap, long maxValidityMillis, IMap<SiriObjectStorageKey, ?>[] linkedMaps) {
         try {
             logger.debug("Cleaning up expired objects");
             long t1 = System.currentTimeMillis();
-            Set<SiriObjectStorageKey> expired = map.entrySet().stream()
-                    .filter(entry -> {
-                        // Check if entry is expired
-                        if (getExpiration(entry.getValue()) < 0) {
-                            return true;
+            // Values are fetched in batches to avoid loading all data into memory at once
+            final Set<SiriObjectStorageKey> allKeys = new HashSet<>(map.keySet());
+            final Set<SiriObjectStorageKey> expired = new HashSet<>();
+            final Set<SiriObjectStorageKey> batch = new HashSet<>();
+            for (Iterator<SiriObjectStorageKey> it = allKeys.iterator(); it.hasNext(); ) {
+                batch.add(it.next());
+                if (batch.size() >= CLEANUP_BATCH_SIZE || !it.hasNext()) {
+                    for (Map.Entry<SiriObjectStorageKey, T> entry : map.getAll(batch).entrySet()) {
+                        if (isExpired(entry.getValue(), maxValidityMillis)) {
+                            expired.add(entry.getKey());
                         }
-                        // Check if entry is older than maxValidityMillis
-                        if (maxValidityMillis > 0) {
-                            if (entry.getValue() instanceof VehicleActivityStructure) {
-                                ZonedDateTime recordedAtTime = ((VehicleActivityStructure) entry.getValue()).getRecordedAtTime();
-                                long timeSinceUpdate = Math.abs(ZonedDateTime.now().until(recordedAtTime, ChronoUnit.MILLIS));
-                                return timeSinceUpdate > maxValidityMillis;
-                            }
-                        }
-                        return false;
-                    })
-                    .map(Map.Entry::getKey)
-                    .collect(Collectors.toSet());
+                    }
+                    batch.clear();
+                }
+            }
+
+            removeStaleCacheEntries(map, allKeys);
 
             long t2 = System.currentTimeMillis();
             if (!expired.isEmpty()) {
                 for (SiriObjectStorageKey key : expired) {
                     map.delete(key);
+                    for (IMap<SiriObjectStorageKey, ?> linkedMap : linkedMaps) {
+                        linkedMap.delete(key);
+                    }
                 }
             }
 
             long t3 = System.currentTimeMillis();
-            if (!expired.isEmpty()) {
-                for (String requestorId : linkedChangeMap.keySet()) {
-                    Set<SiriObjectStorageKey> keys = linkedChangeMap.get(requestorId);
-                    if (keys != null) {
-                        keys.removeAll(expired);
-                        if (keys.isEmpty()) {
-                            linkedChangeMap.remove(requestorId);
-                        }
-                    }
-                }
+            if (!expired.isEmpty() && !linkedChangeMap.isEmpty()) {
+                linkedChangeMap.executeOnEntries(new RemoveChangesFromSetEntryProcessor(expired));
             }
             long totalCleanupTime = System.currentTimeMillis() - t1;
             if (totalCleanupTime > 1000) {
@@ -270,6 +301,40 @@ abstract class SiriRepository<T> {
         } catch (Throwable t) {
             //Catch everything to avoid executor being killed
             logger.info("Exception caught when cleaning up expired data", t);
+        }
+    }
+
+    private boolean isExpired(T value, long maxValidityMillis) {
+        // Check if entry is expired
+        if (getExpiration(value) < 0) {
+            return true;
+        }
+        // Check if entry is older than maxValidityMillis
+        if (maxValidityMillis > 0) {
+            if (value instanceof VehicleActivityStructure) {
+                ZonedDateTime recordedAtTime = ((VehicleActivityStructure) value).getRecordedAtTime();
+                long timeSinceUpdate = Math.abs(ZonedDateTime.now().until(recordedAtTime, ChronoUnit.MILLIS));
+                return timeSinceUpdate > maxValidityMillis;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Removes cached objects that no longer exist in the main map - e.g. if the remove/expire-event was lost
+     */
+    private void removeStaleCacheEntries(IMap<SiriObjectStorageKey, T> map, Set<SiriObjectStorageKey> existingKeys) {
+        if (!cacheEnabled) {
+            return;
+        }
+        for (SiriObjectStorageKey key : cache.keySet()) {
+            if (!existingKeys.contains(key)) {
+                T cached = cache.get(key);
+                // Verify against main map in case the object was added after the keys were fetched
+                if (cached != null && !map.containsKey(key)) {
+                    cache.remove(key, cached);
+                }
+            }
         }
     }
 
@@ -312,10 +377,19 @@ abstract class SiriRepository<T> {
                         .collect(Collectors.toSet());
 
                     List<T> updates = new ArrayList<>();
-                    for (SiriObjectStorageKey key : changes) {
-                        final T element = cache.get(key);
-                        if (element != null) {
-                            updates.add(element);
+                    if (cacheEnabled) {
+                        for (SiriObjectStorageKey key : changes) {
+                            final T element = cache.get(key);
+                            if (element != null) {
+                                updates.add(element);
+                            }
+                        }
+                    } else {
+                        // No local copy - read from main map
+                        for (T element : getMainMap().getAll(changes).values()) {
+                            if (includeInCachePredicate == null || includeInCachePredicate.test(element)) {
+                                updates.add(element);
+                            }
                         }
                     }
                     return updates;
@@ -329,6 +403,25 @@ abstract class SiriRepository<T> {
                     TimeUnit.MINUTES
                 );
             }
+        }
+
+        if (!cacheEnabled) {
+            // No local copy - read from main map, filtering by dataset/line is done by the cluster-members
+            Predicate<SiriObjectStorageKey, T> keyPredicate = null;
+            if (datasetId != null) {
+                keyPredicate = createHzCodespacePredicate(datasetId);
+            }
+            if (lineRef != null) {
+                Predicate<SiriObjectStorageKey, T> lineRefPredicate = createHzLineRefPredicate(lineRef);
+                keyPredicate = keyPredicate == null ? lineRefPredicate : Predicates.and(keyPredicate, lineRefPredicate);
+            }
+            Collection<T> values = keyPredicate == null ? getMainMap().values() : getMainMap().values(keyPredicate);
+            return values
+                .stream()
+                .filter((value) -> value != null)
+                .filter((value) -> includeInCachePredicate == null || includeInCachePredicate.test(value))
+                .limit(maxSize)
+                .collect(Collectors.toList());
         }
 
         return cache
@@ -525,6 +618,16 @@ abstract class SiriRepository<T> {
      * @return Map of dataset sizes using the local cache (avoids distributed keySet scan)
      */
     public Map<String, Integer> getCachedDatasetSize() {
+        if (!cacheEnabled) {
+            // No local copy - limit how often the cluster is queried
+            Map<String, Integer> sizeMap = datasetSizeSnapshot;
+            if (sizeMap == null || System.currentTimeMillis() - datasetSizeSnapshotTime > DATASET_SIZE_SNAPSHOT_MILLIS) {
+                sizeMap = getDatasetSize();
+                datasetSizeSnapshot = sizeMap;
+                datasetSizeSnapshotTime = System.currentTimeMillis();
+            }
+            return new HashMap<>(sizeMap);
+        }
         Map<String, Integer> sizeMap = new HashMap<>();
         cache.keySet().forEach(key -> sizeMap.merge(key.getCodespaceId(), 1, Integer::sum));
         return sizeMap;

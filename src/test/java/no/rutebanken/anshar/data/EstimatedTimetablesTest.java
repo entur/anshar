@@ -15,10 +15,13 @@
 
 package no.rutebanken.anshar.data;
 
+import com.hazelcast.map.IMap;
 import no.rutebanken.anshar.integration.SpringBootBaseTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.test.util.ReflectionTestUtils;
 import uk.org.siri.siri21.DatedVehicleJourneyRef;
 import uk.org.siri.siri21.EstimatedCall;
 import uk.org.siri.siri21.EstimatedVehicleJourney;
@@ -31,11 +34,14 @@ import uk.org.siri.siri21.StopPointRefStructure;
 import uk.org.siri.siri21.VehicleRef;
 
 import java.math.BigInteger;
+import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import static no.rutebanken.anshar.helpers.SleepUtil.sleep;
@@ -50,6 +56,25 @@ public class EstimatedTimetablesTest extends SpringBootBaseTest {
 
     @Autowired
     private EstimatedTimetables estimatedTimetables;
+
+    @Autowired
+    private IMap<SiriObjectStorageKey, EstimatedVehicleJourney> timetableDeliveries;
+
+    @Autowired
+    @Qualifier("getEtChecksumMap")
+    private IMap<SiriObjectStorageKey, String> checksumCache;
+
+    @Autowired
+    @Qualifier("getIdStartTimeMap")
+    private IMap<SiriObjectStorageKey, ZonedDateTime> idStartTimeMap;
+
+    @Autowired
+    @Qualifier("getEstimatedTimetableChangesMap")
+    private IMap<String, Set<SiriObjectStorageKey>> changesMap;
+
+    @Autowired
+    @Qualifier("getLastEtUpdateRequest")
+    private IMap<String, Instant> lastUpdateRequested;
 
     @BeforeEach
     public void init() {
@@ -72,6 +97,87 @@ public class EstimatedTimetablesTest extends SpringBootBaseTest {
         estimatedTimetables.add("test", element);
 
         assertTrue(estimatedTimetables.getAll().size() == previousSize + 1);
+    }
+
+    @Test
+    public void testCleanupRemovesChecksumAndStartTime() {
+        estimatedTimetables.add("test", createEstimatedVehicleJourney("1234-cleanup", "4321", 0, 30, ZonedDateTime.now().plusSeconds(2), true));
+
+        assertEquals(1, timetableDeliveries.size());
+        assertEquals(1, checksumCache.size());
+        assertEquals(1, idStartTimeMap.size());
+
+        // Requestor with one change that expires, and one that does not
+        final SiriObjectStorageKey otherKey = new SiriObjectStorageKey("test", null, "other-change");
+        Set<SiriObjectStorageKey> changes = new HashSet<>(timetableDeliveries.keySet());
+        changes.add(otherKey);
+        lastUpdateRequested.set("cleanup-requestor", Instant.now());
+        changesMap.set("cleanup-requestor", changes);
+
+        // Requestor that only has the change that expires
+        lastUpdateRequested.set("cleanup-requestor-single-change", Instant.now());
+        changesMap.set("cleanup-requestor-single-change", new HashSet<>(timetableDeliveries.keySet()));
+
+        // Cached object that does not exist in the main map
+        final SiriObjectStorageKey staleKey = new SiriObjectStorageKey("test", null, "stale-cache-entry");
+        estimatedTimetables.cache.put(staleKey, new EstimatedVehicleJourney());
+
+        // Default cleanup interval is too long for a test - schedule an extra job
+        estimatedTimetables.createCleanupJob(timetableDeliveries, changesMap, 1, -1, checksumCache, idStartTimeMap);
+
+        long timeout = System.currentTimeMillis() + 10000;
+        while (!timetableDeliveries.isEmpty() && System.currentTimeMillis() < timeout) {
+            sleep(0);
+        }
+        sleep(0);
+
+        assertTrue(timetableDeliveries.isEmpty());
+        assertTrue(checksumCache.isEmpty());
+        assertTrue(idStartTimeMap.isEmpty());
+
+        assertEquals(Set.of(otherKey), changesMap.get("cleanup-requestor"));
+        // Empty set is kept to keep tracking the requestor
+        assertEquals(Set.of(), changesMap.get("cleanup-requestor-single-change"));
+        assertFalse(estimatedTimetables.cache.containsKey(staleKey));
+    }
+
+    @Test
+    public void testCachedUpdatesWithoutLocalCache() {
+        EstimatedVehicleJourney monitored = createEstimatedVehicleJourney("1234-nocache", "4321", 0, 30, ZonedDateTime.now().plusHours(1), true);
+        monitored.setMonitored(true);
+        EstimatedVehicleJourney notMonitored = createEstimatedVehicleJourney("2345-nocache", "4321", 0, 30, ZonedDateTime.now().plusHours(1), true);
+        notMonitored.setMonitored(false);
+        EstimatedVehicleJourney otherDataset = createEstimatedVehicleJourney("3456-nocache", "4321", 0, 30, ZonedDateTime.now().plusHours(1), true);
+        otherDataset.setMonitored(true);
+
+        estimatedTimetables.add("test", monitored);
+        estimatedTimetables.add("test", notMonitored);
+        estimatedTimetables.add("test2", otherDataset);
+        sleep(50);
+
+        final String requestorId = UUID.randomUUID().toString();
+        lastUpdateRequested.set(requestorId, Instant.now());
+        changesMap.set(requestorId, new HashSet<>(timetableDeliveries.keySet()));
+
+        Collection<EstimatedVehicleJourney> cachedAll = estimatedTimetables.getAllCachedUpdates(null, null, null);
+        Collection<EstimatedVehicleJourney> cachedDataset = estimatedTimetables.getAllCachedUpdates(null, "test", null);
+
+        ReflectionTestUtils.setField(estimatedTimetables, "cacheEnabled", false);
+        try {
+            // Same result as with local cache - only monitored journeys
+            assertEquals(2, cachedAll.size());
+            assertEquals(cachedAll.size(), estimatedTimetables.getAllCachedUpdates(null, null, null).size());
+
+            assertEquals(1, cachedDataset.size());
+            assertEquals(cachedDataset.size(), estimatedTimetables.getAllCachedUpdates(null, "test", null).size());
+
+            // Tracked changes
+            assertEquals(1, estimatedTimetables.getAllCachedUpdates(requestorId, "test", null).size());
+
+            assertEquals(3, estimatedTimetables.getCachedDatasetSize().values().stream().mapToInt(Integer::intValue).sum());
+        } finally {
+            ReflectionTestUtils.setField(estimatedTimetables, "cacheEnabled", true);
+        }
     }
 
     @Test

@@ -79,11 +79,11 @@ public class Facilities extends SiriRepository<FacilityConditionStructure> {
     private void initializeUpdateCommitter() {
         super.initBufferCommitter(lastUpdateRequested, changesMap, configuration.getChangeBufferCommitFrequency());
 
-        enableCache(facilityConditions);
+        enableCache(facilityConditions, configuration.processFM());
 
 //        linkEntriesTtl(situationElements, changesMap, checksumCache);
         if (configuration.processFM()) {
-            createCleanupJob(facilityConditions, changesMap, configuration.getCleanupIntervalSeconds(), -1);
+            createCleanupJob(facilityConditions, changesMap, configuration.getCleanupIntervalSeconds(), -1, checksumCache);
         }
     }
 

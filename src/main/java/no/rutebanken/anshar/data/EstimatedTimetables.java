@@ -115,11 +115,12 @@ public class EstimatedTimetables extends SiriRepository<EstimatedVehicleJourney>
                 // Only cache monitored/cancelled/extra trips
                 value -> (Boolean.TRUE.equals(value.isMonitored()) |
                         Boolean.TRUE.equals(value.isCancellation()) |
-                        Boolean.TRUE.equals(value.isExtraJourney()))
+                        Boolean.TRUE.equals(value.isExtraJourney())),
+                configuration.processET()
         );
 //        linkEntriesTtl(timetableDeliveries, changesMap, checksumCache, idStartTimeMap);
         if (configuration.processET()) {
-            createCleanupJob(timetableDeliveries, changesMap, configuration.getCleanupIntervalSeconds(), -1);
+            createCleanupJob(timetableDeliveries, changesMap, configuration.getCleanupIntervalSeconds(), -1, checksumCache, idStartTimeMap);
         }
 
     }
@@ -761,7 +762,7 @@ public class EstimatedTimetables extends SiriRepository<EstimatedVehicleJourney>
         markDataReceived(SiriDataType.ESTIMATED_TIMETABLE, datasetId, etList.size(), changes.size(), outdatedCounter.get(), notUpdatedCounter.get() + tooFarAheadCounter.get());
         TimingTracer timingTracer = new TimingTracer("all-et [" + changes.size() + " changes]");
 
-        // TTL is set in EntryListener when objects are added to main map
+        // Entries are removed by the cleanup job when the object expires from the main map
         checksumCache.setAll(checksumCacheTmp);
         timingTracer.mark("checksumCache.setAll");
 
