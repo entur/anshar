@@ -574,16 +574,22 @@ public class SiriXmlValidator extends ApplicationContextHolder {
     }
 
     public void clearValidationResults(String subscriptionId) {
-        List<String> validationRefs = validationResultRefs.get(subscriptionId);
+        // Locked to avoid losing references to results that are added concurrently
+        validationResultRefs.lock(subscriptionId);
+        try {
+            List<String> validationRefs = validationResultRefs.get(subscriptionId);
 
-        if (validationRefs != null) {
-            for (String ref : validationRefs) {
-                validationResults.delete(ref);
-                validatedSiri.delete(ref);
+            if (validationRefs != null) {
+                for (String ref : validationRefs) {
+                    validationResults.delete(ref);
+                    validatedSiri.delete(ref);
+                }
+
+                validationSize.delete(subscriptionId);
+                validationResultRefs.delete(subscriptionId);
             }
-
-            validationSize.delete(subscriptionId);
-            validationResultRefs.delete(subscriptionId);
+        } finally {
+            validationResultRefs.unlock(subscriptionId);
         }
     }
 

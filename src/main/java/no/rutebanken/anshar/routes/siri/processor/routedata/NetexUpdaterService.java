@@ -285,24 +285,24 @@ public class NetexUpdaterService {
 
     private static String readUrl(String url) {
 
-        InputStream httpIn = null;
-        OutputStream bufferedOut = null;
         File tmpFile = null;
         try {
             long start = System.currentTimeMillis();
             tmpFile = createTempFile();
             // check the http connection before we do anything to the fs
-            httpIn = new BufferedInputStream(new URL(url).openStream());
-            bufferedOut = new BufferedOutputStream(new FileOutputStream(tmpFile), 1024);
-            byte[] data = new byte[1024];
-            boolean fileComplete = false;
-            int count;
-            while (!fileComplete) {
-                count = httpIn.read(data, 0, 1024);
-                if (count <= 0) {
-                    fileComplete = true;
-                } else {
-                    bufferedOut.write(data, 0, count);
+            // Streams are closed before the file is returned - or deleted on failure
+            try (InputStream httpIn = new BufferedInputStream(new URL(url).openStream());
+                 OutputStream bufferedOut = new BufferedOutputStream(new FileOutputStream(tmpFile), 1024)) {
+                byte[] data = new byte[1024];
+                boolean fileComplete = false;
+                int count;
+                while (!fileComplete) {
+                    count = httpIn.read(data, 0, 1024);
+                    if (count <= 0) {
+                        fileComplete = true;
+                    } else {
+                        bufferedOut.write(data, 0, count);
+                    }
                 }
             }
             logger.debug("Downloaded {} to temporary file {} in {} ms", url, tmpFile.getAbsolutePath(), (System.currentTimeMillis() - start));
@@ -311,17 +311,6 @@ public class NetexUpdaterService {
             logger.error("Could not download file", e);
             if (tmpFile != null) {
                 cleanup(tmpFile.getAbsolutePath());
-            }
-        } finally {
-            try {
-                if (httpIn != null) httpIn.close();
-            } catch (Exception e) {
-                logger.error("Could not close resource", e);
-            }
-            try {
-                if (bufferedOut != null) bufferedOut.close();
-            } catch (Exception e) {
-                logger.error("Could not close resource", e);
             }
         }
         return null;

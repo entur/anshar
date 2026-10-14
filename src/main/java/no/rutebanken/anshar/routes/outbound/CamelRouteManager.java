@@ -244,7 +244,12 @@ public class CamelRouteManager {
             try {
                 getOrCreateExecutorService(subscriptionRequest).execute(pushTask);
             } catch (RejectedExecutionException ex) {
-                logger.warn("Unable to push data for subscription {} - executor has been shut down", subscriptionId);
+                if (!requireActiveSubscription) {
+                    // Subscription is already removed, so the cleanup-job may shut down any new executor - push directly
+                    pushTask.run();
+                } else {
+                    logger.warn("Unable to push data for subscription {} - executor has been shut down", subscriptionId);
+                }
             }
         }
     }

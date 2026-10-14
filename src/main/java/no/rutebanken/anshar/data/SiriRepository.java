@@ -56,6 +56,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -109,6 +110,8 @@ abstract class SiriRepository<T> {
     final Set<SiriObjectStorageKey> dirtyChanges = Collections.synchronizedSet(new HashSet<>());
 
     private ScheduledExecutorService singleThreadScheduledExecutor;
+
+    private final List<ScheduledExecutorService> cleanupExecutors = new CopyOnWriteArrayList<>();
 
     // Shared executor for async change tracker updates to prevent thread leak
     // Queue is bounded to limit memory usage - when full, the update is executed by the calling thread
@@ -262,6 +265,7 @@ abstract class SiriRepository<T> {
         logger.info("Initializing scheduled cleanup job with interval {} seconds", cleanupInterval);
         ScheduledExecutorService cleanupExecutor = Executors.newSingleThreadScheduledExecutor();
         cleanupExecutor.scheduleWithFixedDelay(() -> removeExpired(map, linkedChangeMap, maxValidityMillis, linkedMaps), cleanupInterval, cleanupInterval, TimeUnit.SECONDS);
+        cleanupExecutors.add(cleanupExecutor);
         return cleanupExecutor;
     }
 
@@ -270,7 +274,7 @@ abstract class SiriRepository<T> {
             logger.debug("Cleaning up expired objects");
             long t1 = System.currentTimeMillis();
             // Values are fetched in batches to avoid loading all data into memory at once
-            final Set<SiriObjectStorageKey> allKeys = new HashSet<>(map.keySet());
+            final Set<SiriObjectStorageKey> allKeys = map.keySet();
             final Set<SiriObjectStorageKey> expired = new HashSet<>();
             final Set<SiriObjectStorageKey> batch = new HashSet<>();
             for (Iterator<SiriObjectStorageKey> it = allKeys.iterator(); it.hasNext(); ) {
@@ -424,7 +428,8 @@ abstract class SiriRepository<T> {
             // No local copy - read from main map, filtering is done by the cluster-members
             Predicate<SiriObjectStorageKey, T> keyPredicate = getCachedDataPredicate();
             if (datasetId != null) {
-                keyPredicate = createHzCodespacePredicate(datasetId);
+                Predicate<SiriObjectStorageKey, T> datasetPredicate = createHzCodespacePredicate(datasetId);
+                keyPredicate = keyPredicate == null ? datasetPredicate : Predicates.and(keyPredicate, datasetPredicate);
             }
             if (lineRef != null) {
                 Predicate<SiriObjectStorageKey, T> lineRefPredicate = createHzLineRefPredicate(lineRef);
@@ -464,6 +469,7 @@ abstract class SiriRepository<T> {
 
     @PreDestroy
     void flushOnShutdown() {
+        cleanupExecutors.forEach(ScheduledExecutorService::shutdownNow);
         if (singleThreadScheduledExecutor != null) {
             singleThreadScheduledExecutor.shutdown();
         }
