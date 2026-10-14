@@ -1,5 +1,6 @@
 package no.rutebanken.anshar.outbound;
 
+import com.hazelcast.map.IMap;
 import jakarta.xml.bind.JAXBException;
 import no.rutebanken.anshar.integration.SpringBootBaseTest;
 import no.rutebanken.anshar.routes.outbound.ServerSubscriptionManager;
@@ -7,6 +8,7 @@ import no.rutebanken.anshar.routes.siri.handlers.OutboundIdMappingPolicy;
 import org.entur.siri21.util.SiriXml;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import uk.org.siri.siri21.Siri;
 import uk.org.siri.siri21.SubscriptionContextStructure;
@@ -20,6 +22,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -34,6 +37,10 @@ public class OutboundSubscriptionTest extends SpringBootBaseTest {
 
     @Autowired
     ServerSubscriptionManager serverSubscriptionManager;
+
+    @Autowired
+    @Qualifier("getFailTrackerMap")
+    private IMap<String, Instant> failTrackerMap;
 
 
     @Value("${anshar.outbound.heartbeatinterval.minimum}")
@@ -172,6 +179,71 @@ public class OutboundSubscriptionTest extends SpringBootBaseTest {
         } finally {
             consumer.stop(0);
         }
+    }
+
+    @Test
+    public void testResubscriptionToFailingRecipientIsOnlyAcceptedWhenReachable() throws Exception {
+        final String subscriptionId = "failing-recipient-test";
+
+        // Nothing listens on port 1
+        final int unreachablePort = 1;
+
+        // Previous deliveries to this subscription have failed
+        failTrackerMap.set(subscriptionId, Instant.now().minusSeconds(600));
+
+        // Recipient is still unreachable - rejected
+        Siri response = serverSubscriptionManager.handleSubscriptionRequest(SiriXml.parseXml(sxSubscriptionRequest(subscriptionId, unreachablePort)),
+                null, OutboundIdMappingPolicy.DEFAULT, null);
+        assertFalse(response.getSubscriptionResponse().getResponseStatuses().get(0).isStatus());
+        assertTrue(SiriXml.toXml(response).contains("ConsumerAddress is unreachable"));
+        assertTrue(failTrackerMap.containsKey(subscriptionId));
+
+        HttpServer consumer = HttpServer.create(new InetSocketAddress("localhost", 0), 0);
+        final int port = consumer.getAddress().getPort();
+        consumer.createContext("/", exchange -> {
+            exchange.getRequestBody().readAllBytes();
+            exchange.sendResponseHeaders(200, -1);
+            exchange.close();
+        });
+        consumer.start();
+
+        try {
+            // Recipient is reachable again - accepted
+            response = serverSubscriptionManager.handleSubscriptionRequest(SiriXml.parseXml(sxSubscriptionRequest(subscriptionId, port)),
+                    null, OutboundIdMappingPolicy.DEFAULT, null);
+            assertTrue(response.getSubscriptionResponse().getResponseStatuses().get(0).isStatus());
+            assertFalse(failTrackerMap.containsKey(subscriptionId));
+
+            // Failures are remembered after the subscription is terminated
+            failTrackerMap.set(subscriptionId, Instant.now());
+            serverSubscriptionManager.terminateSubscription(subscriptionId, false);
+            assertTrue(failTrackerMap.containsKey(subscriptionId));
+        } finally {
+            consumer.stop(0);
+            failTrackerMap.delete(subscriptionId);
+        }
+    }
+
+    private static String sxSubscriptionRequest(String subscriptionId, int port) {
+        return "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                "<Siri xmlns=\"http://www.siri.org.uk/siri\" version=\"2.1\">\n" +
+                "\t<SubscriptionRequest>\n" +
+                "\t\t<RequestTimestamp>2019-12-06T14:38:42.2790513Z</RequestTimestamp>\n" +
+                "\t\t<ConsumerAddress>http://localhost:" + port + "/siri</ConsumerAddress>\n" +
+                "\t\t<RequestorRef>" + subscriptionId + "</RequestorRef>\n" +
+                "\t\t<MessageIdentifier>52467cd2-e469-4f37-8841-27c3a9b57b63</MessageIdentifier>\n" +
+                "\t\t<SubscriptionContext>\n" +
+                "\t\t\t<HeartbeatInterval>PT60M</HeartbeatInterval>\n" +
+                "\t\t</SubscriptionContext>\n" +
+                "\t\t<SituationExchangeSubscriptionRequest>\n" +
+                "\t\t\t<SubscriptionIdentifier>" + subscriptionId + "</SubscriptionIdentifier>\n" +
+                "\t\t\t<InitialTerminationTime>2119-12-06T14:38:42.2785096Z</InitialTerminationTime>\n" +
+                "\t\t\t<SituationExchangeRequest>\n" +
+                "\t\t\t\t<RequestTimestamp>2019-12-06T14:38:42.2787087Z</RequestTimestamp>\n" +
+                "\t\t\t</SituationExchangeRequest>\n" +
+                "\t\t</SituationExchangeSubscriptionRequest>\n" +
+                "\t</SubscriptionRequest>\n" +
+                "</Siri>";
     }
 
     SubscriptionRequest getSubscriptionRequest(long heartbeatIntervalMillis) {

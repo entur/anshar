@@ -56,6 +56,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static java.time.temporal.ChronoUnit.MILLIS;
@@ -94,6 +95,9 @@ public class ServerSubscriptionManager {
 
     @Value("${anshar.outbound.error.initialtermination}")
     private String initialTerminationTimePassed = "Error";
+
+    @Value("${anshar.outbound.error.failtracker.ttl.minutes:30}")
+    private long failTrackerTtlMinutes = 30;
 
     @Value("${anshar.outbound.pubsub.vm.topic.enabled}")
     private boolean pushToVmTopicEnabled;
@@ -182,6 +186,18 @@ public class ServerSubscriptionManager {
             if (subscription.getSubscriptionType() != subscriptionSetup.getSubscriptionType()) {
                 hasError = true;
                 errorText = "A different subscription with id=" + subscription.getSubscriptionId() + " already exists";
+            }
+        }
+
+        if (!hasError && failTrackerMap.containsKey(subscription.getSubscriptionId())) {
+            // Pushing to this subscription has recently failed - only accept if the recipient is reachable now
+            String probeError = camelRouteManager.probeConsumerAddress(subscription.getAddress());
+            if (probeError != null) {
+                logger.info("Rejecting subscription {} - previous deliveries failed, and ConsumerAddress is still unreachable: {}", subscription, probeError);
+                hasError = true;
+                errorText = "ConsumerAddress is unreachable: " + probeError;
+            } else {
+                clearFailTracker(subscription.getSubscriptionId());
             }
         }
 
@@ -341,7 +357,7 @@ public class ServerSubscriptionManager {
 
     private OutboundSubscriptionSetup removeSubscription(String subscriptionId) {
         logger.info("Removing subscription {}", subscriptionId);
-        failTrackerMap.delete(subscriptionId);
+        // Fail-tracker is kept (with TTL) so that a re-subscription to a failing recipient is detected
         heartbeatTimestampMap.remove(subscriptionId);
         return subscriptions.remove(subscriptionId);
     }
@@ -648,7 +664,7 @@ public class ServerSubscriptionManager {
                 removeSubscription(subscriptionId);
             } else {
                 logger.info("Outbound subscription {} has not responded for {}s, will be cancelled after {}s.", subscriptionId, terminationTime/1000, gracePeriod/1000);
-                failTrackerMap.set(subscriptionId, firstFail);
+                failTrackerMap.set(subscriptionId, firstFail, failTrackerTtlMinutes, TimeUnit.MINUTES);
             }
         }
     }
