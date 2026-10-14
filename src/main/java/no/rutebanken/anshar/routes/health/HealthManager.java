@@ -15,8 +15,8 @@
 
 package no.rutebanken.anshar.routes.health;
 
-import com.hazelcast.core.HazelcastInstanceNotActiveException;
 import com.hazelcast.map.IMap;
+import no.rutebanken.anshar.data.collections.ExtendedHazelcastService;
 import no.rutebanken.anshar.data.collections.HealthCheckKey;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import org.json.simple.JSONArray;
@@ -50,6 +50,9 @@ public class HealthManager {
     private IMap<Enum<HealthCheckKey>, Instant> healthCheckMap;
 
     @Autowired
+    private ExtendedHazelcastService hazelcastService;
+
+    @Autowired
     @Qualifier("getUnmappedIds")
     private IMap<String, Map<SiriDataType, Set<String>>> unmappedIds;
 
@@ -68,14 +71,12 @@ public class HealthManager {
     // Ids that could not be added because the limit was reached - added when there is room
     private final Map<String, Set<String>> pendingUnmappedIds = new ConcurrentHashMap<>();
 
+    /**
+     * Only checks the local member - a distributed map operation blocks while the owner of the partition
+     * is leaving the cluster, which made the liveness probe kill healthy pods during rollouts.
+     */
     public boolean isHazelcastAlive() {
-        try {
-            healthCheckMap.set(HealthCheckKey.NODE_LIVENESS_CHECK, Instant.now());
-            return healthCheckMap.containsKey(HealthCheckKey.NODE_LIVENESS_CHECK);
-        } catch (HazelcastInstanceNotActiveException e) {
-            logger.warn("HazelcastInstance not active - ", e);
-            return false;
-        }
+        return hazelcastService.getHazelcastInstance().getLifecycleService().isRunning();
     }
 
     @Bean
