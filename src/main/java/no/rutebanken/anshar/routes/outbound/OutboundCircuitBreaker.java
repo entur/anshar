@@ -16,61 +16,97 @@
 package no.rutebanken.anshar.routes.outbound;
 
 import java.time.ZonedDateTime;
-import java.util.Objects;
 
 /**
  * Stops posting to an outbound subscription that keeps failing, to avoid a constant stream of requests that fail anyway.
  *
  * After {@code failureThreshold} consecutive failures the circuit opens, and deliveries are skipped. When the backoff
  * has passed, a single delivery is let through to probe the recipient - success closes the circuit, failure opens it
- * again with doubled backoff (up to {@code maxBackoffMillis}).
+ * again with doubled backoff (up to {@code maxBackoffMillis}). A probe that has not completed within
+ * {@code maxProbeDurationMillis} is abandoned, and a new probe is allowed.
  *
- * State is local to each pod, and is reset when the subscription is re-created (i.e. gets a new requestTimestamp).
+ * State is local to each pod, and is replaced when the subscription is re-created (i.e. gets a newer requestTimestamp).
  */
 class OutboundCircuitBreaker {
+
+    /**
+     * Permission to post a delivery - must be passed back when recording the result
+     */
+    static final class Permit {
+        static final Permit DENIED = new Permit(false, false, 0);
+        static final Permit ALLOWED = new Permit(true, false, 0);
+
+        private final boolean allowed;
+        private final boolean probe;
+        private final long probeStartedAt;
+
+        private Permit(boolean allowed, boolean probe, long probeStartedAt) {
+            this.allowed = allowed;
+            this.probe = probe;
+            this.probeStartedAt = probeStartedAt;
+        }
+
+        boolean isAllowed() {
+            return allowed;
+        }
+
+        boolean isProbe() {
+            return probe;
+        }
+    }
 
     private final ZonedDateTime subscriptionRequestTimestamp;
     private final int failureThreshold;
     private final long initialBackoffMillis;
     private final long maxBackoffMillis;
+    private final long maxProbeDurationMillis;
 
     private int consecutiveFailures;
     private long backoffMillis;
     private long openUntil;
     private boolean probeInProgress;
+    private long probeStartedAt;
     private long skippedDeliveries;
 
-    OutboundCircuitBreaker(ZonedDateTime subscriptionRequestTimestamp, int failureThreshold, long initialBackoffMillis, long maxBackoffMillis) {
+    OutboundCircuitBreaker(ZonedDateTime subscriptionRequestTimestamp, int failureThreshold, long initialBackoffMillis,
+                           long maxBackoffMillis, long maxProbeDurationMillis) {
         this.subscriptionRequestTimestamp = subscriptionRequestTimestamp;
         this.failureThreshold = failureThreshold;
         this.initialBackoffMillis = initialBackoffMillis;
         this.maxBackoffMillis = maxBackoffMillis;
-    }
-
-    boolean belongsTo(OutboundSubscriptionSetup subscription) {
-        return Objects.equals(subscriptionRequestTimestamp, subscription.getRequestTimestamp());
+        this.maxProbeDurationMillis = maxProbeDurationMillis;
     }
 
     /**
-     * @return true if the delivery should be posted, false if it should be skipped
+     * @return true if the subscription has been re-created after this circuit breaker was created
      */
-    synchronized boolean allowRequest(long now) {
-        if (consecutiveFailures < failureThreshold) {
-            return true;
+    boolean isReplacedBy(OutboundSubscriptionSetup subscription) {
+        final ZonedDateTime requestTimestamp = subscription.getRequestTimestamp();
+        return requestTimestamp != null &&
+                (subscriptionRequestTimestamp == null || requestTimestamp.isAfter(subscriptionRequestTimestamp));
+    }
+
+    synchronized Permit allowRequest(long now) {
+        if (!isOpen()) {
+            return Permit.ALLOWED;
         }
-        if (now < openUntil || probeInProgress) {
+        final boolean probeRunning = probeInProgress && now - probeStartedAt < maxProbeDurationMillis;
+        if (now < openUntil || probeRunning) {
             skippedDeliveries++;
-            return false;
+            return Permit.DENIED;
         }
         probeInProgress = true;
-        return true;
+        probeStartedAt = now;
+        return new Permit(true, true, now);
     }
 
     /**
+     * Any successful delivery closes the circuit - the recipient is responding
+     *
      * @return number of deliveries skipped while the circuit was open, or -1 if the circuit was not open
      */
     synchronized long recordSuccess() {
-        final boolean wasOpen = consecutiveFailures >= failureThreshold;
+        final boolean wasOpen = isOpen();
         final long skipped = skippedDeliveries;
 
         consecutiveFailures = 0;
@@ -85,16 +121,25 @@ class OutboundCircuitBreaker {
     /**
      * @return true if this failure opened the circuit
      */
-    synchronized boolean recordFailure(long now) {
-        probeInProgress = false;
+    synchronized boolean recordFailure(long now, Permit permit) {
+        final boolean wasOpen = isOpen();
+        final boolean isCurrentProbe = permit.isProbe() && probeInProgress && permit.probeStartedAt == probeStartedAt;
+        if (isCurrentProbe) {
+            probeInProgress = false;
+        }
+
         consecutiveFailures++;
-        if (consecutiveFailures < failureThreshold || now < openUntil) {
-            // Not failed enough yet - or already open, e.g. requests that were in flight when the circuit opened
+        if (!isOpen() || (wasOpen && !isCurrentProbe)) {
+            // Not failed enough yet - or already open, and this is not the probe (e.g. requests that were in flight when the circuit opened)
             return false;
         }
         backoffMillis = backoffMillis == 0 ? initialBackoffMillis : Math.min(backoffMillis * 2, maxBackoffMillis);
         openUntil = now + backoffMillis;
         return true;
+    }
+
+    private boolean isOpen() {
+        return consecutiveFailures >= failureThreshold;
     }
 
     synchronized int getConsecutiveFailures() {

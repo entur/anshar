@@ -189,15 +189,17 @@ public class ServerSubscriptionManager {
             }
         }
 
-        if (!hasError && failTrackerMap.containsKey(subscription.getSubscriptionId())) {
-            // Pushing to this subscription has recently failed - only accept if the recipient is reachable now
+        final Instant firstFail = failTrackerMap.get(subscription.getSubscriptionId());
+        if (!hasError && firstFail != null) {
+            // Pushing to this subscription has recently failed - only accept if the recipient is reachable now.
+            // The fail-tracker is kept until a delivery succeeds, so that the subscription is cancelled on the next failure.
             String probeError = camelRouteManager.probeConsumerAddress(subscription.getAddress());
             if (probeError != null) {
                 logger.info("Rejecting subscription {} - previous deliveries failed, and ConsumerAddress is still unreachable: {}", subscription, probeError);
                 hasError = true;
                 errorText = "ConsumerAddress is unreachable: " + probeError;
-            } else {
-                clearFailTracker(subscription.getSubscriptionId());
+                // Keep remembering the failures as long as the recipient keeps trying
+                failTrackerMap.set(subscription.getSubscriptionId(), firstFail, failTrackerTtlMinutes, TimeUnit.MINUTES);
             }
         }
 

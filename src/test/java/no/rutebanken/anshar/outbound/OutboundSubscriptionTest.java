@@ -3,6 +3,7 @@ package no.rutebanken.anshar.outbound;
 import com.hazelcast.map.IMap;
 import jakarta.xml.bind.JAXBException;
 import no.rutebanken.anshar.integration.SpringBootBaseTest;
+import no.rutebanken.anshar.routes.outbound.OutboundSubscriptionSetup;
 import no.rutebanken.anshar.routes.outbound.ServerSubscriptionManager;
 import no.rutebanken.anshar.routes.siri.handlers.OutboundIdMappingPolicy;
 import org.entur.siri21.util.SiriXml;
@@ -188,21 +189,23 @@ public class OutboundSubscriptionTest extends SpringBootBaseTest {
         // Nothing listens on port 1
         final int unreachablePort = 1;
 
-        // Previous deliveries to this subscription have failed
-        failTrackerMap.set(subscriptionId, Instant.now().minusSeconds(600));
+        // Previous deliveries to this subscription have failed - for longer than the grace period
+        failTrackerMap.set(subscriptionId, Instant.now().minus(2, ChronoUnit.HOURS));
 
         // Recipient is still unreachable - rejected
         Siri response = serverSubscriptionManager.handleSubscriptionRequest(SiriXml.parseXml(sxSubscriptionRequest(subscriptionId, unreachablePort)),
                 null, OutboundIdMappingPolicy.DEFAULT, null);
         assertFalse(response.getSubscriptionResponse().getResponseStatuses().get(0).isStatus());
         assertTrue(SiriXml.toXml(response).contains("ConsumerAddress is unreachable"));
-        assertTrue(failTrackerMap.containsKey(subscriptionId));
+        // Failures are remembered as long as the recipient keeps trying
+        assertTrue(failTrackerMap.getEntryView(subscriptionId).getTtl() > 0);
 
+        // Recipient responds, but still fails to handle deliveries
         HttpServer consumer = HttpServer.create(new InetSocketAddress("localhost", 0), 0);
         final int port = consumer.getAddress().getPort();
         consumer.createContext("/", exchange -> {
             exchange.getRequestBody().readAllBytes();
-            exchange.sendResponseHeaders(200, -1);
+            exchange.sendResponseHeaders(500, -1);
             exchange.close();
         });
         consumer.start();
@@ -212,16 +215,22 @@ public class OutboundSubscriptionTest extends SpringBootBaseTest {
             response = serverSubscriptionManager.handleSubscriptionRequest(SiriXml.parseXml(sxSubscriptionRequest(subscriptionId, port)),
                     null, OutboundIdMappingPolicy.DEFAULT, null);
             assertTrue(response.getSubscriptionResponse().getResponseStatuses().get(0).isStatus());
-            assertFalse(failTrackerMap.containsKey(subscriptionId));
 
-            // Failures are remembered after the subscription is terminated
-            failTrackerMap.set(subscriptionId, Instant.now());
-            serverSubscriptionManager.terminateSubscription(subscriptionId, false);
+            // Failures are remembered until a delivery succeeds - so the next failure cancels the subscription
+            serverSubscriptionManager.pushFailedForSubscription(subscriptionId);
+            assertFalse(isActive(subscriptionId));
+
+            // ...and are still remembered after the subscription is cancelled
             assertTrue(failTrackerMap.containsKey(subscriptionId));
         } finally {
             consumer.stop(0);
             failTrackerMap.delete(subscriptionId);
         }
+    }
+
+    private boolean isActive(String subscriptionId) {
+        return serverSubscriptionManager.getSubscriptions().stream()
+                .anyMatch(s -> subscriptionId.equals(((OutboundSubscriptionSetup) s).getSubscriptionId()));
     }
 
     private static String sxSubscriptionRequest(String subscriptionId, int port) {
