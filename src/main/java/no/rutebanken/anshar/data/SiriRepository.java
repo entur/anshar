@@ -274,7 +274,9 @@ abstract class SiriRepository<T> {
             logger.debug("Cleaning up expired objects");
             long t1 = System.currentTimeMillis();
             // Values are fetched in batches to avoid loading all data into memory at once
-            final Set<SiriObjectStorageKey> allKeys = map.keySet();
+            // Copied to a HashSet - IMap.keySet() deserializes lazily, and contains() is a linear scan that
+            // deserializes every key, which makes removeStaleCacheEntries O(n^2)
+            final Set<SiriObjectStorageKey> allKeys = new HashSet<>(map.keySet());
             final Set<SiriObjectStorageKey> expired = new HashSet<>();
             final Set<SiriObjectStorageKey> batch = new HashSet<>();
             for (Iterator<SiriObjectStorageKey> it = allKeys.iterator(); it.hasNext(); ) {
