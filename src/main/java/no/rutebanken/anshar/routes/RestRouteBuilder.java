@@ -542,8 +542,8 @@ public class RestRouteBuilder extends RouteBuilder {
         uk.org.siri.siri20.Siri siri20Response;
         try {
 
-            if (response.getServiceDelivery() != null &&
-                response.getServiceDelivery().getEstimatedTimetableDeliveries() != null) {
+            if (containsTaxiJourneys(response)) {
+                // Only copy when something must be removed - the response may be shared, and must not be altered
                 Siri siri = SiriObjectFactory.deepCopy(response);
                 for (uk.org.siri.siri21.EstimatedTimetableDeliveryStructure delivery : siri.getServiceDelivery().getEstimatedTimetableDeliveries()) {
                     if (delivery.getEstimatedJourneyVersionFrames() != null && !delivery.getEstimatedJourneyVersionFrames().isEmpty()) {
@@ -613,6 +613,22 @@ public class RestRouteBuilder extends RouteBuilder {
             }
         }
         return siri20Response;
+    }
+
+    private static boolean containsTaxiJourneys(Siri siri) {
+        if (siri.getServiceDelivery() == null) {
+            return false;
+        }
+        for (uk.org.siri.siri21.EstimatedTimetableDeliveryStructure delivery : siri.getServiceDelivery().getEstimatedTimetableDeliveries()) {
+            for (EstimatedVersionFrameStructure frameStructure : delivery.getEstimatedJourneyVersionFrames()) {
+                for (uk.org.siri.siri21.EstimatedVehicleJourney journey : frameStructure.getEstimatedVehicleJourneies()) {
+                    if (journey.getVehicleModes().contains(VehicleModesEnumeration.TAXI)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
 }
