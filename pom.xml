@@ -250,12 +250,19 @@
             <groupId>org.entur.ror.helpers</groupId>
             <artifactId>hazelcast4-helper</artifactId>
             <version>${entur.helpers.version}</version>
+            <exclusions>
+                <!-- Kubernetes discovery is built into Hazelcast - the old plugin shadows its classes -->
+                <exclusion>
+                    <groupId>com.hazelcast</groupId>
+                    <artifactId>hazelcast-kubernetes</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
             <groupId>com.hazelcast</groupId>
             <artifactId>hazelcast</artifactId>
-            <version>5.1.7</version>
+            <version>5.7.0</version>
         </dependency>
 
         <dependency>

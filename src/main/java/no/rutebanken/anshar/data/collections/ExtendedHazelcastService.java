@@ -35,6 +35,7 @@ import com.hazelcast.replicatedmap.ReplicatedMap;
 import jakarta.annotation.PreDestroy;
 import no.rutebanken.anshar.data.RequestorRefStats;
 import no.rutebanken.anshar.data.SiriObjectStorageKey;
+import no.rutebanken.anshar.data.SiriObjectStorageKeySerializer;
 import no.rutebanken.anshar.routes.outbound.OutboundSubscriptionSetup;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
@@ -115,7 +116,10 @@ public class ExtendedHazelcastService extends HazelCastService {
                     .setImplementation(new KryoSerializer()),
                 new SerializerConfig()
                     .setTypeClass(JSONObject.class)
-                    .setImplementation(new KryoSerializer())
+                    .setImplementation(new KryoSerializer()),
+                new SerializerConfig()
+                    .setTypeClass(SiriObjectStorageKey.class)
+                    .setImplementation(new SiriObjectStorageKeySerializer())
 
         );
     }
