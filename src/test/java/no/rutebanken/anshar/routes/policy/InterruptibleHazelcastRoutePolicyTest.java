@@ -12,13 +12,16 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BooleanSupplier;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -106,8 +109,7 @@ public class InterruptibleHazelcastRoutePolicyTest {
         for (String key : keys) {
             policies.add(createPolicy(key));
         }
-        // Let every policy enter tryLock (default timeout 10 s)
-        Thread.sleep(1_000);
+        awaitTryLockAttempts(3);
 
         long start = System.currentTimeMillis();
         for (RecordingPolicy policy : policies) {
@@ -135,7 +137,7 @@ public class InterruptibleHazelcastRoutePolicyTest {
         String key = "route-late";
         holdLocksInOtherThread(List.of(key));
         RecordingPolicy policy = createPolicy(key);
-        Thread.sleep(500);
+        awaitTryLockAttempts(1);
 
         policy.stop();
         // The other member leaves - the stopped policy's pending tryLock now succeeds
@@ -146,6 +148,40 @@ public class InterruptibleHazelcastRoutePolicyTest {
         Thread.sleep(500);
         assertFalse(locks.isLocked(key), "lock not kept by stopped policy");
         assertFalse(policy.becameLeader.get(), "stopped policy must not take leadership");
+    }
+
+    @Test
+    public void testLockAcquiredByPreviousRunIsReleasedAfterRestart() throws Exception {
+        String key = "route-restart";
+        holdLocksInOtherThread(List.of(key));
+        RecordingPolicy policy = createPolicy(key);
+        awaitTryLockAttempts(1);
+
+        policy.stop();
+        policy.start();
+        // The attempt from the stopped run is still pending next to the new one
+        awaitTryLockAttempts(2);
+        releaseLocks.countDown();
+        lockHolder.join(5_000);
+        awaitTrue(policy::isLeader, "restarted policy becomes leader");
+        assertEquals(1, policy.leadershipTaken.get(), "only the restarted run may take leadership");
+
+        long start = System.currentTimeMillis();
+        policy.stop();
+        long elapsed = System.currentTimeMillis() - start;
+
+        assertTrue(elapsed < 3_000, "Stopping restarted leader took " + elapsed + " ms");
+        awaitTrue(() -> !locks.isLocked(key), "lock released after stopping restarted policy");
+    }
+
+    /**
+     * Waits until the given number of policy threads are blocked in tryLock - the call that ignores interrupts
+     */
+    private static void awaitTryLockAttempts(int count) throws InterruptedException {
+        awaitTrue(() -> Thread.getAllStackTraces().entrySet().stream()
+                .filter(e -> e.getKey().getName().contains(RecordingPolicy.class.getSimpleName()))
+                .filter(e -> Arrays.stream(e.getValue()).anyMatch(frame -> frame.getMethodName().equals("tryLock")))
+                .count() == count, count + " pending tryLock attempts");
     }
 
     private static void awaitTrue(BooleanSupplier condition, String description) throws InterruptedException {
@@ -160,6 +196,7 @@ public class InterruptibleHazelcastRoutePolicyTest {
 
     private static class RecordingPolicy extends InterruptibleHazelcastRoutePolicy {
         private final AtomicBoolean becameLeader = new AtomicBoolean();
+        private final AtomicInteger leadershipTaken = new AtomicInteger();
 
         RecordingPolicy(HazelcastInstance instance) {
             super(instance);
@@ -169,6 +206,7 @@ public class InterruptibleHazelcastRoutePolicyTest {
         protected void setLeader(boolean isLeader) {
             if (isLeader) {
                 becameLeader.set(true);
+                leadershipTaken.incrementAndGet();
             }
             super.setLeader(isLeader);
         }
