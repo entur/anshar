@@ -63,7 +63,14 @@ public class InterruptibleHazelcastRoutePolicy extends HazelcastRoutePolicy {
             future = null;
         }
 
-        getCamelContext().getExecutorServiceManager().shutdownGraceful(executorService);
+        if (isLeader()) {
+            // The leader waits interruptibly, and releases the lock right away
+            getCamelContext().getExecutorServiceManager().shutdownGraceful(executorService);
+        } else {
+            // tryLock ignores interrupts - waiting for it here delays shutdown by up to tryLockTimeout per route,
+            // long enough for the pod to be killed before leaving the Hazelcast cluster
+            getCamelContext().getExecutorServiceManager().shutdownNow(executorService);
+        }
 
         super.doStop();
     }
@@ -90,6 +97,10 @@ public class InterruptibleHazelcastRoutePolicy extends HazelcastRoutePolicy {
         while (isRunAllowed()) {
             try {
                 locked = locks.tryLock(lockKey, getTryLockTimeout(), getTryLockTimeoutUnit());
+                if (locked && !isRunAllowed()) {
+                    // Stopped while waiting for the lock - released in finally without taking leadership
+                    break;
+                }
                 if (locked) {
                     locks.put(getLockKey(), getLockValue());
                     setLeader(true);
