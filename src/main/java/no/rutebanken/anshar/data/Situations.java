@@ -101,7 +101,7 @@ public class Situations extends SiriRepository<PtSituationElement> {
     }
 
     public int getSize() {
-        return situationElements.keySet().size();
+        return situationElements.size();
     }
 
     @Override

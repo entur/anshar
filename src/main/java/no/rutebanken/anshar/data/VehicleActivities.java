@@ -125,7 +125,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
     }
 
     public int getSize() {
-        return monitoredVehicles.keySet().size();
+        return monitoredVehicles.size();
     }
 
     @Override

@@ -153,7 +153,7 @@ public class EstimatedTimetables extends SiriRepository<EstimatedVehicleJourney>
     }
 
     public int getSize() {
-        return timetableDeliveries.keySet().size();
+        return timetableDeliveries.size();
     }
 
     @Override
