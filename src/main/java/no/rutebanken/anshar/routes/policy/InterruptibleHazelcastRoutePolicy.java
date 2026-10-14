@@ -37,6 +37,10 @@ public class InterruptibleHazelcastRoutePolicy extends HazelcastRoutePolicy {
     private ExecutorService executorService;
     private Future<Void> future;
 
+    // Identifies the current start of this policy - workers of earlier starts may still be waiting in tryLock
+    private final Object runLock = new Object();
+    private long run;
+
     public InterruptibleHazelcastRoutePolicy(HazelcastInstance instance) {
         super(instance, false);
         this.instance = instance;
@@ -52,18 +56,33 @@ public class InterruptibleHazelcastRoutePolicy extends HazelcastRoutePolicy {
         executorService = getCamelContext().getExecutorServiceManager().newSingleThreadExecutor(this, this.getClass().getSimpleName());
 
         locks = instance.getMap(getLockMapName());
-        future = executorService.submit(this::acquireLeadership);
+        long currentRun;
+        synchronized (runLock) {
+            currentRun = ++run;
+        }
+        future = executorService.submit(() -> acquireLeadership(currentRun));
 
     }
 
     @Override
     protected void doStop() throws Exception {
+        synchronized (runLock) {
+            // From here on, no worker can take leadership - pending attempts release the lock when they get it
+            run++;
+        }
         if (future != null) {
             future.cancel(true);
             future = null;
         }
 
-        getCamelContext().getExecutorServiceManager().shutdownGraceful(executorService);
+        if (isLeader()) {
+            // The leader waits interruptibly, and releases the lock right away
+            getCamelContext().getExecutorServiceManager().shutdownGraceful(executorService);
+        } else {
+            // tryLock ignores interrupts - waiting for it here delays shutdown by up to tryLockTimeout per route,
+            // long enough for the pod to be killed before leaving the Hazelcast cluster
+            getCamelContext().getExecutorServiceManager().shutdownNow(executorService);
+        }
 
         super.doStop();
     }
@@ -74,7 +93,13 @@ public class InterruptibleHazelcastRoutePolicy extends HazelcastRoutePolicy {
         }
     }
 
-    private Void acquireLeadership() {
+    private boolean isCurrentRun(long workerRun) {
+        synchronized (runLock) {
+            return workerRun == run && isRunAllowed();
+        }
+    }
+
+    private Void acquireLeadership(long workerRun) {
 
         String lockKey = getLockKey();
 
@@ -87,12 +112,20 @@ public class InterruptibleHazelcastRoutePolicy extends HazelcastRoutePolicy {
         );
 
         boolean locked = false;
-        while (isRunAllowed()) {
+        boolean leading = false;
+        while (isCurrentRun(workerRun)) {
             try {
                 locked = locks.tryLock(lockKey, getTryLockTimeout(), getTryLockTimeoutUnit());
                 if (locked) {
                     locks.put(getLockKey(), getLockValue());
-                    setLeader(true);
+                    synchronized (runLock) {
+                        if (!isCurrentRun(workerRun)) {
+                            // Stopped while waiting for the lock - released in finally without taking leadership
+                            break;
+                        }
+                        setLeader(true);
+                        leading = true;
+                    }
 
                     synchronized(syncObject) {
                         // Calling wait() will block this thread until another thread
@@ -122,7 +155,6 @@ public class InterruptibleHazelcastRoutePolicy extends HazelcastRoutePolicy {
                 if (locked) {
                     locks.remove(lockKey);
                     locks.unlock(lockKey);
-                    releaseLeadership();
                     locked = false;
 
                     LOGGER.info("Released lock(map={}, key={}, val={}) timeout {} {}",
@@ -133,7 +165,11 @@ public class InterruptibleHazelcastRoutePolicy extends HazelcastRoutePolicy {
                             getTryLockTimeoutUnit().name()
                     );
                 }
-                setLeader(false);
+                if (leading) {
+                    // Only the worker that took leadership gives it up - a stale worker must not reset the current leader
+                    setLeader(false);
+                    leading = false;
+                }
             }
         }
         LOGGER.info("Finished trying to acquire lock(map={}, key={}, val={}) timeout {} {}",
