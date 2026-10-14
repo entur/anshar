@@ -32,7 +32,8 @@ public class AppendChangesToSetEntryProcessor implements EntryProcessor<String, 
         Set<SiriObjectStorageKey> value = entry.getValue();
         value.addAll(changes);
         entry.setValue(value);
-        return value;
+        // Nothing is returned to avoid sending the full set back to the caller
+        return null;
     }
 
     //
