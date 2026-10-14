@@ -86,6 +86,15 @@ class OutboundCircuitBreaker {
                 (subscriptionRequestTimestamp == null || requestTimestamp.isAfter(subscriptionRequestTimestamp));
     }
 
+    /**
+     * @return true if the subscription is a previous version of the one this circuit breaker was created for
+     */
+    boolean isNewerThan(OutboundSubscriptionSetup subscription) {
+        final ZonedDateTime requestTimestamp = subscription.getRequestTimestamp();
+        return requestTimestamp != null && subscriptionRequestTimestamp != null &&
+                requestTimestamp.isBefore(subscriptionRequestTimestamp);
+    }
+
     synchronized Permit allowRequest(long now) {
         if (!isOpen()) {
             return Permit.ALLOWED;

@@ -160,6 +160,16 @@ public class OutboundCircuitBreakerTest {
         assertTrue(breaker.isReplacedBy(subscription(created.plusSeconds(1))));
     }
 
+    @Test
+    public void testIsNewerThanPreviousSubscription() {
+        ZonedDateTime created = ZonedDateTime.now();
+        OutboundCircuitBreaker breaker = new OutboundCircuitBreaker(created, THRESHOLD, INITIAL_BACKOFF, MAX_BACKOFF, MAX_PROBE_DURATION);
+
+        assertTrue(breaker.isNewerThan(subscription(created.minusSeconds(1))));
+        assertFalse(breaker.isNewerThan(subscription(created)));
+        assertFalse(breaker.isNewerThan(subscription(created.plusSeconds(1))));
+    }
+
     private void openCircuit(long now) {
         for (int i = 0; i < THRESHOLD; i++) {
             breaker.recordFailure(now, Permit.ALLOWED);

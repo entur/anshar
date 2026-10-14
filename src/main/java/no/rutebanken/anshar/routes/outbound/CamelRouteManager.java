@@ -202,6 +202,14 @@ public class CamelRouteManager {
                 List<Siri> splitSiri = siriHelper.splitDeliveries(filteredPayload, deliverySize);
 
                 circuitBreaker = getCircuitBreaker(subscriptionRequest);
+                if (circuitBreaker.isNewerThan(subscriptionRequest)) {
+                    if (requireActiveSubscription) {
+                        // Queued for a previous version of the subscription - the new version has received its own initial delivery
+                        return;
+                    }
+                    // E.g. TerminateSubscriptionResponse - posted without affecting the circuit breaker of the new version
+                    circuitBreaker = new OutboundCircuitBreaker(null, Integer.MAX_VALUE, 0, 0, 0);
+                }
 
                 if (splitSiri.size() > 1) {
                     logger.info("Object split into {} deliveries for subscription {}.", splitSiri.size(), subscriptionRequest);
@@ -304,7 +312,8 @@ public class CamelRouteManager {
 
     /**
      * Returns the circuit breaker for the subscription - a new one is created if the subscription has been re-created.
-     * Deliveries still queued for the previous version of the subscription reuse the current circuit breaker.
+     * Deliveries still queued for a previous version of the subscription get the current circuit breaker, and must check
+     * {@link OutboundCircuitBreaker#isNewerThan}.
      */
     private OutboundCircuitBreaker getCircuitBreaker(OutboundSubscriptionSetup subscriptionRequest) {
         return circuitBreakers.compute(subscriptionRequest.getSubscriptionId(), (subscriptionId, existing) ->
