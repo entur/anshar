@@ -24,9 +24,12 @@ import no.rutebanken.anshar.subscription.SiriDataType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static no.rutebanken.anshar.routes.siri.transformer.MappingNames.INVALID_NSR_ID;
 import static no.rutebanken.anshar.routes.siri.transformer.MappingNames.ORIGINAL_ID_TO_NSR;
@@ -40,7 +43,11 @@ public class StopPlaceRegisterMapper extends ValueAdapter {
     private final List<String> prefixes;
     private final String datatype;
 
-    private static final Set<String> unmappedAlreadyAdded = new HashSet<>();
+    // Limits memory usage if a provider keeps sending new, unknown ids - limit is per dataset and datatype
+    // Same limit as HealthManager, to ensure that all tracked ids are reported when there is room
+    private static final int MAX_TRACKED_UNMAPPED_IDS = HealthManager.MAX_PENDING_UNMAPPED_IDS;
+
+    private static final Map<String, Set<String>> unmappedAlreadyAdded = new ConcurrentHashMap<>();
 
     private final String datasetId;
     private final SiriDataType type;
@@ -68,15 +75,15 @@ public class StopPlaceRegisterMapper extends ValueAdapter {
 
         if (id == null || id.isEmpty() || id.startsWith("NSR:")) {
             if (!stopPlaceService.isKnownId(id)) {
-                if (unmappedAlreadyAdded.add(id)) {
+                if (trackUnmapped(id)) {
                     if (metricsEnabled) {
                         getMetricsService().registerDataMapping(type, datasetId, INVALID_NSR_ID, 1);
                     }
                     healthManager.addUnmappedId(type, datasetId, id);
                 }
-            } else if (unmappedAlreadyAdded.contains(id)) {
+            } else if (trackedUnmappedIds().contains(id)) {
                 healthManager.removeUnmappedId(type, datasetId, id);
-                unmappedAlreadyAdded.remove(id);
+                trackedUnmappedIds().remove(id);
             }
             return id;
         }
@@ -107,16 +114,37 @@ public class StopPlaceRegisterMapper extends ValueAdapter {
                 }
             }
         } finally {
-            if (mappedValue != null && unmappedAlreadyAdded.contains(id)) {
+            if (mappedValue != null && trackedUnmappedIds().contains(id)) {
                 healthManager.removeUnmappedId(type, datasetId, id);
-                unmappedAlreadyAdded.remove(id);
+                trackedUnmappedIds().remove(id);
             }
         }
 
-        if (unmappedAlreadyAdded.add(id)) {
+        if (trackUnmapped(id)) {
             healthManager.addUnmappedId(type, datasetId, id);
         }
         return id;
+    }
+
+    /**
+     * @return true if the id has not been seen before - false if already tracked, or if the limit has been reached
+     */
+    private boolean trackUnmapped(String id) {
+        final Set<String> trackedIds = trackedUnmappedIds();
+        synchronized (trackedIds) {
+            if (trackedIds.size() >= MAX_TRACKED_UNMAPPED_IDS) {
+                return false;
+            }
+            boolean added = trackedIds.add(id);
+            if (added && trackedIds.size() == MAX_TRACKED_UNMAPPED_IDS) {
+                logger.warn("Reached limit of {} unmapped ids for {} {} - new unmapped ids will not be reported", MAX_TRACKED_UNMAPPED_IDS, datasetId, type);
+            }
+            return added;
+        }
+    }
+
+    private Set<String> trackedUnmappedIds() {
+        return unmappedAlreadyAdded.computeIfAbsent(datasetId + "|" + type, key -> Collections.synchronizedSet(new HashSet<>()));
     }
 
     private String createCompleteId(String prefix, String id, String datatype) {

@@ -81,11 +81,11 @@ public class Situations extends SiriRepository<PtSituationElement> {
     private void initializeUpdateCommitter() {
         super.initBufferCommitter(lastUpdateRequested, changesMap, configuration.getChangeBufferCommitFrequency());
 
-        enableCache(situationElements);
+        enableCache(situationElements, configuration.processSX());
 
 //        linkEntriesTtl(situationElements, changesMap, checksumCache);
         if (configuration.processSX()) {
-            createCleanupJob(situationElements, changesMap, configuration.getCleanupIntervalSeconds(), -1);
+            createCleanupJob(situationElements, changesMap, configuration.getCleanupIntervalSeconds(), -1, checksumCache);
         }
     }
 
@@ -101,7 +101,7 @@ public class Situations extends SiriRepository<PtSituationElement> {
     }
 
     public int getSize() {
-        return situationElements.keySet().size();
+        return situationElements.size();
     }
 
     @Override

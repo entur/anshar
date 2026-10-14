@@ -17,6 +17,7 @@ package no.rutebanken.anshar.routes.outbound;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import jakarta.xml.bind.JAXBException;
 import no.rutebanken.anshar.metrics.PrometheusMetricsService;
 import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
@@ -47,15 +48,19 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static no.rutebanken.anshar.routes.RestRouteBuilder.downgradeSiriVersion;
 
@@ -78,7 +83,20 @@ public class CamelRouteManager {
     @Value("${anshar.default.max.threads.per.outbound.subscription:5}")
     private int maximumThreadsPerOutboundSubscription;
 
+    @Value("${anshar.default.max.queue.size.per.outbound.subscription:1000}")
+    private int maximumQueueSizePerOutboundSubscription;
+
+    @Value("${anshar.outbound.timeout.socket:15000}")
+    private int requestTimeoutMillis;
+
+    @Value("${anshar.outbound.executor.cleanup.interval.seconds:60}")
+    private int executorCleanupIntervalSeconds;
+
     private Map<String, ExecutorService> threadFactoryMap = new ConcurrentHashMap<>();
+
+    private ScheduledExecutorService executorCleanupScheduler;
+
+    private volatile boolean shuttingDown = false;
 
     private static final HttpClient httpClient = HttpClient.newBuilder()
             .version(HttpClient.Version.HTTP_1_1)
@@ -91,12 +109,47 @@ public class CamelRouteManager {
         metricsService.registerOutboundThreadFactoryMap(threadFactoryMap);
     }
 
+    @PostConstruct
+    private void initExecutorCleanup() {
+        // Subscriptions may be terminated or expire on any node - periodically release the local resources
+        executorCleanupScheduler = Executors.newSingleThreadScheduledExecutor(
+                new ThreadFactoryBuilder().setNameFormat("outbound-executor-cleanup").setDaemon(true).build());
+        executorCleanupScheduler.scheduleWithFixedDelay(() -> {
+            try {
+                removeDeadSubscriptionExecutors(subscriptionManager);
+            } catch (Throwable t) {
+                //Catch everything to avoid executor being killed
+                logger.info("Exception caught when cleaning up outbound executors", t);
+            }
+        }, executorCleanupIntervalSeconds, executorCleanupIntervalSeconds, TimeUnit.SECONDS);
+    }
+
+    @PreDestroy
+    private void shutdownExecutors() {
+        shuttingDown = true;
+        if (executorCleanupScheduler != null) {
+            executorCleanupScheduler.shutdownNow();
+        }
+        threadFactoryMap.values().forEach(ExecutorService::shutdownNow);
+        threadFactoryMap.clear();
+    }
+
     /**
      * Splits SIRI-data if applicable, and pushes data to external subscription
      * @param payload
      * @param subscriptionRequest
      */
     void pushSiriData(Siri payload, OutboundSubscriptionSetup subscriptionRequest, boolean logBody) {
+        pushSiriData(payload, subscriptionRequest, logBody, true);
+    }
+
+    /**
+     * Splits SIRI-data if applicable, and pushes data to external subscription
+     * @param payload
+     * @param subscriptionRequest
+     * @param requireActiveSubscription if false, data is pushed even if the subscription no longer exists - e.g. TerminateSubscriptionResponse
+     */
+    void pushSiriData(Siri payload, OutboundSubscriptionSetup subscriptionRequest, boolean logBody, boolean requireActiveSubscription) {
         String consumerAddress = subscriptionRequest.getAddress();
         if (consumerAddress == null) {
             logger.info("ConsumerAddress is null - ignoring data.");
@@ -105,13 +158,12 @@ public class CamelRouteManager {
         final String breadcrumbId = MDC.get("camel.breadcrumbId");
         final String subscriptionId = subscriptionRequest.getSubscriptionId();
 
-        ExecutorService executorService = getOrCreateExecutorService(subscriptionRequest);
-        executorService.execute(() -> {
+        final Runnable pushTask = () -> {
 
             try {
                 MDC.put("camel.breadcrumbId", breadcrumbId);
                 MDC.put("subscriptionId", subscriptionId);
-                if (!subscriptionManager.subscriptions.containsKey(subscriptionId)) {
+                if (requireActiveSubscription && !subscriptionManager.subscriptions.containsKey(subscriptionId)) {
                     // Short circuit if subscription has been terminated while waiting
                     return;
                 }
@@ -148,6 +200,10 @@ public class CamelRouteManager {
                     }
                 }
             } catch (Exception e) {
+                if (shuttingDown) {
+                    // Interrupted by shutdown - not caused by the subscriber
+                    return;
+                }
                 logger.info("Failed to push data for subscription {}: {}", subscriptionRequest, e.toString());
 
                 int statusCode = -1;
@@ -170,12 +226,32 @@ public class CamelRouteManager {
                         subscriptionId,
                         statusCode);
 
-                removeDeadSubscriptionExecutors(subscriptionManager);
             } finally {
                 MDC.remove("camel.breadcrumbId");
                 MDC.remove("subscriptionId");
             }
-        });
+        };
+
+        ExecutorService executorService = getOrCreateExecutorService(subscriptionRequest);
+        try {
+            executorService.execute(pushTask);
+        } catch (RejectedExecutionException e) {
+            // Executor was shut down by the cleanup-job after it was fetched - retry with a new executor
+            threadFactoryMap.remove(subscriptionId, executorService);
+            if (shuttingDown) {
+                return;
+            }
+            try {
+                getOrCreateExecutorService(subscriptionRequest).execute(pushTask);
+            } catch (RejectedExecutionException ex) {
+                if (!requireActiveSubscription) {
+                    // Subscription is already removed, so the cleanup-job may shut down any new executor - push directly
+                    pushTask.run();
+                } else {
+                    logger.warn("Unable to push data for subscription {} - executor has been shut down", subscriptionId);
+                }
+            }
+        }
     }
 
     private static void addSubscriptionRefToServiceDelivery(Siri siri, String subscriptionId) {
@@ -209,25 +285,39 @@ public class CamelRouteManager {
 
     private ExecutorService getOrCreateExecutorService(OutboundSubscriptionSetup subscriptionRequest) {
 
-        final String subscriptionId = subscriptionRequest.getSubscriptionId();
-        if (!threadFactoryMap.containsKey(subscriptionId)) {
+        return threadFactoryMap.computeIfAbsent(subscriptionRequest.getSubscriptionId(), subscriptionId -> {
             ThreadFactory factory = new ThreadFactoryBuilder().setNameFormat("outbound-"+subscriptionId).build();
 
-            //Specifying RejectedExecutionHandler as DiscardOldestPolicy to avoid blocking the thread
+            // Queue is bounded to limit memory usage when the recipient is slow or not responding.
+            // When the queue is full, the oldest delivery is discarded to avoid blocking the thread
+            final AtomicLong discardedCounter = new AtomicLong();
             ThreadPoolExecutor executor = new ThreadPoolExecutor(
                     maximumThreadsPerOutboundSubscription,
                     maximumThreadsPerOutboundSubscription,
-                    0L,
-                    TimeUnit.MILLISECONDS,
-                    new LinkedBlockingQueue<>(),
+                    60L,
+                    TimeUnit.SECONDS,
+                    new LinkedBlockingQueue<>(maximumQueueSizePerOutboundSubscription),
                     factory,
-                    new ThreadPoolExecutor.DiscardOldestPolicy()
+                    new ThreadPoolExecutor.DiscardOldestPolicy() {
+                        @Override
+                        public void rejectedExecution(Runnable r, ThreadPoolExecutor e) {
+                            if (e.isShutdown()) {
+                                // Not caused by a full queue - let the caller handle it
+                                throw new RejectedExecutionException("Executor for subscription " + subscriptionId + " has been shut down");
+                            }
+                            long discarded = discardedCounter.incrementAndGet();
+                            if (discarded == 1 || discarded % 100 == 0) {
+                                logger.warn("Outbound queue is full for subscription {} - {} deliveries discarded so far", subscriptionId, discarded);
+                            }
+                            super.rejectedExecution(r, e);
+                        }
+                    }
             );
+            // Release idle threads
+            executor.allowCoreThreadTimeOut(true);
 
-            threadFactoryMap.put(subscriptionId, executor);
-        }
-
-        return threadFactoryMap.get(subscriptionId);
+            return executor;
+        });
     }
 
 
@@ -236,21 +326,18 @@ public class CamelRouteManager {
      * @param subscriptionManager
      */
     private void removeDeadSubscriptionExecutors(ServerSubscriptionManager subscriptionManager) {
-        List<String> idsToRemove = new ArrayList<>();
-        for (String id : threadFactoryMap.keySet()) {
-            if (!subscriptionManager.subscriptions.containsKey(id)) {
-                final ExecutorService service = threadFactoryMap.get(id);
-                idsToRemove.add(id);
-                // Force shutdown since outbound subscription has been stopped
-                if (service != null) {
-                    service.shutdownNow();
-                }
-            }
+        if (threadFactoryMap.isEmpty()) {
+            return;
         }
-        if (!idsToRemove.isEmpty()) {
-            for (String id : idsToRemove) {
-                logger.info("Remove executor for subscription {}", id);
-                threadFactoryMap.remove(id);
+        Set<String> activeSubscriptionIds = subscriptionManager.subscriptions.keySet();
+        for (String id : threadFactoryMap.keySet()) {
+            if (!activeSubscriptionIds.contains(id)) {
+                final ExecutorService service = threadFactoryMap.remove(id);
+                // Remaining deliveries are skipped since subscription has been stopped - only a pending TerminateSubscriptionResponse is sent
+                if (service != null) {
+                    logger.info("Remove executor for subscription {}", id);
+                    service.shutdown();
+                }
             }
         }
     }
@@ -297,6 +384,7 @@ public class CamelRouteManager {
                     .uri(URI.create(subscription.getAddress()))
                     .header("subscriptionId", subscription.getSubscriptionId())
                     .header("Content-Type", "application/xml")
+                    .timeout(Duration.ofMillis(requestTimeoutMillis))
                     .POST(HttpRequest.BodyPublishers.ofInputStream(() -> new ByteArrayInputStream(out.toByteArray())))
                     .build();
             int responseCode;

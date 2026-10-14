@@ -41,9 +41,11 @@ import uk.org.siri.siri21.SituationExchangeDeliveryStructure;
 import uk.org.siri.siri21.VehicleMonitoringDeliveryStructure;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -241,9 +243,9 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
         counter(SUBSCRIPTION_OUTBOUND_COUNTER_NAME, counterTags).increment(1);
     }
 
-    final Map<String, Integer> gaugeValues = new HashMap<>();
+    final Map<String, Integer> gaugeValues = new ConcurrentHashMap<>();
 
-    public void gaugeDataset(SiriDataType subscriptionType, String agencyId, Integer count) {
+    private String gaugeDataset(SiriDataType subscriptionType, String agencyId, Integer count) {
 
         List<Tag> counterTags = new ArrayList<>();
         counterTags.add(new ImmutableTag(DATATYPE_TAG_NAME, subscriptionType.name()));
@@ -252,16 +254,17 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
         String key = "" + subscriptionType + agencyId;
         gaugeValues.put(key, count);
 
-        gauge(DATA_COUNTER_NAME, counterTags, key, value -> gaugeValues.get(key));
+        gauge(DATA_COUNTER_NAME, counterTags, key, value -> gaugeValues.getOrDefault(key, 0));
+        return key;
     }
 
     @Override
-    public String scrape() {
+    public synchronized String scrape() {
         update();
         return super.scrape();
     }
 
-    public void update() {
+    public synchronized void update() {
 
         for (Meter meter : getMeters()) {
             if (DATA_COUNTER_NAME.equals(meter.getId().getName())) {
@@ -273,25 +276,35 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
             if (SUBSCRIPTION_OUTBOUND_QUEUE.equals(meter.getId().getName())) {
                 this.remove(meter);
             }
+            if (SUBSCRIPTION_OUTBOUND_COUNTER_NAME.equals(meter.getId().getName())) {
+                // Counters are tagged with subscriptionId - remove when the outbound subscription no longer exists
+                String subscriptionId = meter.getId().getTag("subscriptionId");
+                if (subscriptionId != null && !outboundThreadFactoryMap.containsKey(subscriptionId)) {
+                    this.remove(meter);
+                }
+            }
         }
+        Set<String> currentGaugeKeys = new HashSet<>();
 
         EstimatedTimetables estimatedTimetables = ApplicationContextHolder.getContext().getBean(EstimatedTimetables.class);
         Map<String, Integer> datasetSize = estimatedTimetables.getLocalDatasetSize();
         for (Map.Entry<String, Integer> entry : datasetSize.entrySet()) {
-            gaugeDataset(SiriDataType.ESTIMATED_TIMETABLE, entry.getKey(), entry.getValue());
+            currentGaugeKeys.add(gaugeDataset(SiriDataType.ESTIMATED_TIMETABLE, entry.getKey(), entry.getValue()));
         }
 
         Situations situations = ApplicationContextHolder.getContext().getBean(Situations.class);
         datasetSize = situations.getLocalDatasetSize();
         for (Map.Entry<String, Integer> entry : datasetSize.entrySet()) {
-            gaugeDataset(SiriDataType.SITUATION_EXCHANGE, entry.getKey(), entry.getValue());
+            currentGaugeKeys.add(gaugeDataset(SiriDataType.SITUATION_EXCHANGE, entry.getKey(), entry.getValue()));
         }
 
         VehicleActivities vehicleActivities = ApplicationContextHolder.getContext().getBean(VehicleActivities.class);
         datasetSize = vehicleActivities.getLocalDatasetSize();
         for (Map.Entry<String, Integer> entry : datasetSize.entrySet()) {
-            gaugeDataset(SiriDataType.VEHICLE_MONITORING, entry.getKey(), entry.getValue());
+            currentGaugeKeys.add(gaugeDataset(SiriDataType.VEHICLE_MONITORING, entry.getKey(), entry.getValue()));
         }
+        // Values are only removed for datasets that no longer exist
+        gaugeValues.keySet().retainAll(currentGaugeKeys);
 
         for (Map.Entry<String, ExecutorService> entry : outboundThreadFactoryMap.entrySet()) {
             List<Tag> counterTags = new ArrayList<>();

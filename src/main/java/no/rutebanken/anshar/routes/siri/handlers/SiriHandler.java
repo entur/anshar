@@ -248,13 +248,13 @@ public class SiriHandler {
             if (terminateSubscriptionRequest.getSubscriptionReves() != null && !terminateSubscriptionRequest.getSubscriptionReves().isEmpty()) {
                 String subscriptionRef = terminateSubscriptionRequest.getSubscriptionReves().get(0).getValue();
 
-                serverSubscriptionManager.terminateSubscription(subscriptionRef, configuration.processAdmin());
+                serverSubscriptionManager.terminateSubscription(subscriptionRef, false);
                 if (configuration.processAdmin()) {
                     return siriObjectFactory.createTerminateSubscriptionResponse(subscriptionRef);
                 }
             } else if (terminateSubscriptionRequest.getSubscriberRef() != null && terminateSubscriptionRequest.getAll() != null) {
                 String subscriberRef = terminateSubscriptionRequest.getSubscriberRef().getValue();
-                serverSubscriptionManager.terminateSubscriptions(subscriberRef, configuration.processAdmin());
+                serverSubscriptionManager.terminateSubscriptions(subscriberRef, false);
                 if (configuration.processAdmin()) {
                     return siriObjectFactory.createTerminateSubscriptionResponse(null);
                 }

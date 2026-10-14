@@ -106,7 +106,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
     private void initializeUpdateCommitter() {
         super.initBufferCommitter(lastUpdateRequested, changesMap, configuration.getChangeBufferCommitFrequency());
 
-        enableCache(monitoredVehicles);
+        enableCache(monitoredVehicles, configuration.processVM());
 
         if (configuration.processVM()) {
             createCleanupJob(monitoredVehicles, changesMap, configuration.getCleanupIntervalSeconds(), maxValidityMillis);
@@ -125,7 +125,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
     }
 
     public int getSize() {
-        return monitoredVehicles.keySet().size();
+        return monitoredVehicles.size();
     }
 
     @Override

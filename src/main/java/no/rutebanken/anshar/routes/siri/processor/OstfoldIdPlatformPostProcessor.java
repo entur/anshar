@@ -35,6 +35,7 @@ import uk.org.siri.siri21.StopPointRefStructure;
 import uk.org.siri.siri21.VehicleActivityStructure;
 import uk.org.siri.siri21.VehicleMonitoringDeliveryStructure;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -46,7 +47,10 @@ public class OstfoldIdPlatformPostProcessor extends ValueAdapter implements Post
 
     private final Logger logger = LoggerFactory.getLogger(OstfoldIdPlatformPostProcessor.class);
 
-    private static final Set<String> unmappedStopPlacePlatform = new HashSet<>();
+    // Limits memory usage if unknown ids keep coming
+    private static final int MAX_TRACKED_UNMAPPED_IDS = 1000;
+
+    private static final Set<String> unmappedStopPlacePlatform = Collections.synchronizedSet(new HashSet<>());
     private boolean listUpdated;
     private final StopPlaceRegisterMapper stopPlaceRegisterMapper;
 
@@ -69,7 +73,12 @@ public class OstfoldIdPlatformPostProcessor extends ValueAdapter implements Post
 
         String nsrId = stopPlaceRegisterMapper.apply(originalId);
         if (nsrId == null || nsrId.startsWith(stopPointRef)) {
-            listUpdated = listUpdated || unmappedStopPlacePlatform.add(originalId);
+            if (unmappedStopPlacePlatform.size() < MAX_TRACKED_UNMAPPED_IDS && unmappedStopPlacePlatform.add(originalId)) {
+                listUpdated = true;
+                if (unmappedStopPlacePlatform.size() >= MAX_TRACKED_UNMAPPED_IDS) {
+                    logger.warn("Reached limit of {} unmapped stopPlace/platform - new unmapped values will not be logged", MAX_TRACKED_UNMAPPED_IDS);
+                }
+            }
         }
         return nsrId;
     }

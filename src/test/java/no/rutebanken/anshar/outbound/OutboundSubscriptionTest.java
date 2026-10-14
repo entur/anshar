@@ -12,10 +12,18 @@ import uk.org.siri.siri21.Siri;
 import uk.org.siri.siri21.SubscriptionContextStructure;
 import uk.org.siri.siri21.SubscriptionRequest;
 
+import com.sun.net.httpserver.HttpServer;
+
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.stream.XMLStreamException;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -114,6 +122,56 @@ public class OutboundSubscriptionTest extends SpringBootBaseTest {
         assertFalse(siriET.getSubscriptionResponse().getResponseStatuses().get(0).isStatus());
 
         serverSubscriptionManager.terminateSubscription(subscriptionId, true);
+    }
+
+    @Test
+    public void testTerminateSubscriptionResponseIsPosted() throws JAXBException, XMLStreamException, IOException, InterruptedException {
+        final String subscriptionId = "terminate-response-test";
+
+        BlockingQueue<String> received = new LinkedBlockingQueue<>();
+        HttpServer consumer = HttpServer.create(new InetSocketAddress("localhost", 0), 0);
+        consumer.createContext("/", exchange -> {
+            received.add(new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8));
+            exchange.sendResponseHeaders(200, -1);
+            exchange.close();
+        });
+        consumer.start();
+
+        try {
+            String sxSubscription = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                    "<Siri xmlns=\"http://www.siri.org.uk/siri\" version=\"2.1\">\n" +
+                    "\t<SubscriptionRequest>\n" +
+                    "\t\t<RequestTimestamp>2019-12-06T14:38:42.2790513Z</RequestTimestamp>\n" +
+                    "\t\t<ConsumerAddress>http://localhost:" + consumer.getAddress().getPort() + "/siri</ConsumerAddress>\n" +
+                    "\t\t<RequestorRef>" + subscriptionId + "</RequestorRef>\n" +
+                    "\t\t<MessageIdentifier>52467cd2-e469-4f37-8841-27c3a9b57b63</MessageIdentifier>\n" +
+                    "\t\t<SubscriptionContext>\n" +
+                    "\t\t\t<HeartbeatInterval>PT60M</HeartbeatInterval>\n" +
+                    "\t\t</SubscriptionContext>\n" +
+                    "\t\t<SituationExchangeSubscriptionRequest>\n" +
+                    "\t\t\t<SubscriptionIdentifier>" + subscriptionId + "</SubscriptionIdentifier>\n" +
+                    "\t\t\t<InitialTerminationTime>2119-12-06T14:38:42.2785096Z</InitialTerminationTime>\n" +
+                    "\t\t\t<SituationExchangeRequest>\n" +
+                    "\t\t\t\t<RequestTimestamp>2019-12-06T14:38:42.2787087Z</RequestTimestamp>\n" +
+                    "\t\t\t</SituationExchangeRequest>\n" +
+                    "\t\t</SituationExchangeSubscriptionRequest>\n" +
+                    "\t</SubscriptionRequest>\n" +
+                    "</Siri>";
+
+            final Siri response = serverSubscriptionManager.handleSubscriptionRequest(SiriXml.parseXml(sxSubscription), null, OutboundIdMappingPolicy.DEFAULT, null);
+            assertTrue(response.getSubscriptionResponse().getResponseStatuses().get(0).isStatus());
+
+            serverSubscriptionManager.terminateSubscription(subscriptionId, true);
+
+            boolean terminateResponseReceived = false;
+            String body;
+            while (!terminateResponseReceived && (body = received.poll(10, TimeUnit.SECONDS)) != null) {
+                terminateResponseReceived = body.contains("TerminateSubscriptionResponse");
+            }
+            assertTrue(terminateResponseReceived);
+        } finally {
+            consumer.stop(0);
+        }
     }
 
     SubscriptionRequest getSubscriptionRequest(long heartbeatIntervalMillis) {
