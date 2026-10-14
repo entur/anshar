@@ -184,6 +184,10 @@ public class CamelRouteManager {
                 }
 
                 for (Siri siri : splitSiri) {
+                    if (!serviceDeliveryContainsData(siri)) {
+                        // Nothing to send - not counted as a post to the subscription
+                        continue;
+                    }
                     addSubscriptionRefToServiceDelivery(siri, subscriptionId);
                     int responseCode = postDataToSubscription(siri, subscriptionRequest, logBody);
 
@@ -344,82 +348,79 @@ public class CamelRouteManager {
 
     private int postDataToSubscription(Siri payload, OutboundSubscriptionSetup subscription, boolean logBody) {
 
-        if (serviceDeliveryContainsData(payload)) {
-            long t1 = System.currentTimeMillis();
-            logger.debug("Posting to subscription {}", subscription.getSubscriptionId());
+        long t1 = System.currentTimeMillis();
+        logger.debug("Posting to subscription {}", subscription.getSubscriptionId());
 
-            Siri transformed = SiriValueTransformer.transform(
-                    payload,
-                    subscription.getValueAdapters(),
-                    false,
-                    false);
+        Siri transformed = SiriValueTransformer.transform(
+                payload,
+                subscription.getValueAdapters(),
+                false,
+                false);
 
-            if (logBody) {
-                try {
-                    logger.info("SIRI Payload: {}", SiriXml.toXml(transformed));
-                } catch (JAXBException e) {
-                    //Ignore
-                }
+        if (logBody) {
+            try {
+                logger.info("SIRI Payload: {}", SiriXml.toXml(transformed));
+            } catch (JAXBException e) {
+                //Ignore
             }
+        }
 
-            String siriContentType = "data";
-            if (transformed.getServiceDelivery() == null) {
-                siriContentType = "heartbeat";
-            }
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
+        String siriContentType = "data";
+        if (transformed.getServiceDelivery() == null) {
+            siriContentType = "heartbeat";
+        }
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        try {
+            serializeSiriObject(subscription.getSiriVersion(), transformed, out);
+        } catch (Throwable e) {
+            logger.info("Failed to serialize SIRI-xml - retrying once, {}", e.toString());
             try {
                 serializeSiriObject(subscription.getSiriVersion(), transformed, out);
-            } catch (Throwable e) {
-                logger.info("Failed to serialize SIRI-xml - retrying once, {}", e.toString());
-                try {
-                    serializeSiriObject(subscription.getSiriVersion(), transformed, out);
-                } catch (Throwable ex) {
-                    logger.warn("Retry failed to serialize SIRI-xml, {}", ex.toString());
-                    throw new RuntimeException(e);
-                }
-                logger.info("Retry succeeded to serialize SIRI-xml");
+            } catch (Throwable ex) {
+                logger.warn("Retry failed to serialize SIRI-xml, {}", ex.toString());
+                throw new RuntimeException(e);
             }
+            logger.info("Retry succeeded to serialize SIRI-xml");
+        }
 
-            HttpRequest post = HttpRequest.newBuilder()
-                    .uri(URI.create(subscription.getAddress()))
-                    .header("subscriptionId", subscription.getSubscriptionId())
-                    .header("Content-Type", "application/xml")
-                    .timeout(Duration.ofMillis(requestTimeoutMillis))
-                    .POST(HttpRequest.BodyPublishers.ofInputStream(() -> new ByteArrayInputStream(out.toByteArray())))
-                    .build();
-            int responseCode;
+        HttpRequest post = HttpRequest.newBuilder()
+                .uri(URI.create(subscription.getAddress()))
+                .header("subscriptionId", subscription.getSubscriptionId())
+                .header("Content-Type", "application/xml")
+                .timeout(Duration.ofMillis(requestTimeoutMillis))
+                .POST(HttpRequest.BodyPublishers.ofInputStream(() -> new ByteArrayInputStream(out.toByteArray())))
+                .build();
+        int responseCode;
+        try {
+            responseCode = httpClient.send(post, HttpResponse.BodyHandlers.discarding()).statusCode();
+        } catch (Exception e) {
+            logger.info("Failed to post {} to subscription {} - retrying, {}", siriContentType, subscription, e.toString());
+            // Retry once
             try {
                 responseCode = httpClient.send(post, HttpResponse.BodyHandlers.discarding()).statusCode();
-            } catch (Exception e) {
-                logger.info("Failed to post {} to subscription {} - retrying, {}", siriContentType, subscription, e.toString());
-                // Retry once
-                try {
-                    responseCode = httpClient.send(post, HttpResponse.BodyHandlers.discarding()).statusCode();
-                } catch (Exception ex) {
-                    logger.info("Retry failed to post {} to subscription {}, {}", siriContentType, subscription, ex.toString());
-                    throw new RuntimeException(e);
-                }
+            } catch (Exception ex) {
+                logger.info("Retry failed to post {} to subscription {}, {}", siriContentType, subscription, ex.toString());
+                throw new RuntimeException(e);
             }
-
-            if (responseCode >= 200 && responseCode < 300) {
-                // Clearing fail-tracker for all success-responses
-                subscriptionManager.clearFailTracker(subscription.getSubscriptionId());
-            }
-
-            long elapsed = System.currentTimeMillis() - t1;
-            if (elapsed > 100) {
-                // Only log "slow" requests
-                logger.info("Pushed {} to subscription {} took {} ms, got responseCode {}",
-                        siriContentType,
-                        subscription.getSubscriptionId(),
-                        elapsed,
-                        responseCode
-                );
-            }
-
-            return responseCode;
         }
-        return -1;
+
+        if (responseCode >= 200 && responseCode < 300) {
+            // Clearing fail-tracker for all success-responses
+            subscriptionManager.clearFailTracker(subscription.getSubscriptionId());
+        }
+
+        long elapsed = System.currentTimeMillis() - t1;
+        if (elapsed > 100) {
+            // Only log "slow" requests
+            logger.info("Pushed {} to subscription {} took {} ms, got responseCode {}",
+                    siriContentType,
+                    subscription.getSubscriptionId(),
+                    elapsed,
+                    responseCode
+            );
+        }
+
+        return responseCode;
     }
 
     private static void serializeSiriObject(SiriValidator.Version version, Siri transformed, ByteArrayOutputStream out) throws JAXBException, IOException, XMLStreamException {
