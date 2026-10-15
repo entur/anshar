@@ -38,6 +38,7 @@ import uk.org.siri.siri21.SituationExchangeDeliveryStructure;
 import uk.org.siri.siri21.SubscriptionRefStructure;
 import uk.org.siri.siri21.VehicleMonitoringDeliveryStructure;
 
+import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.xml.stream.XMLStreamException;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -47,6 +48,8 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.security.cert.CertPathValidatorException;
+import java.security.cert.CertificateException;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
@@ -92,15 +95,31 @@ public class CamelRouteManager {
     @Value("${anshar.outbound.executor.cleanup.interval.seconds:60}")
     private int executorCleanupIntervalSeconds;
 
+    @Value("${anshar.outbound.circuitbreaker.failure.threshold:5}")
+    private int circuitBreakerFailureThreshold;
+
+    @Value("${anshar.outbound.circuitbreaker.backoff.initial.seconds:10}")
+    private int circuitBreakerInitialBackoffSeconds;
+
+    @Value("${anshar.outbound.circuitbreaker.backoff.max.seconds:60}")
+    private int circuitBreakerMaxBackoffSeconds;
+
+    @Value("${anshar.outbound.probe.timeout.millis:3000}")
+    private int probeTimeoutMillis;
+
     private Map<String, ExecutorService> threadFactoryMap = new ConcurrentHashMap<>();
+
+    private final Map<String, OutboundCircuitBreaker> circuitBreakers = new ConcurrentHashMap<>();
 
     private ScheduledExecutorService executorCleanupScheduler;
 
     private volatile boolean shuttingDown = false;
 
+    private static final long CONNECT_TIMEOUT_MILLIS = 2000;
+
     private static final HttpClient httpClient = HttpClient.newBuilder()
             .version(HttpClient.Version.HTTP_1_1)
-            .connectTimeout(Duration.ofSeconds(2))
+            .connectTimeout(Duration.ofMillis(CONNECT_TIMEOUT_MILLIS))
             .build();
 
 
@@ -159,6 +178,9 @@ public class CamelRouteManager {
         final String subscriptionId = subscriptionRequest.getSubscriptionId();
 
         final Runnable pushTask = () -> {
+            OutboundCircuitBreaker circuitBreaker = null;
+            // Set while posting - the result must be recorded in the circuit breaker
+            OutboundCircuitBreaker.Permit permit = null;
 
             try {
                 MDC.put("camel.breadcrumbId", breadcrumbId);
@@ -179,6 +201,16 @@ public class CamelRouteManager {
 
                 List<Siri> splitSiri = siriHelper.splitDeliveries(filteredPayload, deliverySize);
 
+                circuitBreaker = getCircuitBreaker(subscriptionRequest);
+                if (circuitBreaker.isNewerThan(subscriptionRequest)) {
+                    if (requireActiveSubscription) {
+                        // Queued for a previous version of the subscription - the new version has received its own initial delivery
+                        return;
+                    }
+                    // E.g. TerminateSubscriptionResponse - posted without affecting the circuit breaker of the new version
+                    circuitBreaker = new OutboundCircuitBreaker(null, Integer.MAX_VALUE, 0, 0, 0);
+                }
+
                 if (splitSiri.size() > 1) {
                     logger.info("Object split into {} deliveries for subscription {}.", splitSiri.size(), subscriptionRequest);
                 }
@@ -186,6 +218,12 @@ public class CamelRouteManager {
                 for (Siri siri : splitSiri) {
                     if (!serviceDeliveryContainsData(siri)) {
                         // Nothing to send - not counted as a post to the subscription
+                        continue;
+                    }
+                    permit = circuitBreaker.allowRequest(System.currentTimeMillis());
+                    if (!permit.isAllowed()) {
+                        // Recipient keeps failing - skipped until the next probe
+                        permit = null;
                         continue;
                     }
                     addSubscriptionRefToServiceDelivery(siri, subscriptionId);
@@ -199,9 +237,14 @@ public class CamelRouteManager {
                     if (responseCode > 299) {
                         logger.info("Failed to push data for subscription {}: {}", subscriptionRequest, responseCode);
                         subscriptionManager.pushFailedForSubscription(subscriptionId);
-                    } else {
-                        subscriptionManager.clearFailTracker(subscriptionId);
                     }
+                    if (responseCode >= 500) {
+                        recordFailure(circuitBreaker, permit, subscriptionId);
+                    } else {
+                        // Recipient is responding - also when it rejects the delivery with 4xx
+                        recordSuccess(circuitBreaker, subscriptionRequest);
+                    }
+                    permit = null;
                 }
             } catch (Exception e) {
                 if (shuttingDown) {
@@ -224,6 +267,11 @@ public class CamelRouteManager {
                     logger.info("Exception caught when pushing SIRI-data: {}", msg);
                 }
                 subscriptionManager.pushFailedForSubscription(subscriptionId);
+                if (permit != null) {
+                    // Only failed posts count - not errors before posting
+                    recordFailure(circuitBreaker, permit, subscriptionId);
+                    permit = null;
+                }
 
                 metricsService.markPostToSubscription(subscriptionRequest.getSubscriptionType(),
                         SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
@@ -231,6 +279,10 @@ public class CamelRouteManager {
                         statusCode);
 
             } finally {
+                if (permit != null) {
+                    // Not handled above, e.g. an Error was thrown - must be recorded to not block the next probe
+                    recordFailure(circuitBreaker, permit, subscriptionId);
+                }
                 MDC.remove("camel.breadcrumbId");
                 MDC.remove("subscriptionId");
             }
@@ -256,6 +308,97 @@ public class CamelRouteManager {
                 }
             }
         }
+    }
+
+    /**
+     * Returns the circuit breaker for the subscription - a new one is created if the subscription has been re-created.
+     * Deliveries still queued for a previous version of the subscription get the current circuit breaker, and must check
+     * {@link OutboundCircuitBreaker#isNewerThan}.
+     */
+    private OutboundCircuitBreaker getCircuitBreaker(OutboundSubscriptionSetup subscriptionRequest) {
+        return circuitBreakers.compute(subscriptionRequest.getSubscriptionId(), (subscriptionId, existing) ->
+                existing != null && !existing.isReplacedBy(subscriptionRequest) ?
+                        existing :
+                        new OutboundCircuitBreaker(subscriptionRequest.getRequestTimestamp(),
+                                circuitBreakerFailureThreshold,
+                                circuitBreakerInitialBackoffSeconds * 1000L,
+                                circuitBreakerMaxBackoffSeconds * 1000L,
+                                // A post may be retried once, each with connect- and request-timeout
+                                2L * (CONNECT_TIMEOUT_MILLIS + requestTimeoutMillis) + 5000)
+        );
+    }
+
+    private void recordFailure(OutboundCircuitBreaker circuitBreaker, OutboundCircuitBreaker.Permit permit, String subscriptionId) {
+        if (circuitBreaker.recordFailure(System.currentTimeMillis(), permit)) {
+            logger.warn("Subscription {} has failed {} consecutive times - pausing deliveries for {}s",
+                    subscriptionId, circuitBreaker.getConsecutiveFailures(), circuitBreaker.getBackoffMillis() / 1000);
+        }
+    }
+
+    private void recordSuccess(OutboundCircuitBreaker circuitBreaker, OutboundSubscriptionSetup subscriptionRequest) {
+        long skippedDeliveries = circuitBreaker.recordSuccess();
+        if (skippedDeliveries >= 0) {
+            logger.info("Subscription {} is responding again - resuming deliveries, {} were skipped",
+                    subscriptionRequest.getSubscriptionId(), skippedDeliveries);
+            resendInitialDelivery(subscriptionRequest);
+        }
+    }
+
+    /**
+     * Deliveries contain changes only, so the recipient is outdated after skipped (or failed) deliveries - resend all current data
+     */
+    private void resendInitialDelivery(OutboundSubscriptionSetup subscriptionRequest) {
+        if (!subscriptionManager.subscriptions.containsKey(subscriptionRequest.getSubscriptionId())) {
+            return;
+        }
+        Siri delivery = siriHelper.findInitialDeliveryData(subscriptionRequest);
+        if (delivery != null) {
+            logger.info("Resending initial delivery to {}", subscriptionRequest.getAddress());
+            pushSiriData(delivery, subscriptionRequest, false);
+        }
+    }
+
+    /**
+     * Checks that the consumer address can be reached, i.e. that connection and TLS-handshake succeeds. Any HTTP response is accepted.
+     * Uses the same HttpClient as the actual deliveries to get the same proxy- and TLS-settings.
+     *
+     * @return null if the address is reachable, otherwise a description of the error
+     */
+    String probeConsumerAddress(String address) {
+        try {
+            HttpRequest head = HttpRequest.newBuilder()
+                    .uri(URI.create(address))
+                    .method("HEAD", HttpRequest.BodyPublishers.noBody())
+                    .timeout(Duration.ofMillis(probeTimeoutMillis))
+                    .build();
+            httpClient.send(head, HttpResponse.BodyHandlers.discarding());
+            return null;
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return e.toString();
+        } catch (Exception e) {
+            Throwable rootCause = e;
+            while (rootCause.getCause() != null && rootCause.getCause() != rootCause) {
+                rootCause = rootCause.getCause();
+            }
+            return rootCause.toString();
+        }
+    }
+
+    /**
+     * Errors that will not go away by retrying immediately - i.e. an invalid certificate.
+     * Other handshake-errors, like "Remote host terminated the handshake", may be transient.
+     */
+    static boolean isNonTransientError(Throwable e) {
+        for (Throwable t = e; t != null; t = t.getCause()) {
+            if (t instanceof CertificateException || t instanceof CertPathValidatorException || t instanceof SSLPeerUnverifiedException) {
+                return true;
+            }
+            if (t.getCause() == t) {
+                break;
+            }
+        }
+        return false;
     }
 
     private static void addSubscriptionRefToServiceDelivery(Siri siri, String subscriptionId) {
@@ -330,7 +473,7 @@ public class CamelRouteManager {
      * @param subscriptionManager
      */
     private void removeDeadSubscriptionExecutors(ServerSubscriptionManager subscriptionManager) {
-        if (threadFactoryMap.isEmpty()) {
+        if (threadFactoryMap.isEmpty() && circuitBreakers.isEmpty()) {
             return;
         }
         Set<String> activeSubscriptionIds = subscriptionManager.subscriptions.keySet();
@@ -344,6 +487,7 @@ public class CamelRouteManager {
                 }
             }
         }
+        circuitBreakers.keySet().removeIf(id -> !activeSubscriptionIds.contains(id));
     }
 
     private int postDataToSubscription(Siri payload, OutboundSubscriptionSetup subscription, boolean logBody) {
@@ -394,6 +538,10 @@ public class CamelRouteManager {
         try {
             responseCode = httpClient.send(post, HttpResponse.BodyHandlers.discarding()).statusCode();
         } catch (Exception e) {
+            if (isNonTransientError(e)) {
+                // Retrying immediately will fail the same way
+                throw new RuntimeException(e);
+            }
             logger.info("Failed to post {} to subscription {} - retrying, {}", siriContentType, subscription, e.toString());
             // Retry once
             try {
