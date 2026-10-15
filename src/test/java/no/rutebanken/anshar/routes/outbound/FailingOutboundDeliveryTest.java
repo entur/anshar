@@ -40,11 +40,13 @@ import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.net.http.HttpConnectTimeoutException;
+import java.nio.channels.ClosedChannelException;
 import java.nio.charset.StandardCharsets;
 import java.security.cert.CertificateException;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -148,11 +150,14 @@ public class FailingOutboundDeliveryTest extends SpringBootBaseTest {
             for (int i = 0; i < failureThreshold; i++) {
                 camelRouteManager.pushSiriData(sxDelivery("update"), subscription, false);
             }
+            // The recipient may have received all requests before the failures are recorded - wait for the circuit to open
+            OutboundCircuitBreaker circuitBreaker = circuitBreaker(subscription);
             long deadline = System.currentTimeMillis() + 10000;
-            while (received.get() < failureThreshold && System.currentTimeMillis() < deadline) {
+            while (circuitBreaker.getConsecutiveFailures() < failureThreshold && System.currentTimeMillis() < deadline) {
                 Thread.sleep(10);
             }
             assertEquals(failureThreshold, received.get());
+            assertEquals(failureThreshold, circuitBreaker.getConsecutiveFailures());
 
             // Skipped while circuit is open
             camelRouteManager.pushSiriData(sxDelivery("skipped"), subscription, false);
@@ -192,6 +197,18 @@ public class FailingOutboundDeliveryTest extends SpringBootBaseTest {
         String error = camelRouteManager.probeConsumerAddress("http://localhost:1/siri");
         assertNotNull(error);
         assertTrue(error.contains("ConnectException"), error);
+    }
+
+    @Test
+    public void testProbeErrorDescribesWholeCauseChain() {
+        // On Linux the HttpClient reports a refused connection as a ConnectException caused by a ClosedChannelException
+        ConnectException refused = new ConnectException();
+        refused.initCause(new ClosedChannelException());
+
+        String error = CamelRouteManager.describeError(new IOException(refused));
+
+        assertTrue(error.contains("ConnectException"), error);
+        assertTrue(error.contains("ClosedChannelException"), error);
     }
 
     @Test
@@ -235,6 +252,22 @@ public class FailingOutboundDeliveryTest extends SpringBootBaseTest {
         // Registered to avoid the cleanup-job removing the circuit breaker during the test
         serverSubscriptionManager.subscriptions.put(id, subscription);
         return subscription;
+    }
+
+    /**
+     * Waits for the circuit breaker of the subscription - it is created when the first delivery is posted
+     */
+    @SuppressWarnings("unchecked")
+    private OutboundCircuitBreaker circuitBreaker(OutboundSubscriptionSetup subscription) throws InterruptedException {
+        Map<String, OutboundCircuitBreaker> circuitBreakers =
+                (Map<String, OutboundCircuitBreaker>) ReflectionTestUtils.getField(camelRouteManager, "circuitBreakers");
+        long deadline = System.currentTimeMillis() + 10000;
+        while (!circuitBreakers.containsKey(subscription.getSubscriptionId()) && System.currentTimeMillis() < deadline) {
+            Thread.sleep(10);
+        }
+        OutboundCircuitBreaker circuitBreaker = circuitBreakers.get(subscription.getSubscriptionId());
+        assertNotNull(circuitBreaker, "Circuit breaker created");
+        return circuitBreaker;
     }
 
     private static void waitUntilNoMoreRequests(AtomicInteger received) throws InterruptedException {
