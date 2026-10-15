@@ -54,6 +54,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -377,12 +378,26 @@ public class CamelRouteManager {
             Thread.currentThread().interrupt();
             return e.toString();
         } catch (Exception e) {
-            Throwable rootCause = e;
-            while (rootCause.getCause() != null && rootCause.getCause() != rootCause) {
-                rootCause = rootCause.getCause();
-            }
-            return rootCause.toString();
+            return describeError(e);
         }
+    }
+
+    /**
+     * Describes the whole cause chain - the root cause alone may not say what failed,
+     * i.e. a refused connection on Linux is a ConnectException caused by a ClosedChannelException
+     */
+    static String describeError(Throwable e) {
+        StringJoiner description = new StringJoiner(" <- ");
+        for (Throwable t = e; t != null; t = t.getCause()) {
+            // Wrappers created from their cause only repeat it
+            if (t.getCause() == null || t.getMessage() == null || !t.getMessage().equals(t.getCause().toString())) {
+                description.add(t.toString());
+            }
+            if (t.getCause() == t) {
+                break;
+            }
+        }
+        return description.toString();
     }
 
     /**
