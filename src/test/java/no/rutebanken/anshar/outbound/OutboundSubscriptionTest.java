@@ -43,6 +43,10 @@ public class OutboundSubscriptionTest extends SpringBootBaseTest {
     @Qualifier("getFailTrackerMap")
     private IMap<String, Instant> failTrackerMap;
 
+    @Autowired
+    @Qualifier("getAddressFailTrackerMap")
+    private IMap<String, Instant> addressFailTrackerMap;
+
 
     @Value("${anshar.outbound.heartbeatinterval.minimum}")
     private long minimumHeartbeatInterval = 10000;
@@ -225,6 +229,65 @@ public class OutboundSubscriptionTest extends SpringBootBaseTest {
         } finally {
             consumer.stop(0);
             failTrackerMap.delete(subscriptionId);
+        }
+    }
+
+    @Test
+    public void testNewSubscriptionToFailingConsumerAddressIsRejected() throws Exception {
+        final String failingSubscriptionId = "failing-address-test-1";
+        final String newSubscriptionId = "failing-address-test-2";
+
+        // Nothing listens on port 1
+        final int unreachablePort = 1;
+
+        try {
+            Siri response = serverSubscriptionManager.handleSubscriptionRequest(SiriXml.parseXml(sxSubscriptionRequest(failingSubscriptionId, unreachablePort)),
+                    null, OutboundIdMappingPolicy.DEFAULT, null);
+            assertTrue(response.getSubscriptionResponse().getResponseStatuses().get(0).isStatus());
+
+            // Deliveries have failed for longer than the grace period - subscription is cancelled
+            failTrackerMap.set(failingSubscriptionId, Instant.now().minus(2, ChronoUnit.HOURS));
+            serverSubscriptionManager.pushFailedForSubscription(failingSubscriptionId);
+            assertFalse(isActive(failingSubscriptionId));
+
+            // The client subscribes again with a new id, but the same unreachable ConsumerAddress - rejected
+            response = serverSubscriptionManager.handleSubscriptionRequest(SiriXml.parseXml(sxSubscriptionRequest(newSubscriptionId, unreachablePort)),
+                    null, OutboundIdMappingPolicy.DEFAULT, null);
+            assertFalse(response.getSubscriptionResponse().getResponseStatuses().get(0).isStatus());
+            assertTrue(SiriXml.toXml(response).contains("ConsumerAddress is unreachable"));
+            assertFalse(isActive(newSubscriptionId));
+        } finally {
+            serverSubscriptionManager.terminateSubscription(failingSubscriptionId, false);
+            serverSubscriptionManager.terminateSubscription(newSubscriptionId, false);
+            failTrackerMap.delete(failingSubscriptionId);
+            addressFailTrackerMap.delete("http://localhost:" + unreachablePort + "/siri");
+        }
+    }
+
+    @Test
+    public void testSuccessfulDeliveryClearsFailuresForConsumerAddress() throws Exception {
+        final String subscriptionId = "recovered-address-test-1";
+        final String newSubscriptionId = "recovered-address-test-2";
+        final int unreachablePort = 1;
+
+        try {
+            serverSubscriptionManager.handleSubscriptionRequest(SiriXml.parseXml(sxSubscriptionRequest(subscriptionId, unreachablePort)),
+                    null, OutboundIdMappingPolicy.DEFAULT, null);
+            serverSubscriptionManager.pushFailedForSubscription(subscriptionId);
+
+            // A delivery succeeds
+            serverSubscriptionManager.clearFailTracker(subscriptionId);
+
+            // No failures are remembered for the ConsumerAddress, so it is not probed - accepted
+            Siri response = serverSubscriptionManager.handleSubscriptionRequest(SiriXml.parseXml(sxSubscriptionRequest(newSubscriptionId, unreachablePort)),
+                    null, OutboundIdMappingPolicy.DEFAULT, null);
+            assertTrue(response.getSubscriptionResponse().getResponseStatuses().get(0).isStatus());
+        } finally {
+            serverSubscriptionManager.terminateSubscription(subscriptionId, false);
+            serverSubscriptionManager.terminateSubscription(newSubscriptionId, false);
+            failTrackerMap.delete(subscriptionId);
+            failTrackerMap.delete(newSubscriptionId);
+            addressFailTrackerMap.delete("http://localhost:" + unreachablePort + "/siri");
         }
     }
 

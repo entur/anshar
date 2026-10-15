@@ -77,6 +77,11 @@ public class ServerSubscriptionManager {
     @Qualifier("getFailTrackerMap")
     private IMap<String, Instant> failTrackerMap;
 
+    // Failures per ConsumerAddress - catches clients that resubscribe with a new subscriptionId each time
+    @Autowired
+    @Qualifier("getAddressFailTrackerMap")
+    private IMap<String, Instant> addressFailTrackerMap;
+
     @Autowired
     @Qualifier("getHeartbeatTimestampMap")
     private IMap<String, Instant> heartbeatTimestampMap;
@@ -189,17 +194,25 @@ public class ServerSubscriptionManager {
             }
         }
 
-        final Instant firstFail = failTrackerMap.get(subscription.getSubscriptionId());
-        if (!hasError && firstFail != null) {
-            // Pushing to this subscription has recently failed - only accept if the recipient is reachable now.
-            // The fail-tracker is kept until a delivery succeeds, so that the subscription is cancelled on the next failure.
-            String probeError = camelRouteManager.probeConsumerAddress(subscription.getAddress());
-            if (probeError != null) {
-                logger.info("Rejecting subscription {} - previous deliveries failed, and ConsumerAddress is still unreachable: {}", subscription, probeError);
-                hasError = true;
-                errorText = "ConsumerAddress is unreachable: " + probeError;
-                // Keep remembering the failures as long as the recipient keeps trying
-                failTrackerMap.set(subscription.getSubscriptionId(), firstFail, failTrackerTtlMinutes, TimeUnit.MINUTES);
+        if (!hasError) {
+            final Instant firstFail = failTrackerMap.get(subscription.getSubscriptionId());
+            final Instant addressFirstFail = addressFailTrackerMap.get(subscription.getAddress());
+            if (firstFail != null || addressFirstFail != null) {
+                // Pushing to this subscription, or to its ConsumerAddress, has recently failed - only accept if the recipient is reachable now.
+                // The fail-tracker is kept until a delivery succeeds, so that the subscription is cancelled on the next failure.
+                String probeError = camelRouteManager.probeConsumerAddress(subscription.getAddress());
+                if (probeError != null) {
+                    logger.info("Rejecting subscription {} - previous deliveries failed, and ConsumerAddress is still unreachable: {}", subscription, probeError);
+                    hasError = true;
+                    errorText = "ConsumerAddress is unreachable: " + probeError;
+                    // Keep remembering the failures as long as the recipient keeps trying
+                    if (firstFail != null) {
+                        failTrackerMap.set(subscription.getSubscriptionId(), firstFail, failTrackerTtlMinutes, TimeUnit.MINUTES);
+                    }
+                    if (addressFirstFail != null) {
+                        addressFailTrackerMap.set(subscription.getAddress(), addressFirstFail, failTrackerTtlMinutes, TimeUnit.MINUTES);
+                    }
+                }
             }
         }
 
@@ -660,6 +673,10 @@ public class ServerSubscriptionManager {
 
             Instant firstFail = failTrackerMap.getOrDefault(subscriptionId, Instant.now());
 
+            // Remembered after the subscription is cancelled, so new subscriptions to the same address are probed first
+            final String address = outboundSubscriptionSetup.getAddress();
+            addressFailTrackerMap.set(address, addressFailTrackerMap.getOrDefault(address, firstFail), failTrackerTtlMinutes, TimeUnit.MINUTES);
+
             long terminationTime = firstFail.until(Instant.now(), MILLIS);
             if (terminationTime > gracePeriod) {
                 logger.info("Cancelling outbound subscription {} that has failed for {}s.", subscriptionId, terminationTime/1000);
@@ -675,6 +692,11 @@ public class ServerSubscriptionManager {
         if (failTrackerMap.containsKey(subscriptionId)) {
             logger.info("Subscription {} is now responding - clearing failtracker", subscriptionId);
             failTrackerMap.delete(subscriptionId);
+            // The address is only tracked together with a failing subscription - cleared when that subscription recovers
+            OutboundSubscriptionSetup subscription = subscriptions.get(subscriptionId);
+            if (subscription != null) {
+                addressFailTrackerMap.delete(subscription.getAddress());
+            }
         }
     }
 }

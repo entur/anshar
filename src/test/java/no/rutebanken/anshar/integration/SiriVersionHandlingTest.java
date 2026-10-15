@@ -15,6 +15,7 @@
 
 package no.rutebanken.anshar.integration;
 
+import com.hazelcast.map.IMap;
 import jakarta.xml.bind.JAXBException;
 import no.rutebanken.anshar.routes.outbound.ServerSubscriptionManager;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
@@ -23,9 +24,11 @@ import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.entur.siri21.util.SiriXml;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import uk.org.siri.siri21.Siri;
 
 import javax.xml.stream.XMLStreamException;
+import java.time.Instant;
 
 import static io.restassured.RestAssured.given;
 import static no.rutebanken.anshar.routes.RestRouteBuilder.downgradeSiriVersion;
@@ -39,12 +42,17 @@ public class SiriVersionHandlingTest extends BaseHttpTest {
     private
     ServerSubscriptionManager subscriptionManager;
 
+    @Autowired
+    @Qualifier("getAddressFailTrackerMap")
+    private IMap<String, Instant> addressFailTrackerMap;
+
     @Test
     public void testCreateSubscription() throws JAXBException, XMLStreamException {
         SubscriptionSetup subscriptionSetup = getSubscriptionSetup(SiriDataType.ESTIMATED_TIMETABLE);
 
         // ConsumerAddress is not reachable in this test - forget failed deliveries (also from other tests) to allow subscribing to it
         subscriptionManager.clearFailTracker(subscriptionSetup.getSubscriptionId());
+        addressFailTrackerMap.clear();
 
         Siri subscriptionRequest = SiriObjectFactory.createSubscriptionRequest(subscriptionSetup);
 
@@ -77,6 +85,7 @@ public class SiriVersionHandlingTest extends BaseHttpTest {
 
         // Initial delivery to the unreachable ConsumerAddress may have failed
         subscriptionManager.clearFailTracker(subscriptionSetup.getSubscriptionId());
+        addressFailTrackerMap.clear();
 
         //Create 2.1 Subscription
         given()
