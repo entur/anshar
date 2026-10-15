@@ -212,6 +212,10 @@ public class ServerSubscriptionManager {
                     if (addressFirstFail != null) {
                         addressFailTrackerMap.set(subscription.getAddress(), addressFirstFail, failTrackerTtlMinutes, TimeUnit.MINUTES);
                     }
+                } else if (firstFail == null) {
+                    // New subscriptionId to a recently failing address - inherit the failures, so that the first successful
+                    // delivery clears the address (see clearFailTracker), and the next failure cancels the subscription
+                    failTrackerMap.set(subscription.getSubscriptionId(), addressFirstFail, failTrackerTtlMinutes, TimeUnit.MINUTES);
                 }
             }
         }

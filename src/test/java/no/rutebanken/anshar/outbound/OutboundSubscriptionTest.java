@@ -291,6 +291,41 @@ public class OutboundSubscriptionTest extends SpringBootBaseTest {
         }
     }
 
+    @Test
+    public void testRecoveryUnderNewSubscriptionIdClearsFailuresForConsumerAddress() throws Exception {
+        final String subscriptionId = "recovered-address-new-id-test";
+
+        HttpServer consumer = HttpServer.create(new InetSocketAddress("localhost", 0), 0);
+        final int port = consumer.getAddress().getPort();
+        consumer.createContext("/", exchange -> {
+            exchange.getRequestBody().readAllBytes();
+            exchange.sendResponseHeaders(200, -1);
+            exchange.close();
+        });
+        consumer.start();
+
+        final String address = "http://localhost:" + port + "/siri";
+        // An earlier subscription to this address failed, and has been cancelled
+        addressFailTrackerMap.set(address, Instant.now().minus(10, ChronoUnit.MINUTES));
+
+        try {
+            // Address is reachable again - accepted
+            Siri response = serverSubscriptionManager.handleSubscriptionRequest(SiriXml.parseXml(sxSubscriptionRequest(subscriptionId, port)),
+                    null, OutboundIdMappingPolicy.DEFAULT, null);
+            assertTrue(response.getSubscriptionResponse().getResponseStatuses().get(0).isStatus());
+
+            // A delivery to the new subscription succeeds
+            serverSubscriptionManager.clearFailTracker(subscriptionId);
+
+            assertFalse(addressFailTrackerMap.containsKey(address));
+        } finally {
+            consumer.stop(0);
+            serverSubscriptionManager.terminateSubscription(subscriptionId, false);
+            failTrackerMap.delete(subscriptionId);
+            addressFailTrackerMap.delete(address);
+        }
+    }
+
     private boolean isActive(String subscriptionId) {
         return serverSubscriptionManager.getSubscriptions().stream()
                 .anyMatch(s -> subscriptionId.equals(((OutboundSubscriptionSetup) s).getSubscriptionId()));
