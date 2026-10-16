@@ -20,15 +20,19 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.util.ReflectionTestUtils;
 import uk.org.siri.siri21.CourseOfJourneyRefStructure;
 import uk.org.siri.siri21.DataFrameRefStructure;
+import uk.org.siri.siri21.Extensions;
 import uk.org.siri.siri21.FramedVehicleJourneyRefStructure;
 import uk.org.siri.siri21.LocationStructure;
+import uk.org.siri.siri21.MonitoredCallStructure;
 import uk.org.siri.siri21.ProgressBetweenStopsStructure;
 import uk.org.siri.siri21.Siri;
 import uk.org.siri.siri21.VehicleActivityStructure;
 import uk.org.siri.siri21.VehicleRef;
 
+import javax.xml.parsers.DocumentBuilderFactory;
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
@@ -39,6 +43,7 @@ import static no.rutebanken.anshar.helpers.SleepUtil.sleep;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class VehicleActivitiesTest extends SpringBootBaseTest {
@@ -80,6 +85,37 @@ public class VehicleActivitiesTest extends SpringBootBaseTest {
 
         vehicleActivities.add("test", element);
         assertEquals(previousSize, vehicleActivities.getAll().size(), "Null-element added");
+    }
+
+    @Test
+    public void testExtensionsAreRemovedFromAllLevels() throws Exception {
+        String vehicleReference = UUID.randomUUID().toString();
+        VehicleActivityStructure element = createVehicleActivityStructure(ZonedDateTime.now().plusMinutes(1), vehicleReference);
+        element.setExtensions(createExtensions());
+        MonitoredCallStructure monitoredCall = new MonitoredCallStructure();
+        monitoredCall.setExtensions(createExtensions());
+        element.getMonitoredVehicleJourney().setMonitoredCall(monitoredCall);
+
+        ReflectionTestUtils.setField(vehicleActivities, "REMOVE_EXTENSIONS", true);
+        try {
+            vehicleActivities.add("test", element);
+        } finally {
+            ReflectionTestUtils.setField(vehicleActivities, "REMOVE_EXTENSIONS", false);
+        }
+
+        VehicleActivityStructure stored = vehicleActivities.getAll().stream()
+                .filter(activity -> vehicleReference.equals(activity.getMonitoredVehicleJourney().getVehicleRef().getValue()))
+                .findFirst()
+                .orElseThrow();
+        assertNull(stored.getExtensions());
+        assertNull(stored.getMonitoredVehicleJourney().getMonitoredCall().getExtensions());
+    }
+
+    private static Extensions createExtensions() throws Exception {
+        Extensions extensions = new Extensions();
+        extensions.getAnies().add(DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument()
+                .createElementNS("http://example.com/extension", "Extension"));
+        return extensions;
     }
 
     @Test
