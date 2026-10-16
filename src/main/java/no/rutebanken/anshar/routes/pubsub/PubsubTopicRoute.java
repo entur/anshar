@@ -72,7 +72,7 @@ public class PubsubTopicRoute extends RouteBuilder {
             from("direct:send.to.pubsub.topic.vehicle_monitoring")
                     .to("direct:siri.transform.data")
                     .choice().when(body().isNotNull())
-                        .process(p -> {
+                        .process(StackOverflowGuard.guard(p -> {
                             try {
                                 p.getMessage().setBody(SiriXml.toXml(p.getIn().getBody(Siri.class)));
                             } catch (NullPointerException e) {
@@ -84,7 +84,7 @@ public class PubsubTopicRoute extends RouteBuilder {
                                     log.error("Caught NullPointerException twice - giving up.", e2);
                                 }
                             }
-                        })
+                        }))
                         .to("xslt-saxon:xsl/split.xsl")
                         .split().tokenizeXML("Siri").streaming()
                         .to("direct:publish.vm.avro")// Publish as Avro
