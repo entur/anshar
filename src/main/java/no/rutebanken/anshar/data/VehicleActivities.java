@@ -20,6 +20,7 @@ import jakarta.annotation.PostConstruct;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.data.util.TimingTracer;
 import no.rutebanken.anshar.metrics.SiriContent;
+import no.rutebanken.anshar.routes.siri.helpers.ExtensionsRemover;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import org.slf4j.Logger;
@@ -333,8 +334,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
                     SiriObjectStorageKey key = createKey(datasetId, activity.getMonitoredVehicleJourney());
                     timingTracer.mark("createKey");
 
-                    if (REMOVE_EXTENSIONS && activity.getExtensions() != null) {
-                        activity.setExtensions(null);
+                    if (REMOVE_EXTENSIONS && ExtensionsRemover.removeExtensions(activity)) {
                         metrics.registerSiriContent(SiriDataType.VEHICLE_MONITORING, datasetId, null, SiriContent.EXTENSION_REMOVED);
                         timingTracer.mark("remove.extensions");
                     }
