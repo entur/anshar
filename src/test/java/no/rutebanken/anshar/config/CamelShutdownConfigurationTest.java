@@ -46,6 +46,17 @@ public class CamelShutdownConfigurationTest {
         assertTrue(camel.getMain().isShutdownLogInflightExchangesOnTimeout());
     }
 
+    /**
+     * Without browsing, only counts per route are tracked - and neither the shutdown log nor CamelInflightMonitor can
+     * tell where the exchanges are stuck.
+     */
+    @Test
+    public void inflightExchangesCanBeBrowsed() throws IOException {
+        CamelConfigurationProperties camel = bindCamelProperties(Path.of("src/main/resources/application.properties"));
+
+        assertTrue(camel.getMain().isInflightRepositoryBrowseEnabled());
+    }
+
     // The test classpath has its own application.properties, so the main one is read from file
     private static CamelConfigurationProperties bindCamelProperties(Path applicationProperties) throws IOException {
         Properties properties = new Properties();
