@@ -60,7 +60,9 @@ public class PrometheusAvroConverter {
      * @return
      */
     private static String createMetricRecord(ZonedDateTime recordedAtTime, String line, String hostname) {
-        String name = line.substring(0, line.indexOf("{"));
+        // Metrics without labels have no {}
+        boolean hasLabels = line.contains("{");
+        String name = hasLabels ? line.substring(0, line.indexOf("{")) : line.substring(0, line.indexOf(" "));
         if (metricsToIgnore.contains(name)) {
             return null;
         }
@@ -68,10 +70,10 @@ public class PrometheusAvroConverter {
         MetricRecord metricRecord = new MetricRecord();
         metricRecord.setRecordedAtTime(recordedAtTime.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
         metricRecord.setHostname(hostname);
-        String labelString = line.substring(line.indexOf("{")+1, line.indexOf("}"));
+        String labelString = hasLabels ? line.substring(line.indexOf("{")+1, line.indexOf("}")) : "";
 
         List<LabelRecord> labels = new ArrayList<>();
-        String[] keyValues = labelString.split(",");
+        String[] keyValues = labelString.isEmpty() ? new String[0] : labelString.split(",");
         for (String keyValue : keyValues) {
             String[] split = keyValue.split("=");
             if (split.length == 2) {
@@ -89,7 +91,7 @@ public class PrometheusAvroConverter {
 
         metricRecord.setLabels(labels);
 
-        String valueString = line.substring(line.indexOf("}")+1).trim();
+        String valueString = line.substring(hasLabels ? line.indexOf("}") + 1 : name.length()).trim();
         metricRecord.setName(name);
         metricRecord.setValue(Double.parseDouble(valueString));
         return metricRecord.toString();
