@@ -21,7 +21,7 @@
   <parent>
       <groupId>org.entur.ror</groupId>
       <artifactId>superpom</artifactId>
-      <version>7.0.0</version>
+      <version>7.1.0</version>
   </parent>
 
 
@@ -36,19 +36,19 @@
 
         <!-- versions for use in mvn plugins as we cannot inherit them from a BOM -->
         <docker.maven.plugin.version>0.21.0</docker.maven.plugin.version>
-        <spring-boot-plugin.version>4.1.0</spring-boot-plugin.version>
-        <spring-boot.version>4.1.0</spring-boot.version>
+        <spring-boot-plugin.version>4.1.1</spring-boot-plugin.version>
+        <spring-boot.version>4.1.1</spring-boot.version>
 
-        <camel.version>4.20.0</camel.version>
+        <camel.version>4.23.0</camel.version>
 
 <!--        <metrics.version>3.2.3</metrics.version>-->
         <entur.helpers.version>6.3.0</entur.helpers.version>
         <geotools.version>35.0</geotools.version>
-        <avro.version>1.12.1</avro.version>
+        <avro.version>1.12.2</avro.version>
 
         <log4j2.version>2.20.0</log4j2.version>
-        <confluent-kafka.version>7.9.5</confluent-kafka.version>
-        <rest-assured.version>6.0.0</rest-assured.version>
+        <confluent-kafka.version>7.9.10</confluent-kafka.version>
+        <rest-assured.version>6.1.0</rest-assured.version>
     </properties>
 
     <distributionManagement>
@@ -225,7 +225,7 @@
         <dependency>
             <groupId>com.fasterxml.jackson.dataformat</groupId>
             <artifactId>jackson-dataformat-xml</artifactId>
-            <version>2.22.0</version>
+            <version>2.22.3</version>
         </dependency>
 
         <dependency>
@@ -268,7 +268,7 @@
         <dependency>
             <groupId>org.entur</groupId>
             <artifactId>siri-java-model</artifactId>
-            <version>2.0.6</version>
+            <version>2.0.9</version>
         </dependency>
 
         <dependency>
@@ -279,7 +279,7 @@
         <dependency>
             <groupId>org.entur</groupId>
             <artifactId>netex-parser-java</artifactId>
-            <version>4.0.0</version>
+            <version>4.0.19</version>
         </dependency>
 
         <!-- Geotools needed for calculating speed between stops-->
@@ -298,7 +298,7 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-            <version>3.20.0</version>
+            <version>3.21.0</version>
         </dependency>
 
         <dependency>
@@ -340,7 +340,7 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>33.6.0-jre</version>
+            <version>33.7.2-jre</version>
         </dependency>
 
         <!-- testing -->
@@ -398,12 +398,12 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.15.0</version>
+                <version>3.16.0</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.5.6</version>
+                <version>3.6.0</version>
                 <inherited>true</inherited>
                 <configuration>
                     <excludes>
@@ -429,7 +429,7 @@
             <plugin>
                 <groupId>com.google.cloud.tools</groupId>
                 <artifactId>jib-maven-plugin</artifactId>
-                <version>3.5.1</version>
+                <version>3.5.2</version>
                 <configuration>
                     <from>
                         <image>eclipse-temurin:25-jdk-jammy</image>
