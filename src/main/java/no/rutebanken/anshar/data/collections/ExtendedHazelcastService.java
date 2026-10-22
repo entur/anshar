@@ -277,6 +277,11 @@ public class ExtendedHazelcastService extends HazelCastService {
     }
 
     @Bean
+    public IMap<String, Instant> getAddressFailTrackerMap() {
+        return hazelcast.getMap("anshar.activity.failtracker.address");
+    }
+
+    @Bean
     public IMap<String, Instant> getLockMap() {
         return hazelcast.getMap("anshar.locks");
     }
