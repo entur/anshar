@@ -43,9 +43,6 @@ public class SiriVersionHandlingTest extends BaseHttpTest {
     public void testCreateSubscription() throws JAXBException, XMLStreamException {
         SubscriptionSetup subscriptionSetup = getSubscriptionSetup(SiriDataType.ESTIMATED_TIMETABLE);
 
-        // ConsumerAddress is not reachable in this test - forget failed deliveries (also from other tests) to allow subscribing to it
-        subscriptionManager.clearFailTracker(subscriptionSetup.getSubscriptionId());
-
         Siri subscriptionRequest = SiriObjectFactory.createSubscriptionRequest(subscriptionSetup);
 
         //Create 2.0 Subscription

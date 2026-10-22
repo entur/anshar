@@ -18,9 +18,11 @@ package no.rutebanken.anshar.integration;
 import io.restassured.RestAssured;
 import io.restassured.filter.log.RequestLoggingFilter;
 import io.restassured.filter.log.ResponseLoggingFilter;
+import no.rutebanken.anshar.routes.outbound.ServerSubscriptionManager;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.junit.jupiter.api.BeforeEach;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
 public abstract class BaseHttpTest extends SpringBootBaseTest {
@@ -28,6 +30,9 @@ public abstract class BaseHttpTest extends SpringBootBaseTest {
     static final String TEST_SUBSCRIPTION_ID = "test.subscription.id";
     @Value("${anshar.incoming.port}")
     private int port;
+
+    @Autowired
+    private ServerSubscriptionManager serverSubscriptionManager;
 
     static final String dataSource = "TTT";
 
@@ -37,6 +42,9 @@ public abstract class BaseHttpTest extends SpringBootBaseTest {
         RestAssured.baseURI = "http://localhost";
         RestAssured.filters(new RequestLoggingFilter());
         RestAssured.filters(new ResponseLoggingFilter());
+
+        // ConsumerAddress of the test subscription is not reachable - forget failed deliveries (also from other tests) to allow subscribing to it
+        serverSubscriptionManager.clearFailTracker(TEST_SUBSCRIPTION_ID);
     }
 
     SubscriptionSetup getSubscriptionSetup(SiriDataType subscriptionType) {
