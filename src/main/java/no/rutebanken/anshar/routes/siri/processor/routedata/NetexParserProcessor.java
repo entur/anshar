@@ -18,41 +18,41 @@ package no.rutebanken.anshar.routes.siri.processor.routedata;
 import jakarta.xml.bind.JAXBElement;
 import org.entur.netex.NetexParser;
 import org.entur.netex.index.api.NetexEntitiesIndex;
-import org.rutebanken.netex.model.AllVehicleModesOfTransportEnumeration;
-import org.rutebanken.netex.model.Common_VersionFrameStructure;
-import org.rutebanken.netex.model.CompositeFrame;
-import org.rutebanken.netex.model.DatedServiceJourney;
-import org.rutebanken.netex.model.DayTypeAssignment;
-import org.rutebanken.netex.model.DayTypeRefStructure;
-import org.rutebanken.netex.model.JourneyPattern;
-import org.rutebanken.netex.model.JourneyPatternsInFrame_RelStructure;
-import org.rutebanken.netex.model.JourneyRefStructure;
-import org.rutebanken.netex.model.Journey_VersionStructure;
-import org.rutebanken.netex.model.JourneysInFrame_RelStructure;
-import org.rutebanken.netex.model.LocationStructure;
-import org.rutebanken.netex.model.OperatingDay;
-import org.rutebanken.netex.model.OperatingDayRefStructure;
-import org.rutebanken.netex.model.OperatingDaysInFrame_RelStructure;
-import org.rutebanken.netex.model.PassengerStopAssignment;
-import org.rutebanken.netex.model.PointInLinkSequence_VersionedChildStructure;
-import org.rutebanken.netex.model.Quay;
-import org.rutebanken.netex.model.ServiceAlterationEnumeration;
-import org.rutebanken.netex.model.ServiceCalendarFrame;
-import org.rutebanken.netex.model.ServiceFrame;
-import org.rutebanken.netex.model.ServiceJourney;
-import org.rutebanken.netex.model.SiteFrame;
-import org.rutebanken.netex.model.Site_VersionStructure;
-import org.rutebanken.netex.model.StopAssignment_VersionStructure;
-import org.rutebanken.netex.model.StopAssignmentsInFrame_RelStructure;
-import org.rutebanken.netex.model.StopPlace;
-import org.rutebanken.netex.model.StopPointInJourneyPattern;
-import org.rutebanken.netex.model.TimetableFrame;
-import org.rutebanken.netex.model.TimetabledPassingTime;
+import org.entur.netex2.model.AllPublicTransportModesEnumeration;
+import org.entur.netex2.model.Common_VersionFrameStructure;
+import org.entur.netex2.model.CompositeFrame;
+import org.entur.netex2.model.DatedServiceJourney;
+import org.entur.netex2.model.DayTypeAssignment;
+import org.entur.netex2.model.DayTypeRefStructure;
+import org.entur.netex2.model.JourneyPattern;
+import org.entur.netex2.model.JourneyPatternsInFrame_RelStructure;
+import org.entur.netex2.model.JourneyRefStructure;
+import org.entur.netex2.model.Journey_VersionStructure;
+import org.entur.netex2.model.JourneysInFrame_RelStructure;
+import org.entur.netex2.model.LinkSequence_VersionStructure;
+import org.entur.netex2.model.LocationStructure;
+import org.entur.netex2.model.OperatingDay;
+import org.entur.netex2.model.OperatingDayRefStructure;
+import org.entur.netex2.model.OperatingDaysInFrame_RelStructure;
+import org.entur.netex2.model.PassengerStopAssignment;
+import org.entur.netex2.model.PointInLinkSequence_VersionedChildStructure;
+import org.entur.netex2.model.Quay;
+import org.entur.netex2.model.ServiceAlterationEnumeration;
+import org.entur.netex2.model.ServiceCalendarFrame;
+import org.entur.netex2.model.ServiceFrame;
+import org.entur.netex2.model.ServiceJourney;
+import org.entur.netex2.model.SiteFrame;
+import org.entur.netex2.model.StopAssignment_VersionStructure;
+import org.entur.netex2.model.StopAssignmentsInFrame_RelStructure;
+import org.entur.netex2.model.StopPlace;
+import org.entur.netex2.model.StopPointInJourneyPattern;
+import org.entur.netex2.model.TimetableFrame;
+import org.entur.netex2.model.TimetabledPassingTime;
 
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -78,7 +78,7 @@ public class NetexParserProcessor {
     private Map<String, List<ServiceDate>> tripDates = new HashMap<>();
     private static Map<String, String> parentStops = new HashMap<>();
     private Map<String, LocationStructure> locations = new HashMap<>();
-    private Map<String, AllVehicleModesOfTransportEnumeration> modes = new HashMap<>();
+    private Map<String, AllPublicTransportModesEnumeration> modes = new HashMap<>();
 
     public Map<String, List<StopTime>> getTripStops() {
         return tripStops;
@@ -111,7 +111,7 @@ public class NetexParserProcessor {
         return locations;
     }
 
-    public Map<String, AllVehicleModesOfTransportEnumeration> getModes() {
+    public Map<String, AllPublicTransportModesEnumeration> getModes() {
         return modes;
     }
 
@@ -131,7 +131,7 @@ public class NetexParserProcessor {
                 for (JAXBElement<? extends DayTypeRefStructure> dayTypeRef : dayTypeRefs) {
                     DayTypeAssignment dayTypeAssignment = dayTypeAssignmentByDayTypeId.get(dayTypeRef.getValue().getRef());
                     if (dayTypeAssignment != null) {
-                        LocalDateTime date = dayTypeAssignment.getDate();
+                        LocalDate date = dayTypeAssignment.getDate();
                         final ServiceDate d = new ServiceDate(date.getYear(),
                                 date.getMonthValue(),
                                 date.getDayOfMonth()
@@ -147,7 +147,7 @@ public class NetexParserProcessor {
                     OperatingDayRefStructure operatingDayRef = dsj.getOperatingDayRef();
                     OperatingDay operatingDay = operatingDaysById.get(operatingDayRef.getRef());
                     if (operatingDay != null) {
-                        LocalDateTime date = operatingDay.getCalendarDate();
+                        LocalDate date = operatingDay.getCalendarDate();
                         final ServiceDate d = new ServiceDate(date.getYear(),
                                 date.getMonthValue(),
                                 date.getDayOfMonth()
@@ -218,7 +218,7 @@ public class NetexParserProcessor {
                 if (jStructure instanceof ServiceJourney sj) {
 
                     //Only process RAIL-mode
-                    if (AllVehicleModesOfTransportEnumeration.RAIL.equals(sj.getTransportMode())) {
+                    if (AllPublicTransportModesEnumeration.RAIL.equals(sj.getTransportMode())) {
                         if (sj.getPrivateCode() != null) {
                             String trainNumber = sj.getPrivateCode().getValue();
                             if (sj.getServiceAlteration() != null && sj.getServiceAlteration() == ServiceAlterationEnumeration.CANCELLATION) {
@@ -289,7 +289,7 @@ public class NetexParserProcessor {
             //journeyPatterns
             JourneyPatternsInFrame_RelStructure journeyPatterns = sf.getJourneyPatterns();
             if (journeyPatterns != null) {
-                List<JAXBElement<?>> journeyPattern_orJourneyPatternView = journeyPatterns.getJourneyPattern_OrJourneyPatternView();
+                List<JAXBElement<? extends LinkSequence_VersionStructure>> journeyPattern_orJourneyPatternView = journeyPatterns.getJourneyPattern();
                 for (JAXBElement pattern : journeyPattern_orJourneyPatternView) {
                     if (pattern.getValue() instanceof JourneyPattern) {
                         JourneyPattern journeyPattern = (JourneyPattern) pattern.getValue();
@@ -306,15 +306,14 @@ public class NetexParserProcessor {
 
     private void loadSiteFrames(SiteFrame sf) {
         if (sf.getStopPlaces() != null) {
-            List<JAXBElement<? extends Site_VersionStructure>> stopPlaces = sf.getStopPlaces().getStopPlace_();
-            for (JAXBElement<? extends Site_VersionStructure> jaxbStopPlace : stopPlaces) {
-                StopPlace stopPlace = (StopPlace) jaxbStopPlace.getValue();
+            List<StopPlace> stopPlaces = sf.getStopPlaces().getStopPlace();
+            for (StopPlace stopPlace : stopPlaces) {
                 String parentId = stopPlace.getId();
 
                 if (stopPlace.getCentroid() != null && stopPlace.getCentroid().getLocation() != null) {
                     locations.put(stopPlace.getId(), stopPlace.getCentroid().getLocation());
                 }
-                AllVehicleModesOfTransportEnumeration mode = null;
+                AllPublicTransportModesEnumeration mode = null;
                 if (stopPlace.getTransportMode() != null) {
                     mode = stopPlace.getTransportMode();
                     modes.put(stopPlace.getId(), mode);
@@ -328,8 +327,10 @@ public class NetexParserProcessor {
                             parentStops.put(quay.getId(), parentId);
                             modes.put(quay.getId(), mode);
 
-                            if (quay.getPublicCode() != null && !quay.getPublicCode().isEmpty()) {
-                                publicCodeByQuayId.put(quay.getId(), quay.getPublicCode());
+                            if (quay.getPublicCode() != null &&
+                                    quay.getPublicCode().getValue() != null &&
+                                    !quay.getPublicCode().getValue().isEmpty()) {
+                                publicCodeByQuayId.put(quay.getId(), quay.getPublicCode().getValue());
                             }
 
                             if (quay.getCentroid() != null && quay.getCentroid().getLocation() != null) {

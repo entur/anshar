@@ -16,11 +16,11 @@
 package no.rutebanken.anshar.routes.siri.processor.routedata;
 
 import jakarta.annotation.PostConstruct;
-import org.rutebanken.netex.model.AllVehicleModesOfTransportEnumeration;
-import org.rutebanken.netex.model.DatedServiceJourney;
-import org.rutebanken.netex.model.LocationStructure;
-import org.rutebanken.netex.model.OperatingDay;
-import org.rutebanken.netex.model.ServiceAlterationEnumeration;
+import org.entur.netex2.model.AllPublicTransportModesEnumeration;
+import org.entur.netex2.model.DatedServiceJourney;
+import org.entur.netex2.model.LocationStructure;
+import org.entur.netex2.model.OperatingDay;
+import org.entur.netex2.model.ServiceAlterationEnumeration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -94,7 +94,7 @@ public class NetexUpdaterService {
 
     //public for testing-purposes
     public static Map<String, LocationStructure> locations = new HashMap<>();
-    public static Map<String, AllVehicleModesOfTransportEnumeration> modes = new HashMap<>();
+    public static Map<String, AllPublicTransportModesEnumeration> modes = new HashMap<>();
 
     public static boolean isStopIdOrParentMatch(String stop1, String stop2) {
         return stop1.equals(stop2) || parentStops.get(stop2).equals(parentStops.get(stop1));
@@ -230,7 +230,7 @@ public class NetexUpdaterService {
         Map<String, String> tmpParentStops = new HashMap<>();
         Map<String, String> tmpQuayPublicCodes = new HashMap<>();
         Map<String, LocationStructure> tmpLocations = new HashMap<>();
-        Map<String, AllVehicleModesOfTransportEnumeration> tmpModes = new HashMap<>();
+        Map<String, AllPublicTransportModesEnumeration> tmpModes = new HashMap<>();
         Map<String, OperatingDay> tmpOperatingDayRefs = new HashMap<>();
 
         for (String path : paths) {
@@ -322,7 +322,7 @@ public class NetexUpdaterService {
             Map<String, List<DatedServiceJourney>> datedServiceJourneysForTrip,
             Map<String, List<ServiceDate>> tripDates,
             Map<String, String> parentStops, Map<String, String> quayPublicCodes,
-            Map<String, LocationStructure> locations, Map<String, AllVehicleModesOfTransportEnumeration> tmpModes,
+            Map<String, LocationStructure> locations, Map<String, AllPublicTransportModesEnumeration> tmpModes,
             Map<String, OperatingDay> operatingDayRefs) {
         try {
 

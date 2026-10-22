@@ -2,9 +2,9 @@ package no.rutebanken.anshar.siri.processor;
 
 import no.rutebanken.anshar.routes.siri.processor.routedata.NetexUpdaterService;
 import no.rutebanken.anshar.routes.siri.processor.routedata.StopsUtil;
+import org.entur.netex2.model.AllPublicTransportModesEnumeration;
+import org.entur.netex2.model.LocationStructure;
 import org.junit.jupiter.api.Test;
-import org.rutebanken.netex.model.AllVehicleModesOfTransportEnumeration;
-import org.rutebanken.netex.model.LocationStructure;
 
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
@@ -106,7 +106,7 @@ public class StopsUtilTest {
     @Test
     public void testModeVerification() {
         final String osloS = "NSR:StopPlace:337";
-        NetexUpdaterService.modes.put(osloS, AllVehicleModesOfTransportEnumeration.RAIL);
+        NetexUpdaterService.modes.put(osloS, AllPublicTransportModesEnumeration.RAIL);
 
         assertFalse(StopsUtil.doesVehicleModeMatchStopMode(List.of(BUS), osloS));
         assertFalse(StopsUtil.doesVehicleModeMatchStopMode(List.of(COACH), osloS));
