@@ -27,7 +27,7 @@ import uk.org.acbs.siri21.AccessibilityEnumeration;
 
 import java.util.Set;
 
-import static no.rutebanken.anshar.routes.validation.validators.Constants.ACCESSIBILITY_ASSESSMENT;
+import static no.rutebanken.anshar.routes.validation.validators.Constants.AFFECTED_STOP_PLACE;
 
 /**
  * Verifies childnodes for element AccessibilityAssessment. Values must be set valid if they exist
@@ -56,7 +56,7 @@ public class AccessibilityAssessmentValidator extends CustomValidator {
 
     public AccessibilityAssessmentValidator() {
 
-        path = ACCESSIBILITY_ASSESSMENT + FIELD_DELIMITER + FIELDNAME;
+        path = AFFECTED_STOP_PLACE + FIELD_DELIMITER + FIELDNAME;
 
     }
 

@@ -32,7 +32,6 @@ public class Constants {
 
     public static final String AFFECTED_STOP_POINT = AFFECTS + "/StopPoints/AffectedStopPoint";
     public static final String AFFECTED_STOP_PLACE = AFFECTS + "/StopPlaces/AffectedStopPlace";
-    public static final String ACCESSIBILITY_ASSESSMENT = AFFECTED_STOP_PLACE + "/StopPlaces";
     public static final String AFFECTED_COMPONENTS = AFFECTED_STOP_PLACE + "/AffectedComponents";
     public static final String AFFECTED_VEHICLE_JOURNEY = AFFECTS + "/VehicleJourneys/AffectedVehicleJourney";
 
@@ -48,8 +47,7 @@ public class Constants {
     public static final String MONITORED_CALL_STRUCTURE =  MONITORED_VEHICLE_JOURNEY + "/MonitoredCall";
 
 
-    public static final String FACILITY_MONITORING = SERVICE_DELIVERY + "/FacilityMonitoringDelivery/FacilityCondition";
-    public static final String FACILITY_CONDITION =  FACILITY_MONITORING + "/FacilityCondition";
+    public static final String FACILITY_CONDITION = SERVICE_DELIVERY + "/FacilityMonitoringDelivery/FacilityCondition";
 
     private Constants() {
         // should not be instantiated

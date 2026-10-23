@@ -22,7 +22,7 @@ import no.rutebanken.anshar.subscription.SiriDataType;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Node;
 
-import static no.rutebanken.anshar.routes.validation.validators.Constants.ESTIMATED_CALL;
+import static no.rutebanken.anshar.routes.validation.validators.Constants.RECORDED_CALL;
 
 /**
  * Verifies that the value for field ActualArrivalTime is a valid timestamp, and that it is before or equal to ActualDepartureTime
@@ -34,7 +34,7 @@ public class RecordedActualArrivalTimeValidator extends TimeValidator {
 
 
     private static final String FIELDNAME = "ActualArrivalTime";
-    private String path = ESTIMATED_CALL + FIELD_DELIMITER + FIELDNAME;
+    private String path = RECORDED_CALL + FIELD_DELIMITER + FIELDNAME;
 
     private String comparisonFieldName = "ActualDepartureTime";
 
