@@ -15,6 +15,7 @@
 package no.rutebanken.anshar.routes.kafka;
 
 import no.rutebanken.anshar.metrics.PrometheusMetricsService;
+import no.rutebanken.anshar.routes.avro.AvroClassSecurity;
 import org.apache.camel.builder.RouteBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -51,6 +52,8 @@ public class KafkaAvroPublisherRoute extends RouteBuilder {
 
     @Override
     public void configure() throws Exception {
+
+        AvroClassSecurity.trustSiriAvroModel();
 
         if (publishEtAvroToKafkaEnabled) {
             log.info("Publishing Avro-ET to kafka-topic: {}", kafkaEtAvroTopic);
