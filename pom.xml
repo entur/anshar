@@ -61,13 +61,6 @@
 
     <dependencyManagement>
         <dependencies>
-            <!-- Version used by Camel 4.20 - HttpClient 5.6 keeps the Content-Encoding header after decompressing,
-                 and camel-http then fails to decompress gzip-responses a second time ("Not in GZIP format") -->
-            <dependency>
-                <groupId>org.apache.httpcomponents.client5</groupId>
-                <artifactId>httpclient5</artifactId>
-                <version>5.5.2</version>
-            </dependency>
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
