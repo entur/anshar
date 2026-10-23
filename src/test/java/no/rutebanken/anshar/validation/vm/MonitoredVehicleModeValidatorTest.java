@@ -44,6 +44,7 @@ public class MonitoredVehicleModeValidatorTest extends CustomValidatorTest {
         assertNull(validator.isValid(createXmlNode(fieldName, VehicleModesEnumeration.FERRY.value())));
         assertNull(validator.isValid(createXmlNode(fieldName, VehicleModesEnumeration.METRO.value())));
         assertNull(validator.isValid(createXmlNode(fieldName, VehicleModesEnumeration.RAIL.value())));
+        assertNull(validator.isValid(createXmlNode(fieldName, VehicleModesEnumeration.TAXI.value())));
         assertNull(validator.isValid(createXmlNode(fieldName, VehicleModesEnumeration.TRAM.value())));
     }
 

@@ -41,6 +41,7 @@ public class MonitoredOccupancyValidatorTest extends CustomValidatorTest {
         assertNull(validator.isValid(createXmlNode(fieldName, OccupancyEnumeration.UNKNOWN.value())));
         assertNull(validator.isValid(createXmlNode(fieldName, OccupancyEnumeration.MANY_SEATS_AVAILABLE.value())));
         assertNull(validator.isValid(createXmlNode(fieldName, OccupancyEnumeration.SEATS_AVAILABLE.value())));
+        assertNull(validator.isValid(createXmlNode(fieldName, OccupancyEnumeration.FEW_SEATS_AVAILABLE.value())));
         assertNull(validator.isValid(createXmlNode(fieldName, OccupancyEnumeration.STANDING_AVAILABLE.value())));
         assertNull(validator.isValid(createXmlNode(fieldName, OccupancyEnumeration.FULL.value())));
         assertNull(validator.isValid(createXmlNode(fieldName, OccupancyEnumeration.NOT_ACCEPTING_PASSENGERS.value())));

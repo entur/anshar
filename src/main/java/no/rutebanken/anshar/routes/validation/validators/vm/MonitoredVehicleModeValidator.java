@@ -45,6 +45,7 @@ public class MonitoredVehicleModeValidator extends LimitedSubsetValidator {
                 VehicleModesEnumeration.FERRY.value(),
                 VehicleModesEnumeration.METRO.value(),
                 VehicleModesEnumeration.RAIL.value(),
+                VehicleModesEnumeration.TAXI.value(),
                 VehicleModesEnumeration.TRAM.value()
         );
     }

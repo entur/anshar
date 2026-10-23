@@ -43,6 +43,7 @@ public class MonitoredOccupancyValidator extends LimitedSubsetValidator {
                 OccupancyEnumeration.UNKNOWN.value(),
                 OccupancyEnumeration.MANY_SEATS_AVAILABLE.value(),
                 OccupancyEnumeration.SEATS_AVAILABLE.value(),
+                OccupancyEnumeration.FEW_SEATS_AVAILABLE.value(),
                 OccupancyEnumeration.STANDING_AVAILABLE.value(),
                 OccupancyEnumeration.FULL.value(),
                 OccupancyEnumeration.NOT_ACCEPTING_PASSENGERS.value()
