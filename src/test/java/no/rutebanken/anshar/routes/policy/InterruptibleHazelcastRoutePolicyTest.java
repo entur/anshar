@@ -174,6 +174,46 @@ public class InterruptibleHazelcastRoutePolicyTest {
         awaitTrue(() -> !locks.isLocked(key), "lock released after stopping restarted policy");
     }
 
+    @Test
+    public void testStoppingWhileLeadershipIsTakenDoesNotDeadlock() throws Exception {
+        String key = "route-stop-while-taking-leadership";
+        RecordingPolicy policy = new RecordingPolicy(hazelcast);
+        policy.setLockMapName(LOCK_MAP);
+        policy.setLockKey(key);
+        policy.setLockValue("lockValue");
+        policy.setShouldStopConsumer(false);
+        policy.setCamelContext(camelContext);
+
+        Thread stopper = new Thread(() -> {
+            try {
+                policy.stop();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }, "policy-stopper");
+        stopper.setDaemon(true);
+        // The worker takes leadership while stop() is in progress - it continues once the stopper is blocked
+        policy.beforeLeadership = () -> awaitBlocked(stopper);
+        policy.start();
+        assertTrue(policy.leadershipStarted.await(10, TimeUnit.SECONDS), "worker started taking leadership");
+
+        stopper.start();
+        stopper.join(10_000);
+
+        assertFalse(stopper.isAlive(), "stop() deadlocked with the worker taking leadership");
+        awaitTrue(() -> !locks.isLocked(key), "lock released after stopping policy");
+    }
+
+    private static void awaitBlocked(Thread thread) {
+        long deadline = System.currentTimeMillis() + 10_000;
+        while (thread.getState() != Thread.State.BLOCKED && thread.getState() != Thread.State.WAITING) {
+            if (System.currentTimeMillis() > deadline) {
+                return;
+            }
+            Thread.onSpinWait();
+        }
+    }
+
     /**
      * Waits until the given number of policy threads are blocked in tryLock - the call that ignores interrupts
      */
@@ -197,6 +237,8 @@ public class InterruptibleHazelcastRoutePolicyTest {
     private static class RecordingPolicy extends InterruptibleHazelcastRoutePolicy {
         private final AtomicBoolean becameLeader = new AtomicBoolean();
         private final AtomicInteger leadershipTaken = new AtomicInteger();
+        private final CountDownLatch leadershipStarted = new CountDownLatch(1);
+        private volatile Runnable beforeLeadership = () -> {};
 
         RecordingPolicy(HazelcastInstance instance) {
             super(instance);
@@ -205,6 +247,8 @@ public class InterruptibleHazelcastRoutePolicyTest {
         @Override
         protected void setLeader(boolean isLeader) {
             if (isLeader) {
+                leadershipStarted.countDown();
+                beforeLeadership.run();
                 becameLeader.set(true);
                 leadershipTaken.incrementAndGet();
             }

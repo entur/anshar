@@ -118,13 +118,19 @@ public class InterruptibleHazelcastRoutePolicy extends HazelcastRoutePolicy {
                 locked = locks.tryLock(lockKey, getTryLockTimeout(), getTryLockTimeoutUnit());
                 if (locked) {
                     locks.put(getLockKey(), getLockValue());
-                    synchronized (runLock) {
+                    // The service lock held by start() and stop() - leadership is taken entirely before or after
+                    // a stop. Holding runLock instead deadlocks: stop() holds the service lock while waiting for
+                    // runLock, and setLeader() needs the service lock to start the consumers.
+                    lock.lock();
+                    try {
                         if (!isCurrentRun(workerRun)) {
                             // Stopped while waiting for the lock - released in finally without taking leadership
                             break;
                         }
                         setLeader(true);
                         leading = true;
+                    } finally {
+                        lock.unlock();
                     }
 
                     synchronized(syncObject) {
