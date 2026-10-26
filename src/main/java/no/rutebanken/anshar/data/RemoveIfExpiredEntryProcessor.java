@@ -17,6 +17,7 @@ package no.rutebanken.anshar.data;
 import com.hazelcast.map.EntryProcessor;
 import no.rutebanken.anshar.routes.siri.transformer.ApplicationContextHolder;
 import no.rutebanken.anshar.subscription.SiriDataType;
+import org.springframework.context.ApplicationContext;
 
 import java.util.Map;
 
@@ -43,7 +44,12 @@ public class RemoveIfExpiredEntryProcessor<T> implements EntryProcessor<SiriObje
             // Already removed
             return Boolean.TRUE;
         }
-        if (getRepository().isExpired(value, maxValidityMillis)) {
+        SiriRepository<T> repository = getRepository();
+        if (repository == null) {
+            // Member is still starting - the entry is kept, and checked again by the next cleanup
+            return Boolean.FALSE;
+        }
+        if (repository.isExpired(value, maxValidityMillis)) {
             entry.setValue(null);
             return Boolean.TRUE;
         }
@@ -77,7 +83,8 @@ public class RemoveIfExpiredEntryProcessor<T> implements EntryProcessor<SiriObje
             default:
                 throw new IllegalStateException("No repository for " + siriDataType);
         }
-        return ApplicationContextHolder.getContext().getBean(repositoryClass);
+        ApplicationContext context = ApplicationContextHolder.getContext();
+        return context != null ? context.getBean(repositoryClass) : null;
     }
 
     private static class RemoveEntryProcessor<T> implements EntryProcessor<SiriObjectStorageKey, T, Boolean> {
