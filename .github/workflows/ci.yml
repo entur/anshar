@@ -14,12 +14,12 @@ jobs:
     env:
       TZ: Europe/Oslo
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
 
       - name: Set up JDK 25
-        uses: actions/setup-java@v6
+        uses: actions/setup-java@v6.1.0
         with:
-          java-version: 25
+          java-version: 25.0.5+8.0.LTS
           distribution: temurin
           cache: maven
 
@@ -38,12 +38,12 @@ jobs:
       CONTAINER_REGISTRY_USER: ${{ secrets.DOCKERHUB_LOGIN }}
       CONTAINER_REGISTRY_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
 
       - name: Set up JDK 25
-        uses: actions/setup-java@v6
+        uses: actions/setup-java@v6.1.0
         with:
-          java-version: 25
+          java-version: 25.0.5+8.0.LTS
           distribution: temurin
           cache: maven
       - name: set variables
