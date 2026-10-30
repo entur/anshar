@@ -76,6 +76,7 @@ import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.List;
@@ -326,8 +327,8 @@ public class SiriXmlValidator extends ApplicationContextHolder {
 
         for (Object o : validatorBeans.values()) {
             if (o instanceof CustomValidator) {
-                final String profileName = o.getClass().getAnnotation(Validator.class).profileName();
-                if (profileName.equals(configuration.getValidationProfileName())) {
+                final String[] profileNames = o.getClass().getAnnotation(Validator.class).profileNames();
+                if (Arrays.asList(profileNames).contains(configuration.getValidationProfileName())) {
                     final SiriDataType type = o.getClass().getAnnotation(Validator.class).targetType();
 
                     rules.computeIfAbsent(type, t -> new HashSet<>()).add((CustomValidator) o);

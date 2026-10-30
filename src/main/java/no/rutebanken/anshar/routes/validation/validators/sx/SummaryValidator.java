@@ -32,7 +32,7 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.PT_SIT
  *  - if more than one is defined, language-attribute is required
  *
  */
-@Validator(profileName = "norway", targetType = SiriDataType.SITUATION_EXCHANGE)
+@Validator(profileNames = "norway", targetType = SiriDataType.SITUATION_EXCHANGE)
 @Component
 public class SummaryValidator extends StringStructureValidator {
 

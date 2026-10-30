@@ -28,7 +28,7 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.ESTIMA
  * Verifies that the value for field ArrivalBoardingActivity is one of the allowed types
  *
  */
-@Validator(profileName = "norway", targetType = SiriDataType.ESTIMATED_TIMETABLE)
+@Validator(profileNames = "norway", targetType = SiriDataType.ESTIMATED_TIMETABLE)
 @Component
 public class ArrivalBoardingActivityValidator extends LimitedSubsetValidator {
 

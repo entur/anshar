@@ -39,7 +39,7 @@ import static no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapte
 import static org.apache.commons.lang3.BooleanUtils.isTrue;
 
 @SuppressWarnings("unchecked")
-@Validator(profileName = "norway", targetType = SiriDataType.ESTIMATED_TIMETABLE)
+@Validator(profileNames = "norway", targetType = SiriDataType.ESTIMATED_TIMETABLE)
 @Component
 public class StopModeValidator extends SiriObjectValidator {
     private Logger logger = LoggerFactory.getLogger(StopModeValidator.class);

@@ -31,7 +31,7 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.MONITO
  * Verifies that the Location-element with childnodes is valid
  *  - Latitude/Longitude must be present and within correct range
  */
-@Validator(profileName = "norway", targetType = SiriDataType.VEHICLE_MONITORING)
+@Validator(profileNames = "norway", targetType = SiriDataType.VEHICLE_MONITORING)
 @Component
 public class VehicleLocationValidator extends CustomValidator {
 

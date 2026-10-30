@@ -26,7 +26,7 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.ESTIMA
  * Verifies that the value for field DatedVehicleJourneyRef is built up correctly
  *
  */
-@Validator(profileName = "norway", targetType = SiriDataType.ESTIMATED_TIMETABLE)
+@Validator(profileNames = "norway", targetType = SiriDataType.ESTIMATED_TIMETABLE)
 @Component
 public class EtDatedVehicleJourneyRefValidator extends NsrGenericIdValidator {
 

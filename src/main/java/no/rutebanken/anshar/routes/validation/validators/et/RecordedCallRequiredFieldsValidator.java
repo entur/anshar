@@ -30,7 +30,7 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.RECORD
  *
  */
 @SuppressWarnings("unchecked")
-@Validator(profileName = "norway", targetType = SiriDataType.ESTIMATED_TIMETABLE)
+@Validator(profileNames = "norway", targetType = SiriDataType.ESTIMATED_TIMETABLE)
 @Component
 public class RecordedCallRequiredFieldsValidator extends CallRequiredFieldsValidator {
 
