@@ -37,7 +37,7 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.ESTIMA
  *  - EstimatedVehicleJourneyCode must be set, and build up correctly
  *
  */
-@Validator(profileName = "norway", targetType = SiriDataType.ESTIMATED_TIMETABLE)
+@Validator(profileNames = {"norway", "sweden"}, targetType = SiriDataType.ESTIMATED_TIMETABLE)
 @Component
 public class ExtraJourneyValidator extends CustomValidator {
 

@@ -36,7 +36,7 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.MONITO
  *  - DatedVehicleJourneyRef is build up correctly
  *
  */
-@Validator(profileName = "norway", targetType = SiriDataType.VEHICLE_MONITORING)
+@Validator(profileNames = "norway", targetType = SiriDataType.VEHICLE_MONITORING)
 @Component
 public class VmFramedVehicleJourneyRefValidator extends CustomValidator {
 

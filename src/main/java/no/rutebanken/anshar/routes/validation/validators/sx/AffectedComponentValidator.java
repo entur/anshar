@@ -35,7 +35,7 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.AFFECT
  *  - ComponentRef is present and built up correctly
  *  - AccessFeatureType is present and is one of the allowed types
  */
-@Validator(profileName = "norway", targetType = SiriDataType.SITUATION_EXCHANGE)
+@Validator(profileNames = "norway", targetType = SiriDataType.SITUATION_EXCHANGE)
 @Component
 public class AffectedComponentValidator extends CustomValidator {
 

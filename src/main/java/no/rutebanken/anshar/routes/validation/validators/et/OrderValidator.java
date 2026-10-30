@@ -30,7 +30,7 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.ESTIMA
  * Verifies that Order is present and increasing for Recorded- and Estimated calls
  */
 @SuppressWarnings("unchecked")
-@Validator(profileName = "norway", targetType = SiriDataType.ESTIMATED_TIMETABLE)
+@Validator(profileNames = {"norway", "sweden"}, targetType = SiriDataType.ESTIMATED_TIMETABLE)
 @Component
 public class OrderValidator extends CustomValidator {
 

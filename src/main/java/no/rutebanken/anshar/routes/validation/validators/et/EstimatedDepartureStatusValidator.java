@@ -28,7 +28,7 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.ESTIMA
  * Verifies that the value for field DepartureStatus is one of the allowed types
  *
  */
-@Validator(profileName = "norway", targetType = SiriDataType.ESTIMATED_TIMETABLE)
+@Validator(profileNames = {"norway", "sweden"}, targetType = SiriDataType.ESTIMATED_TIMETABLE)
 @Component
 public class EstimatedDepartureStatusValidator extends LimitedSubsetValidator {
 

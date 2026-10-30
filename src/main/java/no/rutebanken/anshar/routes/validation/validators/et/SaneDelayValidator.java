@@ -31,7 +31,7 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.ESTIMA
  * Verifies that updated times are increasing
  */
 @SuppressWarnings("unchecked")
-@Validator(profileName = "norway", targetType = SiriDataType.ESTIMATED_TIMETABLE)
+@Validator(profileNames = {"norway", "sweden"}, targetType = SiriDataType.ESTIMATED_TIMETABLE)
 @Component
 public class SaneDelayValidator extends CustomValidator {
 

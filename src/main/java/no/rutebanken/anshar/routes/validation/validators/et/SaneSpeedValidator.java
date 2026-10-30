@@ -43,7 +43,7 @@ import java.util.List;
 import static no.rutebanken.anshar.routes.siri.transformer.impl.OutboundIdAdapter.getMappedId;
 
 @SuppressWarnings("unchecked")
-@Validator(profileName = "norway", targetType = SiriDataType.ESTIMATED_TIMETABLE)
+@Validator(profileNames = "norway", targetType = SiriDataType.ESTIMATED_TIMETABLE)
 @Component
 public class SaneSpeedValidator extends SiriObjectValidator {
     private Logger logger = LoggerFactory.getLogger(SaneSpeedValidator.class);
