@@ -27,7 +27,7 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.ESTIMA
  * Verifies that the value for field LineRef is built up correctly
  *
  */
-@Validator(profileNames = "norway", targetType = SiriDataType.ESTIMATED_TIMETABLE)
+@Validator(profileNames = {"norway", "sweden"}, targetType = SiriDataType.ESTIMATED_TIMETABLE)
 @Component
 public class LineRefValidator extends NsrGenericIdValidator {
 
