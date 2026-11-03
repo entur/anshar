@@ -46,7 +46,7 @@ public class AffectedStopPlaceValidator extends CustomValidator {
     public ValidationEvent isValid(Node node) {
         String nodeValue = getNodeValue(node);
 
-        if (!isValidNsrId("NSR:StopPlace:", nodeValue) && !isValidNsrId("NSR:Quay:", nodeValue)) {
+        if (!isValidId("NSR:StopPlace:", nodeValue) && !isValidId("NSR:Quay:", nodeValue)) {
             return  createEvent(node, FIELDNAME, "NSR:StopPlace:ID or NSR:Quay:ID", nodeValue, ValidationEvent.FATAL_ERROR);
         }
 

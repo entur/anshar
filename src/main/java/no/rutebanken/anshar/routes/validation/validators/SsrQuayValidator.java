@@ -40,7 +40,7 @@ public abstract class SsrQuayValidator extends CustomValidator {
     public ValidationEvent isValid(Node node) {
         String nodeValue = getNodeValue(node);
 
-        if (!isValidNsrId("SSR:Quay:", nodeValue)) {
+        if (!isValidId("SSR:Quay:", nodeValue)) {
             return  createEvent(node, FIELDNAME, "valid ID from SSR - formatted like SSR:Quay:ID", nodeValue, ValidationEvent.FATAL_ERROR);
         }
 

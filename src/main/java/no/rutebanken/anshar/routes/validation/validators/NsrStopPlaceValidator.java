@@ -37,7 +37,7 @@ public abstract class NsrStopPlaceValidator extends CustomValidator {
     public ValidationEvent isValid(Node node) {
         String nodeValue = getNodeValue(node);
 
-        if (!isValidNsrId("NSR:StopPlace:", nodeValue)) {
+        if (!isValidId("NSR:StopPlace:", nodeValue)) {
             return  createEvent(node, FIELDNAME, "valid ID from NSR - formatted like NSR:StopPlace:ID", nodeValue, ValidationEvent.FATAL_ERROR);
         }
 

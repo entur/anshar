@@ -37,7 +37,7 @@ public abstract class NsrQuayValidator extends CustomValidator {
     public ValidationEvent isValid(Node node) {
         String nodeValue = getNodeValue(node);
 
-        if (!isValidNsrId("NSR:Quay:", nodeValue)) {
+        if (!isValidId("NSR:Quay:", nodeValue)) {
             return  createEvent(node, FIELDNAME, "valid ID from NSR - formatted like NSR:Quay:ID", nodeValue, ValidationEvent.FATAL_ERROR);
         }
 
