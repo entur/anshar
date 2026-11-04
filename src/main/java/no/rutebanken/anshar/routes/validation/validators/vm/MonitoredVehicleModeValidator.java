@@ -29,7 +29,7 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.MONITO
  * Verifies that the value for field VehicleMode is one of the allowed types
  *
  */
-@Validator(profileName = "norway", targetType = SiriDataType.VEHICLE_MONITORING)
+@Validator(profileNames = "norway", targetType = SiriDataType.VEHICLE_MONITORING)
 @Component
 public class MonitoredVehicleModeValidator extends LimitedSubsetValidator {
 

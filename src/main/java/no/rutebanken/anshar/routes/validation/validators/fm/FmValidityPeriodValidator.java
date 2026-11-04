@@ -32,7 +32,7 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.FACILI
  *  - Verify that StartTime is present and a valid timestamp
  *  - If EndTime is present, verify valid timestamp AND that EndTime is after StartTime
  */
-@Validator(profileName = "norway", targetType = SiriDataType.FACILITY_MONITORING)
+@Validator(profileNames = "norway", targetType = SiriDataType.FACILITY_MONITORING)
 @Component
 public class FmValidityPeriodValidator extends CustomValidator {
 

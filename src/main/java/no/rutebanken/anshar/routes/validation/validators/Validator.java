@@ -26,5 +26,5 @@ import java.lang.annotation.RetentionPolicy;
 @Component
 public @interface Validator {
     SiriDataType targetType();
-    String profileName();
+    String[] profileNames();
 }

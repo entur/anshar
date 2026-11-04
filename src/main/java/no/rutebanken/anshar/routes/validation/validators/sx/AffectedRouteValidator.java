@@ -33,7 +33,7 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.AFFECT
  * Verifies that the value for field AffectedRoute is built up correctly
  *
  */
-@Validator(profileName = "norway", targetType = SiriDataType.SITUATION_EXCHANGE)
+@Validator(profileNames = "norway", targetType = SiriDataType.SITUATION_EXCHANGE)
 @Component
 public class AffectedRouteValidator extends NsrGenericIdValidator {
 

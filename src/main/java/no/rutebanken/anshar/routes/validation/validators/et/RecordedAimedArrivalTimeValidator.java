@@ -29,7 +29,7 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.RECORD
  * Verifies that the value for field AimedArrivalTime is a valid timestamp, and that it is before or equal to AimedDepartureTime
  *
  */
-@Validator(profileName = "norway", targetType = SiriDataType.ESTIMATED_TIMETABLE)
+@Validator(profileNames = {"norway", "sweden"}, targetType = SiriDataType.ESTIMATED_TIMETABLE)
 @Component
 public class RecordedAimedArrivalTimeValidator extends TimeValidator {
 

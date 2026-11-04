@@ -30,7 +30,7 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.PT_SIT
 /**
  * Validates the field Infolink. If present, it is verified that the value is a valid URI
  */
-@Validator(profileName = "norway", targetType = SiriDataType.SITUATION_EXCHANGE)
+@Validator(profileNames = "norway", targetType = SiriDataType.SITUATION_EXCHANGE)
 @Component
 public class InfoLinkValidator extends CustomValidator {
 

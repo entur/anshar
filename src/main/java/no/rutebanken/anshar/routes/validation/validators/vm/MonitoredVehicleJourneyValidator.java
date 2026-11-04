@@ -42,7 +42,7 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.MONITO
 /**
  * Verifies that required fields are present
  */
-@Validator(profileName = "norway", targetType = SiriDataType.VEHICLE_MONITORING)
+@Validator(profileNames = "norway", targetType = SiriDataType.VEHICLE_MONITORING)
 @Component
 public class MonitoredVehicleJourneyValidator extends NsrQuayValidator {
 

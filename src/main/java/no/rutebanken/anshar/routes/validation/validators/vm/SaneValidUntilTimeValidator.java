@@ -32,7 +32,7 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.VEHICL
  * Verifies that the value for ValidUntilTime appears to be a real value
  *
  */
-@Validator(profileName = "norway", targetType = SiriDataType.VEHICLE_MONITORING)
+@Validator(profileNames = "norway", targetType = SiriDataType.VEHICLE_MONITORING)
 @Component
 public class SaneValidUntilTimeValidator extends CustomValidator {
 

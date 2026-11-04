@@ -26,7 +26,7 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.MONITO
  * Verifies that the value for field StopPointRefStructure is built up correctly
  *
  */
-@Validator(profileName = "norway", targetType = SiriDataType.VEHICLE_MONITORING)
+@Validator(profileNames = "norway", targetType = SiriDataType.VEHICLE_MONITORING)
 @Component
 public class MonitoredCallStopPointRefValidator extends NsrQuayValidator {
 

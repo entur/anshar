@@ -35,7 +35,7 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.AFFECT
  *  - ComponentRef is present and built up correctly
  *  - AccessFeatureType is present and is one of the allowed types
  */
-@Validator(profileName = "norway", targetType = SiriDataType.SITUATION_EXCHANGE)
+@Validator(profileNames = "norway", targetType = SiriDataType.SITUATION_EXCHANGE)
 @Component
 public class AffectedComponentValidator extends CustomValidator {
 
@@ -74,7 +74,7 @@ public class AffectedComponentValidator extends CustomValidator {
 
         if (StopPlaceComponentTypeEnumeration.QUAY.value().equals(componentType)) {
             String componentRef = getChildNodeValue(node, "ComponentRef");
-            if (componentRef == null || !isValidNsrId("NSR:Quay:", componentRef)) {
+            if (componentRef == null || !isValidId("NSR:Quay:", componentRef)) {
                 return  createEvent(node, "ComponentRef", "NSR:Quay:ID when ComponentType is 'quay'", componentRef, ValidationEvent.FATAL_ERROR);
             }
             if (componentRef == null || !idExists(componentRef)) {

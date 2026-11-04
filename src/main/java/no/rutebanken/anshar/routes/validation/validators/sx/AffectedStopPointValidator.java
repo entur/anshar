@@ -28,7 +28,7 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.AFFECT
  * Verifies that the value for field StopPointRefStructure is built up correctly
  *
  */
-@Validator(profileName = "norway", targetType = SiriDataType.SITUATION_EXCHANGE)
+@Validator(profileNames = "norway", targetType = SiriDataType.SITUATION_EXCHANGE)
 @Component
 public class AffectedStopPointValidator extends CustomValidator {
 
@@ -50,8 +50,8 @@ public class AffectedStopPointValidator extends CustomValidator {
     public ValidationEvent isValid(Node node) {
         String nodeValue = getNodeValue(node);
 
-        final boolean validQuayRef = isValidNsrId("NSR:Quay:", nodeValue);
-        final boolean validStopPlaceRef = isValidNsrId("NSR:StopPlace:", nodeValue);
+        final boolean validQuayRef = isValidId("NSR:Quay:", nodeValue);
+        final boolean validStopPlaceRef = isValidId("NSR:StopPlace:", nodeValue);
 
         if (!validQuayRef && !validStopPlaceRef) {
             return createEvent(node, FIELDNAME, "NSR:Quay:ID or NSR:StopPlace:ID", nodeValue, ValidationEvent.FATAL_ERROR);

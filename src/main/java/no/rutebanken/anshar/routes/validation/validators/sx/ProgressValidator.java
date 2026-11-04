@@ -28,7 +28,7 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.PT_SIT
  * Verifies that the value for field Progress is one of the allowed types
  *
  */
-@Validator(profileName = "norway", targetType = SiriDataType.SITUATION_EXCHANGE)
+@Validator(profileNames = "norway", targetType = SiriDataType.SITUATION_EXCHANGE)
 @Component
 public class ProgressValidator extends LimitedSubsetValidator {
 

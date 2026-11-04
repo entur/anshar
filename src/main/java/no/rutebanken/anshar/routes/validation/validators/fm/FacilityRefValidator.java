@@ -27,7 +27,7 @@ import static no.rutebanken.anshar.routes.validation.validators.Constants.FACILI
  * Verifies that the value for field FacilityRef is built up correctly
  *
  */
-@Validator(profileName = "norway", targetType = SiriDataType.FACILITY_MONITORING)
+@Validator(profileNames = "norway", targetType = SiriDataType.FACILITY_MONITORING)
 @Component
 public class FacilityRefValidator extends NsrGenericIdValidator {
 
