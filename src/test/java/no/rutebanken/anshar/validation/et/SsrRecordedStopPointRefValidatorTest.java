@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class SsrRecordedStopPointRefValidatorTest extends CustomValidatorTest {
 
@@ -32,6 +33,7 @@ public class SsrRecordedStopPointRefValidatorTest extends CustomValidatorTest {
     @BeforeAll
     public static void init() {
         validator = new SsrRecordedStopPointRefValidator();
+        validator.prepareTestData("SSR:Quay:663009");
     }
 
     @Test
@@ -63,5 +65,14 @@ public class SsrRecordedStopPointRefValidatorTest extends CustomValidatorTest {
 
         final ValidationEvent valid = validator.isValid(createXmlNode(xml));
         assertNotNull(valid, fieldName+" with NSR-quay flagged as valid");
+    }
+
+    @Test
+    public void testUnknownQuayStopPointRef() throws Exception{
+        String xml = createXml(fieldName, "SSR:Quay:999999999");
+
+        final ValidationEvent valid = validator.isValid(createXmlNode(xml));
+        assertNotNull(valid, fieldName+" with unknown SSR-quay flagged as valid");
+        assertTrue(valid.getMessage().contains("does not exist in SSR"), "Unknown SSR-quay not flagged by the existence check");
     }
 }

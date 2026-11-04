@@ -19,7 +19,8 @@ import jakarta.xml.bind.ValidationEvent;
 import org.w3c.dom.Node;
 
 /**
- * Swedish counterpart to NsrQuayValidator - only verifies the format, as SSR-IDs are not available in StopPlaceUpdaterService
+ * Swedish counterpart to NsrQuayValidator - verifies the format, and that the ID exists in the stop place/quay list
+ * loaded by StopPlaceUpdaterService (in anshar-int fed from Tiamat-SE)
  */
 public abstract class SsrQuayValidator extends CustomValidator {
 
@@ -42,6 +43,10 @@ public abstract class SsrQuayValidator extends CustomValidator {
 
         if (!isValidId("SSR:Quay:", nodeValue)) {
             return  createEvent(node, FIELDNAME, "valid ID from SSR - formatted like SSR:Quay:ID", nodeValue, ValidationEvent.FATAL_ERROR);
+        }
+
+        if (!idExists(nodeValue)) {
+            return createCustomFieldEvent(node, "The ID '" + nodeValue + "' does not exist in SSR.", ValidationEvent.FATAL_ERROR);
         }
 
         return null;
