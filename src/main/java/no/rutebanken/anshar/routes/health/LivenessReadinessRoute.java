@@ -21,6 +21,7 @@ import no.rutebanken.anshar.metrics.PrometheusMetricsService;
 import no.rutebanken.anshar.routes.RestRouteBuilder;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import org.apache.camel.Exchange;
+import org.apache.camel.LoggingLevel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -151,7 +152,7 @@ public class LivenessReadinessRoute extends RestRouteBuilder {
             ;
         } else {
             from("direct:publish.metrics")
-                    .log("Ignore publish metrics to pubsub")
+                    .log(LoggingLevel.DEBUG,"Ignore publish metrics to pubsub")
                     .routeId("publish.prometheus.metrics")
                     ;
         }
