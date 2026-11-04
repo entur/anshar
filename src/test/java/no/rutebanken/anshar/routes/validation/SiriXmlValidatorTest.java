@@ -2,15 +2,19 @@ package no.rutebanken.anshar.routes.validation;
 
 import com.hazelcast.map.IMap;
 import no.rutebanken.anshar.integration.SpringBootBaseTest;
+import no.rutebanken.anshar.subscription.SiriDataType;
+import no.rutebanken.anshar.subscription.SubscriptionSetup;
 import org.json.simple.JSONObject;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class SiriXmlValidatorTest extends SpringBootBaseTest {
 
@@ -55,5 +59,45 @@ public class SiriXmlValidatorTest extends SpringBootBaseTest {
         assertFalse(validatedSiri.containsKey("fully-expired"));
 
         siriXmlValidator.clearValidationResults("partly-expired-subscription");
+    }
+
+    @Test
+    public void testDefaultProfileIsUsedWhenSubscriptionHasNoProfile() {
+        SubscriptionSetup subscription = new SubscriptionSetup();
+
+        // Test config sets anshar.validation.profile.name=test, which has no validators
+        assertEquals("test", siriXmlValidator.resolveValidationProfile(subscription));
+        assertTrue(siriXmlValidator.getValidationRules(subscription).isEmpty());
+
+        subscription.setValidationProfile("  ");
+        assertEquals("test", siriXmlValidator.resolveValidationProfile(subscription));
+    }
+
+    @Test
+    public void testSubscriptionProfileOverridesDefault() {
+        SubscriptionSetup norway = new SubscriptionSetup();
+        norway.setValidationProfile("norway");
+
+        SubscriptionSetup sweden = new SubscriptionSetup();
+        sweden.setValidationProfile(" Sweden ");
+
+        assertEquals("sweden", siriXmlValidator.resolveValidationProfile(sweden));
+
+        // SX-validators only exist in the norway profile
+        assertFalse(siriXmlValidator.getValidationRules(norway).getOrDefault(SiriDataType.SITUATION_EXCHANGE, Set.of()).isEmpty());
+        assertTrue(siriXmlValidator.getValidationRules(sweden).getOrDefault(SiriDataType.SITUATION_EXCHANGE, Set.of()).isEmpty());
+
+        // Both profiles have ET-validators, but they differ
+        assertFalse(siriXmlValidator.getValidationRules(sweden).get(SiriDataType.ESTIMATED_TIMETABLE).isEmpty());
+        assertFalse(siriXmlValidator.getValidationRules(norway).get(SiriDataType.ESTIMATED_TIMETABLE)
+            .equals(siriXmlValidator.getValidationRules(sweden).get(SiriDataType.ESTIMATED_TIMETABLE)));
+    }
+
+    @Test
+    public void testUnknownProfileHasNoRules() {
+        SubscriptionSetup subscription = new SubscriptionSetup();
+        subscription.setValidationProfile("does-not-exist");
+
+        assertTrue(siriXmlValidator.getValidationRules(subscription).isEmpty());
     }
 }

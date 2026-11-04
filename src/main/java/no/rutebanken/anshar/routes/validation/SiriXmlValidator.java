@@ -79,11 +79,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -152,7 +155,9 @@ public class SiriXmlValidator {
     @Autowired(required = false)
     private List<CustomValidator> customValidators = List.of();
 
-    private Map<SiriDataType, Set<CustomValidator>> validationRules = Map.of();
+    private Map<String, Map<SiriDataType, Set<CustomValidator>>> validationRulesByProfile = Map.of();
+
+    private final Set<String> unknownProfilesLogged = ConcurrentHashMap.newKeySet();
 
     private static final int CLEANUP_INTERVAL_MINUTES = 10;
 
@@ -307,30 +312,72 @@ public class SiriXmlValidator {
     }
 
     /**
-     * Resolves the validation rules for the configured profile once at startup, so the validation path only reads an
-     * immutable map.
+     * Resolves the validation rules for all known profiles once at startup, so the validation path only reads
+     * immutable maps.
      */
     @PostConstruct
     void initValidationRules() {
-        final String profileName = configuration.getValidationProfileName();
-        Map<SiriDataType, Set<CustomValidator>> rules = new EnumMap<>(SiriDataType.class);
+        Map<String, Map<SiriDataType, Set<CustomValidator>>> rules = new HashMap<>();
 
         for (CustomValidator validator : customValidators) {
             final Validator annotation = AnnotationUtils.findAnnotation(validator.getClass(), Validator.class);
-            if (annotation != null && Arrays.asList(annotation.profileNames()).contains(profileName)) {
-                rules.computeIfAbsent(annotation.targetType(), t -> new HashSet<>()).add(validator);
+            if (annotation == null) {
+                continue;
+            }
+            for (String profileName : annotation.profileNames()) {
+                rules.computeIfAbsent(normalizeProfileName(profileName), p -> new EnumMap<>(SiriDataType.class))
+                    .computeIfAbsent(annotation.targetType(), t -> new HashSet<>())
+                    .add(validator);
             }
         }
 
-        rules.replaceAll((type, validators) -> Set.copyOf(validators));
-        validationRules = Collections.unmodifiableMap(rules);
+        Map<String, Map<SiriDataType, Set<CustomValidator>>> immutableRules = new HashMap<>();
+        rules.forEach((profileName, rulesByType) -> {
+            Map<SiriDataType, Set<CustomValidator>> copy = new EnumMap<>(SiriDataType.class);
+            rulesByType.forEach((type, validators) -> {
+                copy.put(type, Set.copyOf(validators));
+                logger.info("Loaded {} validation rules for profile '{}', type {}", validators.size(), profileName, type);
+            });
+            immutableRules.put(profileName, Collections.unmodifiableMap(copy));
+        });
+        validationRulesByProfile = Map.copyOf(immutableRules);
 
-        if (rules.isEmpty()) {
-            logger.warn("No validation rules found for profile '{}'", profileName);
+        final String defaultProfile = normalizeProfileName(configuration.getValidationProfileName());
+        if (!validationRulesByProfile.containsKey(defaultProfile)) {
+            logger.warn("No validation rules found for default profile '{}' - known profiles: {}",
+                defaultProfile, validationRulesByProfile.keySet());
         } else {
-            rules.forEach((type, validators) ->
-                logger.info("Loaded {} validation rules for profile '{}', type {}", validators.size(), profileName, type));
+            logger.info("Default validation profile is '{}'", defaultProfile);
         }
+    }
+
+    /**
+     * Returns the profile used for the given subscription - the subscription's own profile if set, otherwise the
+     * configured default (anshar.validation.profile.name).
+     */
+    String resolveValidationProfile(SubscriptionSetup subscriptionSetup) {
+        final String subscriptionProfile = normalizeProfileName(subscriptionSetup.getValidationProfile());
+        if (subscriptionProfile != null && !subscriptionProfile.isEmpty()) {
+            return subscriptionProfile;
+        }
+        return normalizeProfileName(configuration.getValidationProfileName());
+    }
+
+    Map<SiriDataType, Set<CustomValidator>> getValidationRules(SubscriptionSetup subscriptionSetup) {
+        final String profileName = resolveValidationProfile(subscriptionSetup);
+        final Map<SiriDataType, Set<CustomValidator>> rules = validationRulesByProfile.get(profileName);
+        if (rules == null) {
+            if (unknownProfilesLogged.add(profileName)) {
+                logger.warn("Unknown validation profile '{}' used by subscription {} - known profiles: {}",
+                    profileName, subscriptionSetup.getSubscriptionId(), validationRulesByProfile.keySet());
+            }
+            return Map.of();
+        }
+        return rules;
+    }
+
+    private static String normalizeProfileName(String profileName) {
+        return profileName == null ? null : profileName.trim().toLowerCase(Locale.ROOT);
     }
 
     public Siri parseXml(SubscriptionSetup subscriptionSetup, String xml)
@@ -462,7 +509,7 @@ public class SiriXmlValidator {
 
             SiriValidationEventHandler profileValidationResults = new SiriValidationEventHandler();
 
-            validateAttributes(originalXml, type, siri, profileValidationResults);
+            validateAttributes(originalXml, type, getValidationRules(subscriptionSetup), siri, profileValidationResults);
 
             if (subscriptionSetup.isValidation()) {
                 final long t1 = System.currentTimeMillis();
@@ -511,7 +558,8 @@ public class SiriXmlValidator {
     }
 
     private void validateAttributes(
-        String siriXml, SiriDataType type, Siri siri, SiriValidationEventHandler handler
+        String siriXml, SiriDataType type, Map<SiriDataType, Set<CustomValidator>> validationRules, Siri siri,
+        SiriValidationEventHandler handler
     ) throws XPathExpressionException, ParserConfigurationException, IOException, SAXException {
         XPathFactory xpathFactory = XPathFactory.newInstance();
         XPath xpath = xpathFactory.newXPath();
@@ -651,6 +699,7 @@ public class SiriXmlValidator {
 
         JSONObject status = new JSONObject();
         status.put("validationActive", subscriptionSetup.isValidation());
+        status.put("validationProfile", resolveValidationProfile(subscriptionSetup));
         status.put("currentValidations", currentValidations);
         status.put("maxValidations", maxValidations);
         status.put("currentSize", FileUtils.byteCountToDisplaySize(currentSize));
