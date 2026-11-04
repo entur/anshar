@@ -26,7 +26,6 @@ import jakarta.xml.bind.Unmarshaller;
 import jakarta.xml.bind.ValidationEvent;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.metrics.PrometheusMetricsService;
-import no.rutebanken.anshar.routes.siri.transformer.ApplicationContextHolder;
 import no.rutebanken.anshar.routes.validation.validators.CustomValidator;
 import no.rutebanken.anshar.routes.validation.validators.ProfileValidationEventOrList;
 import no.rutebanken.anshar.routes.validation.validators.SiriObjectValidator;
@@ -44,6 +43,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
@@ -77,6 +77,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashSet;
 import java.util.List;
@@ -102,7 +103,7 @@ import static no.rutebanken.anshar.util.CompressionUtil.compress;
 
 @Component
 @Configuration
-public class SiriXmlValidator extends ApplicationContextHolder {
+public class SiriXmlValidator {
 
     private static final Logger logger = LoggerFactory.getLogger(SiriXmlValidator.class);
 
@@ -148,7 +149,10 @@ public class SiriXmlValidator extends ApplicationContextHolder {
     @Autowired
     private PrometheusMetricsService metricsService;
 
-    private volatile Map<SiriDataType, Set<CustomValidator>> validationRules;
+    @Autowired(required = false)
+    private List<CustomValidator> customValidators = List.of();
+
+    private Map<SiriDataType, Set<CustomValidator>> validationRules = Map.of();
 
     private static final int CLEANUP_INTERVAL_MINUTES = 10;
 
@@ -303,41 +307,31 @@ public class SiriXmlValidator extends ApplicationContextHolder {
     }
 
     /**
-     * Rules are loaded on first use - the map is not published until it is complete, since validation is done by multiple threads
+     * Resolves the validation rules for the configured profile once at startup, so the validation path only reads an
+     * immutable map.
      */
-    private Map<SiriDataType, Set<CustomValidator>> getValidationRules() {
-        Map<SiriDataType, Set<CustomValidator>> rules = validationRules;
-        if (rules == null) {
-            synchronized (this) {
-                rules = validationRules;
-                if (rules == null) {
-                    rules = loadValidationRules();
-                    if (!rules.isEmpty()) {
-                        validationRules = rules;
-                    }
-                }
-            }
-        }
-        return rules;
-    }
-
-    private Map<SiriDataType, Set<CustomValidator>> loadValidationRules() {
+    @PostConstruct
+    void initValidationRules() {
+        final String profileName = configuration.getValidationProfileName();
         Map<SiriDataType, Set<CustomValidator>> rules = new EnumMap<>(SiriDataType.class);
-        Map<String, Object> validatorBeans = getContext().getBeansWithAnnotation(Validator.class);
 
-        for (Object o : validatorBeans.values()) {
-            if (o instanceof CustomValidator) {
-                final String[] profileNames = o.getClass().getAnnotation(Validator.class).profileNames();
-                if (Arrays.asList(profileNames).contains(configuration.getValidationProfileName())) {
-                    final SiriDataType type = o.getClass().getAnnotation(Validator.class).targetType();
-
-                    rules.computeIfAbsent(type, t -> new HashSet<>()).add((CustomValidator) o);
-                }
+        for (CustomValidator validator : customValidators) {
+            final Validator annotation = AnnotationUtils.findAnnotation(validator.getClass(), Validator.class);
+            if (annotation != null && Arrays.asList(annotation.profileNames()).contains(profileName)) {
+                rules.computeIfAbsent(annotation.targetType(), t -> new HashSet<>()).add(validator);
             }
         }
-        return rules;
-    }
 
+        rules.replaceAll((type, validators) -> Set.copyOf(validators));
+        validationRules = Collections.unmodifiableMap(rules);
+
+        if (rules.isEmpty()) {
+            logger.warn("No validation rules found for profile '{}'", profileName);
+        } else {
+            rules.forEach((type, validators) ->
+                logger.info("Loaded {} validation rules for profile '{}', type {}", validators.size(), profileName, type));
+        }
+    }
 
     public Siri parseXml(SubscriptionSetup subscriptionSetup, String xml)
         throws XMLStreamException {
@@ -530,7 +524,7 @@ public class SiriXmlValidator extends ApplicationContextHolder {
         int errorCounter = 0;
         int ruleCounter = 0;
         // No rules may be defined for the type in the current profile
-        for (CustomValidator rule : getValidationRules().getOrDefault(type, Set.of())) {
+        for (CustomValidator rule : validationRules.getOrDefault(type, Set.of())) {
             if (rule instanceof SiriObjectValidator) {
                 ValidationEvent event = ((SiriObjectValidator)rule).isValid(siri);
                 ruleCounter++;
