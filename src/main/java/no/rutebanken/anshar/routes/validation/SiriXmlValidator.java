@@ -509,6 +509,7 @@ public class SiriXmlValidator {
 
             SiriValidationEventHandler profileValidationResults = new SiriValidationEventHandler();
 
+            final String profileName = resolveValidationProfile(subscriptionSetup);
             validateAttributes(originalXml, type, getValidationRules(subscriptionSetup), siri, profileValidationResults);
 
             if (subscriptionSetup.isValidation()) {
@@ -528,6 +529,7 @@ public class SiriXmlValidator {
                 JSONObject combinedEvents = new JSONObject();
                 combinedEvents.put("schema", schemaEvents);
                 combinedEvents.put("profile", profileEvents);
+                combinedEvents.put("profileName", profileName);
 
                 addResult(subscriptionSetup, originalXml, combinedEvents);
 
