@@ -91,6 +91,9 @@ public class SubscriptionSetup implements Serializable {
     private DataNotReceivedAction dataNotReceivedAction;
     private String validationFilter;
 
+    /** Validation profile for this subscription - falls back to anshar.validation.profile.name when not set */
+    private String validationProfile;
+
     private boolean forwardPositionData;
 
     private boolean useProvidedCodespaceId = false;
@@ -305,6 +308,7 @@ public class SubscriptionSetup implements Serializable {
         obj.put("inboundUrl", buildUrl(true));
         obj.put("validation", isValidation());
         obj.put("validationFilter", getValidationFilter());
+        obj.put("validationProfile", getValidationProfile());
         obj.put("contentType", getContentType());
         obj.put("restartTime", getRestartTime());
         obj.put("forwardPositionData", forwardPositionData());
@@ -445,6 +449,14 @@ public class SubscriptionSetup implements Serializable {
 
     public String getValidationFilter() {
         return validationFilter;
+    }
+
+    public String getValidationProfile() {
+        return validationProfile;
+    }
+
+    public void setValidationProfile(String validationProfile) {
+        this.validationProfile = validationProfile;
     }
 
     public boolean enrichSiriData() {
@@ -696,6 +708,10 @@ public class SubscriptionSetup implements Serializable {
         }
         if (getMappingAdapterId() != null ? !getMappingAdapterId().equals(that.getMappingAdapterId()) : that.getMappingAdapterId() != null) {
             logger.info("getMappingAdapterId() does not match [{}] vs [{}]", getMappingAdapterId(), that.getMappingAdapterId());
+            return false;
+        }
+        if (getValidationProfile() != null ? !getValidationProfile().equals(that.getValidationProfile()) : that.getValidationProfile() != null) {
+            logger.info("getValidationProfile() does not match [{}] vs [{}]", getValidationProfile(), that.getValidationProfile());
             return false;
         }
         if (!Arrays.equals(filterMapPresets, that.filterMapPresets)) {

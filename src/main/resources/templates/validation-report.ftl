@@ -24,6 +24,8 @@
         <span>Size: ${body.status.currentSize} / ${body.status.maxSize}</span>
         <span>-</span>
         <span>Count: ${body.status.currentValidations} / ${body.status.maxValidations}</span>
+        <span>-</span>
+        <span>Profile: ${(body.status.validationProfile!"")?has_content?then(body.status.validationProfile!"", "none (no default profile configured)")?html}</span>
     </#if>
 
     <div class="mt-3 text-center">
@@ -46,6 +48,7 @@
                 <th class="text-center">#</th>
                 <th>Timestamp</th>
                 <th class="text-center">Schema validation errors</th>
+                <th>Profile</th>
                 <th class="text-center">Profile validation errors</th>
                 <th>XML</th>
             </tr>
@@ -56,11 +59,12 @@
                     <th class="text-center" data-bs-toggle="collapse" data-bs-target="#accordion${validation?counter}" >${validation?counter}</th>
                     <td data-bs-toggle="collapse" data-bs-target="#accordion${validation?counter}" >${validation.schema.timestamp?number_to_datetime?datetime?string("MMM d, yyyy, HH:mm:ss ")}</td>
                     <td class="text-center" data-bs-toggle="collapse" data-bs-target="#accordion${validation?counter}" >${validation.schema.errorCount?c}</td>
+                    <td data-bs-toggle="collapse" data-bs-target="#accordion${validation?counter}" ><#if !validation.profileName??>-<#elseif validation.profileName?has_content>${validation.profileName?html}<#else>none</#if></td>
                     <td class="text-center" data-bs-toggle="collapse" data-bs-target="#accordion${validation?counter}" >${validation.profile.errorCount?c}</td>
                     <td><a href="siri?validationRef=${validation.validationRef}">XML <span class="bi bi-cloud-arrow-down-fill text-success ms-2"></span></a></td>
                 </tr>
                 <tr id="accordion${validation?counter}" class="collapse">
-                    <td colspan="5">
+                    <td colspan="6">
                         <#if validation.schema.events?has_content >
                             <fieldset>
                                 <legend>Schema validation</legend>

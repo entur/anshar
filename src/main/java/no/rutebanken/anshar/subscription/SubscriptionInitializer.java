@@ -19,6 +19,7 @@ import com.google.common.base.Preconditions;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import no.rutebanken.anshar.config.AnsharConfiguration;
+import no.rutebanken.anshar.routes.validation.SiriXmlValidator;
 import no.rutebanken.anshar.routes.siri.Siri20ToSiriRS14Subscription;
 import no.rutebanken.anshar.routes.siri.Siri20ToSiriRS20RequestResponse;
 import no.rutebanken.anshar.routes.siri.Siri20ToSiriRS20Subscription;
@@ -71,6 +72,9 @@ public class SubscriptionInitializer implements CamelContextAware {
 
     @Autowired
     private MappingAdapterRegistry mappingAdapterRegistry;
+
+    @Autowired
+    private SiriXmlValidator siriXmlValidator;
 
     @Value("${anshar.reduced.logging.override.names}")
     List<String> reducedLoggingOverrideNames = new ArrayList<>();
@@ -141,6 +145,8 @@ public class SubscriptionInitializer implements CamelContextAware {
                     //Verify internalId-uniqueness
                     throw new ServiceConfigurationError("InternalId is NOT unique for ID="+subscriptionSetup.getInternalId());
                 }
+
+                verifyValidationProfile(subscriptionSetup);
 
                 if (subscriptionSetup.isReduceLogging()) {
                     logger.info("Permanently reduce logging for subscription {}", subscriptionSetup);
@@ -269,6 +275,15 @@ public class SubscriptionInitializer implements CamelContextAware {
             }
         }
         return routeBuilders;
+    }
+
+    private void verifyValidationProfile(SubscriptionSetup subscriptionSetup) {
+        final String validationProfile = subscriptionSetup.getValidationProfile();
+        if (validationProfile != null && !validationProfile.isBlank() &&
+            !siriXmlValidator.isKnownValidationProfile(validationProfile)) {
+            logger.error("Unknown validationProfile '{}' for subscription {} - default profile '{}' will be used",
+                validationProfile, subscriptionSetup, configuration.getValidationProfileName());
+        }
     }
 
     boolean isValid(SubscriptionSetup s) {

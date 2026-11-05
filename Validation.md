@@ -26,6 +26,20 @@ Profile validation is annotation-based (@Validator). Validation-rules are implem
 profile-name, and which SIRI datatype the rule applies to. The validator then loads rulesets and loops through all applicable 
 rules to provide a complete report. 
 
+### Choosing profile
+Rules for all profiles are loaded on startup. The default profile is set with `anshar.validation.profile.name`, and 
+can be overridden per subscription with `validationProfile` in the subscription config:
+
+```yaml
+    - internalId: 100
+      vendor: someSwedishVendor
+      validationProfile: sweden
+```
+
+Profile names are matched case-insensitively. If a subscription refers to an unknown profile, an error is logged when 
+subscriptions are loaded, and the default profile is used instead. If `anshar.validation.profile.name` is empty, an 
+error is logged on startup, and subscriptions without `validationProfile` are only schema-validated.
+
 ### Auto shut off
 The validator stores all validation results and a zipped byte-array of the actual XML in a distributed
 map. To avoid memory-issues, the validator is automatically switched off when either 20 XML-documents have been validated,
