@@ -44,6 +44,34 @@ public class ValidationReportTemplateTest {
         assertTrue(html.contains(">-</td>"), "Missing profile should be shown as '-'");
     }
 
+    @Test
+    public void testReportShowsMissingDefaultProfile() throws Exception {
+        JSONObject subscription = new JSONObject();
+        subscription.put("name", "test-subscription");
+
+        JSONObject status = new JSONObject();
+        status.put("validationActive", true);
+        status.put("currentSize", "1 KB");
+        status.put("maxSize", "4 MB");
+        status.put("currentValidations", 1);
+        status.put("maxValidations", 20);
+        // anshar.validation.profile.name is empty
+        status.put("validationProfile", "");
+
+        JSONArray validationRefs = new JSONArray();
+        validationRefs.add(validation("ref-1", ""));
+
+        JSONObject body = new JSONObject();
+        body.put("subscription", subscription);
+        body.put("status", status);
+        body.put("validationRefs", validationRefs);
+
+        String html = render(body);
+
+        assertTrue(html.contains("Profile: none (no default profile configured)"), "Missing default profile should be explained");
+        assertTrue(html.contains(">none</td>"), "Validation without profile should be shown as 'none'");
+    }
+
     private static JSONObject validation(String ref, String profileName) {
         JSONObject schema = new JSONObject();
         schema.put("timestamp", System.currentTimeMillis());

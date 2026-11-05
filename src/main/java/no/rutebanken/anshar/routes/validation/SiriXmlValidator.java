@@ -339,7 +339,11 @@ public class SiriXmlValidator {
         validationRulesByProfile = Map.copyOf(rules);
 
         final String defaultProfile = normalizeProfileName(configuration.getValidationProfileName());
-        if (!validationRulesByProfile.containsKey(defaultProfile)) {
+        if (defaultProfile == null || defaultProfile.isEmpty()) {
+            logger.error("No default validation profile configured (anshar.validation.profile.name is empty) - " +
+                "subscriptions without validationProfile will not be profile-validated. Known profiles: {}",
+                validationRulesByProfile.keySet());
+        } else if (!validationRulesByProfile.containsKey(defaultProfile)) {
             logger.warn("No validation rules found for default profile '{}' - known profiles: {}",
                 defaultProfile, validationRulesByProfile.keySet());
         } else {
