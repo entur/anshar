@@ -236,18 +236,11 @@ public class EstimatedTimetables extends SiriRepository<EstimatedVehicleJourney>
             isAdHocRequest = true;
         }
 
-        // Get all relevant ids - the current data for the first request, otherwise what has changed since last request
-        Set<SiriObjectStorageKey> idSet = isAdHocRequest ? null : changesMap.get(requestorId);
-        final boolean isFirstRequest = idSet == null;
-
-        if (isFirstRequest) {
-            if (!isAdHocRequest) {
-                startTracking(requestorId, trackingPeriodMinutes, TimeUnit.MINUTES);
-            }
-            idSet = new HashSet<>(timetableDeliveries
-                    .keySet(entry -> datasetId == null || ((SiriObjectStorageKey) entry.getKey()).getCodespaceId().equals(datasetId))
-            );
-        }
+        // Ids pending for the requestor - the current data for the first request, otherwise what has changed since last request
+        final PendingChanges pending = getPendingChanges(isAdHocRequest ? null : requestorId, () -> timetableDeliveries
+                .keySet(entry -> datasetId == null || ((SiriObjectStorageKey) entry.getKey()).getCodespaceId().equals(datasetId)),
+                trackingPeriodMinutes, TimeUnit.MINUTES);
+        final Set<SiriObjectStorageKey> idSet = pending.ids();
 
         //Filter by datasetId
         Set<SiriObjectStorageKey> requestedIds = filterIdsByDataset(idSet, excludedDatasetIds, datasetId);
@@ -293,10 +286,7 @@ public class EstimatedTimetables extends SiriRepository<EstimatedVehicleJourney>
         Boolean isMoreData = (previewIntervalExclusionCounter.get() + sizeLimitedIds.size()) < requestedIds.size();
         final int remainingCount = requestedIds.size() - sizeLimitedIds.size();
 
-        if (!isAdHocRequest) {
-            // Removes the returned ids from the requestor's change set - ids taken by a concurrent request are left out
-            sizeLimitedIds = takeChanges(requestorId, isFirstRequest, idSet, sizeLimitedIds);
-        }
+        sizeLimitedIds = takeChanges(isAdHocRequest ? null : requestorId, pending, sizeLimitedIds);
 
         long t3 = System.currentTimeMillis();
 

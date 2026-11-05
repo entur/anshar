@@ -230,16 +230,10 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
             isAdHocRequest = true;
         }
 
-        // Get all relevant ids - the current data for the first request, otherwise what has changed since last request
-        Set<SiriObjectStorageKey> idSet = isAdHocRequest ? null : changesMap.get(requestorId);
-        final boolean isFirstRequest = idSet == null;
-
-        if (isFirstRequest) {
-            if (!isAdHocRequest) {
-                startTracking(requestorId, trackingPeriodMinutes, TimeUnit.MINUTES);
-            }
-            idSet = new HashSet<>(monitoredVehicles.keySet());
-        }
+        // Ids pending for the requestor - the current data for the first request, otherwise what has changed since last request
+        final PendingChanges pending = getPendingChanges(isAdHocRequest ? null : requestorId, monitoredVehicles::keySet,
+                trackingPeriodMinutes, TimeUnit.MINUTES);
+        final Set<SiriObjectStorageKey> idSet = pending.ids();
 
         Set<SiriObjectStorageKey> requestedIds = filterIdsByDataset(idSet, excludedDatasetIds, datasetId);
 
@@ -248,10 +242,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
         Boolean isMoreData = sizeLimitedIds.size() < requestedIds.size();
         final int remainingCount = requestedIds.size() - sizeLimitedIds.size();
 
-        if (!isAdHocRequest) {
-            // Removes the returned ids from the requestor's change set - ids taken by a concurrent request are left out
-            sizeLimitedIds = takeChanges(requestorId, isFirstRequest, idSet, sizeLimitedIds);
-        }
+        sizeLimitedIds = takeChanges(isAdHocRequest ? null : requestorId, pending, sizeLimitedIds);
 
         Collection<VehicleActivityStructure> values = monitoredVehicles.getAll(sizeLimitedIds).values();
 

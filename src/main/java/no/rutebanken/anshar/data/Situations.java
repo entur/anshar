@@ -142,16 +142,10 @@ public class Situations extends SiriRepository<PtSituationElement> {
             isAdHocRequest = true;
         }
 
-        // Get all relevant ids - the current data for the first request, otherwise what has changed since last request
-        Set<SiriObjectStorageKey> idSet = isAdHocRequest ? null : changesMap.get(requestorId);
-        final boolean isFirstRequest = idSet == null;
-
-        if (isFirstRequest) {
-            if (!isAdHocRequest) {
-                startTracking(requestorId, trackingPeriodMinutes, TimeUnit.MINUTES);
-            }
-            idSet = new HashSet<>(situationElements.keySet());
-        }
+        // Ids pending for the requestor - the current data for the first request, otherwise what has changed since last request
+        final PendingChanges pending = getPendingChanges(isAdHocRequest ? null : requestorId, situationElements::keySet,
+                trackingPeriodMinutes, TimeUnit.MINUTES);
+        final Set<SiriObjectStorageKey> idSet = pending.ids();
 
         //Filter by datasetId
         Set<SiriObjectStorageKey> requestedIds = idSet.stream()
@@ -164,10 +158,7 @@ public class Situations extends SiriRepository<PtSituationElement> {
         Boolean isMoreData = sizeLimitedIds.size() < requestedIds.size();
         final int remainingCount = requestedIds.size() - sizeLimitedIds.size();
 
-        if (!isAdHocRequest) {
-            // Removes the returned ids from the requestor's change set - ids taken by a concurrent request are left out
-            sizeLimitedIds = takeChanges(requestorId, isFirstRequest, idSet, sizeLimitedIds);
-        }
+        sizeLimitedIds = takeChanges(isAdHocRequest ? null : requestorId, pending, sizeLimitedIds);
 
         Collection<PtSituationElement> values = situationElements.getAll(sizeLimitedIds).values();
 

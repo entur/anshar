@@ -63,6 +63,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 abstract class SiriRepository<T> {
@@ -447,7 +448,7 @@ abstract class SiriRepository<T> {
                     selected.add(entry.getKey());
                 }
             }
-            takeChanges(requestorId, true, snapshotKeys, selected);
+            takeChanges(requestorId, new PendingChanges(snapshotKeys, true), selected);
 
             return new CachedUpdates<>(updates, snapshotKeys.size() > selected.size());
 
@@ -620,18 +621,45 @@ abstract class SiriRepository<T> {
     }
 
     /**
-     * Updates the requestor's change set after selecting the keys to return.
+     * Ids pending for a requestor
      *
-     * @param isFirstRequest true if tracking was started by this request - pendingIds are then the current data
-     * @param pendingIds     the keys the selection was made from
-     * @param selectedIds    the keys selected to be returned
-     * @return the keys to return
+     * @param ids            the current data for the first request, otherwise what has changed since the last request
+     * @param isFirstRequest true if tracking was started by this request
      */
-    Set<SiriObjectStorageKey> takeChanges(String requestorId, boolean isFirstRequest,
-                                          Set<SiriObjectStorageKey> pendingIds, Set<SiriObjectStorageKey> selectedIds) {
-        if (isFirstRequest) {
-            // Keys held back from the current data are returned by the next request
-            Set<SiriObjectStorageKey> remaining = new HashSet<>(pendingIds);
+    record PendingChanges(Set<SiriObjectStorageKey> ids, boolean isFirstRequest) {}
+
+    /**
+     * @param requestorId null for ad-hoc requests - nothing is tracked
+     * @param currentIds  supplies the current data, used for the first request
+     * @return ids pending for the requestor
+     */
+    PendingChanges getPendingChanges(String requestorId, Supplier<Set<SiriObjectStorageKey>> currentIds,
+                                     int trackingPeriod, TimeUnit timeUnit) {
+        final Set<SiriObjectStorageKey> trackedChanges = requestorId == null ? null : changesMap.get(requestorId);
+        if (trackedChanges != null) {
+            return new PendingChanges(trackedChanges, false);
+        }
+        if (requestorId != null) {
+            startTracking(requestorId, trackingPeriod, timeUnit);
+        }
+        return new PendingChanges(new HashSet<>(currentIds.get()), true);
+    }
+
+    /**
+     * Removes the selected ids from the requestor's change set.
+     *
+     * @param requestorId null for ad-hoc requests - nothing is tracked
+     * @param pending     the ids the selection was made from
+     * @param selectedIds the ids selected to be returned
+     * @return the ids to return - ids taken by a concurrent request are left out
+     */
+    Set<SiriObjectStorageKey> takeChanges(String requestorId, PendingChanges pending, Set<SiriObjectStorageKey> selectedIds) {
+        if (requestorId == null) {
+            return selectedIds;
+        }
+        if (pending.isFirstRequest()) {
+            // Ids held back from the current data are returned by the next request
+            Set<SiriObjectStorageKey> remaining = new HashSet<>(pending.ids());
             remaining.removeAll(selectedIds);
             if (!remaining.isEmpty()) {
                 changesMap.executeOnKey(requestorId, new AppendChangesToSetEntryProcessor(remaining));
