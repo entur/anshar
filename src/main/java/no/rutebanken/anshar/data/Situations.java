@@ -52,6 +52,7 @@ public class Situations extends SiriRepository<PtSituationElement> {
     private final Logger logger = LoggerFactory.getLogger(Situations.class);
 
     @Autowired
+    @Qualifier("getSituationsMap")
     private IMap<SiriObjectStorageKey , PtSituationElement>  situationElements;
 
     @Autowired
@@ -142,13 +143,10 @@ public class Situations extends SiriRepository<PtSituationElement> {
             isAdHocRequest = true;
         }
 
-        // Get all relevant ids
-        Set<SiriObjectStorageKey> allIds = new HashSet<>();
-        Set<SiriObjectStorageKey> idSet = changesMap.getOrDefault(requestorId, allIds);
-
-        if (idSet == allIds) {
-            idSet.addAll(situationElements.keySet());
-        }
+        // Ids pending for the requestor - the current data for the first request, otherwise what has changed since last request
+        final PendingChanges pending = getPendingChanges(isAdHocRequest ? null : requestorId, situationElements::keySet,
+                trackingPeriodMinutes, TimeUnit.MINUTES);
+        final Set<SiriObjectStorageKey> idSet = pending.ids();
 
         //Filter by datasetId
         Set<SiriObjectStorageKey> requestedIds = idSet.stream()
@@ -159,9 +157,9 @@ public class Situations extends SiriRepository<PtSituationElement> {
         Set<SiriObjectStorageKey> sizeLimitedIds = requestedIds.stream().limit(maxSize).collect(Collectors.toSet());
 
         Boolean isMoreData = sizeLimitedIds.size() < requestedIds.size();
+        final int remainingCount = requestedIds.size() - sizeLimitedIds.size();
 
-        //Remove collected objects
-        sizeLimitedIds.forEach(idSet::remove);
+        sizeLimitedIds = takeChanges(isAdHocRequest ? null : requestorId, pending, sizeLimitedIds);
 
         Collection<PtSituationElement> values = situationElements.getAll(sizeLimitedIds).values();
 
@@ -178,10 +176,9 @@ public class Situations extends SiriRepository<PtSituationElement> {
             msgRef.setValue(requestorId);
             siri.getServiceDelivery().setRequestMessageRef(msgRef);
 
-            //Update change-tracker
-            updateChangeTrackers(lastUpdateRequested, changesMap, requestorId, idSet, trackingPeriodMinutes, TimeUnit.MINUTES);
+            refreshTracking(requestorId, trackingPeriodMinutes, TimeUnit.MINUTES);
 
-            logger.info("Returning {}, {} left for requestorRef {}", sizeLimitedIds.size(), idSet.size(), requestorId);
+            logger.info("Returning {}, {} left for requestorRef {}", sizeLimitedIds.size(), remainingCount, requestorId);
         }
 
         return siri;

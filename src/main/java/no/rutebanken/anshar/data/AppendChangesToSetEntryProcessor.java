@@ -16,6 +16,7 @@ package no.rutebanken.anshar.data;
 
 import com.hazelcast.map.EntryProcessor;
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -30,6 +31,10 @@ public class AppendChangesToSetEntryProcessor implements EntryProcessor<String, 
     @Override
     public Set<SiriObjectStorageKey> process(Map.Entry<String, Set<SiriObjectStorageKey>> entry) {
         Set<SiriObjectStorageKey> value = entry.getValue();
+        if (value == null) {
+            // Creates the change set for a new requestor
+            value = new HashSet<>();
+        }
         value.addAll(changes);
         entry.setValue(value);
         // Nothing is returned to avoid sending the full set back to the caller

@@ -67,6 +67,7 @@ public class EstimatedTimetables extends SiriRepository<EstimatedVehicleJourney>
     private static final long ONE_WEEK_IN_MILLIS = 60 * 60 * 24 * 7 * 1000;
 
     @Autowired
+    @Qualifier("getEstimatedTimetablesMap")
     private IMap<SiriObjectStorageKey, EstimatedVehicleJourney> timetableDeliveries;
 
     @Autowired
@@ -236,15 +237,11 @@ public class EstimatedTimetables extends SiriRepository<EstimatedVehicleJourney>
             isAdHocRequest = true;
         }
 
-        // Get all relevant ids
-        Set<SiriObjectStorageKey> allIds = new HashSet<>();
-        Set<SiriObjectStorageKey> idSet = changesMap.getOrDefault(requestorId, allIds);
-
-        if (idSet == allIds) {
-            idSet.addAll(timetableDeliveries
-                    .keySet(entry -> datasetId == null || ((SiriObjectStorageKey) entry.getKey()).getCodespaceId().equals(datasetId))
-            );
-        }
+        // Ids pending for the requestor - the current data for the first request, otherwise what has changed since last request
+        final PendingChanges pending = getPendingChanges(isAdHocRequest ? null : requestorId, () -> timetableDeliveries
+                .keySet(entry -> datasetId == null || ((SiriObjectStorageKey) entry.getKey()).getCodespaceId().equals(datasetId)),
+                trackingPeriodMinutes, TimeUnit.MINUTES);
+        final Set<SiriObjectStorageKey> idSet = pending.ids();
 
         //Filter by datasetId
         Set<SiriObjectStorageKey> requestedIds = filterIdsByDataset(idSet, excludedDatasetIds, datasetId);
@@ -286,16 +283,17 @@ public class EstimatedTimetables extends SiriRepository<EstimatedVehicleJourney>
                 .collect(Collectors.toSet());
 
         long t2 = System.currentTimeMillis();
-        //Remove collected objects
-        sizeLimitedIds.forEach(idSet::remove);
+
+        Boolean isMoreData = (previewIntervalExclusionCounter.get() + sizeLimitedIds.size()) < requestedIds.size();
+        final int remainingCount = requestedIds.size() - sizeLimitedIds.size();
+
+        sizeLimitedIds = takeChanges(isAdHocRequest ? null : requestorId, pending, sizeLimitedIds);
 
         long t3 = System.currentTimeMillis();
 
-        logger.info("Filter by startTime: {}, limiting size: {} ms", (t2 - t1), (t3 - t2));
+        logger.info("Filter by startTime: {}, updating change-tracker: {} ms", (t2 - t1), (t3 - t2));
 
         t1 = System.currentTimeMillis();
-
-        Boolean isMoreData = (previewIntervalExclusionCounter.get() + sizeLimitedIds.size()) < requestedIds.size();
 
         Collection<EstimatedVehicleJourney> values = timetableDeliveries.getAll(sizeLimitedIds).values();
         logger.info("Fetching data: {} ms", (System.currentTimeMillis() - t1));
@@ -314,10 +312,9 @@ public class EstimatedTimetables extends SiriRepository<EstimatedVehicleJourney>
             msgRef.setValue(requestorId);
             siri.getServiceDelivery().setRequestMessageRef(msgRef);
 
-            //Update change-tracker
-            updateChangeTrackers(lastUpdateRequested, changesMap, requestorId, idSet, trackingPeriodMinutes, TimeUnit.MINUTES);
+            refreshTracking(requestorId, trackingPeriodMinutes, TimeUnit.MINUTES);
 
-            logger.info("Returning {}, {} left for requestorRef {}", sizeLimitedIds.size(), idSet.size(), requestorId);
+            logger.info("Returning {}, {} left for requestorRef {}", sizeLimitedIds.size(), remainingCount, requestorId);
         }
 
         return siri;
