@@ -20,6 +20,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.data.EstimatedTimetables;
 import no.rutebanken.anshar.data.Facilities;
+import no.rutebanken.anshar.data.CachedUpdates;
 import no.rutebanken.anshar.data.Situations;
 import no.rutebanken.anshar.data.VehicleActivities;
 import no.rutebanken.anshar.metrics.PrometheusMetricsService;
@@ -37,6 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import uk.org.siri.siri21.EstimatedVehicleJourney;
 import uk.org.siri.siri21.Siri;
 import uk.org.siri.siri21.VehicleActivityStructure;
 
@@ -425,8 +427,9 @@ public class SiriLiteRoute extends RestRouteBuilder {
                         String clientTrackingName = p.getIn().getHeader(configuration.getTrackingHeaderName(), String.class);
 
                         logger.info("Fetching cached VM-data");
-                        final Collection<VehicleActivityStructure> cachedUpdates = vehicleActivities
-                            .getAllCachedUpdates(requestorId, datasetId, lineRef, clientTrackingName, maxSize);
+                        final CachedUpdates<VehicleActivityStructure> cachedResult = vehicleActivities
+                            .getCachedUpdates(requestorId, datasetId, lineRef, clientTrackingName, maxSize);
+                        final Collection<VehicleActivityStructure> cachedUpdates = cachedResult.updates();
                         List<String> excludedIdList = getParameterValuesAsList(p.getIn(), PARAM_EXCLUDED_DATASET_ID);
 
                         if (excludedIdList != null && !excludedIdList.isEmpty()) {
@@ -441,6 +444,7 @@ public class SiriLiteRoute extends RestRouteBuilder {
                         }
 
                         Siri response = siriObjectFactory.createVMServiceDelivery(cachedUpdates);
+                        response.getServiceDelivery().setMoreData(cachedResult.moreData());
 
                         List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(
                                                                                         SiriDataType.VEHICLE_MONITORING,
@@ -477,9 +481,11 @@ public class SiriLiteRoute extends RestRouteBuilder {
                     String clientTrackingName = p.getIn().getHeader(configuration.getTrackingHeaderName(), String.class);
 
                     logger.info("Fetching cached ET-data");
-                    Siri response = siriObjectFactory.createETServiceDelivery(estimatedTimetables.getAllCachedUpdates(requestorId,
+                    final CachedUpdates<EstimatedVehicleJourney> cachedResult = estimatedTimetables.getCachedUpdates(requestorId,
                             datasetId, lineRef, clientTrackingName, maxSize
-                    ));
+                    );
+                    Siri response = siriObjectFactory.createETServiceDelivery(cachedResult.updates());
+                    response.getServiceDelivery().setMoreData(cachedResult.moreData());
 
                     List<ValueAdapter> outboundAdapters = mappingAdapterPresets.getOutboundAdapters(
                             SiriDataType.ESTIMATED_TIMETABLE,
