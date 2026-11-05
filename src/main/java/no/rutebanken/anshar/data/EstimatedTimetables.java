@@ -67,6 +67,7 @@ public class EstimatedTimetables extends SiriRepository<EstimatedVehicleJourney>
     private static final long ONE_WEEK_IN_MILLIS = 60 * 60 * 24 * 7 * 1000;
 
     @Autowired
+    @Qualifier("getEstimatedTimetablesMap")
     private IMap<SiriObjectStorageKey, EstimatedVehicleJourney> timetableDeliveries;
 
     @Autowired

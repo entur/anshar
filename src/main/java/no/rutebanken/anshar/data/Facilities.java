@@ -51,6 +51,7 @@ public class Facilities extends SiriRepository<FacilityConditionStructure> {
     private final Logger logger = LoggerFactory.getLogger(Facilities.class);
 
     @Autowired
+    @Qualifier("getFacilitiesMap")
     private IMap<SiriObjectStorageKey , FacilityConditionStructure> facilityConditions;
 
     @Autowired

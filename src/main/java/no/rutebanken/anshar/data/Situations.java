@@ -52,6 +52,7 @@ public class Situations extends SiriRepository<PtSituationElement> {
     private final Logger logger = LoggerFactory.getLogger(Situations.class);
 
     @Autowired
+    @Qualifier("getSituationsMap")
     private IMap<SiriObjectStorageKey , PtSituationElement>  situationElements;
 
     @Autowired

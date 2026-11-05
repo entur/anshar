@@ -61,6 +61,7 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
     private final Logger logger = LoggerFactory.getLogger(VehicleActivities.class);
 
     @Autowired
+    @Qualifier("getVehiclesMap")
     private IMap<SiriObjectStorageKey, VehicleActivityStructure> monitoredVehicles;
 
     @Autowired
