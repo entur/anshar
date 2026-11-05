@@ -142,12 +142,15 @@ public class Situations extends SiriRepository<PtSituationElement> {
             isAdHocRequest = true;
         }
 
-        // Get all relevant ids
-        Set<SiriObjectStorageKey> allIds = new HashSet<>();
-        Set<SiriObjectStorageKey> idSet = changesMap.getOrDefault(requestorId, allIds);
+        // Get all relevant ids - the current data for the first request, otherwise what has changed since last request
+        Set<SiriObjectStorageKey> idSet = isAdHocRequest ? null : changesMap.get(requestorId);
+        final boolean isFirstRequest = idSet == null;
 
-        if (idSet == allIds) {
-            idSet.addAll(situationElements.keySet());
+        if (isFirstRequest) {
+            if (!isAdHocRequest) {
+                startTracking(requestorId, trackingPeriodMinutes, TimeUnit.MINUTES);
+            }
+            idSet = new HashSet<>(situationElements.keySet());
         }
 
         //Filter by datasetId
@@ -159,9 +162,12 @@ public class Situations extends SiriRepository<PtSituationElement> {
         Set<SiriObjectStorageKey> sizeLimitedIds = requestedIds.stream().limit(maxSize).collect(Collectors.toSet());
 
         Boolean isMoreData = sizeLimitedIds.size() < requestedIds.size();
+        final int remainingCount = requestedIds.size() - sizeLimitedIds.size();
 
-        //Remove collected objects
-        sizeLimitedIds.forEach(idSet::remove);
+        if (!isAdHocRequest) {
+            // Removes the returned ids from the requestor's change set - ids taken by a concurrent request are left out
+            sizeLimitedIds = takeChanges(requestorId, isFirstRequest, idSet, sizeLimitedIds);
+        }
 
         Collection<PtSituationElement> values = situationElements.getAll(sizeLimitedIds).values();
 
@@ -178,10 +184,9 @@ public class Situations extends SiriRepository<PtSituationElement> {
             msgRef.setValue(requestorId);
             siri.getServiceDelivery().setRequestMessageRef(msgRef);
 
-            //Update change-tracker
-            updateChangeTrackers(lastUpdateRequested, changesMap, requestorId, idSet, trackingPeriodMinutes, TimeUnit.MINUTES);
+            refreshTracking(requestorId, trackingPeriodMinutes, TimeUnit.MINUTES);
 
-            logger.info("Returning {}, {} left for requestorRef {}", sizeLimitedIds.size(), idSet.size(), requestorId);
+            logger.info("Returning {}, {} left for requestorRef {}", sizeLimitedIds.size(), remainingCount, requestorId);
         }
 
         return siri;

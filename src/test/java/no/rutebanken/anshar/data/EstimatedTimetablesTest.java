@@ -258,6 +258,70 @@ public class EstimatedTimetablesTest extends SpringBootBaseTest {
     }
 
     @Test
+    public void testCachedUpdatesBackToBackRequestsReturnNoDuplicates() {
+        final String datasetId = "paging-fast";
+        for (int i = 0; i < 6; i++) {
+            EstimatedVehicleJourney journey = createEstimatedVehicleJourney("paging-fast-" + i, "4321", 0, 30, ZonedDateTime.now().plusHours(1), true);
+            journey.setMonitored(true);
+            estimatedTimetables.add(datasetId, journey);
+        }
+        sleep(50);
+
+        final String requestorId = UUID.randomUUID().toString();
+
+        // No pause between requests - client pages as fast as possible while MoreData is true
+        List<String> received = new ArrayList<>();
+        for (int i = 0; i < 3; i++) {
+            estimatedTimetables.getCachedUpdates(requestorId, datasetId, null, null, 2)
+                .updates().forEach(journey -> received.add(journey.getLineRef().getValue()));
+        }
+
+        assertEquals(6, received.size(), "Expected 6 journeys without duplicates, got " + received);
+        assertEquals(6, new HashSet<>(received).size(), "Duplicates returned: " + received);
+    }
+
+    @Test
+    public void testServiceDeliveryBackToBackRequestsReturnNoDuplicates() {
+        final String datasetId = "paging-fast-sd";
+        for (int i = 0; i < 6; i++) {
+            estimatedTimetables.add(datasetId, createEstimatedVehicleJourney("paging-fast-sd-" + i, "4321", 0, 30, ZonedDateTime.now().plusHours(1), true));
+        }
+        sleep(50);
+
+        final String requestorId = UUID.randomUUID().toString();
+
+        List<String> received = new ArrayList<>();
+        for (int i = 0; i < 3; i++) {
+            Siri siri = estimatedTimetables.createServiceDelivery(requestorId, datasetId, null, null, 2, -1);
+            siri.getServiceDelivery().getEstimatedTimetableDeliveries().get(0).getEstimatedJourneyVersionFrames().get(0)
+                .getEstimatedVehicleJourneies().forEach(journey -> received.add(journey.getLineRef().getValue()));
+        }
+
+        assertEquals(6, received.size(), "Expected 6 journeys without duplicates, got " + received);
+        assertEquals(6, new HashSet<>(received).size(), "Duplicates returned: " + received);
+    }
+
+    @Test
+    public void testChangesAddedDuringRequestAreKept() {
+        final String requestorId = UUID.randomUUID().toString();
+        SiriObjectStorageKey a = new SiriObjectStorageKey("race", "line", "a");
+        SiriObjectStorageKey b = new SiriObjectStorageKey("race", "line", "b");
+        SiriObjectStorageKey c = new SiriObjectStorageKey("race", "line", "c");
+
+        lastUpdateRequested.set(requestorId, Instant.now());
+        changesMap.set(requestorId, new HashSet<>(Set.of(a, b)));
+
+        // Request has read {a, b} and returns a - meanwhile c is committed for the requestor
+        changesMap.executeOnKey(requestorId, new AppendChangesToSetEntryProcessor(Set.of(c)));
+
+        assertEquals(Set.of(a), estimatedTimetables.claimChanges(requestorId, Set.of(a), Set.of()));
+        assertEquals(Set.of(b, c), changesMap.get(requestorId), "Change committed during the request was lost");
+
+        // A concurrent request that also picked a does not get it again
+        assertEquals(Set.of(), estimatedTimetables.claimChanges(requestorId, Set.of(a), Set.of()));
+    }
+
+    @Test
     public void testGetUpdatesOnly() {
 
         estimatedTimetables.add("test", createEstimatedVehicleJourney("1234-update", "4321", 0, 30, ZonedDateTime.now().plusHours(1), true));

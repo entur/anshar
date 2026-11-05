@@ -230,12 +230,15 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
             isAdHocRequest = true;
         }
 
-        // Get all relevant ids
-        Set<SiriObjectStorageKey> allIds = new HashSet<>();
-        Set<SiriObjectStorageKey> idSet = changesMap.getOrDefault(requestorId, allIds);
+        // Get all relevant ids - the current data for the first request, otherwise what has changed since last request
+        Set<SiriObjectStorageKey> idSet = isAdHocRequest ? null : changesMap.get(requestorId);
+        final boolean isFirstRequest = idSet == null;
 
-        if (idSet == allIds) {
-            idSet.addAll(monitoredVehicles.keySet());
+        if (isFirstRequest) {
+            if (!isAdHocRequest) {
+                startTracking(requestorId, trackingPeriodMinutes, TimeUnit.MINUTES);
+            }
+            idSet = new HashSet<>(monitoredVehicles.keySet());
         }
 
         Set<SiriObjectStorageKey> requestedIds = filterIdsByDataset(idSet, excludedDatasetIds, datasetId);
@@ -243,9 +246,12 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
         Set<SiriObjectStorageKey> sizeLimitedIds = requestedIds.stream().limit(maxSize).collect(Collectors.toSet());
 
         Boolean isMoreData = sizeLimitedIds.size() < requestedIds.size();
+        final int remainingCount = requestedIds.size() - sizeLimitedIds.size();
 
-        //Remove collected objects
-        sizeLimitedIds.forEach(idSet::remove);
+        if (!isAdHocRequest) {
+            // Removes the returned ids from the requestor's change set - ids taken by a concurrent request are left out
+            sizeLimitedIds = takeChanges(requestorId, isFirstRequest, idSet, sizeLimitedIds);
+        }
 
         Collection<VehicleActivityStructure> values = monitoredVehicles.getAll(sizeLimitedIds).values();
 
@@ -258,15 +264,14 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
         } else {
 
 
-            //Update change-tracker
-            updateChangeTrackers(lastUpdateRequested, changesMap, requestorId, idSet, trackingPeriodMinutes, TimeUnit.MINUTES);
+            refreshTracking(requestorId, trackingPeriodMinutes, TimeUnit.MINUTES);
 
 
             MessageRefStructure msgRef = new MessageRefStructure();
             msgRef.setValue(requestorId);
             siri.getServiceDelivery().setRequestMessageRef(msgRef);
 
-            logger.info("Returning {}, {} left for requestorRef {}", sizeLimitedIds.size(), idSet.size(), requestorId);
+            logger.info("Returning {}, {} left for requestorRef {}", sizeLimitedIds.size(), remainingCount, requestorId);
         }
 
         return siri;

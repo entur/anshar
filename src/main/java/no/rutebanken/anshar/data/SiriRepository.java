@@ -373,6 +373,11 @@ abstract class SiriRepository<T> {
     ) {
         return getAllCachedUpdates(requestorId, datasetId, null, clientTrackingName, null);
     }
+    /**
+     * How long changes are tracked for requestors of cached data
+     */
+    private static final int CACHED_UPDATES_TRACKING_MINUTES = 2;
+
     public Collection<T> getAllCachedUpdates(
             String requestorId, String datasetId, String lineRef, String clientTrackingName, Integer maxSize
     ) {
@@ -405,43 +410,49 @@ abstract class SiriRepository<T> {
             SIRI_DATA_TYPE
         );
 
-        // Matching keys that are not returned now - kept for the next request
-        final Set<SiriObjectStorageKey> remaining = new HashSet<>();
         try {
             final Set<SiriObjectStorageKey> trackedChanges = changesMap.get(requestorId);
 
             if (trackedChanges != null) {
-                final List<SiriObjectStorageKey> matching = trackedChanges.stream()
-                    .filter((k) -> datasetId == null || codespaceMatches(datasetId, k))
-                    .filter((k) -> lineRef == null || lineRefMatches(lineRef, k))
-                    .toList();
+                final List<SiriObjectStorageKey> matching = new ArrayList<>();
+                final Set<SiriObjectStorageKey> notMatching = new HashSet<>();
+                for (SiriObjectStorageKey key : trackedChanges) {
+                    if ((datasetId == null || codespaceMatches(datasetId, key)) &&
+                        (lineRef == null || lineRefMatches(lineRef, key))) {
+                        matching.add(key);
+                    } else {
+                        notMatching.add(key);
+                    }
+                }
 
-                final List<SiriObjectStorageKey> keys = matching.subList(0, Math.min(limit, matching.size()));
-                remaining.addAll(matching.subList(keys.size(), matching.size()));
+                final Set<SiriObjectStorageKey> selected = new HashSet<>(matching.subList(0, Math.min(limit, matching.size())));
 
-                return new CachedUpdates<>(getCachedValues(keys), !remaining.isEmpty());
+                // Changes not matching the request are dropped, matching changes held back are kept for the next request
+                final Set<SiriObjectStorageKey> claimed = claimChanges(requestorId, selected, notMatching);
+
+                return new CachedUpdates<>(getCachedValues(claimed), matching.size() > selected.size());
             }
 
             // First request from this requestor - return current data
+            startTracking(requestorId, CACHED_UPDATES_TRACKING_MINUTES, TimeUnit.MINUTES);
+
             final List<Map.Entry<SiriObjectStorageKey, T>> snapshot = getCachedSnapshot(datasetId, lineRef);
             final List<T> updates = new ArrayList<>();
+            final Set<SiriObjectStorageKey> snapshotKeys = new HashSet<>();
+            final Set<SiriObjectStorageKey> selected = new HashSet<>();
             for (Map.Entry<SiriObjectStorageKey, T> entry : snapshot) {
+                snapshotKeys.add(entry.getKey());
                 if (updates.size() < limit) {
                     updates.add(entry.getValue());
-                } else {
-                    remaining.add(entry.getKey());
+                    selected.add(entry.getKey());
                 }
             }
-            return new CachedUpdates<>(updates, !remaining.isEmpty());
+            takeChanges(requestorId, true, snapshotKeys, selected);
+
+            return new CachedUpdates<>(updates, snapshotKeys.size() > selected.size());
 
         } finally {
-            updateChangeTrackers(lastUpdateRequested,
-                changesMap,
-                requestorId,
-                remaining,
-                2,
-                TimeUnit.MINUTES
-            );
+            refreshTracking(requestorId, CACHED_UPDATES_TRACKING_MINUTES, TimeUnit.MINUTES);
         }
     }
 
@@ -579,6 +590,79 @@ abstract class SiriRepository<T> {
         if (metrics == null) {
             metrics = ApplicationContextHolder.getContext().getBean(PrometheusMetricsService.class);
         }
+    }
+
+    /**
+     * Starts tracking changes for a requestor's first request. This is done before current data is read, so changes
+     * committed while the request is handled are kept for the next request.
+     */
+    void startTracking(String requestorId, int trackingPeriod, TimeUnit timeUnit) {
+        // Change sets without lastUpdateRequested are removed by commitChanges
+        lastUpdateRequested.set(requestorId, Instant.now(), trackingPeriod, timeUnit);
+        changesMap.executeOnKey(requestorId, new AppendChangesToSetEntryProcessor(new HashSet<>()));
+        changesMap.setTtl(requestorId, trackingPeriod, timeUnit);
+    }
+
+    /**
+     * Removes keys from the requestor's change set in one atomic operation.
+     *
+     * @param claimed   keys returned to the requestor
+     * @param discarded keys removed without being returned
+     * @return the claimed keys that were still in the set - keys taken by a concurrent request are left out
+     */
+    Set<SiriObjectStorageKey> claimChanges(String requestorId, Set<SiriObjectStorageKey> claimed, Set<SiriObjectStorageKey> discarded) {
+        if (claimed.isEmpty() && discarded.isEmpty()) {
+            return new HashSet<>();
+        }
+        Set<SiriObjectStorageKey> result = changesMap.executeOnKey(requestorId,
+            new ClaimChangesEntryProcessor(new HashSet<>(claimed), new HashSet<>(discarded)));
+        return result != null ? result : new HashSet<>();
+    }
+
+    /**
+     * Updates the requestor's change set after selecting the keys to return.
+     *
+     * @param isFirstRequest true if tracking was started by this request - pendingIds are then the current data
+     * @param pendingIds     the keys the selection was made from
+     * @param selectedIds    the keys selected to be returned
+     * @return the keys to return
+     */
+    Set<SiriObjectStorageKey> takeChanges(String requestorId, boolean isFirstRequest,
+                                          Set<SiriObjectStorageKey> pendingIds, Set<SiriObjectStorageKey> selectedIds) {
+        if (isFirstRequest) {
+            // Keys held back from the current data are returned by the next request
+            Set<SiriObjectStorageKey> remaining = new HashSet<>(pendingIds);
+            remaining.removeAll(selectedIds);
+            if (!remaining.isEmpty()) {
+                changesMap.executeOnKey(requestorId, new AppendChangesToSetEntryProcessor(remaining));
+            }
+            return selectedIds;
+        }
+        return claimChanges(requestorId, selectedIds, new HashSet<>());
+    }
+
+    /**
+     * Extends how long changes are tracked for the requestor. Done async to avoid delaying the response.
+     */
+    void refreshTracking(String requestorId, int trackingPeriod, TimeUnit timeUnit) {
+        final String breadcrumbId = MDC.get("camel.breadcrumbId");
+
+        changeTrackerExecutor.execute(() -> {
+            // May be executed by the calling thread if the queue is full - its breadcrumb must be kept
+            final String previousBreadcrumbId = MDC.get("camel.breadcrumbId");
+            try {
+                MDC.put("camel.breadcrumbId", breadcrumbId);
+
+                changesMap.setTtl(requestorId, trackingPeriod, timeUnit);
+                lastUpdateRequested.set(requestorId, Instant.now(), trackingPeriod, timeUnit);
+            } finally {
+                if (previousBreadcrumbId != null) {
+                    MDC.put("camel.breadcrumbId", previousBreadcrumbId);
+                } else {
+                    MDC.remove("camel.breadcrumbId");
+                }
+            }
+        });
     }
 
     void updateChangeTrackers(IMap<String, Instant> lastUpdateRequested, IMap<String, Set<SiriObjectStorageKey>> changesMap,
