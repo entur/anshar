@@ -14,6 +14,7 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class SiriXmlValidatorTest extends SpringBootBaseTest {
@@ -67,7 +68,7 @@ public class SiriXmlValidatorTest extends SpringBootBaseTest {
 
         // Test config sets anshar.validation.profile.name=test, which has no validators
         assertEquals("test", siriXmlValidator.resolveValidationProfile(subscription));
-        assertTrue(siriXmlValidator.getValidationRules(subscription).isEmpty());
+        assertTrue(siriXmlValidator.getValidationRules("test").isEmpty());
 
         subscription.setValidationProfile("  ");
         assertEquals("test", siriXmlValidator.resolveValidationProfile(subscription));
@@ -81,23 +82,26 @@ public class SiriXmlValidatorTest extends SpringBootBaseTest {
         SubscriptionSetup sweden = new SubscriptionSetup();
         sweden.setValidationProfile(" Sweden ");
 
+        assertEquals("norway", siriXmlValidator.resolveValidationProfile(norway));
         assertEquals("sweden", siriXmlValidator.resolveValidationProfile(sweden));
 
         // SX-validators only exist in the norway profile
-        assertFalse(siriXmlValidator.getValidationRules(norway).getOrDefault(SiriDataType.SITUATION_EXCHANGE, Set.of()).isEmpty());
-        assertTrue(siriXmlValidator.getValidationRules(sweden).getOrDefault(SiriDataType.SITUATION_EXCHANGE, Set.of()).isEmpty());
+        assertFalse(siriXmlValidator.getValidationRules("norway").getOrDefault(SiriDataType.SITUATION_EXCHANGE, Set.of()).isEmpty());
+        assertTrue(siriXmlValidator.getValidationRules("sweden").getOrDefault(SiriDataType.SITUATION_EXCHANGE, Set.of()).isEmpty());
 
         // Both profiles have ET-validators, but they differ
-        assertFalse(siriXmlValidator.getValidationRules(sweden).get(SiriDataType.ESTIMATED_TIMETABLE).isEmpty());
-        assertFalse(siriXmlValidator.getValidationRules(norway).get(SiriDataType.ESTIMATED_TIMETABLE)
-            .equals(siriXmlValidator.getValidationRules(sweden).get(SiriDataType.ESTIMATED_TIMETABLE)));
+        assertFalse(siriXmlValidator.getValidationRules("sweden").get(SiriDataType.ESTIMATED_TIMETABLE).isEmpty());
+        assertNotEquals(siriXmlValidator.getValidationRules("norway").get(SiriDataType.ESTIMATED_TIMETABLE),
+            siriXmlValidator.getValidationRules("sweden").get(SiriDataType.ESTIMATED_TIMETABLE));
     }
 
     @Test
-    public void testUnknownProfileHasNoRules() {
+    public void testUnknownProfileFallsBackToDefault() {
         SubscriptionSetup subscription = new SubscriptionSetup();
-        subscription.setValidationProfile("does-not-exist");
+        subscription.setValidationProfile("swedan");
 
-        assertTrue(siriXmlValidator.getValidationRules(subscription).isEmpty());
+        assertFalse(siriXmlValidator.isKnownValidationProfile("swedan"));
+        assertTrue(siriXmlValidator.isKnownValidationProfile(" Norway "));
+        assertEquals("test", siriXmlValidator.resolveValidationProfile(subscription));
     }
 }

@@ -76,7 +76,6 @@ import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -331,16 +330,13 @@ public class SiriXmlValidator {
             }
         }
 
-        Map<String, Map<SiriDataType, Set<CustomValidator>>> immutableRules = new HashMap<>();
         rules.forEach((profileName, rulesByType) -> {
-            Map<SiriDataType, Set<CustomValidator>> copy = new EnumMap<>(SiriDataType.class);
-            rulesByType.forEach((type, validators) -> {
-                copy.put(type, Set.copyOf(validators));
-                logger.info("Loaded {} validation rules for profile '{}', type {}", validators.size(), profileName, type);
-            });
-            immutableRules.put(profileName, Collections.unmodifiableMap(copy));
+            rulesByType.replaceAll((type, validators) -> Set.copyOf(validators));
+            rulesByType.forEach((type, validators) ->
+                logger.info("Loaded {} validation rules for profile '{}', type {}", validators.size(), profileName, type));
         });
-        validationRulesByProfile = Map.copyOf(immutableRules);
+        rules.replaceAll((profileName, rulesByType) -> Collections.unmodifiableMap(rulesByType));
+        validationRulesByProfile = Map.copyOf(rules);
 
         final String defaultProfile = normalizeProfileName(configuration.getValidationProfileName());
         if (!validationRulesByProfile.containsKey(defaultProfile)) {
@@ -352,28 +348,34 @@ public class SiriXmlValidator {
     }
 
     /**
-     * Returns the profile used for the given subscription - the subscription's own profile if set, otherwise the
-     * configured default (anshar.validation.profile.name).
+     * @return true if any validation rules are defined for the given profile name
      */
-    String resolveValidationProfile(SubscriptionSetup subscriptionSetup) {
-        final String subscriptionProfile = normalizeProfileName(subscriptionSetup.getValidationProfile());
-        if (subscriptionProfile != null && !subscriptionProfile.isEmpty()) {
-            return subscriptionProfile;
-        }
-        return normalizeProfileName(configuration.getValidationProfileName());
+    public boolean isKnownValidationProfile(String profileName) {
+        return profileName != null && validationRulesByProfile.containsKey(normalizeProfileName(profileName));
     }
 
-    Map<SiriDataType, Set<CustomValidator>> getValidationRules(SubscriptionSetup subscriptionSetup) {
-        final String profileName = resolveValidationProfile(subscriptionSetup);
-        final Map<SiriDataType, Set<CustomValidator>> rules = validationRulesByProfile.get(profileName);
-        if (rules == null) {
-            if (unknownProfilesLogged.add(profileName)) {
-                logger.warn("Unknown validation profile '{}' used by subscription {} - known profiles: {}",
-                    profileName, subscriptionSetup.getSubscriptionId(), validationRulesByProfile.keySet());
-            }
-            return Map.of();
+    /**
+     * Returns the profile used for the given subscription - the subscription's own profile if set and known,
+     * otherwise the configured default (anshar.validation.profile.name).
+     */
+    String resolveValidationProfile(SubscriptionSetup subscriptionSetup) {
+        final String defaultProfile = normalizeProfileName(configuration.getValidationProfileName());
+        final String subscriptionProfile = normalizeProfileName(subscriptionSetup.getValidationProfile());
+        if (subscriptionProfile == null || subscriptionProfile.isEmpty()) {
+            return defaultProfile;
         }
-        return rules;
+        if (!validationRulesByProfile.containsKey(subscriptionProfile)) {
+            if (unknownProfilesLogged.add(subscriptionProfile)) {
+                logger.warn("Unknown validation profile '{}' used by subscription {} - using default profile '{}'",
+                    subscriptionProfile, subscriptionSetup.getSubscriptionId(), defaultProfile);
+            }
+            return defaultProfile;
+        }
+        return subscriptionProfile;
+    }
+
+    Map<SiriDataType, Set<CustomValidator>> getValidationRules(String profileName) {
+        return validationRulesByProfile.getOrDefault(profileName, Map.of());
     }
 
     private static String normalizeProfileName(String profileName) {
@@ -510,7 +512,7 @@ public class SiriXmlValidator {
             SiriValidationEventHandler profileValidationResults = new SiriValidationEventHandler();
 
             final String profileName = resolveValidationProfile(subscriptionSetup);
-            validateAttributes(originalXml, type, getValidationRules(subscriptionSetup), siri, profileValidationResults);
+            validateAttributes(originalXml, type, getValidationRules(profileName), siri, profileValidationResults);
 
             if (subscriptionSetup.isValidation()) {
                 final long t1 = System.currentTimeMillis();

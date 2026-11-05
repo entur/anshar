@@ -36,7 +36,8 @@ can be overridden per subscription with `validationProfile` in the subscription 
       validationProfile: sweden
 ```
 
-Profile names are matched case-insensitively. A warning is logged when a profile has no rules.
+Profile names are matched case-insensitively. If a subscription refers to an unknown profile, an error is logged when 
+subscriptions are loaded, and the default profile is used instead.
 
 ### Auto shut off
 The validator stores all validation results and a zipped byte-array of the actual XML in a distributed
