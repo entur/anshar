@@ -376,56 +376,102 @@ abstract class SiriRepository<T> {
     public Collection<T> getAllCachedUpdates(
             String requestorId, String datasetId, String lineRef, String clientTrackingName, Integer maxSize
     ) {
-        if (maxSize == null) {
-            maxSize = Integer.MAX_VALUE;
+        return getCachedUpdates(requestorId, datasetId, lineRef, clientTrackingName, maxSize).updates();
+    }
+
+    /**
+     * Returns cached data matching datasetId and lineRef, limited to maxSize.
+     * <p>
+     * With a requestorId, the first request returns the current data, and later requests only return what has changed
+     * since. Matching objects held back because of maxSize are kept for the requestor, and returned by the next request.
+     */
+    public CachedUpdates<T> getCachedUpdates(
+            String requestorId, String datasetId, String lineRef, String clientTrackingName, Integer maxSize
+    ) {
+        final int limit = maxSize == null ? Integer.MAX_VALUE : maxSize;
+
+        if (requestorId == null) {
+            final List<Map.Entry<SiriObjectStorageKey, T>> snapshot = getCachedSnapshot(datasetId, lineRef);
+            final List<T> updates = snapshot.stream()
+                .limit(limit)
+                .map(Map.Entry::getValue)
+                .collect(Collectors.toList());
+            return new CachedUpdates<>(updates, snapshot.size() > updates.size());
         }
 
-        if (requestorId != null) {
-            try {
-                requestorRefRepository.touchRequestorRef(requestorId,
-                    datasetId,
-                    clientTrackingName,
-                    SIRI_DATA_TYPE
-                );
+        requestorRefRepository.touchRequestorRef(requestorId,
+            datasetId,
+            clientTrackingName,
+            SIRI_DATA_TYPE
+        );
 
-                if (changesMap.containsKey(requestorId)) {
-                    Set<SiriObjectStorageKey> changes = changesMap.get(requestorId);
+        // Matching keys that are not returned now - kept for the next request
+        final Set<SiriObjectStorageKey> remaining = new HashSet<>();
+        try {
+            final Set<SiriObjectStorageKey> trackedChanges = changesMap.get(requestorId);
 
-                    changes = changes.stream()
-                        .filter((k) -> datasetId == null || codespaceMatches(datasetId, k))
-                        .filter((k) -> lineRef == null || lineRefMatches(lineRef, k))
-                        .limit(maxSize)
-                        .collect(Collectors.toSet());
+            if (trackedChanges != null) {
+                final List<SiriObjectStorageKey> matching = trackedChanges.stream()
+                    .filter((k) -> datasetId == null || codespaceMatches(datasetId, k))
+                    .filter((k) -> lineRef == null || lineRefMatches(lineRef, k))
+                    .toList();
 
-                    List<T> updates = new ArrayList<>();
-                    if (cacheEnabled) {
-                        for (SiriObjectStorageKey key : changes) {
-                            final T element = cache.get(key);
-                            if (element != null) {
-                                updates.add(element);
-                            }
-                        }
-                    } else {
-                        // No local copy - read from main map
-                        for (T element : getMainMap().getAll(changes).values()) {
-                            if (includeInCachePredicate == null || includeInCachePredicate.test(element)) {
-                                updates.add(element);
-                            }
-                        }
-                    }
-                    return updates;
+                final List<SiriObjectStorageKey> keys = matching.subList(0, Math.min(limit, matching.size()));
+                remaining.addAll(matching.subList(keys.size(), matching.size()));
+
+                return new CachedUpdates<>(getCachedValues(keys), !remaining.isEmpty());
+            }
+
+            // First request from this requestor - return current data
+            final List<Map.Entry<SiriObjectStorageKey, T>> snapshot = getCachedSnapshot(datasetId, lineRef);
+            final List<T> updates = new ArrayList<>();
+            for (Map.Entry<SiriObjectStorageKey, T> entry : snapshot) {
+                if (updates.size() < limit) {
+                    updates.add(entry.getValue());
+                } else {
+                    remaining.add(entry.getKey());
                 }
-            } finally {
-                updateChangeTrackers(lastUpdateRequested,
-                    changesMap,
-                    requestorId,
-                    new HashSet<>(),
-                    2,
-                    TimeUnit.MINUTES
-                );
+            }
+            return new CachedUpdates<>(updates, !remaining.isEmpty());
+
+        } finally {
+            updateChangeTrackers(lastUpdateRequested,
+                changesMap,
+                requestorId,
+                remaining,
+                2,
+                TimeUnit.MINUTES
+            );
+        }
+    }
+
+    /**
+     * @return cached objects for the given keys - keys without a cached object are skipped
+     */
+    private List<T> getCachedValues(Collection<SiriObjectStorageKey> keys) {
+        List<T> updates = new ArrayList<>();
+        if (cacheEnabled) {
+            for (SiriObjectStorageKey key : keys) {
+                final T element = cache.get(key);
+                if (element != null) {
+                    updates.add(element);
+                }
+            }
+        } else {
+            // No local copy - read from main map
+            for (T element : getMainMap().getAll(new HashSet<>(keys)).values()) {
+                if (includeInCachePredicate == null || includeInCachePredicate.test(element)) {
+                    updates.add(element);
+                }
             }
         }
+        return updates;
+    }
 
+    /**
+     * @return all cached entries matching datasetId and lineRef
+     */
+    private List<Map.Entry<SiriObjectStorageKey, T>> getCachedSnapshot(String datasetId, String lineRef) {
         if (!cacheEnabled) {
             // No local copy - read from main map, filtering is done by the cluster-members
             Predicate<SiriObjectStorageKey, T> keyPredicate = getCachedDataPredicate();
@@ -437,13 +483,12 @@ abstract class SiriRepository<T> {
                 Predicate<SiriObjectStorageKey, T> lineRefPredicate = createHzLineRefPredicate(lineRef);
                 keyPredicate = keyPredicate == null ? lineRefPredicate : Predicates.and(keyPredicate, lineRefPredicate);
             }
-            Collection<T> values = keyPredicate == null ? getMainMap().values() : getMainMap().values(keyPredicate);
-            return values
+            Set<Map.Entry<SiriObjectStorageKey, T>> entries = keyPredicate == null ? getMainMap().entrySet() : getMainMap().entrySet(keyPredicate);
+            return entries
                 .stream()
-                .filter((value) -> value != null)
-                .filter((value) -> includeInCachePredicate == null || includeInCachePredicate.test(value))
-                .limit(maxSize)
-                .collect(Collectors.toList());
+                .filter((entry) -> entry.getValue() != null)
+                .filter((entry) -> includeInCachePredicate == null || includeInCachePredicate.test(entry.getValue()))
+                .toList();
         }
 
         return cache
@@ -452,9 +497,7 @@ abstract class SiriRepository<T> {
             .filter((entry) -> entry.getValue() != null)
             .filter((entry) -> datasetId == null || codespaceMatches(datasetId, entry.getKey()))
             .filter((entry) -> lineRef == null || lineRefMatches(lineRef, entry.getKey()))
-            .limit(maxSize)
-            .map(Map.Entry::getValue)
-            .collect(Collectors.toList());
+            .toList();
     }
 
     void initBufferCommitter(IMap<String, Instant> lastUpdateRequested, IMap<String, Set<SiriObjectStorageKey>> changesMap, int commitFrequency) {

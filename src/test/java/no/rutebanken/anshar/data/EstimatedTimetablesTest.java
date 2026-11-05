@@ -200,6 +200,64 @@ public class EstimatedTimetablesTest extends SpringBootBaseTest {
     }
 
     @Test
+    public void testCachedUpdatesWithRequestorAndMaxSizeReturnsAllChanges() {
+        final String datasetId = "paging";
+        for (int i = 0; i < 5; i++) {
+            EstimatedVehicleJourney journey = createEstimatedVehicleJourney("paging-" + i, "4321", 0, 30, ZonedDateTime.now().plusHours(1), true);
+            journey.setMonitored(true);
+            estimatedTimetables.add(datasetId, journey);
+        }
+        sleep(50);
+
+        final String requestorId = UUID.randomUUID().toString();
+        lastUpdateRequested.set(requestorId, Instant.now());
+        changesMap.set(requestorId, new HashSet<>(timetableDeliveries.keySet(
+            entry -> datasetId.equals(((SiriObjectStorageKey) entry.getKey()).getCodespaceId()))));
+
+        Set<String> received = new HashSet<>();
+        for (int i = 0; i < 4; i++) {
+            Collection<EstimatedVehicleJourney> page = estimatedTimetables.getAllCachedUpdates(requestorId, datasetId, null, null, 2);
+            assertTrue(page.size() <= 2, "maxSize is not respected");
+            page.forEach(journey -> received.add(journey.getLineRef().getValue()));
+            sleep(100); // change-tracker is updated async
+        }
+
+        assertEquals(5, received.size(), "All tracked changes should eventually be returned, got " + received);
+    }
+
+    @Test
+    public void testCachedUpdatesFirstRequestIsPagedByMaxSize() {
+        final String datasetId = "paging-first";
+        for (int i = 0; i < 5; i++) {
+            EstimatedVehicleJourney journey = createEstimatedVehicleJourney("paging-first-" + i, "4321", 0, 30, ZonedDateTime.now().plusHours(1), true);
+            journey.setMonitored(true);
+            estimatedTimetables.add(datasetId, journey);
+        }
+        sleep(50);
+
+        final String requestorId = UUID.randomUUID().toString();
+
+        Set<String> received = new HashSet<>();
+        List<Boolean> moreData = new ArrayList<>();
+        for (int i = 0; i < 3; i++) {
+            CachedUpdates<EstimatedVehicleJourney> page = estimatedTimetables.getCachedUpdates(requestorId, datasetId, null, null, 2);
+            assertTrue(page.updates().size() <= 2, "maxSize is not respected");
+            page.updates().forEach(journey -> received.add(journey.getLineRef().getValue()));
+            moreData.add(page.moreData());
+            sleep(100); // change-tracker is updated async
+        }
+
+        assertEquals(5, received.size(), "Full snapshot should be returned over several requests, got " + received);
+        assertEquals(List.of(true, true, false), moreData);
+
+        // Without requestorId - no tracking, but moreData is set when data is held back
+        CachedUpdates<EstimatedVehicleJourney> adHoc = estimatedTimetables.getCachedUpdates(null, datasetId, null, null, 2);
+        assertEquals(2, adHoc.updates().size());
+        assertTrue(adHoc.moreData());
+        assertFalse(estimatedTimetables.getCachedUpdates(null, datasetId, null, null, 5).moreData());
+    }
+
+    @Test
     public void testGetUpdatesOnly() {
 
         estimatedTimetables.add("test", createEstimatedVehicleJourney("1234-update", "4321", 0, 30, ZonedDateTime.now().plusHours(1), true));
