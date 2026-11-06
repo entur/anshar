@@ -83,7 +83,7 @@ public class Siri20ToSiriWS20Subscription extends SiriSubscriptionRouteBuilder {
                 .to(getCamelUrl(urlMap.get(RequestType.SUBSCRIBE)))
                 .choice().when(simple("${in.body} != null"))
                     .to(maskedLog("received"))
-                    .to("xslt-saxon:xsl/siri_soap_raw.xsl?allowStAX=false&resultHandlerFactory=#streamResultHandlerFactory") // Extract SOAP version and convert to raw SIRI
+                    .to("xslt-saxon:xsl/siri_soap_raw.xsl?resultHandlerFactory=#streamResultHandlerFactory") // Extract SOAP version and convert to raw SIRI
                 .end()
                 .to(maskedLog("received"))
                 .process(p -> {
@@ -119,7 +119,7 @@ public class Siri20ToSiriWS20Subscription extends SiriSubscriptionRouteBuilder {
                 .process(addCustomHeaders())
                 .to(maskedLog("cs"))
                 .to(getCamelUrl(urlMap.get(RequestType.CHECK_STATUS), getTimeout()))
-                .choice().when(simple("${in.body} != null")).to("xslt-saxon:xsl/siri_soap_raw.xsl?allowStAX=false&resultHandlerFactory=#streamResultHandlerFactory") // Extract SOAP version and convert to raw SIRI
+                .choice().when(simple("${in.body} != null")).to("xslt-saxon:xsl/siri_soap_raw.xsl?resultHandlerFactory=#streamResultHandlerFactory") // Extract SOAP version and convert to raw SIRI
                 .end()
                 .process(p -> {
 
@@ -169,7 +169,7 @@ public class Siri20ToSiriWS20Subscription extends SiriSubscriptionRouteBuilder {
                 .to(maskedLog("sent"))
                 .to(getCamelUrl(urlMap.get(RequestType.DELETE_SUBSCRIPTION)))
                 .choice().when(simple("${in.body} != null"))
-                    .to("xslt-saxon:xsl/siri_soap_raw.xsl?allowStAX=false&resultHandlerFactory=#streamResultHandlerFactory") // Extract SOAP version and convert to raw SIRI
+                    .to("xslt-saxon:xsl/siri_soap_raw.xsl?resultHandlerFactory=#streamResultHandlerFactory") // Extract SOAP version and convert to raw SIRI
                 .end()
                 .to(maskedLog("received"))
                 .process(p -> {

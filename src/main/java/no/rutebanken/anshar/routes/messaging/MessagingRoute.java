@@ -193,13 +193,13 @@ public class MessagingRoute extends RestRouteBuilder {
                 .choice()
                     .when(header(TRANSFORM_SOAP).isEqualTo(simple(TRANSFORM_SOAP)))
                     .log(LoggingLevel.DEBUG, "Transforming SOAP")
-                    .to("xslt-saxon:xsl/siri_soap_raw.xsl?allowStAX=false&resultHandlerFactory=#streamResultHandlerFactory") // Extract SOAP version and convert to raw SIRI
+                    .to("xslt-saxon:xsl/siri_soap_raw.xsl?resultHandlerFactory=#streamResultHandlerFactory") // Extract SOAP version and convert to raw SIRI
                 .endChoice()
                 .end()
                 .choice()
                     .when(header(TRANSFORM_VERSION).isEqualTo(simple(TRANSFORM_VERSION)))
                     .log(LoggingLevel.DEBUG, "Transforming version")
-                    .to("xslt-saxon:xsl/siri_14_20.xsl?allowStAX=false&resultHandlerFactory=#streamResultHandlerFactory") // Convert from v1.4 to 2.0
+                    .to("xslt-saxon:xsl/siri_14_20.xsl?resultHandlerFactory=#streamResultHandlerFactory") // Convert from v1.4 to 2.0
                 .endChoice()
                 .end()
                 .choice()
@@ -234,7 +234,7 @@ public class MessagingRoute extends RestRouteBuilder {
         ;
 
         from("direct:format.xml")
-            .to("xslt-saxon:xsl/indent.xsl?allowStAX=false&resultHandlerFactory=#streamResultHandlerFactory")
+            .to("xslt-saxon:xsl/indent.xsl?resultHandlerFactory=#streamResultHandlerFactory")
             .routeId("incoming.format.xml")
         ;
 
