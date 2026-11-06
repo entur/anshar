@@ -85,8 +85,8 @@ public class Siri20ToSiriWS14Subscription extends SiriSubscriptionRouteBuilder {
                     .process(p -> p.getOut().setBody(null))
                 .endDoTry()
                 .choice().when(simple("${in.body} != null"))
-                    .to("xslt-saxon:xsl/siri_soap_raw.xsl?allowStAX=false") // Extract SOAP version and convert to raw SIRI
-                    .to("xslt-saxon:xsl/siri_14_20.xsl?allowStAX=false") // Convert from v1.4 to 2.0
+                    .to("xslt-saxon:xsl/siri_soap_raw.xsl") // Extract SOAP version and convert to raw SIRI
+                    .to("xslt-saxon:xsl/siri_14_20.xsl") // Convert from v1.4 to 2.0
                 .end()
                 .to(maskedLog("received"))
                 .process(p -> {
@@ -138,8 +138,8 @@ public class Siri20ToSiriWS14Subscription extends SiriSubscriptionRouteBuilder {
                 .to(maskedLog("sent"))
                 .to(getCamelUrl(urlMap.get(RequestType.DELETE_SUBSCRIPTION)))
                 .choice().when(simple("${in.body} != null"))
-                    .to("xslt-saxon:xsl/siri_soap_raw.xsl?allowStAX=false") // Extract SOAP version and convert to raw SIRI
-                    .to("xslt-saxon:xsl/siri_14_20.xsl?allowStAX=false") // Convert from v1.4 to 2.0
+                    .to("xslt-saxon:xsl/siri_soap_raw.xsl") // Extract SOAP version and convert to raw SIRI
+                    .to("xslt-saxon:xsl/siri_14_20.xsl") // Convert from v1.4 to 2.0
                 .end()
                 .to(maskedLog("received"))
                 .process(p -> {
