@@ -37,6 +37,8 @@ import static no.rutebanken.anshar.routes.siri.helpers.SiriRequestFactory.getCam
 import static no.rutebanken.anshar.subscription.SubscriptionSetup.SubscriptionMode.FETCHED_DELIVERY;
 
 public class Siri20ToSiriWS20Subscription extends SiriSubscriptionRouteBuilder {
+    private static final String SOAP_TO_RAW_SIRI_XSLT = "xslt-saxon:xsl/siri_soap_raw.xsl?resultHandlerFactory=#streamResultHandlerFactory";
+
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private final SiriHandler handler;
@@ -83,7 +85,7 @@ public class Siri20ToSiriWS20Subscription extends SiriSubscriptionRouteBuilder {
                 .to(getCamelUrl(urlMap.get(RequestType.SUBSCRIBE)))
                 .choice().when(simple("${in.body} != null"))
                     .to(maskedLog("received"))
-                    .to("xslt-saxon:xsl/siri_soap_raw.xsl?resultHandlerFactory=#streamResultHandlerFactory") // Extract SOAP version and convert to raw SIRI
+                    .to(SOAP_TO_RAW_SIRI_XSLT) // Extract SOAP version and convert to raw SIRI
                 .end()
                 .to(maskedLog("received"))
                 .process(p -> {
@@ -119,7 +121,7 @@ public class Siri20ToSiriWS20Subscription extends SiriSubscriptionRouteBuilder {
                 .process(addCustomHeaders())
                 .to(maskedLog("cs"))
                 .to(getCamelUrl(urlMap.get(RequestType.CHECK_STATUS), getTimeout()))
-                .choice().when(simple("${in.body} != null")).to("xslt-saxon:xsl/siri_soap_raw.xsl?resultHandlerFactory=#streamResultHandlerFactory") // Extract SOAP version and convert to raw SIRI
+                .choice().when(simple("${in.body} != null")).to(SOAP_TO_RAW_SIRI_XSLT) // Extract SOAP version and convert to raw SIRI
                 .end()
                 .process(p -> {
 
@@ -169,7 +171,7 @@ public class Siri20ToSiriWS20Subscription extends SiriSubscriptionRouteBuilder {
                 .to(maskedLog("sent"))
                 .to(getCamelUrl(urlMap.get(RequestType.DELETE_SUBSCRIPTION)))
                 .choice().when(simple("${in.body} != null"))
-                    .to("xslt-saxon:xsl/siri_soap_raw.xsl?resultHandlerFactory=#streamResultHandlerFactory") // Extract SOAP version and convert to raw SIRI
+                    .to(SOAP_TO_RAW_SIRI_XSLT) // Extract SOAP version and convert to raw SIRI
                 .end()
                 .to(maskedLog("received"))
                 .process(p -> {
