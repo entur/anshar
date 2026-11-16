@@ -470,7 +470,7 @@ public class SiriHandler {
                                 if (sx.getSituations() != null && sx.getSituations().getPtSituationElements() != null) {
                                     List<PtSituationElement> ptSituationElements = sx.getSituations().getPtSituationElements();
                                     if (subscriptionSetup.isUseProvidedCodespaceId()) {
-                                        Map<String, List<PtSituationElement>> situationsByCodespace = splitSituationsByCodespace(ptSituationElements);
+                                        Map<String, List<PtSituationElement>> situationsByCodespace = splitSituationsByCodespace(ptSituationElements, subscriptionSetup.getDatasetId());
                                         for (String codespace : situationsByCodespace.keySet()) {
 
                                             // List containing added situations for current codespace
@@ -617,11 +617,16 @@ public class SiriHandler {
     }
 
     private Map<String, List<PtSituationElement>> splitSituationsByCodespace(
-        List<PtSituationElement> ptSituationElements
+        List<PtSituationElement> ptSituationElements, String subscriptionDatasetId
     ) {
         Map<String, List<PtSituationElement>> result = new HashMap<>();
+        int withoutParticipantRef = 0;
         for (PtSituationElement ptSituationElement : ptSituationElements) {
             final RequestorRef participantRef = ptSituationElement.getParticipantRef();
+            if (participantRef == null) {
+                // No codespace to store it under
+                withoutParticipantRef++;
+            }
             if (participantRef != null) {
                 final String codespace = getOriginalId(participantRef.getValue());
 
@@ -637,6 +642,7 @@ public class SiriHandler {
                 result.put(codespace, situations);
             }
         }
+        metrics.markDroppedBeforeStorage(SiriDataType.SITUATION_EXCHANGE, subscriptionDatasetId, "no_participant_ref", withoutParticipantRef);
         return result;
     }
 

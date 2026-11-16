@@ -12,6 +12,9 @@ import org.entur.siri21.util.SiriXml;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import uk.org.siri.siri21.LocationStructure;
+import uk.org.siri.siri21.SituationNumber;
+import uk.org.siri.siri21.PtSituationElement;
+import uk.org.siri.siri21.HalfOpenTimestampOutputRangeStructure;
 import uk.org.siri.siri21.StopPointRefStructure;
 import uk.org.siri.siri21.LineRef;
 import uk.org.siri.siri21.EstimatedVehicleJourney;
@@ -148,6 +151,36 @@ public class ProvidedCodespaceMetricsTest extends SpringBootBaseTest {
             handler.handleIncomingSiri(subscription.getSubscriptionId(), new ByteArrayInputStream(xml.getBytes()));
 
             assertDroppedBeforeStorage("ESTIMATED_TIMETABLE", datasetId, "no_datasource");
+        } finally {
+            manager.removeSubscription(subscription.getSubscriptionId());
+        }
+    }
+
+    private static PtSituationElement situation(String participantRef) {
+        PtSituationElement situation = new PtSituationElement();
+        situation.setCreationTime(ZonedDateTime.now());
+        if (participantRef != null) {
+            situation.setParticipantRef(SiriObjectFactory.createRequestorRef(participantRef));
+        }
+        SituationNumber number = new SituationNumber();
+        number.setValue("TST:SituationNumber:" + UUID.randomUUID());
+        situation.setSituationNumber(number);
+        HalfOpenTimestampOutputRangeStructure validity = new HalfOpenTimestampOutputRangeStructure();
+        validity.setStartTime(ZonedDateTime.now().minusMinutes(5));
+        validity.setEndTime(ZonedDateTime.now().plusHours(1));
+        situation.getValidityPeriods().add(validity);
+        return situation;
+    }
+
+    @Test
+    public void situationWithoutParticipantRefIsCountedAsDropped() throws Exception {
+        String datasetId = "DS" + UUID.randomUUID().toString().substring(0, 8);
+        SubscriptionSetup subscription = subscription(datasetId, SiriDataType.SITUATION_EXCHANGE);
+        try {
+            String xml = SiriXml.toXml(factory.createSXServiceDelivery(List.of(situation("RUT"), situation(null))));
+            handler.handleIncomingSiri(subscription.getSubscriptionId(), new ByteArrayInputStream(xml.getBytes()));
+
+            assertDroppedBeforeStorage("SITUATION_EXCHANGE", datasetId, "no_participant_ref");
         } finally {
             manager.removeSubscription(subscription.getSubscriptionId());
         }
