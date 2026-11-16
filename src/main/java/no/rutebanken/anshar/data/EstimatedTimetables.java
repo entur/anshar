@@ -43,7 +43,9 @@ import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -632,8 +634,10 @@ public class EstimatedTimetables extends SiriRepository<EstimatedVehicleJourney>
         AtomicInteger tooFarAheadCounter = new AtomicInteger(0);
         AtomicInteger notUpdatedCounter = new AtomicInteger(0);
         AtomicInteger keptCounter = new AtomicInteger(0);
-        // RecordedAtTime as received; a missing one is replaced with "now" below
-        Map<SiriObjectStorageKey, ZonedDateTime> reportedAtByKey = new ConcurrentHashMap<>();
+        // Elements received without RecordedAtTime; it is replaced with "now" below, so the
+        // stored element alone cannot tell. Identity, so each element answers for itself even
+        // when a delivery has the same journey twice.
+        Set<EstimatedVehicleJourney> withoutRecordedAt = Collections.newSetFromMap(Collections.synchronizedMap(new IdentityHashMap<>()));
         etList.parallelStream().forEach(et -> {
             TimingTracer timingTracer = new TimingTracer("single-et");
             SiriObjectStorageKey key = createKey(datasetId, et);
@@ -642,7 +646,9 @@ public class EstimatedTimetables extends SiriRepository<EstimatedVehicleJourney>
 
             String currentChecksum = null;
 
-            ZonedDateTime reportedAt = et.getRecordedAtTime();
+            if (et.getRecordedAtTime() == null) {
+                withoutRecordedAt.add(et);
+            }
 
             // Using "now" as default recordedAtTime
             ZonedDateTime recordedAtTime = et.getRecordedAtTime() != null ? et.getRecordedAtTime() : ZonedDateTime.now();
@@ -756,9 +762,6 @@ public class EstimatedTimetables extends SiriRepository<EstimatedVehicleJourney>
 
                     expirationMap.put(key, expiration);
                     keptCounter.incrementAndGet();
-                    if (reportedAt != null) {
-                        reportedAtByKey.put(key, reportedAt);
-                    }
 
                 } else {
                     metrics.registerSiriContent(SiriDataType.ESTIMATED_TIMETABLE, datasetId, null, SiriContent.TOO_LATE);
@@ -808,12 +811,11 @@ public class EstimatedTimetables extends SiriRepository<EstimatedVehicleJourney>
 
         ZonedDateTime storedAt = ZonedDateTime.now();
         int withoutReportedTime = 0;
-        for (SiriObjectStorageKey key : changes.keySet()) {
-            ZonedDateTime reportedAt = reportedAtByKey.get(key);
-            if (reportedAt != null) {
-                metrics.recordSourceLatency(SiriDataType.ESTIMATED_TIMETABLE, datasetId, Duration.between(reportedAt, storedAt));
-            } else {
+        for (EstimatedVehicleJourney stored : changes.values()) {
+            if (withoutRecordedAt.contains(stored)) {
                 withoutReportedTime++;
+            } else {
+                metrics.recordSourceLatency(SiriDataType.ESTIMATED_TIMETABLE, datasetId, Duration.between(stored.getRecordedAtTime(), storedAt));
             }
         }
         metrics.markSourceTimeMissing(SiriDataType.ESTIMATED_TIMETABLE, datasetId, withoutReportedTime);
