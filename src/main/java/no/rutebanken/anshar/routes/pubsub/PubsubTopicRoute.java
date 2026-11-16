@@ -71,6 +71,7 @@ public class PubsubTopicRoute extends RouteBuilder {
              */
             from("direct:send.to.pubsub.topic.estimated_timetable")
                     .setProperty(PrometheusMetricsService.STORED_AT_HEADER, header(PrometheusMetricsService.STORED_AT_HEADER))
+                    .process(metricsService.outboundStageRecorder(SiriDataType.ESTIMATED_TIMETABLE, PrometheusMetricsService.OUTBOUND_STAGE_ROUTE_START))
                     .to("direct:siri.transform.data")
                     .choice().when(body().isNotNull())
                         .to("xslt-saxon:xsl/split.xsl")
@@ -78,6 +79,7 @@ public class PubsubTopicRoute extends RouteBuilder {
                         // published in parallel, or each one waits for every journey ahead of it.
                         .split().tokenizeXML("Siri").streaming()
                             .parallelProcessing().executorService(etSplitPool)
+                        .process(metricsService.outboundStageRecorder(SiriDataType.ESTIMATED_TIMETABLE, PrometheusMetricsService.OUTBOUND_STAGE_ELEMENT_START))
                         .wireTap("direct:publish.et.avro")        // Publish as Avro
                         .to("direct:publish.et.xml")        // Publish as XML
                     .end()
@@ -117,11 +119,13 @@ public class PubsubTopicRoute extends RouteBuilder {
              */
             from("direct:send.to.pubsub.topic.situation_exchange")
                     .setProperty(PrometheusMetricsService.STORED_AT_HEADER, header(PrometheusMetricsService.STORED_AT_HEADER))
+                    .process(metricsService.outboundStageRecorder(SiriDataType.SITUATION_EXCHANGE, PrometheusMetricsService.OUTBOUND_STAGE_ROUTE_START))
                     .to("direct:siri.transform.data")
                     .choice().when(body().isNotNull())
                         .to("xslt-saxon:xsl/split.xsl")
                         .split().tokenizeXML("Siri").streaming()
                             .parallelProcessing().executorService(sxSplitPool)
+                        .process(metricsService.outboundStageRecorder(SiriDataType.SITUATION_EXCHANGE, PrometheusMetricsService.OUTBOUND_STAGE_ELEMENT_START))
                         .wireTap("direct:publish.sx.avro")// Publish as Avro
                         .to("direct:publish.sx.xml")        // Publish as XML
                     .end()
