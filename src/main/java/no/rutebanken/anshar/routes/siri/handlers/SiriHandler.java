@@ -670,7 +670,7 @@ public class SiriHandler {
                 }
             }
         }
-        metrics.markDataDropped(SiriDataType.VEHICLE_MONITORING, subscriptionDatasetId, "no_datasource", withoutDataSource);
+        metrics.markDroppedBeforeStorage(SiriDataType.VEHICLE_MONITORING, subscriptionDatasetId, "no_datasource", withoutDataSource);
         return result;
     }
 

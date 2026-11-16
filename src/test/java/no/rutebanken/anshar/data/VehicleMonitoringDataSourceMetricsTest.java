@@ -78,6 +78,12 @@ public class VehicleMonitoringDataSourceMetricsTest extends SpringBootBaseTest {
                     .tags("dataType", "VEHICLE_MONITORING", "codespace", datasetId, "reason", "no_datasource")
                     .counter();
             assertEquals(1, dropped == null ? 0 : dropped.count());
+
+            // Dropped before storage, so it must also be in the received-data totals
+            Counter total = metrics.find("app.anshar.data.total").tags("dataType", "VEHICLE_MONITORING", "agency", datasetId).counter();
+            Counter ignored = metrics.find("app.anshar.data.ignored").tags("dataType", "VEHICLE_MONITORING", "agency", datasetId).counter();
+            assertEquals(1, total == null ? 0 : total.count(), "dropped element missing from data.total");
+            assertEquals(1, ignored == null ? 0 : ignored.count(), "dropped element missing from data.ignored");
         } finally {
             manager.removeSubscription(subscription.getSubscriptionId());
         }

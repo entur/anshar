@@ -5,6 +5,7 @@ import io.micrometer.core.instrument.Timer;
 import no.rutebanken.anshar.integration.SpringBootBaseTest;
 import no.rutebanken.anshar.metrics.PrometheusMetricsService;
 import no.rutebanken.anshar.routes.CamelRouteNames;
+import org.apache.camel.Exchange;
 import org.apache.camel.ProducerTemplate;
 import org.apache.camel.component.google.pubsub.GooglePubsubConstants;
 import org.junit.jupiter.api.Test;
@@ -15,6 +16,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -40,9 +42,14 @@ public class VmQueueLatencyMetricsTest extends SpringBootBaseTest {
         long countBefore = before == null ? 0 : before.count();
         double millisBefore = before == null ? 0 : before.totalTime(TimeUnit.MILLISECONDS);
 
+        // Compressed the same way the PROXY pod does before publishing to the queue
+        byte[] compressed = producerTemplate.requestBodyAndHeader("direct:compress.jaxb",
+                "<Siri xmlns=\"http://www.siri.org.uk/siri\" version=\"2.1\"/>",
+                "subscriptionId", "queue-latency-test", byte[].class);
+
         Instant published = Instant.now().minusSeconds(3);
-        producerTemplate.send("direct:" + CamelRouteNames.TRANSFORM_QUEUE_VM, exchange -> {
-            exchange.getIn().setBody("not a real message");
+        Exchange result = producerTemplate.send("direct:" + CamelRouteNames.TRANSFORM_QUEUE_VM, exchange -> {
+            exchange.getIn().setBody(compressed);
             exchange.getIn().setHeader(GooglePubsubConstants.PUBLISH_TIME, Timestamp.newBuilder()
                     .setSeconds(published.getEpochSecond())
                     .setNanos(published.getNano())
@@ -50,6 +57,7 @@ public class VmQueueLatencyMetricsTest extends SpringBootBaseTest {
             exchange.getIn().setHeader(GooglePubsubConstants.ATTRIBUTES, Map.of("subscriptionId", "queue-latency-test"));
         });
 
+        assertNull(result.getException(), "the queue route failed");
         Timer queue = queueTimer();
         assertEquals(countBefore + 1, queue == null ? 0 : queue.count());
         double millis = queue.totalTime(TimeUnit.MILLISECONDS) - millisBefore;

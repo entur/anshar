@@ -150,6 +150,18 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
         }
     }
 
+    /**
+     * Counts elements dropped before they reach a repository, e.g. when no codespace can be
+     * resolved. They count as received and ignored, so data.total still adds up, and in
+     * data.dropped with the reason.
+     */
+    public void markDroppedBeforeStorage(SiriDataType dataType, String datasetId, String reason, long count) {
+        if (count > 0) {
+            registerIncomingData(dataType, datasetId, count, 0, 0, count);
+            markDataDropped(dataType, datasetId, reason, count);
+        }
+    }
+
     /** Time from a message being published to Anshar's internal queue until this pod consumed it */
     public void recordQueueLatency(SiriDataType dataType, com.google.protobuf.Timestamp publishTime) {
         Instant published = Instant.ofEpochSecond(publishTime.getSeconds(), publishTime.getNanos());
