@@ -25,6 +25,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import uk.org.siri.siri21.Siri;
 
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.entur.avro.realtime.siri.converter.Converter.avro2Jaxb;
@@ -46,6 +47,10 @@ public class PubsubTopicRoute extends RouteBuilder {
     @Value("${anshar.outbound.pubsub.topic.enabled}")
     private boolean pushToTopicEnabled;
 
+    /** Threads publishing the elements of split ET and SX deliveries, per data type */
+    @Value("${anshar.outbound.pubsub.split.threads:20}")
+    private int splitPublishThreads;
+
     @Autowired
     private AvroConvertorProcessor avroConvertorProcessor;
 
@@ -55,6 +60,10 @@ public class PubsubTopicRoute extends RouteBuilder {
     @Override
     public void configure() {
         if (pushToTopicEnabled) {
+            ExecutorService etSplitPool = getContext().getExecutorServiceManager()
+                    .newFixedThreadPool(this, "pubsub-split-et", splitPublishThreads);
+            ExecutorService sxSplitPool = getContext().getExecutorServiceManager()
+                    .newFixedThreadPool(this, "pubsub-split-sx", splitPublishThreads);
 
             /**
              * Splits SIRI ET-ServiceDelivery into singular messages (i.e. one ET-message per ServiceDelivery), converts
@@ -65,7 +74,10 @@ public class PubsubTopicRoute extends RouteBuilder {
                     .to("direct:siri.transform.data")
                     .choice().when(body().isNotNull())
                         .to("xslt-saxon:xsl/split.xsl")
+                        // Publishing to the XML topic blocks until Pub/Sub has answered, so journeys are
+                        // published in parallel, or each one waits for every journey ahead of it.
                         .split().tokenizeXML("Siri").streaming()
+                            .parallelProcessing().executorService(etSplitPool)
                         .wireTap("direct:publish.et.avro")        // Publish as Avro
                         .to("direct:publish.et.xml")        // Publish as XML
                     .end()
@@ -109,6 +121,7 @@ public class PubsubTopicRoute extends RouteBuilder {
                     .choice().when(body().isNotNull())
                         .to("xslt-saxon:xsl/split.xsl")
                         .split().tokenizeXML("Siri").streaming()
+                            .parallelProcessing().executorService(sxSplitPool)
                         .wireTap("direct:publish.sx.avro")// Publish as Avro
                         .to("direct:publish.sx.xml")        // Publish as XML
                     .end()
