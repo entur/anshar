@@ -73,8 +73,10 @@ public class PubsubTopicRoute extends RouteBuilder {
                     .setProperty(PrometheusMetricsService.STORED_AT_HEADER, header(PrometheusMetricsService.STORED_AT_HEADER))
                     .process(metricsService.outboundStageRecorder(SiriDataType.ESTIMATED_TIMETABLE, PrometheusMetricsService.OUTBOUND_STAGE_ROUTE_START))
                     .to("direct:siri.transform.data")
+                    .process(metricsService.outboundStageRecorder(SiriDataType.ESTIMATED_TIMETABLE, PrometheusMetricsService.OUTBOUND_STAGE_TRANSFORMED))
                     .choice().when(body().isNotNull())
                         .to("xslt-saxon:xsl/split.xsl")
+                        .process(metricsService.outboundStageRecorder(SiriDataType.ESTIMATED_TIMETABLE, PrometheusMetricsService.OUTBOUND_STAGE_SPLIT_READY))
                         // Publishing to the XML topic blocks until Pub/Sub has answered, so journeys are
                         // published in parallel, or each one waits for every journey ahead of it.
                         .split().tokenizeXML("Siri").streaming()
@@ -121,8 +123,10 @@ public class PubsubTopicRoute extends RouteBuilder {
                     .setProperty(PrometheusMetricsService.STORED_AT_HEADER, header(PrometheusMetricsService.STORED_AT_HEADER))
                     .process(metricsService.outboundStageRecorder(SiriDataType.SITUATION_EXCHANGE, PrometheusMetricsService.OUTBOUND_STAGE_ROUTE_START))
                     .to("direct:siri.transform.data")
+                    .process(metricsService.outboundStageRecorder(SiriDataType.SITUATION_EXCHANGE, PrometheusMetricsService.OUTBOUND_STAGE_TRANSFORMED))
                     .choice().when(body().isNotNull())
                         .to("xslt-saxon:xsl/split.xsl")
+                        .process(metricsService.outboundStageRecorder(SiriDataType.SITUATION_EXCHANGE, PrometheusMetricsService.OUTBOUND_STAGE_SPLIT_READY))
                         .split().tokenizeXML("Siri").streaming()
                             .parallelProcessing().executorService(sxSplitPool)
                         .process(metricsService.outboundStageRecorder(SiriDataType.SITUATION_EXCHANGE, PrometheusMetricsService.OUTBOUND_STAGE_ELEMENT_START))

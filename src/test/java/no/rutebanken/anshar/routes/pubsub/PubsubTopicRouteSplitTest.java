@@ -143,6 +143,8 @@ class PubsubTopicRouteSplitTest {
                 PrometheusMetricsService.STORED_AT_HEADER, System.currentTimeMillis() - 2_000);
 
         assertStageTimedFromStoredTime("ESTIMATED_TIMETABLE", "route_start", 1);
+        assertStageTimedFromStoredTime("ESTIMATED_TIMETABLE", "transformed", 1);
+        assertStageTimedFromStoredTime("ESTIMATED_TIMETABLE", "split_ready", 1);
         assertStageTimedFromStoredTime("ESTIMATED_TIMETABLE", "element_start", ELEMENTS);
     }
 
@@ -152,6 +154,8 @@ class PubsubTopicRouteSplitTest {
                 PrometheusMetricsService.STORED_AT_HEADER, System.currentTimeMillis() - 2_000);
 
         assertStageTimedFromStoredTime("SITUATION_EXCHANGE", "route_start", 1);
+        assertStageTimedFromStoredTime("SITUATION_EXCHANGE", "transformed", 1);
+        assertStageTimedFromStoredTime("SITUATION_EXCHANGE", "split_ready", 1);
         assertStageTimedFromStoredTime("SITUATION_EXCHANGE", "element_start", ELEMENTS);
     }
 
@@ -160,6 +164,8 @@ class PubsubTopicRouteSplitTest {
         producer.sendBody("direct:send.to.pubsub.topic.estimated_timetable", etDelivery(ELEMENTS));
 
         assertNull(stage("ESTIMATED_TIMETABLE", "route_start"));
+        assertNull(stage("ESTIMATED_TIMETABLE", "transformed"));
+        assertNull(stage("ESTIMATED_TIMETABLE", "split_ready"));
         assertNull(stage("ESTIMATED_TIMETABLE", "element_start"));
     }
 }
