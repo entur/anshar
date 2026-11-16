@@ -34,11 +34,11 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class SiriValueTransformer {
 
@@ -46,7 +46,8 @@ public class SiriValueTransformer {
 
     private static final Logger logger = LoggerFactory.getLogger(SiriValueTransformer.class);
 
-    private static final Map<GetterKey, Set<Method>> cachedGettersForAdapter = new HashMap<>();
+    // Shared by all threads transforming SIRI data
+    private static final Map<GetterKey, Set<Method>> cachedGettersForAdapter = new ConcurrentHashMap<>();
 
     private static Set<Class> onewayMappingList = Set.of(LineRef.class);
 
@@ -220,9 +221,7 @@ public class SiriValueTransformer {
 
                 if (method.getReturnType().equals(adapter.getClassToApply())) {
 
-                    Set<Method> methods = cachedGettersForAdapter.getOrDefault(getterKey, new HashSet<>());
-                    methods.add(method);
-                    cachedGettersForAdapter.put(getterKey, methods);
+                    cachedGettersForAdapter.computeIfAbsent(getterKey, key -> ConcurrentHashMap.newKeySet()).add(method);
 
                     Object previousValue = method.invoke(obj);
                     if (previousValue != null) {
