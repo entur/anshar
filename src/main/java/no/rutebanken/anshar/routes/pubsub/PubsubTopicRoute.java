@@ -14,6 +14,7 @@
  */
 package no.rutebanken.anshar.routes.pubsub;
 
+import no.rutebanken.anshar.metrics.PrometheusMetricsService;
 import no.rutebanken.anshar.routes.avro.AvroConvertorProcessor;
 import org.apache.camel.builder.RouteBuilder;
 import org.entur.avro.realtime.siri.model.SiriRecord;
@@ -70,6 +71,8 @@ public class PubsubTopicRoute extends RouteBuilder {
              * message to protobuf, and posts to Cloud Pubsub
              */
             from("direct:send.to.pubsub.topic.vehicle_monitoring")
+                    // A property survives the split and the Avro conversion, which replaces all headers
+                    .setProperty(PrometheusMetricsService.STORED_AT_HEADER, header(PrometheusMetricsService.STORED_AT_HEADER))
                     .to("direct:siri.transform.data")
                     .choice().when(body().isNotNull())
                         .process(StackOverflowGuard.guard(p -> {

@@ -16,6 +16,7 @@
 package no.rutebanken.anshar.routes.outbound;
 
 import com.hazelcast.map.IMap;
+import no.rutebanken.anshar.metrics.PrometheusMetricsService;
 import no.rutebanken.anshar.routes.siri.handlers.OutboundIdMappingPolicy;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.subscription.SiriDataType;
@@ -54,6 +55,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -471,7 +473,8 @@ public class ServerSubscriptionManager {
                 outboundSenderExecutorService.execute(() -> pushUpdatedSituations(updates, datasetId, breadcrumbId));
                 break;
             case VEHICLE_MONITORING:
-                outboundSenderExecutorService.execute(() -> pushUpdatedVehicleActivities(updates, datasetId, breadcrumbId));
+                final long storedAt = System.currentTimeMillis();
+                outboundSenderExecutorService.execute(() -> pushUpdatedVehicleActivities(updates, datasetId, breadcrumbId, storedAt));
                 break;
             case FACILITY_MONITORING:
                 outboundSenderExecutorService.execute(() -> pushUpdatedFacilityMonitoring(updates, datasetId, breadcrumbId));
@@ -483,7 +486,7 @@ public class ServerSubscriptionManager {
     }
 
     private void pushUpdatedVehicleActivities(
-        List<VehicleActivityStructure> addedOrUpdated, String datasetId, String breadcrumbId
+        List<VehicleActivityStructure> addedOrUpdated, String datasetId, String breadcrumbId, long storedAt
     ) {
         MDC.put("camel.breadcrumbId", breadcrumbId);
 
@@ -493,7 +496,9 @@ public class ServerSubscriptionManager {
         Siri delivery = siriObjectFactory.createVMServiceDelivery(addedOrUpdated);
 
         if (pushToVmTopicEnabled) {
-            siriVmTopicProducer.asyncRequestBodyAndHeader(siriVmTopicProducer.getDefaultEndpoint(), delivery, CODESPACE_ID_KAFKA_HEADER_NAME, datasetId);
+            siriVmTopicProducer.asyncRequestBodyAndHeaders(siriVmTopicProducer.getDefaultEndpoint(), delivery, Map.of(
+                    CODESPACE_ID_KAFKA_HEADER_NAME, datasetId,
+                    PrometheusMetricsService.STORED_AT_HEADER, storedAt));
         }
 
         final List<OutboundSubscriptionSetup> recipients = subscriptions

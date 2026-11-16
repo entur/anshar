@@ -305,6 +305,9 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
         AtomicInteger invalidLocationCounter = new AtomicInteger(0);
         AtomicInteger notMeaningfulCounter = new AtomicInteger(0);
         AtomicInteger outdatedCounter = new AtomicInteger(0);
+        AtomicInteger expiredCounter = new AtomicInteger(0);
+        AtomicInteger noValidUntilCounter = new AtomicInteger(0);
+        AtomicInteger keptCounter = new AtomicInteger(0);
         AtomicInteger notUpdatedCounter = new AtomicInteger(0);
         AtomicInteger invalidStructureCounter = new AtomicInteger(0);
         prepareMetrics();
@@ -360,10 +363,15 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
                         timingTracer.mark("getExpiration");
 
                         resolveContentMetrics(activity, expiration);
-                        if (expiration > 0 && keep) {
-                            changes.put(key, activity);
-                        } else {
+                        if (!keep) {
                             outdatedCounter.incrementAndGet();
+                        } else if (activity.getValidUntilTime() == null) {
+                            noValidUntilCounter.incrementAndGet();
+                        } else if (expiration <= 0) {
+                            expiredCounter.incrementAndGet();
+                        } else {
+                            changes.put(key, activity);
+                            keptCounter.incrementAndGet();
                         }
 
                         if (!isLocationValid(activity)) {invalidLocationCounter.incrementAndGet();}
@@ -395,14 +403,39 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
             timingTracer.mark("monitoredVehicles.setAll");
         }
 
+        // The same vehicle more than once in one delivery: only one of them is stored
+        int duplicates = keptCounter.get() - changes.size();
+
         if (changes.size() == vmList.size()) {
             // ignore details if everything is updated
             logger.info("Updated {} (of {})", changes.size(), vmList.size());
         } else {
-            logger.info("Updated {} (of {}) :: Ignored elements - Missing location:{}, Missing values: {}, Expired: {}, Not updated: {}, Invalid structure: {}", changes.size(), vmList.size(), invalidLocationCounter.get(), notMeaningfulCounter.get(), outdatedCounter.get(), notUpdatedCounter.get(), invalidStructureCounter.get());
+            logger.info("Updated {} (of {}) :: Ignored elements - Expired: {}, Missing ValidUntil: {}, Outdated: {}, Not updated: {}, Duplicates: {}, Invalid structure: {} :: Stored with missing location: {}, missing values: {}",
+                    changes.size(), vmList.size(), expiredCounter.get(), noValidUntilCounter.get(), outdatedCounter.get(),
+                    notUpdatedCounter.get(), duplicates, invalidStructureCounter.get(), invalidLocationCounter.get(), notMeaningfulCounter.get());
         }
 
-        markDataReceived(SiriDataType.VEHICLE_MONITORING, datasetId, vmList.size(), changes.size(), outdatedCounter.get(), (invalidLocationCounter.get() + notMeaningfulCounter.get() + notUpdatedCounter.get()));
+        // Each element is counted once: stored, expired or ignored
+        markDataReceived(SiriDataType.VEHICLE_MONITORING, datasetId, vmList.size(), changes.size(),
+                expiredCounter.get() + noValidUntilCounter.get(),
+                invalidStructureCounter.get() + notUpdatedCounter.get() + outdatedCounter.get() + duplicates);
+
+        metrics.markDataDropped(SiriDataType.VEHICLE_MONITORING, datasetId, "invalid_structure", invalidStructureCounter.get());
+        metrics.markDataDropped(SiriDataType.VEHICLE_MONITORING, datasetId, "not_updated", notUpdatedCounter.get());
+        metrics.markDataDropped(SiriDataType.VEHICLE_MONITORING, datasetId, "outdated", outdatedCounter.get());
+        metrics.markDataDropped(SiriDataType.VEHICLE_MONITORING, datasetId, "duplicate", duplicates);
+        metrics.markDataDropped(SiriDataType.VEHICLE_MONITORING, datasetId, "expired", expiredCounter.get());
+        metrics.markDataDropped(SiriDataType.VEHICLE_MONITORING, datasetId, "no_valid_until", noValidUntilCounter.get());
+
+        ZonedDateTime storedAt = ZonedDateTime.now();
+        for (VehicleActivityStructure stored : changes.values()) {
+            ZonedDateTime reportedAt = stored.getMonitoredVehicleJourney().getLocationRecordedAtTime() != null
+                    ? stored.getMonitoredVehicleJourney().getLocationRecordedAtTime()
+                    : stored.getRecordedAtTime();
+            if (reportedAt != null) {
+                metrics.recordSourceLatency(SiriDataType.VEHICLE_MONITORING, datasetId, Duration.between(reportedAt, storedAt));
+            }
+        }
 
         timingTracer.mark("markDataReceived");
         markIdsAsUpdated(changes.keySet());

@@ -15,6 +15,7 @@
 package no.rutebanken.anshar.routes.pubsub;
 
 import no.rutebanken.anshar.metrics.PrometheusMetricsService;
+import no.rutebanken.anshar.subscription.SiriDataType;
 import org.apache.camel.builder.RouteBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -94,6 +95,7 @@ public class PubsubAvroPublisherRoute extends RouteBuilder {
                     .choice().when().constant(!pubsubVmAvroJsonTopic.equals("mock:ignore"))
                         .process(siriAvroJsonSerializer)
                         .to(pubsubVmAvroJsonTopic)
+                        .process(metricsService.outboundLatencyRecorder(SiriDataType.VEHICLE_MONITORING))
                     .end()
                     .bean(metricsService, "registerAvroPubsubRecord(VEHICLE_MONITORING)")
                     .routeId("anshar.pubsub.vm.producer.avro");

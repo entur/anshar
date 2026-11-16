@@ -583,7 +583,7 @@ public class SiriHandler {
                             } else {
                                 if (vm.getVehicleActivities() != null) {
                                     if (subscriptionSetup.isUseProvidedCodespaceId()) {
-                                        Map<String, List<VehicleActivityStructure>> vehiclesByCodespace = splitVehicleMonitoringByCodespace(vm.getVehicleActivities());
+                                        Map<String, List<VehicleActivityStructure>> vehiclesByCodespace = splitVehicleMonitoringByCodespace(vm.getVehicleActivities(), subscriptionSetup.getDatasetId());
                                         for (String codespace : vehiclesByCodespace.keySet()) {
 
                                             // List containing added situations for current codespace
@@ -641,10 +641,16 @@ public class SiriHandler {
     }
 
     private Map<String, List<VehicleActivityStructure>> splitVehicleMonitoringByCodespace(
-            List<VehicleActivityStructure> activityStructures
+            List<VehicleActivityStructure> activityStructures, String subscriptionDatasetId
     ) {
         Map<String, List<VehicleActivityStructure>> result = new HashMap<>();
+        int withoutDataSource = 0;
         for (VehicleActivityStructure vmElement : activityStructures) {
+            if (vmElement.getMonitoredVehicleJourney() == null
+                    || vmElement.getMonitoredVehicleJourney().getDataSource() == null) {
+                // No codespace to store it under
+                withoutDataSource++;
+            }
             if (vmElement.getMonitoredVehicleJourney() != null) {
 
                 final String dataSource = vmElement.getMonitoredVehicleJourney().getDataSource();
@@ -664,6 +670,7 @@ public class SiriHandler {
                 }
             }
         }
+        metrics.markDroppedBeforeStorage(SiriDataType.VEHICLE_MONITORING, subscriptionDatasetId, "no_datasource", withoutDataSource);
         return result;
     }
 
