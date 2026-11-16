@@ -8,7 +8,8 @@ import no.rutebanken.anshar.routes.CamelRouteNames;
 import org.apache.camel.Exchange;
 import org.apache.camel.ProducerTemplate;
 import org.apache.camel.component.google.pubsub.GooglePubsubConstants;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.Instant;
@@ -20,11 +21,11 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * The DATA_VM consumer of Anshar's internal VM queue records how long a message spent between
- * the PROXY pod publishing it and this pod receiving it. Tests run the queue on direct:, so the
- * Pub/Sub publish time is set by hand here.
+ * The data-pod consumers of Anshar's internal queues record how long a message spent between
+ * the PROXY pod publishing it and this pod receiving it. Tests run the queues on direct:, so
+ * the Pub/Sub publish time is set by hand here.
  */
-public class VmQueueLatencyMetricsTest extends SpringBootBaseTest {
+public class QueueLatencyMetricsTest extends SpringBootBaseTest {
 
     @Autowired
     private ProducerTemplate producerTemplate;
@@ -32,13 +33,19 @@ public class VmQueueLatencyMetricsTest extends SpringBootBaseTest {
     @Autowired
     private PrometheusMetricsService metrics;
 
-    private Timer queueTimer() {
-        return metrics.find("app.anshar.latency.queue").tag("dataType", "VEHICLE_MONITORING").timer();
+    private Timer queueTimer(String dataType) {
+        return metrics.find("app.anshar.latency.queue").tag("dataType", dataType).timer();
     }
 
-    @Test
-    public void queueLatencyIsTimeFromPublishToConsume() {
-        Timer before = queueTimer();
+    @ParameterizedTest
+    @CsvSource({
+            "VEHICLE_MONITORING, " + CamelRouteNames.TRANSFORM_QUEUE_VM,
+            "ESTIMATED_TIMETABLE, " + CamelRouteNames.TRANSFORM_QUEUE_ET,
+            "SITUATION_EXCHANGE, " + CamelRouteNames.TRANSFORM_QUEUE_SX,
+            "FACILITY_MONITORING, " + CamelRouteNames.TRANSFORM_QUEUE_FM,
+    })
+    public void queueLatencyIsTimeFromPublishToConsume(String dataType, String queue) {
+        Timer before = queueTimer(dataType);
         long countBefore = before == null ? 0 : before.count();
         double millisBefore = before == null ? 0 : before.totalTime(TimeUnit.MILLISECONDS);
 
@@ -48,7 +55,7 @@ public class VmQueueLatencyMetricsTest extends SpringBootBaseTest {
                 "subscriptionId", "queue-latency-test", byte[].class);
 
         Instant published = Instant.now().minusSeconds(3);
-        Exchange result = producerTemplate.send("direct:" + CamelRouteNames.TRANSFORM_QUEUE_VM, exchange -> {
+        Exchange result = producerTemplate.send("direct:" + queue, exchange -> {
             exchange.getIn().setBody(compressed);
             exchange.getIn().setHeader(GooglePubsubConstants.PUBLISH_TIME, Timestamp.newBuilder()
                     .setSeconds(published.getEpochSecond())
@@ -58,9 +65,9 @@ public class VmQueueLatencyMetricsTest extends SpringBootBaseTest {
         });
 
         assertNull(result.getException(), "the queue route failed");
-        Timer queue = queueTimer();
-        assertEquals(countBefore + 1, queue == null ? 0 : queue.count());
-        double millis = queue.totalTime(TimeUnit.MILLISECONDS) - millisBefore;
+        Timer queueTimer = queueTimer(dataType);
+        assertEquals(countBefore + 1, queueTimer == null ? 0 : queueTimer.count());
+        double millis = queueTimer.totalTime(TimeUnit.MILLISECONDS) - millisBefore;
         assertTrue(millis >= 3_000 && millis < 10_000, "queue latency was " + millis + " ms");
     }
 }
