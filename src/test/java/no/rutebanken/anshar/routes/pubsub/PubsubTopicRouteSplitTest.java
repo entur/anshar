@@ -12,25 +12,32 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Each element of a split delivery is published to its XML topic with a blocking Pub/Sub call.
  * Elements must not wait for the publishes of the elements before them, or the last element
  * of a large delivery is delayed by one round trip per element ahead of it.
+ * <p>
+ * The XML endpoint stubs hold every publish until all elements of the delivery are being
+ * published at once, which only happens when they are published in parallel.
  */
 class PubsubTopicRouteSplitTest {
 
-    private static final int ELEMENTS = 20;
-    private static final long PUBLISH_MILLIS = 100;
+    private static final int ELEMENTS = 5;
+    private static final long AWAIT_SECONDS = 1;
 
     private CamelContext context;
     private ProducerTemplate producer;
-    private final AtomicInteger etPublished = new AtomicInteger();
-    private final AtomicInteger sxPublished = new AtomicInteger();
+    private final CountDownLatch etInFlight = new CountDownLatch(ELEMENTS);
+    private final CountDownLatch sxInFlight = new CountDownLatch(ELEMENTS);
+    /** Publishes that saw every element of the delivery in flight at the same time */
+    private final AtomicInteger etConcurrent = new AtomicInteger();
+    private final AtomicInteger sxConcurrent = new AtomicInteger();
 
     @BeforeEach
     void setUp() throws Exception {
@@ -49,14 +56,8 @@ class PubsubTopicRouteSplitTest {
             @Override
             public void configure() {
                 from("direct:siri.transform.data").log("transform stub");
-                from("direct:slow.xml.et").process(e -> {
-                    Thread.sleep(PUBLISH_MILLIS);
-                    etPublished.incrementAndGet();
-                });
-                from("direct:slow.xml.sx").process(e -> {
-                    Thread.sleep(PUBLISH_MILLIS);
-                    sxPublished.incrementAndGet();
-                });
+                from("direct:slow.xml.et").process(e -> awaitAllInFlight(etInFlight, etConcurrent));
+                from("direct:slow.xml.sx").process(e -> awaitAllInFlight(sxInFlight, sxConcurrent));
                 from("direct:publish.et.avro.kafka").log("stub");
                 from("direct:publish.et.avro.pubsub").log("stub");
                 from("direct:publish.sx.avro.kafka").log("stub");
@@ -98,25 +99,24 @@ class PubsubTopicRouteSplitTest {
         return xml.append("</Situations></SituationExchangeDelivery></ServiceDelivery></Siri>").toString();
     }
 
+    private static void awaitAllInFlight(CountDownLatch inFlight, AtomicInteger concurrent) throws InterruptedException {
+        inFlight.countDown();
+        if (inFlight.await(AWAIT_SECONDS, TimeUnit.SECONDS)) {
+            concurrent.incrementAndGet();
+        }
+    }
+
     @Test
     void etJourneysArePublishedWithoutWaitingForEachOther() {
-        long start = System.currentTimeMillis();
         producer.sendBody("direct:send.to.pubsub.topic.estimated_timetable", etDelivery(ELEMENTS));
-        long elapsed = System.currentTimeMillis() - start;
 
-        assertEquals(ELEMENTS, etPublished.get());
-        assertTrue(elapsed < ELEMENTS * PUBLISH_MILLIS / 4,
-                "publishing " + ELEMENTS + " journeys took " + elapsed + " ms");
+        assertEquals(ELEMENTS, etConcurrent.get(), "journeys published while all were in flight");
     }
 
     @Test
     void sxSituationsArePublishedWithoutWaitingForEachOther() {
-        long start = System.currentTimeMillis();
         producer.sendBody("direct:send.to.pubsub.topic.situation_exchange", sxDelivery(ELEMENTS));
-        long elapsed = System.currentTimeMillis() - start;
 
-        assertEquals(ELEMENTS, sxPublished.get());
-        assertTrue(elapsed < ELEMENTS * PUBLISH_MILLIS / 4,
-                "publishing " + ELEMENTS + " situations took " + elapsed + " ms");
+        assertEquals(ELEMENTS, sxConcurrent.get(), "situations published while all were in flight");
     }
 }
