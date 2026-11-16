@@ -2,6 +2,7 @@ package no.rutebanken.anshar.routes.pubsub;
 
 import no.rutebanken.anshar.metrics.PrometheusMetricsService;
 import no.rutebanken.anshar.routes.avro.AvroConvertorProcessor;
+import io.micrometer.core.instrument.Timer;
 import org.apache.camel.CamelContext;
 import org.apache.camel.ProducerTemplate;
 import org.apache.camel.builder.RouteBuilder;
@@ -17,6 +18,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Each element of a split delivery is published to its XML topic with a blocking Pub/Sub call.
@@ -32,6 +36,7 @@ class PubsubTopicRouteSplitTest {
     private static final long AWAIT_SECONDS = 1;
 
     private CamelContext context;
+    private final PrometheusMetricsService metrics = new PrometheusMetricsService();
     private ProducerTemplate producer;
     private final CountDownLatch etInFlight = new CountDownLatch(ELEMENTS);
     private final CountDownLatch sxInFlight = new CountDownLatch(ELEMENTS);
@@ -48,7 +53,7 @@ class PubsubTopicRouteSplitTest {
         ReflectionTestUtils.setField(route, "fmTopicXml", "");
         ReflectionTestUtils.setField(route, "splitPublishThreads", 20);
         ReflectionTestUtils.setField(route, "avroConvertorProcessor", Mockito.mock(AvroConvertorProcessor.class));
-        ReflectionTestUtils.setField(route, "metricsService", Mockito.mock(PrometheusMetricsService.class));
+        ReflectionTestUtils.setField(route, "metricsService", metrics);
 
         context = new DefaultCamelContext();
         context.addRoutes(route);
@@ -118,5 +123,43 @@ class PubsubTopicRouteSplitTest {
         producer.sendBody("direct:send.to.pubsub.topic.situation_exchange", sxDelivery(ELEMENTS));
 
         assertEquals(ELEMENTS, sxConcurrent.get(), "situations published while all were in flight");
+    }
+
+    private Timer stage(String dataType, String stage) {
+        return metrics.find("app.anshar.latency.outbound.stage").tags("dataType", dataType, "stage", stage).timer();
+    }
+
+    private void assertStageTimedFromStoredTime(String dataType, String stage, int expectedCount) {
+        Timer timer = stage(dataType, stage);
+        assertNotNull(timer, stage + " not timed");
+        assertEquals(expectedCount, timer.count(), stage + " count");
+        double meanMillis = timer.mean(TimeUnit.MILLISECONDS);
+        assertTrue(meanMillis >= 2_000 && meanMillis < 10_000, stage + " was " + meanMillis + " ms");
+    }
+
+    @Test
+    void etStagesAreTimedFromTheStoredTime() {
+        producer.sendBodyAndHeader("direct:send.to.pubsub.topic.estimated_timetable", etDelivery(ELEMENTS),
+                PrometheusMetricsService.STORED_AT_HEADER, System.currentTimeMillis() - 2_000);
+
+        assertStageTimedFromStoredTime("ESTIMATED_TIMETABLE", "route_start", 1);
+        assertStageTimedFromStoredTime("ESTIMATED_TIMETABLE", "element_start", ELEMENTS);
+    }
+
+    @Test
+    void sxStagesAreTimedFromTheStoredTime() {
+        producer.sendBodyAndHeader("direct:send.to.pubsub.topic.situation_exchange", sxDelivery(ELEMENTS),
+                PrometheusMetricsService.STORED_AT_HEADER, System.currentTimeMillis() - 2_000);
+
+        assertStageTimedFromStoredTime("SITUATION_EXCHANGE", "route_start", 1);
+        assertStageTimedFromStoredTime("SITUATION_EXCHANGE", "element_start", ELEMENTS);
+    }
+
+    @Test
+    void deliveryWithoutStoredTimeIsNotTimed() {
+        producer.sendBody("direct:send.to.pubsub.topic.estimated_timetable", etDelivery(ELEMENTS));
+
+        assertNull(stage("ESTIMATED_TIMETABLE", "route_start"));
+        assertNull(stage("ESTIMATED_TIMETABLE", "element_start"));
     }
 }

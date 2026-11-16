@@ -115,6 +115,13 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
     private static final String LATENCY_SOURCE_NAME = METRICS_PREFIX + "latency.source";
     private static final String LATENCY_SOURCE_MISSING_NAME = METRICS_PREFIX + "latency.source.missing";
     private static final String LATENCY_OUTBOUND_NAME = METRICS_PREFIX + "latency.outbound";
+    private static final String LATENCY_OUTBOUND_STAGE_NAME = METRICS_PREFIX + "latency.outbound.stage";
+    private static final String STAGE_TAG_NAME = "stage";
+
+    /** Outbound stage: the delivery entered the topic route, after the push pool and async producer */
+    public static final String OUTBOUND_STAGE_ROUTE_START = "route_start";
+    /** Outbound stage: a split element starts publishing, after ID mapping, XML conversion and split */
+    public static final String OUTBOUND_STAGE_ELEMENT_START = "element_start";
 
     // Internal steps: Pub/Sub hops and processing, expected in milliseconds
     private static final Duration[] INTERNAL_LATENCY_BUCKETS = {
@@ -198,6 +205,23 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
                 latencyTimer(LATENCY_OUTBOUND_NAME,
                         "Time from Anshar storing updates until they were published to the outbound topic",
                         INTERNAL_LATENCY_BUCKETS, DATATYPE_TAG_NAME, dataType.name()
+                ).record(Duration.ofMillis(System.currentTimeMillis() - storedAt));
+            }
+        };
+    }
+
+    /**
+     * Records the time since the updates were stored, read from the {@link #STORED_AT_HEADER}
+     * exchange property, at an intermediate step of the outbound topic route. Together with
+     * {@link #outboundLatencyRecorder} this shows where outbound latency is spent.
+     */
+    public Processor outboundStageRecorder(SiriDataType dataType, String stage) {
+        return exchange -> {
+            Long storedAt = exchange.getProperty(STORED_AT_HEADER, Long.class);
+            if (storedAt != null) {
+                latencyTimer(LATENCY_OUTBOUND_STAGE_NAME,
+                        "Time from Anshar storing updates until they reached a step of the outbound topic route",
+                        INTERNAL_LATENCY_BUCKETS, DATATYPE_TAG_NAME, dataType.name(), STAGE_TAG_NAME, stage
                 ).record(Duration.ofMillis(System.currentTimeMillis() - storedAt));
             }
         };
