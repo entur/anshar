@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 import static no.rutebanken.anshar.helpers.SleepUtil.sleep;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -202,5 +203,19 @@ public class VehicleActivitiesMetricsTest extends SpringBootBaseTest {
         assertEquals(1, source.count());
         double millis = source.totalTime(TimeUnit.MILLISECONDS);
         assertTrue(millis >= 5_000 && millis < 15_000, "source latency was " + millis + " ms");
+    }
+
+    @Test
+    public void vehicleWithoutReportedTimeIsCountedInsteadOfTimed() {
+        VehicleActivityStructure activity = vehicle("v1");
+        activity.setRecordedAtTime(null);
+        activity.getMonitoredVehicleJourney().setLocationRecordedAtTime(null);
+
+        vehicleActivities.addAll(codespace, List.of(activity));
+
+        assertEquals(1, success());
+        assertNull(metrics.find("app.anshar.latency.source").tags("dataType", VM, "codespace", codespace).timer(),
+                "a vehicle without a reported time must not be timed");
+        assertEquals(1, counter("app.anshar.latency.source.missing", "dataType", VM, "codespace", codespace));
     }
 }

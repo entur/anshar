@@ -167,4 +167,36 @@ public class EstimatedTimetablesMetricsTest extends SpringBootBaseTest {
                 "a missing RecordedAtTime must not be timed as zero latency");
         assertEquals(1, counter("app.anshar.latency.source.missing", "dataType", ET, "codespace", codespace));
     }
+
+    /**
+     * With the same journey twice in one delivery, only one is stored. Its source latency must
+     * come from its own RecordedAtTime, not the other copy's.
+     */
+    @Test
+    public void duplicateJourneyIsTimedFromTheStoredCopy() {
+        for (int i = 0; i < 20; i++) {
+            estimatedTimetables.clearAll();
+            codespace = "E" + UUID.randomUUID().toString().substring(0, 8);
+            ZonedDateTime arrival = ZonedDateTime.now().plusHours(1);
+
+            EstimatedVehicleJourney timed = journey("v1", ZonedDateTime.now().minusMinutes(5), arrival);
+            EstimatedVehicleJourney untimed = journey("v1", ZonedDateTime.now(), arrival.plusMinutes(1));
+            untimed.setRecordedAtTime(null);
+
+            estimatedTimetables.addAll(codespace, List.of(timed, untimed));
+
+            boolean storedIsTimed = estimatedTimetables.getAll(codespace).stream()
+                    .anyMatch(stored -> stored.getRecordedAtTime().isBefore(ZonedDateTime.now().minusMinutes(1)));
+            Timer source = metrics.find("app.anshar.latency.source").tags("dataType", ET, "codespace", codespace).timer();
+            double missing = counter("app.anshar.latency.source.missing", "dataType", ET, "codespace", codespace);
+
+            if (storedIsTimed) {
+                assertNotNull(source, "stored journey has a RecordedAtTime but was not timed");
+                assertEquals(0, missing);
+            } else {
+                assertNull(source, "stored journey has no RecordedAtTime but was timed with the other copy's");
+                assertEquals(1, missing);
+            }
+        }
+    }
 }
