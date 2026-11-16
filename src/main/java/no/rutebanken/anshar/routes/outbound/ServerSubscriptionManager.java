@@ -464,25 +464,32 @@ public class ServerSubscriptionManager {
     public void pushUpdatesAsync(SiriDataType datatype, List updates, String datasetId) {
 
         final String breadcrumbId = MDC.get("camel.breadcrumbId");
+        final long storedAt = System.currentTimeMillis();
 
         switch (datatype) {
             case ESTIMATED_TIMETABLE:
-                outboundSenderExecutorService.execute(() -> pushUpdatedEstimatedTimetables(updates, datasetId, breadcrumbId));
+                outboundSenderExecutorService.execute(() -> pushUpdatedEstimatedTimetables(updates, datasetId, breadcrumbId, storedAt));
                 break;
             case SITUATION_EXCHANGE:
-                outboundSenderExecutorService.execute(() -> pushUpdatedSituations(updates, datasetId, breadcrumbId));
+                outboundSenderExecutorService.execute(() -> pushUpdatedSituations(updates, datasetId, breadcrumbId, storedAt));
                 break;
             case VEHICLE_MONITORING:
-                final long storedAt = System.currentTimeMillis();
                 outboundSenderExecutorService.execute(() -> pushUpdatedVehicleActivities(updates, datasetId, breadcrumbId, storedAt));
                 break;
             case FACILITY_MONITORING:
-                outboundSenderExecutorService.execute(() -> pushUpdatedFacilityMonitoring(updates, datasetId, breadcrumbId));
+                outboundSenderExecutorService.execute(() -> pushUpdatedFacilityMonitoring(updates, datasetId, breadcrumbId, storedAt));
                 break;
             default:
                 // Ignore
                 break;
         }
+    }
+
+    /** Headers for the outbound topic routes: the codespace, and when the updates were stored */
+    private static Map<String, Object> topicHeaders(String datasetId, long storedAt) {
+        return Map.of(
+                CODESPACE_ID_KAFKA_HEADER_NAME, datasetId,
+                PrometheusMetricsService.STORED_AT_HEADER, storedAt);
     }
 
     private void pushUpdatedVehicleActivities(
@@ -496,9 +503,7 @@ public class ServerSubscriptionManager {
         Siri delivery = siriObjectFactory.createVMServiceDelivery(addedOrUpdated);
 
         if (pushToVmTopicEnabled) {
-            siriVmTopicProducer.asyncRequestBodyAndHeaders(siriVmTopicProducer.getDefaultEndpoint(), delivery, Map.of(
-                    CODESPACE_ID_KAFKA_HEADER_NAME, datasetId,
-                    PrometheusMetricsService.STORED_AT_HEADER, storedAt));
+            siriVmTopicProducer.asyncRequestBodyAndHeaders(siriVmTopicProducer.getDefaultEndpoint(), delivery, topicHeaders(datasetId, storedAt));
         }
 
         final List<OutboundSubscriptionSetup> recipients = subscriptions
@@ -531,7 +536,7 @@ public class ServerSubscriptionManager {
 
 
     private void pushUpdatedSituations(
-        List<PtSituationElement> addedOrUpdated, String datasetId, String breadcrumbId
+        List<PtSituationElement> addedOrUpdated, String datasetId, String breadcrumbId, long storedAt
     ) {
         MDC.put("camel.breadcrumbId", breadcrumbId);
 
@@ -541,7 +546,7 @@ public class ServerSubscriptionManager {
         Siri delivery = siriObjectFactory.createSXServiceDelivery(addedOrUpdated);
 
         if (pushToSxTopicEnabled) {
-            siriSxTopicProducer.asyncRequestBodyAndHeader(siriSxTopicProducer.getDefaultEndpoint(), delivery, CODESPACE_ID_KAFKA_HEADER_NAME, datasetId);
+            siriSxTopicProducer.asyncRequestBodyAndHeaders(siriSxTopicProducer.getDefaultEndpoint(), delivery, topicHeaders(datasetId, storedAt));
         }
 
         final List<OutboundSubscriptionSetup> recipients = subscriptions
@@ -572,7 +577,7 @@ public class ServerSubscriptionManager {
         MDC.remove("camel.breadcrumbId");
     }
 
-    private void pushUpdatedEstimatedTimetables(List<EstimatedVehicleJourney> addedOrUpdated, String datasetId, String breadcrumbId) {
+    private void pushUpdatedEstimatedTimetables(List<EstimatedVehicleJourney> addedOrUpdated, String datasetId, String breadcrumbId, long storedAt) {
 
         if (addedOrUpdated == null || addedOrUpdated.isEmpty()) {
             return;
@@ -583,7 +588,7 @@ public class ServerSubscriptionManager {
         Siri delivery = siriObjectFactory.createETServiceDelivery(addedOrUpdated);
 
         if (pushToEtTopicEnabled) {
-            siriEtTopicProducer.asyncRequestBodyAndHeader(siriEtTopicProducer.getDefaultEndpoint(), delivery, CODESPACE_ID_KAFKA_HEADER_NAME, datasetId);
+            siriEtTopicProducer.asyncRequestBodyAndHeaders(siriEtTopicProducer.getDefaultEndpoint(), delivery, topicHeaders(datasetId, storedAt));
         }
 
         final List<OutboundSubscriptionSetup> recipients = subscriptions
@@ -614,7 +619,7 @@ public class ServerSubscriptionManager {
     }
 
     private void pushUpdatedFacilityMonitoring(
-            List<FacilityConditionStructure> addedOrUpdated, String datasetId, String breadcrumbId
+            List<FacilityConditionStructure> addedOrUpdated, String datasetId, String breadcrumbId, long storedAt
     ) {
         MDC.put("camel.breadcrumbId", breadcrumbId);
 
@@ -624,8 +629,7 @@ public class ServerSubscriptionManager {
         Siri delivery = siriObjectFactory.createFMServiceDelivery(addedOrUpdated);
 
         if (pushToFmTopicEnabled) {
-            siriFmTopicProducer.asyncRequestBodyAndHeader(siriFmTopicProducer.getDefaultEndpoint(),
-                    delivery, CODESPACE_ID_KAFKA_HEADER_NAME, datasetId);
+            siriFmTopicProducer.asyncRequestBodyAndHeaders(siriFmTopicProducer.getDefaultEndpoint(), delivery, topicHeaders(datasetId, storedAt));
         }
 
         final List<OutboundSubscriptionSetup> recipients = subscriptions

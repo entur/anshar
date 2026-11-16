@@ -66,6 +66,7 @@ public class PubsubAvroPublisherRoute extends RouteBuilder {
                         .when().constant(!pubsubEtAvroJsonTopic.equals("mock:ignore"))
                             .process(siriAvroJsonSerializer)
                             .to(pubsubEtAvroJsonTopic)
+                            .process(metricsService.outboundLatencyRecorder(SiriDataType.ESTIMATED_TIMETABLE))
                     .end()
                     .bean(metricsService, "registerAvroPubsubRecord(ESTIMATED_TIMETABLE)")
                     .routeId("anshar.pubsub.et.producer.avro")
@@ -124,6 +125,7 @@ public class PubsubAvroPublisherRoute extends RouteBuilder {
                     .choice().when().constant(!pubsubSxAvroJsonTopic.equals("mock:ignore"))
                         .process(siriAvroJsonSerializer)
                         .to(pubsubSxAvroJsonTopic)
+                        .process(metricsService.outboundLatencyRecorder(SiriDataType.SITUATION_EXCHANGE))
                     .end()
                     .bean(metricsService, "registerAvroPubsubRecord(SITUATION_EXCHANGE)")
                     .routeId("anshar.pubsub.sx.producer.avro");

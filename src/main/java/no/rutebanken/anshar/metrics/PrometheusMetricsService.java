@@ -113,6 +113,7 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
     private static final String DATA_DROPPED_COUNTER_NAME = METRICS_PREFIX + "data.dropped";
     private static final String LATENCY_QUEUE_NAME = METRICS_PREFIX + "latency.queue";
     private static final String LATENCY_SOURCE_NAME = METRICS_PREFIX + "latency.source";
+    private static final String LATENCY_SOURCE_MISSING_NAME = METRICS_PREFIX + "latency.source.missing";
     private static final String LATENCY_OUTBOUND_NAME = METRICS_PREFIX + "latency.outbound";
 
     // Internal steps: Pub/Sub hops and processing, expected in milliseconds
@@ -177,6 +178,13 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
                 "Time from the reported time in the data until Anshar stored it",
                 SOURCE_LATENCY_BUCKETS, DATATYPE_TAG_NAME, dataType.name(), CODESPACE_TAG_NAME, codespace
         ).record(latency);
+    }
+
+    /** Counts stored elements without a reported time, so they cannot be timed */
+    public void markSourceTimeMissing(SiriDataType dataType, String codespace, long count) {
+        if (count > 0) {
+            counter(LATENCY_SOURCE_MISSING_NAME, DATATYPE_TAG_NAME, dataType.name(), CODESPACE_TAG_NAME, codespace).increment(count);
+        }
     }
 
     /**

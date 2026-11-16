@@ -428,14 +428,18 @@ public class VehicleActivities extends SiriRepository<VehicleActivityStructure> 
         metrics.markDataDropped(SiriDataType.VEHICLE_MONITORING, datasetId, "no_valid_until", noValidUntilCounter.get());
 
         ZonedDateTime storedAt = ZonedDateTime.now();
+        int withoutReportedTime = 0;
         for (VehicleActivityStructure stored : changes.values()) {
             ZonedDateTime reportedAt = stored.getMonitoredVehicleJourney().getLocationRecordedAtTime() != null
                     ? stored.getMonitoredVehicleJourney().getLocationRecordedAtTime()
                     : stored.getRecordedAtTime();
             if (reportedAt != null) {
                 metrics.recordSourceLatency(SiriDataType.VEHICLE_MONITORING, datasetId, Duration.between(reportedAt, storedAt));
+            } else {
+                withoutReportedTime++;
             }
         }
+        metrics.markSourceTimeMissing(SiriDataType.VEHICLE_MONITORING, datasetId, withoutReportedTime);
 
         timingTracer.mark("markDataReceived");
         markIdsAsUpdated(changes.keySet());

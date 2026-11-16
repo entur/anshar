@@ -37,6 +37,7 @@ import uk.org.siri.siri21.Siri;
 import uk.org.siri.siri21.StopAssignmentStructure;
 import uk.org.siri.siri21.StopPointRefStructure;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
@@ -627,8 +628,12 @@ public class EstimatedTimetables extends SiriRepository<EstimatedVehicleJourney>
         Map<SiriObjectStorageKey, Long> expirationMap = new ConcurrentHashMap<>();
 
         AtomicInteger outdatedCounter = new AtomicInteger(0);
+        AtomicInteger olderCounter = new AtomicInteger(0);
         AtomicInteger tooFarAheadCounter = new AtomicInteger(0);
         AtomicInteger notUpdatedCounter = new AtomicInteger(0);
+        AtomicInteger keptCounter = new AtomicInteger(0);
+        // RecordedAtTime as received; a missing one is replaced with "now" below
+        Map<SiriObjectStorageKey, ZonedDateTime> reportedAtByKey = new ConcurrentHashMap<>();
         etList.parallelStream().forEach(et -> {
             TimingTracer timingTracer = new TimingTracer("single-et");
             SiriObjectStorageKey key = createKey(datasetId, et);
@@ -636,6 +641,8 @@ public class EstimatedTimetables extends SiriRepository<EstimatedVehicleJourney>
             timingTracer.mark("createKey");
 
             String currentChecksum = null;
+
+            ZonedDateTime reportedAt = et.getRecordedAtTime();
 
             // Using "now" as default recordedAtTime
             ZonedDateTime recordedAtTime = et.getRecordedAtTime() != null ? et.getRecordedAtTime() : ZonedDateTime.now();
@@ -684,6 +691,7 @@ public class EstimatedTimetables extends SiriRepository<EstimatedVehicleJourney>
                         keep = true;
                     } else {
                         logger.info("Newer data has already been processed - ignoring ET-element");
+                        olderCounter.incrementAndGet();
                     }
                     timingTracer.mark("compareRecordedAtTime");
                 } else {
@@ -699,7 +707,10 @@ public class EstimatedTimetables extends SiriRepository<EstimatedVehicleJourney>
 
             if (expiration > hardLimitFutureUpdates) {
                 metrics.registerSiriContent(SiriDataType.ESTIMATED_TIMETABLE, datasetId, null, SiriContent.TOO_FAR_AHEAD);
-                tooFarAheadCounter.incrementAndGet();
+                if (keep) {
+                    // Only counted when not already ignored for another reason
+                    tooFarAheadCounter.incrementAndGet();
+                }
                 keep = false;
             }
 
@@ -744,6 +755,10 @@ public class EstimatedTimetables extends SiriRepository<EstimatedVehicleJourney>
                     timingTracer.mark("idStartTimeMap.put");
 
                     expirationMap.put(key, expiration);
+                    keptCounter.incrementAndGet();
+                    if (reportedAt != null) {
+                        reportedAtByKey.put(key, reportedAt);
+                    }
 
                 } else {
                     metrics.registerSiriContent(SiriDataType.ESTIMATED_TIMETABLE, datasetId, null, SiriContent.TOO_LATE);
@@ -759,14 +774,26 @@ public class EstimatedTimetables extends SiriRepository<EstimatedVehicleJourney>
 
         });
 
+        // The same journey more than once in one delivery: only one of them is stored
+        int duplicates = keptCounter.get() - changes.size();
+
         if (changes.size() == etList.size()) {
             // ignore details if everything is updated
             logger.info("Updated {} (of {})", changes.size(), etList.size());
         } else {
-            logger.info("Updated {} (of {}), {} outdated, {} without changes, {} too far ahead.", changes.size(), etList.size(), outdatedCounter.get(), notUpdatedCounter.get(), tooFarAheadCounter.get());
+            logger.info("Updated {} (of {}), {} expired, {} older than stored, {} without changes, {} too far ahead, {} duplicates.",
+                    changes.size(), etList.size(), outdatedCounter.get(), olderCounter.get(), notUpdatedCounter.get(), tooFarAheadCounter.get(), duplicates);
         }
 
-        markDataReceived(SiriDataType.ESTIMATED_TIMETABLE, datasetId, etList.size(), changes.size(), outdatedCounter.get(), notUpdatedCounter.get() + tooFarAheadCounter.get());
+        // Each element is counted once: stored, expired or ignored
+        markDataReceived(SiriDataType.ESTIMATED_TIMETABLE, datasetId, etList.size(), changes.size(), outdatedCounter.get(),
+                notUpdatedCounter.get() + olderCounter.get() + tooFarAheadCounter.get() + duplicates);
+
+        metrics.markDataDropped(SiriDataType.ESTIMATED_TIMETABLE, datasetId, "not_updated", notUpdatedCounter.get());
+        metrics.markDataDropped(SiriDataType.ESTIMATED_TIMETABLE, datasetId, "outdated", olderCounter.get());
+        metrics.markDataDropped(SiriDataType.ESTIMATED_TIMETABLE, datasetId, "too_far_ahead", tooFarAheadCounter.get());
+        metrics.markDataDropped(SiriDataType.ESTIMATED_TIMETABLE, datasetId, "expired", outdatedCounter.get());
+        metrics.markDataDropped(SiriDataType.ESTIMATED_TIMETABLE, datasetId, "duplicate", duplicates);
         TimingTracer timingTracer = new TimingTracer("all-et [" + changes.size() + " changes]");
 
         // Entries are removed by the cleanup job when the object expires from the main map
@@ -778,6 +805,18 @@ public class EstimatedTimetables extends SiriRepository<EstimatedVehicleJourney>
 
         timetableDeliveries.setAll(changes);
         timingTracer.mark("timetableDeliveries.setAll");
+
+        ZonedDateTime storedAt = ZonedDateTime.now();
+        int withoutReportedTime = 0;
+        for (SiriObjectStorageKey key : changes.keySet()) {
+            ZonedDateTime reportedAt = reportedAtByKey.get(key);
+            if (reportedAt != null) {
+                metrics.recordSourceLatency(SiriDataType.ESTIMATED_TIMETABLE, datasetId, Duration.between(reportedAt, storedAt));
+            } else {
+                withoutReportedTime++;
+            }
+        }
+        metrics.markSourceTimeMissing(SiriDataType.ESTIMATED_TIMETABLE, datasetId, withoutReportedTime);
 
         markIdsAsUpdated(changes.keySet());
         timingTracer.mark("markIdsAsUpdated");

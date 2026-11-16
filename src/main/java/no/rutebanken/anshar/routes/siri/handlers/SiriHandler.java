@@ -538,7 +538,7 @@ public class SiriHandler {
                                     et.getEstimatedJourneyVersionFrames().forEach(versionFrame -> {
                                         if (versionFrame != null && versionFrame.getEstimatedVehicleJourneies() != null) {
                                             if (subscriptionSetup.isUseProvidedCodespaceId()) {
-                                                Map<String, List<EstimatedVehicleJourney>> journeysByCodespace = splitEstimatedTimetablesByCodespace(versionFrame.getEstimatedVehicleJourneies());
+                                                Map<String, List<EstimatedVehicleJourney>> journeysByCodespace = splitEstimatedTimetablesByCodespace(versionFrame.getEstimatedVehicleJourneies(), subscriptionSetup.getDatasetId());
                                                 for (String codespace : journeysByCodespace.keySet()) {
 
                                                     // List containing added situations for current codespace
@@ -675,10 +675,15 @@ public class SiriHandler {
     }
 
     private Map<String, List<EstimatedVehicleJourney>> splitEstimatedTimetablesByCodespace(
-            List<EstimatedVehicleJourney> estimatedVehicleJourneys
+            List<EstimatedVehicleJourney> estimatedVehicleJourneys, String subscriptionDatasetId
     ) {
         Map<String, List<EstimatedVehicleJourney>> result = new HashMap<>();
+        int withoutDataSource = 0;
         for (EstimatedVehicleJourney etElement : estimatedVehicleJourneys) {
+            if (etElement.getDataSource() == null) {
+                // No codespace to store it under
+                withoutDataSource++;
+            }
             if (etElement.getDataSource() != null) {
 
                 final String dataSource = etElement.getDataSource();
@@ -698,6 +703,7 @@ public class SiriHandler {
                 }
             }
         }
+        metrics.markDroppedBeforeStorage(SiriDataType.ESTIMATED_TIMETABLE, subscriptionDatasetId, "no_datasource", withoutDataSource);
         return result;
     }
 

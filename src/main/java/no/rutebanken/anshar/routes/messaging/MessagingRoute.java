@@ -244,6 +244,7 @@ public class MessagingRoute extends RestRouteBuilder {
 
         if (configuration.processSX()) {
             from(pubsubQueueSX + queueConsumerParametersSx)
+                    .process(recordQueueLatency(SiriDataType.SITUATION_EXCHANGE))
                     .process(convertAttributesToHeaders)
                     .to("direct:set.mdc.subscriptionId")
                     .choice()
@@ -261,13 +262,7 @@ public class MessagingRoute extends RestRouteBuilder {
 
         if (configuration.processVM()) {
             from(pubsubQueueVM + queueConsumerParametersVm)
-                    .process(p -> {
-                        // Read before convertAttributesToHeaders, which replaces all headers
-                        Timestamp publishTime = p.getIn().getHeader(GooglePubsubConstants.PUBLISH_TIME, Timestamp.class);
-                        if (publishTime != null) {
-                            metrics.recordQueueLatency(SiriDataType.VEHICLE_MONITORING, publishTime);
-                        }
-                    })
+                    .process(recordQueueLatency(SiriDataType.VEHICLE_MONITORING))
                     .process(convertAttributesToHeaders)
                     .to("direct:set.mdc.subscriptionId")
                     .choice()
@@ -285,6 +280,7 @@ public class MessagingRoute extends RestRouteBuilder {
 
         if (configuration.processET()) {
             from(pubsubQueueET + queueConsumerParametersEt)
+                    .process(recordQueueLatency(SiriDataType.ESTIMATED_TIMETABLE))
                     .process(convertAttributesToHeaders)
                     .to("direct:set.mdc.subscriptionId")
                     .choice()
@@ -302,6 +298,7 @@ public class MessagingRoute extends RestRouteBuilder {
 
         if (configuration.processFM()) {
             from(pubsubQueueFM + queueConsumerParametersFm)
+                    .process(recordQueueLatency(SiriDataType.FACILITY_MONITORING))
                     .process(convertAttributesToHeaders)
                     .to("direct:set.mdc.subscriptionId")
                     .choice()
@@ -373,5 +370,19 @@ public class MessagingRoute extends RestRouteBuilder {
             return false;
         }
         return subscriptionSetup.enrichSiriData();
+    }
+
+    /**
+     * Records the time a message spent on an internal queue. Must run before
+     * convertAttributesToHeaders, which replaces all headers including the publish time.
+     * Nothing is recorded when the queue is not Pub/Sub (e.g. direct:).
+     */
+    private Processor recordQueueLatency(SiriDataType dataType) {
+        return exchange -> {
+            Timestamp publishTime = exchange.getIn().getHeader(GooglePubsubConstants.PUBLISH_TIME, Timestamp.class);
+            if (publishTime != null) {
+                metrics.recordQueueLatency(dataType, publishTime);
+            }
+        };
     }
 }
