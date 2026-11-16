@@ -19,6 +19,7 @@ import com.hazelcast.replicatedmap.ReplicatedMap;
 import io.micrometer.core.instrument.ImmutableTag;
 import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.Tag;
+import io.micrometer.core.instrument.Timer;
 import io.micrometer.prometheusmetrics.PrometheusConfig;
 import io.micrometer.prometheusmetrics.PrometheusMeterRegistry;
 import jakarta.annotation.PreDestroy;
@@ -31,6 +32,7 @@ import no.rutebanken.anshar.routes.validation.ValidationType;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
+import org.apache.camel.Processor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -40,6 +42,8 @@ import uk.org.siri.siri21.Siri;
 import uk.org.siri.siri21.SituationExchangeDeliveryStructure;
 import uk.org.siri.siri21.VehicleMonitoringDeliveryStructure;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -101,6 +105,82 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
 
     public PrometheusMetricsService() {
         super(PrometheusConfig.DEFAULT);
+    }
+
+    /** Exchange header, then property, carrying when outbound updates were stored, in epoch millis */
+    public static final String STORED_AT_HEADER = "AnsharStoredAtMillis";
+
+    private static final String DATA_DROPPED_COUNTER_NAME = METRICS_PREFIX + "data.dropped";
+    private static final String LATENCY_QUEUE_NAME = METRICS_PREFIX + "latency.queue";
+    private static final String LATENCY_SOURCE_NAME = METRICS_PREFIX + "latency.source";
+    private static final String LATENCY_OUTBOUND_NAME = METRICS_PREFIX + "latency.outbound";
+
+    // Internal steps: Pub/Sub hops and processing, expected in milliseconds
+    private static final Duration[] INTERNAL_LATENCY_BUCKETS = {
+            Duration.ofMillis(10), Duration.ofMillis(25), Duration.ofMillis(50), Duration.ofMillis(100),
+            Duration.ofMillis(250), Duration.ofMillis(500), Duration.ofSeconds(1), Duration.ofMillis(2500),
+            Duration.ofSeconds(5), Duration.ofSeconds(10), Duration.ofSeconds(30), Duration.ofSeconds(60)};
+
+    // Operator reporting until stored: seconds to minutes
+    private static final Duration[] SOURCE_LATENCY_BUCKETS = {
+            Duration.ofMillis(250), Duration.ofMillis(500), Duration.ofSeconds(1), Duration.ofSeconds(2),
+            Duration.ofSeconds(5), Duration.ofSeconds(10), Duration.ofSeconds(15), Duration.ofSeconds(30),
+            Duration.ofSeconds(60), Duration.ofSeconds(120), Duration.ofSeconds(300), Duration.ofSeconds(600)};
+
+    private final Map<String, Timer> latencyTimers = new ConcurrentHashMap<>();
+
+    private Timer latencyTimer(String name, String description, Duration[] buckets, String... tags) {
+        return latencyTimers.computeIfAbsent(name + String.join(",", tags), key ->
+                Timer.builder(name)
+                        .description(description)
+                        .tags(tags)
+                        .serviceLevelObjectives(buckets)
+                        .register(this));
+    }
+
+    /**
+     * Counts elements that were received but not stored, by reason: invalid_structure, not_updated,
+     * outdated, duplicate, expired, no_valid_until and no_datasource.
+     */
+    public void markDataDropped(SiriDataType dataType, String codespace, String reason, long count) {
+        if (count > 0) {
+            counter(DATA_DROPPED_COUNTER_NAME,
+                    DATATYPE_TAG_NAME, dataType.name(), CODESPACE_TAG_NAME, codespace, "reason", reason
+            ).increment(count);
+        }
+    }
+
+    /** Time from a message being published to Anshar's internal queue until this pod consumed it */
+    public void recordQueueLatency(SiriDataType dataType, com.google.protobuf.Timestamp publishTime) {
+        Instant published = Instant.ofEpochSecond(publishTime.getSeconds(), publishTime.getNanos());
+        latencyTimer(LATENCY_QUEUE_NAME,
+                "Time from publishing to Anshar's internal queue until a data pod consumed the message",
+                INTERNAL_LATENCY_BUCKETS, DATATYPE_TAG_NAME, dataType.name()
+        ).record(Duration.between(published, Instant.now()));
+    }
+
+    /** Time from the element's reported time until Anshar stored it */
+    public void recordSourceLatency(SiriDataType dataType, String codespace, Duration latency) {
+        latencyTimer(LATENCY_SOURCE_NAME,
+                "Time from the reported time in the data until Anshar stored it",
+                SOURCE_LATENCY_BUCKETS, DATATYPE_TAG_NAME, dataType.name(), CODESPACE_TAG_NAME, codespace
+        ).record(latency);
+    }
+
+    /**
+     * Records the time since the updates were stored, read from the {@link #STORED_AT_HEADER}
+     * exchange property. Use after publishing to the outbound topic.
+     */
+    public Processor outboundLatencyRecorder(SiriDataType dataType) {
+        return exchange -> {
+            Long storedAt = exchange.getProperty(STORED_AT_HEADER, Long.class);
+            if (storedAt != null) {
+                latencyTimer(LATENCY_OUTBOUND_NAME,
+                        "Time from Anshar storing updates until they were published to the outbound topic",
+                        INTERNAL_LATENCY_BUCKETS, DATATYPE_TAG_NAME, dataType.name()
+                ).record(Duration.ofMillis(System.currentTimeMillis() - storedAt));
+            }
+        };
     }
 
     @PreDestroy

@@ -14,6 +14,7 @@
  */
 package no.rutebanken.anshar.routes.messaging;
 
+import com.google.protobuf.Timestamp;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.metrics.PrometheusMetricsService;
 import no.rutebanken.anshar.routes.CamelRouteNames;
@@ -260,6 +261,13 @@ public class MessagingRoute extends RestRouteBuilder {
 
         if (configuration.processVM()) {
             from(pubsubQueueVM + queueConsumerParametersVm)
+                    .process(p -> {
+                        // Read before convertAttributesToHeaders, which replaces all headers
+                        Timestamp publishTime = p.getIn().getHeader(GooglePubsubConstants.PUBLISH_TIME, Timestamp.class);
+                        if (publishTime != null) {
+                            metrics.recordQueueLatency(SiriDataType.VEHICLE_MONITORING, publishTime);
+                        }
+                    })
                     .process(convertAttributesToHeaders)
                     .to("direct:set.mdc.subscriptionId")
                     .choice()
