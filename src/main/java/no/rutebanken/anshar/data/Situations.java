@@ -266,12 +266,17 @@ public class Situations extends SiriRepository<PtSituationElement> {
         Map<SiriObjectStorageKey, String> checksumTmp = new HashMap<>();
 
         AtomicInteger alreadyExpiredCounter = new AtomicInteger(0);
-        AtomicInteger ignoredCounter = new AtomicInteger(0);
+        AtomicInteger invalidStructureCounter = new AtomicInteger(0);
+        AtomicInteger notUpdatedCounter = new AtomicInteger(0);
+        AtomicInteger outdatedCounter = new AtomicInteger(0);
+        AtomicInteger draftCounter = new AtomicInteger(0);
+        AtomicInteger keptCounter = new AtomicInteger(0);
         sxList.stream()
                 .forEach(situation -> {
 
             if (situation.getSituationNumber() == null) {
                 logger.warn("SituationNumber is null, skipping");
+                invalidStructureCounter.incrementAndGet();
                 return;
             }
 
@@ -290,6 +295,7 @@ public class Situations extends SiriRepository<PtSituationElement> {
             String existingChecksum = checksumCache.get(key);
             timingTracer.mark("checksumCache.get");
             boolean updated;
+            boolean olderVersion = false;
             if (existingChecksum != null && situationElements.containsKey(key)) { // Checksum not compared if actual situation does not exist
                 //Exists - compare values
                 updated =  !(currentChecksum.equals(existingChecksum));
@@ -308,6 +314,7 @@ public class Situations extends SiriRepository<PtSituationElement> {
                                 if (updatedVersion < currentVersion) {
                                     // We already have a newer version - ignore this update
                                     updated = false;
+                                    olderVersion = true;
                                 }
                             }
                         }
@@ -319,25 +326,32 @@ public class Situations extends SiriRepository<PtSituationElement> {
             }
             timingTracer.mark("compareChecksum");
 
-            if (keepByProgressStatus(situation) && updated) {
+            if (!updated) {
+                if (olderVersion) {
+                    outdatedCounter.incrementAndGet();
+                } else {
+                    notUpdatedCounter.incrementAndGet();
+                }
+            } else if (!keepByProgressStatus(situation)) {
+                draftCounter.incrementAndGet();
+            } else {
                 timingTracer.mark("keepByProgressStatus");
                 long expiration = getExpiration(situation);
                 timingTracer.mark("getExpiration");
-                if (expiration > 0) { //expiration < 0 => already expired
+                if (expiration > 0) { //expiration <= 0 => already expired
                     changes.put(key, situation);
                     checksumTmp.put(key, currentChecksum);
-                } else if (situationElements.containsKey(key)) {
-                    // Situation is no longer valid
-                    situationElements.delete(key);
-                    timingTracer.mark("situationElements.delete");
-                    checksumCache.remove(key);
-                    timingTracer.mark("checksumCache.remove");
-                }
-                if (expiration < 0) {
+                    keptCounter.incrementAndGet();
+                } else {
                     alreadyExpiredCounter.incrementAndGet();
+                    if (situationElements.containsKey(key)) {
+                        // Situation is no longer valid
+                        situationElements.delete(key);
+                        timingTracer.mark("situationElements.delete");
+                        checksumCache.remove(key);
+                        timingTracer.mark("checksumCache.remove");
+                    }
                 }
-            } else {
-                ignoredCounter.incrementAndGet();
             }
 
             long elapsed = timingTracer.getTotalTime();
@@ -351,7 +365,9 @@ public class Situations extends SiriRepository<PtSituationElement> {
             // ignore details if everything is updated
             logger.info("Updated {} (of {})", changes.size(), sxList.size());
         } else {
-            logger.info("Updated {} (of {}) :: Already expired: {}, Unchanged: {}", changes.size(), sxList.size(), alreadyExpiredCounter.get(), ignoredCounter.get());
+            logger.info("Updated {} (of {}) :: Already expired: {}, Unchanged: {}, Older version: {}, Draft: {}, Duplicates: {}, Invalid structure: {}",
+                    changes.size(), sxList.size(), alreadyExpiredCounter.get(), notUpdatedCounter.get(), outdatedCounter.get(),
+                    draftCounter.get(), keptCounter.get() - changes.size(), invalidStructureCounter.get());
         }
 
         checksumCache.setAll(checksumTmp);
@@ -359,7 +375,20 @@ public class Situations extends SiriRepository<PtSituationElement> {
         situationElements.setAll(changes);
         timingTracer.mark("monitoredVehicles.setAll");
 
-        markDataReceived(SiriDataType.SITUATION_EXCHANGE, datasetId, sxList.size(), changes.size(), alreadyExpiredCounter.get(), ignoredCounter.get());
+        // The same situation more than once in one delivery: only one of them is stored
+        int duplicates = keptCounter.get() - changes.size();
+
+        // Each element is counted once: stored, expired or ignored
+        markDataReceived(SiriDataType.SITUATION_EXCHANGE, datasetId, sxList.size(), changes.size(), alreadyExpiredCounter.get(),
+                invalidStructureCounter.get() + notUpdatedCounter.get() + outdatedCounter.get() + draftCounter.get() + duplicates);
+
+        prepareMetrics();
+        metrics.markDataDropped(SiriDataType.SITUATION_EXCHANGE, datasetId, "invalid_structure", invalidStructureCounter.get());
+        metrics.markDataDropped(SiriDataType.SITUATION_EXCHANGE, datasetId, "not_updated", notUpdatedCounter.get());
+        metrics.markDataDropped(SiriDataType.SITUATION_EXCHANGE, datasetId, "outdated", outdatedCounter.get());
+        metrics.markDataDropped(SiriDataType.SITUATION_EXCHANGE, datasetId, "draft", draftCounter.get());
+        metrics.markDataDropped(SiriDataType.SITUATION_EXCHANGE, datasetId, "expired", alreadyExpiredCounter.get());
+        metrics.markDataDropped(SiriDataType.SITUATION_EXCHANGE, datasetId, "duplicate", duplicates);
         timingTracer.mark("markDataReceived");
 
         markIdsAsUpdated(changes.keySet());

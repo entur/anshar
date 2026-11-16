@@ -256,12 +256,15 @@ public class Facilities extends SiriRepository<FacilityConditionStructure> {
         Map<SiriObjectStorageKey, String> checksumTmp = new HashMap<>();
 
         AtomicInteger alreadyExpiredCounter = new AtomicInteger(0);
-        AtomicInteger ignoredCounter = new AtomicInteger(0);
+        AtomicInteger notUpdatedCounter = new AtomicInteger(0);
+        AtomicInteger invalidStructureCounter = new AtomicInteger(0);
+        AtomicInteger keptCounter = new AtomicInteger(0);
         fmList.stream()
                 .forEach(situation -> {
 
             if (situation.getFacilityRef() == null) {
                 logger.warn("FacilityRef is null, skipping");
+                invalidStructureCounter.incrementAndGet();
                 return;
             }
 
@@ -294,21 +297,22 @@ public class Facilities extends SiriRepository<FacilityConditionStructure> {
                 timingTracer.mark("keepByProgressStatus");
                 long expiration = getExpiration(situation);
                 timingTracer.mark("getExpiration");
-                if (expiration > 0) { //expiration < 0 => already expired
+                if (expiration > 0) { //expiration <= 0 => already expired
                     changes.put(key, situation);
                     checksumTmp.put(key, currentChecksum);
-                } else if (facilityConditions.containsKey(key)) {
-                    // Situation is no longer valid
-                    facilityConditions.delete(key);
-                    timingTracer.mark("situationElements.delete");
-                    checksumCache.remove(key);
-                    timingTracer.mark("checksumCache.remove");
-                }
-                if (expiration < 0) {
+                    keptCounter.incrementAndGet();
+                } else {
                     alreadyExpiredCounter.incrementAndGet();
+                    if (facilityConditions.containsKey(key)) {
+                        // Situation is no longer valid
+                        facilityConditions.delete(key);
+                        timingTracer.mark("situationElements.delete");
+                        checksumCache.remove(key);
+                        timingTracer.mark("checksumCache.remove");
+                    }
                 }
             } else {
-                ignoredCounter.incrementAndGet();
+                notUpdatedCounter.incrementAndGet();
             }
 
             long elapsed = timingTracer.getTotalTime();
@@ -318,14 +322,26 @@ public class Facilities extends SiriRepository<FacilityConditionStructure> {
         });
         TimingTracer timingTracer = new TimingTracer("all-fm [" + changes.size() + " changes]");
 
-        logger.info("Updated {} (of {}) :: Already expired: {}, Unchanged: {}", changes.size(), fmList.size(), alreadyExpiredCounter.get(), ignoredCounter.get());
+        // The same facility more than once in one delivery: only one of them is stored
+        int duplicates = keptCounter.get() - changes.size();
+
+        logger.info("Updated {} (of {}) :: Already expired: {}, Unchanged: {}, Duplicates: {}, Invalid structure: {}",
+                changes.size(), fmList.size(), alreadyExpiredCounter.get(), notUpdatedCounter.get(), duplicates, invalidStructureCounter.get());
 
         checksumCache.setAll(checksumTmp);
         timingTracer.mark("checksumCache.setAll");
         facilityConditions.setAll(changes);
         timingTracer.mark("monitoredVehicles.setAll");
 
-        markDataReceived(SiriDataType.FACILITY_MONITORING, datasetId, fmList.size(), changes.size(), alreadyExpiredCounter.get(), ignoredCounter.get());
+        // Each element is counted once: stored, expired or ignored
+        markDataReceived(SiriDataType.FACILITY_MONITORING, datasetId, fmList.size(), changes.size(), alreadyExpiredCounter.get(),
+                invalidStructureCounter.get() + notUpdatedCounter.get() + duplicates);
+
+        prepareMetrics();
+        metrics.markDataDropped(SiriDataType.FACILITY_MONITORING, datasetId, "invalid_structure", invalidStructureCounter.get());
+        metrics.markDataDropped(SiriDataType.FACILITY_MONITORING, datasetId, "not_updated", notUpdatedCounter.get());
+        metrics.markDataDropped(SiriDataType.FACILITY_MONITORING, datasetId, "expired", alreadyExpiredCounter.get());
+        metrics.markDataDropped(SiriDataType.FACILITY_MONITORING, datasetId, "duplicate", duplicates);
         timingTracer.mark("markDataReceived");
 
         markIdsAsUpdated(changes.keySet());
