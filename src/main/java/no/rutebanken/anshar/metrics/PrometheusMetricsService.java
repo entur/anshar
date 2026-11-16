@@ -120,7 +120,11 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
 
     /** Outbound stage: the delivery entered the topic route, after the push pool and async producer */
     public static final String OUTBOUND_STAGE_ROUTE_START = "route_start";
-    /** Outbound stage: a split element starts publishing, after ID mapping, XML conversion and split */
+    /** Outbound stage: outbound ID mapping and value adapters applied to the delivery */
+    public static final String OUTBOUND_STAGE_TRANSFORMED = "transformed";
+    /** Outbound stage: the delivery converted to XML and split by split.xsl, before the split starts */
+    public static final String OUTBOUND_STAGE_SPLIT_READY = "split_ready";
+    /** Outbound stage: a split element starts publishing, after waiting for a split thread */
     public static final String OUTBOUND_STAGE_ELEMENT_START = "element_start";
 
     // Internal steps: Pub/Sub hops and processing, expected in milliseconds
