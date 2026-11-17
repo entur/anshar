@@ -14,6 +14,7 @@
  */
 package no.rutebanken.anshar.routes.pubsub;
 
+import org.apache.avro.Schema;
 import org.apache.avro.io.DatumWriter;
 import org.apache.avro.io.Encoder;
 import org.apache.avro.io.EncoderFactory;
@@ -33,33 +34,45 @@ import java.io.IOException;
 @Component
 public class SiriAvroJsonSerializer implements Processor {
     private static final Logger logger = LoggerFactory.getLogger(SiriAvroJsonSerializer.class);
-    private final DatumWriter<EstimatedVehicleJourneyRecord> etWriter = new SpecificDatumWriter<>(EstimatedVehicleJourneyRecord.class);
-    private final DatumWriter<VehicleActivityRecord> vmWriter = new SpecificDatumWriter<>(VehicleActivityRecord.class);
-    private final DatumWriter<PtSituationElementRecord> sxWriter = new SpecificDatumWriter<>(PtSituationElementRecord.class);
+    // Shared, as the Camel routes shared one serializer instance before
+    private static final DatumWriter<EstimatedVehicleJourneyRecord> etWriter = new SpecificDatumWriter<>(EstimatedVehicleJourneyRecord.class);
+    private static final DatumWriter<VehicleActivityRecord> vmWriter = new SpecificDatumWriter<>(VehicleActivityRecord.class);
+    private static final DatumWriter<PtSituationElementRecord> sxWriter = new SpecificDatumWriter<>(PtSituationElementRecord.class);
 
     @Override
     public void process(Exchange exchange) throws Exception {
         Object body = exchange.getMessage().getBody();
-        if (body instanceof EstimatedVehicleJourneyRecord) {
-            serializeEt(exchange);
-        } else if (body instanceof VehicleActivityRecord) {
-            serializeVm(exchange);
-        } else if (body instanceof PtSituationElementRecord) {
-            serializeSx(exchange);
+        if (body instanceof EstimatedVehicleJourneyRecord record) {
+            exchange.getMessage().setBody(toJson(record));
+        } else if (body instanceof VehicleActivityRecord record) {
+            exchange.getMessage().setBody(toJson(record));
+        } else if (body instanceof PtSituationElementRecord record) {
+            exchange.getMessage().setBody(toJson(record));
         }
     }
 
-    private void serializeEt(Exchange exchange) throws IOException {
-        EstimatedVehicleJourneyRecord body = exchange.getMessage().getBody(EstimatedVehicleJourneyRecord.class);
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        Encoder jsonEncoder = EncoderFactory.get().jsonEncoder(
-                EstimatedVehicleJourneyRecord.SCHEMA$, stream);
-        etWriter.write(body, jsonEncoder);
-        jsonEncoder.flush();
-
-        exchange.getMessage().setBody(replaceAvroEnums(stream.toByteArray()));
+    /** The JSON published to the Avro-JSON topic for a journey */
+    public static String toJson(EstimatedVehicleJourneyRecord record) throws IOException {
+        return toJson(record, EstimatedVehicleJourneyRecord.SCHEMA$, etWriter);
     }
 
+    /** The JSON published to the Avro-JSON topic for a vehicle activity */
+    public static String toJson(VehicleActivityRecord record) throws IOException {
+        return toJson(record, VehicleActivityRecord.SCHEMA$, vmWriter);
+    }
+
+    /** The JSON published to the Avro-JSON topic for a situation */
+    public static String toJson(PtSituationElementRecord record) throws IOException {
+        return toJson(record, PtSituationElementRecord.SCHEMA$, sxWriter);
+    }
+
+    private static <T> String toJson(T record, Schema schema, DatumWriter<T> writer) throws IOException {
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        Encoder jsonEncoder = EncoderFactory.get().jsonEncoder(schema, stream);
+        writer.write(record, jsonEncoder);
+        jsonEncoder.flush();
+        return replaceAvroEnums(stream.toByteArray());
+    }
 
     /*
        Temporary legacy-hack to rewrite avro-data containing Enums to new schema-version where
@@ -72,24 +85,5 @@ public class SiriAvroJsonSerializer implements Processor {
             return json.replaceAll("\"org.entur.avro.realtime.siri.model.[a-zA-Z]*Enum\"", "\"string\"");
         }
         return json;
-    }
-
-    private void serializeVm(Exchange exchange) throws IOException {
-        VehicleActivityRecord body = exchange.getMessage().getBody(VehicleActivityRecord.class);
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        Encoder jsonEncoder = EncoderFactory.get().jsonEncoder(
-                VehicleActivityRecord.SCHEMA$, stream);
-        vmWriter.write(body, jsonEncoder);
-        jsonEncoder.flush();
-        exchange.getMessage().setBody(replaceAvroEnums(stream.toByteArray()));
-    }
-    private void serializeSx(Exchange exchange) throws IOException {
-        PtSituationElementRecord body = exchange.getMessage().getBody(PtSituationElementRecord.class);
-        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        Encoder jsonEncoder = EncoderFactory.get().jsonEncoder(
-                PtSituationElementRecord.SCHEMA$, stream);
-        sxWriter.write(body, jsonEncoder);
-        jsonEncoder.flush();
-        exchange.getMessage().setBody(replaceAvroEnums(stream.toByteArray()));
     }
 }

@@ -84,7 +84,7 @@ public class AvroConvertorProcessor implements Processor {
         }
     }
 
-    private Map<String, Object> createHeaders(EstimatedVehicleJourneyRecord record, String codespaceId) {
+    public static Map<String, Object> createHeaders(EstimatedVehicleJourneyRecord record, String codespaceId) {
         return Map.of(
                 KafkaConstants.KEY, resolveTripId(record),
                 CODESPACE_ID_KAFKA_HEADER_NAME, codespaceId,
@@ -103,7 +103,7 @@ public class AvroConvertorProcessor implements Processor {
         );
     }
 
-    private Map<String, Object> createHeaders(PtSituationElementRecord record, String codespaceId){
+    public static Map<String, Object> createHeaders(PtSituationElementRecord record, String codespaceId){
         return Map.of(
                 KafkaConstants.KEY, record.getSituationNumber(),
                 CODESPACE_ID_KAFKA_HEADER_NAME, codespaceId
@@ -111,7 +111,7 @@ public class AvroConvertorProcessor implements Processor {
     }
 
 
-    private String resolveTripId(EstimatedVehicleJourneyRecord record) {
+    private static String resolveTripId(EstimatedVehicleJourneyRecord record) {
         String tripId = "";
         if (record.getFramedVehicleJourneyRef() != null) { // ServiceJourneyId + date
             String dataFrameRef = (String) record.getFramedVehicleJourneyRef().getDataFrameRef();
