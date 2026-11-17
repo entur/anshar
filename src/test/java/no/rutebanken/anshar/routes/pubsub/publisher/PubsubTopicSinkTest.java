@@ -8,10 +8,15 @@ import com.google.pubsub.v1.PubsubMessage;
 import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -30,11 +35,21 @@ class PubsubTopicSinkTest {
     }
 
     @Test
+    void shutdownAndAwaitAreSeparate() throws Exception {
+        sink.startShutdown();
+        verify(publisher).shutdown();
+        verify(publisher, never()).awaitTermination(anyLong(), any());
+
+        sink.awaitShutdown(Duration.ofSeconds(7));
+        verify(publisher).awaitTermination(7000, TimeUnit.MILLISECONDS);
+    }
+
+    @Test
     void closeFlushesPublisher() throws Exception {
         sink.close();
 
         InOrder order = inOrder(publisher);
         order.verify(publisher).shutdown();
-        order.verify(publisher).awaitTermination(30, TimeUnit.SECONDS);
+        order.verify(publisher).awaitTermination(30_000, TimeUnit.MILLISECONDS);
     }
 }

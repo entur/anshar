@@ -34,7 +34,6 @@ public class PubsubTopicSink implements TopicSink {
 
     private static final long MAX_OUTSTANDING_MESSAGES = 10_000L;
     private static final long MAX_OUTSTANDING_BYTES = 100L * 1024 * 1024;
-    private static final long CLOSE_TIMEOUT_SECONDS = 30;
 
     private final Publisher publisher;
 
@@ -81,14 +80,21 @@ public class PubsubTopicSink implements TopicSink {
     }
 
     @Override
-    public void close() {
+    public void startShutdown() {
         publisher.shutdown();
+    }
+
+    @Override
+    public boolean awaitShutdown(Duration timeout) {
         try {
-            if (!publisher.awaitTermination(CLOSE_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
-                logger.warn("Messages to {} still unsent after {} s", publisher.getTopicNameString(), CLOSE_TIMEOUT_SECONDS);
+            boolean done = publisher.awaitTermination(timeout.toMillis(), TimeUnit.MILLISECONDS);
+            if (!done) {
+                logger.warn("Messages to {} still unsent after {} ms", publisher.getTopicNameString(), timeout.toMillis());
             }
+            return done;
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
+            return false;
         }
     }
 }

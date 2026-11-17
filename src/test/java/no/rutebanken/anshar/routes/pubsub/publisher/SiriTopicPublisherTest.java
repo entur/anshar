@@ -30,6 +30,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -38,11 +41,13 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class SiriTopicPublisherTest {
 
@@ -74,8 +79,13 @@ class SiriTopicPublisherTest {
         }
 
         @Override
-        public void close() {
+        public void startShutdown() {
             closed = true;
+        }
+
+        @Override
+        public boolean awaitShutdown(java.time.Duration timeout) {
+            return true;
         }
     }
 
@@ -134,6 +144,7 @@ class SiriTopicPublisherTest {
     }
 
     private Counter failed(String format) {
+        // xml, avro or kafka
         return metrics.find("app.anshar.outbound.publish.failed").tags("dataType", "ESTIMATED_TIMETABLE", "format", format).counter();
     }
 
@@ -306,6 +317,98 @@ class SiriTopicPublisherTest {
             assertEquals(Optional.empty(), ReflectionTestUtils.getField(publisher, sink), sink);
         }
         assertDoesNotThrow(() -> publisher.publishAsync(SiriDataType.ESTIMATED_TIMETABLE, journeys(1), "BNR"));
+    }
+
+    @Test
+    void kafkaFailureIsCountedAndOtherElementsStillPublished() {
+        // As when Camel has already stopped while the publisher drains its queue
+        when(kafka.asyncRequestBodyAndHeaders(anyString(), any(), anyMap()))
+                .thenThrow(new IllegalStateException("ProducerTemplate has not been started"));
+
+        start(true).publishAsync(SiriDataType.ESTIMATED_TIMETABLE, journeys(3), "BNR");
+
+        assertEquals(3, sinks.get(ET_XML).messages.size());
+        assertEquals(3, sinks.get(ET_AVRO).messages.size());
+        assertEquals(3, failed("kafka").count());
+    }
+
+    /** Blocks every publish until released, as the Pub/Sub client does when flow control is exhausted */
+    static class BlockingSink extends FakeSink {
+        final CountDownLatch release = new CountDownLatch(1);
+        final CountDownLatch blocked = new CountDownLatch(1);
+
+        @Override
+        public ApiFuture<String> publish(PubsubMessage message) {
+            blocked.countDown();
+            try {
+                release.await(10, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            return super.publish(message);
+        }
+    }
+
+    @Test
+    void fullQueueRejectsAndCountsInsteadOfGrowing() throws Exception {
+        BlockingSink blocking = new BlockingSink();
+        sinks.put(ET_XML, blocking);
+        start(true);
+        // A real bounded pool: one thread, room for one waiting delivery
+        publisher.shutdown();
+        sinks.put(ET_XML, blocking);
+        ReflectionTestUtils.setField(publisher, "threads", 1);
+        ReflectionTestUtils.setField(publisher, "queueSize", 1);
+        publisher.init();
+
+        publisher.publishAsync(SiriDataType.ESTIMATED_TIMETABLE, journeys(2), "BNR"); // runs, blocks in the sink
+        assertTrue(blocking.blocked.await(5, TimeUnit.SECONDS));
+        publisher.publishAsync(SiriDataType.ESTIMATED_TIMETABLE, journeys(2), "BNR"); // waits in the queue
+        assertDoesNotThrow(() -> publisher.publishAsync(SiriDataType.ESTIMATED_TIMETABLE, journeys(2), "BNR")); // no room
+
+        assertEquals(2, failed("xml").count());
+        assertEquals(2, failed("avro").count());
+        assertEquals(1, metrics.find("app.anshar.outbound.publisher.queue").gauge().value());
+        blocking.release.countDown();
+    }
+
+    @Test
+    void updatesArrivingDuringShutdownAreCountedNotThrown() {
+        start(true);
+        ReflectionTestUtils.setField(publisher, "threads", 1);
+        ReflectionTestUtils.setField(publisher, "queueSize", 10);
+        ReflectionTestUtils.setField(publisher, "executor", null);
+        publisher.shutdown();
+        publisher.init();
+        ExecutorService executor = (ExecutorService) ReflectionTestUtils.getField(publisher, "executor");
+        executor.shutdown();
+
+        assertDoesNotThrow(() -> publisher.publishAsync(SiriDataType.ESTIMATED_TIMETABLE, journeys(2), "BNR"));
+        assertEquals(2, failed("xml").count());
+    }
+
+    @Test
+    void sinksAreShutDownTogetherBeforeAnyIsAwaited() {
+        List<String> events = new ArrayList<>();
+        for (String topic : List.of(ET_XML, ET_AVRO, SX_XML, SX_AVRO)) {
+            sinks.put(topic, new FakeSink() {
+                @Override
+                public void startShutdown() {
+                    events.add("shutdown " + topic);
+                }
+
+                @Override
+                public boolean awaitShutdown(java.time.Duration timeout) {
+                    events.add("await " + topic);
+                    return true;
+                }
+            });
+        }
+        start(true).shutdown();
+        publisher = null;
+
+        assertEquals(8, events.size());
+        assertTrue(events.subList(0, 4).stream().allMatch(e -> e.startsWith("shutdown")), events.toString());
     }
 
     @Test

@@ -31,11 +31,15 @@ import uk.org.siri.siri21.Siri;
 import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Publishes stored ET journeys and SX situations to the outbound XML and Avro-JSON Pub/Sub topics, one message per
@@ -49,7 +53,19 @@ public class SiriTopicPublisher {
 
     static final String XML = "xml";
     static final String AVRO = "avro";
+    static final String KAFKA = "kafka";
     private static final String BREADCRUMB_MDC_KEY = "camel.breadcrumbId";
+    private static final String QUEUE_GAUGE_NAME = "app.anshar.outbound.publisher.queue";
+    private static final Duration EXECUTOR_SHUTDOWN_TIMEOUT = Duration.ofSeconds(10);
+    private static final Duration SINKS_SHUTDOWN_TIMEOUT = Duration.ofSeconds(15);
+
+    /** The work for one delivery, which knows what to count when it cannot run */
+    private record PublishTask(SiriDataType dataType, int elements, String codespace, Runnable work) implements Runnable {
+        @Override
+        public void run() {
+            work.run();
+        }
+    }
 
     /** Builds the messages for a mapped delivery; see {@link SiriTopicMessages} */
     @FunctionalInterface
@@ -84,6 +100,10 @@ public class SiriTopicPublisher {
     @Value("${anshar.outbound.pubsub.publisher.threads:4}")
     private int threads;
 
+    /** Deliveries waiting for a publisher thread; beyond this they are dropped and counted, not queued */
+    @Value("${anshar.outbound.pubsub.publisher.queue.size:10000}")
+    private int queueSize;
+
     @Autowired
     private TopicSinkFactory sinkFactory;
     @Autowired
@@ -96,6 +116,7 @@ public class SiriTopicPublisher {
     private ProducerTemplate kafkaProducer;
 
     private ExecutorService executor;
+    private final AtomicLong rejectedDeliveries = new AtomicLong();
     private Converter etConverter = SiriTopicMessages::forEstimatedTimetables;
     private Converter sxConverter = SiriTopicMessages::forSituations;
 
@@ -118,7 +139,10 @@ public class SiriTopicPublisher {
             sxAvroSink = sxAvroEnabled ? sinkFactory.create(sxAvroTopic) : Optional.empty();
         }
         if (executor == null) {
-            executor = Executors.newFixedThreadPool(threads, namedThreads());
+            BlockingQueue<Runnable> queue = new ArrayBlockingQueue<>(queueSize);
+            metricsService.gauge(QUEUE_GAUGE_NAME, queue, BlockingQueue::size);
+            executor = new ThreadPoolExecutor(threads, threads, 0L, TimeUnit.MILLISECONDS, queue, namedThreads(),
+                    (task, pool) -> rejected(task));
         }
         logger.info("Publishing ET and SX directly to Pub/Sub: ET xml={}, avro={}; SX xml={}, avro={}",
                 etXmlSink.isPresent(), etAvroSink.isPresent(), sxXmlSink.isPresent(), sxAvroSink.isPresent());
@@ -144,7 +168,7 @@ public class SiriTopicPublisher {
         }
         long storedAt = System.currentTimeMillis();
         String breadcrumbId = MDC.get(BREADCRUMB_MDC_KEY);
-        executor.execute(() -> {
+        Runnable work = () -> {
             MDC.put(BREADCRUMB_MDC_KEY, breadcrumbId);
             try {
                 if (et) {
@@ -163,7 +187,28 @@ public class SiriTopicPublisher {
             } finally {
                 MDC.remove(BREADCRUMB_MDC_KEY);
             }
-        });
+        };
+        PublishTask task = new PublishTask(dataType, addedOrUpdated.size(), codespace, work);
+        try {
+            executor.execute(task);
+        } catch (RejectedExecutionException e) {
+            // Executors without a rejection handler, e.g. while shutting down
+            rejected(task);
+        }
+    }
+
+    /** Never thrown back to SiriHandler: the elements are counted as failed for both topics */
+    private void rejected(Runnable runnable) {
+        if (!(runnable instanceof PublishTask task)) {
+            return;
+        }
+        metricsService.markPublishFailed(task.dataType(), XML, task.elements());
+        metricsService.markPublishFailed(task.dataType(), AVRO, task.elements());
+        long rejected = rejectedDeliveries.incrementAndGet();
+        if (rejected == 1 || rejected % 1000 == 0) {
+            logger.warn("Publisher queue full or shut down: dropped {} {} updates for {} ({} deliveries dropped so far)",
+                    task.elements(), task.dataType(), task.codespace(), rejected);
+        }
     }
 
     private void publish(SiriDataType dataType, Siri delivery, String codespace, String breadcrumbId, long storedAt,
@@ -184,7 +229,12 @@ public class SiriTopicPublisher {
             metricsService.recordOutboundStage(dataType, PrometheusMetricsService.OUTBOUND_STAGE_HANDED_TO_CLIENT, storedAt);
             xmlSink.ifPresent(sink -> send(sink, messages.xml(), dataType, XML, storedAt, messages.elementId()));
             avroSink.ifPresent(sink -> send(sink, messages.avroJson(), dataType, AVRO, storedAt, messages.elementId()));
-            kafkaProducer.asyncRequestBodyAndHeaders(kafkaEndpoint, messages.avroRecord(), messages.kafkaHeaders());
+            try {
+                kafkaProducer.asyncRequestBodyAndHeaders(kafkaEndpoint, messages.avroRecord(), messages.kafkaHeaders());
+            } catch (RuntimeException e) {
+                // E.g. Camel already stopped while the queue drains at shutdown
+                onFailure(dataType, KAFKA, messages.elementId(), e);
+            }
         }
     }
 
@@ -219,20 +269,31 @@ public class SiriTopicPublisher {
         logger.warn("Unable to publish {} {} to the {} topic: {}", dataType, elementId, format, t.toString());
     }
 
+    /**
+     * Drains the queue, then sends what the clients still hold, within about 25 s in all, so a pod stop fits its
+     * grace period. Kafka records of deliveries drained after Camel has stopped are lost (counted as kafka failures).
+     */
     @PreDestroy
     void shutdown() {
         if (executor != null) {
             executor.shutdown();
             try {
-                executor.awaitTermination(30, TimeUnit.SECONDS);
+                if (!executor.awaitTermination(EXECUTOR_SHUTDOWN_TIMEOUT.toMillis(), TimeUnit.MILLISECONDS)) {
+                    logger.warn("Publisher threads still busy after {} s; queued updates are dropped",
+                            EXECUTOR_SHUTDOWN_TIMEOUT.toSeconds());
+                }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
             executor = null;
         }
-        // Sends what the clients still hold before the pod stops
-        for (Optional<TopicSink> sink : List.of(etXmlSink, etAvroSink, sxXmlSink, sxAvroSink)) {
-            sink.ifPresent(TopicSink::close);
+        List<TopicSink> sinks = List.of(etXmlSink, etAvroSink, sxXmlSink, sxAvroSink).stream()
+                .flatMap(Optional::stream).toList();
+        // All at once, then waited for against one deadline
+        sinks.forEach(TopicSink::startShutdown);
+        long deadline = System.nanoTime() + SINKS_SHUTDOWN_TIMEOUT.toNanos();
+        for (TopicSink sink : sinks) {
+            sink.awaitShutdown(Duration.ofNanos(Math.max(0, deadline - System.nanoTime())));
         }
         etXmlSink = etAvroSink = sxXmlSink = sxAvroSink = Optional.empty();
     }

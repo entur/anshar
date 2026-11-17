@@ -76,6 +76,7 @@ class SiriTopicPublisherLoadKT {
         ReflectionTestUtils.setField(publisher, "etXmlTopic", "google-pubsub://test:load.xml.et");
         ReflectionTestUtils.setField(publisher, "etAvroTopic", "google-pubsub://test:load.avro.et");
         ReflectionTestUtils.setField(publisher, "threads", 4);
+        ReflectionTestUtils.setField(publisher, "queueSize", 10_000);
         TopicSinkFactory.PubsubTopicSinkFactory sinkFactory = new TopicSinkFactory.PubsubTopicSinkFactory();
         ReflectionTestUtils.setField(sinkFactory, "emulatorHost", EMULATOR);
         ReflectionTestUtils.setField(publisher, "sinkFactory", sinkFactory);

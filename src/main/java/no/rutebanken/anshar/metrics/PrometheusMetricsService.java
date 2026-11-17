@@ -305,7 +305,12 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
 
     /** Counts a message that could not be published to an outbound Pub/Sub topic */
     public void markPublishFailed(SiriDataType dataType, String format) {
-        counter(OUTBOUND_PUBLISH_FAILED_NAME, DATATYPE_TAG_NAME, dataType.name(), FORMAT_TAG_NAME, format).increment();
+        markPublishFailed(dataType, format, 1);
+    }
+
+    /** Counts messages that could not be published to an outbound Pub/Sub topic */
+    public void markPublishFailed(SiriDataType dataType, String format, long count) {
+        counter(OUTBOUND_PUBLISH_FAILED_NAME, DATATYPE_TAG_NAME, dataType.name(), FORMAT_TAG_NAME, format).increment(count);
     }
 
     @PreDestroy
