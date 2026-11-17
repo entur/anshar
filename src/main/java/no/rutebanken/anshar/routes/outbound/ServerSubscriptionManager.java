@@ -550,7 +550,7 @@ public class ServerSubscriptionManager {
         Siri delivery = siriObjectFactory.createSXServiceDelivery(addedOrUpdated);
 
         // With direct publishing on, SiriTopicPublisher publishes SX to the topics instead
-        if (pushToSxTopicEnabled && !siriTopicPublisher.isEnabled()) {
+        if (pushToSxTopicEnabled && !siriTopicPublisher.handles(SiriDataType.SITUATION_EXCHANGE)) {
             siriSxTopicProducer.asyncRequestBodyAndHeaders(siriSxTopicProducer.getDefaultEndpoint(), delivery, topicHeaders(datasetId, storedAt));
         }
 
@@ -593,7 +593,7 @@ public class ServerSubscriptionManager {
         Siri delivery = siriObjectFactory.createETServiceDelivery(addedOrUpdated);
 
         // With direct publishing on, SiriTopicPublisher publishes ET to the topics instead
-        if (pushToEtTopicEnabled && !siriTopicPublisher.isEnabled()) {
+        if (pushToEtTopicEnabled && !siriTopicPublisher.handles(SiriDataType.ESTIMATED_TIMETABLE)) {
             siriEtTopicProducer.asyncRequestBodyAndHeaders(siriEtTopicProducer.getDefaultEndpoint(), delivery, topicHeaders(datasetId, storedAt));
         }
 

@@ -88,7 +88,8 @@ public class AvroConvertorProcessor implements Processor {
         return Map.of(
                 KafkaConstants.KEY, resolveTripId(record),
                 CODESPACE_ID_KAFKA_HEADER_NAME, codespaceId,
-                HEADER_LINE_REF, record.getLineRef()
+                // Map.of rejects nulls; an empty value as for VM
+                HEADER_LINE_REF, record.getLineRef() != null ? record.getLineRef() : ""
         );
     }
     private Map<String, Object> createHeaders(VehicleActivityRecord record, String codespaceId) {
@@ -105,7 +106,7 @@ public class AvroConvertorProcessor implements Processor {
 
     public static Map<String, Object> createHeaders(PtSituationElementRecord record, String codespaceId){
         return Map.of(
-                KafkaConstants.KEY, record.getSituationNumber(),
+                KafkaConstants.KEY, record.getSituationNumber() != null ? record.getSituationNumber() : "",
                 CODESPACE_ID_KAFKA_HEADER_NAME, codespaceId
         );
     }

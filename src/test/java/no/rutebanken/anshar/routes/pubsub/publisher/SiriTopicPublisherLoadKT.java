@@ -17,10 +17,15 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Elements of a delivery must not wait for each other before they are handed to the Pub/Sub client, which is what
@@ -45,30 +50,35 @@ class SiriTopicPublisherLoadKT {
             createTopic(topic);
         }
 
-        PrometheusMetricsService warmUp = new PrometheusMetricsService();
-        SiriTopicPublisher publisher = publisher(warmUp);
+        // A fresh publisher per phase, so each phase's timers hold only its own deliveries
+        run(new PrometheusMetricsService(), 5, 0);
+
+        PrometheusMetricsService small = new PrometheusMetricsService();
+        run(small, 60, 0);
+        Timer smallHandedOver = report("2-journey deliveries", small);
+
+        PrometheusMetricsService mixed = new PrometheusMetricsService();
+        run(mixed, 30, 100);
+        report("with every 100th delivery of " + LARGE_DELIVERY_JOURNEYS + " journeys", mixed);
+
+        assertTrue(smallHandedOver.max(TimeUnit.MILLISECONDS) < 50,
+                "2-journey deliveries waited up to " + smallHandedOver.max(TimeUnit.MILLISECONDS) + " ms");
+    }
+
+    private void run(PrometheusMetricsService metrics, int seconds, int largeEvery) throws InterruptedException {
+        SiriTopicPublisher publisher = publisher(metrics);
         try {
-            run(publisher, 5, 0);
-
-            PrometheusMetricsService small = new PrometheusMetricsService();
-            ReflectionTestUtils.setField(publisher, "metricsService", small);
-            run(publisher, 60, 0);
-            Timer smallHandedOver = report("2-journey deliveries", small);
-
-            PrometheusMetricsService mixed = new PrometheusMetricsService();
-            ReflectionTestUtils.setField(publisher, "metricsService", mixed);
-            run(publisher, 30, 100);
-            report("with every 100th delivery of " + LARGE_DELIVERY_JOURNEYS + " journeys", mixed);
-
-            assertTrue(smallHandedOver.max(TimeUnit.MILLISECONDS) < 50,
-                    "2-journey deliveries waited up to " + smallHandedOver.max(TimeUnit.MILLISECONDS) + " ms");
+            run(publisher, seconds, largeEvery);
         } finally {
             publisher.shutdown();
         }
     }
 
     private SiriTopicPublisher publisher(PrometheusMetricsService metrics) {
-        SiriTopicPublisher publisher = new SiriTopicPublisher();
+        PubsubTopicSinkFactory sinkFactory = new PubsubTopicSinkFactory();
+        ReflectionTestUtils.setField(sinkFactory, "emulatorHost", EMULATOR);
+        SiriTopicPublisher publisher = new SiriTopicPublisher(sinkFactory, metrics,
+                new SiriObjectFactory(java.time.Instant.now()), new MappingAdapterPresets(null));
         ReflectionTestUtils.setField(publisher, "directEnabled", true);
         ReflectionTestUtils.setField(publisher, "pushToTopicEnabled", true);
         ReflectionTestUtils.setField(publisher, "etTopicEnabled", true);
@@ -77,13 +87,10 @@ class SiriTopicPublisherLoadKT {
         ReflectionTestUtils.setField(publisher, "etAvroTopic", "google-pubsub://test:load.avro.et");
         ReflectionTestUtils.setField(publisher, "threads", 4);
         ReflectionTestUtils.setField(publisher, "queueSize", 10_000);
-        TopicSinkFactory.PubsubTopicSinkFactory sinkFactory = new TopicSinkFactory.PubsubTopicSinkFactory();
-        ReflectionTestUtils.setField(sinkFactory, "emulatorHost", EMULATOR);
-        ReflectionTestUtils.setField(publisher, "sinkFactory", sinkFactory);
-        ReflectionTestUtils.setField(publisher, "metricsService", metrics);
-        ReflectionTestUtils.setField(publisher, "siriObjectFactory", new SiriObjectFactory(java.time.Instant.now()));
-        ReflectionTestUtils.setField(publisher, "mappingAdapterPresets", new MappingAdapterPresets(null));
-        ReflectionTestUtils.setField(publisher, "kafkaProducer", mock(ProducerTemplate.class));
+        ReflectionTestUtils.setField(publisher, "drainTimeoutMillis", 10_000L);
+        ProducerTemplate kafka = mock(ProducerTemplate.class);
+        when(kafka.asyncRequestBodyAndHeaders(anyString(), any(), anyMap())).thenReturn(CompletableFuture.completedFuture(null));
+        ReflectionTestUtils.setField(publisher, "kafkaProducer", kafka);
         publisher.init();
         return publisher;
     }

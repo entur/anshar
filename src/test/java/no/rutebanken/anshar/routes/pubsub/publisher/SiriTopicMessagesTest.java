@@ -4,9 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.pubsub.v1.PubsubMessage;
 import no.rutebanken.anshar.routes.pubsub.TopicReferenceFixtures;
-import no.rutebanken.anshar.routes.pubsub.publisher.SiriTopicMessages.Converted;
-import no.rutebanken.anshar.routes.pubsub.publisher.SiriTopicMessages.Failed;
-import no.rutebanken.anshar.routes.pubsub.publisher.SiriTopicMessages.Result;
 import no.rutebanken.anshar.routes.siri.handlers.OutboundIdMappingPolicy;
 import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
 import no.rutebanken.anshar.subscription.helpers.MappingAdapterPresets;
@@ -33,7 +30,8 @@ import static no.rutebanken.anshar.routes.pubsub.TopicReferenceFixtures.ET_CODES
 import static no.rutebanken.anshar.routes.pubsub.TopicReferenceFixtures.STORED_AT;
 import static no.rutebanken.anshar.routes.pubsub.TopicReferenceFixtures.SX_CODESPACE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -55,24 +53,25 @@ class SiriTopicMessagesTest {
         return SiriValueTransformer.transform(delivery, presets.getOutboundAdapters(OutboundIdMappingPolicy.DEFAULT), true, false);
     }
 
-    private List<List<Converted>> et() {
+    private List<List<ElementMessages>> et() {
         return build(TopicReferenceFixtures.etDeliveries(), ET_CODESPACE, SiriTopicMessages::forEstimatedTimetables);
     }
 
-    private List<List<Converted>> sx() {
+    private List<List<ElementMessages>> sx() {
         return build(TopicReferenceFixtures.sxDeliveries(), SX_CODESPACE, SiriTopicMessages::forSituations);
     }
 
     private interface Builder {
-        List<Result> build(Siri delivery, String codespace, String breadcrumbId, long storedAt);
+        List<ElementMessages> build(Siri delivery, String codespace, String breadcrumbId, long storedAt);
     }
 
-    private List<List<Converted>> build(List<Siri> deliveries, String codespace, Builder builder) {
-        List<List<Converted>> converted = new ArrayList<>();
+    private List<List<ElementMessages>> build(List<Siri> deliveries, String codespace, Builder builder) {
+        List<List<ElementMessages>> converted = new ArrayList<>();
         for (Siri delivery : deliveries) {
-            List<Converted> messages = new ArrayList<>();
-            for (Result result : builder.build(mapped(delivery), codespace, BREADCRUMB, STORED_AT)) {
-                messages.add(assertInstanceOf(Converted.class, result));
+            List<ElementMessages> messages = builder.build(mapped(delivery), codespace, BREADCRUMB, STORED_AT);
+            for (ElementMessages element : messages) {
+                assertNotNull(element.xml(), () -> "no XML for " + element.elementId() + ": " + element.xmlError());
+                assertNotNull(element.avro(), () -> "no Avro for " + element.elementId() + ": " + element.avroError());
             }
             converted.add(messages);
         }
@@ -110,23 +109,23 @@ class SiriTopicMessagesTest {
         return SiriXml.toXml(SiriXml.parseXml(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8))));
     }
 
-    private void assertMatchesReference(List<List<Converted>> built, String file, Pattern idPattern,
-                                        BiFunction<Converted, JsonNode, Void> compare) throws Exception {
+    private void assertMatchesReference(List<List<ElementMessages>> built, String file, Pattern idPattern,
+                                        BiFunction<ElementMessages, JsonNode, Void> compare) throws Exception {
         List<Map<String, JsonNode>> reference = reference(file, idPattern);
         assertEquals(reference.size(), built.size(), "deliveries");
         for (int delivery = 0; delivery < built.size(); delivery++) {
             assertEquals(reference.get(delivery).size(), built.get(delivery).size(), "messages in delivery " + delivery);
-            for (Converted converted : built.get(delivery)) {
-                String id = elementId(text(converted.messages().xml()), idPattern);
+            for (ElementMessages element : built.get(delivery)) {
+                String id = elementId(text(element.xml()), idPattern);
                 JsonNode expected = reference.get(delivery).get(id);
-                assertTrue(expected != null, "no reference message for " + id + " in delivery " + delivery);
-                compare.apply(converted, expected);
+                assertNotNull(expected, "no reference message for " + id + " in delivery " + delivery);
+                compare.apply(element, expected);
             }
         }
     }
 
-    private Void compareXml(Converted converted, JsonNode expected) {
-        PubsubMessage xml = converted.messages().xml();
+    private Void compareXml(ElementMessages element, JsonNode expected) {
+        PubsubMessage xml = element.xml();
         try {
             assertEquals(normalizedXml(expected.get("data").asText()), normalizedXml(text(xml)));
         } catch (Exception e) {
@@ -140,8 +139,8 @@ class SiriTopicMessagesTest {
         return null;
     }
 
-    private Void compareAvro(Converted converted, JsonNode expected) {
-        PubsubMessage avro = converted.messages().avroJson();
+    private Void compareAvro(ElementMessages element, JsonNode expected) {
+        PubsubMessage avro = element.avro().json();
         assertEquals(expected.get("data").asText(), text(avro));
         assertTrue(avro.getAttributesMap().isEmpty(), "Avro attributes " + avro.getAttributesMap());
         return null;
@@ -172,10 +171,10 @@ class SiriTopicMessagesTest {
         List<EstimatedVehicleJourney> journeys = TopicReferenceFixtures.bnrJourneys().subList(0, 5);
         List<String> expectedIds = journeys.stream().map(SiriTopicMessagesTest::id).toList();
 
-        List<Result> results = SiriTopicMessages.forEstimatedTimetables(
+        List<ElementMessages> results = SiriTopicMessages.forEstimatedTimetables(
                 mapped(TopicReferenceFixtures.etDelivery(journeys)), ET_CODESPACE, BREADCRUMB, STORED_AT);
 
-        assertEquals(expectedIds, results.stream().map(r -> assertInstanceOf(Converted.class, r).messages().elementId()).toList());
+        assertEquals(expectedIds, results.stream().map(ElementMessages::elementId).toList());
     }
 
     private static String id(EstimatedVehicleJourney journey) {
@@ -187,33 +186,33 @@ class SiriTopicMessagesTest {
 
     @Test
     void noOrderingKey() {
-        for (List<Converted> delivery : et()) {
-            for (Converted converted : delivery) {
-                assertEquals("", converted.messages().xml().getOrderingKey());
-                assertEquals("", converted.messages().avroJson().getOrderingKey());
+        for (List<ElementMessages> delivery : et()) {
+            for (ElementMessages element : delivery) {
+                assertEquals("", element.xml().getOrderingKey());
+                assertEquals("", element.avro().json().getOrderingKey());
             }
         }
     }
 
     @Test
     void etKafkaHeaders() {
-        Converted first = et().get(0).get(0);
-        Map<String, Object> headers = first.messages().kafkaHeaders();
+        ElementMessages first = et().get(0).get(0);
+        Map<String, Object> headers = first.avro().kafkaHeaders();
         assertEquals(ET_CODESPACE, headers.get("codespaceId"));
-        assertTrue(String.valueOf(headers.get(KafkaConstants.KEY)).startsWith(first.messages().elementId()),
+        assertTrue(String.valueOf(headers.get(KafkaConstants.KEY)).startsWith(first.elementId()),
                 "Kafka key " + headers.get(KafkaConstants.KEY));
         assertTrue(headers.containsKey("lineRef"));
     }
 
     @Test
     void sxKafkaHeaders() {
-        Converted first = sx().get(0).get(0);
+        ElementMessages first = sx().get(0).get(0);
         assertEquals(Map.of(KafkaConstants.KEY, "ENT:SituationNumber:1", "codespaceId", SX_CODESPACE),
-                first.messages().kafkaHeaders());
+                first.avro().kafkaHeaders());
     }
 
     @Test
-    void elementThatFailsToConvertIsReportedAndOthersStillConverted() {
+    void avroFailureLeavesTheXmlMessageAndOtherElements() {
         List<EstimatedVehicleJourney> journeys = new ArrayList<>(TopicReferenceFixtures.bnrJourneys().subList(0, 3));
         String brokenId = id(journeys.get(1));
         // The Avro converter accepts any journey we can build, so the failure is injected
@@ -226,13 +225,43 @@ class SiriTopicMessagesTest {
             return Converter.jaxb2Avro(single);
         };
 
-        List<Result> results = SiriTopicMessages.forEstimatedTimetables(
+        List<ElementMessages> results = SiriTopicMessages.forEstimatedTimetables(
                 mapped(TopicReferenceFixtures.etDelivery(journeys)), ET_CODESPACE, BREADCRUMB, STORED_AT, failsForBroken);
 
         assertEquals(3, results.size());
-        assertInstanceOf(Converted.class, results.get(0));
-        assertEquals(brokenId, assertInstanceOf(Failed.class, results.get(1)).elementId());
-        assertInstanceOf(Converted.class, results.get(2));
+        ElementMessages broken = results.get(1);
+        assertEquals(brokenId, broken.elementId());
+        assertNotNull(broken.xml());
+        assertNull(broken.avro());
+        assertNotNull(broken.avroError());
+        assertNotNull(results.get(0).avro());
+        assertNotNull(results.get(2).avro());
+    }
+
+    @Test
+    void journeyWithoutLineRefIsStillPublishedEverywhere() {
+        List<EstimatedVehicleJourney> journeys = new ArrayList<>(TopicReferenceFixtures.bnrJourneys().subList(0, 1));
+        journeys.get(0).setLineRef(null);
+
+        ElementMessages element = SiriTopicMessages.forEstimatedTimetables(
+                mapped(TopicReferenceFixtures.etDelivery(journeys)), ET_CODESPACE, BREADCRUMB, STORED_AT).get(0);
+
+        assertNotNull(element.xml());
+        assertNotNull(element.avro(), () -> "Avro failed: " + element.avroError());
+        assertEquals("", element.avro().kafkaHeaders().get("lineRef"));
+    }
+
+    @Test
+    void situationWithoutNumberIsStillPublishedEverywhere() {
+        Siri delivery = TopicReferenceFixtures.sxDeliveries().get(0);
+        delivery.getServiceDelivery().getSituationExchangeDeliveries().get(0).getSituations().getPtSituationElements().get(0)
+                .setSituationNumber(null);
+
+        ElementMessages element = SiriTopicMessages.forSituations(mapped(delivery), SX_CODESPACE, BREADCRUMB, STORED_AT).get(0);
+
+        assertNotNull(element.xml());
+        assertNotNull(element.avro(), () -> "Avro failed: " + element.avroError());
+        assertEquals("", element.avro().kafkaHeaders().get(KafkaConstants.KEY));
     }
 
     @Test

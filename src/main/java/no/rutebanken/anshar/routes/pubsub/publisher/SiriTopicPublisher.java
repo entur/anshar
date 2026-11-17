@@ -8,9 +8,6 @@ import com.google.pubsub.v1.PubsubMessage;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import no.rutebanken.anshar.metrics.PrometheusMetricsService;
-import no.rutebanken.anshar.routes.pubsub.publisher.SiriTopicMessages.Converted;
-import no.rutebanken.anshar.routes.pubsub.publisher.SiriTopicMessages.Failed;
-import no.rutebanken.anshar.routes.pubsub.publisher.SiriTopicMessages.Result;
 import no.rutebanken.anshar.routes.siri.handlers.OutboundIdMappingPolicy;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
@@ -29,14 +26,17 @@ import uk.org.siri.siri21.PtSituationElement;
 import uk.org.siri.siri21.Siri;
 
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -45,6 +45,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * Publishes stored ET journeys and SX situations to the outbound XML and Avro-JSON Pub/Sub topics, one message per
  * element, without waiting for Pub/Sub to answer. Replaces the Camel topic routes for ET and SX when
  * {@code anshar.outbound.pubsub.direct.enabled} is on; the Kafka publish still goes through its Camel route.
+ * A data type whose XML topic is not a Pub/Sub topic stays on the Camel route (see {@link #handles}).
  */
 @Service
 public class SiriTopicPublisher {
@@ -56,21 +57,31 @@ public class SiriTopicPublisher {
     static final String KAFKA = "kafka";
     private static final String BREADCRUMB_MDC_KEY = "camel.breadcrumbId";
     private static final String QUEUE_GAUGE_NAME = "app.anshar.outbound.publisher.queue";
-    private static final Duration EXECUTOR_SHUTDOWN_TIMEOUT = Duration.ofSeconds(10);
     private static final Duration SINKS_SHUTDOWN_TIMEOUT = Duration.ofSeconds(15);
-
-    /** The work for one delivery, which knows what to count when it cannot run */
-    private record PublishTask(SiriDataType dataType, int elements, String codespace, Runnable work) implements Runnable {
-        @Override
-        public void run() {
-            work.run();
-        }
-    }
 
     /** Builds the messages for a mapped delivery; see {@link SiriTopicMessages} */
     @FunctionalInterface
     interface Converter {
-        List<Result> convert(Siri mappedDelivery, String codespace, String breadcrumbId, long storedAt);
+        List<ElementMessages> convert(Siri mappedDelivery, String codespace, String breadcrumbId, long storedAt);
+    }
+
+    /**
+     * Where one data type is published.
+     *
+     * @param avroSink     null when the Avro-JSON topic is off or not a Pub/Sub topic
+     * @param avroEnabled  whether Avro records are counted as published, as the Camel Avro route counted them
+     * @param kafkaEnabled whether the Kafka route publishes, so its failures count
+     */
+    private record TypeRoute(SiriDataType dataType, Converter converter, TopicSink xmlSink, TopicSink avroSink,
+                             boolean avroEnabled, boolean kafkaEnabled, String kafkaEndpoint) {
+    }
+
+    /** The work for one delivery, which knows what to count when it cannot run */
+    private record PublishTask(TypeRoute route, int elements, String codespace, Runnable work) implements Runnable {
+        @Override
+        public void run() {
+            work.run();
+        }
     }
 
     @Value("${anshar.outbound.pubsub.direct.enabled:false}")
@@ -87,6 +98,10 @@ public class SiriTopicPublisher {
     private boolean etAvroEnabled;
     @Value("${anshar.pubsub.avro.sx.enabled:false}")
     private boolean sxAvroEnabled;
+    @Value("${anshar.kafka.avro.et.enabled:false}")
+    private boolean etKafkaEnabled;
+    @Value("${anshar.kafka.avro.sx.enabled:false}")
+    private boolean sxKafkaEnabled;
 
     @Value("${anshar.outbound.camel.route.topic.et.name.xml:}")
     private String etXmlTopic;
@@ -104,66 +119,122 @@ public class SiriTopicPublisher {
     @Value("${anshar.outbound.pubsub.publisher.queue.size:10000}")
     private int queueSize;
 
-    @Autowired
-    private TopicSinkFactory sinkFactory;
-    @Autowired
-    private PrometheusMetricsService metricsService;
-    @Autowired
-    private SiriObjectFactory siriObjectFactory;
-    @Autowired
-    private MappingAdapterPresets mappingAdapterPresets;
+    /** How long a stopping pod lets queued deliveries drain before dropping (and counting) the rest */
+    @Value("${anshar.outbound.pubsub.publisher.drain.timeout.ms:10000}")
+    private long drainTimeoutMillis;
+
     @Produce
     private ProducerTemplate kafkaProducer;
 
-    private ExecutorService executor;
-    private final AtomicLong rejectedDeliveries = new AtomicLong();
-    private Converter etConverter = SiriTopicMessages::forEstimatedTimetables;
-    private Converter sxConverter = SiriTopicMessages::forSituations;
+    private final TopicSinkFactory sinkFactory;
+    private final PrometheusMetricsService metricsService;
+    private final SiriObjectFactory siriObjectFactory;
+    private final MappingAdapterPresets mappingAdapterPresets;
+    private final Converter etConverter;
+    private final Converter sxConverter;
 
-    private Optional<TopicSink> etXmlSink = Optional.empty();
-    private Optional<TopicSink> etAvroSink = Optional.empty();
-    private Optional<TopicSink> sxXmlSink = Optional.empty();
-    private Optional<TopicSink> sxAvroSink = Optional.empty();
+    private final Map<SiriDataType, TypeRoute> routes = new EnumMap<>(SiriDataType.class);
+    private final AtomicLong rejectedDeliveries = new AtomicLong();
+    private ExecutorService executor;
+
+    @Autowired
+    public SiriTopicPublisher(TopicSinkFactory sinkFactory, PrometheusMetricsService metricsService,
+                              SiriObjectFactory siriObjectFactory, MappingAdapterPresets mappingAdapterPresets) {
+        this(sinkFactory, metricsService, siriObjectFactory, mappingAdapterPresets,
+                SiriTopicMessages::forEstimatedTimetables, SiriTopicMessages::forSituations);
+    }
+
+    SiriTopicPublisher(TopicSinkFactory sinkFactory, PrometheusMetricsService metricsService,
+                       SiriObjectFactory siriObjectFactory, MappingAdapterPresets mappingAdapterPresets,
+                       Converter etConverter, Converter sxConverter) {
+        this.sinkFactory = sinkFactory;
+        this.metricsService = metricsService;
+        this.siriObjectFactory = siriObjectFactory;
+        this.mappingAdapterPresets = mappingAdapterPresets;
+        this.etConverter = etConverter;
+        this.sxConverter = sxConverter;
+    }
 
     @PostConstruct
     void init() {
-        if (!directEnabled || !pushToTopicEnabled) {
+        if (!directEnabled) {
             return;
         }
-        if (etTopicEnabled) {
-            etXmlSink = sinkFactory.create(etXmlTopic);
-            etAvroSink = etAvroEnabled ? sinkFactory.create(etAvroTopic) : Optional.empty();
+        if (!pushToTopicEnabled) {
+            logger.warn("anshar.outbound.pubsub.direct.enabled is on, but anshar.outbound.pubsub.topic.enabled is off: nothing is published to the topics");
+            return;
         }
-        if (sxTopicEnabled) {
-            sxXmlSink = sinkFactory.create(sxXmlTopic);
-            sxAvroSink = sxAvroEnabled ? sinkFactory.create(sxAvroTopic) : Optional.empty();
+        try {
+            if (etTopicEnabled) {
+                addRoute(route(SiriDataType.ESTIMATED_TIMETABLE, etConverter, etXmlTopic, etAvroEnabled, etAvroTopic,
+                        etKafkaEnabled, "direct:publish.et.avro.kafka"));
+            }
+            if (sxTopicEnabled) {
+                addRoute(route(SiriDataType.SITUATION_EXCHANGE, sxConverter, sxXmlTopic, sxAvroEnabled, sxAvroTopic,
+                        sxKafkaEnabled, "direct:publish.sx.avro.kafka"));
+            }
+        } catch (RuntimeException e) {
+            // Spring does not call @PreDestroy when init fails, so release the connections made so far here
+            sinks().forEach(TopicSink::close);
+            routes.clear();
+            throw e;
         }
-        if (executor == null) {
+        if (!routes.isEmpty() && executor == null) {
             BlockingQueue<Runnable> queue = new ArrayBlockingQueue<>(queueSize);
             metricsService.gauge(QUEUE_GAUGE_NAME, queue, BlockingQueue::size);
             executor = new ThreadPoolExecutor(threads, threads, 0L, TimeUnit.MILLISECONDS, queue, namedThreads(),
                     (task, pool) -> rejected(task));
         }
-        logger.info("Publishing ET and SX directly to Pub/Sub: ET xml={}, avro={}; SX xml={}, avro={}",
-                etXmlSink.isPresent(), etAvroSink.isPresent(), sxXmlSink.isPresent(), sxAvroSink.isPresent());
     }
 
-    /** Whether ET and SX go through this publisher instead of the Camel topic routes */
-    public boolean isEnabled() {
-        return directEnabled;
+    private void addRoute(TypeRoute route) {
+        if (route != null) {
+            routes.put(route.dataType(), route);
+            logger.info("Publishing {} directly to Pub/Sub: xml, {}", route.dataType(), route.avroSink() != null ? "avro" : "no avro");
+        }
+    }
+
+    /** @return null when the XML topic is not a Pub/Sub topic, which leaves the data type to the Camel route */
+    private TypeRoute route(SiriDataType dataType, Converter converter, String xmlTopic, boolean avroEnabled, String avroTopic,
+                            boolean kafkaEnabled, String kafkaEndpoint) {
+        Optional<TopicSink> xmlSink = sinkFactory.create(xmlTopic);
+        if (xmlSink.isEmpty()) {
+            logger.warn("{} topic '{}' is not a Pub/Sub topic: {} stays on the Camel topic route", dataType, xmlTopic, dataType);
+            return null;
+        }
+        TopicSink avroSink;
+        try {
+            avroSink = avroEnabled ? sinkFactory.create(avroTopic).orElse(null) : null;
+        } catch (RuntimeException e) {
+            xmlSink.get().close();
+            throw e;
+        }
+        return new TypeRoute(dataType, converter, xmlSink.get(), avroSink, avroEnabled, kafkaEnabled, kafkaEndpoint);
+    }
+
+    private List<TopicSink> sinks() {
+        List<TopicSink> sinks = new ArrayList<>();
+        for (TypeRoute route : routes.values()) {
+            sinks.add(route.xmlSink());
+            if (route.avroSink() != null) {
+                sinks.add(route.avroSink());
+            }
+        }
+        return sinks;
+    }
+
+    /** Whether this publisher publishes the data type to the topics, instead of the Camel topic route */
+    public boolean handles(SiriDataType dataType) {
+        return routes.containsKey(dataType);
     }
 
     /**
      * Publishes elements that were just stored. Returns at once; the work runs on the publisher's own threads.
-     * Data types other than ET and SX are ignored.
+     * Data types this publisher does not handle are ignored.
      */
     public void publishAsync(SiriDataType dataType, List<?> addedOrUpdated, String codespace) {
-        if (!directEnabled || executor == null || addedOrUpdated == null || addedOrUpdated.isEmpty()) {
-            return;
-        }
-        boolean et = dataType == SiriDataType.ESTIMATED_TIMETABLE && etTopicEnabled;
-        boolean sx = dataType == SiriDataType.SITUATION_EXCHANGE && sxTopicEnabled;
-        if (!et && !sx) {
+        TypeRoute route = routes.get(dataType);
+        if (route == null || executor == null || addedOrUpdated == null || addedOrUpdated.isEmpty()) {
             return;
         }
         long storedAt = System.currentTimeMillis();
@@ -171,24 +242,15 @@ public class SiriTopicPublisher {
         Runnable work = () -> {
             MDC.put(BREADCRUMB_MDC_KEY, breadcrumbId);
             try {
-                if (et) {
-                    @SuppressWarnings("unchecked")
-                    List<EstimatedVehicleJourney> journeys = (List<EstimatedVehicleJourney>) addedOrUpdated;
-                    publish(dataType, siriObjectFactory.createETServiceDelivery(journeys), codespace, breadcrumbId, storedAt,
-                            etConverter, etXmlSink, etAvroSink, "direct:publish.et.avro.kafka");
-                } else {
-                    @SuppressWarnings("unchecked")
-                    List<PtSituationElement> situations = (List<PtSituationElement>) addedOrUpdated;
-                    publish(dataType, siriObjectFactory.createSXServiceDelivery(situations), codespace, breadcrumbId, storedAt,
-                            sxConverter, sxXmlSink, sxAvroSink, "direct:publish.sx.avro.kafka");
-                }
+                publish(route, delivery(dataType, addedOrUpdated), codespace, breadcrumbId, storedAt);
             } catch (RuntimeException e) {
                 logger.warn("Unable to publish {} {} updates for {} to the outbound topics", addedOrUpdated.size(), dataType, codespace, e);
+                countDropped(route, addedOrUpdated.size());
             } finally {
                 MDC.remove(BREADCRUMB_MDC_KEY);
             }
         };
-        PublishTask task = new PublishTask(dataType, addedOrUpdated.size(), codespace, work);
+        PublishTask task = new PublishTask(route, addedOrUpdated.size(), codespace, work);
         try {
             executor.execute(task);
         } catch (RejectedExecutionException e) {
@@ -197,44 +259,90 @@ public class SiriTopicPublisher {
         }
     }
 
-    /** Never thrown back to SiriHandler: the elements are counted as failed for both topics */
+    @SuppressWarnings("unchecked")
+    private Siri delivery(SiriDataType dataType, List<?> addedOrUpdated) {
+        return dataType == SiriDataType.ESTIMATED_TIMETABLE
+                ? siriObjectFactory.createETServiceDelivery((List<EstimatedVehicleJourney>) addedOrUpdated)
+                : siriObjectFactory.createSXServiceDelivery((List<PtSituationElement>) addedOrUpdated);
+    }
+
+    /** Never thrown back to SiriHandler: the elements are counted as failed for every topic they were meant for */
     private void rejected(Runnable runnable) {
         if (!(runnable instanceof PublishTask task)) {
             return;
         }
-        metricsService.markPublishFailed(task.dataType(), XML, task.elements());
-        metricsService.markPublishFailed(task.dataType(), AVRO, task.elements());
+        countDropped(task.route(), task.elements());
         long rejected = rejectedDeliveries.incrementAndGet();
         if (rejected == 1 || rejected % 1000 == 0) {
             logger.warn("Publisher queue full or shut down: dropped {} {} updates for {} ({} deliveries dropped so far)",
-                    task.elements(), task.dataType(), task.codespace(), rejected);
+                    task.elements(), task.route().dataType(), task.codespace(), rejected);
         }
     }
 
-    private void publish(SiriDataType dataType, Siri delivery, String codespace, String breadcrumbId, long storedAt,
-                         Converter converter, Optional<TopicSink> xmlSink, Optional<TopicSink> avroSink, String kafkaEndpoint) {
-        // A copy: the stored elements are also pushed to outbound subscriptions, and must not change here
-        Siri mapped = SiriValueTransformer.transform(delivery,
-                mappingAdapterPresets.getOutboundAdapters(OutboundIdMappingPolicy.DEFAULT), true, false);
+    private void countDropped(TypeRoute route, long elements) {
+        metricsService.markPublishFailed(route.dataType(), XML, elements);
+        if (route.avroSink() != null) {
+            metricsService.markPublishFailed(route.dataType(), AVRO, elements);
+        }
+        if (route.kafkaEnabled()) {
+            metricsService.markPublishFailed(route.dataType(), KAFKA, elements);
+        }
+    }
+
+    private void publish(TypeRoute route, Siri delivery, String codespace, String breadcrumbId, long storedAt) {
+        SiriDataType dataType = route.dataType();
+        // A copy: the stored elements are also pushed to outbound subscriptions, and must not change here. Copied
+        // here rather than in transform(), which publishes the original, unmapped, when the copy fails
+        Siri copy = SiriObjectFactory.deepCopy(delivery);
+        Siri mapped = SiriValueTransformer.transform(copy,
+                mappingAdapterPresets.getOutboundAdapters(OutboundIdMappingPolicy.DEFAULT), false, false);
         metricsService.recordOutboundStage(dataType, PrometheusMetricsService.OUTBOUND_STAGE_TRANSFORMED, storedAt);
 
-        for (Result result : converter.convert(mapped, codespace, breadcrumbId, storedAt)) {
-            if (result instanceof Failed failed) {
-                logger.warn("Unable to build topic messages for {} {}", dataType, failed.elementId(), failed.error());
-                metricsService.markPublishFailed(dataType, XML);
-                metricsService.markPublishFailed(dataType, AVRO);
-                continue;
-            }
-            ElementMessages messages = ((Converted) result).messages();
+        for (ElementMessages messages : route.converter().convert(mapped, codespace, breadcrumbId, storedAt)) {
+            String elementId = messages.elementId();
             metricsService.recordOutboundStage(dataType, PrometheusMetricsService.OUTBOUND_STAGE_HANDED_TO_CLIENT, storedAt);
-            xmlSink.ifPresent(sink -> send(sink, messages.xml(), dataType, XML, storedAt, messages.elementId()));
-            avroSink.ifPresent(sink -> send(sink, messages.avroJson(), dataType, AVRO, storedAt, messages.elementId()));
-            try {
-                kafkaProducer.asyncRequestBodyAndHeaders(kafkaEndpoint, messages.avroRecord(), messages.kafkaHeaders());
-            } catch (RuntimeException e) {
-                // E.g. Camel already stopped while the queue drains at shutdown
-                onFailure(dataType, KAFKA, messages.elementId(), e);
+            if (messages.xml() != null) {
+                send(route.xmlSink(), messages.xml(), dataType, XML, storedAt, elementId);
+            } else {
+                onFailure(dataType, XML, elementId, messages.xmlError());
             }
+            if (messages.avro() != null) {
+                publishAvro(route, messages.avro(), storedAt, elementId);
+            } else {
+                if (route.avroSink() != null) {
+                    onFailure(dataType, AVRO, elementId, messages.avroError());
+                }
+                if (route.kafkaEnabled()) {
+                    onFailure(dataType, KAFKA, elementId, messages.avroError());
+                }
+            }
+        }
+    }
+
+    private void publishAvro(TypeRoute route, ElementMessages.Avro avro, long storedAt, String elementId) {
+        SiriDataType dataType = route.dataType();
+        if (route.avroSink() != null) {
+            send(route.avroSink(), avro.json(), dataType, AVRO, storedAt, elementId);
+        } else if (route.avroEnabled()) {
+            // The Avro topic is mock:ignore; the Camel Avro route counted these records all the same
+            metricsService.registerAvroPubsubRecord(dataType);
+        }
+        try {
+            kafkaProducer.asyncRequestBodyAndHeaders(route.kafkaEndpoint(), avro.record(), avro.kafkaHeaders())
+                    .whenComplete((result, error) -> {
+                        if (error != null) {
+                            kafkaFailed(route, elementId, error);
+                        }
+                    });
+        } catch (RuntimeException e) {
+            // E.g. Camel already stopped while the queue drains at shutdown
+            kafkaFailed(route, elementId, e);
+        }
+    }
+
+    private void kafkaFailed(TypeRoute route, String elementId, Throwable error) {
+        if (route.kafkaEnabled()) {
+            onFailure(route.dataType(), KAFKA, elementId, error);
         }
     }
 
@@ -266,36 +374,39 @@ public class SiriTopicPublisher {
 
     private void onFailure(SiriDataType dataType, String format, String elementId, Throwable t) {
         metricsService.markPublishFailed(dataType, format);
-        logger.warn("Unable to publish {} {} to the {} topic: {}", dataType, elementId, format, t.toString());
+        if (logger.isWarnEnabled()) {
+            logger.warn("Unable to publish {} {} to the {} topic: {}", dataType, elementId, format, String.valueOf(t));
+        }
     }
 
     /**
      * Drains the queue, then sends what the clients still hold, within about 25 s in all, so a pod stop fits its
-     * grace period. Kafka records of deliveries drained after Camel has stopped are lost (counted as kafka failures).
+     * grace period. Updates still queued after the drain timeout, or arriving later, are dropped and counted.
+     * Kafka records of deliveries drained after Camel has stopped are lost (counted as kafka failures).
      */
     @PreDestroy
     void shutdown() {
         if (executor != null) {
             executor.shutdown();
             try {
-                if (!executor.awaitTermination(EXECUTOR_SHUTDOWN_TIMEOUT.toMillis(), TimeUnit.MILLISECONDS)) {
-                    logger.warn("Publisher threads still busy after {} s; queued updates are dropped",
-                            EXECUTOR_SHUTDOWN_TIMEOUT.toSeconds());
+                if (!executor.awaitTermination(drainTimeoutMillis, TimeUnit.MILLISECONDS)) {
+                    List<Runnable> dropped = executor.shutdownNow();
+                    logger.warn("Publisher threads still busy after {} ms; dropping {} queued deliveries",
+                            drainTimeoutMillis, dropped.size());
+                    dropped.forEach(this::rejected);
                 }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
-            executor = null;
+            // Kept, shut down, so later updates are rejected and counted
         }
-        List<TopicSink> sinks = List.of(etXmlSink, etAvroSink, sxXmlSink, sxAvroSink).stream()
-                .flatMap(Optional::stream).toList();
+        List<TopicSink> sinks = sinks();
         // All at once, then waited for against one deadline
         sinks.forEach(TopicSink::startShutdown);
         long deadline = System.nanoTime() + SINKS_SHUTDOWN_TIMEOUT.toNanos();
         for (TopicSink sink : sinks) {
             sink.awaitShutdown(Duration.ofNanos(Math.max(0, deadline - System.nanoTime())));
         }
-        etXmlSink = etAvroSink = sxXmlSink = sxAvroSink = Optional.empty();
     }
 
     private static ThreadFactory namedThreads() {

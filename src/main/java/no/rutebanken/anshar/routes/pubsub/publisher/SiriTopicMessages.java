@@ -21,6 +21,7 @@ import uk.org.siri.siri21.SituationExchangeDeliveryStructure;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.function.Function;
 
 import static no.rutebanken.anshar.routes.kafka.KafkaConfig.CODESPACE_ID_KAFKA_HEADER_NAME;
@@ -34,26 +35,16 @@ public final class SiriTopicMessages {
     private static final String SIRI_VERSION = "2.0";
     static final String BREADCRUMB_ATTRIBUTE = "breadcrumbId";
 
-    /** The messages for one element, or why they could not be built */
-    public sealed interface Result permits Converted, Failed {
-    }
-
-    public record Converted(ElementMessages messages) implements Result {
-    }
-
-    public record Failed(String elementId, Exception error) implements Result {
-    }
-
     private SiriTopicMessages() {
     }
 
-    public static List<Result> forEstimatedTimetables(Siri mappedDelivery, String codespace, String breadcrumbId, long storedAt) {
+    public static List<ElementMessages> forEstimatedTimetables(Siri mappedDelivery, String codespace, String breadcrumbId, long storedAt) {
         return forEstimatedTimetables(mappedDelivery, codespace, breadcrumbId, storedAt, Converter::jaxb2Avro);
     }
 
-    static List<Result> forEstimatedTimetables(Siri mappedDelivery, String codespace, String breadcrumbId, long storedAt,
-                                               Function<Siri, SiriRecord> toAvro) {
-        List<Result> results = new ArrayList<>();
+    static List<ElementMessages> forEstimatedTimetables(Siri mappedDelivery, String codespace, String breadcrumbId, long storedAt,
+                                                        Function<Siri, SiriRecord> toAvro) {
+        List<ElementMessages> results = new ArrayList<>();
         if (mappedDelivery == null || mappedDelivery.getServiceDelivery() == null) {
             return results;
         }
@@ -61,29 +52,23 @@ public final class SiriTopicMessages {
         for (EstimatedTimetableDeliveryStructure delivery : serviceDelivery.getEstimatedTimetableDeliveries()) {
             for (EstimatedVersionFrameStructure frame : delivery.getEstimatedJourneyVersionFrames()) {
                 for (EstimatedVehicleJourney journey : frame.getEstimatedVehicleJourneies()) {
-                    String id = elementId(journey);
-                    try {
-                        Siri single = singleJourney(serviceDelivery, delivery, frame, journey);
-                        EstimatedVehicleJourneyRecord record = toAvro.apply(single).getServiceDelivery()
+                    Siri single = singleJourney(serviceDelivery, delivery, frame, journey);
+                    results.add(element(elementId(journey), single, codespace, breadcrumbId, storedAt, () -> {
+                        EstimatedVehicleJourneyRecord journeyRecord = toAvro.apply(single).getServiceDelivery()
                                 .getEstimatedTimetableDeliveries().get(0)
                                 .getEstimatedJourneyVersionFrames().get(0)
                                 .getEstimatedVehicleJourneys().get(0);
-                        results.add(new Converted(new ElementMessages(id,
-                                xmlMessage(single, codespace, breadcrumbId, storedAt),
-                                avroMessage(SiriAvroJsonSerializer.toJson(record)),
-                                record,
-                                AvroConvertorProcessor.createHeaders(record, codespace))));
-                    } catch (Exception e) {
-                        results.add(new Failed(id, e));
-                    }
+                        return new ElementMessages.Avro(avroMessage(SiriAvroJsonSerializer.toJson(journeyRecord)),
+                                journeyRecord, AvroConvertorProcessor.createHeaders(journeyRecord, codespace));
+                    }));
                 }
             }
         }
         return results;
     }
 
-    public static List<Result> forSituations(Siri mappedDelivery, String codespace, String breadcrumbId, long storedAt) {
-        List<Result> results = new ArrayList<>();
+    public static List<ElementMessages> forSituations(Siri mappedDelivery, String codespace, String breadcrumbId, long storedAt) {
+        List<ElementMessages> results = new ArrayList<>();
         if (mappedDelivery == null || mappedDelivery.getServiceDelivery() == null) {
             return results;
         }
@@ -94,22 +79,37 @@ public final class SiriTopicMessages {
             }
             for (PtSituationElement situation : delivery.getSituations().getPtSituationElements()) {
                 String id = situation.getSituationNumber() != null ? situation.getSituationNumber().getValue() : null;
-                try {
-                    Siri single = singleSituation(serviceDelivery, delivery, situation);
-                    PtSituationElementRecord record = Converter.jaxb2Avro(single).getServiceDelivery()
+                Siri single = singleSituation(serviceDelivery, delivery, situation);
+                results.add(element(id, single, codespace, breadcrumbId, storedAt, () -> {
+                    PtSituationElementRecord situationRecord = Converter.jaxb2Avro(single).getServiceDelivery()
                             .getSituationExchangeDeliveries().get(0)
                             .getSituations().get(0);
-                    results.add(new Converted(new ElementMessages(id,
-                            xmlMessage(single, codespace, breadcrumbId, storedAt),
-                            avroMessage(SiriAvroJsonSerializer.toJson(record)),
-                            record,
-                            AvroConvertorProcessor.createHeaders(record, codespace))));
-                } catch (Exception e) {
-                    results.add(new Failed(id, e));
-                }
+                    return new ElementMessages.Avro(avroMessage(SiriAvroJsonSerializer.toJson(situationRecord)),
+                            situationRecord, AvroConvertorProcessor.createHeaders(situationRecord, codespace));
+                }));
             }
         }
         return results;
+    }
+
+    /** Builds the XML and the Avro messages independently, so either can go out when the other fails */
+    private static ElementMessages element(String id, Siri single, String codespace, String breadcrumbId, long storedAt,
+                                           Callable<ElementMessages.Avro> avro) {
+        PubsubMessage xml = null;
+        Exception xmlError = null;
+        try {
+            xml = xmlMessage(single, codespace, breadcrumbId, storedAt);
+        } catch (Exception e) {
+            xmlError = e;
+        }
+        ElementMessages.Avro avroMessages = null;
+        Exception avroError = null;
+        try {
+            avroMessages = avro.call();
+        } catch (Exception e) {
+            avroError = e;
+        }
+        return new ElementMessages(id, xml, xmlError, avroMessages, avroError);
     }
 
     /** The id the journey is published under, as the Kafka key resolves it */

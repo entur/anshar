@@ -42,34 +42,34 @@ public class SiriAvroJsonSerializer implements Processor {
     @Override
     public void process(Exchange exchange) throws Exception {
         Object body = exchange.getMessage().getBody();
-        if (body instanceof EstimatedVehicleJourneyRecord record) {
-            exchange.getMessage().setBody(toJson(record));
-        } else if (body instanceof VehicleActivityRecord record) {
-            exchange.getMessage().setBody(toJson(record));
-        } else if (body instanceof PtSituationElementRecord record) {
-            exchange.getMessage().setBody(toJson(record));
+        if (body instanceof EstimatedVehicleJourneyRecord journey) {
+            exchange.getMessage().setBody(toJson(journey));
+        } else if (body instanceof VehicleActivityRecord activity) {
+            exchange.getMessage().setBody(toJson(activity));
+        } else if (body instanceof PtSituationElementRecord situation) {
+            exchange.getMessage().setBody(toJson(situation));
         }
     }
 
     /** The JSON published to the Avro-JSON topic for a journey */
-    public static String toJson(EstimatedVehicleJourneyRecord record) throws IOException {
-        return toJson(record, EstimatedVehicleJourneyRecord.SCHEMA$, etWriter);
+    public static String toJson(EstimatedVehicleJourneyRecord journey) throws IOException {
+        return toJson(journey, EstimatedVehicleJourneyRecord.SCHEMA$, etWriter);
     }
 
     /** The JSON published to the Avro-JSON topic for a vehicle activity */
-    public static String toJson(VehicleActivityRecord record) throws IOException {
-        return toJson(record, VehicleActivityRecord.SCHEMA$, vmWriter);
+    public static String toJson(VehicleActivityRecord activity) throws IOException {
+        return toJson(activity, VehicleActivityRecord.SCHEMA$, vmWriter);
     }
 
     /** The JSON published to the Avro-JSON topic for a situation */
-    public static String toJson(PtSituationElementRecord record) throws IOException {
-        return toJson(record, PtSituationElementRecord.SCHEMA$, sxWriter);
+    public static String toJson(PtSituationElementRecord situation) throws IOException {
+        return toJson(situation, PtSituationElementRecord.SCHEMA$, sxWriter);
     }
 
-    private static <T> String toJson(T record, Schema schema, DatumWriter<T> writer) throws IOException {
+    private static <T> String toJson(T avroRecord, Schema schema, DatumWriter<T> writer) throws IOException {
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
         Encoder jsonEncoder = EncoderFactory.get().jsonEncoder(schema, stream);
-        writer.write(record, jsonEncoder);
+        writer.write(avroRecord, jsonEncoder);
         jsonEncoder.flush();
         return replaceAvroEnums(stream.toByteArray());
     }

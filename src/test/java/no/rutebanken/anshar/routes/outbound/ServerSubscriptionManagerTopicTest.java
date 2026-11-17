@@ -66,7 +66,7 @@ public class ServerSubscriptionManagerTopicTest extends SpringBootBaseTest {
 
     @Test
     void etTopicIsLeftToDirectPublisher() {
-        when(topicPublisher.isEnabled()).thenReturn(true);
+        when(topicPublisher.handles(SiriDataType.ESTIMATED_TIMETABLE)).thenReturn(true);
 
         manager.pushUpdatesAsync(SiriDataType.ESTIMATED_TIMETABLE, List.of(new EstimatedVehicleJourney()), "TST");
 
@@ -75,7 +75,7 @@ public class ServerSubscriptionManagerTopicTest extends SpringBootBaseTest {
 
     @Test
     void etTopicGoesThroughCamelWhenDirectPublishingIsOff() {
-        when(topicPublisher.isEnabled()).thenReturn(false);
+        when(topicPublisher.handles(SiriDataType.ESTIMATED_TIMETABLE)).thenReturn(false);
 
         manager.pushUpdatesAsync(SiriDataType.ESTIMATED_TIMETABLE, List.of(new EstimatedVehicleJourney()), "TST");
 
@@ -84,7 +84,7 @@ public class ServerSubscriptionManagerTopicTest extends SpringBootBaseTest {
 
     @Test
     void sxTopicIsLeftToDirectPublisher() {
-        when(topicPublisher.isEnabled()).thenReturn(true);
+        when(topicPublisher.handles(SiriDataType.SITUATION_EXCHANGE)).thenReturn(true);
 
         manager.pushUpdatesAsync(SiriDataType.SITUATION_EXCHANGE, List.of(new PtSituationElement()), "TST");
 
@@ -93,10 +93,19 @@ public class ServerSubscriptionManagerTopicTest extends SpringBootBaseTest {
 
     @Test
     void sxTopicGoesThroughCamelWhenDirectPublishingIsOff() {
-        when(topicPublisher.isEnabled()).thenReturn(false);
+        when(topicPublisher.handles(SiriDataType.SITUATION_EXCHANGE)).thenReturn(false);
 
         manager.pushUpdatesAsync(SiriDataType.SITUATION_EXCHANGE, List.of(new PtSituationElement()), "TST");
 
         verify(sxProducer).asyncRequestBodyAndHeaders((Endpoint) any(), any(), anyMap());
+    }
+
+    @Test
+    void etTopicGoesThroughCamelWhenOnlySxIsPublishedDirectly() {
+        when(topicPublisher.handles(SiriDataType.SITUATION_EXCHANGE)).thenReturn(true);
+
+        manager.pushUpdatesAsync(SiriDataType.ESTIMATED_TIMETABLE, List.of(new EstimatedVehicleJourney()), "TST");
+
+        verify(etProducer).asyncRequestBodyAndHeaders((Endpoint) any(), any(), anyMap());
     }
 }
