@@ -120,6 +120,7 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
     private static final String STAGE_TAG_NAME = "stage";
     private static final String OUTBOUND_PUBLISH_NAME = METRICS_PREFIX + "outbound.publish";
     private static final String FORMAT_TAG_NAME = "format";
+    private static final String OUTBOUND_PUBLISH_FAILED_NAME = METRICS_PREFIX + "outbound.publish.failed";
     private static final String PUBLISH_STARTED_PROPERTY = "AnsharPublishStartedNanos";
 
     /** Outbound stage: the delivery entered the topic route, after the push pool and async producer */
@@ -134,6 +135,8 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
     public static final String OUTBOUND_STAGE_FIRST_ELEMENT_START = "first_element_start";
     /** Outbound stage: as element_start, for every element after the first of each delivery */
     public static final String OUTBOUND_STAGE_LATER_ELEMENT_START = "later_element_start";
+    /** Outbound stage: a message of the direct topic publisher was handed to the Pub/Sub client */
+    public static final String OUTBOUND_STAGE_HANDED_TO_CLIENT = "handed_to_client";
 
     // Internal steps: Pub/Sub hops and processing, expected in milliseconds
     private static final Duration[] INTERNAL_LATENCY_BUCKETS = {
@@ -221,12 +224,17 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
         return exchange -> {
             Long storedAt = exchange.getProperty(STORED_AT_HEADER, Long.class);
             if (storedAt != null) {
-                latencyTimer(LATENCY_OUTBOUND_NAME,
-                        "Time from Anshar storing updates until they were published to the outbound topic",
-                        INTERNAL_LATENCY_BUCKETS, DATATYPE_TAG_NAME, dataType.name()
-                ).record(Duration.ofMillis(System.currentTimeMillis() - storedAt));
+                recordOutboundLatency(dataType, storedAt);
             }
         };
+    }
+
+    /** Time since the updates were stored, at {@code storedAt} (epoch millis), now that they are published */
+    public void recordOutboundLatency(SiriDataType dataType, long storedAt) {
+        latencyTimer(LATENCY_OUTBOUND_NAME,
+                "Time from Anshar storing updates until they were published to the outbound topic",
+                INTERNAL_LATENCY_BUCKETS, DATATYPE_TAG_NAME, dataType.name()
+        ).record(Duration.ofMillis(System.currentTimeMillis() - storedAt));
     }
 
     /**
@@ -238,12 +246,17 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
         return exchange -> {
             Long storedAt = exchange.getProperty(STORED_AT_HEADER, Long.class);
             if (storedAt != null) {
-                latencyTimer(LATENCY_OUTBOUND_STAGE_NAME,
-                        "Time from Anshar storing updates until they reached a step of the outbound topic route",
-                        INTERNAL_LATENCY_BUCKETS, DATATYPE_TAG_NAME, dataType.name(), STAGE_TAG_NAME, stage
-                ).record(Duration.ofMillis(System.currentTimeMillis() - storedAt));
+                recordOutboundStage(dataType, stage, storedAt);
             }
         };
+    }
+
+    /** Time since the updates were stored, at {@code storedAt} (epoch millis), now that they reached {@code stage} */
+    public void recordOutboundStage(SiriDataType dataType, String stage, long storedAt) {
+        latencyTimer(LATENCY_OUTBOUND_STAGE_NAME,
+                "Time from Anshar storing updates until they reached a step of the outbound topic route",
+                INTERNAL_LATENCY_BUCKETS, DATATYPE_TAG_NAME, dataType.name(), STAGE_TAG_NAME, stage
+        ).record(Duration.ofMillis(System.currentTimeMillis() - storedAt));
     }
 
     /**
@@ -277,12 +290,22 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
         return exchange -> {
             Long startedNanos = exchange.getProperty(PUBLISH_STARTED_PROPERTY, Long.class);
             if (startedNanos != null) {
-                latencyTimer(OUTBOUND_PUBLISH_NAME,
-                        "Time a single publish to an outbound Pub/Sub topic took to be answered",
-                        PUBLISH_BUCKETS, DATATYPE_TAG_NAME, dataType.name(), FORMAT_TAG_NAME, format
-                ).record(Duration.ofNanos(System.nanoTime() - startedNanos));
+                recordPublish(dataType, format, Duration.ofNanos(System.nanoTime() - startedNanos));
             }
         };
+    }
+
+    /** How long a single publish to an outbound Pub/Sub topic took to be answered */
+    public void recordPublish(SiriDataType dataType, String format, Duration duration) {
+        latencyTimer(OUTBOUND_PUBLISH_NAME,
+                "Time a single publish to an outbound Pub/Sub topic took to be answered",
+                PUBLISH_BUCKETS, DATATYPE_TAG_NAME, dataType.name(), FORMAT_TAG_NAME, format
+        ).record(duration);
+    }
+
+    /** Counts a message that could not be published to an outbound Pub/Sub topic */
+    public void markPublishFailed(SiriDataType dataType, String format) {
+        counter(OUTBOUND_PUBLISH_FAILED_NAME, DATATYPE_TAG_NAME, dataType.name(), FORMAT_TAG_NAME, format).increment();
     }
 
     @PreDestroy
