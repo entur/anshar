@@ -32,6 +32,7 @@ import no.rutebanken.anshar.routes.validation.ValidationType;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import no.rutebanken.anshar.subscription.SubscriptionManager;
 import no.rutebanken.anshar.subscription.SubscriptionSetup;
+import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -129,6 +130,10 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
     public static final String OUTBOUND_STAGE_SPLIT_READY = "split_ready";
     /** Outbound stage: a split element starts publishing, after waiting for a split thread */
     public static final String OUTBOUND_STAGE_ELEMENT_START = "element_start";
+    /** Outbound stage: as element_start, for the first element of each delivery only */
+    public static final String OUTBOUND_STAGE_FIRST_ELEMENT_START = "first_element_start";
+    /** Outbound stage: as element_start, for every element after the first of each delivery */
+    public static final String OUTBOUND_STAGE_LATER_ELEMENT_START = "later_element_start";
 
     // Internal steps: Pub/Sub hops and processing, expected in milliseconds
     private static final Duration[] INTERNAL_LATENCY_BUCKETS = {
@@ -237,6 +242,24 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
                         "Time from Anshar storing updates until they reached a step of the outbound topic route",
                         INTERNAL_LATENCY_BUCKETS, DATATYPE_TAG_NAME, dataType.name(), STAGE_TAG_NAME, stage
                 ).record(Duration.ofMillis(System.currentTimeMillis() - storedAt));
+            }
+        };
+    }
+
+    /**
+     * Records {@link #OUTBOUND_STAGE_ELEMENT_START} for an element of a split delivery, and also
+     * {@link #OUTBOUND_STAGE_FIRST_ELEMENT_START} or {@link #OUTBOUND_STAGE_LATER_ELEMENT_START}
+     * depending on its position, so a wait that only the later elements see can be told apart.
+     */
+    public Processor outboundElementStartRecorder(SiriDataType dataType) {
+        Processor elementStart = outboundStageRecorder(dataType, OUTBOUND_STAGE_ELEMENT_START);
+        Processor firstElementStart = outboundStageRecorder(dataType, OUTBOUND_STAGE_FIRST_ELEMENT_START);
+        Processor laterElementStart = outboundStageRecorder(dataType, OUTBOUND_STAGE_LATER_ELEMENT_START);
+        return exchange -> {
+            elementStart.process(exchange);
+            Integer index = exchange.getProperty(Exchange.SPLIT_INDEX, Integer.class);
+            if (index != null) {
+                (index == 0 ? firstElementStart : laterElementStart).process(exchange);
             }
         };
     }
