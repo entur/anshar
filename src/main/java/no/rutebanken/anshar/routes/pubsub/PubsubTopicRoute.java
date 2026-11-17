@@ -156,7 +156,9 @@ public class PubsubTopicRoute extends RouteBuilder {
 
             if (etTopicXml != null) {
                 from("direct:publish.et.xml")
+                        .process(metricsService.publishStarter())
                         .to(etTopicXml)
+                        .process(metricsService.publishRecorder(SiriDataType.ESTIMATED_TIMETABLE, "xml"))
                 ;
             } else {
                 AtomicBoolean etTopicXmlWarned = new AtomicBoolean(false);
@@ -172,7 +174,9 @@ public class PubsubTopicRoute extends RouteBuilder {
 
             if (sxTopicXml != null) {
                 from("direct:publish.sx.xml")
+                        .process(metricsService.publishStarter())
                         .to(sxTopicXml)
+                        .process(metricsService.publishRecorder(SiriDataType.SITUATION_EXCHANGE, "xml"))
                 ;
             } else {
                 AtomicBoolean sxTopicXmlWarned = new AtomicBoolean(false);
