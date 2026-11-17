@@ -47,8 +47,12 @@ public class PubsubTopicRoute extends RouteBuilder {
     @Value("${anshar.outbound.pubsub.topic.enabled}")
     private boolean pushToTopicEnabled;
 
-    /** Threads publishing the elements of split ET and SX deliveries, per data type */
-    @Value("${anshar.outbound.pubsub.split.threads:20}")
+    /**
+     * Threads publishing the elements of split ET and SX deliveries, per data type. Each publish
+     * holds its thread until Pub/Sub has answered, so a delivery with N journeys needs about
+     * N / threads round trips before its last journey starts.
+     */
+    @Value("${anshar.outbound.pubsub.split.threads:64}")
     private int splitPublishThreads;
 
     @Autowired
