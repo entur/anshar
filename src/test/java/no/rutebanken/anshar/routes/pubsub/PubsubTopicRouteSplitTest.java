@@ -160,6 +160,24 @@ class PubsubTopicRouteSplitTest {
     }
 
     @Test
+    void etFirstAndLaterJourneysAreTimedApart() {
+        producer.sendBodyAndHeader("direct:send.to.pubsub.topic.estimated_timetable", etDelivery(ELEMENTS),
+                PrometheusMetricsService.STORED_AT_HEADER, System.currentTimeMillis() - 2_000);
+
+        assertStageTimedFromStoredTime("ESTIMATED_TIMETABLE", "first_element_start", 1);
+        assertStageTimedFromStoredTime("ESTIMATED_TIMETABLE", "later_element_start", ELEMENTS - 1);
+    }
+
+    @Test
+    void sxFirstAndLaterSituationsAreTimedApart() {
+        producer.sendBodyAndHeader("direct:send.to.pubsub.topic.situation_exchange", sxDelivery(ELEMENTS),
+                PrometheusMetricsService.STORED_AT_HEADER, System.currentTimeMillis() - 2_000);
+
+        assertStageTimedFromStoredTime("SITUATION_EXCHANGE", "first_element_start", 1);
+        assertStageTimedFromStoredTime("SITUATION_EXCHANGE", "later_element_start", ELEMENTS - 1);
+    }
+
+    @Test
     void deliveryWithoutStoredTimeIsNotTimed() {
         producer.sendBody("direct:send.to.pubsub.topic.estimated_timetable", etDelivery(ELEMENTS));
 
@@ -167,5 +185,7 @@ class PubsubTopicRouteSplitTest {
         assertNull(stage("ESTIMATED_TIMETABLE", "transformed"));
         assertNull(stage("ESTIMATED_TIMETABLE", "split_ready"));
         assertNull(stage("ESTIMATED_TIMETABLE", "element_start"));
+        assertNull(stage("ESTIMATED_TIMETABLE", "first_element_start"));
+        assertNull(stage("ESTIMATED_TIMETABLE", "later_element_start"));
     }
 }

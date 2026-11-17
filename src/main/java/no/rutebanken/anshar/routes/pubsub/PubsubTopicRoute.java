@@ -85,7 +85,7 @@ public class PubsubTopicRoute extends RouteBuilder {
                         // published in parallel, or each one waits for every journey ahead of it.
                         .split().tokenizeXML("Siri").streaming()
                             .parallelProcessing().executorService(etSplitPool)
-                        .process(metricsService.outboundStageRecorder(SiriDataType.ESTIMATED_TIMETABLE, PrometheusMetricsService.OUTBOUND_STAGE_ELEMENT_START))
+                        .process(metricsService.outboundElementStartRecorder(SiriDataType.ESTIMATED_TIMETABLE))
                         .wireTap("direct:publish.et.avro")        // Publish as Avro
                         .to("direct:publish.et.xml")        // Publish as XML
                     .end()
@@ -133,7 +133,7 @@ public class PubsubTopicRoute extends RouteBuilder {
                         .process(metricsService.outboundStageRecorder(SiriDataType.SITUATION_EXCHANGE, PrometheusMetricsService.OUTBOUND_STAGE_SPLIT_READY))
                         .split().tokenizeXML("Siri").streaming()
                             .parallelProcessing().executorService(sxSplitPool)
-                        .process(metricsService.outboundStageRecorder(SiriDataType.SITUATION_EXCHANGE, PrometheusMetricsService.OUTBOUND_STAGE_ELEMENT_START))
+                        .process(metricsService.outboundElementStartRecorder(SiriDataType.SITUATION_EXCHANGE))
                         .wireTap("direct:publish.sx.avro")// Publish as Avro
                         .to("direct:publish.sx.xml")        // Publish as XML
                     .end()
