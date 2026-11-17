@@ -290,6 +290,25 @@ class SiriTopicPublisherTest {
     }
 
     @Test
+    void connectsToNothingWhenTopicsAreNotPubsubTopics() {
+        // As in the test configuration: plain names and mock:ignore, no credentials
+        start(true);
+        ReflectionTestUtils.setField(publisher, "sinkFactory", new TopicSinkFactory.PubsubTopicSinkFactory());
+        ReflectionTestUtils.setField(publisher, "etXmlTopic", "anshar.xml.estimated_timetables");
+        ReflectionTestUtils.setField(publisher, "etAvroTopic", "mock:ignore");
+        ReflectionTestUtils.setField(publisher, "sxXmlTopic", "");
+        ReflectionTestUtils.setField(publisher, "sxAvroTopic", null);
+        publisher.shutdown();
+        ReflectionTestUtils.setField(publisher, "executor", MoreExecutors.newDirectExecutorService());
+        publisher.init();
+
+        for (String sink : new String[]{"etXmlSink", "etAvroSink", "sxXmlSink", "sxAvroSink"}) {
+            assertEquals(Optional.empty(), ReflectionTestUtils.getField(publisher, sink), sink);
+        }
+        assertDoesNotThrow(() -> publisher.publishAsync(SiriDataType.ESTIMATED_TIMETABLE, journeys(1), "BNR"));
+    }
+
+    @Test
     void closesSinksOnShutdown() {
         start(true).shutdown();
 
