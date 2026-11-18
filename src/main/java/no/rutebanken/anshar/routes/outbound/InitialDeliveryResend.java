@@ -28,6 +28,9 @@ package no.rutebanken.anshar.routes.outbound;
  */
 class InitialDeliveryResend {
 
+    /** Returned by {@link #start(long)} when no resend should be started */
+    static final long NOT_STARTED = 0;
+
     private final long initialBackoffMillis;
     private final long maxBackoffMillis;
     /** A resend that has not reported back within this time is considered lost, e.g. dropped from a full queue, and is started again */
@@ -35,6 +38,8 @@ class InitialDeliveryResend {
 
     private boolean pending;
     private boolean inProgress;
+    /** Number of the latest attempt - a report from an earlier one, e.g. one considered lost, is ignored */
+    private long attempt;
     private long startedAt;
     private long backoffMillis;
     private long notBefore;
@@ -51,41 +56,52 @@ class InitialDeliveryResend {
     }
 
     /**
-     * @return true if a resend should be started now - the caller must then report the result with
-     * {@link #succeeded()} or {@link #failed(long)}
+     * @return the number of the attempt if a resend should be started now, otherwise {@link #NOT_STARTED} - the
+     * caller must report the result of the attempt with {@link #succeeded(long)} or {@link #failed(long, long)}
      */
-    synchronized boolean start(long now) {
+    synchronized long start(long now) {
         if (inProgress) {
             if (now - startedAt < maxDurationMillis) {
-                return false;
+                return NOT_STARTED;
             }
-            // Never reported back, e.g. dropped from a full queue - the recipient still needs the data
+            // Never reported back - the recipient still needs the data
             inProgress = false;
             pending = true;
         }
         if (!pending || now < notBefore) {
-            return false;
+            return NOT_STARTED;
         }
         pending = false;
         inProgress = true;
         startedAt = now;
-        return true;
+        return ++attempt;
     }
 
-    synchronized void succeeded() {
+    /** The attempt got through, or the recipient rejected it and would reject it again - not retried */
+    synchronized void succeeded(long attempt) {
+        if (!isCurrent(attempt)) {
+            return;
+        }
         inProgress = false;
         backoffMillis = 0;
         notBefore = 0;
     }
 
     /**
-     * @return milliseconds until the resend may be tried again
+     * @return milliseconds until the resend may be tried again, or -1 if the attempt is no longer the current one
      */
-    synchronized long failed(long now) {
+    synchronized long failed(long attempt, long now) {
+        if (!isCurrent(attempt)) {
+            return -1;
+        }
         inProgress = false;
         pending = true;
         backoffMillis = backoffMillis == 0 ? initialBackoffMillis : Math.min(backoffMillis * 2, maxBackoffMillis);
         notBefore = now + backoffMillis;
         return backoffMillis;
+    }
+
+    private boolean isCurrent(long attempt) {
+        return inProgress && attempt == this.attempt;
     }
 }

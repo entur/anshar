@@ -132,6 +132,15 @@ public class CamelRouteManager {
 
     private static final long CONNECT_TIMEOUT_MILLIS = 2000;
 
+    /** Time on top of the longest post before a probe that has not completed is abandoned */
+    private static final long PROBE_MARGIN_MILLIS = 5000;
+
+    /**
+     * Last resort for a resend of all data that never reports back - pushes that are dropped or never run are reported
+     * as failed. A resend may be split into many posts, so this is far longer than one post can take.
+     */
+    private static final long LOST_RESEND_MILLIS = 30 * 60 * 1000L;
+
     private static final HttpClient httpClient = HttpClient.newBuilder()
             .version(HttpClient.Version.HTTP_1_1)
             .connectTimeout(Duration.ofMillis(CONNECT_TIMEOUT_MILLIS))
@@ -187,28 +196,28 @@ public class CamelRouteManager {
         pushSiriData(payload, subscriptionRequest, logBody, requireActiveSubscription, null);
     }
 
-    /** Told whether a push reached the recipient */
+    /** Told how a push went */
     @FunctionalInterface
     interface DeliveryListener {
         /**
-         * Not called if the push was cancelled, e.g. the subscription was terminated or re-created while it was queued.
+         * Not called if the push was cancelled, e.g. the subscription was terminated or re-created while it was
+         * queued, or anshar is shutting down.
          *
-         * @param delivered true if the recipient took every post of the push (any response below 500), false if a
-         *                  post failed or was skipped by the circuit breaker
+         * @param outcome {@link Outcome#DELIVERED}, {@link Outcome#REJECTED} or {@link Outcome#FAILED}
          */
-        void completed(boolean delivered);
+        void completed(Outcome outcome);
     }
 
     private void pushSiriData(Siri payload, OutboundSubscriptionSetup subscriptionRequest, boolean logBody,
                               boolean requireActiveSubscription, DeliveryListener listener) {
-        String consumerAddress = subscriptionRequest.getAddress();
-        if (consumerAddress == null) {
+        final String subscriptionId = subscriptionRequest.getSubscriptionId();
+        final PushTask pushTask = new PushTask(payload, subscriptionRequest, logBody, requireActiveSubscription, listener,
+                MDC.get(MDC_BREADCRUMB_ID));
+        if (subscriptionRequest.getAddress() == null) {
             logger.info("ConsumerAddress is null - ignoring data.");
+            pushTask.dropped();
             return;
         }
-        final String subscriptionId = subscriptionRequest.getSubscriptionId();
-        final Runnable pushTask = new PushTask(payload, subscriptionRequest, logBody, requireActiveSubscription, listener,
-                MDC.get(MDC_BREADCRUMB_ID));
 
         ExecutorService executorService = getOrCreateExecutorService(subscriptionRequest);
         try {
@@ -227,26 +236,61 @@ public class CamelRouteManager {
                     pushTask.run();
                 } else {
                     logger.warn("Unable to push data for subscription {} - executor has been shut down", subscriptionId);
+                    pushTask.dropped();
                 }
             }
         }
     }
 
-    /** The result of a push */
-    private enum Outcome {
-        /** The recipient took every post - any response below 500 */
+    /** A queued task that must be told if it is dropped without running */
+    interface DroppableTask extends Runnable {
+        void dropped();
+    }
+
+    /**
+     * As {@link ThreadPoolExecutor.DiscardOldestPolicy}: the oldest queued task makes room for the new one - but a
+     * dropped push is told, so e.g. a resend of all data waiting for its result is retried instead of being forgotten.
+     */
+    static void discardOldest(Runnable task, ThreadPoolExecutor executor) {
+        Runnable oldest = executor.getQueue().poll();
+        if (oldest instanceof DroppableTask dropped) {
+            dropped.dropped();
+        }
+        executor.execute(task);
+    }
+
+    /** The result of a push - ordered from best to worst, a push with several posts gets the worst */
+    enum Outcome {
+        /** The recipient took every post (2xx) */
         DELIVERED,
-        /** A post failed, or was skipped by the circuit breaker */
+        /** The recipient rejected a post, and would reject it again (4xx other than 408, 425 and 429) */
+        REJECTED,
+        /** A post failed (5xx, 408, 425, 429 or an error), was skipped by the circuit breaker, or the push never ran */
         FAILED,
         /** Dropped before posting, e.g. the subscription was terminated or re-created while it was queued */
-        CANCELLED
+        CANCELLED;
+
+        static Outcome of(int responseCode) {
+            if (responseCode < 300) {
+                return DELIVERED;
+            }
+            if (responseCode >= 500 || responseCode == 408 || responseCode == 425 || responseCode == 429) {
+                // Server error, timeout, too early or too many requests - may succeed later
+                return FAILED;
+            }
+            return REJECTED;
+        }
+
+        Outcome worst(Outcome other) {
+            return compareTo(other) >= 0 ? this : other;
+        }
     }
 
     /**
      * Posts a payload to a subscription, split into deliveries if needed, on the subscription's executor. Each post
      * goes through the circuit breaker of the subscription. Not thread-safe - runs once, on one thread.
      */
-    private final class PushTask implements Runnable {
+    private final class PushTask implements DroppableTask {
         private final Siri payload;
         private final OutboundSubscriptionSetup subscriptionRequest;
         private final String subscriptionId;
@@ -284,6 +328,10 @@ public class CamelRouteManager {
                     handleFailure(e);
                     outcome = Outcome.FAILED;
                 }
+            } catch (Error e) {
+                // E.g. out of memory building a large delivery - reported, then left to the JVM
+                outcome = Outcome.FAILED;
+                throw e;
             } finally {
                 if (permit != null) {
                     // Not handled above, e.g. an Error was thrown - must be recorded to not block the next probe
@@ -322,14 +370,14 @@ public class CamelRouteManager {
                 logger.info("Object split into {} deliveries for subscription {}.", splitSiri.size(), subscriptionRequest);
             }
 
-            boolean allDelivered = true;
+            Outcome outcome = Outcome.DELIVERED;
             for (Siri siri : splitSiri) {
                 // Nothing to send - not counted as a post to the subscription
-                if (serviceDeliveryContainsData(siri) && !post(siri)) {
-                    allDelivered = false;
+                if (serviceDeliveryContainsData(siri)) {
+                    outcome = outcome.worst(post(siri));
                 }
             }
-            return allDelivered ? Outcome.DELIVERED : Outcome.FAILED;
+            return outcome;
         }
 
         /**
@@ -348,16 +396,12 @@ public class CamelRouteManager {
             return new OutboundCircuitBreaker(null, Integer.MAX_VALUE, 0, 0, 0);
         }
 
-        /**
-         * @return true if the recipient took the delivery - any response below 500, since a 4xx rejection would be
-         * rejected again
-         */
-        private boolean post(Siri siri) {
+        private Outcome post(Siri siri) {
             permit = circuitBreaker.allowRequest(System.currentTimeMillis());
             if (!permit.isAllowed()) {
                 // Recipient keeps failing - skipped until the next probe
                 permit = null;
-                return false;
+                return Outcome.FAILED;
             }
             addSubscriptionRefToServiceDelivery(siri, subscriptionId);
             int responseCode = postDataToSubscription(siri, subscriptionRequest, logBody);
@@ -371,15 +415,14 @@ public class CamelRouteManager {
                 logger.info("Failed to push data for subscription {}: {}", subscriptionRequest, responseCode);
                 subscriptionManager.pushFailedForSubscription(subscriptionId);
             }
-            boolean responding = responseCode < 500;
-            if (responding) {
+            if (responseCode < 500) {
                 // Recipient is responding - also when it rejects the delivery with 4xx
                 recordSuccess(circuitBreaker, subscriptionRequest);
             } else {
                 recordFailure(circuitBreaker, permit, subscriptionId);
             }
             permit = null;
-            return responding;
+            return Outcome.of(responseCode);
         }
 
         private void handleFailure(Exception e) {
@@ -411,12 +454,18 @@ public class CamelRouteManager {
                     statusCode);
         }
 
+        /** The push will never run, e.g. it was dropped from a full queue */
+        @Override
+        public void dropped() {
+            report(Outcome.FAILED);
+        }
+
         private void report(Outcome outcome) {
             if (listener == null || outcome == Outcome.CANCELLED) {
                 return;
             }
             try {
-                listener.completed(outcome == Outcome.DELIVERED);
+                listener.completed(outcome);
             } catch (RuntimeException e) {
                 logger.warn("Failed to handle the result of a push to subscription {}", subscriptionId, e);
             }
@@ -436,21 +485,18 @@ public class CamelRouteManager {
                                 circuitBreakerFailureThreshold,
                                 circuitBreakerInitialBackoffSeconds * 1000L,
                                 circuitBreakerMaxBackoffSeconds * 1000L,
-                                // A post may be retried once, each with connect- and request-timeout - which grows with the body
-                                2L * (CONNECT_TIMEOUT_MILLIS + longestRequestTimeoutMillis()) + 5000,
+                                maxPostDurationMillis() + PROBE_MARGIN_MILLIS,
                                 new InitialDeliveryResend(
                                         resendInitialBackoffSeconds * 1000L,
                                         resendMaxBackoffSeconds * 1000L,
-                                        // A resend may be split into many posts - only one that is lost (e.g. dropped from
-                                        // the queue) is expected to take this long, and it is then tried again
-                                        Math.max(resendMaxBackoffSeconds * 1000L,
-                                                2L * (CONNECT_TIMEOUT_MILLIS + longestRequestTimeoutMillis()) + 60_000)))
+                                        Math.max(LOST_RESEND_MILLIS, maxPostDurationMillis())))
         );
     }
 
-    /** The request timeout of a post with the largest body */
-    private long longestRequestTimeoutMillis() {
-        return Math.max(requestTimeoutMillis, maxRequestTimeoutSeconds * 1000L);
+    /** Longest a post can take: it may be retried once, each attempt with connect- and request-timeout */
+    private long maxPostDurationMillis() {
+        long longestRequestTimeoutMillis = Math.max(requestTimeoutMillis, maxRequestTimeoutSeconds * 1000L);
+        return 2L * (CONNECT_TIMEOUT_MILLIS + longestRequestTimeoutMillis);
     }
 
     private void recordFailure(OutboundCircuitBreaker circuitBreaker, OutboundCircuitBreaker.Permit permit, String subscriptionId) {
@@ -469,14 +515,13 @@ public class CamelRouteManager {
         }
         // Also started here when a resend that failed earlier has waited out its backoff
         InitialDeliveryResend resend = circuitBreaker.initialDeliveryResend();
-        if (resend.start(System.currentTimeMillis())) {
+        long attempt = resend.start(System.currentTimeMillis());
+        if (attempt != InitialDeliveryResend.NOT_STARTED) {
             try {
-                resendInitialDelivery(subscriptionRequest, resend);
+                resendInitialDelivery(subscriptionRequest, resend, attempt);
             } catch (RuntimeException e) {
                 // E.g. building the data failed - the delivery that got through is still a success
-                long backoffMillis = resend.failed(System.currentTimeMillis());
-                logger.warn("Resending initial delivery to {} failed - trying again in {}s at the earliest",
-                        subscriptionRequest.getAddress(), backoffMillis / 1000, e);
+                resendFailed(subscriptionRequest, resend, attempt, e);
             }
         }
     }
@@ -485,27 +530,38 @@ public class CamelRouteManager {
      * Deliveries contain changes only, so the recipient is outdated after skipped (or failed) deliveries - resend all
      * current data. A resend that fails is retried after a backoff, see {@link InitialDeliveryResend}.
      */
-    private void resendInitialDelivery(OutboundSubscriptionSetup subscriptionRequest, InitialDeliveryResend resend) {
+    private void resendInitialDelivery(OutboundSubscriptionSetup subscriptionRequest, InitialDeliveryResend resend, long attempt) {
         if (!subscriptionManager.subscriptions.containsKey(subscriptionRequest.getSubscriptionId())) {
-            resend.succeeded();
+            resend.succeeded(attempt);
             return;
         }
         Siri delivery = siriHelper.findInitialDeliveryData(subscriptionRequest);
         if (delivery == null) {
-            resend.succeeded();
+            resend.succeeded(attempt);
             return;
         }
         logger.info("Resending initial delivery to {}", subscriptionRequest.getAddress());
-        pushSiriData(delivery, subscriptionRequest, false, true, delivered -> {
-            if (delivered) {
-                resend.succeeded();
-                logger.info("Resent initial delivery to {}", subscriptionRequest.getAddress());
-            } else {
-                long backoffMillis = resend.failed(System.currentTimeMillis());
-                logger.warn("Resending initial delivery to {} failed - trying again in {}s at the earliest",
-                        subscriptionRequest.getAddress(), backoffMillis / 1000);
+        pushSiriData(delivery, subscriptionRequest, false, true, outcome -> {
+            switch (outcome) {
+                case DELIVERED -> {
+                    resend.succeeded(attempt);
+                    logger.info("Resent initial delivery to {}", subscriptionRequest.getAddress());
+                }
+                case REJECTED -> {
+                    resend.succeeded(attempt);
+                    logger.warn("Recipient {} rejected the resent initial delivery - not resent again", subscriptionRequest.getAddress());
+                }
+                default -> resendFailed(subscriptionRequest, resend, attempt, null);
             }
         });
+    }
+
+    private static void resendFailed(OutboundSubscriptionSetup subscriptionRequest, InitialDeliveryResend resend, long attempt, Exception cause) {
+        long backoffMillis = resend.failed(attempt, System.currentTimeMillis());
+        if (backoffMillis >= 0) {
+            logger.warn("Resending initial delivery to {} failed - trying again in {}s at the earliest",
+                    subscriptionRequest.getAddress(), backoffMillis / 1000, cause);
+        }
     }
 
     /**
@@ -609,19 +665,16 @@ public class CamelRouteManager {
                     TimeUnit.SECONDS,
                     new LinkedBlockingQueue<>(maximumQueueSizePerOutboundSubscription),
                     factory,
-                    new ThreadPoolExecutor.DiscardOldestPolicy() {
-                        @Override
-                        public void rejectedExecution(Runnable r, ThreadPoolExecutor e) {
-                            if (e.isShutdown()) {
-                                // Not caused by a full queue - let the caller handle it
-                                throw new RejectedExecutionException("Executor for subscription " + subscriptionId + " has been shut down");
-                            }
-                            long discarded = discardedCounter.incrementAndGet();
-                            if (discarded == 1 || discarded % 100 == 0) {
-                                logger.warn("Outbound queue is full for subscription {} - {} deliveries discarded so far", subscriptionId, discarded);
-                            }
-                            super.rejectedExecution(r, e);
+                    (r, e) -> {
+                        if (e.isShutdown()) {
+                            // Not caused by a full queue - let the caller handle it
+                            throw new RejectedExecutionException("Executor for subscription " + subscriptionId + " has been shut down");
                         }
+                        long discarded = discardedCounter.incrementAndGet();
+                        if (discarded == 1 || discarded % 100 == 0) {
+                            logger.warn("Outbound queue is full for subscription {} - {} deliveries discarded so far", subscriptionId, discarded);
+                        }
+                        discardOldest(r, e);
                     }
             );
             // Release idle threads

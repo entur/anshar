@@ -17,9 +17,9 @@ package no.rutebanken.anshar.routes.outbound;
 
 import org.junit.jupiter.api.Test;
 
+import static no.rutebanken.anshar.routes.outbound.InitialDeliveryResend.NOT_STARTED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 class InitialDeliveryResendTest {
 
@@ -29,47 +29,55 @@ class InitialDeliveryResendTest {
 
     private final InitialDeliveryResend resend = new InitialDeliveryResend(INITIAL_BACKOFF, MAX_BACKOFF, MAX_DURATION);
 
+    private long started(long now) {
+        long attempt = resend.start(now);
+        assertNotEquals(NOT_STARTED, attempt, "should start at " + now);
+        return attempt;
+    }
+
+    private void notStarted(long now) {
+        assertEquals(NOT_STARTED, resend.start(now), "should not start at " + now);
+    }
+
     @Test
     void nothingToResendUntilRequested() {
-        assertFalse(resend.start(0));
+        notStarted(0);
 
         resend.request();
-        assertTrue(resend.start(0));
+        started(0);
     }
 
     @Test
     void onlyOneResendAtATime() {
         resend.request();
-        assertTrue(resend.start(0));
+        long attempt = started(0);
 
         // E.g. the circuit closes again while the resend is running
         resend.request();
-        assertFalse(resend.start(1));
+        notStarted(1);
 
-        resend.succeeded();
-        assertTrue(resend.start(2));
+        resend.succeeded(attempt);
+        started(2);
     }
 
     @Test
     void successfulResendIsNotRepeated() {
         resend.request();
-        assertTrue(resend.start(0));
-        resend.succeeded();
+        resend.succeeded(started(0));
 
-        assertFalse(resend.start(1));
-        assertFalse(resend.start(MAX_BACKOFF * 10));
+        notStarted(1);
+        notStarted(MAX_BACKOFF * 10);
     }
 
     @Test
     void failedResendWaitsForBackoffThenIsRetried() {
         resend.request();
-        assertTrue(resend.start(0));
-        assertEquals(INITIAL_BACKOFF, resend.failed(100));
+        assertEquals(INITIAL_BACKOFF, resend.failed(started(0), 100));
 
         // Small deliveries getting through do not start it again before the backoff has passed
-        assertFalse(resend.start(100 + INITIAL_BACKOFF - 1));
+        notStarted(100 + INITIAL_BACKOFF - 1);
         // Still pending - started by the first success after the backoff
-        assertTrue(resend.start(100 + INITIAL_BACKOFF));
+        started(100 + INITIAL_BACKOFF);
     }
 
     @Test
@@ -78,25 +86,37 @@ class InitialDeliveryResendTest {
         long now = 0;
         long[] expected = {INITIAL_BACKOFF, 2 * INITIAL_BACKOFF, MAX_BACKOFF, MAX_BACKOFF};
         for (long backoff : expected) {
-            assertTrue(resend.start(now));
-            assertEquals(backoff, resend.failed(now));
+            assertEquals(backoff, resend.failed(started(now), now));
             now += backoff;
         }
 
-        assertTrue(resend.start(now));
-        resend.succeeded();
+        resend.succeeded(started(now));
         resend.request();
-        assertTrue(resend.start(now));
-        assertEquals(INITIAL_BACKOFF, resend.failed(now));
+        assertEquals(INITIAL_BACKOFF, resend.failed(started(now), now));
     }
 
     @Test
     void resendThatNeverReportsBackIsStartedAgain() {
         resend.request();
-        assertTrue(resend.start(0));
+        started(0);
 
-        // E.g. the push was dropped from a full queue - not requested again, but the recipient still needs the data
-        assertFalse(resend.start(MAX_DURATION - 1));
-        assertTrue(resend.start(MAX_DURATION));
+        // Not requested again, but the recipient still needs the data
+        notStarted(MAX_DURATION - 1);
+        started(MAX_DURATION);
+    }
+
+    @Test
+    void reportFromAnEarlierAttemptIsIgnored() {
+        resend.request();
+        long lost = started(0);
+        long current = started(MAX_DURATION);
+
+        // The attempt considered lost reports back late - the current one is still running
+        assertEquals(-1, resend.failed(lost, MAX_DURATION + 1));
+        resend.succeeded(lost);
+        resend.request();
+        notStarted(MAX_DURATION + 2);
+
+        assertEquals(INITIAL_BACKOFF, resend.failed(current, MAX_DURATION + 3));
     }
 }
