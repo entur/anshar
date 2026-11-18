@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -254,6 +255,35 @@ class SiriTopicMessagesTest {
 
         assertEquals(List.of(0, 1, 2), handedOverBeforeBuilding);
         assertEquals(journeys.stream().map(SiriTopicMessagesTest::id).toList(), handedOver);
+    }
+
+    @Test
+    void journeyElementsAreOnlyBuiltWhenAsked() {
+        List<EstimatedVehicleJourney> journeys = new ArrayList<>(TopicReferenceFixtures.bnrJourneys().subList(0, 3));
+        List<Siri> built = new ArrayList<>();
+        Function<Siri, SiriRecord> recordingToAvro = single -> {
+            built.add(single);
+            return Converter.jaxb2Avro(single);
+        };
+
+        List<Supplier<ElementMessages>> elements = SiriTopicMessages.estimatedTimetableElements(
+                mapped(TopicReferenceFixtures.etDelivery(journeys)), ET_CODESPACE, BREADCRUMB, STORED_AT, recordingToAvro);
+
+        assertEquals(3, elements.size());
+        assertTrue(built.isEmpty());
+        assertEquals(id(journeys.get(2)), elements.get(2).get().elementId());
+        assertEquals(1, built.size());
+    }
+
+    @Test
+    void situationElementsMatchTheSituations() {
+        Siri delivery = TopicReferenceFixtures.sxDeliveries().get(1);
+
+        List<Supplier<ElementMessages>> elements = SiriTopicMessages.situationElements(mapped(delivery), SX_CODESPACE, BREADCRUMB, STORED_AT);
+
+        assertEquals(SiriTopicMessages.forSituations(mapped(delivery), SX_CODESPACE, BREADCRUMB, STORED_AT).stream()
+                        .map(ElementMessages::elementId).toList(),
+                elements.stream().map(element -> element.get().elementId()).toList());
     }
 
     @Test

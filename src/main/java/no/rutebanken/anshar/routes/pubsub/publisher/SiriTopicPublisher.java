@@ -33,14 +33,17 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
  * Publishes stored ET journeys and SX situations to the outbound XML and Avro-JSON Pub/Sub topics, one message per
@@ -60,10 +63,10 @@ public class SiriTopicPublisher {
     private static final String QUEUE_GAUGE_NAME = "app.anshar.outbound.publisher.queue";
     private static final Duration SINKS_SHUTDOWN_TIMEOUT = Duration.ofSeconds(15);
 
-    /** Builds the messages for a mapped delivery, handing each element to {@code out} as built; see {@link SiriTopicMessages} */
+    /** One task per element of a mapped delivery, each building that element's messages; see {@link SiriTopicMessages} */
     @FunctionalInterface
     interface Converter {
-        void convert(Siri mappedDelivery, String codespace, String breadcrumbId, long storedAt, Consumer<ElementMessages> out);
+        List<Supplier<ElementMessages>> elements(Siri mappedDelivery, String codespace, String breadcrumbId, long storedAt);
     }
 
     /**
@@ -120,6 +123,10 @@ public class SiriTopicPublisher {
     @Value("${anshar.outbound.pubsub.publisher.queue.size:10000}")
     private int queueSize;
 
+    /** Threads building the messages of a delivery's elements in parallel, shared by all publisher threads */
+    @Value("${anshar.outbound.pubsub.publisher.build.threads:4}")
+    private int buildThreads;
+
     /** How long a stopping pod lets queued deliveries drain before dropping (and counting) the rest */
     @Value("${anshar.outbound.pubsub.publisher.drain.timeout.ms:10000}")
     private long drainTimeoutMillis;
@@ -137,12 +144,13 @@ public class SiriTopicPublisher {
     private final Map<SiriDataType, TypeRoute> routes = new EnumMap<>(SiriDataType.class);
     private final AtomicLong rejectedDeliveries = new AtomicLong();
     private ExecutorService executor;
+    private ExecutorService buildExecutor;
 
     @Autowired
     public SiriTopicPublisher(TopicSinkFactory sinkFactory, PrometheusMetricsService metricsService,
                               SiriObjectFactory siriObjectFactory, MappingAdapterPresets mappingAdapterPresets) {
         this(sinkFactory, metricsService, siriObjectFactory, mappingAdapterPresets,
-                SiriTopicMessages::forEstimatedTimetables, SiriTopicMessages::forSituations);
+                SiriTopicMessages::estimatedTimetableElements, SiriTopicMessages::situationElements);
     }
 
     SiriTopicPublisher(TopicSinkFactory sinkFactory, PrometheusMetricsService metricsService,
@@ -183,8 +191,12 @@ public class SiriTopicPublisher {
         if (!routes.isEmpty() && executor == null) {
             BlockingQueue<Runnable> queue = new ArrayBlockingQueue<>(queueSize);
             metricsService.gauge(QUEUE_GAUGE_NAME, queue, BlockingQueue::size);
-            executor = new ThreadPoolExecutor(threads, threads, 0L, TimeUnit.MILLISECONDS, queue, namedThreads(),
-                    (task, pool) -> rejected(task));
+            executor = new ThreadPoolExecutor(threads, threads, 0L, TimeUnit.MILLISECONDS, queue,
+                    namedThreads("topic-publisher-"), (task, pool) -> rejected(task));
+        }
+        if (!routes.isEmpty() && buildExecutor == null) {
+            // Unbounded, but holds at most the elements of the deliveries the publisher threads are working on
+            buildExecutor = Executors.newFixedThreadPool(buildThreads, namedThreads("topic-builder-"));
         }
     }
 
@@ -303,11 +315,37 @@ public class SiriTopicPublisher {
                 mappingAdapterPresets.getOutboundAdapters(OutboundIdMappingPolicy.DEFAULT), false, false);
         metricsService.recordOutboundStage(dataType, PrometheusMetricsService.OUTBOUND_STAGE_TRANSFORMED, storedAt);
 
-        // Each element is sent as soon as it is built, so it does not wait for the rest of a large delivery
-        route.converter().convert(mapped, codespace, breadcrumbId, storedAt, messages -> {
+        List<Supplier<ElementMessages>> elements = route.converter().elements(mapped, codespace, breadcrumbId, storedAt);
+        if (elements.size() == 1) {
+            sendWhenBuilt(route, elements.get(0), breadcrumbId, storedAt, sent);
+            return;
+        }
+        // Built in parallel, each element sent as soon as it is built, so it waits for no other element of a large
+        // delivery. Waited for here, so the publisher queue still limits how much work is in progress.
+        CompletableFuture<?>[] builds = elements.stream()
+                .map(element -> CompletableFuture.runAsync(
+                        () -> sendWhenBuilt(route, element, breadcrumbId, storedAt, sent), buildExecutor))
+                .toArray(CompletableFuture[]::new);
+        try {
+            CompletableFuture.allOf(builds).get();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("Interrupted while building " + dataType + " messages", e);
+        } catch (ExecutionException e) {
+            throw new IllegalStateException("Unable to build " + dataType + " messages", e.getCause());
+        }
+    }
+
+    private void sendWhenBuilt(TypeRoute route, Supplier<ElementMessages> element, String breadcrumbId, long storedAt,
+                               AtomicInteger sent) {
+        MDC.put(BREADCRUMB_MDC_KEY, breadcrumbId);
+        try {
+            ElementMessages messages = element.get();
             sent.incrementAndGet();
             handOver(route, messages, storedAt);
-        });
+        } finally {
+            MDC.remove(BREADCRUMB_MDC_KEY);
+        }
     }
 
     private void handOver(TypeRoute route, ElementMessages messages, long storedAt) {
@@ -412,6 +450,10 @@ public class SiriTopicPublisher {
             }
             // Kept, shut down, so later updates are rejected and counted
         }
+        if (buildExecutor != null) {
+            // Idle once the publisher threads have stopped, which wait for every build they start
+            buildExecutor.shutdownNow();
+        }
         List<TopicSink> sinks = sinks();
         // All at once, then waited for against one deadline
         sinks.forEach(TopicSink::startShutdown);
@@ -421,10 +463,10 @@ public class SiriTopicPublisher {
         }
     }
 
-    private static ThreadFactory namedThreads() {
+    private static ThreadFactory namedThreads(String prefix) {
         AtomicInteger counter = new AtomicInteger();
         return runnable -> {
-            Thread thread = new Thread(runnable, "topic-publisher-" + counter.incrementAndGet());
+            Thread thread = new Thread(runnable, prefix + counter.incrementAndGet());
             thread.setDaemon(true);
             return thread;
         };
