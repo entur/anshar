@@ -204,135 +204,9 @@ public class CamelRouteManager {
             logger.info("ConsumerAddress is null - ignoring data.");
             return;
         }
-        final String breadcrumbId = MDC.get("camel.breadcrumbId");
         final String subscriptionId = subscriptionRequest.getSubscriptionId();
-
-        final Runnable pushTask = () -> {
-            OutboundCircuitBreaker circuitBreaker = null;
-            // Set while posting - the result must be recorded in the circuit breaker
-            OutboundCircuitBreaker.Permit permit = null;
-            // Whether the recipient took the push - stays null if the push is cancelled before posting
-            Boolean delivered = null;
-
-            try {
-                MDC.put("camel.breadcrumbId", breadcrumbId);
-                MDC.put("subscriptionId", subscriptionId);
-                if (requireActiveSubscription && !subscriptionManager.subscriptions.containsKey(subscriptionId)) {
-                    // Short circuit if subscription has been terminated while waiting
-                    return;
-                }
-
-                Siri filteredPayload = SiriHelper.filterSiriPayload(payload, subscriptionRequest.getFilterMap());
-
-                metricsService.countOutgoingData(filteredPayload, SubscriptionSetup.SubscriptionMode.SUBSCRIBE);
-
-                int deliverySize = this.maximumSizePerDelivery;
-                if (subscriptionRequest.getDatasetId() != null) {
-                    deliverySize = Integer.MAX_VALUE;
-                }
-
-                List<Siri> splitSiri = siriHelper.splitDeliveries(filteredPayload, deliverySize);
-
-                circuitBreaker = getCircuitBreaker(subscriptionRequest);
-                if (circuitBreaker.isNewerThan(subscriptionRequest)) {
-                    if (requireActiveSubscription) {
-                        // Queued for a previous version of the subscription - the new version has received its own initial delivery
-                        return;
-                    }
-                    // E.g. TerminateSubscriptionResponse - posted without affecting the circuit breaker of the new version
-                    circuitBreaker = new OutboundCircuitBreaker(null, Integer.MAX_VALUE, 0, 0, 0);
-                }
-
-                if (splitSiri.size() > 1) {
-                    logger.info("Object split into {} deliveries for subscription {}.", splitSiri.size(), subscriptionRequest);
-                }
-
-                boolean allDelivered = true;
-                for (Siri siri : splitSiri) {
-                    if (!serviceDeliveryContainsData(siri)) {
-                        // Nothing to send - not counted as a post to the subscription
-                        continue;
-                    }
-                    permit = circuitBreaker.allowRequest(System.currentTimeMillis());
-                    if (!permit.isAllowed()) {
-                        // Recipient keeps failing - skipped until the next probe
-                        permit = null;
-                        allDelivered = false;
-                        continue;
-                    }
-                    addSubscriptionRefToServiceDelivery(siri, subscriptionId);
-                    int responseCode = postDataToSubscription(siri, subscriptionRequest, logBody);
-
-                    metricsService.markPostToSubscription(subscriptionRequest.getSubscriptionType(),
-                            SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
-                            subscriptionId,
-                            responseCode);
-
-                    if (responseCode > 299) {
-                        logger.info("Failed to push data for subscription {}: {}", subscriptionRequest, responseCode);
-                        subscriptionManager.pushFailedForSubscription(subscriptionId);
-                    }
-                    if (responseCode >= 500) {
-                        // A 4xx rejection is not counted - sending it again would be rejected again
-                        allDelivered = false;
-                        recordFailure(circuitBreaker, permit, subscriptionId);
-                    } else {
-                        // Recipient is responding - also when it rejects the delivery with 4xx
-                        recordSuccess(circuitBreaker, subscriptionRequest);
-                    }
-                    permit = null;
-                }
-                delivered = allDelivered;
-            } catch (Exception e) {
-                if (shuttingDown) {
-                    // Interrupted by shutdown - not caused by the subscriber
-                    return;
-                }
-                logger.info("Failed to push data for subscription {}: {}", subscriptionRequest, e.toString());
-                delivered = false;
-
-                int statusCode = -1;
-                if (e.getCause() instanceof SocketException) {
-                    logger.info("Recipient is unreachable - ignoring");
-                } else {
-                    String msg = e.getMessage();
-                    if (e.getCause() != null) {
-                        msg = e.getCause().getMessage();
-                        if (e.getCause() instanceof HttpOperationFailedException) {
-                            statusCode = ((HttpOperationFailedException) e.getCause()).getStatusCode();
-                        }
-                    }
-                    logger.info("Exception caught when pushing SIRI-data: {}", msg);
-                }
-                subscriptionManager.pushFailedForSubscription(subscriptionId);
-                if (permit != null) {
-                    // Only failed posts count - not errors before posting
-                    recordFailure(circuitBreaker, permit, subscriptionId);
-                    permit = null;
-                }
-
-                metricsService.markPostToSubscription(subscriptionRequest.getSubscriptionType(),
-                        SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
-                        subscriptionId,
-                        statusCode);
-
-            } finally {
-                if (permit != null) {
-                    // Not handled above, e.g. an Error was thrown - must be recorded to not block the next probe
-                    recordFailure(circuitBreaker, permit, subscriptionId);
-                    delivered = false;
-                }
-                if (listener != null && delivered != null) {
-                    try {
-                        listener.completed(delivered);
-                    } catch (RuntimeException listenerException) {
-                        logger.warn("Failed to handle the result of a push to subscription {}", subscriptionId, listenerException);
-                    }
-                }
-                MDC.remove("camel.breadcrumbId");
-                MDC.remove("subscriptionId");
-            }
-        };
+        final Runnable pushTask = new PushTask(payload, subscriptionRequest, logBody, requireActiveSubscription, listener,
+                MDC.get("camel.breadcrumbId"));
 
         ExecutorService executorService = getOrCreateExecutorService(subscriptionRequest);
         try {
@@ -352,6 +226,187 @@ public class CamelRouteManager {
                 } else {
                     logger.warn("Unable to push data for subscription {} - executor has been shut down", subscriptionId);
                 }
+            }
+        }
+    }
+
+    /**
+     * Posts a payload to a subscription, split into deliveries if needed, on the subscription's executor. Each post
+     * goes through the circuit breaker of the subscription. Not thread-safe - runs once, on one thread.
+     */
+    private final class PushTask implements Runnable {
+        private final Siri payload;
+        private final OutboundSubscriptionSetup subscriptionRequest;
+        private final String subscriptionId;
+        private final boolean logBody;
+        private final boolean requireActiveSubscription;
+        private final DeliveryListener listener;
+        private final String breadcrumbId;
+
+        private OutboundCircuitBreaker circuitBreaker;
+        // Set while posting - the result must be recorded in the circuit breaker
+        private OutboundCircuitBreaker.Permit permit;
+
+        PushTask(Siri payload, OutboundSubscriptionSetup subscriptionRequest, boolean logBody,
+                 boolean requireActiveSubscription, DeliveryListener listener, String breadcrumbId) {
+            this.payload = payload;
+            this.subscriptionRequest = subscriptionRequest;
+            this.subscriptionId = subscriptionRequest.getSubscriptionId();
+            this.logBody = logBody;
+            this.requireActiveSubscription = requireActiveSubscription;
+            this.listener = listener;
+            this.breadcrumbId = breadcrumbId;
+        }
+
+        @Override
+        public void run() {
+            // Whether the recipient took the push - stays null if the push is cancelled before posting
+            Boolean delivered = null;
+            try {
+                MDC.put("camel.breadcrumbId", breadcrumbId);
+                MDC.put("subscriptionId", subscriptionId);
+                delivered = push();
+            } catch (Exception e) {
+                // Interrupted by shutdown - not caused by the subscriber
+                if (!shuttingDown) {
+                    handleFailure(e);
+                    delivered = false;
+                }
+            } finally {
+                if (permit != null) {
+                    // Not handled above, e.g. an Error was thrown - must be recorded to not block the next probe
+                    recordFailure(circuitBreaker, permit, subscriptionId);
+                    permit = null;
+                    delivered = false;
+                }
+                report(delivered);
+                MDC.remove("camel.breadcrumbId");
+                MDC.remove("subscriptionId");
+            }
+        }
+
+        /**
+         * @return true if the recipient took every post, false if any failed or was skipped, null if cancelled
+         */
+        private Boolean push() {
+            if (requireActiveSubscription && !subscriptionManager.subscriptions.containsKey(subscriptionId)) {
+                // Short circuit if subscription has been terminated while waiting
+                return null;
+            }
+
+            Siri filteredPayload = SiriHelper.filterSiriPayload(payload, subscriptionRequest.getFilterMap());
+            metricsService.countOutgoingData(filteredPayload, SubscriptionSetup.SubscriptionMode.SUBSCRIBE);
+
+            int deliverySize = subscriptionRequest.getDatasetId() != null ? Integer.MAX_VALUE : maximumSizePerDelivery;
+            List<Siri> splitSiri = siriHelper.splitDeliveries(filteredPayload, deliverySize);
+
+            circuitBreaker = circuitBreaker();
+            if (circuitBreaker == null) {
+                // Queued for a previous version of the subscription - the new version has received its own initial delivery
+                return null;
+            }
+
+            if (splitSiri.size() > 1) {
+                logger.info("Object split into {} deliveries for subscription {}.", splitSiri.size(), subscriptionRequest);
+            }
+
+            boolean allDelivered = true;
+            for (Siri siri : splitSiri) {
+                // Nothing to send - not counted as a post to the subscription
+                if (serviceDeliveryContainsData(siri) && !post(siri)) {
+                    allDelivered = false;
+                }
+            }
+            return allDelivered;
+        }
+
+        /**
+         * @return the circuit breaker to post through, or null if the push was queued for a previous version of the
+         * subscription and must be dropped
+         */
+        private OutboundCircuitBreaker circuitBreaker() {
+            OutboundCircuitBreaker current = getCircuitBreaker(subscriptionRequest);
+            if (!current.isNewerThan(subscriptionRequest)) {
+                return current;
+            }
+            if (requireActiveSubscription) {
+                return null;
+            }
+            // E.g. TerminateSubscriptionResponse - posted without affecting the circuit breaker of the new version
+            return new OutboundCircuitBreaker(null, Integer.MAX_VALUE, 0, 0, 0);
+        }
+
+        /**
+         * @return true if the recipient took the delivery - any response below 500, since a 4xx rejection would be
+         * rejected again
+         */
+        private boolean post(Siri siri) {
+            permit = circuitBreaker.allowRequest(System.currentTimeMillis());
+            if (!permit.isAllowed()) {
+                // Recipient keeps failing - skipped until the next probe
+                permit = null;
+                return false;
+            }
+            addSubscriptionRefToServiceDelivery(siri, subscriptionId);
+            int responseCode = postDataToSubscription(siri, subscriptionRequest, logBody);
+
+            metricsService.markPostToSubscription(subscriptionRequest.getSubscriptionType(),
+                    SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
+                    subscriptionId,
+                    responseCode);
+
+            if (responseCode > 299) {
+                logger.info("Failed to push data for subscription {}: {}", subscriptionRequest, responseCode);
+                subscriptionManager.pushFailedForSubscription(subscriptionId);
+            }
+            boolean responding = responseCode < 500;
+            if (responding) {
+                // Recipient is responding - also when it rejects the delivery with 4xx
+                recordSuccess(circuitBreaker, subscriptionRequest);
+            } else {
+                recordFailure(circuitBreaker, permit, subscriptionId);
+            }
+            permit = null;
+            return responding;
+        }
+
+        private void handleFailure(Exception e) {
+            logger.info("Failed to push data for subscription {}: {}", subscriptionRequest, e.toString());
+
+            int statusCode = -1;
+            if (e.getCause() instanceof SocketException) {
+                logger.info("Recipient is unreachable - ignoring");
+            } else {
+                String msg = e.getMessage();
+                if (e.getCause() != null) {
+                    msg = e.getCause().getMessage();
+                    if (e.getCause() instanceof HttpOperationFailedException failed) {
+                        statusCode = failed.getStatusCode();
+                    }
+                }
+                logger.info("Exception caught when pushing SIRI-data: {}", msg);
+            }
+            subscriptionManager.pushFailedForSubscription(subscriptionId);
+            if (permit != null) {
+                // Only failed posts count - not errors before posting
+                recordFailure(circuitBreaker, permit, subscriptionId);
+                permit = null;
+            }
+
+            metricsService.markPostToSubscription(subscriptionRequest.getSubscriptionType(),
+                    SubscriptionSetup.SubscriptionMode.SUBSCRIBE,
+                    subscriptionId,
+                    statusCode);
+        }
+
+        private void report(Boolean delivered) {
+            if (listener == null || delivered == null) {
+                return;
+            }
+            try {
+                listener.completed(delivered);
+            } catch (RuntimeException e) {
+                logger.warn("Failed to handle the result of a push to subscription {}", subscriptionId, e);
             }
         }
     }
