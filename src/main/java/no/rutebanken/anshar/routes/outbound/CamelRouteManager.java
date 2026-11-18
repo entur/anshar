@@ -71,6 +71,8 @@ import static no.rutebanken.anshar.routes.RestRouteBuilder.downgradeSiriVersion;
 public class CamelRouteManager {
     private static final Logger logger = LoggerFactory.getLogger(CamelRouteManager.class);
 
+    private static final String MDC_BREADCRUMB_ID = "camel.breadcrumbId";
+
     @Autowired
     private SiriHelper siriHelper;
 
@@ -206,7 +208,7 @@ public class CamelRouteManager {
         }
         final String subscriptionId = subscriptionRequest.getSubscriptionId();
         final Runnable pushTask = new PushTask(payload, subscriptionRequest, logBody, requireActiveSubscription, listener,
-                MDC.get("camel.breadcrumbId"));
+                MDC.get(MDC_BREADCRUMB_ID));
 
         ExecutorService executorService = getOrCreateExecutorService(subscriptionRequest);
         try {
@@ -228,6 +230,16 @@ public class CamelRouteManager {
                 }
             }
         }
+    }
+
+    /** The result of a push */
+    private enum Outcome {
+        /** The recipient took every post - any response below 500 */
+        DELIVERED,
+        /** A post failed, or was skipped by the circuit breaker */
+        FAILED,
+        /** Dropped before posting, e.g. the subscription was terminated or re-created while it was queued */
+        CANCELLED
     }
 
     /**
@@ -260,38 +272,38 @@ public class CamelRouteManager {
 
         @Override
         public void run() {
-            // Whether the recipient took the push - stays null if the push is cancelled before posting
-            Boolean delivered = null;
+            // Stays CANCELLED if the push is dropped before posting
+            Outcome outcome = Outcome.CANCELLED;
             try {
-                MDC.put("camel.breadcrumbId", breadcrumbId);
+                MDC.put(MDC_BREADCRUMB_ID, breadcrumbId);
                 MDC.put("subscriptionId", subscriptionId);
-                delivered = push();
+                outcome = push();
             } catch (Exception e) {
                 // Interrupted by shutdown - not caused by the subscriber
                 if (!shuttingDown) {
                     handleFailure(e);
-                    delivered = false;
+                    outcome = Outcome.FAILED;
                 }
             } finally {
                 if (permit != null) {
                     // Not handled above, e.g. an Error was thrown - must be recorded to not block the next probe
                     recordFailure(circuitBreaker, permit, subscriptionId);
                     permit = null;
-                    delivered = false;
+                    outcome = Outcome.FAILED;
                 }
-                report(delivered);
-                MDC.remove("camel.breadcrumbId");
+                report(outcome);
+                MDC.remove(MDC_BREADCRUMB_ID);
                 MDC.remove("subscriptionId");
             }
         }
 
         /**
-         * @return true if the recipient took every post, false if any failed or was skipped, null if cancelled
+         * @return whether the recipient took every post, or that the push was dropped before posting
          */
-        private Boolean push() {
+        private Outcome push() {
             if (requireActiveSubscription && !subscriptionManager.subscriptions.containsKey(subscriptionId)) {
                 // Short circuit if subscription has been terminated while waiting
-                return null;
+                return Outcome.CANCELLED;
             }
 
             Siri filteredPayload = SiriHelper.filterSiriPayload(payload, subscriptionRequest.getFilterMap());
@@ -303,7 +315,7 @@ public class CamelRouteManager {
             circuitBreaker = circuitBreaker();
             if (circuitBreaker == null) {
                 // Queued for a previous version of the subscription - the new version has received its own initial delivery
-                return null;
+                return Outcome.CANCELLED;
             }
 
             if (splitSiri.size() > 1) {
@@ -317,7 +329,7 @@ public class CamelRouteManager {
                     allDelivered = false;
                 }
             }
-            return allDelivered;
+            return allDelivered ? Outcome.DELIVERED : Outcome.FAILED;
         }
 
         /**
@@ -399,12 +411,12 @@ public class CamelRouteManager {
                     statusCode);
         }
 
-        private void report(Boolean delivered) {
-            if (listener == null || delivered == null) {
+        private void report(Outcome outcome) {
+            if (listener == null || outcome == Outcome.CANCELLED) {
                 return;
             }
             try {
-                listener.completed(delivered);
+                listener.completed(outcome == Outcome.DELIVERED);
             } catch (RuntimeException e) {
                 logger.warn("Failed to handle the result of a push to subscription {}", subscriptionId, e);
             }
