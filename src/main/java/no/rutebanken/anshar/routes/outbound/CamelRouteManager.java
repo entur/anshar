@@ -587,13 +587,14 @@ public class CamelRouteManager {
         ChunkedBody body = new ChunkedBody();
         try {
             writer.write(body);
-        } catch (Throwable e) {
+        } catch (Exception e) {
+            // Errors such as OutOfMemoryError are not retried
             logger.info("Failed to serialize SIRI-xml - retrying once, {}", e.toString());
             // Whatever the failed attempt wrote is incomplete
             body.reset();
             try {
                 writer.write(body);
-            } catch (Throwable ex) {
+            } catch (Exception ex) {
                 logger.warn("Retry failed to serialize SIRI-xml, {}", ex.toString());
                 throw new RuntimeException(e);
             }

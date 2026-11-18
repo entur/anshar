@@ -14,6 +14,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ChunkedBodyTest {
@@ -78,6 +79,41 @@ class ChunkedBodyTest {
 
         assertArrayEquals(new byte[]{1, 2, 3}, joined(body.chunks()));
         assertEquals(3, body.size());
+    }
+
+    @Test
+    void singleBytesGrowTheFirstChunkAndMoveOnToTheNext() throws Exception {
+        byte[] content = bytes(ChunkedBody.CHUNK_SIZE + ChunkedBody.INITIAL_SIZE + 1);
+        ChunkedBody body = new ChunkedBody();
+        for (byte b : content) {
+            body.write(b);
+        }
+
+        assertArrayEquals(content, joined(body.chunks()));
+        assertEquals(2, body.chunks().size());
+        assertArrayEquals(content, read(body.publisher()));
+    }
+
+    @Test
+    void resetAfterASmallBodyDiscardsWhatWasWritten() throws Exception {
+        ChunkedBody body = new ChunkedBody();
+        body.write(bytes(ChunkedBody.INITIAL_SIZE * 3));
+        body.reset();
+        body.write(new byte[]{1, 2, 3});
+
+        assertArrayEquals(new byte[]{1, 2, 3}, joined(body.chunks()));
+        assertEquals(3, body.size());
+    }
+
+    @Test
+    void badArgumentsAreRejectedWithoutWriting() {
+        ChunkedBody body = new ChunkedBody();
+        byte[] content = bytes(10);
+
+        assertThrows(IndexOutOfBoundsException.class, () -> body.write(content, -1, 5));
+        assertThrows(IndexOutOfBoundsException.class, () -> body.write(content, 0, -1));
+        assertThrows(IndexOutOfBoundsException.class, () -> body.write(content, 8, 5));
+        assertEquals(0, body.size());
     }
 
     @Test

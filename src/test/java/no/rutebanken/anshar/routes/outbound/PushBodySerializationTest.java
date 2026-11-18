@@ -44,6 +44,17 @@ class PushBodySerializationTest {
     }
 
     @Test
+    void errorsAreNotRetried() {
+        AtomicInteger attempts = new AtomicInteger();
+
+        assertThrows(OutOfMemoryError.class, () -> CamelRouteManager.serializeWithRetry(out -> {
+            attempts.incrementAndGet();
+            throw new OutOfMemoryError("simulated");
+        }));
+        assertEquals(1, attempts.get());
+    }
+
+    @Test
     void twoFailuresAreThrown() {
         assertThrows(RuntimeException.class, () -> CamelRouteManager.serializeWithRetry(out -> {
             throw new IOException("always fails");
