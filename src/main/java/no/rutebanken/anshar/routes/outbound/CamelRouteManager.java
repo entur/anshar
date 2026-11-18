@@ -576,7 +576,7 @@ public class CamelRouteManager {
     /** Writes a push body */
     @FunctionalInterface
     interface BodyWriter {
-        void write(OutputStream out) throws Exception;
+        void write(OutputStream out) throws JAXBException, IOException, XMLStreamException;
     }
 
     /**
