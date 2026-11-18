@@ -40,6 +40,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
 
 /**
  * Publishes stored ET journeys and SX situations to the outbound XML and Avro-JSON Pub/Sub topics, one message per
@@ -59,10 +60,10 @@ public class SiriTopicPublisher {
     private static final String QUEUE_GAUGE_NAME = "app.anshar.outbound.publisher.queue";
     private static final Duration SINKS_SHUTDOWN_TIMEOUT = Duration.ofSeconds(15);
 
-    /** Builds the messages for a mapped delivery; see {@link SiriTopicMessages} */
+    /** Builds the messages for a mapped delivery, handing each element to {@code out} as built; see {@link SiriTopicMessages} */
     @FunctionalInterface
     interface Converter {
-        List<ElementMessages> convert(Siri mappedDelivery, String codespace, String breadcrumbId, long storedAt);
+        void convert(Siri mappedDelivery, String codespace, String breadcrumbId, long storedAt, Consumer<ElementMessages> out);
     }
 
     /**
@@ -241,11 +242,14 @@ public class SiriTopicPublisher {
         String breadcrumbId = MDC.get(BREADCRUMB_MDC_KEY);
         Runnable work = () -> {
             MDC.put(BREADCRUMB_MDC_KEY, breadcrumbId);
+            AtomicInteger sent = new AtomicInteger();
             try {
-                publish(route, delivery(dataType, addedOrUpdated), codespace, breadcrumbId, storedAt);
+                publish(route, delivery(dataType, addedOrUpdated), codespace, breadcrumbId, storedAt, sent);
             } catch (RuntimeException e) {
-                logger.warn("Unable to publish {} {} updates for {} to the outbound topics", addedOrUpdated.size(), dataType, codespace, e);
-                countDropped(route, addedOrUpdated.size());
+                int notSent = addedOrUpdated.size() - sent.get();
+                logger.warn("Unable to publish {} of {} {} updates for {} to the outbound topics",
+                        notSent, addedOrUpdated.size(), dataType, codespace, e);
+                countDropped(route, Math.max(0, notSent));
             } finally {
                 MDC.remove(BREADCRUMB_MDC_KEY);
             }
@@ -289,7 +293,8 @@ public class SiriTopicPublisher {
         }
     }
 
-    private void publish(TypeRoute route, Siri delivery, String codespace, String breadcrumbId, long storedAt) {
+    /** @param sent counts the elements handed over, so a failure part way through counts only the rest */
+    private void publish(TypeRoute route, Siri delivery, String codespace, String breadcrumbId, long storedAt, AtomicInteger sent) {
         SiriDataType dataType = route.dataType();
         // A copy: the stored elements are also pushed to outbound subscriptions, and must not change here. Copied
         // here rather than in transform(), which publishes the original, unmapped, when the copy fails
@@ -298,23 +303,30 @@ public class SiriTopicPublisher {
                 mappingAdapterPresets.getOutboundAdapters(OutboundIdMappingPolicy.DEFAULT), false, false);
         metricsService.recordOutboundStage(dataType, PrometheusMetricsService.OUTBOUND_STAGE_TRANSFORMED, storedAt);
 
-        for (ElementMessages messages : route.converter().convert(mapped, codespace, breadcrumbId, storedAt)) {
-            String elementId = messages.elementId();
-            metricsService.recordOutboundStage(dataType, PrometheusMetricsService.OUTBOUND_STAGE_HANDED_TO_CLIENT, storedAt);
-            if (messages.xml() != null) {
-                send(route.xmlSink(), messages.xml(), dataType, XML, storedAt, elementId);
-            } else {
-                onFailure(dataType, XML, elementId, messages.xmlError());
+        // Each element is sent as soon as it is built, so it does not wait for the rest of a large delivery
+        route.converter().convert(mapped, codespace, breadcrumbId, storedAt, messages -> {
+            sent.incrementAndGet();
+            handOver(route, messages, storedAt);
+        });
+    }
+
+    private void handOver(TypeRoute route, ElementMessages messages, long storedAt) {
+        SiriDataType dataType = route.dataType();
+        String elementId = messages.elementId();
+        metricsService.recordOutboundStage(dataType, PrometheusMetricsService.OUTBOUND_STAGE_HANDED_TO_CLIENT, storedAt);
+        if (messages.xml() != null) {
+            send(route.xmlSink(), messages.xml(), dataType, XML, storedAt, elementId);
+        } else {
+            onFailure(dataType, XML, elementId, messages.xmlError());
+        }
+        if (messages.avro() != null) {
+            publishAvro(route, messages.avro(), storedAt, elementId);
+        } else {
+            if (route.avroSink() != null) {
+                onFailure(dataType, AVRO, elementId, messages.avroError());
             }
-            if (messages.avro() != null) {
-                publishAvro(route, messages.avro(), storedAt, elementId);
-            } else {
-                if (route.avroSink() != null) {
-                    onFailure(dataType, AVRO, elementId, messages.avroError());
-                }
-                if (route.kafkaEnabled()) {
-                    onFailure(dataType, KAFKA, elementId, messages.avroError());
-                }
+            if (route.kafkaEnabled()) {
+                onFailure(dataType, KAFKA, elementId, messages.avroError());
             }
         }
     }
