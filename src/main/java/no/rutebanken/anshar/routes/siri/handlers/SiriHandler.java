@@ -25,6 +25,7 @@ import no.rutebanken.anshar.data.VehicleActivities;
 import no.rutebanken.anshar.metrics.PrometheusMetricsService;
 import no.rutebanken.anshar.routes.health.HealthManager;
 import no.rutebanken.anshar.routes.outbound.ServerSubscriptionManager;
+import no.rutebanken.anshar.routes.pubsub.publisher.SiriTopicPublisher;
 import no.rutebanken.anshar.routes.outbound.SiriHelper;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.routes.siri.transformer.SiriValueTransformer;
@@ -81,6 +82,9 @@ public class SiriHandler {
 
     @Autowired
     private ServerSubscriptionManager serverSubscriptionManager;
+
+    @Autowired
+    private SiriTopicPublisher siriTopicPublisher;
 
     @Autowired
     private SubscriptionManager subscriptionManager;
@@ -438,6 +442,7 @@ public class SiriHandler {
                 if (!subscriptionSetup.isUseProvidedCodespaceId()) {
                     // Subscription is not separated on provided codespaceId, push updates to all subscribers
                     serverSubscriptionManager.pushUpdatesAsync(subscriptionType, addedOrUpdated, subscriptionSetup.getDatasetId());
+                    siriTopicPublisher.publishAsync(subscriptionType, addedOrUpdated, subscriptionSetup.getDatasetId());
                 }
 
                 subscriptionManager.incrementObjectCounter(subscriptionSetup, addedOrUpdated.size());
@@ -483,6 +488,7 @@ public class SiriHandler {
 
                                             // Push updates to subscribers on this codespace
                                             serverSubscriptionManager.pushUpdatesAsync(subscriptionSetup.getSubscriptionType(), addedSituations, codespace);
+                                            siriTopicPublisher.publishAsync(subscriptionSetup.getSubscriptionType(), addedSituations, codespace);
 
                                             // Add to complete list of added situations
                                             addedOrUpdated.addAll(addedSituations);
@@ -551,6 +557,7 @@ public class SiriHandler {
 
                                                     // Push updates to subscribers on this codespace
                                                     serverSubscriptionManager.pushUpdatesAsync(subscriptionSetup.getSubscriptionType(), addedJourneys, codespace);
+                                                    siriTopicPublisher.publishAsync(subscriptionSetup.getSubscriptionType(), addedJourneys, codespace);
 
                                                     // Add to complete list of added situations
                                                     addedOrUpdated.addAll(addedJourneys);
@@ -596,6 +603,7 @@ public class SiriHandler {
 
                                             // Push updates to subscribers on this codespace
                                             serverSubscriptionManager.pushUpdatesAsync(subscriptionSetup.getSubscriptionType(), addedVehicles, codespace);
+                                            siriTopicPublisher.publishAsync(subscriptionSetup.getSubscriptionType(), addedVehicles, codespace);
 
                                             // Add to complete list of added situations
                                             addedOrUpdated.addAll(addedVehicles);

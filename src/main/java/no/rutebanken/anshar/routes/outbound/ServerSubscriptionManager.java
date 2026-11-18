@@ -17,6 +17,7 @@ package no.rutebanken.anshar.routes.outbound;
 
 import com.hazelcast.map.IMap;
 import no.rutebanken.anshar.metrics.PrometheusMetricsService;
+import no.rutebanken.anshar.routes.pubsub.publisher.SiriTopicPublisher;
 import no.rutebanken.anshar.routes.siri.handlers.OutboundIdMappingPolicy;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.subscription.SiriDataType;
@@ -112,6 +113,9 @@ public class ServerSubscriptionManager {
 
     @Autowired
     private MappingAdapterPresets mappingAdapterPresets;
+
+    @Autowired
+    private SiriTopicPublisher siriTopicPublisher;
 
     ExecutorService outboundSenderExecutorService = Executors.newFixedThreadPool(100);
 
@@ -545,7 +549,8 @@ public class ServerSubscriptionManager {
         }
         Siri delivery = siriObjectFactory.createSXServiceDelivery(addedOrUpdated);
 
-        if (pushToSxTopicEnabled) {
+        // With direct publishing on, SiriTopicPublisher publishes SX to the topics instead
+        if (pushToSxTopicEnabled && !siriTopicPublisher.handles(SiriDataType.SITUATION_EXCHANGE)) {
             siriSxTopicProducer.asyncRequestBodyAndHeaders(siriSxTopicProducer.getDefaultEndpoint(), delivery, topicHeaders(datasetId, storedAt));
         }
 
@@ -587,7 +592,8 @@ public class ServerSubscriptionManager {
 
         Siri delivery = siriObjectFactory.createETServiceDelivery(addedOrUpdated);
 
-        if (pushToEtTopicEnabled) {
+        // With direct publishing on, SiriTopicPublisher publishes ET to the topics instead
+        if (pushToEtTopicEnabled && !siriTopicPublisher.handles(SiriDataType.ESTIMATED_TIMETABLE)) {
             siriEtTopicProducer.asyncRequestBodyAndHeaders(siriEtTopicProducer.getDefaultEndpoint(), delivery, topicHeaders(datasetId, storedAt));
         }
 

@@ -84,11 +84,12 @@ public class AvroConvertorProcessor implements Processor {
         }
     }
 
-    private Map<String, Object> createHeaders(EstimatedVehicleJourneyRecord record, String codespaceId) {
+    public static Map<String, Object> createHeaders(EstimatedVehicleJourneyRecord journey, String codespaceId) {
         return Map.of(
-                KafkaConstants.KEY, resolveTripId(record),
+                KafkaConstants.KEY, resolveTripId(journey),
                 CODESPACE_ID_KAFKA_HEADER_NAME, codespaceId,
-                HEADER_LINE_REF, record.getLineRef()
+                // Map.of rejects nulls; an empty value as for VM
+                HEADER_LINE_REF, journey.getLineRef() != null ? journey.getLineRef() : ""
         );
     }
     private Map<String, Object> createHeaders(VehicleActivityRecord record, String codespaceId) {
@@ -103,24 +104,24 @@ public class AvroConvertorProcessor implements Processor {
         );
     }
 
-    private Map<String, Object> createHeaders(PtSituationElementRecord record, String codespaceId){
+    public static Map<String, Object> createHeaders(PtSituationElementRecord situation, String codespaceId){
         return Map.of(
-                KafkaConstants.KEY, record.getSituationNumber(),
+                KafkaConstants.KEY, situation.getSituationNumber() != null ? situation.getSituationNumber() : "",
                 CODESPACE_ID_KAFKA_HEADER_NAME, codespaceId
         );
     }
 
 
-    private String resolveTripId(EstimatedVehicleJourneyRecord record) {
+    private static String resolveTripId(EstimatedVehicleJourneyRecord journey) {
         String tripId = "";
-        if (record.getFramedVehicleJourneyRef() != null) { // ServiceJourneyId + date
-            String dataFrameRef = (String) record.getFramedVehicleJourneyRef().getDataFrameRef();
-            String serviceJourneyId = (String) record.getFramedVehicleJourneyRef().getDatedVehicleJourneyRef();
+        if (journey.getFramedVehicleJourneyRef() != null) { // ServiceJourneyId + date
+            String dataFrameRef = (String) journey.getFramedVehicleJourneyRef().getDataFrameRef();
+            String serviceJourneyId = (String) journey.getFramedVehicleJourneyRef().getDatedVehicleJourneyRef();
             tripId = serviceJourneyId + ":" + dataFrameRef;
-        } else if (record.getDatedVehicleJourneyRef() != null) { // DatedServiceJourney
-            tripId = (String) record.getDatedVehicleJourneyRef();
-        } else if (record.getEstimatedVehicleJourneyCode() != null) { // ExtraJourney
-            tripId = (String) record.getEstimatedVehicleJourneyCode();
+        } else if (journey.getDatedVehicleJourneyRef() != null) { // DatedServiceJourney
+            tripId = (String) journey.getDatedVehicleJourneyRef();
+        } else if (journey.getEstimatedVehicleJourneyCode() != null) { // ExtraJourney
+            tripId = (String) journey.getEstimatedVehicleJourneyCode();
         }
         return tripId;
     }
