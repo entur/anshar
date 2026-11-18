@@ -32,13 +32,8 @@ import uk.org.siri.siri21.VehicleOccupancyStructure;
 import uk.org.siri.siri21.VehicleRef;
 
 import javax.xml.parsers.DocumentBuilderFactory;
-import jdk.jfr.Recording;
-import jdk.jfr.consumer.RecordedEvent;
-import jdk.jfr.consumer.RecordingFile;
 import java.io.FileInputStream;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.math.BigInteger;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -48,6 +43,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import static no.rutebanken.anshar.routes.siri.helpers.LargestAllocation.MB;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -228,40 +224,12 @@ class SiriVersionConverterTest {
             frame.getEstimatedVehicleJourneies().add(journeys.get(i % journeys.size()));
         }
 
-        long textPath = largestAllocation(() -> viaText(siri));
-        long converter = largestAllocation(() -> SiriVersionConverter.toSiri20(siri));
+        long textPath = LargestAllocation.of(() -> viaText(siri));
+        long converter = LargestAllocation.of(() -> SiriVersionConverter.toSiri20(siri));
 
         // The text path holds the whole delivery as text: tens of megabytes in one array
         assertTrue(textPath >= 8 * MB, "largest allocation on the text path was only " + textPath + " bytes");
         assertTrue(converter < MB, "largest allocation by the converter was " + converter + " bytes");
-    }
-
-    private static final long MB = 1024 * 1024;
-
-    private interface Work {
-        void run() throws Exception;
-    }
-
-    /** The largest single object the current thread allocates outside a TLAB while {@code work} runs */
-    private static long largestAllocation(Work work) throws Exception {
-        Path file = Files.createTempFile("allocations", ".jfr");
-        try (Recording recording = new Recording()) {
-            recording.enable("jdk.ObjectAllocationOutsideTLAB");
-            recording.start();
-            work.run();
-            recording.stop();
-            recording.dump(file);
-            long thread = Thread.currentThread().threadId();
-            long largest = 0;
-            for (RecordedEvent event : RecordingFile.readAllEvents(file)) {
-                if (event.getThread() != null && event.getThread().getJavaThreadId() == thread) {
-                    largest = Math.max(largest, event.getLong("allocationSize"));
-                }
-            }
-            return largest;
-        } finally {
-            Files.deleteIfExists(file);
-        }
     }
 
     private static uk.org.siri.siri20.PtSituationElement firstSituation(uk.org.siri.siri20.Siri siri) {

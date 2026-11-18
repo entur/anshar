@@ -1,5 +1,6 @@
 package no.rutebanken.anshar.routes;
 
+import no.rutebanken.anshar.routes.siri.helpers.LargestAllocation;
 import org.entur.siri21.util.SiriXml;
 import org.junit.jupiter.api.Test;
 import uk.org.siri.siri21.AdviceTypeEnumeration;
@@ -32,6 +33,8 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.math.BigInteger;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import static no.rutebanken.anshar.routes.RestRouteBuilder.downgradeSiriVersion;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -62,6 +65,25 @@ public class DowngradeSiriVersionTest {
         var delivery = downgraded.getServiceDelivery().getEstimatedTimetableDeliveries().get(0);
         assertEquals("2.0", delivery.getVersion());
         assertEquals(journeyCount, delivery.getEstimatedJourneyVersionFrames().get(0).getEstimatedVehicleJourneies().size());
+    }
+
+    @Test
+    public void downgradingALargeDeliveryAllocatesNoLargeArrays() throws Exception {
+        Siri siri;
+        try (InputStream in = new FileInputStream("src/test/resources/siri-et-from-bnr.xml")) {
+            siri = SiriXml.parseXml(in);
+        }
+        EstimatedVersionFrameStructure frame = siri.getServiceDelivery().getEstimatedTimetableDeliveries().get(0)
+                .getEstimatedJourneyVersionFrames().get(0);
+        List<EstimatedVehicleJourney> journeys = new ArrayList<>(frame.getEstimatedVehicleJourneies());
+        for (int i = 0; frame.getEstimatedVehicleJourneies().size() < 5_000; i++) {
+            frame.getEstimatedVehicleJourneies().add(journeys.get(i % journeys.size()));
+        }
+
+        // Through XML text, the whole delivery is held in one array of tens of megabytes
+        long largest = LargestAllocation.of(() -> downgradeSiriVersion(siri));
+
+        assertTrue(largest < LargestAllocation.MB, "largest allocation while downgrading was " + largest + " bytes");
     }
 
     @Test
