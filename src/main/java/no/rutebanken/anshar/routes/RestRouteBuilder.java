@@ -22,6 +22,7 @@ import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.UnmarshalException;
 import no.rutebanken.anshar.config.AnsharConfiguration;
 import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
+import no.rutebanken.anshar.routes.siri.helpers.SiriVersionConverter;
 import org.apache.camel.Exchange;
 import org.apache.camel.InvalidPayloadException;
 import org.apache.camel.LoggingLevel;
@@ -559,12 +560,12 @@ public class RestRouteBuilder extends RouteBuilder {
                 response = siri;
             }
 
-            // Try to parse the response as a Siri 2.0 object
-            siri20Response = org.rutebanken.siri20.util.SiriXml.parseXml(SiriXml.toXml(response));
+            // Convert to a Siri 2.0 object without building the XML text
+            siri20Response = SiriVersionConverter.toSiri20(response);
         } catch (NullPointerException e) {
             //Retry
             try {
-                siri20Response = org.rutebanken.siri20.util.SiriXml.parseXml(SiriXml.toXml(response));
+                siri20Response = SiriVersionConverter.toSiri20(response);
                 logger.info("Retry avoided NPE");
             } catch (NullPointerException e2) {
                 // Write to file
