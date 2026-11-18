@@ -40,9 +40,8 @@ import uk.org.siri.siri21.VehicleMonitoringDeliveryStructure;
 
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.xml.stream.XMLStreamException;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.SocketException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -70,7 +69,7 @@ import static no.rutebanken.anshar.routes.RestRouteBuilder.downgradeSiriVersion;
 
 @Service
 public class CamelRouteManager {
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+    private static final Logger logger = LoggerFactory.getLogger(CamelRouteManager.class);
 
     @Autowired
     private SiriHelper siriHelper;
@@ -528,26 +527,14 @@ public class CamelRouteManager {
         if (transformed.getServiceDelivery() == null) {
             siriContentType = "heartbeat";
         }
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        try {
-            serializeSiriObject(subscription.getSiriVersion(), transformed, out);
-        } catch (Throwable e) {
-            logger.info("Failed to serialize SIRI-xml - retrying once, {}", e.toString());
-            try {
-                serializeSiriObject(subscription.getSiriVersion(), transformed, out);
-            } catch (Throwable ex) {
-                logger.warn("Retry failed to serialize SIRI-xml, {}", ex.toString());
-                throw new RuntimeException(e);
-            }
-            logger.info("Retry succeeded to serialize SIRI-xml");
-        }
+        ChunkedBody body = serializeWithRetry(out -> serializeSiriObject(subscription.getSiriVersion(), transformed, out));
 
         HttpRequest post = HttpRequest.newBuilder()
                 .uri(URI.create(subscription.getAddress()))
                 .header("subscriptionId", subscription.getSubscriptionId())
                 .header("Content-Type", "application/xml")
                 .timeout(Duration.ofMillis(requestTimeoutMillis))
-                .POST(HttpRequest.BodyPublishers.ofInputStream(() -> new ByteArrayInputStream(out.toByteArray())))
+                .POST(body.publisher())
                 .build();
         int responseCode;
         try {
@@ -586,7 +573,36 @@ public class CamelRouteManager {
         return responseCode;
     }
 
-    private static void serializeSiriObject(SiriValidator.Version version, Siri transformed, ByteArrayOutputStream out) throws JAXBException, IOException, XMLStreamException {
+    /** Writes a push body */
+    @FunctionalInterface
+    interface BodyWriter {
+        void write(OutputStream out) throws Exception;
+    }
+
+    /**
+     * The body written by {@code writer}, retried once if it fails. Held in chunks rather than one growing array, and
+     * sent as is for each attempt, so a large delivery allocates no humongous objects.
+     */
+    static ChunkedBody serializeWithRetry(BodyWriter writer) {
+        ChunkedBody body = new ChunkedBody();
+        try {
+            writer.write(body);
+        } catch (Throwable e) {
+            logger.info("Failed to serialize SIRI-xml - retrying once, {}", e.toString());
+            // Whatever the failed attempt wrote is incomplete
+            body.reset();
+            try {
+                writer.write(body);
+            } catch (Throwable ex) {
+                logger.warn("Retry failed to serialize SIRI-xml, {}", ex.toString());
+                throw new RuntimeException(e);
+            }
+            logger.info("Retry succeeded to serialize SIRI-xml");
+        }
+        return body;
+    }
+
+    private static void serializeSiriObject(SiriValidator.Version version, Siri transformed, OutputStream out) throws JAXBException, IOException, XMLStreamException {
         if (version == SiriValidator.Version.VERSION_2_1) {
             SiriXml.toXml(transformed, null, out);
         } else {
