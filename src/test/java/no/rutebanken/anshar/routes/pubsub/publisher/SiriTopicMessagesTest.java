@@ -225,8 +225,9 @@ class SiriTopicMessagesTest {
             return Converter.jaxb2Avro(single);
         };
 
-        List<ElementMessages> results = SiriTopicMessages.forEstimatedTimetables(
-                mapped(TopicReferenceFixtures.etDelivery(journeys)), ET_CODESPACE, BREADCRUMB, STORED_AT, failsForBroken);
+        List<ElementMessages> results = new ArrayList<>();
+        SiriTopicMessages.forEstimatedTimetables(mapped(TopicReferenceFixtures.etDelivery(journeys)), ET_CODESPACE,
+                BREADCRUMB, STORED_AT, failsForBroken, results::add);
 
         assertEquals(3, results.size());
         ElementMessages broken = results.get(1);
@@ -236,6 +237,23 @@ class SiriTopicMessagesTest {
         assertNotNull(broken.avroError());
         assertNotNull(results.get(0).avro());
         assertNotNull(results.get(2).avro());
+    }
+
+    @Test
+    void eachJourneyIsHandedOverBeforeTheNextIsBuilt() {
+        List<EstimatedVehicleJourney> journeys = new ArrayList<>(TopicReferenceFixtures.bnrJourneys().subList(0, 3));
+        List<String> handedOver = new ArrayList<>();
+        List<Integer> handedOverBeforeBuilding = new ArrayList<>();
+        Function<Siri, SiriRecord> recordingToAvro = single -> {
+            handedOverBeforeBuilding.add(handedOver.size());
+            return Converter.jaxb2Avro(single);
+        };
+
+        SiriTopicMessages.forEstimatedTimetables(mapped(TopicReferenceFixtures.etDelivery(journeys)), ET_CODESPACE,
+                BREADCRUMB, STORED_AT, recordingToAvro, element -> handedOver.add(element.elementId()));
+
+        assertEquals(List.of(0, 1, 2), handedOverBeforeBuilding);
+        assertEquals(journeys.stream().map(SiriTopicMessagesTest::id).toList(), handedOver);
     }
 
     @Test

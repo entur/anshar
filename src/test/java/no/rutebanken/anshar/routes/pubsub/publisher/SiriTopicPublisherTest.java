@@ -173,12 +173,10 @@ class SiriTopicPublisherTest {
 
     /** Messages for each journey, with the XML or the Avro part failed as asked */
     private static SiriTopicPublisher.Converter withFailed(boolean xmlFails, boolean avroFails) {
-        return (siri, codespace, breadcrumb, storedAt) -> SiriTopicMessages.forEstimatedTimetables(siri, codespace, breadcrumb, storedAt)
-                .stream()
-                .map(m -> new ElementMessages(m.elementId(),
+        return (siri, codespace, breadcrumb, storedAt, out) -> SiriTopicMessages.forEstimatedTimetables(siri, codespace, breadcrumb, storedAt,
+                m -> out.accept(new ElementMessages(m.elementId(),
                         xmlFails ? null : m.xml(), xmlFails ? new IllegalStateException("no xml") : null,
-                        avroFails ? null : m.avro(), avroFails ? new IllegalStateException("no avro") : null))
-                .toList();
+                        avroFails ? null : m.avro(), avroFails ? new IllegalStateException("no avro") : null)));
     }
 
     @Test
@@ -306,7 +304,7 @@ class SiriTopicPublisherTest {
 
     @Test
     void deliveryThatFailsBeforeConversionIsCountedForEveryTopic() {
-        etConverter = (siri, codespace, breadcrumb, storedAt) -> {
+        etConverter = (siri, codespace, breadcrumb, storedAt, out) -> {
             throw new IllegalStateException("broken delivery");
         };
 
@@ -318,11 +316,41 @@ class SiriTopicPublisherTest {
     }
 
     @Test
+    void eachJourneyIsSentBeforeTheNextIsBuilt() {
+        List<Integer> sentBeforeEach = new ArrayList<>();
+        etConverter = (siri, codespace, breadcrumb, storedAt, out) -> SiriTopicMessages.forEstimatedTimetables(
+                siri, codespace, breadcrumb, storedAt, m -> {
+                    sentBeforeEach.add(sinks.get(ET_XML).messages.size());
+                    out.accept(m);
+                });
+
+        start().publishAsync(SiriDataType.ESTIMATED_TIMETABLE, journeys(3), "BNR");
+
+        assertEquals(List.of(0, 1, 2), sentBeforeEach);
+    }
+
+    @Test
+    void failureMidDeliveryCountsOnlyTheJourneysNotSent() {
+        etConverter = (siri, codespace, breadcrumb, storedAt, out) -> {
+            List<ElementMessages> built = SiriTopicMessages.forEstimatedTimetables(siri, codespace, breadcrumb, storedAt);
+            out.accept(built.get(0));
+            throw new IllegalStateException("broken after the first journey");
+        };
+
+        start().publishAsync(SiriDataType.ESTIMATED_TIMETABLE, journeys(3), "BNR");
+
+        assertEquals(1, sinks.get(ET_XML).messages.size());
+        assertEquals(2, failed("xml").count());
+        assertEquals(2, failed("avro").count());
+        assertEquals(2, failed("kafka").count());
+    }
+
+    @Test
     void publishesACopyNeverTheStoredObjects() {
         List<Siri> converted = new ArrayList<>();
-        etConverter = (siri, codespace, breadcrumb, storedAt) -> {
+        etConverter = (siri, codespace, breadcrumb, storedAt, out) -> {
             converted.add(siri);
-            return SiriTopicMessages.forEstimatedTimetables(siri, codespace, breadcrumb, storedAt);
+            SiriTopicMessages.forEstimatedTimetables(siri, codespace, breadcrumb, storedAt, out);
         };
         List<EstimatedVehicleJourney> journeys = journeys(1);
 
