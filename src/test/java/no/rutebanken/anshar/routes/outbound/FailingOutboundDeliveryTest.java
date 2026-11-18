@@ -246,6 +246,54 @@ public class FailingOutboundDeliveryTest extends SpringBootBaseTest {
         }
     }
 
+    /**
+     * A recipient that rejects the full dataset (e.g. 413) would reject it again - it is not resent after the backoff
+     */
+    @Test
+    public void testRejectedResendIsNotRetried() throws Exception {
+        final String datasetId = "rejected-resend-test";
+        situations.add(datasetId, situation("rejected-resend-situation"));
+
+        AtomicInteger updates = new AtomicInteger();
+        AtomicInteger resendAttempts = new AtomicInteger();
+        OutboundSubscriptionSetup subscription = createSubscription(datasetId, body -> {
+            if (body.contains("rejected-resend-situation")) {
+                resendAttempts.incrementAndGet();
+                return 413;
+            }
+            return updates.incrementAndGet() <= failureThreshold ? 500 : 200;
+        }, null);
+
+        Object circuitBreakerBackoff = ReflectionTestUtils.getField(camelRouteManager, "circuitBreakerInitialBackoffSeconds");
+        Object resendBackoff = ReflectionTestUtils.getField(camelRouteManager, "resendInitialBackoffSeconds");
+        final int circuitBreakerBackoffSeconds = 1;
+        final int resendBackoffSeconds = 1;
+        ReflectionTestUtils.setField(camelRouteManager, "circuitBreakerInitialBackoffSeconds", circuitBreakerBackoffSeconds);
+        ReflectionTestUtils.setField(camelRouteManager, "resendInitialBackoffSeconds", resendBackoffSeconds);
+        try {
+            for (int i = 0; i < failureThreshold; i++) {
+                camelRouteManager.pushSiriData(sxDelivery("update"), subscription, false);
+            }
+            OutboundCircuitBreaker circuitBreaker = circuitBreaker(subscription);
+            waitFor(() -> circuitBreaker.getConsecutiveFailures() >= failureThreshold);
+
+            Thread.sleep(circuitBreakerBackoffSeconds * 1000 + 500);
+            camelRouteManager.pushSiriData(sxDelivery("probe"), subscription, false);
+            waitFor(() -> resendAttempts.get() == 1);
+
+            // Well past the backoff that a failed resend would get
+            Thread.sleep(resendBackoffSeconds * 1000 + 1000);
+            camelRouteManager.pushSiriData(sxDelivery("update"), subscription, false);
+            waitFor(() -> updates.get() >= failureThreshold + 2);
+            Thread.sleep(1000);
+
+            assertEquals(1, resendAttempts.get());
+        } finally {
+            ReflectionTestUtils.setField(camelRouteManager, "circuitBreakerInitialBackoffSeconds", circuitBreakerBackoff);
+            ReflectionTestUtils.setField(camelRouteManager, "resendInitialBackoffSeconds", resendBackoff);
+        }
+    }
+
     private static void waitFor(BooleanSupplier condition) throws InterruptedException {
         long deadline = System.currentTimeMillis() + 10000;
         while (!condition.getAsBoolean() && System.currentTimeMillis() < deadline) {

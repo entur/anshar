@@ -30,7 +30,7 @@ class InitialDeliveryResend {
 
     private final long initialBackoffMillis;
     private final long maxBackoffMillis;
-    /** A resend that has not reported back within this time is considered lost, e.g. its executor was shut down */
+    /** A resend that has not reported back within this time is considered lost, e.g. dropped from a full queue, and is started again */
     private final long maxDurationMillis;
 
     private boolean pending;
@@ -55,8 +55,15 @@ class InitialDeliveryResend {
      * {@link #succeeded()} or {@link #failed(long)}
      */
     synchronized boolean start(long now) {
-        boolean running = inProgress && now - startedAt < maxDurationMillis;
-        if (!pending || running || now < notBefore) {
+        if (inProgress) {
+            if (now - startedAt < maxDurationMillis) {
+                return false;
+            }
+            // Never reported back, e.g. dropped from a full queue - the recipient still needs the data
+            inProgress = false;
+            pending = true;
+        }
+        if (!pending || now < notBefore) {
             return false;
         }
         pending = false;

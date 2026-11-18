@@ -91,11 +91,11 @@ class InitialDeliveryResendTest {
     }
 
     @Test
-    void resendThatNeverReportsBackIsAbandoned() {
+    void resendThatNeverReportsBackIsStartedAgain() {
         resend.request();
         assertTrue(resend.start(0));
-        resend.request();
 
+        // E.g. the push was dropped from a full queue - not requested again, but the recipient still needs the data
         assertFalse(resend.start(MAX_DURATION - 1));
         assertTrue(resend.start(MAX_DURATION));
     }

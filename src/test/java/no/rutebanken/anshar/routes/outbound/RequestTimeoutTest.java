@@ -52,6 +52,12 @@ class RequestTimeoutTest {
     }
 
     @Test
+    void noThroughputSetAddsNoUploadTime() {
+        assertEquals(Duration.ofMillis(5000), CamelRouteManager.requestTimeout(120_000_000, 5000, 0, MAX_SECONDS));
+        assertEquals(Duration.ofMillis(5000), CamelRouteManager.requestTimeout(120_000_000, 5000, -1, MAX_SECONDS));
+    }
+
+    @Test
     void capNeverShortensTheRequestTimeout() {
         assertEquals(Duration.ofMillis(5000), CamelRouteManager.requestTimeout(1_000_000_000, 5000, MBIT_PER_SECOND, 1));
     }
