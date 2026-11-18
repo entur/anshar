@@ -68,13 +68,27 @@ class OutboundCircuitBreaker {
     private long probeStartedAt;
     private long skippedDeliveries;
 
+    private final InitialDeliveryResend initialDeliveryResend;
+
     OutboundCircuitBreaker(ZonedDateTime subscriptionRequestTimestamp, int failureThreshold, long initialBackoffMillis,
                            long maxBackoffMillis, long maxProbeDurationMillis) {
+        this(subscriptionRequestTimestamp, failureThreshold, initialBackoffMillis, maxBackoffMillis, maxProbeDurationMillis,
+                new InitialDeliveryResend(0, 0, 0));
+    }
+
+    OutboundCircuitBreaker(ZonedDateTime subscriptionRequestTimestamp, int failureThreshold, long initialBackoffMillis,
+                           long maxBackoffMillis, long maxProbeDurationMillis, InitialDeliveryResend initialDeliveryResend) {
         this.subscriptionRequestTimestamp = subscriptionRequestTimestamp;
         this.failureThreshold = failureThreshold;
         this.initialBackoffMillis = initialBackoffMillis;
         this.maxBackoffMillis = maxBackoffMillis;
         this.maxProbeDurationMillis = maxProbeDurationMillis;
+        this.initialDeliveryResend = initialDeliveryResend;
+    }
+
+    /** When to resend all current data after missed deliveries - replaced along with this circuit breaker */
+    InitialDeliveryResend initialDeliveryResend() {
+        return initialDeliveryResend;
     }
 
     /**

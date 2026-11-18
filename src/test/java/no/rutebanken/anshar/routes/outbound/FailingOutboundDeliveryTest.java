@@ -50,8 +50,11 @@ import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BooleanSupplier;
 import java.util.function.IntSupplier;
+import java.util.function.ToIntFunction;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -178,6 +181,79 @@ public class FailingOutboundDeliveryTest extends SpringBootBaseTest {
         }
     }
 
+    /**
+     * A recipient that cannot take the full dataset must not get it rebuilt and resent on every small delivery that gets
+     * through - only after a backoff
+     */
+    @Test
+    public void testFailedResendIsRetriedAfterBackoffOnly() throws Exception {
+        final String datasetId = "failed-resend-test";
+        situations.add(datasetId, situation("failed-resend-situation"));
+
+        AtomicInteger updates = new AtomicInteger();
+        AtomicInteger resendAttempts = new AtomicInteger();
+        AtomicBoolean resendFails = new AtomicBoolean(true);
+        BlockingQueue<String> bodies = new LinkedBlockingQueue<>();
+        OutboundSubscriptionSetup subscription = createSubscription(datasetId, body -> {
+            if (body.contains("failed-resend-situation")) {
+                resendAttempts.incrementAndGet();
+                return resendFails.get() ? 500 : 200;
+            }
+            return updates.incrementAndGet() <= failureThreshold ? 500 : 200;
+        }, bodies);
+
+        Object circuitBreakerBackoff = ReflectionTestUtils.getField(camelRouteManager, "circuitBreakerInitialBackoffSeconds");
+        Object resendBackoff = ReflectionTestUtils.getField(camelRouteManager, "resendInitialBackoffSeconds");
+        final int circuitBreakerBackoffSeconds = 1;
+        final int resendBackoffSeconds = 3;
+        // Read when the circuit breaker is created by the first delivery
+        ReflectionTestUtils.setField(camelRouteManager, "circuitBreakerInitialBackoffSeconds", circuitBreakerBackoffSeconds);
+        ReflectionTestUtils.setField(camelRouteManager, "resendInitialBackoffSeconds", resendBackoffSeconds);
+        try {
+            for (int i = 0; i < failureThreshold; i++) {
+                camelRouteManager.pushSiriData(sxDelivery("update"), subscription, false);
+            }
+            OutboundCircuitBreaker circuitBreaker = circuitBreaker(subscription);
+            waitFor(() -> circuitBreaker.getConsecutiveFailures() >= failureThreshold);
+
+            Thread.sleep(circuitBreakerBackoffSeconds * 1000 + 500);
+            // Probe succeeds and closes the circuit - all data is resent, and the recipient fails it
+            camelRouteManager.pushSiriData(sxDelivery("probe"), subscription, false);
+            waitFor(() -> resendAttempts.get() == 1);
+
+            // Deliveries keep getting through, but the full dataset is not resent again before the backoff has passed
+            for (int i = 0; i < 5; i++) {
+                camelRouteManager.pushSiriData(sxDelivery("update"), subscription, false);
+            }
+            Thread.sleep(1000);
+            assertEquals(1, resendAttempts.get());
+
+            // After the backoff, the next delivery that gets through starts the resend again
+            resendFails.set(false);
+            Thread.sleep(resendBackoffSeconds * 1000);
+            camelRouteManager.pushSiriData(sxDelivery("update"), subscription, false);
+
+            boolean resent = false;
+            String body;
+            while (!resent && (body = bodies.poll(10, TimeUnit.SECONDS)) != null) {
+                resent = body.contains("failed-resend-situation");
+            }
+            assertTrue(resent, "The failed resend should be retried after the backoff");
+            assertEquals(2, resendAttempts.get());
+        } finally {
+            ReflectionTestUtils.setField(camelRouteManager, "circuitBreakerInitialBackoffSeconds", circuitBreakerBackoff);
+            ReflectionTestUtils.setField(camelRouteManager, "resendInitialBackoffSeconds", resendBackoff);
+        }
+    }
+
+    private static void waitFor(BooleanSupplier condition) throws InterruptedException {
+        long deadline = System.currentTimeMillis() + 10000;
+        while (!condition.getAsBoolean() && System.currentTimeMillis() < deadline) {
+            Thread.sleep(10);
+        }
+        assertTrue(condition.getAsBoolean(), "Timed out waiting");
+    }
+
     @Test
     public void testProbeConsumerAddress() throws Exception {
         HttpServer server = HttpServer.create(new InetSocketAddress("localhost", 0), 0);
@@ -231,10 +307,17 @@ public class FailingOutboundDeliveryTest extends SpringBootBaseTest {
      * Registers an active subscription (with its own datasetId to not receive data from other tests) to a local recipient
      */
     private OutboundSubscriptionSetup createSubscription(String id, IntSupplier responseCode, BlockingQueue<String> bodies) throws IOException {
+        return createSubscription(id, body -> responseCode.getAsInt(), bodies);
+    }
+
+    /**
+     * As {@link #createSubscription(String, IntSupplier, BlockingQueue)}, with a response that depends on the body
+     */
+    private OutboundSubscriptionSetup createSubscription(String id, ToIntFunction<String> responseCode, BlockingQueue<String> bodies) throws IOException {
         consumer = HttpServer.create(new InetSocketAddress("localhost", 0), 0);
         consumer.createContext("/", exchange -> {
             String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
-            int status = responseCode.getAsInt();
+            int status = responseCode.applyAsInt(body);
             if (bodies != null && status < 300) {
                 bodies.add(body);
             }

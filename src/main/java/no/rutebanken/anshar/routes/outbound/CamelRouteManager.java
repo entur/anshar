@@ -92,6 +92,19 @@ public class CamelRouteManager {
     @Value("${anshar.outbound.timeout.socket:15000}")
     private int requestTimeoutMillis;
 
+    /** Lowest upload rate a recipient is expected to manage - a large body gets time to upload on top of the request timeout */
+    @Value("${anshar.outbound.timeout.min.throughput.mbit.per.second:25}")
+    private int minThroughputMbitPerSecond;
+
+    @Value("${anshar.outbound.timeout.max.seconds:120}")
+    private int maxRequestTimeoutSeconds;
+
+    @Value("${anshar.outbound.initialdelivery.resend.backoff.initial.seconds:60}")
+    private int resendInitialBackoffSeconds;
+
+    @Value("${anshar.outbound.initialdelivery.resend.backoff.max.seconds:1800}")
+    private int resendMaxBackoffSeconds;
+
     @Value("${anshar.outbound.executor.cleanup.interval.seconds:60}")
     private int executorCleanupIntervalSeconds;
 
@@ -169,9 +182,27 @@ public class CamelRouteManager {
      * @param requireActiveSubscription if false, data is pushed even if the subscription no longer exists - e.g. TerminateSubscriptionResponse
      */
     void pushSiriData(Siri payload, OutboundSubscriptionSetup subscriptionRequest, boolean logBody, boolean requireActiveSubscription) {
+        pushSiriData(payload, subscriptionRequest, logBody, requireActiveSubscription, null);
+    }
+
+    /** Told whether a push reached the recipient */
+    @FunctionalInterface
+    interface DeliveryListener {
+        /**
+         * @param delivered true if every post of the push got a 2xx response, false if any failed, was skipped by the
+         *                  circuit breaker, or the push did not run at all
+         */
+        void completed(boolean delivered);
+    }
+
+    private void pushSiriData(Siri payload, OutboundSubscriptionSetup subscriptionRequest, boolean logBody,
+                              boolean requireActiveSubscription, DeliveryListener listener) {
         String consumerAddress = subscriptionRequest.getAddress();
         if (consumerAddress == null) {
             logger.info("ConsumerAddress is null - ignoring data.");
+            if (listener != null) {
+                listener.completed(false);
+            }
             return;
         }
         final String breadcrumbId = MDC.get("camel.breadcrumbId");
@@ -181,6 +212,8 @@ public class CamelRouteManager {
             OutboundCircuitBreaker circuitBreaker = null;
             // Set while posting - the result must be recorded in the circuit breaker
             OutboundCircuitBreaker.Permit permit = null;
+            // Only set when every post got through
+            boolean delivered = false;
 
             try {
                 MDC.put("camel.breadcrumbId", breadcrumbId);
@@ -215,6 +248,7 @@ public class CamelRouteManager {
                     logger.info("Object split into {} deliveries for subscription {}.", splitSiri.size(), subscriptionRequest);
                 }
 
+                boolean allDelivered = true;
                 for (Siri siri : splitSiri) {
                     if (!serviceDeliveryContainsData(siri)) {
                         // Nothing to send - not counted as a post to the subscription
@@ -224,6 +258,7 @@ public class CamelRouteManager {
                     if (!permit.isAllowed()) {
                         // Recipient keeps failing - skipped until the next probe
                         permit = null;
+                        allDelivered = false;
                         continue;
                     }
                     addSubscriptionRefToServiceDelivery(siri, subscriptionId);
@@ -237,6 +272,7 @@ public class CamelRouteManager {
                     if (responseCode > 299) {
                         logger.info("Failed to push data for subscription {}: {}", subscriptionRequest, responseCode);
                         subscriptionManager.pushFailedForSubscription(subscriptionId);
+                        allDelivered = false;
                     }
                     if (responseCode >= 500) {
                         recordFailure(circuitBreaker, permit, subscriptionId);
@@ -246,6 +282,7 @@ public class CamelRouteManager {
                     }
                     permit = null;
                 }
+                delivered = allDelivered;
             } catch (Exception e) {
                 if (shuttingDown) {
                     // Interrupted by shutdown - not caused by the subscriber
@@ -282,6 +319,9 @@ public class CamelRouteManager {
                 if (permit != null) {
                     // Not handled above, e.g. an Error was thrown - must be recorded to not block the next probe
                     recordFailure(circuitBreaker, permit, subscriptionId);
+                }
+                if (listener != null) {
+                    listener.completed(delivered);
                 }
                 MDC.remove("camel.breadcrumbId");
                 MDC.remove("subscriptionId");
@@ -324,7 +364,12 @@ public class CamelRouteManager {
                                 circuitBreakerInitialBackoffSeconds * 1000L,
                                 circuitBreakerMaxBackoffSeconds * 1000L,
                                 // A post may be retried once, each with connect- and request-timeout
-                                2L * (CONNECT_TIMEOUT_MILLIS + requestTimeoutMillis) + 5000)
+                                2L * (CONNECT_TIMEOUT_MILLIS + requestTimeoutMillis) + 5000,
+                                new InitialDeliveryResend(
+                                        resendInitialBackoffSeconds * 1000L,
+                                        resendMaxBackoffSeconds * 1000L,
+                                        // Built, then posted and possibly retried with the longest request-timeout - with a minute to spare
+                                        2L * (CONNECT_TIMEOUT_MILLIS + maxRequestTimeoutSeconds * 1000L) + 60_000))
         );
     }
 
@@ -340,22 +385,40 @@ public class CamelRouteManager {
         if (skippedDeliveries >= 0) {
             logger.info("Subscription {} is responding again - resuming deliveries, {} were skipped",
                     subscriptionRequest.getSubscriptionId(), skippedDeliveries);
-            resendInitialDelivery(subscriptionRequest);
+            circuitBreaker.initialDeliveryResend().request();
+        }
+        // Also started here when a resend that failed earlier has waited out its backoff
+        InitialDeliveryResend resend = circuitBreaker.initialDeliveryResend();
+        if (resend.start(System.currentTimeMillis())) {
+            resendInitialDelivery(subscriptionRequest, resend);
         }
     }
 
     /**
-     * Deliveries contain changes only, so the recipient is outdated after skipped (or failed) deliveries - resend all current data
+     * Deliveries contain changes only, so the recipient is outdated after skipped (or failed) deliveries - resend all
+     * current data. A resend that fails is retried after a backoff, see {@link InitialDeliveryResend}.
      */
-    private void resendInitialDelivery(OutboundSubscriptionSetup subscriptionRequest) {
+    private void resendInitialDelivery(OutboundSubscriptionSetup subscriptionRequest, InitialDeliveryResend resend) {
         if (!subscriptionManager.subscriptions.containsKey(subscriptionRequest.getSubscriptionId())) {
+            resend.succeeded();
             return;
         }
         Siri delivery = siriHelper.findInitialDeliveryData(subscriptionRequest);
-        if (delivery != null) {
-            logger.info("Resending initial delivery to {}", subscriptionRequest.getAddress());
-            pushSiriData(delivery, subscriptionRequest, false);
+        if (delivery == null) {
+            resend.succeeded();
+            return;
         }
+        logger.info("Resending initial delivery to {}", subscriptionRequest.getAddress());
+        pushSiriData(delivery, subscriptionRequest, false, true, delivered -> {
+            if (delivered) {
+                resend.succeeded();
+                logger.info("Resent initial delivery to {}", subscriptionRequest.getAddress());
+            } else {
+                long backoffMillis = resend.failed(System.currentTimeMillis());
+                logger.warn("Resending initial delivery to {} failed - trying again in {}s at the earliest",
+                        subscriptionRequest.getAddress(), backoffMillis / 1000);
+            }
+        });
     }
 
     /**
@@ -533,7 +596,7 @@ public class CamelRouteManager {
                 .uri(URI.create(subscription.getAddress()))
                 .header("subscriptionId", subscription.getSubscriptionId())
                 .header("Content-Type", "application/xml")
-                .timeout(Duration.ofMillis(requestTimeoutMillis))
+                .timeout(requestTimeout(body.size(), requestTimeoutMillis, minThroughputMbitPerSecond, maxRequestTimeoutSeconds))
                 .POST(body.publisher())
                 .build();
         int responseCode;
@@ -544,12 +607,12 @@ public class CamelRouteManager {
                 // Retrying immediately will fail the same way
                 throw new RuntimeException(e);
             }
-            logger.info("Failed to post {} to subscription {} - retrying, {}", siriContentType, subscription, e.toString());
+            logger.info("Failed to post {} ({} bytes) to subscription {} - retrying, {}", siriContentType, body.size(), subscription, e.toString());
             // Retry once
             try {
                 responseCode = httpClient.send(post, HttpResponse.BodyHandlers.discarding()).statusCode();
             } catch (Exception ex) {
-                logger.info("Retry failed to post {} to subscription {}, {}", siriContentType, subscription, ex.toString());
+                logger.info("Retry failed to post {} ({} bytes) to subscription {}, {}", siriContentType, body.size(), subscription, ex.toString());
                 throw new RuntimeException(e);
             }
         }
@@ -562,8 +625,9 @@ public class CamelRouteManager {
         long elapsed = System.currentTimeMillis() - t1;
         if (elapsed > 100) {
             // Only log "slow" requests
-            logger.info("Pushed {} to subscription {} took {} ms, got responseCode {}",
+            logger.info("Pushed {} ({} bytes) to subscription {} took {} ms, got responseCode {}",
                     siriContentType,
+                    body.size(),
                     subscription.getSubscriptionId(),
                     elapsed,
                     responseCode
@@ -571,6 +635,17 @@ public class CamelRouteManager {
         }
 
         return responseCode;
+    }
+
+    /**
+     * The time a post may take until the response arrives, which includes uploading the body: the request timeout,
+     * plus the time to upload the body at the lowest expected throughput, up to a maximum. A full dataset of 120 MB needs
+     * almost 40 s at 25 Mbit/s, while a few changes need no more than the request timeout.
+     */
+    static Duration requestTimeout(long bodyBytes, long requestTimeoutMillis, long minThroughputMbitPerSecond, long maxSeconds) {
+        long uploadMillis = bodyBytes * 8 * 1000 / (minThroughputMbitPerSecond * 1_000_000);
+        long maxMillis = Math.max(requestTimeoutMillis, maxSeconds * 1000);
+        return Duration.ofMillis(Math.min(requestTimeoutMillis + uploadMillis, maxMillis));
     }
 
     /** Writes a push body */
