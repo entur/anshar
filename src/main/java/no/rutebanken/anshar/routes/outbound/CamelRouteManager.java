@@ -316,22 +316,19 @@ public class CamelRouteManager {
 
         @Override
         public void run() {
-            // Stays CANCELLED if the push is dropped before posting
-            Outcome outcome = Outcome.CANCELLED;
+            // Kept if anything is thrown - also an Error, e.g. out of memory building a large delivery
+            Outcome outcome = Outcome.FAILED;
             try {
                 MDC.put(MDC_BREADCRUMB_ID, breadcrumbId);
                 MDC.put("subscriptionId", subscriptionId);
                 outcome = push();
             } catch (Exception e) {
-                // Interrupted by shutdown - not caused by the subscriber
-                if (!shuttingDown) {
+                if (shuttingDown) {
+                    // Interrupted by shutdown - not caused by the subscriber
+                    outcome = Outcome.CANCELLED;
+                } else {
                     handleFailure(e);
-                    outcome = Outcome.FAILED;
                 }
-            } catch (Error e) {
-                // E.g. out of memory building a large delivery - reported, then left to the JVM
-                outcome = Outcome.FAILED;
-                throw e;
             } finally {
                 if (permit != null) {
                     // Not handled above, e.g. an Error was thrown - must be recorded to not block the next probe
