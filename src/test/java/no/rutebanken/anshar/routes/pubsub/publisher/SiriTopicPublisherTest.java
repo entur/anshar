@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.CompletableFuture;
@@ -101,7 +102,7 @@ class SiriTopicPublisherTest {
 
     private final PrometheusMetricsService metrics = new PrometheusMetricsService();
     private final ProducerTemplate kafka = mock(ProducerTemplate.class);
-    private SiriTopicPublisher.Converter etConverter = SiriTopicMessages::forEstimatedTimetables;
+    private SiriTopicPublisher.Converter etConverter = SiriTopicMessages::estimatedTimetableElements;
     private SiriTopicPublisher publisher;
 
     @BeforeEach
@@ -120,12 +121,12 @@ class SiriTopicPublisherTest {
 
     /** Everything on, publishing on the calling thread so publishAsync has finished when it returns */
     private SiriTopicPublisher start() {
-        return start(p -> ReflectionTestUtils.setField(p, "executor", MoreExecutors.newDirectExecutorService()));
+        return start(sameThread(p -> { }));
     }
 
     private SiriTopicPublisher start(Consumer<SiriTopicPublisher> configure) {
         publisher = new SiriTopicPublisher(sinkFactory, metrics, new SiriObjectFactory(Instant.now()),
-                new MappingAdapterPresets(null), etConverter, SiriTopicMessages::forSituations);
+                new MappingAdapterPresets(null), etConverter, SiriTopicMessages::situationElements);
         ReflectionTestUtils.setField(publisher, "directEnabled", true);
         ReflectionTestUtils.setField(publisher, "pushToTopicEnabled", true);
         ReflectionTestUtils.setField(publisher, "etTopicEnabled", true);
@@ -139,6 +140,7 @@ class SiriTopicPublisherTest {
         ReflectionTestUtils.setField(publisher, "sxXmlTopic", SX_XML);
         ReflectionTestUtils.setField(publisher, "sxAvroTopic", SX_AVRO);
         ReflectionTestUtils.setField(publisher, "threads", 1);
+        ReflectionTestUtils.setField(publisher, "buildThreads", 2);
         ReflectionTestUtils.setField(publisher, "queueSize", 10);
         ReflectionTestUtils.setField(publisher, "drainTimeoutMillis", 10_000L);
         ReflectionTestUtils.setField(publisher, "kafkaProducer", kafka);
@@ -150,6 +152,7 @@ class SiriTopicPublisherTest {
     private static Consumer<SiriTopicPublisher> sameThread(Consumer<SiriTopicPublisher> more) {
         return p -> {
             ReflectionTestUtils.setField(p, "executor", MoreExecutors.newDirectExecutorService());
+            ReflectionTestUtils.setField(p, "buildExecutor", MoreExecutors.newDirectExecutorService());
             more.accept(p);
         };
     }
@@ -173,10 +176,15 @@ class SiriTopicPublisherTest {
 
     /** Messages for each journey, with the XML or the Avro part failed as asked */
     private static SiriTopicPublisher.Converter withFailed(boolean xmlFails, boolean avroFails) {
-        return (siri, codespace, breadcrumb, storedAt, out) -> SiriTopicMessages.forEstimatedTimetables(siri, codespace, breadcrumb, storedAt,
-                m -> out.accept(new ElementMessages(m.elementId(),
-                        xmlFails ? null : m.xml(), xmlFails ? new IllegalStateException("no xml") : null,
-                        avroFails ? null : m.avro(), avroFails ? new IllegalStateException("no avro") : null)));
+        return (siri, codespace, breadcrumb, storedAt) -> SiriTopicMessages.estimatedTimetableElements(siri, codespace, breadcrumb, storedAt)
+                .stream()
+                .map(element -> (Supplier<ElementMessages>) () -> {
+                    ElementMessages m = element.get();
+                    return new ElementMessages(m.elementId(),
+                            xmlFails ? null : m.xml(), xmlFails ? new IllegalStateException("no xml") : null,
+                            avroFails ? null : m.avro(), avroFails ? new IllegalStateException("no avro") : null);
+                })
+                .toList();
     }
 
     @Test
@@ -304,7 +312,7 @@ class SiriTopicPublisherTest {
 
     @Test
     void deliveryThatFailsBeforeConversionIsCountedForEveryTopic() {
-        etConverter = (siri, codespace, breadcrumb, storedAt, out) -> {
+        etConverter = (siri, codespace, breadcrumb, storedAt) -> {
             throw new IllegalStateException("broken delivery");
         };
 
@@ -318,11 +326,13 @@ class SiriTopicPublisherTest {
     @Test
     void eachJourneyIsSentBeforeTheNextIsBuilt() {
         List<Integer> sentBeforeEach = new ArrayList<>();
-        etConverter = (siri, codespace, breadcrumb, storedAt, out) -> SiriTopicMessages.forEstimatedTimetables(
-                siri, codespace, breadcrumb, storedAt, m -> {
+        etConverter = (siri, codespace, breadcrumb, storedAt) -> SiriTopicMessages.estimatedTimetableElements(
+                siri, codespace, breadcrumb, storedAt).stream()
+                .map(element -> (Supplier<ElementMessages>) () -> {
                     sentBeforeEach.add(sinks.get(ET_XML).messages.size());
-                    out.accept(m);
-                });
+                    return element.get();
+                })
+                .toList();
 
         start().publishAsync(SiriDataType.ESTIMATED_TIMETABLE, journeys(3), "BNR");
 
@@ -331,26 +341,56 @@ class SiriTopicPublisherTest {
 
     @Test
     void failureMidDeliveryCountsOnlyTheJourneysNotSent() {
-        etConverter = (siri, codespace, breadcrumb, storedAt, out) -> {
-            List<ElementMessages> built = SiriTopicMessages.forEstimatedTimetables(siri, codespace, breadcrumb, storedAt);
-            out.accept(built.get(0));
-            throw new IllegalStateException("broken after the first journey");
+        etConverter = (siri, codespace, breadcrumb, storedAt) -> {
+            List<Supplier<ElementMessages>> elements = new ArrayList<>(
+                    SiriTopicMessages.estimatedTimetableElements(siri, codespace, breadcrumb, storedAt));
+            elements.set(1, () -> {
+                throw new IllegalStateException("broken journey");
+            });
+            return elements;
         };
 
         start().publishAsync(SiriDataType.ESTIMATED_TIMETABLE, journeys(3), "BNR");
 
-        assertEquals(1, sinks.get(ET_XML).messages.size());
-        assertEquals(2, failed("xml").count());
-        assertEquals(2, failed("avro").count());
-        assertEquals(2, failed("kafka").count());
+        assertEquals(2, sinks.get(ET_XML).messages.size());
+        assertEquals(1, failed("xml").count());
+        assertEquals(1, failed("avro").count());
+        assertEquals(1, failed("kafka").count());
+    }
+
+    @Test
+    void journeysOfADeliveryAreBuiltInParallel() throws Exception {
+        // Each build waits until the other has started: only possible when they run at the same time
+        CountDownLatch bothBuilding = new CountDownLatch(2);
+        List<Boolean> sawTheOther = java.util.Collections.synchronizedList(new ArrayList<>());
+        etConverter = (siri, codespace, breadcrumb, storedAt) -> SiriTopicMessages.estimatedTimetableElements(
+                siri, codespace, breadcrumb, storedAt).stream()
+                .map(element -> (Supplier<ElementMessages>) () -> {
+                    bothBuilding.countDown();
+                    try {
+                        sawTheOther.add(bothBuilding.await(5, TimeUnit.SECONDS));
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                    return element.get();
+                })
+                .toList();
+        start(p -> { });
+
+        publisher.publishAsync(SiriDataType.ESTIMATED_TIMETABLE, journeys(2), "BNR");
+        publisher.shutdown();
+        publisher = null;
+
+        assertEquals(List.of(true, true), sawTheOther);
+        assertEquals(2, sinks.get(ET_XML).messages.size());
     }
 
     @Test
     void publishesACopyNeverTheStoredObjects() {
         List<Siri> converted = new ArrayList<>();
-        etConverter = (siri, codespace, breadcrumb, storedAt, out) -> {
+        etConverter = (siri, codespace, breadcrumb, storedAt) -> {
             converted.add(siri);
-            SiriTopicMessages.forEstimatedTimetables(siri, codespace, breadcrumb, storedAt, out);
+            return SiriTopicMessages.estimatedTimetableElements(siri, codespace, breadcrumb, storedAt);
         };
         List<EstimatedVehicleJourney> journeys = journeys(1);
 

@@ -86,6 +86,7 @@ class SiriTopicPublisherLoadKT {
         ReflectionTestUtils.setField(publisher, "etXmlTopic", "google-pubsub://test:load.xml.et");
         ReflectionTestUtils.setField(publisher, "etAvroTopic", "google-pubsub://test:load.avro.et");
         ReflectionTestUtils.setField(publisher, "threads", 4);
+        ReflectionTestUtils.setField(publisher, "buildThreads", 4);
         ReflectionTestUtils.setField(publisher, "queueSize", 10_000);
         ReflectionTestUtils.setField(publisher, "drainTimeoutMillis", 10_000L);
         ProducerTemplate kafka = mock(ProducerTemplate.class);

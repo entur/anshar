@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import static no.rutebanken.anshar.routes.kafka.KafkaConfig.CODESPACE_ID_KAFKA_HEADER_NAME;
 
@@ -39,7 +40,7 @@ public final class SiriTopicMessages {
     private SiriTopicMessages() {
     }
 
-    /** All the delivery's journeys at once; see {@link #forEstimatedTimetables(Siri, String, String, long, Consumer)} */
+    /** All the delivery's journeys at once */
     public static List<ElementMessages> forEstimatedTimetables(Siri mappedDelivery, String codespace, String breadcrumbId, long storedAt) {
         List<ElementMessages> results = new ArrayList<>();
         forEstimatedTimetables(mappedDelivery, codespace, breadcrumbId, storedAt, results::add);
@@ -54,15 +55,32 @@ public final class SiriTopicMessages {
 
     static void forEstimatedTimetables(Siri mappedDelivery, String codespace, String breadcrumbId, long storedAt,
                                        Function<Siri, SiriRecord> toAvro, Consumer<ElementMessages> out) {
+        estimatedTimetableElements(mappedDelivery, codespace, breadcrumbId, storedAt, toAvro)
+                .forEach(element -> out.accept(element.get()));
+    }
+
+    /**
+     * One task per journey, each building that journey's messages when called. Tasks share no mutable state, so they
+     * can run on different threads at the same time.
+     */
+    public static List<Supplier<ElementMessages>> estimatedTimetableElements(Siri mappedDelivery, String codespace,
+                                                                              String breadcrumbId, long storedAt) {
+        return estimatedTimetableElements(mappedDelivery, codespace, breadcrumbId, storedAt, Converter::jaxb2Avro);
+    }
+
+    static List<Supplier<ElementMessages>> estimatedTimetableElements(Siri mappedDelivery, String codespace, String breadcrumbId,
+                                                                      long storedAt, Function<Siri, SiriRecord> toAvro) {
+        List<Supplier<ElementMessages>> elements = new ArrayList<>();
         if (mappedDelivery == null || mappedDelivery.getServiceDelivery() == null) {
-            return;
+            return elements;
         }
         ServiceDelivery serviceDelivery = mappedDelivery.getServiceDelivery();
         for (EstimatedTimetableDeliveryStructure delivery : serviceDelivery.getEstimatedTimetableDeliveries()) {
             for (EstimatedVersionFrameStructure frame : delivery.getEstimatedJourneyVersionFrames()) {
                 for (EstimatedVehicleJourney journey : frame.getEstimatedVehicleJourneies()) {
                     Siri single = singleJourney(serviceDelivery, delivery, frame, journey);
-                    out.accept(element(elementId(journey), single, codespace, breadcrumbId, storedAt, () -> {
+                    String id = elementId(journey);
+                    elements.add(() -> element(id, single, codespace, breadcrumbId, storedAt, () -> {
                         EstimatedVehicleJourneyRecord journeyRecord = toAvro.apply(single).getServiceDelivery()
                                 .getEstimatedTimetableDeliveries().get(0)
                                 .getEstimatedJourneyVersionFrames().get(0)
@@ -73,20 +91,22 @@ public final class SiriTopicMessages {
                 }
             }
         }
+        return elements;
     }
 
-    /** All the delivery's situations at once; see {@link #forSituations(Siri, String, String, long, Consumer)} */
+    /** All the delivery's situations at once */
     public static List<ElementMessages> forSituations(Siri mappedDelivery, String codespace, String breadcrumbId, long storedAt) {
         List<ElementMessages> results = new ArrayList<>();
-        forSituations(mappedDelivery, codespace, breadcrumbId, storedAt, results::add);
+        situationElements(mappedDelivery, codespace, breadcrumbId, storedAt).forEach(element -> results.add(element.get()));
         return results;
     }
 
-    /** Hands each situation's messages to {@code out} as soon as they are built, before building the next */
-    public static void forSituations(Siri mappedDelivery, String codespace, String breadcrumbId, long storedAt,
-                                     Consumer<ElementMessages> out) {
+    /** One task per situation; see {@link #estimatedTimetableElements(Siri, String, String, long)} */
+    public static List<Supplier<ElementMessages>> situationElements(Siri mappedDelivery, String codespace,
+                                                                     String breadcrumbId, long storedAt) {
+        List<Supplier<ElementMessages>> elements = new ArrayList<>();
         if (mappedDelivery == null || mappedDelivery.getServiceDelivery() == null) {
-            return;
+            return elements;
         }
         ServiceDelivery serviceDelivery = mappedDelivery.getServiceDelivery();
         for (SituationExchangeDeliveryStructure delivery : serviceDelivery.getSituationExchangeDeliveries()) {
@@ -96,7 +116,7 @@ public final class SiriTopicMessages {
             for (PtSituationElement situation : delivery.getSituations().getPtSituationElements()) {
                 String id = situation.getSituationNumber() != null ? situation.getSituationNumber().getValue() : null;
                 Siri single = singleSituation(serviceDelivery, delivery, situation);
-                out.accept(element(id, single, codespace, breadcrumbId, storedAt, () -> {
+                elements.add(() -> element(id, single, codespace, breadcrumbId, storedAt, () -> {
                     PtSituationElementRecord situationRecord = Converter.jaxb2Avro(single).getServiceDelivery()
                             .getSituationExchangeDeliveries().get(0)
                             .getSituations().get(0);
@@ -105,6 +125,7 @@ public final class SiriTopicMessages {
                 }));
             }
         }
+        return elements;
     }
 
     /** Builds the XML and the Avro messages independently, so either can go out when the other fails */
