@@ -154,6 +154,27 @@ class SiriVersionConverterTest {
     }
 
     @Test
+    void extensionWithNamesBuiltAtRunTimeIsKept() throws Exception {
+        // Names not known when the code was compiled are not interned: the converter must cope with them
+        String suffix = String.valueOf(System.nanoTime() % 10);
+        String namespace = "urn:anshar:test:" + suffix;
+        Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+        Element custom = document.createElementNS(namespace, "t:custom" + suffix);
+        custom.setAttributeNS(namespace, "t:attribute" + suffix, "value");
+        custom.appendChild(document.createTextNode("before "));
+        Element child = document.createElementNS(namespace, "t:child" + suffix);
+        child.setTextContent("x");
+        custom.appendChild(child);
+        custom.appendChild(document.createTextNode(" after"));
+        Extensions extensions = new Extensions();
+        extensions.getAnies().add(custom);
+        EstimatedVehicleJourney journey = journey("TST:ServiceJourney:1");
+        journey.setExtensions(extensions);
+
+        assertSameAsViaText(etDelivery(journey));
+    }
+
+    @Test
     void elementsOnlyInSiri21AreDropped() throws Exception {
         EstimatedVehicleJourney journey = journey("TST:ServiceJourney:1");
         VehicleOccupancyStructure occupancy = new VehicleOccupancyStructure();
@@ -216,13 +237,7 @@ class SiriVersionConverterTest {
 
     @Test
     void allocatesNoLargeArraysUnlikeTheTextPath() throws Exception {
-        Siri siri = fixture("src/test/resources/siri-et-from-bnr.xml");
-        EstimatedVersionFrameStructure frame = siri.getServiceDelivery().getEstimatedTimetableDeliveries().get(0)
-                .getEstimatedJourneyVersionFrames().get(0);
-        List<EstimatedVehicleJourney> journeys = new ArrayList<>(frame.getEstimatedVehicleJourneies());
-        for (int i = 0; frame.getEstimatedVehicleJourneies().size() < 5_000; i++) {
-            frame.getEstimatedVehicleJourneies().add(journeys.get(i % journeys.size()));
-        }
+        Siri siri = largeEtDelivery();
 
         long textPath = LargestAllocation.of(() -> viaText(siri));
         long converter = LargestAllocation.of(() -> SiriVersionConverter.toSiri20(siri));
@@ -230,6 +245,40 @@ class SiriVersionConverterTest {
         // The text path holds the whole delivery as text: tens of megabytes in one array
         assertTrue(textPath >= 8 * MB, "largest allocation on the text path was only " + textPath + " bytes");
         assertTrue(converter < MB, "largest allocation by the converter was " + converter + " bytes");
+    }
+
+    @Test
+    void largeConversionIsNoSlowerThanTheTextPath() throws Exception {
+        Siri siri = largeEtDelivery();
+        for (int i = 0; i < 3; i++) {
+            viaText(siri);
+            SiriVersionConverter.toSiri20(siri);
+        }
+        long textPath = Long.MAX_VALUE;
+        long converter = Long.MAX_VALUE;
+        for (int i = 0; i < 5; i++) {
+            long start = System.nanoTime();
+            viaText(siri);
+            textPath = Math.min(textPath, System.nanoTime() - start);
+            start = System.nanoTime();
+            SiriVersionConverter.toSiri20(siri);
+            converter = Math.min(converter, System.nanoTime() - start);
+        }
+
+        // Best of five each; 10% leeway for noise
+        assertTrue(converter <= textPath * 1.1, "converter " + converter / 1_000_000 + " ms, text path " + textPath / 1_000_000 + " ms");
+    }
+
+    /** The BNR fixture's journeys repeated to 5,000, about 67 MB as XML text */
+    private static Siri largeEtDelivery() throws Exception {
+        Siri siri = fixture("src/test/resources/siri-et-from-bnr.xml");
+        EstimatedVersionFrameStructure frame = siri.getServiceDelivery().getEstimatedTimetableDeliveries().get(0)
+                .getEstimatedJourneyVersionFrames().get(0);
+        List<EstimatedVehicleJourney> journeys = new ArrayList<>(frame.getEstimatedVehicleJourneies());
+        for (int i = 0; frame.getEstimatedVehicleJourneies().size() < 5_000; i++) {
+            frame.getEstimatedVehicleJourneies().add(journeys.get(i % journeys.size()));
+        }
+        return siri;
     }
 
     private static uk.org.siri.siri20.PtSituationElement firstSituation(uk.org.siri.siri20.Siri siri) {
