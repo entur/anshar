@@ -19,9 +19,9 @@ public record ElementMessages(String elementId, PubsubMessage xml, Exception xml
 
     /**
      * @param json         for the Avro-JSON topic
-     * @param record       for Kafka
+     * @param avroRecord   for Kafka
      * @param kafkaHeaders the headers the Kafka route expects with the record
      */
-    public record Avro(PubsubMessage json, SpecificRecord record, Map<String, Object> kafkaHeaders) {
+    public record Avro(PubsubMessage json, SpecificRecord avroRecord, Map<String, Object> kafkaHeaders) {
     }
 }

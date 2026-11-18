@@ -328,7 +328,7 @@ public class SiriTopicPublisher {
             metricsService.registerAvroPubsubRecord(dataType);
         }
         try {
-            kafkaProducer.asyncRequestBodyAndHeaders(route.kafkaEndpoint(), avro.record(), avro.kafkaHeaders())
+            kafkaProducer.asyncRequestBodyAndHeaders(route.kafkaEndpoint(), avro.avroRecord(), avro.kafkaHeaders())
                     .whenComplete((result, error) -> {
                         if (error != null) {
                             kafkaFailed(route, elementId, error);
