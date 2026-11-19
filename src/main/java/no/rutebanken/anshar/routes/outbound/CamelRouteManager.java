@@ -189,7 +189,16 @@ public class CamelRouteManager {
      * @param requireActiveSubscription if false, data is pushed even if the subscription no longer exists - e.g. TerminateSubscriptionResponse
      */
     void pushSiriData(Siri payload, OutboundSubscriptionSetup subscriptionRequest, boolean logBody, boolean requireActiveSubscription) {
-        pushSiriData(payload, subscriptionRequest, logBody, requireActiveSubscription, null);
+        pushSiriData(payload, subscriptionRequest, logBody, requireActiveSubscription, false, null);
+    }
+
+    /**
+     * Pushes all current data to a subscription - always split into deliveries of at most the maximum size, also for a
+     * subscription to a datasetId, whose updates are otherwise sent unsplit. A full dataset can be too large to send
+     * in one post.
+     */
+    void pushInitialDelivery(Siri payload, OutboundSubscriptionSetup subscriptionRequest) {
+        pushSiriData(payload, subscriptionRequest, false, true, true, null);
     }
 
     /** Told how a push went */
@@ -205,10 +214,10 @@ public class CamelRouteManager {
     }
 
     private void pushSiriData(Siri payload, OutboundSubscriptionSetup subscriptionRequest, boolean logBody,
-                              boolean requireActiveSubscription, DeliveryListener listener) {
+                              boolean requireActiveSubscription, boolean initialDelivery, DeliveryListener listener) {
         final String subscriptionId = subscriptionRequest.getSubscriptionId();
-        final PushTask pushTask = new PushTask(payload, subscriptionRequest, logBody, requireActiveSubscription, listener,
-                MDC.get(MDC_BREADCRUMB_ID));
+        final PushTask pushTask = new PushTask(payload, subscriptionRequest, logBody, requireActiveSubscription,
+                initialDelivery, listener, MDC.get(MDC_BREADCRUMB_ID));
         if (subscriptionRequest.getAddress() == null) {
             logger.info("ConsumerAddress is null - ignoring data.");
             pushTask.dropped();
@@ -295,6 +304,8 @@ public class CamelRouteManager {
         private final String subscriptionId;
         private final boolean logBody;
         private final boolean requireActiveSubscription;
+        /** All current data - split also for a subscription to a datasetId */
+        private final boolean initialDelivery;
         private final DeliveryListener listener;
         private final String breadcrumbId;
 
@@ -303,12 +314,13 @@ public class CamelRouteManager {
         private OutboundCircuitBreaker.Permit permit;
 
         PushTask(Siri payload, OutboundSubscriptionSetup subscriptionRequest, boolean logBody,
-                 boolean requireActiveSubscription, DeliveryListener listener, String breadcrumbId) {
+                 boolean requireActiveSubscription, boolean initialDelivery, DeliveryListener listener, String breadcrumbId) {
             this.payload = payload;
             this.subscriptionRequest = subscriptionRequest;
             this.subscriptionId = subscriptionRequest.getSubscriptionId();
             this.logBody = logBody;
             this.requireActiveSubscription = requireActiveSubscription;
+            this.initialDelivery = initialDelivery;
             this.listener = listener;
             this.breadcrumbId = breadcrumbId;
         }
@@ -353,7 +365,9 @@ public class CamelRouteManager {
             Siri filteredPayload = SiriHelper.filterSiriPayload(payload, subscriptionRequest.getFilterMap());
             metricsService.countOutgoingData(filteredPayload, SubscriptionSetup.SubscriptionMode.SUBSCRIBE);
 
-            int deliverySize = subscriptionRequest.getDatasetId() != null ? Integer.MAX_VALUE : maximumSizePerDelivery;
+            // Updates to a subscription to a datasetId are sent unsplit, but a full dataset may be too large for one post
+            boolean unsplit = subscriptionRequest.getDatasetId() != null && !initialDelivery;
+            int deliverySize = unsplit ? Integer.MAX_VALUE : maximumSizePerDelivery;
             List<Siri> splitSiri = siriHelper.splitDeliveries(filteredPayload, deliverySize);
 
             circuitBreaker = circuitBreaker();
@@ -552,7 +566,7 @@ public class CamelRouteManager {
             return;
         }
         logger.info("Resending initial delivery to {}", subscriptionRequest.getAddress());
-        pushSiriData(delivery, subscriptionRequest, false, true, outcome -> {
+        pushSiriData(delivery, subscriptionRequest, false, true, true, outcome -> {
             switch (outcome) {
                 case DELIVERED -> {
                     resend.succeeded(attempt);

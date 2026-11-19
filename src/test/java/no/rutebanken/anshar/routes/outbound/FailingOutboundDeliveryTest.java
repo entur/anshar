@@ -48,6 +48,7 @@ import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -400,6 +401,40 @@ public class FailingOutboundDeliveryTest extends SpringBootBaseTest {
         assertFalse(CamelRouteManager.isNonTransientError(new IOException("Connection reset")));
     }
 
+    /**
+     * Updates to a subscription to a datasetId are sent unsplit, but all current data is split - it may be too large
+     * for one post
+     */
+    @Test
+    public void testInitialDeliveryToDatasetIdSubscriptionIsSplit() throws Exception {
+        BlockingQueue<String> bodies = new LinkedBlockingQueue<>();
+        OutboundSubscriptionSetup subscription = createSubscription("split-initial-delivery-test", () -> 200, bodies);
+        assertNotNull(subscription.getDatasetId());
+
+        Object maximumSizePerDelivery = ReflectionTestUtils.getField(camelRouteManager, "maximumSizePerDelivery");
+        ReflectionTestUtils.setField(camelRouteManager, "maximumSizePerDelivery", 2);
+        try {
+            camelRouteManager.pushInitialDelivery(sxDelivery("initial-1", "initial-2", "initial-3"), subscription);
+            List<String> initialDelivery = List.of(pollBody(bodies), pollBody(bodies));
+            assertTrue(initialDelivery.get(0).contains("initial-1") && initialDelivery.get(0).contains("initial-2"));
+            assertTrue(initialDelivery.get(1).contains("initial-3"));
+
+            camelRouteManager.pushSiriData(sxDelivery("update-1", "update-2", "update-3"), subscription, false);
+            String update = pollBody(bodies);
+            assertTrue(update.contains("update-1") && update.contains("update-2") && update.contains("update-3"),
+                    "An update should be sent unsplit");
+            assertNull(bodies.poll(500, TimeUnit.MILLISECONDS));
+        } finally {
+            ReflectionTestUtils.setField(camelRouteManager, "maximumSizePerDelivery", maximumSizePerDelivery);
+        }
+    }
+
+    private static String pollBody(BlockingQueue<String> bodies) throws InterruptedException {
+        String body = bodies.poll(10, TimeUnit.SECONDS);
+        assertNotNull(body, "Expected a delivery");
+        return body;
+    }
+
     @Test
     public void testRequestTimeoutIsNotRetriedImmediately() {
         assertTrue(CamelRouteManager.isRequestTimeout(new HttpTimeoutException("request timed out")));
@@ -483,10 +518,12 @@ public class FailingOutboundDeliveryTest extends SpringBootBaseTest {
         return element;
     }
 
-    private static Siri sxDelivery(String situationNumber) {
+    private static Siri sxDelivery(String... situationNumbers) {
         SituationExchangeDeliveryStructure delivery = new SituationExchangeDeliveryStructure();
         SituationExchangeDeliveryStructure.Situations situations = new SituationExchangeDeliveryStructure.Situations();
-        situations.getPtSituationElements().add(situation(situationNumber));
+        for (String situationNumber : situationNumbers) {
+            situations.getPtSituationElements().add(situation(situationNumber));
+        }
         delivery.setSituations(situations);
 
         ServiceDelivery serviceDelivery = new ServiceDelivery();

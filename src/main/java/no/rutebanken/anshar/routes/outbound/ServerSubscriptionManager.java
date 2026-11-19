@@ -232,7 +232,7 @@ public class ServerSubscriptionManager {
 
             if (delivery != null) {
                 logger.info("Sending initial delivery to {}", subscription.getAddress());
-                camelRouteManager.pushSiriData(delivery, subscription, false);
+                camelRouteManager.pushInitialDelivery(delivery, subscription);
             } else {
                 logger.info("No initial delivery found for {}", subscription);
             }
