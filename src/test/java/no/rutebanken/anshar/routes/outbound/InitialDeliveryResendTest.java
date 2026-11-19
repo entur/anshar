@@ -96,6 +96,20 @@ class InitialDeliveryResendTest {
     }
 
     @Test
+    void skippedResendIsStartedAgainWithoutBackoff() {
+        resend.request();
+        assertEquals(INITIAL_BACKOFF, resend.failed(started(0), 0));
+        long now = INITIAL_BACKOFF;
+
+        // E.g. the circuit opened again before the resend was posted - still pending, and may start right away
+        resend.skipped(started(now));
+        long retried = started(now + 1);
+
+        // The skipped attempt did not add to the backoff
+        assertEquals(2 * INITIAL_BACKOFF, resend.failed(retried, now + 1));
+    }
+
+    @Test
     void resendThatNeverReportsBackIsStartedAgain() {
         resend.request();
         started(0);

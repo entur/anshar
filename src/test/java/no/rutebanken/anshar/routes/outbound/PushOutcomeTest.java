@@ -36,10 +36,15 @@ class PushOutcomeTest {
     void responseCodes() {
         assertEquals(Outcome.DELIVERED, Outcome.of(200));
         assertEquals(Outcome.DELIVERED, Outcome.of(204));
-        // Would be rejected again
+        // The same body would be rejected again
         assertEquals(Outcome.REJECTED, Outcome.of(400));
         assertEquals(Outcome.REJECTED, Outcome.of(413));
-        // May succeed later
+        assertEquals(Outcome.REJECTED, Outcome.of(415));
+        assertEquals(Outcome.REJECTED, Outcome.of(422));
+        // May succeed later, e.g. after a deploy or credential rotation at the recipient
+        assertEquals(Outcome.FAILED, Outcome.of(401));
+        assertEquals(Outcome.FAILED, Outcome.of(403));
+        assertEquals(Outcome.FAILED, Outcome.of(404));
         assertEquals(Outcome.FAILED, Outcome.of(408));
         assertEquals(Outcome.FAILED, Outcome.of(425));
         assertEquals(Outcome.FAILED, Outcome.of(429));
@@ -51,6 +56,8 @@ class PushOutcomeTest {
     void pushWithSeveralPostsGetsTheWorstOutcome() {
         assertEquals(Outcome.DELIVERED, Outcome.DELIVERED.worst(Outcome.DELIVERED));
         assertEquals(Outcome.REJECTED, Outcome.DELIVERED.worst(Outcome.REJECTED));
+        assertEquals(Outcome.SKIPPED, Outcome.REJECTED.worst(Outcome.SKIPPED));
+        assertEquals(Outcome.FAILED, Outcome.SKIPPED.worst(Outcome.FAILED));
         assertEquals(Outcome.FAILED, Outcome.REJECTED.worst(Outcome.FAILED));
         assertEquals(Outcome.FAILED, Outcome.FAILED.worst(Outcome.DELIVERED));
     }

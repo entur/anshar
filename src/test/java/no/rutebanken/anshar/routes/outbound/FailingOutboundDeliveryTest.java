@@ -40,6 +40,7 @@ import java.net.ConnectException;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.net.http.HttpConnectTimeoutException;
+import java.net.http.HttpTimeoutException;
 import java.nio.channels.ClosedChannelException;
 import java.nio.charset.StandardCharsets;
 import java.security.cert.CertificateException;
@@ -247,6 +248,54 @@ public class FailingOutboundDeliveryTest extends SpringBootBaseTest {
     }
 
     /**
+     * A recipient that responds with 4xx closes the circuit, but all data is only resent once a delivery gets through
+     */
+    @Test
+    public void testResendWaitsForADeliveryThatGetsThrough() throws Exception {
+        final String datasetId = "throttled-resend-test";
+        situations.add(datasetId, situation("throttled-resend-situation"));
+
+        AtomicInteger updates = new AtomicInteger();
+        AtomicInteger resendAttempts = new AtomicInteger();
+        AtomicBoolean throttled = new AtomicBoolean(true);
+        OutboundSubscriptionSetup subscription = createSubscription(datasetId, body -> {
+            if (body.contains("throttled-resend-situation")) {
+                resendAttempts.incrementAndGet();
+                return 200;
+            }
+            if (updates.incrementAndGet() <= failureThreshold) {
+                return 500;
+            }
+            return throttled.get() ? 429 : 200;
+        }, null);
+
+        Object circuitBreakerBackoff = ReflectionTestUtils.getField(camelRouteManager, "circuitBreakerInitialBackoffSeconds");
+        final int circuitBreakerBackoffSeconds = 1;
+        ReflectionTestUtils.setField(camelRouteManager, "circuitBreakerInitialBackoffSeconds", circuitBreakerBackoffSeconds);
+        try {
+            for (int i = 0; i < failureThreshold; i++) {
+                camelRouteManager.pushSiriData(sxDelivery("update"), subscription, false);
+            }
+            OutboundCircuitBreaker circuitBreaker = circuitBreaker(subscription);
+            waitFor(() -> circuitBreaker.getConsecutiveFailures() >= failureThreshold);
+
+            Thread.sleep(circuitBreakerBackoffSeconds * 1000 + 500);
+            // Probe is throttled - the recipient responds, so the circuit closes, but it is not sent all data now
+            camelRouteManager.pushSiriData(sxDelivery("probe"), subscription, false);
+            waitFor(() -> circuitBreaker.getConsecutiveFailures() == 0);
+            Thread.sleep(1000);
+            assertEquals(0, resendAttempts.get());
+
+            throttled.set(false);
+            camelRouteManager.pushSiriData(sxDelivery("update"), subscription, false);
+            waitFor(() -> resendAttempts.get() == 1);
+            assertEquals(1, resendAttempts.get(), "All data should be resent after the first delivery that gets through");
+        } finally {
+            ReflectionTestUtils.setField(camelRouteManager, "circuitBreakerInitialBackoffSeconds", circuitBreakerBackoff);
+        }
+    }
+
+    /**
      * A recipient that rejects the full dataset (e.g. 413) would reject it again - it is not resent after the backoff
      */
     @Test
@@ -349,6 +398,14 @@ public class FailingOutboundDeliveryTest extends SpringBootBaseTest {
         assertFalse(CamelRouteManager.isNonTransientError(new HttpConnectTimeoutException("HTTP connect timed out")));
         assertFalse(CamelRouteManager.isNonTransientError(new ConnectException("Connection refused")));
         assertFalse(CamelRouteManager.isNonTransientError(new IOException("Connection reset")));
+    }
+
+    @Test
+    public void testRequestTimeoutIsNotRetriedImmediately() {
+        assertTrue(CamelRouteManager.isRequestTimeout(new HttpTimeoutException("request timed out")));
+        // Not connected yet - nothing was sent, so retrying is cheap
+        assertFalse(CamelRouteManager.isRequestTimeout(new HttpConnectTimeoutException("HTTP connect timed out")));
+        assertFalse(CamelRouteManager.isRequestTimeout(new IOException("Connection reset")));
     }
 
     /**

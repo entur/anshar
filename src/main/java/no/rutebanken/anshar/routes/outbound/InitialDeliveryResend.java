@@ -87,6 +87,15 @@ class InitialDeliveryResend {
         notBefore = 0;
     }
 
+    /** The attempt was not sent, e.g. skipped by the circuit breaker - started again without adding to the backoff */
+    synchronized void skipped(long attempt) {
+        if (!isCurrent(attempt)) {
+            return;
+        }
+        inProgress = false;
+        pending = true;
+    }
+
     /**
      * @return milliseconds until the resend may be tried again, or -1 if the attempt is no longer the current one
      */

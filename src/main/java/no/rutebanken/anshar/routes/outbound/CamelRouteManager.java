@@ -45,8 +45,10 @@ import java.io.OutputStream;
 import java.net.SocketException;
 import java.net.URI;
 import java.net.http.HttpClient;
+import java.net.http.HttpConnectTimeoutException;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.net.http.HttpTimeoutException;
 import java.security.cert.CertPathValidatorException;
 import java.security.cert.CertificateException;
 import java.time.Duration;
@@ -135,12 +137,6 @@ public class CamelRouteManager {
     /** Time on top of the longest post before a probe that has not completed is abandoned */
     private static final long PROBE_MARGIN_MILLIS = 5000;
 
-    /**
-     * Last resort for a resend of all data that never reports back - pushes that are dropped or never run are reported
-     * as failed. A resend may be split into many posts, so this is far longer than one post can take.
-     */
-    private static final long LOST_RESEND_MILLIS = 30 * 60 * 1000L;
-
     private static final HttpClient httpClient = HttpClient.newBuilder()
             .version(HttpClient.Version.HTTP_1_1)
             .connectTimeout(Duration.ofMillis(CONNECT_TIMEOUT_MILLIS))
@@ -203,7 +199,7 @@ public class CamelRouteManager {
          * Not called if the push was cancelled, e.g. the subscription was terminated or re-created while it was
          * queued, or anshar is shutting down.
          *
-         * @param outcome {@link Outcome#DELIVERED}, {@link Outcome#REJECTED} or {@link Outcome#FAILED}
+         * @param outcome {@link Outcome#DELIVERED}, {@link Outcome#REJECTED}, {@link Outcome#SKIPPED} or {@link Outcome#FAILED}
          */
         void completed(Outcome outcome);
     }
@@ -263,9 +259,11 @@ public class CamelRouteManager {
     enum Outcome {
         /** The recipient took every post (2xx) */
         DELIVERED,
-        /** The recipient rejected a post, and would reject it again (4xx other than 408, 425 and 429) */
+        /** The recipient rejected the body of a post, and would reject it again (400, 413, 415 or 422) */
         REJECTED,
-        /** A post failed (5xx, 408, 425, 429 or an error), was skipped by the circuit breaker, or the push never ran */
+        /** A post was skipped by the circuit breaker - not sent to the recipient */
+        SKIPPED,
+        /** A post failed (any other response code, or an error), or the push never ran */
         FAILED,
         /** Dropped before posting, e.g. the subscription was terminated or re-created while it was queued */
         CANCELLED;
@@ -274,11 +272,12 @@ public class CamelRouteManager {
             if (responseCode < 300) {
                 return DELIVERED;
             }
-            if (responseCode >= 500 || responseCode == 408 || responseCode == 425 || responseCode == 429) {
-                // Server error, timeout, too early or too many requests - may succeed later
-                return FAILED;
-            }
-            return REJECTED;
+            return switch (responseCode) {
+                // Bad request, too large, unsupported media type or unprocessable - the same body is rejected again
+                case 400, 413, 415, 422 -> REJECTED;
+                // E.g. server error, throttled, or unauthorized or not found during a deploy - may succeed later
+                default -> FAILED;
+            };
         }
 
         Outcome worst(Outcome other) {
@@ -398,7 +397,7 @@ public class CamelRouteManager {
             if (!permit.isAllowed()) {
                 // Recipient keeps failing - skipped until the next probe
                 permit = null;
-                return Outcome.FAILED;
+                return Outcome.SKIPPED;
             }
             addSubscriptionRefToServiceDelivery(siri, subscriptionId);
             int responseCode = postDataToSubscription(siri, subscriptionRequest, logBody);
@@ -414,7 +413,7 @@ public class CamelRouteManager {
             }
             if (responseCode < 500) {
                 // Recipient is responding - also when it rejects the delivery with 4xx
-                recordSuccess(circuitBreaker, subscriptionRequest);
+                recordSuccess(circuitBreaker, subscriptionRequest, responseCode < 300);
             } else {
                 recordFailure(circuitBreaker, permit, subscriptionId);
             }
@@ -486,8 +485,16 @@ public class CamelRouteManager {
                                 new InitialDeliveryResend(
                                         resendInitialBackoffSeconds * 1000L,
                                         resendMaxBackoffSeconds * 1000L,
-                                        Math.max(LOST_RESEND_MILLIS, maxPostDurationMillis())))
+                                        lostResendMillis()))
         );
+    }
+
+    /**
+     * Last resort for a resend of all data that never reports back - pushes that are dropped or never run are reported
+     * as failed. A lost resend waits no longer than a failed one at most does, but at least as long as one post can take.
+     */
+    private long lostResendMillis() {
+        return Math.max(resendMaxBackoffSeconds * 1000L, maxPostDurationMillis());
     }
 
     /** Longest a post can take: it may be retried once, each attempt with connect- and request-timeout */
@@ -503,12 +510,19 @@ public class CamelRouteManager {
         }
     }
 
-    private void recordSuccess(OutboundCircuitBreaker circuitBreaker, OutboundSubscriptionSetup subscriptionRequest) {
+    /**
+     * @param delivered whether the recipient took the delivery - a resend of all data is only started then, not when
+     *                  it responds with e.g. 413 or 429
+     */
+    private void recordSuccess(OutboundCircuitBreaker circuitBreaker, OutboundSubscriptionSetup subscriptionRequest, boolean delivered) {
         long skippedDeliveries = circuitBreaker.recordSuccess();
         if (skippedDeliveries >= 0) {
             logger.info("Subscription {} is responding again - resuming deliveries, {} were skipped",
                     subscriptionRequest.getSubscriptionId(), skippedDeliveries);
             circuitBreaker.initialDeliveryResend().request();
+        }
+        if (!delivered) {
+            return;
         }
         // Also started here when a resend that failed earlier has waited out its backoff
         InitialDeliveryResend resend = circuitBreaker.initialDeliveryResend();
@@ -547,6 +561,11 @@ public class CamelRouteManager {
                 case REJECTED -> {
                     resend.succeeded(attempt);
                     logger.warn("Recipient {} rejected the resent initial delivery - not resent again", subscriptionRequest.getAddress());
+                }
+                case SKIPPED -> {
+                    // Not sent - started again when the circuit closes, without adding to the backoff
+                    resend.skipped(attempt);
+                    logger.info("Resending initial delivery to {} was skipped by the circuit breaker", subscriptionRequest.getAddress());
                 }
                 default -> resendFailed(subscriptionRequest, resend, attempt, null);
             }
@@ -616,6 +635,11 @@ public class CamelRouteManager {
             }
         }
         return false;
+    }
+
+    /** The recipient did not respond in time after connecting - not a connect timeout, which may be retried */
+    static boolean isRequestTimeout(Throwable e) {
+        return e instanceof HttpTimeoutException && !(e instanceof HttpConnectTimeoutException);
     }
 
     private static void addSubscriptionRefToServiceDelivery(Siri siri, String subscriptionId) {
@@ -740,8 +764,8 @@ public class CamelRouteManager {
         try {
             responseCode = httpClient.send(post, HttpResponse.BodyHandlers.discarding()).statusCode();
         } catch (Exception e) {
-            if (isNonTransientError(e)) {
-                // Retrying immediately will fail the same way
+            if (isNonTransientError(e) || isRequestTimeout(e)) {
+                // Retrying immediately will fail the same way - or send a large body again to a recipient too slow to take it
                 throw new RuntimeException(e);
             }
             logger.info("Failed to post {} ({} bytes) to subscription {} - retrying, {}", siriContentType, body.size(), subscription, e.toString());
