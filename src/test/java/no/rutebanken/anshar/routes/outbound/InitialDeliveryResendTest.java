@@ -120,6 +120,32 @@ class InitialDeliveryResendTest {
     }
 
     @Test
+    void resendThatKeepsPostingIsNotConsideredLost() {
+        resend.request();
+        long attempt = started(0);
+
+        // E.g. a full dataset split into many posts to a slow recipient
+        resend.progressed(attempt, MAX_DURATION - 1);
+        resend.request();
+        notStarted(MAX_DURATION);
+        notStarted(2 * MAX_DURATION - 2);
+
+        // No post completed for the max duration - lost
+        started(2 * MAX_DURATION - 1);
+    }
+
+    @Test
+    void progressFromAnEarlierAttemptIsIgnored() {
+        resend.request();
+        long lost = started(0);
+        started(MAX_DURATION);
+
+        resend.progressed(lost, 2 * MAX_DURATION - 1);
+        // Started again - the progress was not counted for the current attempt
+        started(2 * MAX_DURATION);
+    }
+
+    @Test
     void reportFromAnEarlierAttemptIsIgnored() {
         resend.request();
         long lost = started(0);

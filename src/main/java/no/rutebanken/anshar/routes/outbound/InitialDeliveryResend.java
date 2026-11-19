@@ -33,14 +33,18 @@ class InitialDeliveryResend {
 
     private final long initialBackoffMillis;
     private final long maxBackoffMillis;
-    /** A resend that has not reported back within this time is considered lost, e.g. dropped from a full queue, and is started again */
+    /**
+     * A resend that has neither posted anything nor reported back within this time is considered lost, e.g. dropped
+     * from a full queue, and is started again
+     */
     private final long maxDurationMillis;
 
     private boolean pending;
     private boolean inProgress;
     /** Number of the latest attempt - a report from an earlier one, e.g. one considered lost, is ignored */
     private long attempt;
-    private long startedAt;
+    /** When the current attempt started, or last completed a post */
+    private long lastProgressAt;
     private long backoffMillis;
     private long notBefore;
 
@@ -61,7 +65,7 @@ class InitialDeliveryResend {
      */
     synchronized long start(long now) {
         if (inProgress) {
-            if (now - startedAt < maxDurationMillis) {
+            if (now - lastProgressAt < maxDurationMillis) {
                 return NOT_STARTED;
             }
             // Never reported back - the recipient still needs the data
@@ -73,8 +77,15 @@ class InitialDeliveryResend {
         }
         pending = false;
         inProgress = true;
-        startedAt = now;
+        lastProgressAt = now;
         return ++attempt;
+    }
+
+    /** The attempt completed a post - a resend split into many posts is not lost while it keeps making progress */
+    synchronized void progressed(long attempt, long now) {
+        if (isCurrent(attempt)) {
+            lastProgressAt = now;
+        }
     }
 
     /** The attempt got through, or the recipient rejected it and would reject it again - not retried */

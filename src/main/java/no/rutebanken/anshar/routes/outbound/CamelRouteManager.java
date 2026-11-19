@@ -218,6 +218,10 @@ public class CamelRouteManager {
          * @param outcome {@link Outcome#DELIVERED}, {@link Outcome#REJECTED}, {@link Outcome#SKIPPED} or {@link Outcome#FAILED}
          */
         void completed(Outcome outcome);
+
+        /** A post of the push has completed, whatever its outcome - more may follow */
+        default void posted() {
+        }
     }
 
     private void pushSiriData(Siri payload, OutboundSubscriptionSetup subscriptionRequest, boolean logBody,
@@ -392,6 +396,7 @@ public class CamelRouteManager {
                 // Nothing to send - not counted as a post to the subscription
                 if (serviceDeliveryContainsData(siri)) {
                     outcome = outcome.worst(post(siri));
+                    reportPosted();
                 }
             }
             return outcome;
@@ -433,12 +438,15 @@ public class CamelRouteManager {
                 subscriptionManager.pushFailedForSubscription(subscriptionId);
             }
             if (responseCode < 500) {
+                // Released first - a resend of all data may be built below, and an error there must not count as a
+                // failed post
+                permit = null;
                 // Recipient is responding - also when it rejects the delivery with 4xx
                 recordSuccess(circuitBreaker, subscriptionRequest, responseCode < 300);
             } else {
                 recordFailure(circuitBreaker, permit, subscriptionId);
+                permit = null;
             }
-            permit = null;
             return Outcome.of(responseCode);
         }
 
@@ -475,6 +483,17 @@ public class CamelRouteManager {
         @Override
         public void dropped() {
             report(Outcome.FAILED);
+        }
+
+        private void reportPosted() {
+            if (listener == null) {
+                return;
+            }
+            try {
+                listener.posted();
+            } catch (RuntimeException e) {
+                logger.warn("Failed to handle a post to subscription {}", subscriptionId, e);
+            }
         }
 
         private void report(Outcome outcome) {
@@ -573,8 +592,23 @@ public class CamelRouteManager {
             return;
         }
         logger.info("Resending initial delivery to {}", subscriptionRequest.getAddress());
-        pushSiriData(delivery, subscriptionRequest, false, true, true, outcome -> {
-            switch (outcome) {
+        pushSiriData(delivery, subscriptionRequest, false, true, true, new DeliveryListener() {
+            @Override
+            public void posted() {
+                // A resend split into many posts may take long - it is only lost if it stops making progress
+                resend.progressed(attempt, System.currentTimeMillis());
+            }
+
+            @Override
+            public void completed(Outcome outcome) {
+                resendCompleted(subscriptionRequest, resend, attempt, outcome);
+            }
+        });
+    }
+
+    private static void resendCompleted(OutboundSubscriptionSetup subscriptionRequest, InitialDeliveryResend resend,
+                                        long attempt, Outcome outcome) {
+        switch (outcome) {
                 case DELIVERED -> {
                     resend.succeeded(attempt);
                     logger.info("Resent initial delivery to {}", subscriptionRequest.getAddress());
@@ -589,8 +623,7 @@ public class CamelRouteManager {
                     logger.info("Resending initial delivery to {} was skipped by the circuit breaker", subscriptionRequest.getAddress());
                 }
                 default -> resendFailed(subscriptionRequest, resend, attempt, null);
-            }
-        });
+        }
     }
 
     private static void resendFailed(OutboundSubscriptionSetup subscriptionRequest, InitialDeliveryResend resend, long attempt, Exception cause) {
@@ -795,6 +828,10 @@ public class CamelRouteManager {
         int responseCode;
         try {
             responseCode = httpClient.send(post, HttpResponse.BodyHandlers.discarding()).statusCode();
+        } catch (InterruptedException e) {
+            // E.g. shutting down - not retried
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
         } catch (Exception e) {
             if (!isRetriedAtOnce(e, body.size())) {
                 throw new RuntimeException(e);
@@ -803,8 +840,13 @@ public class CamelRouteManager {
             // Retry once
             try {
                 responseCode = httpClient.send(post, HttpResponse.BodyHandlers.discarding()).statusCode();
+            } catch (InterruptedException ex) {
+                Thread.currentThread().interrupt();
+                e.addSuppressed(ex);
+                throw new RuntimeException(e);
             } catch (Exception ex) {
                 logger.info("Retry failed to post {} ({} bytes) to subscription {}, {}", siriContentType, body.size(), subscription, ex.toString());
+                e.addSuppressed(ex);
                 throw new RuntimeException(e);
             }
         }
