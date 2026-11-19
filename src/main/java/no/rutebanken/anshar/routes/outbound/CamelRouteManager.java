@@ -139,7 +139,7 @@ public class CamelRouteManager {
      * stall at the recipient. A larger body, like a part of a full dataset, is not uploaded again to a recipient too
      * slow to take it.
      */
-    static final long MAX_RETRIED_TIMEOUT_BODY_BYTES = 1024 * 1024;
+    static final long MAX_RETRIED_TIMEOUT_BODY_BYTES = 1024L * 1024;
 
     /** Time on top of the longest post before a probe that has not completed is abandoned */
     private static final long PROBE_MARGIN_MILLIS = 5000;
