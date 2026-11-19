@@ -26,7 +26,7 @@ class RequestTimeoutTest {
 
     private static final long REQUEST_TIMEOUT_MILLIS = 5000;
     private static final long MBIT_PER_SECOND = 25;
-    private static final long MAX_SECONDS = 120;
+    private static final long MAX_SECONDS = 30;
 
     private static Duration timeout(long bodyBytes) {
         return CamelRouteManager.requestTimeout(bodyBytes, REQUEST_TIMEOUT_MILLIS, MBIT_PER_SECOND, MAX_SECONDS);
@@ -41,13 +41,17 @@ class RequestTimeoutTest {
     }
 
     @Test
-    void fullDatasetGetsTimeToUpload() {
-        // 120 MB at 25 Mbit/s takes 38.4 s
-        assertEquals(Duration.ofMillis(5000 + 38_400), timeout(120_000_000));
+    void largeDeliveryGetsTimeToUpload() {
+        // One part of a split full dataset: 6 MB at 25 Mbit/s takes 1.92 s
+        assertEquals(Duration.ofMillis(5000 + 1_920), timeout(6_000_000));
+        // 60 MB takes 19.2 s - still under the cap
+        assertEquals(Duration.ofMillis(5000 + 19_200), timeout(60_000_000));
     }
 
     @Test
     void timeoutIsCapped() {
+        // An unsplit full dataset of 120 MB would need 43.4 s
+        assertEquals(Duration.ofSeconds(MAX_SECONDS), timeout(120_000_000));
         assertEquals(Duration.ofSeconds(MAX_SECONDS), timeout(1_000_000_000));
     }
 

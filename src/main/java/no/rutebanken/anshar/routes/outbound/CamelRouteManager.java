@@ -100,7 +100,7 @@ public class CamelRouteManager {
     @Value("${anshar.outbound.timeout.min.throughput.mbit.per.second:25}")
     private int minThroughputMbitPerSecond;
 
-    @Value("${anshar.outbound.timeout.max.seconds:120}")
+    @Value("${anshar.outbound.timeout.max.seconds:30}")
     private int maxRequestTimeoutSeconds;
 
     @Value("${anshar.outbound.initialdelivery.resend.backoff.initial.seconds:60}")
@@ -814,8 +814,8 @@ public class CamelRouteManager {
 
     /**
      * The time a post may take until the response arrives, which includes uploading the body: the request timeout,
-     * plus the time to upload the body at the lowest expected throughput, up to a maximum. A full dataset of 120 MB needs
-     * almost 40 s at 25 Mbit/s, while a few changes need no more than the request timeout.
+     * plus the time to upload the body at the lowest expected throughput, up to a maximum. A delivery of 6 MB, e.g. one
+     * part of a full dataset, needs about 2 s at 25 Mbit/s, while a few changes need no more than the request timeout.
      */
     static Duration requestTimeout(long bodyBytes, long requestTimeoutMillis, long minThroughputMbitPerSecond, long maxSeconds) {
         if (minThroughputMbitPerSecond <= 0) {
