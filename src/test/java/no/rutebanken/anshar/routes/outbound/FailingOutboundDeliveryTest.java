@@ -436,11 +436,23 @@ public class FailingOutboundDeliveryTest extends SpringBootBaseTest {
     }
 
     @Test
-    public void testRequestTimeoutIsNotRetriedImmediately() {
-        assertTrue(CamelRouteManager.isRequestTimeout(new HttpTimeoutException("request timed out")));
-        // Not connected yet - nothing was sent, so retrying is cheap
-        assertFalse(CamelRouteManager.isRequestTimeout(new HttpConnectTimeoutException("HTTP connect timed out")));
-        assertFalse(CamelRouteManager.isRequestTimeout(new IOException("Connection reset")));
+    public void testRequestTimeoutIsRetriedForSmallBodiesOnly() {
+        final long small = CamelRouteManager.MAX_RETRIED_TIMEOUT_BODY_BYTES;
+        final long large = CamelRouteManager.MAX_RETRIED_TIMEOUT_BODY_BYTES + 1;
+        HttpTimeoutException requestTimeout = new HttpTimeoutException("request timed out");
+
+        // E.g. a heartbeat during a short stall at the recipient
+        assertTrue(CamelRouteManager.isRetriedAtOnce(requestTimeout, small));
+        // E.g. a part of a full dataset - not uploaded again to a recipient too slow to take it
+        assertFalse(CamelRouteManager.isRetriedAtOnce(requestTimeout, large));
+
+        // Not connected - nothing was sent, so retrying is cheap whatever the size
+        assertTrue(CamelRouteManager.isRetriedAtOnce(new HttpConnectTimeoutException("HTTP connect timed out"), large));
+        assertTrue(CamelRouteManager.isRetriedAtOnce(new IOException("Connection reset"), large));
+
+        SSLHandshakeException invalidCertificate = new SSLHandshakeException("(certificate_unknown)");
+        invalidCertificate.initCause(new CertificateException("No subject alternative DNS name matching"));
+        assertFalse(CamelRouteManager.isRetriedAtOnce(invalidCertificate, small));
     }
 
     /**

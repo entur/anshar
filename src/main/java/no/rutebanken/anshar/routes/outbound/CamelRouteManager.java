@@ -134,6 +134,13 @@ public class CamelRouteManager {
 
     private static final long CONNECT_TIMEOUT_MILLIS = 2000;
 
+    /**
+     * A post that times out is retried at once only up to this size - e.g. a heartbeat or a few changes during a short
+     * stall at the recipient. A larger body, like a part of a full dataset, is not uploaded again to a recipient too
+     * slow to take it.
+     */
+    static final long MAX_RETRIED_TIMEOUT_BODY_BYTES = 1024 * 1024;
+
     /** Time on top of the longest post before a probe that has not completed is abandoned */
     private static final long PROBE_MARGIN_MILLIS = 5000;
 
@@ -651,7 +658,18 @@ public class CamelRouteManager {
         return false;
     }
 
-    /** The recipient did not respond in time after connecting - not a connect timeout, which may be retried */
+    /**
+     * Whether a failed post is retried at once: not if the retry would fail the same way, nor if it would upload a
+     * large body again to a recipient that did not take it in time
+     */
+    static boolean isRetriedAtOnce(Throwable e, long bodyBytes) {
+        if (isNonTransientError(e)) {
+            return false;
+        }
+        return !isRequestTimeout(e) || bodyBytes <= MAX_RETRIED_TIMEOUT_BODY_BYTES;
+    }
+
+    /** The recipient did not respond in time after connecting - not a connect timeout, where nothing was sent */
     static boolean isRequestTimeout(Throwable e) {
         return e instanceof HttpTimeoutException && !(e instanceof HttpConnectTimeoutException);
     }
@@ -778,8 +796,7 @@ public class CamelRouteManager {
         try {
             responseCode = httpClient.send(post, HttpResponse.BodyHandlers.discarding()).statusCode();
         } catch (Exception e) {
-            if (isNonTransientError(e) || isRequestTimeout(e)) {
-                // Retrying immediately will fail the same way - or send a large body again to a recipient too slow to take it
+            if (!isRetriedAtOnce(e, body.size())) {
                 throw new RuntimeException(e);
             }
             logger.info("Failed to post {} ({} bytes) to subscription {} - retrying, {}", siriContentType, body.size(), subscription, e.toString());
