@@ -25,6 +25,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -228,12 +229,53 @@ public class OutboundSubscriptionTest extends SpringBootBaseTest {
         }
     }
 
+    @Test
+    public void testFailingSubscriptionIsCancelledAfterGracePeriod() throws Exception {
+        // Recipient responds, but fails to handle deliveries - so a successful push never clears the fail-tracker
+        HttpServer consumer = HttpServer.create(new InetSocketAddress("localhost", 0), 0);
+        final int port = consumer.getAddress().getPort();
+        consumer.createContext("/", exchange -> {
+            exchange.getRequestBody().readAllBytes();
+            exchange.sendResponseHeaders(500, -1);
+            exchange.close();
+        });
+        consumer.start();
+
+        // HeartbeatInterval is raised to the 60s minimum in tests - 3 x 60s does not exceed the minimum grace period of 3 minutes
+        final String withinGracePeriod = "grace-period-not-passed-test";
+        final String afterGracePeriod = "grace-period-passed-test";
+        try {
+            for (String subscriptionId : List.of(withinGracePeriod, afterGracePeriod)) {
+                Siri response = serverSubscriptionManager.handleSubscriptionRequest(SiriXml.parseXml(sxSubscriptionRequest(subscriptionId, port, "PT30S")),
+                        null, OutboundIdMappingPolicy.DEFAULT, null);
+                assertTrue(response.getSubscriptionResponse().getResponseStatuses().get(0).isStatus());
+            }
+
+            failTrackerMap.set(withinGracePeriod, Instant.now().minus(2, ChronoUnit.MINUTES));
+            serverSubscriptionManager.pushFailedForSubscription(withinGracePeriod);
+            assertTrue(isActive(withinGracePeriod));
+
+            failTrackerMap.set(afterGracePeriod, Instant.now().minus(4, ChronoUnit.MINUTES));
+            serverSubscriptionManager.pushFailedForSubscription(afterGracePeriod);
+            assertFalse(isActive(afterGracePeriod));
+        } finally {
+            consumer.stop(0);
+            serverSubscriptionManager.terminateSubscription(withinGracePeriod, false);
+            failTrackerMap.delete(withinGracePeriod);
+            failTrackerMap.delete(afterGracePeriod);
+        }
+    }
+
     private boolean isActive(String subscriptionId) {
         return serverSubscriptionManager.getSubscriptions().stream()
                 .anyMatch(s -> subscriptionId.equals(((OutboundSubscriptionSetup) s).getSubscriptionId()));
     }
 
     private static String sxSubscriptionRequest(String subscriptionId, int port) {
+        return sxSubscriptionRequest(subscriptionId, port, "PT60M");
+    }
+
+    private static String sxSubscriptionRequest(String subscriptionId, int port, String heartbeatInterval) {
         return "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                 "<Siri xmlns=\"http://www.siri.org.uk/siri\" version=\"2.1\">\n" +
                 "\t<SubscriptionRequest>\n" +
@@ -242,7 +284,7 @@ public class OutboundSubscriptionTest extends SpringBootBaseTest {
                 "\t\t<RequestorRef>" + subscriptionId + "</RequestorRef>\n" +
                 "\t\t<MessageIdentifier>52467cd2-e469-4f37-8841-27c3a9b57b63</MessageIdentifier>\n" +
                 "\t\t<SubscriptionContext>\n" +
-                "\t\t\t<HeartbeatInterval>PT60M</HeartbeatInterval>\n" +
+                "\t\t\t<HeartbeatInterval>" + heartbeatInterval + "</HeartbeatInterval>\n" +
                 "\t\t</SubscriptionContext>\n" +
                 "\t\t<SituationExchangeSubscriptionRequest>\n" +
                 "\t\t\t<SubscriptionIdentifier>" + subscriptionId + "</SubscriptionIdentifier>\n" +
