@@ -12,7 +12,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.test.util.ReflectionTestUtils;
 import uk.org.siri.siri21.HalfOpenTimestampOutputRangeStructure;
 import uk.org.siri.siri21.PtSituationElement;
 import uk.org.siri.siri21.RequestorRef;
@@ -34,9 +33,12 @@ import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.BooleanSupplier;
+import java.util.function.IntSupplier;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -54,6 +56,12 @@ public class OutboundSubscriptionTest extends SpringBootBaseTest {
 
     @Autowired
     private Situations situations;
+
+    @Autowired
+    @Qualifier("getInitialDeliveryTimestampMap")
+    private IMap<String, Instant> initialDeliveryTimestampMap;
+
+    private static final String RESUBSCRIBE_DATASET = "RESUB";
 
 
     @Value("${anshar.outbound.heartbeatinterval.minimum}")
@@ -311,53 +319,112 @@ public class OutboundSubscriptionTest extends SpringBootBaseTest {
 
     @Test
     public void testRecentInitialDeliveryIsNotRepeatedForResubscription() throws Exception {
-        final String datasetId = "RESUB";
-        situations.add(datasetId, situation("resubscribe-situation"));
-
         AtomicInteger initialDeliveries = new AtomicInteger();
-        HttpServer consumer = HttpServer.create(new InetSocketAddress("localhost", 0), 0);
-        consumer.createContext("/", exchange -> {
-            if (new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8).contains("resubscribe-situation")) {
-                initialDeliveries.incrementAndGet();
-            }
-            exchange.sendResponseHeaders(200, -1);
-            exchange.close();
-        });
-        consumer.start();
+        HttpServer consumer = initialDeliveryConsumer(initialDeliveries, () -> 200, 0);
         final int port = consumer.getAddress().getPort();
+        situations.add(RESUBSCRIBE_DATASET, situation("resubscribe-situation"));
 
         final List<String> subscriptionIds = List.of("resubscribe-first", "resubscribe-second", "resubscribe-third");
-        Object interval = ReflectionTestUtils.getField(serverSubscriptionManager, "resubscribeInitialDeliveryInterval");
         try {
-            subscribe(subscriptionIds.get(0), port, datasetId);
+            subscribe(subscriptionIds.get(0), port, "resubscribe");
             waitForCount(initialDeliveries, 1);
+            waitFor(() -> initialDeliveryTimestampMap.containsKey(subscriptionIds.get(0)));
 
             // Re-subscription right after - the recipient already has all data
-            subscribe(subscriptionIds.get(1), port, datasetId);
+            subscribe(subscriptionIds.get(1), port, "resubscribe");
             Thread.sleep(2000);
             assertEquals(1, initialDeliveries.get());
             assertFalse(isActive(subscriptionIds.get(0)));
             assertTrue(isActive(subscriptionIds.get(1)));
+            assertTrue(initialDeliveryTimestampMap.containsKey(subscriptionIds.get(1)));
 
-            // Re-subscription after the interval
-            ReflectionTestUtils.setField(serverSubscriptionManager, "resubscribeInitialDeliveryInterval", Duration.ZERO);
-            subscribe(subscriptionIds.get(2), port, datasetId);
+            // Deliveries to the replaced subscription have failed since - updates may have been lost
+            failTrackerMap.set(subscriptionIds.get(1), Instant.now());
+            subscribe(subscriptionIds.get(2), port, "resubscribe");
             waitForCount(initialDeliveries, 2);
         } finally {
-            ReflectionTestUtils.setField(serverSubscriptionManager, "resubscribeInitialDeliveryInterval", interval);
-            consumer.stop(0);
-            for (String subscriptionId : subscriptionIds) {
-                serverSubscriptionManager.terminateSubscription(subscriptionId, false);
-                failTrackerMap.delete(subscriptionId);
-            }
+            cleanUp(consumer, subscriptionIds);
         }
     }
 
-    private void subscribe(String subscriptionId, int port, String datasetId) throws Exception {
+    @Test
+    public void testResubscriptionDuringInitialDeliveryDependsOnItsOutcome() throws Exception {
+        AtomicInteger initialDeliveries = new AtomicInteger();
+        AtomicInteger responseCode = new AtomicInteger(200);
+        // Initial deliveries are held, so that the re-subscription arrives while one is sent
+        HttpServer consumer = initialDeliveryConsumer(initialDeliveries, responseCode::get, 1500);
+        final int port = consumer.getAddress().getPort();
+        situations.add(RESUBSCRIBE_DATASET, situation("resubscribe-situation"));
+
+        final List<String> subscriptionIds = List.of("pending-delivered-first", "pending-delivered-second",
+                "pending-failed-first", "pending-failed-second");
+        try {
+            // Delivered - the re-subscription relies on it
+            subscribe(subscriptionIds.get(0), port, "pending-delivered");
+            waitForCount(initialDeliveries, 1);
+            subscribe(subscriptionIds.get(1), port, "pending-delivered");
+            waitFor(() -> initialDeliveryTimestampMap.containsKey(subscriptionIds.get(1)));
+            Thread.sleep(500);
+            assertEquals(1, initialDeliveries.get());
+
+            // Not delivered - the re-subscription gets its own
+            responseCode.set(500);
+            subscribe(subscriptionIds.get(2), port, "pending-failed");
+            waitForCount(initialDeliveries, 2);
+            responseCode.set(200);
+            subscribe(subscriptionIds.get(3), port, "pending-failed");
+            waitForCount(initialDeliveries, 3);
+            waitFor(() -> initialDeliveryTimestampMap.containsKey(subscriptionIds.get(3)));
+        } finally {
+            cleanUp(consumer, subscriptionIds);
+        }
+    }
+
+    /** Counts posts of the test situation, i.e. initial deliveries, and holds each one before responding */
+    private static HttpServer initialDeliveryConsumer(AtomicInteger initialDeliveries, IntSupplier responseCode, long holdMillis) throws IOException {
+        HttpServer consumer = HttpServer.create(new InetSocketAddress("localhost", 0), 0);
+        consumer.setExecutor(Executors.newCachedThreadPool());
+        consumer.createContext("/", exchange -> {
+            int status = 200;
+            if (new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8).contains("resubscribe-situation")) {
+                status = responseCode.getAsInt();
+                initialDeliveries.incrementAndGet();
+                try {
+                    Thread.sleep(holdMillis);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+            exchange.sendResponseHeaders(status, -1);
+            exchange.close();
+        });
+        consumer.start();
+        return consumer;
+    }
+
+    private void cleanUp(HttpServer consumer, List<String> subscriptionIds) {
+        consumer.stop(0);
+        situations.clearAllByDatasetId(RESUBSCRIBE_DATASET);
+        for (String subscriptionId : subscriptionIds) {
+            serverSubscriptionManager.terminateSubscription(subscriptionId, false);
+            failTrackerMap.delete(subscriptionId);
+            initialDeliveryTimestampMap.delete(subscriptionId);
+        }
+    }
+
+    private void subscribe(String subscriptionId, int port, String consumerPath) throws Exception {
         Siri response = serverSubscriptionManager.handleSubscriptionRequest(
-                SiriXml.parseXml(sxSubscriptionRequest(subscriptionId, port, "PT60M", "resubscribe")),
-                datasetId, OutboundIdMappingPolicy.DEFAULT, null);
+                SiriXml.parseXml(sxSubscriptionRequest(subscriptionId, port, "PT60M", consumerPath)),
+                RESUBSCRIBE_DATASET, OutboundIdMappingPolicy.DEFAULT, null);
         assertTrue(response.getSubscriptionResponse().getResponseStatuses().get(0).isStatus());
+    }
+
+    private static void waitFor(BooleanSupplier condition) throws InterruptedException {
+        long deadline = System.currentTimeMillis() + 10000;
+        while (!condition.getAsBoolean() && System.currentTimeMillis() < deadline) {
+            Thread.sleep(50);
+        }
+        assertTrue(condition.getAsBoolean(), "Timed out waiting");
     }
 
     private static void waitForCount(AtomicInteger counter, int expected) throws InterruptedException {
@@ -403,7 +470,8 @@ public class OutboundSubscriptionTest extends SpringBootBaseTest {
                 "\t<SubscriptionRequest>\n" +
                 "\t\t<RequestTimestamp>2019-12-06T14:38:42.2790513Z</RequestTimestamp>\n" +
                 "\t\t<ConsumerAddress>http://localhost:" + port + "/siri/" + consumerPath + "</ConsumerAddress>\n" +
-                "\t\t<RequestorRef>" + subscriptionId + "</RequestorRef>\n" +
+                // Same client for the same address - as a client that re-subscribes
+                "\t\t<RequestorRef>" + consumerPath + "</RequestorRef>\n" +
                 "\t\t<MessageIdentifier>52467cd2-e469-4f37-8841-27c3a9b57b63</MessageIdentifier>\n" +
                 "\t\t<SubscriptionContext>\n" +
                 "\t\t\t<HeartbeatInterval>" + heartbeatInterval + "</HeartbeatInterval>\n" +

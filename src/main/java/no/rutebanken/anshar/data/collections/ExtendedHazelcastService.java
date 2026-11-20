@@ -302,6 +302,11 @@ public class ExtendedHazelcastService extends HazelCastService {
     }
 
     @Bean
+    public IMap<String, Instant> getInitialDeliveryPendingMap() {
+        return hazelcast.getMap("anshar.subscriptions.outbound.initialdelivery.pending");
+    }
+
+    @Bean
     public ISet<String> getUnhealthySubscriptionsSet() {
         return hazelcast.getSet("anshar.subscriptions.unhealthy.notified");
     }
