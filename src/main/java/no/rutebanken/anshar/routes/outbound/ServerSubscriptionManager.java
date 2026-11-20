@@ -57,6 +57,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -85,6 +86,14 @@ public class ServerSubscriptionManager {
     private IMap<String, Instant> heartbeatTimestampMap;
 
     @Autowired
+    @Qualifier("getInitialDeliveryTimestampMap")
+    private IMap<String, Instant> initialDeliveryTimestampMap;
+
+    @Autowired
+    @Qualifier("getInitialDeliveryPendingMap")
+    private IMap<String, Instant> initialDeliveryPendingMap;
+
+    @Autowired
     private SiriObjectFactory siriObjectFactory;
 
     @Value("${anshar.outbound.heartbeatinterval.minimum}")
@@ -109,6 +118,11 @@ public class ServerSubscriptionManager {
     // ...but never sooner than this
     @Value("${anshar.outbound.error.graceperiod.minimum:PT3M}")
     private Duration failGracePeriodMinimum = Duration.ofMinutes(3);
+
+    // A re-subscription that replaces a subscription to the same address gets no new initial delivery if one was
+    // sent to that address more recently than this - the recipient already has the data, and gets all changes
+    @Value("${anshar.outbound.resubscribe.initialdelivery.minimum.interval:PT5M}")
+    private Duration resubscribeInitialDeliveryInterval = Duration.ofMinutes(5);
 
     @Value("${anshar.outbound.pubsub.vm.topic.enabled}")
     private boolean pushToVmTopicEnabled;
@@ -181,75 +195,120 @@ public class ServerSubscriptionManager {
 
         OutboundSubscriptionSetup subscription = createSubscription(siri, datasetId, outboundIdMappingPolicy, clientTrackingName);
 
-        boolean hasError = false;
-        String errorText = null;
-
-        if (subscription.getAddress() == null) {
-            hasError = true;
-            errorText = errorConsumerAddressMissing;
-        } else if (subscription.getInitialTerminationTime() == null || subscription.getInitialTerminationTime().isBefore(ZonedDateTime.now())) {
-            //Subscription has already expired
-            hasError = true;
-            errorText = initialTerminationTimePassed;
-        }
-
-        if (subscriptions.containsKey(subscription.getSubscriptionId())) {
-
-            final OutboundSubscriptionSetup subscriptionSetup = subscriptions.get(subscription.getSubscriptionId());
-
-            if (subscription.getSubscriptionType() != subscriptionSetup.getSubscriptionType()) {
-                hasError = true;
-                errorText = "A different subscription with id=" + subscription.getSubscriptionId() + " already exists";
-            }
-        }
-
-        final Instant firstFail = failTrackerMap.get(subscription.getSubscriptionId());
-        if (!hasError && firstFail != null) {
-            // Pushing to this subscription has recently failed - only accept if the recipient is reachable now.
-            // The fail-tracker is kept until a delivery succeeds, so that the subscription is cancelled on the next failure.
-            String probeError = camelRouteManager.probeConsumerAddress(subscription.getAddress());
-            if (probeError != null) {
-                logger.info("Rejecting subscription {} - previous deliveries failed, and ConsumerAddress is still unreachable: {}", subscription, probeError);
-                hasError = true;
-                errorText = "ConsumerAddress is unreachable: " + probeError;
-                // Keep remembering the failures as long as the recipient keeps trying
-                failTrackerMap.set(subscription.getSubscriptionId(), firstFail, failTrackerTtlMinutes, TimeUnit.MINUTES);
-            }
-        }
-
-        if (hasError) {
+        String errorText = validateSubscription(subscription);
+        if (errorText != null) {
             return siriObjectFactory.createSubscriptionResponse(
                     subscription.getSubscriptionId(),
                     false,
                     errorText,
                     resolveSiriVersionStr(subscription.getSiriVersion())
             );
-        } else {
-            addSubscription(subscription);
+        }
 
-            Siri subscriptionResponse = siriObjectFactory.createSubscriptionResponse(
-                    subscription.getSubscriptionId(),
-                    true,
-                    null,
-                    resolveSiriVersionStr(subscription.getSiriVersion()))
-                    ;
+        // Added before the replaced subscriptions are removed, so that no update falls between them
+        addSubscription(subscription);
+        final InitialDeliveryState inherited = replaceSubscriptionsWithSameContent(subscription);
 
-            //Send initial ServiceDelivery
-            logger.debug("Find initial delivery for {}", subscription);
-            Siri delivery = siriHelper.findInitialDeliveryData(subscription);
+        Siri subscriptionResponse = siriObjectFactory.createSubscriptionResponse(
+                subscription.getSubscriptionId(),
+                true,
+                null,
+                resolveSiriVersionStr(subscription.getSiriVersion()))
+                ;
 
-            if (delivery != null) {
-                logger.info("Sending initial delivery to {}", subscription.getAddress());
-                camelRouteManager.pushInitialDelivery(delivery, subscription);
-            } else {
-                logger.info("No initial delivery found for {}", subscription);
+        startInitialDelivery(subscription, inherited);
+
+        return subscriptionResponse;
+    }
+
+    /**
+     * @return why the subscription is rejected, or null if it is accepted
+     */
+    private String validateSubscription(OutboundSubscriptionSetup subscription) {
+        String errorText = null;
+
+        if (subscription.getAddress() == null) {
+            errorText = errorConsumerAddressMissing;
+        } else if (subscription.getInitialTerminationTime() == null || subscription.getInitialTerminationTime().isBefore(ZonedDateTime.now())) {
+            //Subscription has already expired
+            errorText = initialTerminationTimePassed;
+        }
+
+        final OutboundSubscriptionSetup existing = subscriptions.get(subscription.getSubscriptionId());
+        if (existing != null && subscription.getSubscriptionType() != existing.getSubscriptionType()) {
+            errorText = "A different subscription with id=" + subscription.getSubscriptionId() + " already exists";
+        }
+
+        final Instant firstFail = failTrackerMap.get(subscription.getSubscriptionId());
+        if (errorText == null && firstFail != null) {
+            // Pushing to this subscription has recently failed - only accept if the recipient is reachable now.
+            // The fail-tracker is kept until a delivery succeeds, so that the subscription is cancelled on the next failure.
+            String probeError = camelRouteManager.probeConsumerAddress(subscription.getAddress());
+            if (probeError != null) {
+                logger.info("Rejecting subscription {} - previous deliveries failed, and ConsumerAddress is still unreachable: {}", subscription, probeError);
+                errorText = "ConsumerAddress is unreachable: " + probeError;
+                // Keep remembering the failures as long as the recipient keeps trying
+                failTrackerMap.set(subscription.getSubscriptionId(), firstFail, failTrackerTtlMinutes, TimeUnit.MINUTES);
             }
+        }
+        return errorText;
+    }
 
-            return subscriptionResponse;
+    /**
+     * Sends all data to a new subscription - unless it replaced a subscription whose initial delivery it can rely on
+     */
+    private void startInitialDelivery(OutboundSubscriptionSetup subscription, InitialDeliveryState inherited) {
+        if (inherited == null) {
+            sendInitialDelivery(subscription);
+        } else if (inherited.delivered()) {
+            logger.info("Skipping initial delivery to re-subscription {} - all data was delivered to {} at {}",
+                    subscription.getSubscriptionId(), subscription.getAddress(), inherited.time());
+            rememberInitialDelivery(initialDeliveryTimestampMap, subscription.getSubscriptionId(), inherited.time());
+        } else {
+            // The outcome of that delivery decides whether this subscription needs its own, see initialDeliveryCompleted
+            logger.info("Skipping initial delivery to re-subscription {} - all data is being sent to {} since {}",
+                    subscription.getSubscriptionId(), subscription.getAddress(), inherited.time());
+            rememberInitialDelivery(initialDeliveryPendingMap, subscription.getSubscriptionId(), inherited.time());
         }
     }
 
+    private void sendInitialDelivery(OutboundSubscriptionSetup subscription) {
+        logger.debug("Find initial delivery for {}", subscription);
+        Siri delivery = siriHelper.findInitialDeliveryData(subscription);
 
+        if (delivery != null) {
+            logger.info("Sending initial delivery to {}", subscription.getAddress());
+            rememberInitialDelivery(initialDeliveryPendingMap, subscription.getSubscriptionId(), Instant.now());
+            camelRouteManager.pushInitialDelivery(delivery, subscription,
+                    outcome -> initialDeliveryCompleted(subscription, outcome));
+        } else {
+            logger.info("No initial delivery found for {}", subscription);
+        }
+    }
+
+    /**
+     * The subscription may have been replaced by a re-subscription while its initial delivery was sent - the outcome
+     * then applies to the subscription that replaced it, which skipped its own initial delivery.
+     */
+    private void initialDeliveryCompleted(OutboundSubscriptionSetup subscription, CamelRouteManager.Outcome outcome) {
+        initialDeliveryPendingMap.delete(subscription.getSubscriptionId());
+        OutboundSubscriptionSetup current = subscriptions.containsKey(subscription.getSubscriptionId())
+                ? subscription : findSubscriptionWithSameContent(subscription);
+        if (outcome == CamelRouteManager.Outcome.DELIVERED) {
+            // Only a delivery the recipient took in full can stand in for a later re-subscription
+            Instant delivered = Instant.now();
+            rememberInitialDelivery(initialDeliveryTimestampMap, subscription.getSubscriptionId(), delivered);
+            if (current != null && current != subscription) {
+                initialDeliveryPendingMap.delete(current.getSubscriptionId());
+                rememberInitialDelivery(initialDeliveryTimestampMap, current.getSubscriptionId(), delivered);
+            }
+        } else if (current != null && current != subscription
+                && initialDeliveryPendingMap.containsKey(current.getSubscriptionId())) {
+            logger.info("Initial delivery to {} was not delivered ({}) - sending one to re-subscription {}",
+                    subscription.getSubscriptionId(), outcome, current.getSubscriptionId());
+            sendInitialDelivery(current);
+        }
+    }
 
     private OutboundSubscriptionSetup createSubscription(Siri siri, String datasetId, OutboundIdMappingPolicy outboundIdMappingPolicy, String clientTrackingName) {
 
@@ -367,6 +426,85 @@ public class ServerSubscriptionManager {
         return 0;
     }
 
+    /** When all data was delivered to a subscription, or since when it is being sent */
+    private record InitialDeliveryState(Instant time, boolean delivered) {
+    }
+
+    /**
+     * Removes existing subscriptions from the same client that would deliver exactly the same data to the same
+     * address as the new one. Some clients re-subscribe with a new SubscriptionIdentifier without terminating the
+     * previous subscription - without this, every re-subscription multiplies the traffic to the recipient.
+     *
+     * @return the initial delivery of a replaced subscription that the new subscription can rely on instead of its
+     * own - null if it needs its own
+     */
+    private InitialDeliveryState replaceSubscriptionsWithSameContent(OutboundSubscriptionSetup subscription) {
+        boolean replacedFailing = false;
+        Instant delivered = null;
+        Instant pending = null;
+        for (OutboundSubscriptionSetup existing : subscriptions.values()) {
+            if (!existing.getSubscriptionId().equals(subscription.getSubscriptionId()) && hasSameContent(existing, subscription)) {
+                logger.info("Subscription {} replaces subscription {} with the same address and content",
+                        subscription.getSubscriptionId(), existing.getSubscriptionId());
+
+                // Updates to a failing subscription may have been lost - its recipient needs all data again
+                replacedFailing |= failTrackerMap.containsKey(existing.getSubscriptionId());
+                delivered = latest(delivered, initialDeliveryTimestampMap.get(existing.getSubscriptionId()));
+                pending = latest(pending, initialDeliveryPendingMap.get(existing.getSubscriptionId()));
+                removeSubscription(existing.getSubscriptionId());
+            }
+        }
+        if (replacedFailing || !isResubscribeInitialDeliveryIntervalEnabled()) {
+            return null;
+        }
+        Instant notBefore = Instant.now().minus(resubscribeInitialDeliveryInterval);
+        if (delivered != null && delivered.isAfter(notBefore)) {
+            return new InitialDeliveryState(delivered, true);
+        }
+        if (pending != null && pending.isAfter(notBefore)) {
+            return new InitialDeliveryState(pending, false);
+        }
+        return null;
+    }
+
+    private static boolean hasSameContent(OutboundSubscriptionSetup a, OutboundSubscriptionSetup b) {
+        return Objects.equals(a.getAddress(), b.getAddress())
+                && a.getSubscriptionType() == b.getSubscriptionType()
+                && Objects.equals(a.getDatasetId(), b.getDatasetId())
+                && Objects.equals(a.getFilterMap(), b.getFilterMap())
+                && Objects.equals(a.getRequestorRef(), b.getRequestorRef())
+                && a.getSiriVersion() == b.getSiriVersion()
+                && a.getChangeBeforeUpdates() == b.getChangeBeforeUpdates();
+    }
+
+    private OutboundSubscriptionSetup findSubscriptionWithSameContent(OutboundSubscriptionSetup subscription) {
+        for (OutboundSubscriptionSetup existing : subscriptions.values()) {
+            if (hasSameContent(existing, subscription)) {
+                return existing;
+            }
+        }
+        return null;
+    }
+
+    private static Instant latest(Instant a, Instant b) {
+        return a == null || (b != null && b.isAfter(a)) ? b : a;
+    }
+
+    private boolean isResubscribeInitialDeliveryIntervalEnabled() {
+        return resubscribeInitialDeliveryInterval.isPositive();
+    }
+
+    /** Kept until the interval has passed, counted from the given time */
+    private void rememberInitialDelivery(IMap<String, Instant> map, String subscriptionId, Instant time) {
+        if (!isResubscribeInitialDeliveryIntervalEnabled()) {
+            return;
+        }
+        long ttlMillis = resubscribeInitialDeliveryInterval.toMillis() - time.until(Instant.now(), MILLIS);
+        if (ttlMillis > 0) {
+            map.set(subscriptionId, time, ttlMillis, TimeUnit.MILLISECONDS);
+        }
+    }
+
     private void addSubscription(OutboundSubscriptionSetup subscription) {
         subscriptions.put(subscription.getSubscriptionId(), subscription);
     }
@@ -375,6 +513,8 @@ public class ServerSubscriptionManager {
         logger.info("Removing subscription {}", subscriptionId);
         // Fail-tracker is kept (with TTL) so that a re-subscription to a failing recipient is detected
         heartbeatTimestampMap.remove(subscriptionId);
+        initialDeliveryTimestampMap.delete(subscriptionId);
+        initialDeliveryPendingMap.delete(subscriptionId);
         return subscriptions.remove(subscriptionId);
     }
 

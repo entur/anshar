@@ -205,7 +205,12 @@ public class CamelRouteManager {
      * in one post.
      */
     void pushInitialDelivery(Siri payload, OutboundSubscriptionSetup subscriptionRequest) {
-        pushSiriData(payload, subscriptionRequest, false, true, true, null);
+        pushInitialDelivery(payload, subscriptionRequest, null);
+    }
+
+    /** As {@link #pushInitialDelivery(Siri, OutboundSubscriptionSetup)}, telling the listener how it went */
+    void pushInitialDelivery(Siri payload, OutboundSubscriptionSetup subscriptionRequest, DeliveryListener listener) {
+        pushSiriData(payload, subscriptionRequest, false, true, true, listener);
     }
 
     /** Told how a push went */
