@@ -297,6 +297,11 @@ public class ExtendedHazelcastService extends HazelCastService {
     }
 
     @Bean
+    public IMap<String, Instant> getInitialDeliveryTimestampMap() {
+        return hazelcast.getMap("anshar.subscriptions.outbound.initialdelivery");
+    }
+
+    @Bean
     public ISet<String> getUnhealthySubscriptionsSet() {
         return hazelcast.getSet("anshar.subscriptions.unhealthy.notified");
     }

@@ -86,6 +86,10 @@ public class ServerSubscriptionManager {
     private IMap<String, Instant> heartbeatTimestampMap;
 
     @Autowired
+    @Qualifier("getInitialDeliveryTimestampMap")
+    private IMap<String, Instant> initialDeliveryTimestampMap;
+
+    @Autowired
     private SiriObjectFactory siriObjectFactory;
 
     @Value("${anshar.outbound.heartbeatinterval.minimum}")
@@ -110,6 +114,11 @@ public class ServerSubscriptionManager {
     // ...but never sooner than this
     @Value("${anshar.outbound.error.graceperiod.minimum:PT3M}")
     private Duration failGracePeriodMinimum = Duration.ofMinutes(3);
+
+    // A re-subscription that replaces a subscription to the same address gets no new initial delivery if one was
+    // sent to that address more recently than this - the recipient already has the data, and gets all changes
+    @Value("${anshar.outbound.resubscribe.initialdelivery.minimum.interval:PT5M}")
+    private Duration resubscribeInitialDeliveryInterval = Duration.ofMinutes(5);
 
     @Value("${anshar.outbound.pubsub.vm.topic.enabled}")
     private boolean pushToVmTopicEnabled;
@@ -226,7 +235,7 @@ public class ServerSubscriptionManager {
                     resolveSiriVersionStr(subscription.getSiriVersion())
             );
         } else {
-            replaceSubscriptionsWithSameContent(subscription);
+            boolean replaced = replaceSubscriptionsWithSameContent(subscription);
             addSubscription(subscription);
 
             Siri subscriptionResponse = siriObjectFactory.createSubscriptionResponse(
@@ -236,12 +245,25 @@ public class ServerSubscriptionManager {
                     resolveSiriVersionStr(subscription.getSiriVersion()))
                     ;
 
+            final String initialDeliveryKey = initialDeliveryKey(subscription);
+            final Instant previousInitialDelivery = initialDeliveryTimestampMap.get(initialDeliveryKey);
+            if (replaced && previousInitialDelivery != null
+                    && previousInitialDelivery.isAfter(Instant.now().minus(resubscribeInitialDeliveryInterval))) {
+                logger.info("Skipping initial delivery to re-subscription {} - all data was sent to {} at {}",
+                        subscription.getSubscriptionId(), subscription.getAddress(), previousInitialDelivery);
+                return subscriptionResponse;
+            }
+
             //Send initial ServiceDelivery
             logger.debug("Find initial delivery for {}", subscription);
             Siri delivery = siriHelper.findInitialDeliveryData(subscription);
 
             if (delivery != null) {
                 logger.info("Sending initial delivery to {}", subscription.getAddress());
+                if (!resubscribeInitialDeliveryInterval.isZero()) {
+                    initialDeliveryTimestampMap.set(initialDeliveryKey, Instant.now(),
+                            resubscribeInitialDeliveryInterval.toMillis(), TimeUnit.MILLISECONDS);
+                }
                 camelRouteManager.pushInitialDelivery(delivery, subscription);
             } else {
                 logger.info("No initial delivery found for {}", subscription);
@@ -373,8 +395,11 @@ public class ServerSubscriptionManager {
      * Removes existing subscriptions that would deliver exactly the same data to the same address as the new one.
      * Some clients re-subscribe with a new SubscriptionIdentifier without terminating the previous subscription -
      * without this, every re-subscription multiplies the traffic to the recipient.
+     *
+     * @return whether any subscription was replaced
      */
-    private void replaceSubscriptionsWithSameContent(OutboundSubscriptionSetup subscription) {
+    private boolean replaceSubscriptionsWithSameContent(OutboundSubscriptionSetup subscription) {
+        boolean replaced = false;
         for (OutboundSubscriptionSetup existing : subscriptions.values()) {
             if (!existing.getSubscriptionId().equals(subscription.getSubscriptionId())
                     && Objects.equals(existing.getAddress(), subscription.getAddress())
@@ -384,8 +409,18 @@ public class ServerSubscriptionManager {
                 logger.info("Subscription {} replaces subscription {} with the same address and content",
                         subscription.getSubscriptionId(), existing.getSubscriptionId());
                 removeSubscription(existing.getSubscriptionId());
+                replaced = true;
             }
         }
+        return replaced;
+    }
+
+    /**
+     * Identifies what is delivered where - the filters are not part of it, but a subscription is only replaced by one
+     * with the same filters
+     */
+    private static String initialDeliveryKey(OutboundSubscriptionSetup subscription) {
+        return subscription.getAddress() + "|" + subscription.getSubscriptionType() + "|" + subscription.getDatasetId();
     }
 
     private void addSubscription(OutboundSubscriptionSetup subscription) {

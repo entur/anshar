@@ -2,6 +2,7 @@ package no.rutebanken.anshar.outbound;
 
 import com.hazelcast.map.IMap;
 import jakarta.xml.bind.JAXBException;
+import no.rutebanken.anshar.data.Situations;
 import no.rutebanken.anshar.integration.SpringBootBaseTest;
 import no.rutebanken.anshar.routes.outbound.OutboundSubscriptionSetup;
 import no.rutebanken.anshar.routes.outbound.ServerSubscriptionManager;
@@ -11,7 +12,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.test.util.ReflectionTestUtils;
+import uk.org.siri.siri21.HalfOpenTimestampOutputRangeStructure;
+import uk.org.siri.siri21.PtSituationElement;
+import uk.org.siri.siri21.RequestorRef;
 import uk.org.siri.siri21.Siri;
+import uk.org.siri.siri21.SituationNumber;
 import uk.org.siri.siri21.SubscriptionContextStructure;
 import uk.org.siri.siri21.SubscriptionRequest;
 
@@ -24,11 +30,13 @@ import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -43,6 +51,9 @@ public class OutboundSubscriptionTest extends SpringBootBaseTest {
     @Autowired
     @Qualifier("getFailTrackerMap")
     private IMap<String, Instant> failTrackerMap;
+
+    @Autowired
+    private Situations situations;
 
 
     @Value("${anshar.outbound.heartbeatinterval.minimum}")
@@ -296,6 +307,81 @@ public class OutboundSubscriptionTest extends SpringBootBaseTest {
                 failTrackerMap.delete(subscriptionId);
             }
         }
+    }
+
+    @Test
+    public void testRecentInitialDeliveryIsNotRepeatedForResubscription() throws Exception {
+        final String datasetId = "RESUB";
+        situations.add(datasetId, situation("resubscribe-situation"));
+
+        AtomicInteger initialDeliveries = new AtomicInteger();
+        HttpServer consumer = HttpServer.create(new InetSocketAddress("localhost", 0), 0);
+        consumer.createContext("/", exchange -> {
+            if (new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8).contains("resubscribe-situation")) {
+                initialDeliveries.incrementAndGet();
+            }
+            exchange.sendResponseHeaders(200, -1);
+            exchange.close();
+        });
+        consumer.start();
+        final int port = consumer.getAddress().getPort();
+
+        final List<String> subscriptionIds = List.of("resubscribe-first", "resubscribe-second", "resubscribe-third");
+        Object interval = ReflectionTestUtils.getField(serverSubscriptionManager, "resubscribeInitialDeliveryInterval");
+        try {
+            subscribe(subscriptionIds.get(0), port, datasetId);
+            waitForCount(initialDeliveries, 1);
+
+            // Re-subscription right after - the recipient already has all data
+            subscribe(subscriptionIds.get(1), port, datasetId);
+            Thread.sleep(2000);
+            assertEquals(1, initialDeliveries.get());
+            assertFalse(isActive(subscriptionIds.get(0)));
+            assertTrue(isActive(subscriptionIds.get(1)));
+
+            // Re-subscription after the interval
+            ReflectionTestUtils.setField(serverSubscriptionManager, "resubscribeInitialDeliveryInterval", Duration.ZERO);
+            subscribe(subscriptionIds.get(2), port, datasetId);
+            waitForCount(initialDeliveries, 2);
+        } finally {
+            ReflectionTestUtils.setField(serverSubscriptionManager, "resubscribeInitialDeliveryInterval", interval);
+            consumer.stop(0);
+            for (String subscriptionId : subscriptionIds) {
+                serverSubscriptionManager.terminateSubscription(subscriptionId, false);
+                failTrackerMap.delete(subscriptionId);
+            }
+        }
+    }
+
+    private void subscribe(String subscriptionId, int port, String datasetId) throws Exception {
+        Siri response = serverSubscriptionManager.handleSubscriptionRequest(
+                SiriXml.parseXml(sxSubscriptionRequest(subscriptionId, port, "PT60M", "resubscribe")),
+                datasetId, OutboundIdMappingPolicy.DEFAULT, null);
+        assertTrue(response.getSubscriptionResponse().getResponseStatuses().get(0).isStatus());
+    }
+
+    private static void waitForCount(AtomicInteger counter, int expected) throws InterruptedException {
+        long deadline = System.currentTimeMillis() + 10000;
+        while (counter.get() < expected && System.currentTimeMillis() < deadline) {
+            Thread.sleep(50);
+        }
+        assertEquals(expected, counter.get());
+    }
+
+    private static PtSituationElement situation(String situationNumber) {
+        PtSituationElement element = new PtSituationElement();
+        element.setCreationTime(ZonedDateTime.now());
+        SituationNumber number = new SituationNumber();
+        number.setValue(situationNumber);
+        element.setSituationNumber(number);
+        RequestorRef participant = new RequestorRef();
+        participant.setValue("RESUB");
+        element.setParticipantRef(participant);
+        HalfOpenTimestampOutputRangeStructure period = new HalfOpenTimestampOutputRangeStructure();
+        period.setStartTime(ZonedDateTime.now().minusHours(1));
+        period.setEndTime(ZonedDateTime.now().plusHours(4));
+        element.getValidityPeriods().add(period);
+        return element;
     }
 
     private boolean isActive(String subscriptionId) {
