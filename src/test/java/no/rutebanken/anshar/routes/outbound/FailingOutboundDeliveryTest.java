@@ -19,6 +19,7 @@ import com.hazelcast.map.IMap;
 import com.sun.net.httpserver.HttpServer;
 import no.rutebanken.anshar.data.Situations;
 import no.rutebanken.anshar.integration.SpringBootBaseTest;
+import no.rutebanken.anshar.routes.siri.helpers.SiriObjectFactory;
 import no.rutebanken.anshar.subscription.SiriDataType;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -79,6 +80,13 @@ public class FailingOutboundDeliveryTest extends SpringBootBaseTest {
     @Qualifier("getHeartbeatTimestampMap")
     private IMap<String, Instant> heartbeatTimestampMap;
 
+    @Autowired
+    @Qualifier("getFailTrackerMap")
+    private IMap<String, Instant> failTrackerMap;
+
+    @Autowired
+    private SiriObjectFactory siriObjectFactory;
+
     @Value("${anshar.outbound.circuitbreaker.failure.threshold:5}")
     private int failureThreshold;
 
@@ -136,6 +144,26 @@ public class FailingOutboundDeliveryTest extends SpringBootBaseTest {
 
         // Recipient is responding - circuit is not opened
         assertEquals(deliveries, received.get());
+    }
+
+    @Test
+    public void testOnlyDeliveredDataClearsFailTracker() throws Exception {
+        AtomicInteger received = new AtomicInteger();
+        OutboundSubscriptionSetup subscription = createSubscription("heartbeat-fail-tracker-test", () -> {
+            received.incrementAndGet();
+            return 200;
+        }, null);
+        Instant firstFail = Instant.now().minusSeconds(60);
+        failTrackerMap.set(subscription.getSubscriptionId(), firstFail);
+
+        // An accepted heartbeat does not show that the recipient accepts data
+        camelRouteManager.pushSiriData(siriObjectFactory.createHeartbeatNotification(subscription.getSubscriptionId()), subscription, false);
+        waitUntilNoMoreRequests(received);
+        assertEquals(1, received.get());
+        assertEquals(firstFail, failTrackerMap.get(subscription.getSubscriptionId()));
+
+        camelRouteManager.pushSiriData(sxDelivery("test"), subscription, false);
+        waitFor(() -> !failTrackerMap.containsKey(subscription.getSubscriptionId()));
     }
 
     @Test
