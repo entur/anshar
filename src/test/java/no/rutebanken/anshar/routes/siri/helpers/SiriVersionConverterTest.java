@@ -2,6 +2,7 @@ package no.rutebanken.anshar.routes.siri.helpers;
 
 import org.entur.siri21.util.SiriXml;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import uk.org.siri.siri21.AdviceTypeEnumeration;
@@ -247,7 +248,12 @@ class SiriVersionConverterTest {
         assertTrue(converter < MB, "largest allocation by the converter was " + converter + " bytes");
     }
 
+    /**
+     * A wall-clock comparison, too noisy for a shared build machine, so only run on request:
+     * {@code mvn test -Dtest=SiriVersionConverterTest -Danshar.perf.tests=true}
+     */
     @Test
+    @EnabledIfSystemProperty(named = "anshar.perf.tests", matches = "true")
     void largeConversionIsNoSlowerThanTheTextPath() throws Exception {
         Siri siri = largeEtDelivery();
         for (int i = 0; i < 3; i++) {
