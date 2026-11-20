@@ -851,8 +851,9 @@ public class CamelRouteManager {
             }
         }
 
-        if (responseCode >= 200 && responseCode < 300) {
-            // Clearing fail-tracker for all success-responses
+        if (responseCode >= 200 && responseCode < 300 && transformed.getServiceDelivery() != null) {
+            // Only a delivered ServiceDelivery clears the fail-tracker. A recipient that accepts heartbeats but keeps
+            // rejecting data must still be cancelled after the grace period.
             subscriptionManager.clearFailTracker(subscription.getSubscriptionId());
         }
 
