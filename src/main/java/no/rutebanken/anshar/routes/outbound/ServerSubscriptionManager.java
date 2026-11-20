@@ -102,6 +102,14 @@ public class ServerSubscriptionManager {
     @Value("${anshar.outbound.error.failtracker.ttl.minutes:30}")
     private long failTrackerTtlMinutes = 30;
 
+    // A subscription whose deliveries keep failing is cancelled after this many heartbeat intervals...
+    @Value("${anshar.outbound.error.graceperiod.factor:3}")
+    private long failGracePeriodFactor = 3;
+
+    // ...but never sooner than this
+    @Value("${anshar.outbound.error.graceperiod.minimum:PT3M}")
+    private Duration failGracePeriodMinimum = Duration.ofMinutes(3);
+
     @Value("${anshar.outbound.pubsub.vm.topic.enabled}")
     private boolean pushToVmTopicEnabled;
     @Value("${anshar.outbound.pubsub.et.topic.enabled}")
@@ -670,8 +678,8 @@ public class ServerSubscriptionManager {
         OutboundSubscriptionSetup outboundSubscriptionSetup = subscriptions.get(subscriptionId);
         if (outboundSubscriptionSetup != null) {
 
-            //Grace-period is set to minimum 5 minutes
-            long gracePeriod = Math.max(3*outboundSubscriptionSetup.getHeartbeatInterval(), 5*60*1000L);
+            long gracePeriod = Math.max(failGracePeriodFactor * outboundSubscriptionSetup.getHeartbeatInterval(),
+                    failGracePeriodMinimum.toMillis());
 
             Instant firstFail = failTrackerMap.getOrDefault(subscriptionId, Instant.now());
 
