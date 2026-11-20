@@ -266,6 +266,38 @@ public class OutboundSubscriptionTest extends SpringBootBaseTest {
         }
     }
 
+    @Test
+    public void testResubscriptionWithNewIdReplacesSubscriptionToSameAddress() throws Exception {
+        final String first = "same-address-first";
+        final String second = "same-address-second";
+        final String otherAddress = "other-address";
+        // Unreachable port - no deliveries are needed
+        final int port = 1;
+        try {
+            for (String subscriptionId : List.of(first, otherAddress)) {
+                Siri response = serverSubscriptionManager.handleSubscriptionRequest(
+                        SiriXml.parseXml(sxSubscriptionRequest(subscriptionId, port, "PT60M", subscriptionId.equals(otherAddress) ? otherAddress : "shared")),
+                        null, OutboundIdMappingPolicy.DEFAULT, null);
+                assertTrue(response.getSubscriptionResponse().getResponseStatuses().get(0).isStatus());
+            }
+
+            // Same recipient subscribes again with a new SubscriptionIdentifier, without terminating the first
+            Siri response = serverSubscriptionManager.handleSubscriptionRequest(
+                    SiriXml.parseXml(sxSubscriptionRequest(second, port, "PT60M", "shared")),
+                    null, OutboundIdMappingPolicy.DEFAULT, null);
+            assertTrue(response.getSubscriptionResponse().getResponseStatuses().get(0).isStatus());
+
+            assertFalse(isActive(first));
+            assertTrue(isActive(second));
+            assertTrue(isActive(otherAddress));
+        } finally {
+            for (String subscriptionId : List.of(first, second, otherAddress)) {
+                serverSubscriptionManager.terminateSubscription(subscriptionId, false);
+                failTrackerMap.delete(subscriptionId);
+            }
+        }
+    }
+
     private boolean isActive(String subscriptionId) {
         return serverSubscriptionManager.getSubscriptions().stream()
                 .anyMatch(s -> subscriptionId.equals(((OutboundSubscriptionSetup) s).getSubscriptionId()));
@@ -276,11 +308,15 @@ public class OutboundSubscriptionTest extends SpringBootBaseTest {
     }
 
     private static String sxSubscriptionRequest(String subscriptionId, int port, String heartbeatInterval) {
+        return sxSubscriptionRequest(subscriptionId, port, heartbeatInterval, subscriptionId);
+    }
+
+    private static String sxSubscriptionRequest(String subscriptionId, int port, String heartbeatInterval, String consumerPath) {
         return "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                 "<Siri xmlns=\"http://www.siri.org.uk/siri\" version=\"2.1\">\n" +
                 "\t<SubscriptionRequest>\n" +
                 "\t\t<RequestTimestamp>2019-12-06T14:38:42.2790513Z</RequestTimestamp>\n" +
-                "\t\t<ConsumerAddress>http://localhost:" + port + "/siri</ConsumerAddress>\n" +
+                "\t\t<ConsumerAddress>http://localhost:" + port + "/siri/" + consumerPath + "</ConsumerAddress>\n" +
                 "\t\t<RequestorRef>" + subscriptionId + "</RequestorRef>\n" +
                 "\t\t<MessageIdentifier>52467cd2-e469-4f37-8841-27c3a9b57b63</MessageIdentifier>\n" +
                 "\t\t<SubscriptionContext>\n" +

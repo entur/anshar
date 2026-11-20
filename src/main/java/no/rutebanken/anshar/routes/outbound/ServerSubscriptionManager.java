@@ -57,6 +57,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -225,6 +226,7 @@ public class ServerSubscriptionManager {
                     resolveSiriVersionStr(subscription.getSiriVersion())
             );
         } else {
+            replaceSubscriptionsWithSameContent(subscription);
             addSubscription(subscription);
 
             Siri subscriptionResponse = siriObjectFactory.createSubscriptionResponse(
@@ -365,6 +367,25 @@ public class ServerSubscriptionManager {
             return changeBeforeUpdates.toMillis();
         }
         return 0;
+    }
+
+    /**
+     * Removes existing subscriptions that would deliver exactly the same data to the same address as the new one.
+     * Some clients re-subscribe with a new SubscriptionIdentifier without terminating the previous subscription -
+     * without this, every re-subscription multiplies the traffic to the recipient.
+     */
+    private void replaceSubscriptionsWithSameContent(OutboundSubscriptionSetup subscription) {
+        for (OutboundSubscriptionSetup existing : subscriptions.values()) {
+            if (!existing.getSubscriptionId().equals(subscription.getSubscriptionId())
+                    && Objects.equals(existing.getAddress(), subscription.getAddress())
+                    && existing.getSubscriptionType() == subscription.getSubscriptionType()
+                    && Objects.equals(existing.getDatasetId(), subscription.getDatasetId())
+                    && Objects.equals(existing.getFilterMap(), subscription.getFilterMap())) {
+                logger.info("Subscription {} replaces subscription {} with the same address and content",
+                        subscription.getSubscriptionId(), existing.getSubscriptionId());
+                removeSubscription(existing.getSubscriptionId());
+            }
+        }
     }
 
     private void addSubscription(OutboundSubscriptionSetup subscription) {
