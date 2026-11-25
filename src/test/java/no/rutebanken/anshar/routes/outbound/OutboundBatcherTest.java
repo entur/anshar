@@ -134,6 +134,26 @@ class OutboundBatcherTest {
     }
 
     @Test
+    void clearIfRemovesOnlyMatchingBatchesAndCancelsTimers() {
+        batcher.add(sub("s1", 2000), List.of("a"), "b1");
+        batcher.add(sub("s2", 3000), List.of("b"), "b2");
+        batcher.add(sub("s3", 2000), List.of("c"), "b3");
+
+        batcher.clearIf(s -> s.getUpdateInterval() == 2000);
+
+        assertEquals(0, batcher.bufferedObjects("s1"));
+        assertEquals(1, batcher.bufferedObjects("s2"));
+        assertEquals(0, batcher.bufferedObjects("s3"));
+        verify(futures.get(0)).cancel(false);
+        verify(futures.get(2)).cancel(false);
+        org.mockito.Mockito.verify(futures.get(1), org.mockito.Mockito.never()).cancel(false);
+
+        scheduledTasks().forEach(Runnable::run);
+        assertEquals(1, flushes.size());
+        assertEquals("s2", flushes.get(0).subscription().getSubscriptionId());
+    }
+
+    @Test
     void flushAllFlushesEveryBuffer() {
         batcher.add(sub("s1", 2000), List.of("a"), "b1");
         batcher.add(sub("s2", 2000), List.of("b"), "b2");

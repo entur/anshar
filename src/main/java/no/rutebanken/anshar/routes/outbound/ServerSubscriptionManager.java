@@ -63,6 +63,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
@@ -318,8 +319,10 @@ public class ServerSubscriptionManager {
 
     private void sendInitialDelivery(OutboundSubscriptionSetup subscription) {
         logger.debug("Find initial delivery for {}", subscription);
-        // The initial delivery contains all buffered updates
+        // The initial delivery contains all buffered updates - also those held for a replaced or terminated
+        // subscription with the same content, which a flush would otherwise redirect to this one after the dump
         batcher.clear(subscription.getSubscriptionId());
+        batcher.clearIf(buffered -> hasSameContent(buffered, subscription));
         Siri delivery = siriHelper.findInitialDeliveryData(subscription);
 
         if (delivery != null) {
@@ -552,8 +555,7 @@ public class ServerSubscriptionManager {
                 && Objects.equals(a.getFilterMap(), b.getFilterMap())
                 && Objects.equals(a.getRequestorRef(), b.getRequestorRef())
                 && a.getSiriVersion() == b.getSiriVersion()
-                && a.getChangeBeforeUpdates() == b.getChangeBeforeUpdates()
-                && a.getUpdateInterval() == b.getUpdateInterval();
+                && a.getChangeBeforeUpdates() == b.getChangeBeforeUpdates();
     }
 
     private OutboundSubscriptionSetup findSubscriptionWithSameContent(OutboundSubscriptionSetup subscription) {
@@ -896,7 +898,13 @@ public class ServerSubscriptionManager {
                                   String breadcrumbId, Supplier<Siri> delivery) {
         for (OutboundSubscriptionSetup recipient : recipients) {
             if (recipient.getUpdateInterval() > 0) {
-                batcher.add(recipient, addedOrUpdated, breadcrumbId);
+                try {
+                    batcher.add(recipient, addedOrUpdated, breadcrumbId);
+                } catch (RejectedExecutionException e) {
+                    // Scheduler is shut down - send now instead of losing the update
+                    logger.debug("Batch scheduler is shut down - pushing to {} immediately", recipient.getSubscriptionId());
+                    camelRouteManager.pushSiriData(delivery.get(), recipient, false);
+                }
             } else {
                 camelRouteManager.pushSiriData(delivery.get(), recipient, false);
             }

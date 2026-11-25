@@ -315,10 +315,10 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
         counter(OUTBOUND_PUBLISH_FAILED_NAME, DATATYPE_TAG_NAME, dataType.name(), FORMAT_TAG_NAME, format).increment(count);
     }
 
-    /** Number of objects in a batch pushed to an outbound subscription at the end of its update interval */
+    /** Number of objects in a batch when it is handed to the push queue, not when it is delivered */
     public void recordOutboundBatch(SiriDataType dataType, int objectCount) {
         DistributionSummary.builder(OUTBOUND_BATCH_NAME)
-                .description("Number of objects per batched push to an outbound subscription")
+                .description("Number of objects in each batch when it is handed to the push queue (not when delivered)")
                 .tags(DATATYPE_TAG_NAME, dataType.name())
                 .register(this)
                 .record(objectCount);

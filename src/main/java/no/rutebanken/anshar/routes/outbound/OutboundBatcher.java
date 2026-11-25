@@ -5,10 +5,12 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 
 /**
  * Local, in-memory buffer per outbound subscription. Updates are collected for the subscription's
@@ -86,6 +88,19 @@ final class OutboundBatcher {
         Batch removed = batches.remove(subscriptionId);
         if (removed != null) {
             cancelTimer(removed);
+        }
+    }
+
+    /**
+     * Discards every buffer whose subscription matches and cancels its timer. Removal is by key and value, so a
+     * concurrent add, flush or clear sees each buffer either whole or not at all.
+     */
+    void clearIf(Predicate<OutboundSubscriptionSetup> predicate) {
+        for (Map.Entry<String, Batch> entry : new ArrayList<>(batches.entrySet())) {
+            Batch batch = entry.getValue();
+            if (predicate.test(batch.subscription) && batches.remove(entry.getKey(), batch)) {
+                cancelTimer(batch);
+            }
         }
     }
 

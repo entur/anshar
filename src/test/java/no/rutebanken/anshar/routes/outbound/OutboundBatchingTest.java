@@ -23,8 +23,10 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -164,7 +166,35 @@ public class OutboundBatchingTest extends SpringBootBaseTest {
         manager.terminateSubscription("batch-terminated", false);
 
         runTimers();
-        verify(camelRouteManager, never()).pushSiriData(any(Siri.class), argThat(subscription("batch-terminated")), eq(false));
+        verify(camelRouteManager, never()).pushSiriData(any(), any(), anyBoolean());
+        verify(camelRouteManager, never()).pushSiriData(any(), any(), anyBoolean(), anyBoolean());
+    }
+
+    @Test
+    void terminatedThenResubscribedGetsNoStaleBuffer() throws Exception {
+        subscribeVm("batch-stale-a", "http://localhost/stale", "PT2S");
+        pushVm(1);
+        manager.terminateSubscription("batch-stale-a", false);
+
+        subscribeVm("batch-stale-b", "http://localhost/stale", "PT2S");
+
+        runTimers();
+        verify(camelRouteManager, never()).pushSiriData(any(), any(), anyBoolean());
+        verify(camelRouteManager, never()).pushSiriData(any(), any(), anyBoolean(), anyBoolean());
+    }
+
+    @Test
+    void addAfterSchedulerShutdownPushesImmediately() throws Exception {
+        subscribeVm("batch-shutdown-a", "http://localhost/shutdown-a", "PT2S");
+        subscribeVm("batch-shutdown-b", "http://localhost/shutdown-b", "PT2S");
+        ScheduledExecutorService dead = java.util.concurrent.Executors.newSingleThreadScheduledExecutor();
+        dead.shutdown();
+        ReflectionTestUtils.setField(manager, "batcher", new OutboundBatcher(dead, manager::flushBatch, 1000));
+
+        pushVm(1);
+
+        verify(camelRouteManager, times(1)).pushSiriData(any(Siri.class), argThat(subscription("batch-shutdown-a")), eq(false));
+        verify(camelRouteManager, times(1)).pushSiriData(any(Siri.class), argThat(subscription("batch-shutdown-b")), eq(false));
     }
 
     @Test
@@ -180,12 +210,13 @@ public class OutboundBatchingTest extends SpringBootBaseTest {
     }
 
     @Test
-    void differentWindowDoesNotReplace() throws Exception {
+    void differentWindowReplaces() throws Exception {
         subscribeVm("batch-window-a", "http://localhost/different-window", "PT2S");
         subscribeVm("batch-window-b", "http://localhost/different-window", "PT5S");
 
-        assertNotNull(manager.subscriptions.get("batch-window-a"));
+        assertNull(manager.subscriptions.get("batch-window-a"));
         assertNotNull(manager.subscriptions.get("batch-window-b"));
+        assertEquals(5000, manager.subscriptions.get("batch-window-b").getUpdateInterval());
     }
 
     private static org.mockito.ArgumentMatcher<OutboundSubscriptionSetup> subscription(String id) {
