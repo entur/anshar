@@ -15,7 +15,10 @@
 
 package no.rutebanken.anshar.routes.outbound;
 
+import com.google.common.base.Suppliers;
 import com.hazelcast.map.IMap;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import no.rutebanken.anshar.metrics.PrometheusMetricsService;
 import no.rutebanken.anshar.routes.pubsub.publisher.SiriTopicPublisher;
 import no.rutebanken.anshar.routes.siri.handlers.OutboundIdMappingPolicy;
@@ -60,7 +63,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static java.time.temporal.ChronoUnit.MILLIS;
@@ -124,6 +129,22 @@ public class ServerSubscriptionManager {
     @Value("${anshar.outbound.resubscribe.initialdelivery.minimum.interval:PT5M}")
     private Duration resubscribeInitialDeliveryInterval = Duration.ofMinutes(5);
 
+    // Updates to a subscription are collected and pushed once per window - from the request (VM UpdateInterval),
+    // else per type. 0 pushes every update at once.
+    @Value("${anshar.outbound.batch.window.et:0s}")
+    private Duration batchWindowEt = Duration.ZERO;
+    @Value("${anshar.outbound.batch.window.vm:0s}")
+    private Duration batchWindowVm = Duration.ZERO;
+    @Value("${anshar.outbound.batch.window.sx:0s}")
+    private Duration batchWindowSx = Duration.ZERO;
+    @Value("${anshar.outbound.batch.window.fm:0s}")
+    private Duration batchWindowFm = Duration.ZERO;
+    @Value("${anshar.outbound.batch.window.max:30s}")
+    private Duration batchWindowMax = Duration.ofSeconds(30);
+
+    @Value("${anshar.default.max.elements.per.delivery:1000}")
+    private int maxElementsPerDelivery = 1000;
+
     @Value("${anshar.outbound.pubsub.vm.topic.enabled}")
     private boolean pushToVmTopicEnabled;
     @Value("${anshar.outbound.pubsub.et.topic.enabled}")
@@ -159,6 +180,28 @@ public class ServerSubscriptionManager {
     @Autowired
     private SiriHelper siriHelper;
 
+    @Autowired
+    private PrometheusMetricsService metricsService;
+
+    private ScheduledExecutorService batchFlushScheduler;
+
+    private OutboundBatcher batcher;
+
+    @PostConstruct
+    void startBatcher() {
+        batchFlushScheduler = Executors.newSingleThreadScheduledExecutor(runnable -> {
+            Thread thread = new Thread(runnable, "outbound-batch-flush");
+            thread.setDaemon(true);
+            return thread;
+        });
+        batcher = new OutboundBatcher(batchFlushScheduler, this::flushBatch, maxElementsPerDelivery);
+    }
+
+    @PreDestroy
+    void stopBatcher() {
+        batcher.flushAll();
+        batchFlushScheduler.shutdown();
+    }
 
     public Collection getSubscriptions() {
         return Collections.unmodifiableCollection(subscriptions.values());
@@ -180,6 +223,7 @@ public class ServerSubscriptionManager {
             obj.put("version", subscription.getSiriVersion().equals(SiriValidator.Version.VERSION_2_1) ? "2.1" : "2.0");
             obj.put("address", subscription.getAddress());
             obj.put("heartbeatInterval", (subscription.getHeartbeatInterval()/1000) + " s");
+            obj.put("updateInterval", (subscription.getUpdateInterval()/1000.0) + " s");
             obj.put("datasetId",subscription.getDatasetId()!=null ? subscription.getDatasetId():"");
             obj.put("requestReceived", formatter.format(subscription.getRequestTimestamp()));
             obj.put("initialTerminationTime",formatter.format(subscription.getInitialTerminationTime()));
@@ -274,6 +318,8 @@ public class ServerSubscriptionManager {
 
     private void sendInitialDelivery(OutboundSubscriptionSetup subscription) {
         logger.debug("Find initial delivery for {}", subscription);
+        // The initial delivery contains all buffered updates
+        batcher.clear(subscription.getSubscriptionId());
         Siri delivery = siriHelper.findInitialDeliveryData(subscription);
 
         if (delivery != null) {
@@ -313,9 +359,10 @@ public class ServerSubscriptionManager {
     private OutboundSubscriptionSetup createSubscription(Siri siri, String datasetId, OutboundIdMappingPolicy outboundIdMappingPolicy, String clientTrackingName) {
 
         SubscriptionRequest subscriptionRequest = siri.getSubscriptionRequest();
-        return new OutboundSubscriptionSetup(
+        SiriDataType subscriptionType = getSubscriptionType(subscriptionRequest);
+        OutboundSubscriptionSetup subscription = new OutboundSubscriptionSetup(
                 ZonedDateTime.now(),
-                getSubscriptionType(subscriptionRequest),
+                subscriptionType,
                 subscriptionRequest.getConsumerAddress() != null ? subscriptionRequest.getConsumerAddress():subscriptionRequest.getAddress(),
                 getHeartbeatInterval(subscriptionRequest),
                 getChangeBeforeUpdates(subscriptionRequest),
@@ -328,6 +375,37 @@ public class ServerSubscriptionManager {
                 clientTrackingName,
                 resolveSiriVersion(siri, outboundIdMappingPolicy)
                 );
+        subscription.setUpdateInterval(resolveUpdateInterval(subscriptionRequest, subscriptionType));
+        return subscription;
+    }
+
+    /**
+     * @return the window (millis) to collect updates for before pushing them - VM UpdateInterval from the request,
+     * else the configured window for the type, at most anshar.outbound.batch.window.max
+     */
+    long resolveUpdateInterval(SubscriptionRequest subscriptionRequest, SiriDataType type) {
+        Duration window = null;
+        if (type == SiriDataType.VEHICLE_MONITORING
+                && SiriHelper.containsValues(subscriptionRequest.getVehicleMonitoringSubscriptionRequests())) {
+            window = subscriptionRequest.getVehicleMonitoringSubscriptionRequests().get(0).getUpdateInterval();
+        }
+        if (window == null) {
+            window = configuredBatchWindow(type);
+        }
+        return Math.max(0, Math.min(window.toMillis(), batchWindowMax.toMillis()));
+    }
+
+    private Duration configuredBatchWindow(SiriDataType type) {
+        if (type == null) {
+            return Duration.ZERO;
+        }
+        return switch (type) {
+            case ESTIMATED_TIMETABLE -> batchWindowEt;
+            case VEHICLE_MONITORING -> batchWindowVm;
+            case SITUATION_EXCHANGE -> batchWindowSx;
+            case FACILITY_MONITORING -> batchWindowFm;
+            default -> Duration.ZERO;
+        };
     }
 
     private String findSubscriberIdentifier(SubscriptionRequest subscriptionRequest) {
@@ -474,7 +552,8 @@ public class ServerSubscriptionManager {
                 && Objects.equals(a.getFilterMap(), b.getFilterMap())
                 && Objects.equals(a.getRequestorRef(), b.getRequestorRef())
                 && a.getSiriVersion() == b.getSiriVersion()
-                && a.getChangeBeforeUpdates() == b.getChangeBeforeUpdates();
+                && a.getChangeBeforeUpdates() == b.getChangeBeforeUpdates()
+                && a.getUpdateInterval() == b.getUpdateInterval();
     }
 
     private OutboundSubscriptionSetup findSubscriptionWithSameContent(OutboundSubscriptionSetup subscription) {
@@ -652,10 +731,11 @@ public class ServerSubscriptionManager {
         if (addedOrUpdated == null || addedOrUpdated.isEmpty()) {
             return;
         }
-        Siri delivery = siriObjectFactory.createVMServiceDelivery(addedOrUpdated);
+        // Built once, and only if a topic or a recipient without update interval needs it
+        Supplier<Siri> delivery = Suppliers.memoize(() -> siriObjectFactory.createVMServiceDelivery(addedOrUpdated));
 
         if (pushToVmTopicEnabled) {
-            siriVmTopicProducer.asyncRequestBodyAndHeaders(siriVmTopicProducer.getDefaultEndpoint(), delivery, topicHeaders(datasetId, storedAt));
+            siriVmTopicProducer.asyncRequestBodyAndHeaders(siriVmTopicProducer.getDefaultEndpoint(), delivery.get(), topicHeaders(datasetId, storedAt));
         }
 
         final List<OutboundSubscriptionSetup> recipients = subscriptions
@@ -678,9 +758,7 @@ public class ServerSubscriptionManager {
         if (!recipients.isEmpty()) {
             logger.info("Pushing {} VM updates to {} outbound subscriptions", addedOrUpdated.size(), recipients.size());
 
-            for (OutboundSubscriptionSetup recipient : recipients) {
-                camelRouteManager.pushSiriData(delivery, recipient, false);
-            }
+            pushToRecipients(recipients, addedOrUpdated, breadcrumbId, delivery);
         }
 
         MDC.remove("camel.breadcrumbId");
@@ -695,11 +773,12 @@ public class ServerSubscriptionManager {
         if (addedOrUpdated == null || addedOrUpdated.isEmpty()) {
             return;
         }
-        Siri delivery = siriObjectFactory.createSXServiceDelivery(addedOrUpdated);
+        // Built once, and only if a topic or a recipient without update interval needs it
+        Supplier<Siri> delivery = Suppliers.memoize(() -> siriObjectFactory.createSXServiceDelivery(addedOrUpdated));
 
         // With direct publishing on, SiriTopicPublisher publishes SX to the topics instead
         if (pushToSxTopicEnabled && !siriTopicPublisher.handles(SiriDataType.SITUATION_EXCHANGE)) {
-            siriSxTopicProducer.asyncRequestBodyAndHeaders(siriSxTopicProducer.getDefaultEndpoint(), delivery, topicHeaders(datasetId, storedAt));
+            siriSxTopicProducer.asyncRequestBodyAndHeaders(siriSxTopicProducer.getDefaultEndpoint(), delivery.get(), topicHeaders(datasetId, storedAt));
         }
 
         final List<OutboundSubscriptionSetup> recipients = subscriptions
@@ -722,9 +801,7 @@ public class ServerSubscriptionManager {
         if (!recipients.isEmpty()) {
             logger.info("Pushing {} SX updates to {} outbound subscriptions", addedOrUpdated.size(), recipients.size());
 
-            for (OutboundSubscriptionSetup recipient : recipients) {
-                camelRouteManager.pushSiriData(delivery, recipient, false);
-            }
+            pushToRecipients(recipients, addedOrUpdated, breadcrumbId, delivery);
         }
 
         MDC.remove("camel.breadcrumbId");
@@ -738,11 +815,12 @@ public class ServerSubscriptionManager {
 
         MDC.put("camel.breadcrumbId", breadcrumbId);
 
-        Siri delivery = siriObjectFactory.createETServiceDelivery(addedOrUpdated);
+        // Built once, and only if a topic or a recipient without update interval needs it
+        Supplier<Siri> delivery = Suppliers.memoize(() -> siriObjectFactory.createETServiceDelivery(addedOrUpdated));
 
         // With direct publishing on, SiriTopicPublisher publishes ET to the topics instead
         if (pushToEtTopicEnabled && !siriTopicPublisher.handles(SiriDataType.ESTIMATED_TIMETABLE)) {
-            siriEtTopicProducer.asyncRequestBodyAndHeaders(siriEtTopicProducer.getDefaultEndpoint(), delivery, topicHeaders(datasetId, storedAt));
+            siriEtTopicProducer.asyncRequestBodyAndHeaders(siriEtTopicProducer.getDefaultEndpoint(), delivery.get(), topicHeaders(datasetId, storedAt));
         }
 
         final List<OutboundSubscriptionSetup> recipients = subscriptions
@@ -765,9 +843,7 @@ public class ServerSubscriptionManager {
         if (!recipients.isEmpty()) {
             logger.info("Pushing {} ET updates to {} outbound subscriptions", addedOrUpdated.size(), recipients.size());
 
-            for (OutboundSubscriptionSetup recipient : recipients) {
-                camelRouteManager.pushSiriData(delivery, recipient, false);
-            }
+            pushToRecipients(recipients, addedOrUpdated, breadcrumbId, delivery);
         }
         MDC.remove("camel.breadcrumbId");
     }
@@ -780,10 +856,11 @@ public class ServerSubscriptionManager {
         if (addedOrUpdated == null || addedOrUpdated.isEmpty()) {
             return;
         }
-        Siri delivery = siriObjectFactory.createFMServiceDelivery(addedOrUpdated);
+        // Built once, and only if a topic or a recipient without update interval needs it
+        Supplier<Siri> delivery = Suppliers.memoize(() -> siriObjectFactory.createFMServiceDelivery(addedOrUpdated));
 
         if (pushToFmTopicEnabled) {
-            siriFmTopicProducer.asyncRequestBodyAndHeaders(siriFmTopicProducer.getDefaultEndpoint(), delivery, topicHeaders(datasetId, storedAt));
+            siriFmTopicProducer.asyncRequestBodyAndHeaders(siriFmTopicProducer.getDefaultEndpoint(), delivery.get(), topicHeaders(datasetId, storedAt));
         }
 
         final List<OutboundSubscriptionSetup> recipients = subscriptions
@@ -806,12 +883,67 @@ public class ServerSubscriptionManager {
         if (!recipients.isEmpty()) {
             logger.info("Pushing {} FM updates to {} outbound subscriptions", addedOrUpdated.size(), recipients.size());
 
-            for (OutboundSubscriptionSetup recipient : recipients) {
-                camelRouteManager.pushSiriData(delivery, recipient, false);
-            }
+            pushToRecipients(recipients, addedOrUpdated, breadcrumbId, delivery);
         }
 
         MDC.remove("camel.breadcrumbId");
+    }
+
+    /**
+     * Recipients with an update interval get the updates in their buffer, the others get the delivery now
+     */
+    private void pushToRecipients(List<OutboundSubscriptionSetup> recipients, List<?> addedOrUpdated,
+                                  String breadcrumbId, Supplier<Siri> delivery) {
+        for (OutboundSubscriptionSetup recipient : recipients) {
+            if (recipient.getUpdateInterval() > 0) {
+                batcher.add(recipient, addedOrUpdated, breadcrumbId);
+            } else {
+                camelRouteManager.pushSiriData(delivery.get(), recipient, false);
+            }
+        }
+    }
+
+    /**
+     * Pushes a batch to the subscription as it is now - the batch may have been started for a subscription that has
+     * since been changed or replaced by a re-subscription (on any pod). A batch for a removed subscription is dropped.
+     */
+    void flushBatch(OutboundSubscriptionSetup batchSubscription, List<Object> objects, String breadcrumbId) {
+        OutboundSubscriptionSetup target = subscriptions.get(batchSubscription.getSubscriptionId());
+        if (target == null) {
+            target = findSubscriptionWithSameContent(batchSubscription);
+        }
+        if (target == null) {
+            logger.debug("Dropping {} buffered updates - subscription {} no longer exists",
+                    objects.size(), batchSubscription.getSubscriptionId());
+            return;
+        }
+
+        final SiriDataType type = target.getSubscriptionType();
+        final Siri delivery = switch (type) {
+            case ESTIMATED_TIMETABLE -> siriObjectFactory.createETServiceDelivery((List) objects);
+            case VEHICLE_MONITORING -> siriObjectFactory.createVMServiceDelivery((List) objects);
+            case SITUATION_EXCHANGE -> siriObjectFactory.createSXServiceDelivery((List) objects);
+            case FACILITY_MONITORING -> siriObjectFactory.createFMServiceDelivery((List) objects);
+            default -> null;
+        };
+        if (delivery == null) {
+            return;
+        }
+
+        // A size-triggered flush runs within a push of new updates - keep its breadcrumb
+        final String previousBreadcrumbId = MDC.get("camel.breadcrumbId");
+        MDC.put("camel.breadcrumbId", breadcrumbId);
+        try {
+            logger.debug("Pushing batch of {} updates to subscription {}", objects.size(), target.getSubscriptionId());
+            camelRouteManager.pushSiriData(delivery, target, false);
+            metricsService.recordOutboundBatch(type, objects.size());
+        } finally {
+            if (previousBreadcrumbId != null) {
+                MDC.put("camel.breadcrumbId", previousBreadcrumbId);
+            } else {
+                MDC.remove("camel.breadcrumbId");
+            }
+        }
     }
 
     public void pushFailedForSubscription(String subscriptionId) {

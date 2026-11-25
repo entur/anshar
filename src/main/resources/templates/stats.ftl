@@ -325,6 +325,7 @@
                         <th>Type</th>
                         <th>Version</th>
                         <th>Heartbeat</th>
+                        <th>Update interval</th>
                         <th>Start-/Endtime</th>
                         <th></th>
                     </tr>
@@ -339,6 +340,7 @@
                         <td>${item.subscriptionType}</td>
                         <td>${item.version}</td>
                         <td>${item.heartbeatInterval}</td>
+                        <td>${item.updateInterval}</td>
                         <td>
                             ${item.requestReceived} - <br />
                             ${item.initialTerminationTime}
