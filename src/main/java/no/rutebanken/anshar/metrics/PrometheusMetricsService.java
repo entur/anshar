@@ -16,6 +16,7 @@
 package no.rutebanken.anshar.metrics;
 
 import com.hazelcast.replicatedmap.ReplicatedMap;
+import io.micrometer.core.instrument.DistributionSummary;
 import io.micrometer.core.instrument.ImmutableTag;
 import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.Tag;
@@ -121,6 +122,7 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
     private static final String OUTBOUND_PUBLISH_NAME = METRICS_PREFIX + "outbound.publish";
     private static final String FORMAT_TAG_NAME = "format";
     private static final String OUTBOUND_PUBLISH_FAILED_NAME = METRICS_PREFIX + "outbound.publish.failed";
+    private static final String OUTBOUND_BATCH_NAME = METRICS_PREFIX + "outbound.batch";
     private static final String PUBLISH_STARTED_PROPERTY = "AnsharPublishStartedNanos";
 
     /** Outbound stage: the delivery entered the topic route, after the push pool and async producer */
@@ -311,6 +313,15 @@ public class PrometheusMetricsService extends PrometheusMeterRegistry {
     /** Counts messages that could not be published to an outbound Pub/Sub topic */
     public void markPublishFailed(SiriDataType dataType, String format, long count) {
         counter(OUTBOUND_PUBLISH_FAILED_NAME, DATATYPE_TAG_NAME, dataType.name(), FORMAT_TAG_NAME, format).increment(count);
+    }
+
+    /** Number of objects in a batch when it is handed to the push queue, not when it is delivered */
+    public void recordOutboundBatch(SiriDataType dataType, int objectCount) {
+        DistributionSummary.builder(OUTBOUND_BATCH_NAME)
+                .description("Number of objects in each batch when it is handed to the push queue (not when delivered)")
+                .tags(DATATYPE_TAG_NAME, dataType.name())
+                .register(this)
+                .record(objectCount);
     }
 
     @PreDestroy

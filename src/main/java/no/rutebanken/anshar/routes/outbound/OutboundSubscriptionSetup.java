@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class OutboundSubscriptionSetup implements Serializable {
+    private static final long serialVersionUID = -6386405378625792258L;
 
     private SiriValidator.Version siriVersion = SiriValidator.Version.VERSION_2_0;
     private ZonedDateTime requestTimestamp;
@@ -42,6 +43,7 @@ public class OutboundSubscriptionSetup implements Serializable {
     private String datasetId;
     private String clientTrackingName;
     private long changeBeforeUpdates;
+    private long updateInterval;
 
     public OutboundSubscriptionSetup(ZonedDateTime requestTimestamp, SiriDataType subscriptionType, String address, long heartbeatInterval,
                                      long changeBeforeUpdates, Map<Class, Set<String>> filterMap, List<ValueAdapter> valueAdapters,
@@ -120,6 +122,14 @@ public class OutboundSubscriptionSetup implements Serializable {
 
     public List<ValueAdapter> getValueAdapters() {
         return valueAdapters;
+    }
+
+    public long getUpdateInterval() {
+        return updateInterval;
+    }
+
+    void setUpdateInterval(long millis) {
+        this.updateInterval = millis;
     }
 
     public String getClientTrackingName() {
