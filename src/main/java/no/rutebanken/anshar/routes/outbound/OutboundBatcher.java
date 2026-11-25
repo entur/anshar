@@ -14,8 +14,9 @@ import java.util.function.Predicate;
 
 /**
  * Local, in-memory buffer per outbound subscription. Updates are collected for the subscription's
- * update interval and handed to the {@link Flusher} as one batch - either when the window ends or
- * when the buffer reaches the maximum size.
+ * update interval and handed to the {@link Flusher}: every time the buffer reaches the maximum size, that many
+ * objects are sent at once, and whatever is left when the window ends is sent then. A batch never holds more than
+ * the maximum size.
  * <p>
  * Every mutation of a buffer goes through the map (compute / remove(key, value)), so add, timer flush,
  * size flush and clear never lose or duplicate an object.
@@ -53,11 +54,14 @@ final class OutboundBatcher {
     }
 
     /**
-     * Adds to the subscription's buffer; the first add schedules a flush after subscription.getUpdateInterval() ms
+     * Adds to the subscription's buffer; the first add schedules a flush after subscription.getUpdateInterval() ms.
+     * Every full batch of the maximum size is flushed at once; the rest waits for the window.
      */
     void add(OutboundSubscriptionSetup subscription, List<?> objects, String breadcrumbId) {
         final String id = subscription.getSubscriptionId();
-        final Batch[] full = new Batch[1];
+        final List<List<Object>> full = new ArrayList<>();
+        final Batch[] owner = new Batch[1];
+        final boolean[] emptied = new boolean[1];
 
         batches.compute(id, (key, existing) -> {
             Batch batch = existing;
@@ -68,16 +72,24 @@ final class OutboundBatcher {
                         subscription.getUpdateInterval(), TimeUnit.MILLISECONDS);
             }
             batch.objects.addAll(objects);
-            if (batch.objects.size() >= maxObjects) {
-                full[0] = batch;
+            owner[0] = batch;
+            while (batch.objects.size() >= maxObjects) {
+                List<Object> head = batch.objects.subList(0, maxObjects);
+                full.add(new ArrayList<>(head));
+                head.clear();
+            }
+            if (batch.objects.isEmpty() && !full.isEmpty()) {
+                emptied[0] = true;
                 return null;
             }
             return batch;
         });
 
-        if (full[0] != null) {
-            cancelTimer(full[0]);
-            flush(full[0]);
+        if (emptied[0]) {
+            cancelTimer(owner[0]);
+        }
+        for (List<Object> chunk : full) {
+            flush(owner[0], chunk);
         }
     }
 
@@ -139,8 +151,12 @@ final class OutboundBatcher {
     }
 
     private void flush(Batch batch) {
+        flush(batch, batch.objects);
+    }
+
+    private void flush(Batch batch, List<Object> objects) {
         try {
-            flusher.flush(batch.subscription, batch.objects, batch.breadcrumbId);
+            flusher.flush(batch.subscription, objects, batch.breadcrumbId);
         } catch (Exception e) {
             logger.error("Flushing batch for subscription {} failed", batch.subscription.getSubscriptionId(), e);
         }

@@ -27,6 +27,7 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -112,14 +113,39 @@ class OutboundBatcherTest {
         assertTrue(flushes.isEmpty());
         batcher.add(s, List.of("c", "d"), "b2");
 
+        // A full batch is sent at once - the rest waits for the window
         assertEquals(1, flushes.size());
-        assertEquals(List.of("a", "b", "c", "d"), flushes.get(0).objects());
+        assertEquals(List.of("a", "b", "c"), flushes.get(0).objects());
         assertEquals("b1", flushes.get(0).breadcrumbId());
+        assertEquals(1, batcher.bufferedObjects("s1"));
+        verify(futures.get(0), never()).cancel(false);
+
+        scheduledTasks().get(0).run();
+        assertEquals(2, flushes.size());
+        assertEquals(List.of("d"), flushes.get(1).objects());
+        assertEquals(0, batcher.bufferedObjects("s1"));
+    }
+
+    @Test
+    void largeAddIsFlushedInBatchesOfMaxSize() {
+        batcher = new OutboundBatcher(scheduler, this::record, 3);
+
+        batcher.add(sub("s1", 2000), List.of(1, 2, 3, 4, 5, 6, 7), "b1");
+
+        assertEquals(2, flushes.size());
+        assertEquals(List.of(1, 2, 3), flushes.get(0).objects());
+        assertEquals(List.of(4, 5, 6), flushes.get(1).objects());
+        assertEquals(1, batcher.bufferedObjects("s1"));
+
+        batcher.add(sub("s1", 2000), List.of(8, 9), "b2");
+
+        assertEquals(3, flushes.size());
+        assertEquals(List.of(7, 8, 9), flushes.get(2).objects());
         assertEquals(0, batcher.bufferedObjects("s1"));
         verify(futures.get(0)).cancel(false);
 
         scheduledTasks().get(0).run();
-        assertEquals(1, flushes.size());
+        assertEquals(3, flushes.size());
     }
 
     @Test

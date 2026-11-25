@@ -904,6 +904,10 @@ public class ServerSubscriptionManager {
                     // Scheduler is shut down - send now instead of losing the update
                     logger.debug("Batch scheduler is shut down - pushing to {} immediately", recipient.getSubscriptionId());
                     camelRouteManager.pushSiriData(delivery.get(), recipient, false);
+                } catch (RuntimeException e) {
+                    // Not buffered - send now, and go on with the other recipients
+                    logger.warn("Batching failed for {} - pushing immediately", recipient.getSubscriptionId(), e);
+                    camelRouteManager.pushSiriData(delivery.get(), recipient, false);
                 }
             } else {
                 camelRouteManager.pushSiriData(delivery.get(), recipient, false);

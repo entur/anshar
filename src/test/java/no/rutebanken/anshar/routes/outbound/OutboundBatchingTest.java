@@ -198,6 +198,20 @@ public class OutboundBatchingTest extends SpringBootBaseTest {
     }
 
     @Test
+    void unexpectedBatcherFailurePushesImmediately() throws Exception {
+        subscribeVm("batch-failure-a", "http://localhost/failure-a", "PT2S");
+        subscribeVm("batch-failure-b", "http://localhost/failure-b", "PT2S");
+        ScheduledExecutorService failing = mock(ScheduledExecutorService.class);
+        when(failing.schedule(any(Runnable.class), anyLong(), any(TimeUnit.class))).thenThrow(new IllegalStateException("test"));
+        ReflectionTestUtils.setField(manager, "batcher", new OutboundBatcher(failing, manager::flushBatch, 1000));
+
+        pushVm(1);
+
+        verify(camelRouteManager, times(1)).pushSiriData(any(Siri.class), argThat(subscription("batch-failure-a")), eq(false));
+        verify(camelRouteManager, times(1)).pushSiriData(any(Siri.class), argThat(subscription("batch-failure-b")), eq(false));
+    }
+
+    @Test
     void initialDeliveryClearsBuffer() throws Exception {
         subscribeVm("batch-initial", "http://localhost/initial", "PT2S");
         pushVm(1);
