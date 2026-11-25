@@ -37,6 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Service;
 import uk.org.siri.siri21.AbstractSubscriptionStructure;
 import uk.org.siri.siri21.CheckStatusRequestStructure;
@@ -63,6 +64,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -76,9 +78,12 @@ import static no.rutebanken.anshar.routes.outbound.SiriHelper.resolveSiriVersion
 @SuppressWarnings("unchecked")
 @Service
 @Configuration
+@DependsOn("camelRouteManager")
 public class ServerSubscriptionManager {
 
     private final Logger logger = LoggerFactory.getLogger(ServerSubscriptionManager.class);
+
+    private static final int BATCH_FLUSH_THREADS = 4;
 
     @Autowired
     IMap<String, OutboundSubscriptionSetup> subscriptions;
@@ -181,23 +186,30 @@ public class ServerSubscriptionManager {
     @Autowired
     private SiriHelper siriHelper;
 
-    @Autowired
-    private PrometheusMetricsService metricsService;
+    private final PrometheusMetricsService metricsService;
 
     private ScheduledExecutorService batchFlushScheduler;
 
     private OutboundBatcher batcher;
 
+    public ServerSubscriptionManager(PrometheusMetricsService metricsService) {
+        this.metricsService = metricsService;
+    }
+
     @PostConstruct
     void startBatcher() {
-        batchFlushScheduler = Executors.newSingleThreadScheduledExecutor(runnable -> {
-            Thread thread = new Thread(runnable, "outbound-batch-flush");
+        AtomicInteger threadNumber = new AtomicInteger();
+        batchFlushScheduler = Executors.newScheduledThreadPool(BATCH_FLUSH_THREADS, runnable -> {
+            Thread thread = new Thread(runnable, "outbound-batch-flush-" + threadNumber.incrementAndGet());
             thread.setDaemon(true);
             return thread;
         });
         batcher = new OutboundBatcher(batchFlushScheduler, this::flushBatch, maxElementsPerDelivery);
     }
 
+    /**
+     * Runs before CamelRouteManager is destroyed (see @DependsOn), so the flushed batches are still pushed
+     */
     @PreDestroy
     void stopBatcher() {
         batcher.flushAll();
@@ -903,15 +915,26 @@ public class ServerSubscriptionManager {
                 } catch (RejectedExecutionException e) {
                     // Scheduler is shut down - send now instead of losing the update
                     logger.debug("Batch scheduler is shut down - pushing to {} immediately", recipient.getSubscriptionId());
-                    camelRouteManager.pushSiriData(delivery.get(), recipient, false);
+                    pushImmediately(delivery, recipient);
                 } catch (RuntimeException e) {
                     // Not buffered - send now, and go on with the other recipients
                     logger.warn("Batching failed for {} - pushing immediately", recipient.getSubscriptionId(), e);
-                    camelRouteManager.pushSiriData(delivery.get(), recipient, false);
+                    pushImmediately(delivery, recipient);
                 }
             } else {
                 camelRouteManager.pushSiriData(delivery.get(), recipient, false);
             }
+        }
+    }
+
+    /**
+     * Fallback when batching fails - a failure here must not stop the push to the other recipients
+     */
+    private void pushImmediately(Supplier<Siri> delivery, OutboundSubscriptionSetup recipient) {
+        try {
+            camelRouteManager.pushSiriData(delivery.get(), recipient, false);
+        } catch (RuntimeException e) {
+            logger.warn("Pushing to {} failed", recipient.getSubscriptionId(), e);
         }
     }
 

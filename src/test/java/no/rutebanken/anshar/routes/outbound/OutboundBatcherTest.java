@@ -25,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.never;
@@ -49,10 +50,10 @@ class OutboundBatcherTest {
             futures.add(future);
             return future;
         });
-        batcher = new OutboundBatcher(scheduler, this::record, 1000);
+        batcher = new OutboundBatcher(scheduler, this::capture, 1000);
     }
 
-    private void record(OutboundSubscriptionSetup subscription, List<Object> objects, String breadcrumbId) {
+    private void capture(OutboundSubscriptionSetup subscription, List<Object> objects, String breadcrumbId) {
         if (failFlush) {
             throw new IllegalStateException("flush failed");
         }
@@ -67,7 +68,7 @@ class OutboundBatcherTest {
 
     private List<Runnable> scheduledTasks() {
         ArgumentCaptor<Runnable> captor = ArgumentCaptor.forClass(Runnable.class);
-        verify(scheduler, org.mockito.Mockito.atLeast(0)).schedule(captor.capture(), anyLong(), any(TimeUnit.class));
+        verify(scheduler, atLeast(0)).schedule(captor.capture(), anyLong(), any(TimeUnit.class));
         return captor.getAllValues();
     }
 
@@ -104,7 +105,7 @@ class OutboundBatcherTest {
 
     @Test
     void flushesWhenMaxSizeReached() {
-        batcher = new OutboundBatcher(scheduler, this::record, 3);
+        batcher = new OutboundBatcher(scheduler, this::capture, 3);
         OutboundSubscriptionSetup s = new OutboundSubscriptionSetup(ZonedDateTime.now(), SiriDataType.ESTIMATED_TIMETABLE,
                 "http://localhost/x", 0, 0, null, new ArrayList<>(), "s1", "s1", ZonedDateTime.now().plusHours(1), "TST", null, null);
         s.setUpdateInterval(2000);
@@ -127,8 +128,22 @@ class OutboundBatcherTest {
     }
 
     @Test
+    void nonPositiveMaxSizeMeansNoSizeLimit() {
+        for (int maxSize : new int[]{0, -1}) {
+            flushes.clear();
+            batcher = new OutboundBatcher(scheduler, this::capture, maxSize);
+            String id = "s" + maxSize;
+
+            assertDoesNotThrow(() -> batcher.add(sub(id, 2000), List.of("a", "b", "c"), "b1"));
+
+            assertTrue(flushes.isEmpty());
+            assertEquals(3, batcher.bufferedObjects(id));
+        }
+    }
+
+    @Test
     void largeAddIsFlushedInBatchesOfMaxSize() {
-        batcher = new OutboundBatcher(scheduler, this::record, 3);
+        batcher = new OutboundBatcher(scheduler, this::capture, 3);
 
         batcher.add(sub("s1", 2000), List.of(1, 2, 3, 4, 5, 6, 7), "b1");
 
@@ -172,7 +187,7 @@ class OutboundBatcherTest {
         assertEquals(0, batcher.bufferedObjects("s3"));
         verify(futures.get(0)).cancel(false);
         verify(futures.get(2)).cancel(false);
-        org.mockito.Mockito.verify(futures.get(1), org.mockito.Mockito.never()).cancel(false);
+        verify(futures.get(1), never()).cancel(false);
 
         scheduledTasks().forEach(Runnable::run);
         assertEquals(1, flushes.size());

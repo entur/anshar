@@ -50,7 +50,8 @@ final class OutboundBatcher {
     OutboundBatcher(ScheduledExecutorService scheduler, Flusher flusher, int maxObjects) {
         this.scheduler = scheduler;
         this.flusher = flusher;
-        this.maxObjects = maxObjects;
+        // 0 or less means no size limit: batches are only sent when the window ends
+        this.maxObjects = maxObjects > 0 ? maxObjects : Integer.MAX_VALUE;
     }
 
     /**

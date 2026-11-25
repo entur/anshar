@@ -21,6 +21,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -30,6 +31,7 @@ import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -209,6 +211,22 @@ public class OutboundBatchingTest extends SpringBootBaseTest {
 
         verify(camelRouteManager, times(1)).pushSiriData(any(Siri.class), argThat(subscription("batch-failure-a")), eq(false));
         verify(camelRouteManager, times(1)).pushSiriData(any(Siri.class), argThat(subscription("batch-failure-b")), eq(false));
+    }
+
+    @Test
+    void failedFallbackPushDoesNotStopOtherRecipients() throws Exception {
+        subscribeVm("fallback-failure-a", "http://localhost/fallback-failure-a", "PT2S");
+        subscribeVm("fallback-failure-b", "http://localhost/fallback-failure-b", "PT2S");
+        ScheduledExecutorService failing = mock(ScheduledExecutorService.class);
+        when(failing.schedule(any(Runnable.class), anyLong(), any(TimeUnit.class))).thenThrow(new IllegalStateException("test"));
+        ReflectionTestUtils.setField(manager, "batcher", new OutboundBatcher(failing, manager::flushBatch, 1000));
+        doThrow(new IllegalStateException("push failed")).when(camelRouteManager)
+                .pushSiriData(any(Siri.class), argThat(subscription("fallback-failure-a")), eq(false));
+
+        assertDoesNotThrow(() -> pushVm(1));
+
+        verify(camelRouteManager, times(1)).pushSiriData(any(Siri.class), argThat(subscription("fallback-failure-a")), eq(false));
+        verify(camelRouteManager, times(1)).pushSiriData(any(Siri.class), argThat(subscription("fallback-failure-b")), eq(false));
     }
 
     @Test
