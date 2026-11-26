@@ -21,8 +21,12 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Converts SIRI 2.1 objects to SIRI 2.0 by marshalling the 2.1 object straight into the 2.0 unmarshaller as SAX
  * events, so no XML text is built: a whole delivery as text is large enough to land in the old generation as
- * humongous objects and lengthen GC pauses. Gives the same result as parsing the 2.1 XML text as SIRI 2.0.
- * See docs/superpowers/specs/2026-11-18-siri20-downgrade-without-xml-text-design.md.
+ * humongous objects and lengthen GC pauses. Gives the same result as parsing the 2.1 XML text as SIRI 2.0: both
+ * versions use the same namespace, the events are the ones a parser would report from the text, and elements the 2.0
+ * model does not know are skipped as they are when parsing, since neither validates against the schema.
+ * <p>
+ * Runs on the calling thread and holds only SAX state. Piping the text through a stream into the parser would need a
+ * second thread per conversion, and mapping 2.1 objects to 2.0 by hand would have to follow every model change.
  */
 public final class SiriVersionConverter {
 
@@ -148,6 +152,9 @@ public final class SiriVersionConverter {
      * String.intern() rather than one per occurrence. Names from the SIRI model are few; the cache stops growing at
      * {@link #MAX_CACHED_NAMES} in case extension content brings arbitrary ones.
      */
+    // TODO: Profile a large ET downgrade in prd. If this handler shows up, cut its per-element cost: it does a map
+    //  lookup per name (about four per start/end element) and copies every element's attributes into a new
+    //  AttributesImpl, which adds up to millions of lookups and allocations for a 5,000-journey delivery.
     private static final class InterningHandler implements ContentHandler {
 
         private static final int MAX_CACHED_NAMES = 10_000;
