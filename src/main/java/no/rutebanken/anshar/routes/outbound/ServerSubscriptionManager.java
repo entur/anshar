@@ -62,6 +62,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -147,6 +148,11 @@ public class ServerSubscriptionManager {
     private Duration batchWindowFm = Duration.ZERO;
     @Value("${anshar.outbound.batch.window.max:30s}")
     private Duration batchWindowMax = Duration.ofSeconds(30);
+
+    // RequestorRefs of clients that get every update at once, whatever window they ask for or is configured - for
+    // receivers that cannot take larger posts
+    @Value("${anshar.outbound.batch.disabled.requestors:}")
+    private Set<String> batchDisabledRequestors = Set.of();
 
     // Largest batch pushed at once, per type - a full batch is sent before its window ends. ET journeys are large
     // (~15 KB), so 1000 of them made posts too big for some receivers. 0 or less means no size limit.
@@ -426,10 +432,14 @@ public class ServerSubscriptionManager {
 
     /**
      * @return the window (millis) a subscription is batched with now - the one it asked for, else the one configured
-     * for its type, at most anshar.outbound.batch.window.max. Subscriptions follow changes to the configuration
-     * without having to re-subscribe.
+     * for its type, at most anshar.outbound.batch.window.max, or 0 for a client listed in
+     * anshar.outbound.batch.disabled.requestors. Subscriptions follow changes to the configuration without having to
+     * re-subscribe.
      */
     long batchWindow(OutboundSubscriptionSetup subscription) {
+        if (subscription.getRequestorRef() != null && batchDisabledRequestors.contains(subscription.getRequestorRef())) {
+            return 0;
+        }
         long requested = subscription.getUpdateInterval();
         if (requested < 0) {
             return 0;

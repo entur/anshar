@@ -17,6 +17,7 @@ import uk.org.siri.siri21.VehicleActivityStructure;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -52,7 +53,7 @@ public class OutboundBatchingTest extends SpringBootBaseTest {
     private final ScheduledExecutorService scheduler = mock(ScheduledExecutorService.class);
     private final List<Runnable> scheduledTasks = new ArrayList<>();
     private final List<String> createdIds = new ArrayList<>();
-    private Object originalCamelRouteManager, originalExecutor, originalBatcher, originalSxWindow, originalVmWindow, originalVmBatchMax;
+    private Object originalCamelRouteManager, originalExecutor, originalBatcher, originalSxWindow, originalVmWindow, originalVmBatchMax, originalDisabledRequestors;
 
     @BeforeEach
     void setUp() {
@@ -66,6 +67,7 @@ public class OutboundBatchingTest extends SpringBootBaseTest {
         originalSxWindow = ReflectionTestUtils.getField(manager, "batchWindowSx");
         originalVmWindow = ReflectionTestUtils.getField(manager, "batchWindowVm");
         originalVmBatchMax = ReflectionTestUtils.getField(manager, "batchMaxObjectsVm");
+        originalDisabledRequestors = ReflectionTestUtils.getField(manager, "batchDisabledRequestors");
         // Pushes run on the calling thread, so they are done when pushUpdatesAsync returns
         ReflectionTestUtils.setField(manager, "outboundSenderExecutorService", MoreExecutors.newDirectExecutorService());
         ReflectionTestUtils.setField(manager, "camelRouteManager", camelRouteManager);
@@ -83,6 +85,7 @@ public class OutboundBatchingTest extends SpringBootBaseTest {
         ReflectionTestUtils.setField(manager, "batchWindowSx", originalSxWindow);
         ReflectionTestUtils.setField(manager, "batchWindowVm", originalVmWindow);
         ReflectionTestUtils.setField(manager, "batchMaxObjectsVm", originalVmBatchMax);
+        ReflectionTestUtils.setField(manager, "batchDisabledRequestors", originalDisabledRequestors);
     }
 
     @Test
@@ -223,6 +226,35 @@ public class OutboundBatchingTest extends SpringBootBaseTest {
         runTimers();
         verify(camelRouteManager, times(3)).pushSiriData(delivery.capture(), argThat(subscription("batch-type-max")), eq(false));
         assertEquals(1, delivery.getValue().getServiceDelivery().getVehicleMonitoringDeliveries().get(0).getVehicleActivities().size());
+    }
+
+    @Test
+    void noRequestorIsExcludedFromBatchingByDefault() {
+        assertEquals(Set.of(), ReflectionTestUtils.getField(manager, "batchDisabledRequestors"));
+    }
+
+    @Test
+    void listedRequestorGetsEveryUpdateAtOnce() throws Exception {
+        // The test subscriptions have RequestorRef batch-test
+        ReflectionTestUtils.setField(manager, "batchDisabledRequestors", Set.of("someone-else", "batch-test"));
+        ReflectionTestUtils.setField(manager, "batchWindowVm", Duration.ofSeconds(2));
+        subscribeVm("batch-disabled", "http://localhost/disabled", "PT3S");
+
+        pushVm(1);
+        pushVm(1);
+
+        assertEquals(0, manager.batchWindow(manager.subscriptions.get("batch-disabled")));
+        verify(camelRouteManager, times(2)).pushSiriData(any(Siri.class), argThat(subscription("batch-disabled")), eq(false));
+        assertTrue(scheduledTasks.isEmpty());
+    }
+
+    @Test
+    void requestorNotListedIsStillBatched() throws Exception {
+        ReflectionTestUtils.setField(manager, "batchDisabledRequestors", Set.of("someone-else"));
+        ReflectionTestUtils.setField(manager, "batchWindowVm", Duration.ofSeconds(2));
+        subscribeVm("batch-not-disabled", "http://localhost/not-disabled", null);
+
+        assertEquals(2000, manager.batchWindow(manager.subscriptions.get("batch-not-disabled")));
     }
 
     @Test
