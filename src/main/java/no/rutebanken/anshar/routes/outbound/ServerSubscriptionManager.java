@@ -136,7 +136,7 @@ public class ServerSubscriptionManager {
     private Duration resubscribeInitialDeliveryInterval = Duration.ofMinutes(5);
 
     // Updates to a subscription are collected and pushed once per window - from the request (VM UpdateInterval),
-    // else per type. 0 pushes every update at once.
+    // else per type, read at push time so existing subscriptions follow it too. 0 pushes every update at once.
     @Value("${anshar.outbound.batch.window.et:0s}")
     private Duration batchWindowEt = Duration.ZERO;
     @Value("${anshar.outbound.batch.window.vm:0s}")
@@ -236,7 +236,7 @@ public class ServerSubscriptionManager {
             obj.put("version", subscription.getSiriVersion().equals(SiriValidator.Version.VERSION_2_1) ? "2.1" : "2.0");
             obj.put("address", subscription.getAddress());
             obj.put("heartbeatInterval", (subscription.getHeartbeatInterval()/1000) + " s");
-            obj.put("updateInterval", (subscription.getUpdateInterval()/1000.0) + " s");
+            obj.put("updateInterval", (batchWindow(subscription)/1000.0) + " s");
             obj.put("datasetId",subscription.getDatasetId()!=null ? subscription.getDatasetId():"");
             obj.put("requestReceived", formatter.format(subscription.getRequestTimestamp()));
             obj.put("initialTerminationTime",formatter.format(subscription.getInitialTerminationTime()));
@@ -407,6 +407,21 @@ public class ServerSubscriptionManager {
         if (window == null) {
             window = configuredBatchWindow(type);
         }
+        return clampBatchWindow(window);
+    }
+
+    /**
+     * @return the window (millis) a subscription is batched with - its own, else the one configured for its type
+     * now. Subscriptions created before a window was configured get it without having to re-subscribe.
+     */
+    long batchWindow(OutboundSubscriptionSetup subscription) {
+        if (subscription.getUpdateInterval() > 0) {
+            return subscription.getUpdateInterval();
+        }
+        return clampBatchWindow(configuredBatchWindow(subscription.getSubscriptionType()));
+    }
+
+    private long clampBatchWindow(Duration window) {
         return Math.max(0, Math.min(window.toMillis(), batchWindowMax.toMillis()));
     }
 
@@ -909,9 +924,10 @@ public class ServerSubscriptionManager {
     private void pushToRecipients(List<OutboundSubscriptionSetup> recipients, List<?> addedOrUpdated,
                                   String breadcrumbId, Supplier<Siri> delivery) {
         for (OutboundSubscriptionSetup recipient : recipients) {
-            if (recipient.getUpdateInterval() > 0) {
+            long window = batchWindow(recipient);
+            if (window > 0) {
                 try {
-                    batcher.add(recipient, addedOrUpdated, breadcrumbId);
+                    batcher.add(recipient, window, addedOrUpdated, breadcrumbId);
                 } catch (RejectedExecutionException e) {
                     // Scheduler is shut down - send now instead of losing the update
                     logger.debug("Batch scheduler is shut down - pushing to {} immediately", recipient.getSubscriptionId());

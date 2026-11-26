@@ -52,7 +52,7 @@ public class OutboundBatchingTest extends SpringBootBaseTest {
     private final ScheduledExecutorService scheduler = mock(ScheduledExecutorService.class);
     private final List<Runnable> scheduledTasks = new ArrayList<>();
     private final List<String> createdIds = new ArrayList<>();
-    private Object originalCamelRouteManager, originalExecutor, originalBatcher, originalSxWindow;
+    private Object originalCamelRouteManager, originalExecutor, originalBatcher, originalSxWindow, originalVmWindow;
 
     @BeforeEach
     void setUp() {
@@ -64,6 +64,7 @@ public class OutboundBatchingTest extends SpringBootBaseTest {
         originalExecutor = ReflectionTestUtils.getField(manager, "outboundSenderExecutorService");
         originalBatcher = ReflectionTestUtils.getField(manager, "batcher");
         originalSxWindow = ReflectionTestUtils.getField(manager, "batchWindowSx");
+        originalVmWindow = ReflectionTestUtils.getField(manager, "batchWindowVm");
         // Pushes run on the calling thread, so they are done when pushUpdatesAsync returns
         ReflectionTestUtils.setField(manager, "outboundSenderExecutorService", MoreExecutors.newDirectExecutorService());
         ReflectionTestUtils.setField(manager, "camelRouteManager", camelRouteManager);
@@ -79,6 +80,7 @@ public class OutboundBatchingTest extends SpringBootBaseTest {
         ReflectionTestUtils.setField(manager, "outboundSenderExecutorService", originalExecutor);
         ReflectionTestUtils.setField(manager, "batcher", originalBatcher);
         ReflectionTestUtils.setField(manager, "batchWindowSx", originalSxWindow);
+        ReflectionTestUtils.setField(manager, "batchWindowVm", originalVmWindow);
     }
 
     @Test
@@ -115,6 +117,54 @@ public class OutboundBatchingTest extends SpringBootBaseTest {
 
         verify(camelRouteManager, times(2)).pushSiriData(any(Siri.class), argThat(subscription("batch-zero")), eq(false));
         assertTrue(scheduledTasks.isEmpty());
+    }
+
+    @Test
+    void subscriptionWithoutWindowUsesTheConfiguredWindow() throws Exception {
+        // Created while no window was configured - e.g. before batching was turned on
+        subscribeVm("batch-existing", "http://localhost/existing", null);
+        assertEquals(0, manager.subscriptions.get("batch-existing").getUpdateInterval());
+        ReflectionTestUtils.setField(manager, "batchWindowVm", Duration.ofSeconds(2));
+
+        pushVm(1);
+        pushVm(1);
+        verify(camelRouteManager, never()).pushSiriData(any(Siri.class), argThat(subscription("batch-existing")), eq(false));
+        verify(scheduler).schedule(any(Runnable.class), eq(2000L), eq(TimeUnit.MILLISECONDS));
+
+        runTimers();
+        ArgumentCaptor<Siri> delivery = ArgumentCaptor.forClass(Siri.class);
+        verify(camelRouteManager, times(1)).pushSiriData(delivery.capture(), argThat(subscription("batch-existing")), eq(false));
+        assertEquals(2, delivery.getValue().getServiceDelivery().getVehicleMonitoringDeliveries().get(0).getVehicleActivities().size());
+    }
+
+    @Test
+    void configuredWindowForExistingSubscriptionIsClampedToMax() throws Exception {
+        subscribeVm("batch-existing-clamped", "http://localhost/existing-clamped", null);
+        ReflectionTestUtils.setField(manager, "batchWindowVm", Duration.ofMinutes(5));
+
+        pushVm(1);
+
+        verify(scheduler).schedule(any(Runnable.class), eq(30000L), eq(TimeUnit.MILLISECONDS));
+    }
+
+    @Test
+    void requestedWindowWinsOverTheConfiguredWindow() throws Exception {
+        subscribeVm("batch-requested", "http://localhost/requested", "PT3S");
+        ReflectionTestUtils.setField(manager, "batchWindowVm", Duration.ofSeconds(1));
+
+        pushVm(1);
+
+        verify(scheduler).schedule(any(Runnable.class), eq(3000L), eq(TimeUnit.MILLISECONDS));
+    }
+
+    @Test
+    void statsShowTheWindowInUse() throws Exception {
+        subscribeVm("batch-stats", "http://localhost/stats", null);
+        ReflectionTestUtils.setField(manager, "batchWindowVm", Duration.ofSeconds(2));
+
+        String stats = manager.getSubscriptionsAsJson().toJSONString();
+
+        assertTrue(stats.contains("\"updateInterval\":\"2.0 s\""), stats);
     }
 
     @Test
