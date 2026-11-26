@@ -14,7 +14,7 @@ import java.util.function.Predicate;
 
 /**
  * Local, in-memory buffer per outbound subscription. Updates are collected for the subscription's
- * update interval and handed to the {@link Flusher}: every time the buffer reaches the maximum size, that many
+ * batch window and handed to the {@link Flusher}: every time the buffer reaches the maximum size, that many
  * objects are sent at once, and whatever is left when the window ends is sent then. A batch never holds more than
  * the maximum size.
  * <p>
@@ -55,10 +55,10 @@ final class OutboundBatcher {
     }
 
     /**
-     * Adds to the subscription's buffer; the first add schedules a flush after subscription.getUpdateInterval() ms.
+     * Adds to the subscription's buffer; the first add schedules a flush after windowMillis.
      * Every full batch of the maximum size is flushed at once; the rest waits for the window.
      */
-    void add(OutboundSubscriptionSetup subscription, List<?> objects, String breadcrumbId) {
+    void add(OutboundSubscriptionSetup subscription, long windowMillis, List<?> objects, String breadcrumbId) {
         final String id = subscription.getSubscriptionId();
         final List<List<Object>> full = new ArrayList<>();
         final Batch[] owner = new Batch[1];
@@ -70,7 +70,7 @@ final class OutboundBatcher {
                 batch = new Batch(subscription, breadcrumbId);
                 final Batch scheduled = batch;
                 batch.timer = scheduler.schedule(() -> flushIfCurrent(key, scheduled),
-                        subscription.getUpdateInterval(), TimeUnit.MILLISECONDS);
+                        windowMillis, TimeUnit.MILLISECONDS);
             }
             batch.objects.addAll(objects);
             owner[0] = batch;

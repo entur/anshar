@@ -52,7 +52,7 @@ public class OutboundBatchingTest extends SpringBootBaseTest {
     private final ScheduledExecutorService scheduler = mock(ScheduledExecutorService.class);
     private final List<Runnable> scheduledTasks = new ArrayList<>();
     private final List<String> createdIds = new ArrayList<>();
-    private Object originalCamelRouteManager, originalExecutor, originalBatcher, originalSxWindow;
+    private Object originalCamelRouteManager, originalExecutor, originalBatcher, originalSxWindow, originalVmWindow;
 
     @BeforeEach
     void setUp() {
@@ -64,6 +64,7 @@ public class OutboundBatchingTest extends SpringBootBaseTest {
         originalExecutor = ReflectionTestUtils.getField(manager, "outboundSenderExecutorService");
         originalBatcher = ReflectionTestUtils.getField(manager, "batcher");
         originalSxWindow = ReflectionTestUtils.getField(manager, "batchWindowSx");
+        originalVmWindow = ReflectionTestUtils.getField(manager, "batchWindowVm");
         // Pushes run on the calling thread, so they are done when pushUpdatesAsync returns
         ReflectionTestUtils.setField(manager, "outboundSenderExecutorService", MoreExecutors.newDirectExecutorService());
         ReflectionTestUtils.setField(manager, "camelRouteManager", camelRouteManager);
@@ -79,6 +80,7 @@ public class OutboundBatchingTest extends SpringBootBaseTest {
         ReflectionTestUtils.setField(manager, "outboundSenderExecutorService", originalExecutor);
         ReflectionTestUtils.setField(manager, "batcher", originalBatcher);
         ReflectionTestUtils.setField(manager, "batchWindowSx", originalSxWindow);
+        ReflectionTestUtils.setField(manager, "batchWindowVm", originalVmWindow);
     }
 
     @Test
@@ -91,13 +93,51 @@ public class OutboundBatchingTest extends SpringBootBaseTest {
     void propertyDefaultIsUsedWithoutRequestValue() throws Exception {
         ReflectionTestUtils.setField(manager, "batchWindowSx", Duration.ofSeconds(1));
         subscribeSx("batch-sx-property", "http://localhost/sx-property");
-        assertEquals(1000, manager.subscriptions.get("batch-sx-property").getUpdateInterval());
+        OutboundSubscriptionSetup subscription = manager.subscriptions.get("batch-sx-property");
+        // Only a requested window is stored - the configured one is read when pushing
+        assertEquals(0, subscription.getUpdateInterval());
+        assertEquals(1000, manager.batchWindow(subscription));
     }
 
     @Test
     void windowIsClampedToMax() throws Exception {
         subscribeVm("batch-vm-clamped", "http://localhost/vm-clamped", "PT5M");
-        assertEquals(30000, manager.subscriptions.get("batch-vm-clamped").getUpdateInterval());
+        assertEquals(30000, manager.batchWindow(manager.subscriptions.get("batch-vm-clamped")));
+    }
+
+    @Test
+    void changedConfiguredWindowAppliesToSubscriptionCreatedWithTheOldOne() throws Exception {
+        ReflectionTestUtils.setField(manager, "batchWindowSx", Duration.ofSeconds(1));
+        subscribeSx("batch-sx-changed", "http://localhost/sx-changed");
+
+        ReflectionTestUtils.setField(manager, "batchWindowSx", Duration.ofSeconds(3));
+
+        assertEquals(3000, manager.batchWindow(manager.subscriptions.get("batch-sx-changed")));
+    }
+
+    @Test
+    void changedMaxAppliesToRequestedWindow() throws Exception {
+        Object originalMax = ReflectionTestUtils.getField(manager, "batchWindowMax");
+        try {
+            subscribeVm("batch-vm-max", "http://localhost/vm-max", "PT10S");
+
+            ReflectionTestUtils.setField(manager, "batchWindowMax", Duration.ofSeconds(5));
+
+            assertEquals(5000, manager.batchWindow(manager.subscriptions.get("batch-vm-max")));
+        } finally {
+            ReflectionTestUtils.setField(manager, "batchWindowMax", originalMax);
+        }
+    }
+
+    @Test
+    void requestedZeroWindowIsNotBatched() throws Exception {
+        ReflectionTestUtils.setField(manager, "batchWindowVm", Duration.ofSeconds(2));
+        subscribeVm("batch-requested-zero", "http://localhost/requested-zero", "PT0S");
+
+        pushVm(1);
+
+        verify(camelRouteManager, times(1)).pushSiriData(any(Siri.class), argThat(subscription("batch-requested-zero")), eq(false));
+        assertTrue(scheduledTasks.isEmpty());
     }
 
     @Test
@@ -115,6 +155,54 @@ public class OutboundBatchingTest extends SpringBootBaseTest {
 
         verify(camelRouteManager, times(2)).pushSiriData(any(Siri.class), argThat(subscription("batch-zero")), eq(false));
         assertTrue(scheduledTasks.isEmpty());
+    }
+
+    @Test
+    void subscriptionWithoutWindowUsesTheConfiguredWindow() throws Exception {
+        // Created while no window was configured - e.g. before batching was turned on
+        subscribeVm("batch-existing", "http://localhost/existing", null);
+        assertEquals(0, manager.subscriptions.get("batch-existing").getUpdateInterval());
+        ReflectionTestUtils.setField(manager, "batchWindowVm", Duration.ofSeconds(2));
+
+        pushVm(1);
+        pushVm(1);
+        verify(camelRouteManager, never()).pushSiriData(any(Siri.class), argThat(subscription("batch-existing")), eq(false));
+        verify(scheduler).schedule(any(Runnable.class), eq(2000L), eq(TimeUnit.MILLISECONDS));
+
+        runTimers();
+        ArgumentCaptor<Siri> delivery = ArgumentCaptor.forClass(Siri.class);
+        verify(camelRouteManager, times(1)).pushSiriData(delivery.capture(), argThat(subscription("batch-existing")), eq(false));
+        assertEquals(2, delivery.getValue().getServiceDelivery().getVehicleMonitoringDeliveries().get(0).getVehicleActivities().size());
+    }
+
+    @Test
+    void configuredWindowForExistingSubscriptionIsClampedToMax() throws Exception {
+        subscribeVm("batch-existing-clamped", "http://localhost/existing-clamped", null);
+        ReflectionTestUtils.setField(manager, "batchWindowVm", Duration.ofMinutes(5));
+
+        pushVm(1);
+
+        verify(scheduler).schedule(any(Runnable.class), eq(30000L), eq(TimeUnit.MILLISECONDS));
+    }
+
+    @Test
+    void requestedWindowWinsOverTheConfiguredWindow() throws Exception {
+        subscribeVm("batch-requested", "http://localhost/requested", "PT3S");
+        ReflectionTestUtils.setField(manager, "batchWindowVm", Duration.ofSeconds(1));
+
+        pushVm(1);
+
+        verify(scheduler).schedule(any(Runnable.class), eq(3000L), eq(TimeUnit.MILLISECONDS));
+    }
+
+    @Test
+    void statsShowTheWindowInUse() throws Exception {
+        subscribeVm("batch-stats", "http://localhost/stats", null);
+        ReflectionTestUtils.setField(manager, "batchWindowVm", Duration.ofSeconds(2));
+
+        String stats = manager.getSubscriptionsAsJson().toJSONString();
+
+        assertTrue(stats.contains("\"updateInterval\":\"2.0 s\""), stats);
     }
 
     @Test

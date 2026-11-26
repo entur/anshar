@@ -43,6 +43,7 @@ public class OutboundSubscriptionSetup implements Serializable {
     private String datasetId;
     private String clientTrackingName;
     private long changeBeforeUpdates;
+    // Window (millis) the client asked for, -1 if it asked for none, 0 if it did not ask - see ServerSubscriptionManager.batchWindow
     private long updateInterval;
 
     public OutboundSubscriptionSetup(ZonedDateTime requestTimestamp, SiriDataType subscriptionType, String address, long heartbeatInterval,

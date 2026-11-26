@@ -60,6 +60,10 @@ class OutboundBatcherTest {
         flushes.add(new Flush(subscription, objects, breadcrumbId));
     }
 
+    private static void add(OutboundBatcher batcher, OutboundSubscriptionSetup s, List<?> objects, String breadcrumbId) {
+        batcher.add(s, s.getUpdateInterval(), objects, breadcrumbId);
+    }
+
     private static OutboundSubscriptionSetup sub(String id, long interval) {
         OutboundSubscriptionSetup s = new OutboundSubscriptionSetup(SiriDataType.ESTIMATED_TIMETABLE, "http://localhost/x", 100, new ArrayList<>(), id);
         s.setUpdateInterval(interval);
@@ -75,8 +79,8 @@ class OutboundBatcherTest {
     @Test
     void addsWithinWindowAreFlushedOnceInOrder() {
         OutboundSubscriptionSetup s = sub("s1", 2000);
-        batcher.add(s, List.of("a"), "b1");
-        batcher.add(s, List.of("b", "c"), "b2");
+        add(batcher, s, List.of("a"), "b1");
+        add(batcher, s, List.of("b", "c"), "b2");
         assertTrue(flushes.isEmpty());
         verify(scheduler, times(1)).schedule(any(Runnable.class), eq(2000L), eq(MILLISECONDS));
         assertEquals(3, batcher.bufferedObjects("s1"));
@@ -92,9 +96,9 @@ class OutboundBatcherTest {
     @Test
     void newWindowStartsAfterFlush() {
         OutboundSubscriptionSetup s = sub("s1", 2000);
-        batcher.add(s, List.of("a"), "b1");
+        add(batcher, s, List.of("a"), "b1");
         scheduledTasks().get(0).run();
-        batcher.add(s, List.of("b"), "b2");
+        add(batcher, s, List.of("b"), "b2");
 
         verify(scheduler, times(2)).schedule(any(Runnable.class), eq(2000L), eq(MILLISECONDS));
         scheduledTasks().get(1).run();
@@ -110,9 +114,9 @@ class OutboundBatcherTest {
                 "http://localhost/x", 0, 0, null, new ArrayList<>(), "s1", "s1", ZonedDateTime.now().plusHours(1), "TST", null, null);
         s.setUpdateInterval(2000);
 
-        batcher.add(s, List.of("a", "b"), "b1");
+        add(batcher, s, List.of("a", "b"), "b1");
         assertTrue(flushes.isEmpty());
-        batcher.add(s, List.of("c", "d"), "b2");
+        add(batcher, s, List.of("c", "d"), "b2");
 
         // A full batch is sent at once - the rest waits for the window
         assertEquals(1, flushes.size());
@@ -134,7 +138,7 @@ class OutboundBatcherTest {
             batcher = new OutboundBatcher(scheduler, this::capture, maxSize);
             String id = "s" + maxSize;
 
-            assertDoesNotThrow(() -> batcher.add(sub(id, 2000), List.of("a", "b", "c"), "b1"));
+            assertDoesNotThrow(() -> add(batcher, sub(id, 2000), List.of("a", "b", "c"), "b1"));
 
             assertTrue(flushes.isEmpty());
             assertEquals(3, batcher.bufferedObjects(id));
@@ -145,14 +149,14 @@ class OutboundBatcherTest {
     void largeAddIsFlushedInBatchesOfMaxSize() {
         batcher = new OutboundBatcher(scheduler, this::capture, 3);
 
-        batcher.add(sub("s1", 2000), List.of(1, 2, 3, 4, 5, 6, 7), "b1");
+        add(batcher, sub("s1", 2000), List.of(1, 2, 3, 4, 5, 6, 7), "b1");
 
         assertEquals(2, flushes.size());
         assertEquals(List.of(1, 2, 3), flushes.get(0).objects());
         assertEquals(List.of(4, 5, 6), flushes.get(1).objects());
         assertEquals(1, batcher.bufferedObjects("s1"));
 
-        batcher.add(sub("s1", 2000), List.of(8, 9), "b2");
+        add(batcher, sub("s1", 2000), List.of(8, 9), "b2");
 
         assertEquals(3, flushes.size());
         assertEquals(List.of(7, 8, 9), flushes.get(2).objects());
@@ -165,7 +169,7 @@ class OutboundBatcherTest {
 
     @Test
     void clearDiscardsBufferAndCancelsTimer() {
-        batcher.add(sub("s1", 2000), List.of("a"), "b1");
+        add(batcher, sub("s1", 2000), List.of("a"), "b1");
         batcher.clear("s1");
 
         assertEquals(0, batcher.bufferedObjects("s1"));
@@ -176,9 +180,9 @@ class OutboundBatcherTest {
 
     @Test
     void clearIfRemovesOnlyMatchingBatchesAndCancelsTimers() {
-        batcher.add(sub("s1", 2000), List.of("a"), "b1");
-        batcher.add(sub("s2", 3000), List.of("b"), "b2");
-        batcher.add(sub("s3", 2000), List.of("c"), "b3");
+        add(batcher, sub("s1", 2000), List.of("a"), "b1");
+        add(batcher, sub("s2", 3000), List.of("b"), "b2");
+        add(batcher, sub("s3", 2000), List.of("c"), "b3");
 
         batcher.clearIf(s -> s.getUpdateInterval() == 2000);
 
@@ -196,8 +200,8 @@ class OutboundBatcherTest {
 
     @Test
     void flushAllFlushesEveryBuffer() {
-        batcher.add(sub("s1", 2000), List.of("a"), "b1");
-        batcher.add(sub("s2", 2000), List.of("b"), "b2");
+        add(batcher, sub("s1", 2000), List.of("a"), "b1");
+        add(batcher, sub("s2", 2000), List.of("b"), "b2");
 
         batcher.flushAll();
 
@@ -212,11 +216,11 @@ class OutboundBatcherTest {
     void flusherExceptionIsSwallowed() {
         OutboundSubscriptionSetup s = sub("s1", 2000);
         failFlush = true;
-        batcher.add(s, List.of("a"), "b1");
+        add(batcher, s, List.of("a"), "b1");
         assertDoesNotThrow(() -> scheduledTasks().get(0).run());
 
         failFlush = false;
-        batcher.add(s, List.of("b"), "b2");
+        add(batcher, s, List.of("b"), "b2");
         scheduledTasks().get(1).run();
         assertEquals(1, flushes.size());
         assertEquals(List.of("b"), flushes.get(0).objects());
@@ -244,7 +248,7 @@ class OutboundBatcherTest {
                 try {
                     start.await();
                     for (int i = 0; i < perThread; i++) {
-                        concurrent.add(s, List.of(base + i), "b");
+                        add(concurrent, s, List.of(base + i), "b");
                     }
                 } catch (Throwable e) {
                     errors.incrementAndGet();
