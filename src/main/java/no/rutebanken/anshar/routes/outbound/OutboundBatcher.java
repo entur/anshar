@@ -11,6 +11,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
+import java.util.function.ToIntFunction;
 
 /**
  * Local, in-memory buffer per outbound subscription. Updates are collected for the subscription's
@@ -44,14 +45,21 @@ final class OutboundBatcher {
 
     private final ScheduledExecutorService scheduler;
     private final Flusher flusher;
-    private final int maxObjects;
+    private final ToIntFunction<OutboundSubscriptionSetup> maxObjects;
     private final ConcurrentHashMap<String, Batch> batches = new ConcurrentHashMap<>();
 
     OutboundBatcher(ScheduledExecutorService scheduler, Flusher flusher, int maxObjects) {
+        this(scheduler, flusher, subscription -> maxObjects);
+    }
+
+    /**
+     * @param maxObjects the largest batch for a subscription, read on every add. 0 or less means no size limit:
+     *                   batches are only sent when the window ends
+     */
+    OutboundBatcher(ScheduledExecutorService scheduler, Flusher flusher, ToIntFunction<OutboundSubscriptionSetup> maxObjects) {
         this.scheduler = scheduler;
         this.flusher = flusher;
-        // 0 or less means no size limit: batches are only sent when the window ends
-        this.maxObjects = maxObjects > 0 ? maxObjects : Integer.MAX_VALUE;
+        this.maxObjects = maxObjects;
     }
 
     /**
@@ -63,6 +71,8 @@ final class OutboundBatcher {
         final List<List<Object>> full = new ArrayList<>();
         final Batch[] owner = new Batch[1];
         final boolean[] emptied = new boolean[1];
+        final int configuredMax = maxObjects.applyAsInt(subscription);
+        final int max = configuredMax > 0 ? configuredMax : Integer.MAX_VALUE;
 
         batches.compute(id, (key, existing) -> {
             Batch batch = existing;
@@ -74,8 +84,8 @@ final class OutboundBatcher {
             }
             batch.objects.addAll(objects);
             owner[0] = batch;
-            while (batch.objects.size() >= maxObjects) {
-                List<Object> head = batch.objects.subList(0, maxObjects);
+            while (batch.objects.size() >= max) {
+                List<Object> head = batch.objects.subList(0, max);
                 full.add(new ArrayList<>(head));
                 head.clear();
             }

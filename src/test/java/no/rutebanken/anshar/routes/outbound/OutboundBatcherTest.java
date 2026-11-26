@@ -132,6 +132,19 @@ class OutboundBatcherTest {
     }
 
     @Test
+    void maxSizeIsReadPerSubscription() {
+        batcher = new OutboundBatcher(scheduler, this::capture, s -> "small".equals(s.getSubscriptionId()) ? 2 : 0);
+
+        add(batcher, sub("small", 2000), List.of("a", "b", "c"), "b1");
+        add(batcher, sub("unlimited", 2000), List.of("a", "b", "c"), "b2");
+
+        assertEquals(1, flushes.size());
+        assertEquals(List.of("a", "b"), flushes.get(0).objects());
+        assertEquals(1, batcher.bufferedObjects("small"));
+        assertEquals(3, batcher.bufferedObjects("unlimited"));
+    }
+
+    @Test
     void nonPositiveMaxSizeMeansNoSizeLimit() {
         for (int maxSize : new int[]{0, -1}) {
             flushes.clear();

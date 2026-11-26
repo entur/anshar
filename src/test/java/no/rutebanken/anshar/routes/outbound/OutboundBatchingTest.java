@@ -52,7 +52,7 @@ public class OutboundBatchingTest extends SpringBootBaseTest {
     private final ScheduledExecutorService scheduler = mock(ScheduledExecutorService.class);
     private final List<Runnable> scheduledTasks = new ArrayList<>();
     private final List<String> createdIds = new ArrayList<>();
-    private Object originalCamelRouteManager, originalExecutor, originalBatcher, originalSxWindow, originalVmWindow;
+    private Object originalCamelRouteManager, originalExecutor, originalBatcher, originalSxWindow, originalVmWindow, originalVmBatchMax;
 
     @BeforeEach
     void setUp() {
@@ -65,10 +65,11 @@ public class OutboundBatchingTest extends SpringBootBaseTest {
         originalBatcher = ReflectionTestUtils.getField(manager, "batcher");
         originalSxWindow = ReflectionTestUtils.getField(manager, "batchWindowSx");
         originalVmWindow = ReflectionTestUtils.getField(manager, "batchWindowVm");
+        originalVmBatchMax = ReflectionTestUtils.getField(manager, "batchMaxObjectsVm");
         // Pushes run on the calling thread, so they are done when pushUpdatesAsync returns
         ReflectionTestUtils.setField(manager, "outboundSenderExecutorService", MoreExecutors.newDirectExecutorService());
         ReflectionTestUtils.setField(manager, "camelRouteManager", camelRouteManager);
-        ReflectionTestUtils.setField(manager, "batcher", new OutboundBatcher(scheduler, manager::flushBatch, 1000));
+        ReflectionTestUtils.setField(manager, "batcher", new OutboundBatcher(scheduler, manager::flushBatch, manager::batchMaxObjects));
     }
 
     @AfterEach
@@ -81,6 +82,7 @@ public class OutboundBatchingTest extends SpringBootBaseTest {
         ReflectionTestUtils.setField(manager, "batcher", originalBatcher);
         ReflectionTestUtils.setField(manager, "batchWindowSx", originalSxWindow);
         ReflectionTestUtils.setField(manager, "batchWindowVm", originalVmWindow);
+        ReflectionTestUtils.setField(manager, "batchMaxObjectsVm", originalVmBatchMax);
     }
 
     @Test
@@ -203,6 +205,34 @@ public class OutboundBatchingTest extends SpringBootBaseTest {
         String stats = manager.getSubscriptionsAsJson().toJSONString();
 
         assertTrue(stats.contains("\"updateInterval\":\"2.0 s\""), stats);
+    }
+
+    @Test
+    void batchIsSentWhenTheMaxForItsTypeIsReached() throws Exception {
+        ReflectionTestUtils.setField(manager, "batchMaxObjectsVm", 2);
+        subscribeVm("batch-type-max", "http://localhost/type-max", "PT2S");
+
+        pushVm(5);
+
+        ArgumentCaptor<Siri> delivery = ArgumentCaptor.forClass(Siri.class);
+        verify(camelRouteManager, times(2)).pushSiriData(delivery.capture(), argThat(subscription("batch-type-max")), eq(false));
+        for (Siri siri : delivery.getAllValues()) {
+            assertEquals(2, siri.getServiceDelivery().getVehicleMonitoringDeliveries().get(0).getVehicleActivities().size());
+        }
+
+        runTimers();
+        verify(camelRouteManager, times(3)).pushSiriData(delivery.capture(), argThat(subscription("batch-type-max")), eq(false));
+        assertEquals(1, delivery.getValue().getServiceDelivery().getVehicleMonitoringDeliveries().get(0).getVehicleActivities().size());
+    }
+
+    @Test
+    void estimatedTimetableBatchesAreSmallerByDefault() {
+        // A journey is ~15 KB, so 1000 of them made 15 MB posts that receivers could not take
+        OutboundSubscriptionSetup et = new OutboundSubscriptionSetup(SiriDataType.ESTIMATED_TIMETABLE, "http://localhost/et", 100, new ArrayList<>(), "batch-et-max");
+        OutboundSubscriptionSetup vm = new OutboundSubscriptionSetup(SiriDataType.VEHICLE_MONITORING, "http://localhost/vm", 100, new ArrayList<>(), "batch-vm-max");
+
+        assertEquals(100, manager.batchMaxObjects(et));
+        assertEquals(1000, manager.batchMaxObjects(vm));
     }
 
     @Test

@@ -148,6 +148,17 @@ public class ServerSubscriptionManager {
     @Value("${anshar.outbound.batch.window.max:30s}")
     private Duration batchWindowMax = Duration.ofSeconds(30);
 
+    // Largest batch pushed at once, per type - a full batch is sent before its window ends. ET journeys are large
+    // (~15 KB), so 1000 of them made posts too big for some receivers. 0 or less means no size limit.
+    @Value("${anshar.outbound.batch.max.elements.et:100}")
+    private int batchMaxObjectsEt = 100;
+    @Value("${anshar.outbound.batch.max.elements.vm:1000}")
+    private int batchMaxObjectsVm = 1000;
+    @Value("${anshar.outbound.batch.max.elements.sx:1000}")
+    private int batchMaxObjectsSx = 1000;
+    @Value("${anshar.outbound.batch.max.elements.fm:1000}")
+    private int batchMaxObjectsFm = 1000;
+
     @Value("${anshar.default.max.elements.per.delivery:1000}")
     private int maxElementsPerDelivery = 1000;
 
@@ -204,7 +215,7 @@ public class ServerSubscriptionManager {
             thread.setDaemon(true);
             return thread;
         });
-        batcher = new OutboundBatcher(batchFlushScheduler, this::flushBatch, maxElementsPerDelivery);
+        batcher = new OutboundBatcher(batchFlushScheduler, this::flushBatch, this::batchMaxObjects);
     }
 
     /**
@@ -427,6 +438,23 @@ public class ServerSubscriptionManager {
             return clampBatchWindow(Duration.ofMillis(requested));
         }
         return clampBatchWindow(configuredBatchWindow(subscription.getSubscriptionType()));
+    }
+
+    /**
+     * @return the largest batch pushed at once to a subscription, by its type
+     */
+    int batchMaxObjects(OutboundSubscriptionSetup subscription) {
+        SiriDataType type = subscription.getSubscriptionType();
+        if (type == null) {
+            return maxElementsPerDelivery;
+        }
+        return switch (type) {
+            case ESTIMATED_TIMETABLE -> batchMaxObjectsEt;
+            case VEHICLE_MONITORING -> batchMaxObjectsVm;
+            case SITUATION_EXCHANGE -> batchMaxObjectsSx;
+            case FACILITY_MONITORING -> batchMaxObjectsFm;
+            default -> maxElementsPerDelivery;
+        };
     }
 
     private long clampBatchWindow(Duration window) {
