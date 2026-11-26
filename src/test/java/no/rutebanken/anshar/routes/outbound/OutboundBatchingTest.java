@@ -93,13 +93,51 @@ public class OutboundBatchingTest extends SpringBootBaseTest {
     void propertyDefaultIsUsedWithoutRequestValue() throws Exception {
         ReflectionTestUtils.setField(manager, "batchWindowSx", Duration.ofSeconds(1));
         subscribeSx("batch-sx-property", "http://localhost/sx-property");
-        assertEquals(1000, manager.subscriptions.get("batch-sx-property").getUpdateInterval());
+        OutboundSubscriptionSetup subscription = manager.subscriptions.get("batch-sx-property");
+        // Only a requested window is stored - the configured one is read when pushing
+        assertEquals(0, subscription.getUpdateInterval());
+        assertEquals(1000, manager.batchWindow(subscription));
     }
 
     @Test
     void windowIsClampedToMax() throws Exception {
         subscribeVm("batch-vm-clamped", "http://localhost/vm-clamped", "PT5M");
-        assertEquals(30000, manager.subscriptions.get("batch-vm-clamped").getUpdateInterval());
+        assertEquals(30000, manager.batchWindow(manager.subscriptions.get("batch-vm-clamped")));
+    }
+
+    @Test
+    void changedConfiguredWindowAppliesToSubscriptionCreatedWithTheOldOne() throws Exception {
+        ReflectionTestUtils.setField(manager, "batchWindowSx", Duration.ofSeconds(1));
+        subscribeSx("batch-sx-changed", "http://localhost/sx-changed");
+
+        ReflectionTestUtils.setField(manager, "batchWindowSx", Duration.ofSeconds(3));
+
+        assertEquals(3000, manager.batchWindow(manager.subscriptions.get("batch-sx-changed")));
+    }
+
+    @Test
+    void changedMaxAppliesToRequestedWindow() throws Exception {
+        Object originalMax = ReflectionTestUtils.getField(manager, "batchWindowMax");
+        try {
+            subscribeVm("batch-vm-max", "http://localhost/vm-max", "PT10S");
+
+            ReflectionTestUtils.setField(manager, "batchWindowMax", Duration.ofSeconds(5));
+
+            assertEquals(5000, manager.batchWindow(manager.subscriptions.get("batch-vm-max")));
+        } finally {
+            ReflectionTestUtils.setField(manager, "batchWindowMax", originalMax);
+        }
+    }
+
+    @Test
+    void requestedZeroWindowIsNotBatched() throws Exception {
+        ReflectionTestUtils.setField(manager, "batchWindowVm", Duration.ofSeconds(2));
+        subscribeVm("batch-requested-zero", "http://localhost/requested-zero", "PT0S");
+
+        pushVm(1);
+
+        verify(camelRouteManager, times(1)).pushSiriData(any(Siri.class), argThat(subscription("batch-requested-zero")), eq(false));
+        assertTrue(scheduledTasks.isEmpty());
     }
 
     @Test

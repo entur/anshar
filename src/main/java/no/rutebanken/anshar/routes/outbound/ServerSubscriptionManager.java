@@ -136,7 +136,7 @@ public class ServerSubscriptionManager {
     private Duration resubscribeInitialDeliveryInterval = Duration.ofMinutes(5);
 
     // Updates to a subscription are collected and pushed once per window - from the request (VM UpdateInterval),
-    // else per type, read at push time so existing subscriptions follow it too. 0 pushes every update at once.
+    // else per type. Read at push time, so existing subscriptions follow it too. 0 pushes every update at once.
     @Value("${anshar.outbound.batch.window.et:0s}")
     private Duration batchWindowEt = Duration.ZERO;
     @Value("${anshar.outbound.batch.window.vm:0s}")
@@ -394,29 +394,37 @@ public class ServerSubscriptionManager {
         return subscription;
     }
 
+    /** Stored for a client that asked for an update interval of zero - it gets every update at once */
+    static final long REQUESTED_NO_BATCHING = -1;
+
     /**
-     * @return the window (millis) to collect updates for before pushing them - VM UpdateInterval from the request,
-     * else the configured window for the type, at most anshar.outbound.batch.window.max
+     * @return the window (millis) the client asked for (VM UpdateInterval), {@link #REQUESTED_NO_BATCHING} if it
+     * asked for zero, or 0 if it asked for nothing. Only the request is stored: the configured window and the max are
+     * read when pushing, see {@link #batchWindow}.
      */
     long resolveUpdateInterval(SubscriptionRequest subscriptionRequest, SiriDataType type) {
-        Duration window = null;
         if (type == SiriDataType.VEHICLE_MONITORING
                 && SiriHelper.containsValues(subscriptionRequest.getVehicleMonitoringSubscriptionRequests())) {
-            window = subscriptionRequest.getVehicleMonitoringSubscriptionRequests().get(0).getUpdateInterval();
+            Duration requested = subscriptionRequest.getVehicleMonitoringSubscriptionRequests().get(0).getUpdateInterval();
+            if (requested != null) {
+                return requested.toMillis() > 0 ? requested.toMillis() : REQUESTED_NO_BATCHING;
+            }
         }
-        if (window == null) {
-            window = configuredBatchWindow(type);
-        }
-        return clampBatchWindow(window);
+        return 0;
     }
 
     /**
-     * @return the window (millis) a subscription is batched with - its own, else the one configured for its type
-     * now. Subscriptions created before a window was configured get it without having to re-subscribe.
+     * @return the window (millis) a subscription is batched with now - the one it asked for, else the one configured
+     * for its type, at most anshar.outbound.batch.window.max. Subscriptions follow changes to the configuration
+     * without having to re-subscribe.
      */
     long batchWindow(OutboundSubscriptionSetup subscription) {
-        if (subscription.getUpdateInterval() > 0) {
-            return subscription.getUpdateInterval();
+        long requested = subscription.getUpdateInterval();
+        if (requested < 0) {
+            return 0;
+        }
+        if (requested > 0) {
+            return clampBatchWindow(Duration.ofMillis(requested));
         }
         return clampBatchWindow(configuredBatchWindow(subscription.getSubscriptionType()));
     }
